@@ -1,6 +1,6 @@
 # Proposta 4.4 — Direttive ridotte senza perdita di regole vincolanti
 
-Stato: **non attivata** (analisi conclusa il 2026-11-01). `direttive/approved.json` non è stato modificato e nessuna sincronizzazione è stata eseguita.
+Stato: **non attivata** (analisi conclusa il 2026-11-01; l'utente ha deciso di non attivarla, task chiuso il 2026-11-01). `direttive/approved.json` non è stato modificato e nessuna sincronizzazione è stata eseguita.
 
 Testi da esaminare:
 
