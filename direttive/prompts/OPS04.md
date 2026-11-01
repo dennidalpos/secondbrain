@@ -1,6 +1,6 @@
 # OPS04 — Prepara note di rilascio e verifiche di consegna
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: changelog, commit recenti e tracker delle attivita | **Esempio d'uso**: `sb prompt OPS04: compila note di rilascio v4.0 da commit e tracker`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: changelog, commit recenti e tracker delle attivita | **Esempio d'uso**: `sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker`
 
 ## Scopo
 
@@ -20,7 +20,7 @@ Ricava cambiamenti da diff e prove, separando funzionalità, correzioni, incompa
 
 ## Verifiche
 
-Controlla che ogni affermazione abbia evidenze e che versione/artefatti coincidano. Evidenzia impedimenti; non pubblicare o distribuire implicitamente.
+Controlla che ogni affermazione abbia evidenze e che versione/artefatti coincidano. Evidenzia impedimenti; non pubblicare o distribuire implicitamente. Non cambiare il numero di versione senza chiedere: proponilo con scelta multipla; se l'utente accetta esegui il cambio ovunque serva, se rifiuta lascialo invariato.
 
 ## Consegna
 

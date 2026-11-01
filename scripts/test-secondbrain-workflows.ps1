@@ -31,9 +31,9 @@ try {
     Put-Workflow (Join-Path $dir 'para.json') (ConvertTo-SBJson @{schemaVersion=1;id='repo-area';kind='area';title='Repo';status='active'})
     Put-Workflow (Join-Path $dir 'repository.json') (ConvertTo-SBJson @{schemaVersion=1;identity='github.com/test/repo'})
     foreach($name in @('context.md','memory.md','brief.md','tracker.md')){Put-Workflow (Join-Path $dir $name) 'PRIVATE_DOSSIER_CONTENT'}
-    Put-Workflow (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=3;allowedOwners=@('test','example-user');excludedDirectories=@('.git')})
+    Put-Workflow (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test','example-user');excludedDirectories=@('.git')})
     $runtime=Get-SBLocalRoot $brain 'fixture';$configPath=Join-Path $runtime 'workstation.json'
-    Put-Workflow $configPath (ConvertTo-SBJson @{schemaVersion=3;mode='portable';workstationId='fixture';runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');ides=@();
+    Put-Workflow $configPath (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='fixture';runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');ides=@();
         bindings=@(@{path=$repo;identity='github.com/test/repo';remoteIdentity='github.com/test/repo';status='managed'})})
     $index=Get-SBParaIndex $brain @('test','example-user');Put-Workflow (Join-Path $brain 'para-index.json') $index.json
     $config=@{brainRoot=$brain;allowedOwners=@('test','example-user');workstationId='fixture'}
@@ -57,14 +57,14 @@ try {
     $commands=@(Get-SBWorkflowCommands)
     Assert-Workflow ($commands.Count -ge 9 -and @($commands|Where-Object {!$homeText.Contains('`'+$_.command+'`') -or !$_.does -or !$_.mode}).Count -eq 0) 'schermata iniziale: ogni comando con descrizione e modalità'
     Assert-Workflow (@($commands|Where-Object {$_.command -match '^sb (attiva|controlla|allinea|compatta)$' -and $template -notmatch [regex]::Escape($_.command)}).Count -eq 0) 'comandi sb del registro presenti nella direttiva di postazione'
-    $homeProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/proposals/2026-10-31-sb-prompt-home/workstation.template.md')
+    $homeProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     Assert-Workflow ($homeProposal -match 'sb prompt tutti' -and $homeProposal -match 'get_prompt_home' -and $homeProposal -match 'senza riassumerli') 'proposta direttive: schermata iniziale e elenco integrale'
     $repoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     Assert-Workflow ($homeText -match 'PRIMI PASSI' -and $homeText -match '(?m)^GUIDE$') 'schermata iniziale: primi passi e guide'
     $guides=@(Get-SBWorkflowGuides)
     $readmeRoot=Read-SBText (Join-Path $repoRoot 'README.md')
     Assert-Workflow ($guides.Count -ge 8 -and @($guides|Where-Object {!(Test-Path -LiteralPath (Join-Path $repoRoot (($_.path -split '#')[0])) -PathType Leaf) -or !$homeText.Contains($_.path)}).Count -eq 0) 'guide della schermata iniziale: file esistenti e linkati'
-    $customHeadings=Read-SBText (Join-Path $repoRoot 'docs/customizing-prompts-and-directives.md')
+    $customHeadings=Read-SBText (Join-Path $repoRoot 'docs/riferimento/customizing-prompts-and-directives.md')
     $anchorTitles=@{'modifica-dei-prompt'='Modifica dei prompt';'modifica-delle-direttive'='Modifica delle direttive'}
     Assert-Workflow (@($guides|Where-Object {$_.path -match '#'}|Where-Object {$customHeadings -notmatch ('(?m)^## '+[regex]::Escape($anchorTitles[($_.path -split '#')[1]])+'\r?$')}).Count -eq 0) 'ancore delle guide presenti come titoli'
     function Test-CommandLines([string]$Text) {
@@ -80,17 +80,17 @@ try {
     }
     $stepText=(@(Get-SBWorkflowFirstSteps|ForEach-Object command|Where-Object {$_}) -join "`n")
     Assert-Workflow (@(Test-CommandLines $stepText).Count -eq 0 -and @(Get-SBWorkflowFirstSteps).Count -ge 5) 'primi passi: script e parametri esistono'
-    $startSection=([regex]::Match($readmeRoot,'(?s)## Inizia qui.*?(?=\n## Perch)')).Value
-    Assert-Workflow ($startSection.Length -gt 500 -and $startSection.Contains('docs/safety-backups.md') -and $startSection -match 'Get-SBWorkflow|prompts\.ps1' -and $startSection -match '-Pair' -and $startSection -match '-Sync') 'README: sezione Inizia qui con avviso, MCP e direttive'
-    Assert-Workflow (@(Test-CommandLines $startSection).Count -eq 0 -and @(Test-CommandLines (Read-SBText (Join-Path $repoRoot 'docs/setup.md'))).Count -eq 0) 'README e setup: comandi con script e parametri esistenti'
-    $runtimeGuide=Read-SBText (Join-Path $repoRoot 'docs/runtime-maintenance.md')
-    Assert-Workflow (@($guides|Where-Object {$_.path -eq 'docs/runtime-maintenance.md'}).Count -eq 1 -and $readmeRoot.Contains('docs/runtime-maintenance.md') -and (Read-SBText (Join-Path $repoRoot 'docs/operations.md')).Contains('runtime-maintenance.md') -and @(Test-CommandLines $runtimeGuide).Count -eq 0) 'guida runtime-maintenance: nel registro, linkata, con comandi e parametri reali'
+    $startSection=([regex]::Match($readmeRoot,'(?s)## Inizia\b.*?(?=\n## )')).Value
+    Assert-Workflow ($startSection.Contains('docs/sicurezza.md') -and $startSection -match '-Setup' -and $startSection -match '-Pair' -and $startSection -match '-Sync') 'README: sezione Inizia con avviso, MCP e direttive'
+    Assert-Workflow (@(Test-CommandLines $startSection).Count -eq 0 -and @(Test-CommandLines (Read-SBText (Join-Path $repoRoot 'docs/inizia.md'))).Count -eq 0) 'README e setup: comandi con script e parametri esistenti'
+    $runtimeGuide=Read-SBText (Join-Path $repoRoot 'docs/riferimento/runtime-maintenance.md')
+    Assert-Workflow (@($guides|Where-Object {$_.path -eq 'docs/riferimento/runtime-maintenance.md'}).Count -eq 1 -and $readmeRoot.Contains('docs/riferimento/runtime-maintenance.md') -and (Read-SBText (Join-Path $repoRoot 'docs/riferimento/operations.md')).Contains('runtime-maintenance.md') -and @(Test-CommandLines $runtimeGuide).Count -eq 0) 'guida runtime-maintenance: nel registro, linkata, con comandi e parametri reali'
     Assert-Workflow ($runtimeGuide -match 'ProposeRuntime' -and $runtimeGuide -match 'Profile Full' -and $runtimeGuide -match 'sb:tier=history' -and $runtimeGuide -match 'non è un manifest eseguibile') 'guida runtime-maintenance: proposta di pulizia, profili di avvio e livelli'
-    $contextProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/proposals/2026-11-01-contesto-iniziale-snello/workstation.template.md')
-    $contextProposalCommon=Read-SBText (Join-Path $PSScriptRoot '../direttive/proposals/2026-11-01-contesto-iniziale-snello/AGENTS.global_ide.md')
+    $contextProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
+    $contextProposalCommon=Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')
     Assert-Workflow ($contextProposal -match 'profilo snello entro 20\.000' -and $contextProposalCommon -match '20\.000 caratteri' -and $contextProposalCommon -match 'solo per il primo caricamento') 'proposta direttive: contesto iniziale snello a 20.000, tetto solo al primo caricamento'
-    Assert-Workflow ($readmeRoot.Contains('docs/safety-backups.md') -and (Read-SBText (Join-Path $repoRoot 'docs/operations.md')).Contains('safety-backups.md')) 'guida sicurezza linkata da README e operations'
-    $guideProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/proposals/2026-11-01-sb-prompt-guide/workstation.template.md')
+    Assert-Workflow ($readmeRoot.Contains('docs/sicurezza.md') -and (Read-SBText (Join-Path $repoRoot 'docs/riferimento/operations.md')).Contains('safety-backups.md')) 'guida sicurezza linkata da README e operations'
+    $guideProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     Assert-Workflow ($guideProposal -match 'primi passi' -and $guideProposal -match 'guide per il primo avvio' -and $guideProposal -match 'get_prompt_home') 'proposta direttive: primi passi e guide'
     $cliHome=& pwsh -NoProfile -File $cli
     Assert-Workflow ($LASTEXITCODE -eq 0 -and ($cliHome -join "`n") -match 'sb prompt tutti' -and ($cliHome -join "`n") -notmatch 'TST04 \|') 'CLI senza argomenti mostra la schermata iniziale e non l''elenco'
@@ -222,7 +222,7 @@ try {
     Put-Workflow (Join-Path $project 'para.json') (ConvertTo-SBJson @{schemaVersion=1;id='fixture-project';kind='project';title='Fixture';status='active';areas=@('repo-area');trackers=@(@{area='repo-area';path='tracker.md'})})
     Put-Workflow (Join-Path $project 'brief.md') 'BRIEF_MARKER $(Get-Process)'
     $newIndex=Get-SBParaIndex $brain @('test','example-user');Put-Workflow $paraPath $newIndex.json
-    Put-Workflow (Join-Path $brain 'inventory.json') (ConvertTo-SBJson @{schemaVersion=3;repositories=@(@{identities=@('github.com/test/repo');path=$repo;status='active';workstationId='fixture'},@{identities=@('github.com/test/repo');path=$worktree;status='active';workstationId='fixture'})})
+    Put-Workflow (Join-Path $brain 'inventory.json') (ConvertTo-SBJson @{schemaVersion=1;repositories=@(@{identities=@('github.com/test/repo');path=$repo;status='active';workstationId='fixture'},@{identities=@('github.com/test/repo');path=$worktree;status='active';workstationId='fixture'})})
     Reject-Workflow {Get-SBWorkflowContext -Config $config -Repository 'github.com/test/repo'} 'selezione per identita ambigua rifiutata'
     $map=Join-Path $temp 'map.json';Put-Workflow $map (ConvertTo-SBJson @{'github.com/test/repo'=$worktree})
     $projectContext=Get-SBWorkflowContext -Config $config -ProjectId 'fixture-project' -CheckoutMapPath $map
@@ -245,7 +245,7 @@ try {
     $centralText=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'SYS01')[0]) $central 'verifica'
     Assert-Workflow ($centralText -match 'SYS01' -and $centralText.Contains($brain)) 'prompt centrale composto solo per SecondBrain'
     Reject-Workflow {New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'SYS02')[0]) $multi 'verifica'} 'prompt centrale rifiuta Progetto comprendente prodotti'
-    Put-Workflow (Join-Path $brain 'direttive/AGENTS.global_ide.md') "# Common`nRevisione 3.3 — 2026-10-28."
+    Put-Workflow (Join-Path $brain 'direttive/AGENTS.global_ide.md') "# Common`nRevisione 1.0 — 2026-10-28."
     Put-Workflow (Join-Path $brain 'direttive/workstation.template.md') '<!-- secondbrain:tracker-contract:1 -->'
     Put-Workflow (Join-Path $brain 'direttive/approved.json') (ConvertTo-SBJson @{authorization='fixture';files=@{'direttive/AGENTS.global_ide.md'=Get-SBFileHash (Join-Path $brain 'direttive/AGENTS.global_ide.md');'direttive/workstation.template.md'=Get-SBFileHash (Join-Path $brain 'direttive/workstation.template.md')}})
     Put-Workflow (Join-Path $dir 'repository.json') (ConvertTo-SBJson $declaration)
@@ -261,12 +261,12 @@ try {
     foreach($name in @('context.md','memory.md','brief.md')){Put-Workflow (Join-Path $archive $name) '# Archived'}
     $newIndex=Get-SBParaIndex $brain @('test','example-user');Put-Workflow $paraPath $newIndex.json
     Reject-Workflow {Get-SBWorkflowContext -Config $config -Repository 'github.com/test/archived'} 'dossier archiviato non riattivato'
-    $cases=Read-SBJson (Join-Path $PSScriptRoot 'fixtures/prompts-v2.json') $null
+    $cases=Read-SBJson (Join-Path $PSScriptRoot 'fixtures/prompts.json') $null
     foreach($case in $cases.cases){
         $rendered=(& pwsh -NoProfile -File $cli -Compose -Prompt $case.code -Objective $case.objective -RepositoryPath $repo -ConfigPath $configPath|Out-String)
-        Assert-Workflow ($LASTEXITCODE -eq 0 -and $rendered.StartsWith('CATALOGO PROMPT v2 — '+$case.code+' | ')) ('fixture workflow '+$case.code+': selezione CLI')
+        Assert-Workflow ($LASTEXITCODE -eq 0 -and $rendered.StartsWith('CATALOGO PROMPT — '+$case.code+' | ')) ('fixture workflow '+$case.code+': selezione CLI')
         Assert-Workflow ($rendered.Contains($case.objective) -and $rendered.Contains('Modalità della scheda: '+$case.mode)) ('fixture workflow '+$case.code+': richiesta e modalita')
-        Assert-Workflow ([regex]::Matches($rendered,'(?m)^# [A-Z]{2,4}[0-9]{2} — ').Count -eq 1 -and !$rendered.Contains('PRIVATE_DOSSIER_CONTENT')) ('fixture workflow '+$case.code+': una sola scheda, dossier per riferimento')
+        Assert-Workflow ([regex]::Matches($rendered,'(?m)^Titolo: [A-Z]{2,4}[0-9]{2} — ').Count -eq 1 -and !$rendered.Contains('PRIVATE_DOSSIER_CONTENT')) ('fixture workflow '+$case.code+': una sola scheda, dossier per riferimento')
     }
     $cardLabels=@('SCHEDA PROMPT','ID: pmt-','Titolo: ','Cosa fa: ','Esempio d''uso: ','Modalità: ','Ambito: ','Cosa serve: ','Regola vincolante: ')
     $incomplete=@()
@@ -345,8 +345,20 @@ try {
     Put-Workflow $catalogPath $original
     Remove-Item -LiteralPath $newCard -Force
     Assert-Workflow ((Read-SBWorkflowCatalog $brain -ValidateBodies).prompts.Count -eq 80 -and @(Get-SBWorkflowDrift $brain).Count -eq 0) 'caso d uso: catalogo fixture ripristinato e allineato'
-    $proposalText=Read-SBText (Join-Path $PSScriptRoot '../direttive/proposals/2026-10-31-prompt-scheda-uniforme/workstation.template.md')
-    Assert-Workflow (($cardLabels|Where-Object {$_ -notin @('SCHEDA PROMPT','ID: pmt-')}|Where-Object {!$proposalText.Contains($_.TrimEnd(' ',':'))}).Count -eq 0 -and $proposalText.Contains('ID') -and $proposalText -match 'Function Calling / Tool Use a scelta multipla' -and $proposalText -match 'fermati') 'proposta direttive 4.3 elenca i campi della scheda e la regola tool-use'
+    $proposalText=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
+    Assert-Workflow (($cardLabels|Where-Object {$_ -notin @('SCHEDA PROMPT','ID: pmt-')}|Where-Object {!$proposalText.Contains($_.TrimEnd(' ',':'))}).Count -eq 0 -and $proposalText.Contains('ID') -and $proposalText -match 'Function Calling / Tool Use a scelta multipla' -and $proposalText -match 'fermati') 'direttive: elencano i campi della scheda e la regola tool-use'
+    $costarCatalog=Read-SBWorkflowCatalog $brain -ValidateBodies
+    $costarContext=@{repositories=@(@{identity='github.com/test/repo';checkout=$brain;agents='AGENTS.md';context='context.md';memory='memory.md';tracker=$null;trackerSource=$null;sourceApplicability=$null});sourceRegistry=$null;project=$null}
+    $costarBad=@($costarCatalog.prompts|Where-Object {
+        $composed=New-SBWorkflowComposition $brain $costarCatalog $_ $costarContext 'obiettivo di prova'
+        $last=-1;$ordered=$true
+        foreach($part in 'Context','Objective','Style','Tone','Audience','Response'){$at=$composed.IndexOf("`n## $part`n");if($at -le $last){$ordered=$false};$last=$at}
+        !$ordered -or !$composed.Contains('obiettivo di prova')
+    })
+    Assert-Workflow ($costarBad.Count -eq 0) 'CO-STAR: tutti i prompt composti hanno le 6 sezioni in ordine'
+    $productVersion=(Read-SBText (Join-Path $PSScriptRoot '../VERSION')).Trim()
+    $revisionLine=[regex]::Match((Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
+    Assert-Workflow ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
     Assert-Workflow (@(Get-SBWorkflowDrift ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')))).Count -eq 0) 'catalogo reale allineato'
     'SUCCESS WORKFLOWS: '+$script:workflowChecks+' verifiche; nessuna valutazione di comportamento LLM implicita.'
 } finally {

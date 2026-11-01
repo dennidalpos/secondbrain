@@ -1,5 +1,5 @@
 {
-  "catalogVersion": 2,
+  "catalogVersion": 1,
   "categories": [
     {
       "id": "comprensione",
@@ -193,7 +193,7 @@
       "aliases": [],
       "category": "progettazione",
       "code": "PRG03",
-      "example": "sb prompt PRG03: progetta schema json e contratti api per il tracker v2",
+      "example": "sb prompt PRG03: progetta schema json e contratti api per il tracker",
       "file": "PRG03.md",
       "id": "pmt-83764c0d",
       "mode": "read",
@@ -604,7 +604,7 @@
       "aliases": [],
       "category": "test",
       "code": "TST05",
-      "example": "sb prompt TST05: verifica conformita output rispetto alle specifiche 4.0",
+      "example": "sb prompt TST05: verifica conformita output rispetto alle specifiche",
       "file": "TST05.md",
       "id": "pmt-ef96dea5",
       "mode": "read",
@@ -1249,7 +1249,7 @@
       "aliases": [],
       "category": "operativita",
       "code": "OPS04",
-      "example": "sb prompt OPS04: compila note di rilascio v4.0 da commit e tracker",
+      "example": "sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker",
       "file": "OPS04.md",
       "id": "pmt-0618969e",
       "mode": "write",
@@ -1829,7 +1829,7 @@
         "pmt-f02db9d0",
         "pmt-adb9bfc0"
       ],
-      "requires": "catalogo v2 valido, area di destinazione e sessione di scrittura",
+      "requires": "catalogo valido, area di destinazione e sessione di scrittura",
       "scope": "central",
       "status": "active",
       "summary": "Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.",
@@ -1881,5 +1881,5 @@
       "target": "repository"
     }
   ],
-  "schemaVersion": 2
+  "schemaVersion": 1
 }

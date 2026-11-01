@@ -245,7 +245,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                         }
                         serverInfo = @{
                             name = 'secondbrain-mcp'
-                            version = '4.0.0'
+                            version = (Get-SBVersion)
                         }
                     }
                 }
@@ -359,7 +359,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                         resources = @(
                             @{
                                 uri = 'secondbrain://prompts/catalog'
-                                name = 'Catalogo Prompt e Workflow SecondBrain v2'
+                                name = 'Catalogo Prompt e Workflow SecondBrain'
                                 mimeType = 'application/json'
                             }
                         )

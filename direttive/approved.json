@@ -1,13 +1,13 @@
 {
-  "approvedAt": "2026-11-01T01:50:30.5716302+01:00",
-  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): proposta contesto-iniziale-snello",
+  "approvedAt": "2026-11-01T11:57:25.6036101+01:00",
+  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): direttive 1.0",
   "files": {
-    "direttive/AGENTS.global_ide.md": "DC71F0157A62D90CF87843EF7E5F9B979E45EE1B2A3EEB43AB6A40526C363CEA",
-    "direttive/workstation.template.md": "55BD29D05C7BB277CAB0B33C5C68DCA4EAE0CD91347C0727C49ECE4D65FC5295"
+    "direttive/AGENTS.global_ide.md": "BD71FC9AF31D22DD21A0E6243F905300631B85120A6A3E7C12EF9FAD4193CA8C",
+    "direttive/workstation.template.md": "B5821F83D2567E84690DFF9B3336CE235D9E6BC837E8172A057C26B7A377A9A2"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-01-contesto-iniziale-snello",
-    "readmeHash": "64325D6A6D01F5FF2BB0E1C06FB2875049FB27A0DB3A1B80E5E5A5F15D4B9983"
+    "path": "direttive/proposals/2026-11-01-v1.0",
+    "readmeHash": "04605E88F5C7A6B243AB5DC242E89F7235ECC22997EB462BCD0856B7F2E259E4"
   },
   "schemaVersion": 1
 }

@@ -1,6 +1,6 @@
 # SYS11 — Gestisci il catalogo prompt: aggiungi, modifica, rimuovi
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: catalogo v2 valido, area di destinazione e sessione di scrittura | **Esempio d'uso**: `sb prompt SYS11: aggiungi un prompt al catalogo nell'area test`
+> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: catalogo valido, area di destinazione e sessione di scrittura | **Esempio d'uso**: `sb prompt SYS11: aggiungi un prompt al catalogo nell'area test`
 
 ## Scopo
 

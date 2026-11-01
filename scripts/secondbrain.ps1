@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Controlla, sincronizza e attiva SecondBrain sulla postazione (modello portabile v4.0).
+Controlla, sincronizza e attiva SecondBrain sulla postazione.
 .DESCRIPTION
 Exit code: 0 allineato, 1 attenzione, 2 errore, 3 archivio occupato (lock di scrittura non ottenuto entro -WaitSeconds, predefinito 60).
 Le letture (-Check) non prendono lock bloccanti: un writer attivo o una transazione pendente compaiono come warnings.
@@ -10,7 +10,7 @@ Le letture (-Check) non prendono lock bloccanti: un writer attivo o una transazi
 -Setup -Status: stato di binding, IDE e ultima ricevuta di selezione (sola lettura, exit 0).
 -Setup -Unbind <repo|percorso|idIDE|nomeIDE>[,..]: disassocia repository e integrazioni IDE gestiti con proposta, conferma (-Yes o -Interactive) e anteprima come l'attivazione; -Apply per applicare. I dossier e i file IDE non vengono eliminati.
 -Setup -Output <repo|percorso> -OutputStatus verified|exception-accepted|unverified [-Evidence <file sotto .runtime>] [-Exception <motivo>]: registra nel binding l'esito della collocazione degli output dopo la prova dell'agent prodotto (anteprima, conferma -Yes o -Interactive, -Apply). verified lega la prova ai suoi byte (SHA-256); exception-accepted richiede un motivo; nessuna build o test dei prodotti viene eseguito.
-Operazioni e contratti portabili: docs/portable-brain.md.
+Operazioni e contratti portabili: docs/riferimento/portable-brain.md.
 .EXAMPLE
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync

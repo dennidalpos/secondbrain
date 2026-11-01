@@ -1,6 +1,6 @@
 # Istruzioni del repository: <Nome>
 
-Revisione 3.0 — 2026-10-19. Vincoli specifici del progetto; i contenuti comuni sono gestiti separatamente.
+Revisione 1.0 — 2026-11-01. Vincoli specifici del progetto; i contenuti comuni sono gestiti separatamente.
 
 Modello da compilare soltanto con informazioni verificate; omettere le sezioni non pertinenti.
 

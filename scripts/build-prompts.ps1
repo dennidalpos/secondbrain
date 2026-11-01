@@ -1,10 +1,10 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Valida catalogo v2 e schede, genera direttive/prompts/README.md.
+Valida catalogo e schede, genera direttive/prompts/README.md.
 .DESCRIPTION
 -Check verifica senza scrivere: exit 0 allineato, 1 da rigenerare.
-Il catalogo prompt v2 è nella radice SecondBrain. Usare -SessionId nelle sessioni Write.
+Il catalogo prompt è nella radice SecondBrain. Usare -SessionId nelle sessioni Write.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[switch]$Check)
@@ -29,6 +29,6 @@ try {
             'Aggiornato: '+$item.path
         }
     }
-    "Catalogo v2 allineato: $($catalog.prompts.Count) prompt ($($catalog.prompts[0].code)-$($catalog.prompts[-1].code))"
+    "Catalogo allineato: $($catalog.prompts.Count) prompt ($($catalog.prompts[0].code)-$($catalog.prompts[-1].code))"
     exit 0
 }finally{Exit-SBOperation $lock}

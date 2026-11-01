@@ -20,11 +20,11 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
-Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1')
 $config=Read-SBConfiguration $ConfigPath
 if(!$BackupRoot){$BackupRoot=$config.backupRoot}
 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$BackupRoot=Assert-SBCentralDataPath $config.brainRoot $BackupRoot}
-if((Read-SBJson (Join-Path $config.brainRoot 'config/shared.json') @{}).schemaVersion -ne 3){throw 'PARA richiede migrazione v3 approvata'}
+if((Read-SBJson (Join-Path $config.brainRoot 'config/shared.json') @{}).schemaVersion -ne 1){throw 'Policy condivisa non valida: config/shared.json'}
 $writing=$BuildIndex -or $NewProject -or $Archive -or $Restore
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$writing)
 try {

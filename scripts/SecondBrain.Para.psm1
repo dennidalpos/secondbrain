@@ -232,7 +232,7 @@ function Convert-SBParaReferences($Value,[hashtable]$Mapping,[string]$BrainRoot)
     $Value
 }
 
-function Get-SBParaReferenceOperations($Config,[hashtable]$Mapping,[switch]$Upgrade) {
+function Get-SBParaReferenceOperations($Config,[hashtable]$Mapping) {
     $paths=@((Join-Path $Config.brainRoot 'inventory.json'))
     $registry=Read-SBJson (Join-Path $Config.coordinationRoot 'workstations.json') @{}
     $runtimeRoots=@($Config.runtimeRoot)+@($registry.Values|ForEach-Object runtimeRoot)|Sort-Object -Unique
@@ -253,14 +253,8 @@ function Get-SBParaReferenceOperations($Config,[hashtable]$Mapping,[switch]$Upgr
                 $managed[$new+'|'+$parts[1]]=$original.managed[$key]
             }
             $value.managed=$managed
-            if($Upgrade){
-                $value.schemaVersion=2
-                foreach($id in @($value.dossierMap.Keys)){$old='repos/'+$original.dossierMap[$id];if($Mapping.ContainsKey($old)){$value.dossierMap[$id]=$Mapping[$old]}else{throw 'Dossier della baseline non risolto'}}
-            }
-        }elseif($Upgrade){
-            $value.schemaVersion=3
-            if($value.ContainsKey('workstations')){foreach($station in $value.workstations){$station.schemaVersion=3}}
         }
+
         $text=ConvertTo-SBJson $value
         if((Get-SBTextHash $text) -ne (Get-SBFileHash $path)){@{path=$path;expected=(Get-SBFileHash $path);bytes=[Text.Encoding]::UTF8.GetBytes($text)}}
     }
@@ -281,7 +275,7 @@ function Get-SBParaRuntimePaths($Config) {
     foreach($runtime in @($Config.runtimeRoot)+@($registry.Values|ForEach-Object runtimeRoot)|Sort-Object -Unique){
         foreach($name in @('state.json','inventory.json','workstation.json')){[IO.Path]::GetFullPath((Join-Path $runtime $name))}
     }
-    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1')
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1')
     foreach($registration in @(Get-SBTrackerManifestRegistrations $Config)){$registration.path}
 }
 

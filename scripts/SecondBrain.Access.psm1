@@ -36,7 +36,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         return Read-SBConfiguration $target -AllowPendingTransaction:$AllowPendingTransaction -MigrationDepth ($MigrationDepth+1) -ReadOnly:$ReadOnly
     }
     $shared = Read-SBJson (Join-Path $brain 'config/shared.json') $null
-    if($local -and $local.schemaVersion -eq 3 -and $local.mode -eq 'portable'){
+    if($local -and $local.schemaVersion -eq 1 -and $local.mode -eq 'portable'){
         foreach($key in @('workstationId','runtimeRoot','backupRoot','bindings','ides')){if(!$local.ContainsKey($key)){throw 'Configurazione portabile incompleta: '+$key}}
         if($local.workstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw 'WorkstationId non valido'}
         [void](Assert-SBCentralDataPath $brain $ConfigPath)
@@ -68,7 +68,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         }
         return $local
     }
-    throw 'Configurazione portabile schema 3 richiesta: attivare la postazione con secondbrain.ps1 -Setup (SYS03)'
+    throw 'Configurazione della postazione richiesta: attivare la postazione con secondbrain.ps1 -Setup (SYS03)'
 }
 
 function Write-SBAccessMetadata([string]$Path, $Value) {

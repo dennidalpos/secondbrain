@@ -4,17 +4,17 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
-Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1')
 
 function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(Get-SBHostId)) {
     $root=Get-SBLocalRoot $BrainRoot $WorkstationId
-    @{schemaVersion=3;mode='portable';workstationId=$WorkstationId;runtimeRoot=$root;backupRoot=(Join-Path $root 'backups');repositoryRoot=[IO.Path]::GetFullPath($BrainRoot);
+    @{schemaVersion=1;mode='portable';workstationId=$WorkstationId;runtimeRoot=$root;backupRoot=(Join-Path $root 'backups');repositoryRoot=[IO.Path]::GetFullPath($BrainRoot);
       bindings=@();ides=@();startupBudget=50000}
 }
 function Get-SBPortableGlobal([string]$BrainRoot) {
     $revision=Get-SBApprovedDirectiveRevision $BrainRoot
-    if(!$revision -or [version]$revision.version -lt [version]'4.0'){throw 'Direttive portabili 4.0 non ancora approvate: distribuzione sospesa'}
+    if(!$revision -or [version]$revision.version -lt [version]'1.0'){throw 'Direttive non ancora approvate: distribuzione sospesa'}
     $common=Read-SBText (Join-Path $BrainRoot 'direttive/AGENTS.global_ide.md')
     $integration=Read-SBText (Join-Path $BrainRoot 'direttive/workstation.template.md')
     $text=$common.Trim()+"`n`n"+$integration.Trim()+"`n"
@@ -413,7 +413,7 @@ function Invoke-SBPortableSync {
             $scoped=@($Config.bindings|Where-Object {$_.identity -ceq $Repository})
             if($scoped.Count -ne 1){throw 'Repository non gestito su questa postazione: '+$Repository}
         }
-        $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=2;managed=@{};dossierMap=@{}}
+        $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=1;managed=@{};dossierMap=@{}}
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
         if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $Config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw 'Osservazioni IDE non valide'};$observations=@($receipt.observations)}
@@ -491,11 +491,11 @@ function Invoke-SBPortableSync {
             Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $Config.backupRoot|Out-Null
         }
         if(!$Check -and !$Repository){
-            $inventory=@{schemaVersion=4;workstationId=$Config.workstationId;repositories=$Config.bindings;ides=$Config.ides;coverage='approved-associations; use Check for current verification'}
+            $inventory=@{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings;ides=$Config.ides;coverage='approved-associations; use Check for current verification'}
             $inventoryPath=Join-Path $Config.runtimeRoot 'inventory.json'
             Write-SBFile $inventoryPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $inventory))) (Get-SBFileHash $inventoryPath) $Config.backupRoot|Out-Null
             Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $Config.backupRoot|Out-Null
-            $map=@{schemaVersion=2;workstationId=$Config.workstationId;ides=$Config.ides}
+            $map=@{schemaVersion=1;workstationId=$Config.workstationId;ides=$Config.ides}
             $mapPath=Join-Path $Config.runtimeRoot 'ide-map.json';Write-SBFile $mapPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $map))) (Get-SBFileHash $mapPath) $Config.backupRoot|Out-Null
             Update-SBParaIndex $Config|Out-Null
         }

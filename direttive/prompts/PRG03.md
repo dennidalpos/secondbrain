@@ -1,6 +1,6 @@
 # PRG03 — Progetta contratti API, modelli dati e compatibilità
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: casi d uso ed entita di dominio coinvolte | **Esempio d'uso**: `sb prompt PRG03: progetta schema json e contratti api per il tracker v2`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: casi d uso ed entita di dominio coinvolte | **Esempio d'uso**: `sb prompt PRG03: progetta schema json e contratti api per il tracker`
 
 ## Scopo
 

@@ -18,12 +18,12 @@ try{
     Assert-Portable (Test-SBRepositoryIdentity ('local:'+('a'*32))) 'identita locale persistente'
     Reject-Portable {Assert-SBCentralDataPath $brain (Join-Path $fixture 'elsewhere')} 'output esterno rifiutato'
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
-    Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $brain 'scripts')
+    Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $brain 'scripts');Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../VERSION') -Destination (Join-Path $brain 'VERSION')
     [IO.Directory]::CreateDirectory((Join-Path $brain 'config'))|Out-Null
     foreach($name in @('shared.json','tracker.schema.json','prompt-catalog.schema.json')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('../config/'+$name)) -Destination (Join-Path $brain ('config/'+$name))}
     [IO.Directory]::CreateDirectory((Join-Path $brain 'direttive'))|Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
-    Put-Portable (Join-Path $brain 'direttive/AGENTS.global_ide.md') "# Fixture`nRevisione 4.0 — 2026-10-29."
+    Put-Portable (Join-Path $brain 'direttive/AGENTS.global_ide.md') "# Fixture`nRevisione 1.0 — 2026-10-29."
     Put-Portable (Join-Path $brain 'direttive/workstation.template.md') '<!-- secondbrain:tracker-contract:1 -->'
     $approval=@{authorization='isolated fixture';files=@{}}
     foreach($name in @('AGENTS.global_ide.md','workstation.template.md')){$approval.files['direttive/'+$name]=Get-SBFileHash (Join-Path $brain ('direttive/'+$name))}
@@ -217,7 +217,7 @@ try{
     Assert-Portable (!(Test-Path -LiteralPath (Join-Path $brain '.runtime/backups/transactions'))) 'nessun backup nel percorso di ripiego quando l host e configurato'
     $noHostBrain=Join-Path $fixture 'brain-no-host'
     Assert-Portable ((Resolve-SBTrackerBackupRoot $noHostBrain) -eq (Join-Path $noHostBrain '.runtime/backups/transactions')) 'senza configurazione host resta il percorso di transazione sotto .runtime'
-    $badHostPath=Get-SBHostConfigPath $noHostBrain;Put-Portable $badHostPath (ConvertTo-SBJson @{schemaVersion=3;mode='portable';workstationId='bad'})
+    $badHostPath=Get-SBHostConfigPath $noHostBrain;Put-Portable $badHostPath (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='bad'})
     Reject-Portable {Resolve-SBTrackerBackupRoot $noHostBrain} 'configurazione host senza backupRoot non ripiega in silenzio'
     $workA=Get-SBWorkEnvironment $brain $cfg.workstationId $cfg.bindings[0].identity 'project-a' 'runtime-a'
     $workB=Get-SBWorkEnvironment $brain $cfg.workstationId $cfg.bindings[0].identity 'project-b' 'runtime-a'
@@ -290,7 +290,7 @@ try{
     Reject-Portable {Export-SBPublicCapture -BrainRoot $brain -ManifestPath $receiptPath -RepositoryPath $other -Name '../escape.png' -BackupRoot $cfg.backupRoot -Apply} 'percorso asset non confinato rifiutato'
     $idePath=Join-Path $brain '.runtime/ide/AGENTS.md';$globalText="Revisione 3.3 — fixture";Put-Portable $idePath ("<!-- secondbrain:global:begin -->`n"+$globalText+"`n<!-- secondbrain:global:end -->")
     Put-Portable (Join-Path $cfg.runtimeRoot 'istruzioni-globali.md') $globalText
-    $map=@{schemaVersion=2;workstationId=$cfg.workstationId;ides=@(@{name='File 3.3';mode='file';instructions=$idePath;selected=$true;loadingStatus='verified-current-session'},@{name='Account 3.1';mode='manual';selected=$true;accountAlias='fixture-account';accountStatus='unverified';observedRevision='3.1';observedHash=(Get-SBTextHash '3.1');loadingStatus='unverified'})}
+    $map=@{schemaVersion=1;workstationId=$cfg.workstationId;ides=@(@{name='File 3.3';mode='file';instructions=$idePath;selected=$true;loadingStatus='verified-current-session'},@{name='Account 3.1';mode='manual';selected=$true;accountAlias='fixture-account';accountStatus='unverified';observedRevision='3.1';observedHash=(Get-SBTextHash '3.1');loadingStatus='unverified'})}
     Put-Portable (Join-Path $cfg.runtimeRoot 'ide-map.json') (ConvertTo-SBJson $map)
     $ideResult=& pwsh -NoProfile -File (Join-Path $brain 'scripts/ide-map.ps1') -Verify -ConfigPath $activation.configuration 2>&1
     Assert-Portable ($LASTEXITCODE -eq 1 -and ($ideResult -join "`n") -match 'non verificati o disallineati') 'file 3.3 non nasconde account 3.1'
@@ -539,7 +539,7 @@ try{
     try{
         $noShared=Invoke-FixtureCli $accessCli @('-Status')
         Assert-Portable ($noShared.exit -ne 0 -and $noShared.text -match 'shared\.json') 'shared.json assente e un errore (fail-closed)'
-        Put-Portable $sharedFile '{"schemaVersion":3}'
+        Put-Portable $sharedFile '{"schemaVersion":1}'
         Assert-Portable ((Invoke-FixtureCli $accessCli @('-Status')).exit -ne 0) 'shared.json incompleto e un errore'
     }finally{Remove-Item -LiteralPath $sharedFile -Force -ErrorAction SilentlyContinue;Move-Item -LiteralPath $sharedBackup -Destination $sharedFile}
     Assert-Portable ((Invoke-FixtureCli $accessCli @('-Status')).exit -eq 0) 'shared.json ripristinato accettato'
@@ -1098,7 +1098,7 @@ Start-Sleep -Seconds 300
     # profilo utente deviato. Il secondo host si associa ai dossier esistenti per identita, senza duplicarli e senza toccare il primo host.
     function New-SecondHostBrain([string]$Path){
         [IO.Directory]::CreateDirectory((Join-Path $Path 'scripts'))|Out-Null
-        Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $Path 'scripts')
+        Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $Path 'scripts');Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../VERSION') -Destination (Join-Path $Path 'VERSION')
         [IO.Directory]::CreateDirectory((Join-Path $Path 'config'))|Out-Null
         foreach($name in @('shared.json','tracker.schema.json','prompt-catalog.schema.json')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('../config/'+$name)) -Destination (Join-Path $Path ('config/'+$name))}
         [IO.Directory]::CreateDirectory((Join-Path $Path 'direttive'))|Out-Null

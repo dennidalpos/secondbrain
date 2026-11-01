@@ -6,7 +6,7 @@ Verifica le istruzioni globali degli IDE elencati nella mappa della postazione.
 Legge runtimeRoot/ide-map.json, generato da secondbrain.ps1 -Sync, e confronta
 il blocco secondbrain:global di ogni IDE di tipo file con runtimeRoot/istruzioni-globali.md.
 Non scrive nulla. Exit code: 0 tutto allineato, 1 IDE da riallineare o mappa assente, 2 errore.
-Schema della mappa: docs/adapters.md.
+Schema della mappa: docs/riferimento/adapters.md.
 .EXAMPLE
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 #>
@@ -27,7 +27,7 @@ try {
     $expectedRevision=if($expected -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
     $wanted="<!-- secondbrain:global:begin -->`n"+$expected+"`n<!-- secondbrain:global:end -->"
     $map=Read-SBJson $mapPath $null
-    if(!$map -or $map.schemaVersion -notin @(1,2) -or $map.workstationId -ne $config.workstationId -or $map.ides -isnot [array]){throw 'Mappa IDE non valida o di un''altra postazione: '+$mapPath}
+    if(!$map -or $map.schemaVersion -ne 1 -or $map.workstationId -ne $config.workstationId -or $map.ides -isnot [array]){throw 'Mappa IDE non valida o di un''altra postazione: '+$mapPath}
     $pending=0
     $observations=@()
     if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw 'Osservazioni IDE non valide'};$observations=@($receipt.observations)}
@@ -49,7 +49,7 @@ try {
         $found=if($source -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'assente'}
         if($null -ne $block -and $block -ceq $wanted){
             "$($ide.name): allineato (revisione $found); il file non certifica account o caricamento"
-            if($map.schemaVersion -eq 2 -and !(Test-SBIDEObservation $ide (Get-SBTextHash $expected) $observations $config.brainRoot $config.workstationId)){$pending++}
+            if(!(Test-SBIDEObservation $ide (Get-SBTextHash $expected) $observations $config.brainRoot $config.workstationId)){$pending++}
             continue
         }
         $pending++

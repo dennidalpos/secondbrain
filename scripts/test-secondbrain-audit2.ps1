@@ -1,7 +1,7 @@
 #requires -Version 7.5
 param([ValidateSet('All','Removal','Markdown','Provenance','Recovery')][string]$Case='All')
 $ErrorActionPreference='Stop'
-foreach($module in @('Core','Access','Para','Tracker','TrackerMigration')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
+foreach($module in @('Core','Access','Para','Tracker','TrackerImport')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
 $script:checks=0
 function Assert-Next($Condition,[string]$Message){if(!$Condition){throw ('FAIL AUDIT2: '+$Message)};$script:checks++;'PASS AUDIT2: '+$Message}
 function Reject-Next([scriptblock]$Action,[string]$Message){$rejected=$false;try{& $Action|Out-Null}catch{$rejected=$true};Assert-Next $rejected $Message}
@@ -71,7 +71,7 @@ try {
             $f=New-AuditFixture ('markdown-'+$index);$f.source=Join-Path $f.dir 'tracker.md';Put-Audit $f.source $inputText;$hash=Get-SBFileHash $f.source
             Reject-Next {ConvertTo-SBTracker $f.source $f.identity} ('Markdown: formato non riconosciuto rifiutato '+$index)
             $before=Snapshot-Next (Split-Path $f.brain)
-            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/migrate-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source *> $null
+            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source *> $null
             Assert-Next ($LASTEXITCODE -ne 0 -and (Snapshot-Next (Split-Path $f.brain)) -ceq $before) ('Markdown: anteprima rifiuta senza scrivere '+$index)
             Reject-Next {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('Markdown: attivazione rifiutata '+$index)
             Assert-Next ((Get-SBFileHash $f.source) -eq $hash -and !(Test-Path -LiteralPath (Join-Path $f.dir 'tracker.json')) -and !(Read-SBJson (Join-Path $f.dir 'repository.json') $null).ContainsKey('tracker')) ('Markdown: fonte e autorita conservate '+$index)

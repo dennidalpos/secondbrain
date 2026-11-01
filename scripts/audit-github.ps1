@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Audit GitHub GET esplicito, separato da Check e Sync. Vedere docs/external-audit.md.
+Audit GitHub GET esplicito, separato da Check e Sync. Vedere docs/riferimento/external-audit.md.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[string[]]$Repository,[string]$OutputPath)
@@ -16,7 +16,7 @@ try {
     $portable=$config.ContainsKey('mode') -and $config.mode -eq 'portable'
     $inventoryPath=if($portable){Join-Path $config.runtimeRoot 'inventory.json'}else{Join-Path $config.brainRoot 'inventory.json'}
     $inventoryHash=Get-SBFileHash $inventoryPath;$inventory=Read-SBJson $inventoryPath $null
-    if(!$inventory -or $inventory.schemaVersion -notin @(3,4)){throw 'Inventario locale richiesto; eseguire prima Sync'}
+    if(!$inventory -or $inventory.schemaVersion -ne 1){throw 'Inventario locale richiesto; eseguire prima Sync'}
     $managed=if($portable){@($config.bindings|Where-Object {$_.status -eq 'managed' -and $_.identity.StartsWith('github.com/',[StringComparison]::Ordinal)}|ForEach-Object identity|Sort-Object -Unique)}else{@($inventory.repositories|Where-Object status -eq 'active'|ForEach-Object identities|Sort-Object -Unique)}
     $identities=if($Repository){@($Repository)}else{$managed}
     foreach($identity in $identities){Assert-SBAuditIdentity $identity $config.allowedOwners;if($identity -notin $managed){throw 'Repository fuori inventario attivo'}}

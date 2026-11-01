@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Registra gli accessi cooperativi a SecondBrain; vedere docs/operations.md.
+Registra gli accessi cooperativi a SecondBrain; vedere docs/riferimento/operations.md.
 Lo stato (-Status) e in sola lettura; -Purge elimina le sessioni chiuse, scadute o abbandonate da piu di 60 minuti.
 -Reconcile conferma esplicitamente uno spostamento della postazione (stesso workstationId, percorsi diversi) e aggiorna il registro.
 .EXAMPLE

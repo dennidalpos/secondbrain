@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
 Server MCP (Model Context Protocol) stdio locale in sola lettura per SecondBrain.
-Espone contesto di avvio, task pronti (-ReadyOnly), ricerca trasversale, catalogo prompt v2 e verifica di pubblicabilità (REP05) agli IDE conformi.
+Espone contesto di avvio, task pronti (-ReadyOnly), ricerca trasversale, catalogo prompt e verifica di pubblicabilità (REP05) agli IDE conformi.
 Supporta l'accoppiamento con tutti i principali IDE (-Pair -Target <ide> o -Target all) e la generazione di pacchetti di configurazione (-ExportPackage).
 
 .EXAMPLE

@@ -5,7 +5,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
-Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
 $script:checks=0
 function Assert-Audit($Condition,[string]$Message){if(!$Condition){throw 'FAIL TRACKER AUDIT: '+$Message};$script:checks++;'PASS TRACKER AUDIT: '+$Message}
 function Reject-Audit([scriptblock]$Action,[string]$Message,[string]$Pattern=''){$caught=$false;try{& $Action|Out-Null}catch{if($Pattern -and $_.Exception.Message -notmatch $Pattern){throw};$caught=$true};Assert-Audit $caught $Message}
@@ -14,7 +14,7 @@ function New-AuditFixture([string]$Name){
     $base=Join-Path $root $Name;$brain=Join-Path $base 'brain';$checkout=Join-Path $base 'repos/Repo';$dir=Join-Path $brain '02-areas/products/Repo'
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $brain 'scripts')
-    Put-Audit (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=3;allowedOwners=@('test');excludedDirectories=@('.git')})
+    Put-Audit (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git')})
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../config/tracker.schema.json') -Destination (Join-Path $brain 'config/tracker.schema.json')
     [IO.Directory]::CreateDirectory((Join-Path $brain 'direttive'))|Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
@@ -28,7 +28,7 @@ function New-AuditFixture([string]$Name){
     Put-Audit (Join-Path $checkout 'AGENTS.md') '# Repo'
     [void](Invoke-SBGit $checkout @('init','-q'));[void](Invoke-SBGit $checkout @('remote','add','origin','https://github.com/test/repo.git'))
     $runtime=Get-SBLocalRoot $brain 'fixture';$cfg=Join-Path $runtime 'workstation.json'
-    Put-Audit $cfg (ConvertTo-SBJson @{schemaVersion=3;mode='portable';workstationId='fixture';runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');ides=@();
+    Put-Audit $cfg (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='fixture';runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');ides=@();
         bindings=@(@{path=$checkout;identity='github.com/test/repo';remoteIdentity='github.com/test/repo';status='managed'})})
     $config=Read-SBJson $cfg $null
     $config.brainRoot=$brain;$config.configPath=$cfg;$config.repositoryRoot=$brain;$config.coordinationRoot=Join-Path $brain '.runtime/access';$config.allowedOwners=@('test');$config.excludedDirectories=@('.git');$config.sessionTimeoutMinutes=30
@@ -112,7 +112,7 @@ try {
             if($scenario -eq 'foreign'){$dependency.repository='github.com/foreign/other'}
             Put-Audit $f.source (ConvertTo-SBJson @{tasks=@(@{id='X';title='Task';status='pending';dependencies=@($dependency)})})
             $sourceHash=Get-SBFileHash $f.source
-            $preview=@(& pwsh -NoProfile -File (Join-Path $f.brain 'scripts/migrate-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source 2>&1)
+            $preview=@(& pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source 2>&1)
             $previewExit=$LASTEXITCODE
             Assert-Audit ($previewExit -eq $(if($scenario -in @('valid','changed')){0}else{1}) -and (Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Get-SBTrackerMigrationPath $f.config $f.identity))) ('anteprima grafo '+$scenario)
             if($scenario -in @('missing','cycle','foreign')){
@@ -128,9 +128,9 @@ try {
                 Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Join-Path $f.dir 'tracker.json'))) 'rivalidazione precede attivazione'
                 continue
             }
-            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/migrate-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
+            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
             Assert-Audit ($LASTEXITCODE -eq 0 -and (Read-SBTrackerManifest $f.config $manifest).phase -eq 'completed') 'CLI attiva grafo cross-repository valido'
-            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/migrate-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
+            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
             Assert-Audit ($LASTEXITCODE -eq 0 -and @(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) 'ripresa grafo completato idempotente'
             Restore-SBTrackerMigration $f.config $manifest
             Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash) 'rollback grafo conserva originale'

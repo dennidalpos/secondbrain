@@ -1,13 +1,13 @@
-# Catalogo prompt v2
+# Catalogo prompt
 
 Indice generato da catalog.json e schede Markdown con scripts/build-prompts.ps1. Non modificare questo indice a mano.
 
 Nella chat: `sb prompt`, `sb prompt tutti`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: descrizione`. Ogni prompt ha un ID immutabile (`pmt-` e 8 esadecimali) e uno o più alias (codice incluso): ID e alias risolvono allo stesso prompt.
 
-La CLI compone testo; il task viene svolto dall'agente nei permessi e nella modalità della sessione. [Uso, attivazione e migrazione dei codici](../../docs/directives-prompts.md).
+La CLI compone testo; il task viene svolto dall'agente nei permessi e nella modalità della sessione. [Come usare e modificare i prompt](../../docs/prompt.md).
 
 ```text
-Catalogo prompt v2
+Catalogo prompt
 
 COMPRENSIONE E RICERCA
 COM01 | Esplora il repository e individua componenti e comandi principali.
@@ -52,7 +52,7 @@ PRG03 | Progetta contratti API, modelli dati e compatibilità.
   • ID: pmt-83764c0d
   • Scope: repo/area | Modalità: read
   • Serve: requisiti o schema attuale con versione
-  • Esempio: sb prompt PRG03: progetta schema json e contratti api per il tracker v2
+  • Esempio: sb prompt PRG03: progetta schema json e contratti api per il tracker
 
 PRG04 | Prepara un piano per fasi con dipendenze e verifiche.
   • ID: pmt-8541aed1
@@ -164,7 +164,7 @@ TST05 | Verifica il comportamento reale rispetto ai requisiti.
   • ID: pmt-ef96dea5
   • Scope: repo | Modalità: read
   • Serve: criteri di accettazione e ambiente funzionante
-  • Esempio: sb prompt TST05: verifica conformita output rispetto alle specifiche 4.0
+  • Esempio: sb prompt TST05: verifica conformita output rispetto alle specifiche
 
 TST06 | Misura e migliora prestazioni e consumo di risorse.
   • ID: pmt-9de57e24
@@ -342,7 +342,7 @@ OPS04 | Prepara note di rilascio e verifiche di consegna.
   • ID: pmt-0618969e
   • Scope: repo | Modalità: write
   • Serve: commit, issue o task completati dalla release precedente
-  • Esempio: sb prompt OPS04: compila note di rilascio v4.0 da commit e tracker
+  • Esempio: sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker
 
 
 REPOSITORY E DOCUMENTAZIONE
@@ -497,7 +497,7 @@ SYS10 | Esegui rollback e dismissione repository restituendo i dati per privacy.
 SYS11 | Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
   • ID: pmt-364616bb
   • Scope: central | Modalità: write
-  • Serve: catalogo v2 valido, area di destinazione e sessione di scrittura
+  • Serve: catalogo valido, area di destinazione e sessione di scrittura
   • Esempio: sb prompt SYS11: aggiungi un prompt al catalogo nell'area test
 
 

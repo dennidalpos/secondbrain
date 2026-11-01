@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Consulta e compone i workflow del catalogo v2. Non esegue task o servizi AI.
+Consulta e compone i workflow del catalogo. Non esegue task o servizi AI.
 .EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1
 .EXAMPLE
@@ -54,7 +54,7 @@ try {
         $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
         if($resolution.warning){Write-Warning $resolution.warning}
         $selected=@($resolution.prompt)
-        'CATALOGO PROMPT v2 — modalità '+$selected[0].mode+'; destinazione '+$selected[0].target+'; ID '+$selected[0].id
+        'CATALOGO PROMPT — modalità '+$selected[0].mode+'; destinazione '+$selected[0].target+'; ID '+$selected[0].id
         $showBody=Read-SBWorkflowPrompt $brain $selected[0] $catalog
         Format-SBWorkflowCard $selected[0] $showBody
         $showBody

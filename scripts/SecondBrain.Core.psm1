@@ -16,6 +16,13 @@ function Get-SBHash([byte[]]$Bytes) {
     [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($Bytes))
 }
 function Get-SBTextHash([string]$Text) { Get-SBHash ([Text.Encoding]::UTF8.GetBytes($Text)) }
+# Versione del prodotto: unica fonte è il file VERSION nella radice del clone.
+function Get-SBVersion {
+    $path=Join-Path $PSScriptRoot '../VERSION'
+    if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'File VERSION mancante'}
+    (Get-Content -LiteralPath $path -Raw).Trim()
+}
+
 function Read-SBText([string]$Path) { [IO.File]::ReadAllText($Path, [Text.UTF8Encoding]::new($false, $true)) }
 function Get-SBFileHash([string]$Path) {
     if ([IO.File]::Exists($Path)) { Get-SBHash ([IO.File]::ReadAllBytes($Path)) } else { 'absent' }
@@ -240,7 +247,7 @@ function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
     if($IsProtected){return @{category='protected';recovery='non rimuovere: configurazione, accessi o stato attivo'}}
     if($key -eq 'tests'){return @{category='regenerable';recovery='si ricrea rieseguendo le suite test-secondbrain*.ps1'}}
     if($key -eq 'mcp-handshake'){return @{category='regenerable';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'}}
-    if($key -in @('cleanup','captures','publication','publication40','directives40-activation')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
+    if($key -in @('cleanup','captures','publication','directives-activation')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
     if($key -in @('backups','backup','workstations')){return @{category='backup';recovery='recupero di file gestiti: rimuovere solo con manifest revisionato (cleanup.ps1)'}}
     @{category='working';recovery='lavoro temporaneo: verificare riferimenti e proprietà prima di valutarlo'}
 }

@@ -4,7 +4,7 @@
 Prova di coordinamento (FileShare.None, scritture concorrenti, ExecutionPolicy, permessi) su una share SMB di loopback.
 
 .DESCRIPTION
-Esegue la checklist di docs/shared-brain.md su una share raggiunta da questo stesso PC e dallo stesso utente:
+Esegue la checklist di docs/riferimento/shared-brain.md su una share raggiunta da questo stesso PC e dallo stesso utente:
 UNC con localhost, 127.0.0.1, nome macchina e FQDN. Non crea share né utenti: per impostazione predefinita usa la
 share amministrativa dell'unità del clone (\\<alias>\D$), che passa dallo stack SMB (client e server). Con -ShareRoot
 si indica una share diversa (per esempio creata a mano con New-SmbShare).

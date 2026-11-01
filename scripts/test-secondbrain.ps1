@@ -35,7 +35,7 @@ function Invoke-SubSuite([string]$Name, [scriptblock]$Action) {
 function Throws([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert $caught $Message}
 function Put([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function Git([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
-$root=Join-Path (Get-SBTestRoot) ('secondbrain-v3-test-'+[guid]::NewGuid().ToString('N'))
+$root=Join-Path (Get-SBTestRoot) ('secondbrain-test-'+[guid]::NewGuid().ToString('N'))
 $backup=Join-Path (Get-SBTestRoot) ('secondbrain-test-backup-'+[guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($root)|Out-Null
 $success=$false
@@ -54,7 +54,7 @@ try {
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem $PSScriptRoot -File | Where-Object Name -ne 'test-secondbrain.ps1' | Copy-Item -Destination (Join-Path $brain 'scripts')
     # I flussi CLI usano codice di produzione, file, Git e processi reali isolati.
-    Put (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=3;allowedOwners=@('test');excludedDirectories=@('.git','node_modules')})
+    Put (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git','node_modules')})
     Assert ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'
     $path=Join-Path $root 'file con spazi.md';Put $path "originale`n"
     $hash=Get-SBFileHash $path
@@ -66,7 +66,7 @@ try {
     Assert ((Get-SBFileHash $record.backup) -eq $hash) 'backup verificato anche fra volumi'
     $restoreRuntime=Get-SBLocalRoot $brain 'restore'
     $restoreConfig=Join-Path $restoreRuntime 'workstation.json'
-    Put $restoreConfig (ConvertTo-SBJson @{schemaVersion=3;mode='portable';workstationId='restore';runtimeRoot=$restoreRuntime;backupRoot=(Join-Path $restoreRuntime 'backups');bindings=@();ides=@()})
+    Put $restoreConfig (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='restore';runtimeRoot=$restoreRuntime;backupRoot=(Join-Path $restoreRuntime 'backups');bindings=@();ides=@()})
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig | Out-Null
     Assert ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino esatto'
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig *> $null
@@ -115,7 +115,7 @@ try {
     Invoke-SubSuite 'Portabile: discovery, attivazione, compattazione, pubblicazione e asset' {
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-portable.ps1')
     }
-    Invoke-SubSuite 'Workflow v2: catalogo, contesto Git/PARA, composizione e output' {
+    Invoke-SubSuite 'Workflow: catalogo, contesto Git/PARA, composizione e output' {
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-workflows.ps1')
     }
     Invoke-SubSuite 'Fonti: registro, sicurezza, acquisizione, confronto e conversione' {

@@ -6,7 +6,7 @@ Verifica che l'indice Git di SecondBrain contenga solo file pubblici consentiti 
 Accerta che nessun file locale (01-projects/, 02-areas/, 03-resources/, 04-archives/, .runtime/,
 PARA.md, para-index.json) sia presente nell'indice Git o pronto per il push.
 Verifica che tutti i file tracciati appartengano alle cartelle/file pubblici autorizzati:
-scripts/, config/, direttive/, docs/, README.md, AGENTS.md, LICENSE, CREDITS.md, .gitattributes, .gitignore.
+scripts/, config/, direttive/, docs/, README.md, AGENTS.md, LICENSE, VERSION, CREDITS.md, .gitattributes, .gitignore.
 Restituisce exit code 0 su working tree conforme, 1 in presenza di violazioni.
 #>
 [CmdletBinding()]
@@ -37,6 +37,7 @@ $allowedRootFiles = @(
     'README.md',
     'AGENTS.md',
     'LICENSE',
+    'VERSION',
     'CREDITS.md',
     '.gitattributes',
     '.gitignore'

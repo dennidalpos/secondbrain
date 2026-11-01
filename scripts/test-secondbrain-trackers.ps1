@@ -4,7 +4,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
-Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
 $script:checks=0
 function Assert-Tracker($Condition,[string]$Message){if(!$Condition){throw 'FAIL TRACKER: '+$Message};$script:checks++;'PASS TRACKER: '+$Message}
 function Reject-Tracker([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert-Tracker $caught $Message}
@@ -216,18 +216,18 @@ try {
     # CLI vera: anteprima in sola lettura e compositore sulla fonte dichiarata.
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $brain 'scripts')
-    Put-Tracker (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=3;allowedOwners=@('test');excludedDirectories=@('.git')})
+    Put-Tracker (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git')})
     Copy-Item -LiteralPath $schema -Destination (Join-Path $brain 'config/tracker.schema.json')
     $cliConfig=Join-Path $config.runtimeRoot 'workstation.json'
-    Put-Tracker $cliConfig (ConvertTo-SBJson @{schemaVersion=3;mode='portable';workstationId='fixture';runtimeRoot=$config.runtimeRoot;backupRoot=$config.backupRoot;ides=@();
+    Put-Tracker $cliConfig (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='fixture';runtimeRoot=$config.runtimeRoot;backupRoot=$config.backupRoot;ides=@();
         bindings=@(@{path=$checkout;identity=$identity;remoteIdentity=$identity;status='managed'})})
     $before=Snapshot-Tracker $root
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/migrate-tracker.ps1') -Repository $identity -SourcePath $source -HistoryPath $history -ConfigPath $cliConfig|Out-Null
+    & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -Repository $identity -SourcePath $source -HistoryPath $history -ConfigPath $cliConfig|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 0 -and (Snapshot-Tracker $root) -ceq $before) 'CLI anteprima non modifica file o timestamp'
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/migrate-tracker.ps1') -Repository $identity -SourcePath $source -HistoryPath $history -ConfigPath $cliConfig -Apply|Out-Null
+    & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -Repository $identity -SourcePath $source -HistoryPath $history -ConfigPath $cliConfig -Apply|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 1) 'CLI prepara e segnala attivazione pendente'
     $registration=Read-SBJson (Get-SBTrackerMigrationPath $config $identity) $null
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/migrate-tracker.ps1') -ResumeManifest $registration.manifest -ConfigPath $cliConfig -Apply -Activate|Out-Null
+    & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -ResumeManifest $registration.manifest -ConfigPath $cliConfig -Apply -Activate|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 0) 'CLI attiva solo con contratto approvato'
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../config/prompt-catalog.schema.json') -Destination (Join-Path $brain 'config/prompt-catalog.schema.json')
@@ -241,7 +241,7 @@ try {
     $beforeMEM02=Snapshot-Tracker $root
     foreach($selection in @(@('-Repository',$identity),@('-ProjectId','test-project'))){
         $composed=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -Prompt MEM02 -Objective 'prepara la migrazione' @selection) -join "`n"
-        Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.StartsWith('CATALOGO PROMPT v2 — MEM02') -and $composed.Contains((Join-Path $dir 'tracker.json')) -and $composed.Contains('modalità dell')) ('MEM02: composizione con fonte dichiarata '+$selection[0])
+        Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.StartsWith('CATALOGO PROMPT — MEM02') -and $composed.Contains((Join-Path $dir 'tracker.json')) -and $composed.Contains('modalità dell')) ('MEM02: composizione con fonte dichiarata '+$selection[0])
     }
     foreach($invalid in @('MEM00','MEM99','INV01')){
         & pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -Repository $identity -Prompt $invalid -Objective fixture *> $null
@@ -251,9 +251,9 @@ try {
     $probe=Join-Path $root 'standalone-probe.ps1';$probeConfig=Join-Path $root 'standalone-config.json'
     Put-Tracker $probeConfig (ConvertTo-SBJson $config)
     Put-Tracker $probe 'param($ModulePath,$FixtureConfig,$ManifestPath) $ErrorActionPreference="Stop"; Import-Module $ModulePath; $cfg=Get-Content -LiteralPath $FixtureConfig -Raw|ConvertFrom-Json -AsHashtable; $m=Read-SBTrackerManifest $cfg $ManifestPath; if($m.phase -ne "completed"){throw "phase"}; Invoke-SBTrackerMigration -Config $cfg -ManifestPath $ManifestPath -Activate|Out-Null'
-    & pwsh -NoProfile -File $probe -ModulePath (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1') -FixtureConfig $probeConfig -ManifestPath $registration.manifest
+    & pwsh -NoProfile -File $probe -ModulePath (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -FixtureConfig $probeConfig -ManifestPath $registration.manifest
     Assert-Tracker ($LASTEXITCODE -eq 0) 'modulo migrazione autonomo senza import globali impliciti'
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/migrate-tracker.ps1') -RollbackManifest $registration.manifest -ConfigPath $cliConfig -Apply|Out-Null
+    & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -RollbackManifest $registration.manifest -ConfigPath $cliConfig -Apply|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $source)) 'CLI recupera originale e riferimenti'
     & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-tracker-audit.ps1')
     Assert-Tracker ($LASTEXITCODE -eq 0) 'regressioni audit: concorrenza, riferimenti, grafo e spostamenti PARA'
