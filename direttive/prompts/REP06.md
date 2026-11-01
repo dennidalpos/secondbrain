@@ -8,6 +8,8 @@ Presentare il prodotto ai visitatori GitHub con documentazione utile e fedele.
 
 ## Quando usarlo
 
+Ritirato: usa REP02, che include la preparazione del README GitHub. Resta come storico e per i riferimenti esistenti.
+
 Per creare o aggiornare la pagina README e le guide pubbliche; GitHub Pages escluso salvo richiesta.
 
 ## Input

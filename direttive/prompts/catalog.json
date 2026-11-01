@@ -1305,9 +1305,11 @@
       ],
       "related": [
         "pmt-f02db9d0",
-        "pmt-6e82e3a9"
+        "pmt-6e82e3a9",
+        "pmt-6055dd39",
+        "pmt-75786fd6"
       ],
-      "requires": "funzionalita implementate e comandi verificati",
+      "requires": "funzionalita implementate, comandi verificati e screenshot approvati",
       "scope": "repo",
       "status": "active",
       "summary": "Scrivi guide e README coerenti con il prodotto reale.",
@@ -1365,13 +1367,13 @@
       "example": "sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti",
       "file": "REP05.md",
       "id": "pmt-6055dd39",
-      "mode": "read",
+      "mode": "verify",
       "references": [
         "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository"
       ],
       "related": [
         "pmt-a5c78cc6",
-        "pmt-60dba781",
+        "pmt-07430e8c",
         "pmt-deb7d01a",
         "pmt-058c474f",
         "pmt-55186b10",
@@ -1402,8 +1404,9 @@
       ],
       "requires": "documentazione del repository e screenshot approvati",
       "scope": "repo",
-      "status": "active",
+      "status": "deprecated",
       "summary": "Prepara il README GitHub con informazioni e asset verificati.",
+      "supersededBy": "pmt-07430e8c",
       "target": "repository"
     },
     {
@@ -1419,7 +1422,7 @@
       ],
       "related": [
         "pmt-6055dd39",
-        "pmt-60dba781",
+        "pmt-07430e8c",
         "pmt-ef96dea5"
       ],
       "requires": "interfaccia funzionante con dati sintetici",
@@ -1714,7 +1717,6 @@
       "related": [
         "pmt-f02db9d0",
         "pmt-23c3d2be",
-        "pmt-f0cb4572",
         "pmt-cc2c5f5a"
       ],
       "requires": "checkout del repository aperto",
@@ -1741,8 +1743,9 @@
       ],
       "requires": "archivio PARA centrale e para-index.json",
       "scope": "central",
-      "status": "active",
+      "status": "deprecated",
       "summary": "Consulta entità e risorse del PARA centrale per identità e percorso.",
+      "supersededBy": "pmt-821f7dec",
       "target": "central"
     },
     {
@@ -1763,8 +1766,9 @@
       ],
       "requires": "dossier target e tetto di 20.000 caratteri del primo caricamento",
       "scope": "central",
-      "status": "active",
+      "status": "deprecated",
       "summary": "Misura i caratteri di contesto, memoria e tracker rispetto al budget.",
+      "supersededBy": "pmt-821f7dec",
       "target": "central"
     },
     {
@@ -1781,7 +1785,7 @@
       ],
       "related": [
         "pmt-677a10ab",
-        "pmt-9a32f4e4"
+        "pmt-821f7dec"
       ],
       "requires": "configurazione attiva e root runtime di backup",
       "scope": "central",
@@ -1872,7 +1876,7 @@
       ],
       "related": [
         "pmt-313da996",
-        "pmt-60dba781"
+        "pmt-07430e8c"
       ],
       "requires": "lockfile dipendenze e licenze di terze parti",
       "scope": "repo",

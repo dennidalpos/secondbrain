@@ -63,6 +63,10 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Search "più termini della richiest
 
 Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `full`; i task completi con `get_ready_tasks` (`includeAcceptance`).
 
+**Caricamento a strati**: il profilo snello applica la Progressive Summarization (metodo di Tiago Forte, autore di PARA): ogni livello è un riassunto più breve dell'originale, e i livelli più profondi si leggono solo su richiesta. Qui il riassunto è sempre una scelta di sezioni, mai una riscrittura che perde informazioni: gli originali restano per hash.
+
+**Decisioni in `memory.md`**: ogni scelta durevole va in una riga `Decisione: … — Motivo: …`, senza file dedicati (ADR leggera). Il motivo permette di riesaminarla senza rileggere la cronaca.
+
 **Livelli in `memory.md` e `context.md`**: una sezione `##` è storica, e quindi non caricata nel profilo snello, se il titolo finisce con `(storico)` oppure se la prima riga sotto il titolo è `<!-- sb:tier=history -->`. Le decisioni durevoli e i gotcha restano nelle sezioni essenziali; la cronaca di sessioni e lotti va in quelle storiche. Un file senza marcatori si carica per intero. Per riorganizzare un dossier senza perdere nulla usa la compattazione conservativa (SYS05, `knowledge.ps1 -Compact -CandidatePath`): il candidato è revisionato, l'anteprima precede `-Apply` e gli originali restano per hash in `history/compaction/`.
 
 Il tetto di `-Compact` (`-Budget`, predefinito 50.000) conta le sole parti caricate all'avvio: `context.md` e `memory.md` senza le sezioni storiche, più indice e proiezione dei task. Una riorganizzazione per livelli che sposta la cronaca in sezioni `(storico)` non richiede quindi un `-Budget` esplicito; la stessa cronaca senza marcatore di livello supera il tetto e viene rifiutata.

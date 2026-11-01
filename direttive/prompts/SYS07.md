@@ -8,6 +8,8 @@ Navigare e consultare tassonomia, aree, progetti e risorse dell'archivio central
 
 ## Quando usarlo
 
+Ritirato: usa SYS06, che include la consultazione del PARA centrale. Resta come storico e per i riferimenti esistenti.
+
 Per individuare dossier, risolvere identità repository o consultare registri e risorse centrali.
 
 ## Input

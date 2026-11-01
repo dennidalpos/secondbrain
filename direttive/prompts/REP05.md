@@ -1,6 +1,6 @@
 # REP05 — Verifica contenuti e cronologia prima della pubblicazione
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: stato Git, cronologia e albero di lavoro | **Esempio d'uso**: `sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti`
+> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: stato Git, cronologia e albero di lavoro | **Esempio d'uso**: `sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti`
 
 ## Scopo
 
@@ -40,7 +40,7 @@ Rapporto di preparazione alla pubblicazione, rilievi, decisioni motivate e attiv
 
 - SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
 - OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- REP06: Prepara il README GitHub con informazioni e asset verificati.
+- REP02: Scrivi guide e README coerenti con il prodotto reale.
 - SEC07: Analizza i dati sensibili del diff prima del push.
 - SEC08: Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
 - SEC09: Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati.

@@ -8,7 +8,7 @@ Documentazione tecnica e architetturale di **SecondBrain** basata sull'implement
 
 SecondBrain adotta un modello a **doppio confine** che separa categoricamente il codice distribuibile e le direttive comuni dai dati operativi, dossier privati e cache locali della singola postazione di sviluppo.
 
-Modalità Code-Only: Git traccia solo codice e documentazione (`scripts/`, `config/`, `direttive/`, `docs/`, `README.md`, `LICENSE`, `CREDITS.md`); dossier, archivi e `.runtime/` stanno nel clone locale, protetti da `.gitignore` (il clone può stare anche su una share di rete usata da più PC: vedere [shared-brain.md](shared-brain.md)).
+Modalità Code-Only: Git traccia solo codice e documentazione (`scripts/`, `config/`, `direttive/`, `docs/`, `README.md`, `LICENSE`, `CHANGELOG.md`, `CREDITS.md`); dossier, archivi e `.runtime/` stanno nel clone locale, protetti da `.gitignore` (il clone può stare anche su una share di rete usata da più PC: vedere [shared-brain.md](shared-brain.md)).
 
 ```mermaid
 flowchart TB

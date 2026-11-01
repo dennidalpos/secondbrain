@@ -30,4 +30,4 @@ Asset selezionati, manifest locale, procedura di riproduzione e schermate effett
 
 - TST05: Verifica il comportamento reale rispetto ai requisiti.
 - REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- REP06: Prepara il README GitHub con informazioni e asset verificati.
+- REP02: Scrivi guide e README coerenti con il prodotto reale.

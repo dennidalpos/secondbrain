@@ -19,7 +19,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | Percorso | Contenuto | Versionato | Cancellabile |
 | --- | --- | --- | --- |
 | `AGENTS.md` | Istruzioni del repository: blocco gestito (generato da `-Sync`, non modificare a mano) e regole specifiche. | Sì | No |
-| `README.md`, `CREDITS.md`, `LICENSE` | Presentazione pubblica, crediti e licenza. | Sì | No |
+| `README.md`, `CHANGELOG.md`, `CREDITS.md`, `LICENSE` | Presentazione pubblica, registro delle versioni, crediti e licenza. | Sì | No |
 | `PARA.md` | Indice PARA generato da `para.ps1`; ignorato da Git. | No | Sì (si rigenera con `para.ps1`) |
 | `para-index.json` | Indice PARA leggibile da macchina (identificativi → percorsi); ignorato da Git. | No | Sì (si rigenera con `para.ps1`) |
 | `scripts/` | Moduli `SecondBrain.*.psm1`, comandi `*.ps1`, test `test-secondbrain*.ps1`, fixture dei prompt, sorgenti e lock Python per le fonti. | Sì | No |
@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 80 schede del catalogo (COM01–GOV02) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 80 schede del catalogo (COM01–GOV02, di cui 77 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 

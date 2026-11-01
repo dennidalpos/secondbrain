@@ -41,18 +41,18 @@ try {
     $catalog=Read-SBWorkflowCatalog $brain -ValidateBodies
     Assert-Workflow ($catalog.prompts.Count -eq 80 -and $catalog.categories.Count -eq 13) '80 workflow in 13 ambiti'
     $listing=Format-SBWorkflowList $catalog
-    Assert-Workflow (@($listing -split "`n"|Where-Object Length -gt 88).Count -eq 0 -and [regex]::Matches($listing,'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 80) 'elenco una riga per prompt entro 88 caratteri'
+    Assert-Workflow (@($listing -split "`n"|Where-Object Length -gt 88).Count -eq 0 -and [regex]::Matches($listing,'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 77) 'elenco una riga per prompt entro 88 caratteri'
     Assert-Workflow ($listing -notmatch 'P01.P14' -and $listing -notmatch 'vecchi codici') 'Format-SBWorkflowList privo di nomenclature storiche'
     $testList=Format-SBWorkflowList $catalog 'test'
     Assert-Workflow ($testList -match 'TST04 \|' -and $testList -notmatch 'SYS01 \|') 'filtro ambito'
     Reject-Workflow {Format-SBWorkflowList $catalog 'inesistente'} 'ambito sconosciuto rifiutato'
     $compact=Format-SBWorkflowList $catalog -Compact
-    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 100).Count -eq 0 -and [regex]::Matches($compact,'(?m)^[A-Z]{2,4}\d{2} \| (lettura|scrittura|verifica) +\| ').Count -eq 80 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 80 righe entro 100 caratteri'
+    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 100).Count -eq 0 -and [regex]::Matches($compact,'(?m)^[A-Z]{2,4}\d{2} \| (lettura|scrittura|verifica) +\| ').Count -eq 77 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 77 righe entro 100 caratteri'
     $prefixList=Format-SBWorkflowList $catalog 'TST' -Compact
     Assert-Workflow ($prefixList -match 'TST04 \|' -and $prefixList -notmatch 'SYS01 \|' -and (Format-SBWorkflowList $catalog 'Test') -match 'TST04 \|' -and (Format-SBWorkflowList $catalog 'sys') -match 'SYS06 \|' -and (Format-SBWorkflowList $catalog 'SYS') -match 'SYS11 \|' -and (Format-SBWorkflowList $catalog 'MEM') -notmatch 'SYS06 \|') 'filtro ambito per id o prefisso senza distinguere le maiuscole; SYS include SYS06'
     $homeText=Format-SBWorkflowHome $brain $catalog
     $homePath=Join-Path $brain 'direttive/prompts/README.md'
-    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '80 prompt in 13 aree') 'schermata iniziale: link al catalogo esistente e conteggio'
+    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '77 prompt in 13 aree') 'schermata iniziale: link al catalogo esistente e conteggio'
     $template=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     $commands=@(Get-SBWorkflowCommands)
     Assert-Workflow ($commands.Count -ge 9 -and @($commands|Where-Object {!$homeText.Contains('`'+$_.command+'`') -or !$_.does -or !$_.mode}).Count -eq 0) 'schermata iniziale: ogni comando con descrizione e modalità'
@@ -102,7 +102,7 @@ try {
     $cliHome=& pwsh -NoProfile -File $cli
     Assert-Workflow ($LASTEXITCODE -eq 0 -and ($cliHome -join "`n") -match 'sb prompt tutti' -and ($cliHome -join "`n") -notmatch 'TST04 \|') 'CLI senza argomenti mostra la schermata iniziale e non l''elenco'
     $cliCompact=& pwsh -NoProfile -File $cli -List -Compact
-    Assert-Workflow ($LASTEXITCODE -eq 0 -and [regex]::Matches(($cliCompact -join "`n"),'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 80) 'CLI -List -Compact elenca tutti gli 80 prompt'
+    Assert-Workflow ($LASTEXITCODE -eq 0 -and [regex]::Matches(($cliCompact -join "`n"),'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 77) 'CLI -List -Compact elenca i 77 prompt attivi'
     $catalogPath=Join-Path $brain 'direttive/prompts/catalog.json';$original=Read-SBText $catalogPath
     foreach($case in @('duplicate','category','path','mode','newline','related','relatedCode','duplicateId','aliasOfCode','aliasTwice','aliasSelfId','missingAliases','retiredUnknown','retiredConflict','deprecatedNoSuccessor','successorUnknown')){
         $bad=$original|ConvertFrom-Json -AsHashtable
@@ -383,6 +383,12 @@ try {
         !$ordered -or !$composed.Contains('obiettivo di prova')
     })
     Assert-Workflow ($costarBad.Count -eq 0) 'CO-STAR: tutti i prompt composti hanno le 6 sezioni in ordine'
+    $dodBad=@($costarCatalog.prompts|Where-Object {
+        $composed=New-SBWorkflowComposition $brain $costarCatalog $_ $costarContext 'obiettivo di prova'
+        $response=$composed.IndexOf("`n## Response`n");$dod=$composed.IndexOf("`n### Definizione di completamento`n");$near=$composed.IndexOf("`n### Prompt vicini`n")
+        $dod -le $response -or $dod -ge $near -or $composed.IndexOf("`n## Response`n",$response+1) -ge 0
+    })
+    Assert-Workflow ($dodBad.Count -eq 0) 'DoD: ogni prompt composto ha la definizione di completamento dentro Response'
     $productVersion=(Read-SBText (Join-Path $PSScriptRoot '../VERSION')).Trim()
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
     Assert-Workflow ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'

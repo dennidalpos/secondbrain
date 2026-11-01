@@ -30,5 +30,5 @@ File CREDITS.md allineato, matrice di compatibilità delle dipendenze terze e ri
 
 ## Prompt vicini
 
-- REP06: Prepara il README GitHub con informazioni e asset verificati.
+- REP02: Scrivi guide e README coerenti con il prodotto reale.
 - GOV01: Verifica licenze open source, conformità dei file e header SPDX.

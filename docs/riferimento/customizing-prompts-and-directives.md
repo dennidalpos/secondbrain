@@ -28,7 +28,7 @@ Le direttive comuni (`direttive/AGENTS.global_ide.md`) e l'integrazione di posta
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 80 schede operative (COM01–GOV02) in 13 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
+I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 80 schede operative (COM01–GOV02, di cui 77 attive e 3 ritirate con sostituto) in 13 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
 
 Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta, evitando sovraccarichi di contesto nel prompt dell'agente. La build valida tutte le schede prima di generare l'indice. Una riga logica dell'elenco è lunga al massimo 88 caratteri; finestre molto strette possono applicare il wrapping dell'IDE.
 
@@ -120,7 +120,7 @@ SecondBrain supporta un modello ibrido che distingue tra **file di configurazion
 
 ### Google Antigravity & Gemini
 - **File di Progetto**: `AGENTS.md` e regole `.gemini/antigravity`.
-- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con gli 80 workflow del catalogo (COM01–GOV02).
+- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con i 77 workflow attivi del catalogo (COM01–GOV02).
 
 ---
 
@@ -242,7 +242,7 @@ flowchart TD
     B -->|"mostra CHIAVE"| F["prompts.ps1 -Show -Prompt CHIAVE"]
     B -->|"CHIAVE: obiettivo"| G["prompts.ps1 -Compose -Prompt CHIAVE -Objective ..."]
     C --> H["Link a direttive/prompts/README.md e tabella dei comandi sb"]
-    D --> I["80 righe: codice, modalità, sommario"]
+    D --> I["77 righe: codice, modalità, sommario"]
     E --> J["Prompt dell'area con ID, scope e requisiti"]
     F --> K["Scheda uniforme e corpo del prompt"]
     G --> L["Prompt con contesto del repository, eseguito dall'agente nei permessi della sessione"]

@@ -9,7 +9,7 @@ Ogni agente riparte da quello che sa già: contesto, decisioni e task. I tuoi da
 ```mermaid
 flowchart LR
     T["Tu"] --> A["Agente<br/>Claude, Codex, Antigravity"]
-    A <--> S["SecondBrain<br/>memoria, regole, 80 prompt"]
+    A <--> S["SecondBrain<br/>memoria, regole, 77 prompt"]
     A --> P["I tuoi progetti"]
 ```
 
@@ -33,11 +33,11 @@ Poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvi
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 80 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
+| 77 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 
-## Due metodi, un solo ordine
+## Due metodi e un criterio di lettura
 
 ```mermaid
 flowchart LR
@@ -52,6 +52,7 @@ flowchart LR
 
 - **PARA** ordina le informazioni in quattro cartelle. [Come si usa](docs/uso-quotidiano.md).
 - **CO-STAR** dà a ogni prompt composto da SecondBrain la stessa struttura. [Come funziona](docs/prompt.md).
+- **Progressive Summarization** (stesso autore di PARA) dà il nome al caricamento a strati: l'agente parte da un riassunto essenziale e scende ai dettagli solo se servono. [Come si carica](docs/riferimento/runtime-maintenance.md).
 
 ## Strumenti convalidati
 

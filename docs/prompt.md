@@ -1,6 +1,6 @@
 # Prompt
 
-80 prompt pronti in 13 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+77 prompt pronti in 13 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt tutti
@@ -30,7 +30,7 @@ flowchart LR
 | Style | Attività, verifiche, come fare domande |
 | Tone | Diretto e fattuale |
 | Audience | Chi legge il risultato, secondo l'area |
-| Response | Cosa consegnare e come chiudere il lavoro |
+| Response | Cosa consegnare, quando il lavoro è completo (stessa definizione per tutti i prompt) e come chiuderlo |
 
 Vale per i prompt composti (`sb prompt CODICE: obiettivo`). `sb prompt mostra` fa vedere la scheda sorgente, con le sue sezioni.
 

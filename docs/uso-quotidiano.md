@@ -49,8 +49,10 @@ Queste cartelle restano sul tuo PC e non finiscono su GitHub.
 | File | Cosa contiene |
 |---|---|
 | `context.md` | A che punto sei |
-| `memory.md` | Decisioni e trappole da ricordare |
+| `memory.md` | Decisioni e trappole da ricordare, in una riga `Decisione: … — Motivo: …` |
 | `tracker.json` | L'elenco dei task |
+
+L'agente li legge a strati (Progressive Summarization): prima il riassunto essenziale, poi i dettagli solo se servono. Come funziona: [caricamento a strati](riferimento/runtime-maintenance.md).
 
 ## Prima di pubblicare
 
@@ -62,7 +64,7 @@ Cerca dati privati, segreti e file di lavoro. Commit e push restano sempre una t
 
 ## Cambiare versione
 
-Non ogni modifica merita un nuovo numero. L'agente, quando serve, propone la versione e **ti chiede se vuoi cambiarla**. Se dici sì, fa tutto lui. Se dici no, resta com'è.
+Non ogni modifica merita un nuovo numero. L'agente, quando serve, propone la versione e **ti chiede se vuoi cambiarla**. Se dici sì, fa tutto lui e annota la modifica in [CHANGELOG](../CHANGELOG.md). Se dici no, resta com'è e il registro non cambia.
 
 ## Parole da sapere
 

@@ -355,7 +355,7 @@ REP01 | Completa il prossimo task eseguibile del repository aperto.
 REP02 | Scrivi guide e README coerenti con il prodotto reale.
   • ID: pmt-07430e8c
   • Scope: repo | Modalità: write
-  • Serve: funzionalita implementate e comandi verificati
+  • Serve: funzionalita implementate, comandi verificati e screenshot approvati
   • Esempio: sb prompt REP02: aggiorna guide e genera flussi mermaid
 
 REP03 | Documenta API e contratti a partire dall’implementazione.
@@ -372,15 +372,9 @@ REP04 | Rimuovi residui e codice inutilizzato dopo le verifiche.
 
 REP05 | Verifica contenuti e cronologia prima della pubblicazione.
   • ID: pmt-6055dd39
-  • Scope: repo | Modalità: read
+  • Scope: repo | Modalità: verify
   • Serve: stato Git, cronologia e albero di lavoro
   • Esempio: sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti
-
-REP06 | Prepara il README GitHub con informazioni e asset verificati.
-  • ID: pmt-60dba781
-  • Scope: repo | Modalità: write
-  • Serve: documentazione del repository e screenshot approvati
-  • Esempio: sb prompt REP06: genera readme github con flussi mermaid
 
 REP07 | Acquisisci screenshot reali e prepara gli asset pubblici.
   • ID: pmt-75786fd6
@@ -469,18 +463,6 @@ SYS05 | Compatta il dossier preservando originali, fatti e TOC.
   • Scope: central | Modalità: write
   • Serve: dossier da compattare e storico verificabile
   • Esempio: sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc
-
-SYS07 | Consulta entità e risorse del PARA centrale per identità e percorso.
-  • ID: pmt-f0cb4572
-  • Scope: central | Modalità: read
-  • Serve: archivio PARA centrale e para-index.json
-  • Esempio: sb prompt SYS07: consulta entita del para centrale per percorso e id
-
-SYS08 | Misura i caratteri di contesto, memoria e tracker rispetto al budget.
-  • ID: pmt-9a32f4e4
-  • Scope: central | Modalità: verify
-  • Serve: dossier target e tetto di 20.000 caratteri del primo caricamento
-  • Esempio: sb prompt SYS08: verifica conteggio caratteri rispetto a 20000
 
 SYS09 | Esegui il backup compresso deterministico e verifica i digest SHA-256.
   • ID: pmt-e498353a

@@ -8,6 +8,8 @@ Misurare l'occupazione in caratteri del dossier rispetto al tetto di 20.000 cara
 
 ## Quando usarlo
 
+Ritirato: usa SYS06, che include la misura dei caratteri rispetto al tetto. Resta come storico e per i riferimenti esistenti.
+
 Prima di una compattazione SYS05 o durante verifiche di allineamento e salute della memoria.
 
 ## Input
