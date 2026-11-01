@@ -243,6 +243,39 @@ try{
     Assert-Portable ((Resolve-SBTrackerBackupRoot $noHostBrain) -eq (Join-Path $noHostBrain '.runtime/backups/transactions')) 'senza configurazione host resta il percorso di transazione sotto .runtime'
     $badHostPath=Get-SBHostConfigPath $noHostBrain;Put-Portable $badHostPath (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='bad'})
     Reject-Portable {Resolve-SBTrackerBackupRoot $noHostBrain} 'configurazione host senza backupRoot non ripiega in silenzio'
+    # Numerazione progressiva: rifiuto su tracker non numerato, rinumerazione cronologica con archivio e originali per hash, creazione max+1.
+    $seqProvenance=Join-Path $dossier 'history/seq-source.md';Put-Portable $seqProvenance "fonte`n"
+    Reject-Portable {New-SBTrackerTaskEntry -BrainRoot $brain -Path $trackerFilePath -Title 'Prima' -Acceptance @('ok') -ProvenanceReference 'history/seq-source.md' -BackupRoot $cfg.backupRoot} 'creazione rifiutata su tracker non numerato'
+    $seqDoc=Read-SBJson $trackerFilePath $null
+    $seqDoc.tasks=@($seqDoc.tasks)+@(New-SBTrackerTask @{id='C-20261025';title='Task C';status='done'} $seqDoc.repository 'test' 'test.md' (Get-SBTextHash 'test') 'line:2')
+    Put-Portable $trackerFilePath (ConvertTo-SBJson $seqDoc)
+    $archivePath=Join-Path $dossier 'history/tracker-archive.json'
+    Put-Portable $archivePath (ConvertTo-SBJson @{schemaVersion=1;repository=$seqDoc.repository;tasks=@(@{id='A-20261026';title='Task A';status='done'},@{id='B-NODATE';title='Task B';status='done'})})
+    $trackerBefore=Get-SBFileHash $trackerFilePath;$archiveBefore=Get-SBFileHash $archivePath
+    $seqPreview=Invoke-SBTrackerRenumber -BrainRoot $brain -Path $trackerFilePath -BackupRoot $cfg.backupRoot
+    Assert-Portable (!$seqPreview.applied -and (Get-SBFileHash $trackerFilePath) -eq $trackerBefore -and (Get-SBFileHash $archivePath) -eq $archiveBefore) 'anteprima di numerazione senza scritture'
+    Assert-Portable ((@($seqPreview.mapping|ForEach-Object id) -join ',') -eq 'C-20261025,A-20261026,B-NODATE,FIXTURE-TASK') 'ordine cronologico stabile con data ereditata dal task precedente'
+    $seqApplied=Invoke-SBTrackerRenumber -BrainRoot $brain -Path $trackerFilePath -BackupRoot $cfg.backupRoot -Apply
+    $seqTracker=Read-SBJson $trackerFilePath $null;$seqArchive=Read-SBJson $archivePath $null
+    $fixtureSeq=@($seqTracker.tasks|Where-Object id -eq 'FIXTURE-TASK')[0]
+    Assert-Portable ($seqApplied.applied -and $seqTracker.extensions.lastSeq -eq 4 -and $fixtureSeq.seq -eq 4 -and $fixtureSeq.title -eq ('#004 '+[char]0x2014+' Fixture task')) 'numeri e prefissi assegnati nel tracker attivo'
+    Assert-Portable (@($seqArchive.tasks|Where-Object id -eq 'B-NODATE')[0].seq -eq 3) 'numeri assegnati anche nell archivio'
+    $originals=Join-Path $dossier $seqApplied.originals
+    Assert-Portable ((Get-SBFileHash (Join-Path $originals 'tracker.json')) -eq $trackerBefore -and (Get-SBFileHash (Join-Path $originals 'tracker-archive.json')) -eq $archiveBefore) 'originali conservati per hash'
+    Assert-Portable (!(Invoke-SBTrackerRenumber -BrainRoot $brain -Path $trackerFilePath -BackupRoot $cfg.backupRoot -Apply).changed) 'seconda numerazione idempotente'
+    $created=New-SBTrackerTaskEntry -BrainRoot $brain -Path $trackerFilePath -Title 'Nuovo task' -Acceptance @('verificato') -DependsOn @('FIXTURE-TASK') -ProvenanceReference 'history/seq-source.md' -BackupRoot $cfg.backupRoot
+    $createdTask=@((Read-SBJson $trackerFilePath $null).tasks|Where-Object id -eq 'TASK-005')[0]
+    Assert-Portable ($created.seq -eq 5 -and $createdTask.title -eq ('#005 '+[char]0x2014+' Nuovo task') -and $createdTask.provenance[0].sha256 -eq (Get-SBFileHash $seqProvenance)) 'creazione con seq = massimo + 1, prefisso e provenienza con hash'
+    Assert-Portable ((@(Get-SBTaskProjection (Read-SBJson $trackerFilePath $null))|Where-Object id -eq 'TASK-005').seq -eq 5) 'proiezione dei task espone seq'
+    Reject-Portable {New-SBTrackerTaskEntry -BrainRoot $brain -Path $trackerFilePath -Id 'TASK-005' -Title 'Doppio' -Acceptance @('ok') -ProvenanceReference 'history/seq-source.md' -BackupRoot $cfg.backupRoot} 'ID duplicato rifiutato'
+    Reject-Portable {New-SBTrackerTaskEntry -BrainRoot $brain -Path $trackerFilePath -Title 'Senza fonte' -Acceptance @('ok') -ProvenanceReference 'history/assente.md' -BackupRoot $cfg.backupRoot} 'provenienza inesistente rifiutata'
+    $seqSchema=Join-Path $brain 'config/tracker.schema.json';$seqIds=@($seqTracker.repository)
+    $badSeq=Read-SBJson $trackerFilePath $null;$badSeq.tasks[0].seq=5
+    Reject-Portable {Test-SBTrackerData $badSeq $badSeq.repository $seqIds $seqSchema} 'numero progressivo duplicato rifiutato'
+    $badTitle=Read-SBJson $trackerFilePath $null;$badTitle.tasks[0].title='Senza prefisso'
+    Reject-Portable {Test-SBTrackerData $badTitle $badTitle.repository $seqIds $seqSchema} 'titolo senza prefisso rifiutato'
+    $badLast=Read-SBJson $trackerFilePath $null;$badLast.extensions.lastSeq=2
+    Reject-Portable {Test-SBTrackerData $badLast $badLast.repository $seqIds $seqSchema} 'numero oltre lastSeq rifiutato'
     $workA=Get-SBWorkEnvironment $brain $cfg.workstationId $cfg.bindings[0].identity 'project-a' 'runtime-a'
     $workB=Get-SBWorkEnvironment $brain $cfg.workstationId $cfg.bindings[0].identity 'project-b' 'runtime-a'
     Assert-Portable ($workA.root -ne $workB.root -and $workA.environment.TEMP.StartsWith((Join-Path $brain '.runtime'))) 'cache e build isolate nel cervello'

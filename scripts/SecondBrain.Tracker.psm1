@@ -8,6 +8,33 @@ function Test-SBTrackerPolicy([string]$BrainRoot) {
     (Test-SBApproval $BrainRoot) -and (Read-SBText (Join-Path $BrainRoot 'direttive/workstation.template.md')).Contains('<!-- secondbrain:tracker-contract:1 -->')
 }
 
+# Numerazione progressiva: seq univoco, titolo "#NNN - " coerente, contatore extensions.lastSeq mai inferiore al massimo (i numeri non si riusano).
+$script:SBTrackerSeqSeparator=' '+[char]0x2014+' '
+function Format-SBTrackerSeqTitle([int]$Seq,[string]$Title) {
+    '#'+$Seq.ToString('000')+$script:SBTrackerSeqSeparator+($Title -replace ('^#\d+'+[regex]::Escape($script:SBTrackerSeqSeparator)),'')
+}
+function Get-SBTrackerLastSeq($Document) {
+    $last=0
+    if($Document.extensions -is [Collections.IDictionary] -and $Document.extensions.ContainsKey('lastSeq')){$last=[int]$Document.extensions.lastSeq}
+    foreach($task in $Document.tasks){if($task -is [Collections.IDictionary] -and $task.ContainsKey('seq') -and [int]$task.seq -gt $last){$last=[int]$task.seq}}
+    $last
+}
+function Assert-SBTrackerSequence($Document) {
+    $seen=@{}
+    foreach($task in $Document.tasks){
+        if($task -isnot [Collections.IDictionary] -or !$task.ContainsKey('seq')){continue}
+        $seq=[int]$task.seq
+        if($seen.ContainsKey($seq)){throw "Numero progressivo duplicato nel tracker $($Document.repository): $seq"}
+        $seen[$seq]=$true
+        if(!([string]$task.title).StartsWith('#'+$seq.ToString('000')+$script:SBTrackerSeqSeparator)){throw "Titolo senza prefisso #$($seq.ToString('000')): $($task.id)"}
+    }
+    if($Document.extensions -is [Collections.IDictionary] -and $Document.extensions.ContainsKey('lastSeq')){
+        $last=$Document.extensions.lastSeq
+        if($last -isnot [int] -and $last -isnot [long]){throw 'extensions.lastSeq deve essere un intero'}
+        foreach($seq in $seen.Keys){if($seq -gt $last){throw "Numero progressivo $seq oltre extensions.lastSeq ($last)"}}
+    }
+}
+
 function Test-SBTrackerData($Data, [string]$Identity, [string[]]$ManagedIdentities, [string]$SchemaPath, $RelatedTrackers=@{}) {
     $json=ConvertTo-SBJson $Data
     if (!(Test-Json -Json $json -SchemaFile $SchemaPath -ErrorAction SilentlyContinue)) { throw 'Tracker non conforme allo schema v1' }
@@ -21,6 +48,7 @@ function Test-SBTrackerData($Data, [string]$Identity, [string[]]$ManagedIdentiti
             throw ('Tracker correlato non conforme allo schema v1: '+$identityLabel)
         }
         if ($document.repository -notin $ManagedIdentities) { throw 'Tracker di identita non gestita' }
+        Assert-SBTrackerSequence $document
         foreach($task in $document.tasks) {
             $key=$document.repository+'#'+$task.id
             if ($nodes.ContainsKey($key)) { throw 'ID tracker duplicato: '+$key }
@@ -339,22 +367,9 @@ function Resolve-SBTrackerBackupRoot([string]$BrainRoot) {
     if(![IO.Path]::IsPathFullyQualified($value)){$value=Join-Path $BrainRoot $value}
     Assert-SBCentralDataPath $BrainRoot $value
 }
-function Set-SBTrackerTaskStatus {
-    [CmdletBinding()]
-    param(
-        [string]$BrainRoot,
-        [string]$Identity,
-        [string]$Path,
-        [Parameter(Mandatory)][string]$TaskId,
-        [Parameter(Mandatory)][string]$Status,
-        [string]$StateReason,
-        $Evidence=@(),
-        [string]$BackupRoot,
-        [switch]$WhatIf,
-        [string]$WorkingRepository
-    )
-    # Perimetro cooperativo: se il chiamante dichiara il repository in lavoro, l'identita del tracker deve coincidere.
-    if($WorkingRepository -and $Identity -cne $WorkingRepository){throw "Scrittura rifiutata: il tracker di '$Identity' non appartiene al repository in lavoro '$WorkingRepository'"}
+# Risolve il tracker su cui scrivere (per Path o per identita dichiarata nel dossier) e applica il perimetro cooperativo.
+function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[string]$Path,[string]$WorkingRepository) {
+    if($WorkingRepository -and $Identity -and $Identity -cne $WorkingRepository){throw "Scrittura rifiutata: il tracker di '$Identity' non appartiene al repository in lavoro '$WorkingRepository'"}
     if(!$BrainRoot){
         if($Path){
             $p=[IO.Path]::GetFullPath($Path)
@@ -368,8 +383,6 @@ function Set-SBTrackerTaskStatus {
         if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
     }
     $BrainRoot=[IO.Path]::GetFullPath($BrainRoot)
-    $trackerPath=''
-    $data=$null
     if($Path){
         $trackerPath=[IO.Path]::GetFullPath($Path)
         Assert-SBPlainPath $trackerPath
@@ -393,14 +406,50 @@ function Set-SBTrackerTaskStatus {
         $data=Read-SBJson $trackerPath $null
     }
     if($data.schemaVersion -ne 1){throw 'Schema tracker non supportato (atteso v1)'}
+    $next=ConvertTo-SBJson $data|ConvertFrom-Json -AsHashtable -DateKind String
+    @{brainRoot=$BrainRoot;identity=$Identity;path=$trackerPath;hash=(Get-SBFileHash $trackerPath);data=$next}
+}
+
+# Valida il tracker aggiornato sull'intero grafo e lo scrive in transazione, con eventuali file aggiuntivi nello stesso journal.
+function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@()) {
+    $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    $entities=@(Get-SBParaEntities $Target.brainRoot @())
+    $managedIdentities=@($entities|Where-Object kind -eq 'area'|ForEach-Object repository)
+    if($Target.identity -notin $managedIdentities){$managedIdentities+=,$Target.identity}
+    $schemaPath=Join-Path $PSScriptRoot '../config/tracker.schema.json'
+    $related=Get-SBTrackerRelatedData $Target.brainRoot $Target.identity $entities
+    [void](Test-SBTrackerData $Data $Target.identity $managedIdentities $schemaPath $related)
+    if($WhatIf){return @{applied=$false;path=$Target.path;data=$Data}}
+    if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $Target.brainRoot}
+    [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
+    $ops=@(@{path=$Target.path;expected=$Target.hash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $Data))})+@($ExtraOperations)
+    foreach($op in @($ExtraOperations)){if($op.expected -eq 'absent'){[IO.Directory]::CreateDirectory((Split-Path $op.path))|Out-Null}}
+    $manifest=Invoke-SBParaTransaction -Operations $ops -BackupRoot $BackupRoot -BrainRoot $Target.brainRoot
+    @{applied=$true;manifest=$manifest;path=$Target.path;data=$Data}
+}
+
+function Set-SBTrackerTaskStatus {
+    [CmdletBinding()]
+    param(
+        [string]$BrainRoot,
+        [string]$Identity,
+        [string]$Path,
+        [Parameter(Mandatory)][string]$TaskId,
+        [Parameter(Mandatory)][string]$Status,
+        [string]$StateReason,
+        $Evidence=@(),
+        [string]$BackupRoot,
+        [switch]$WhatIf,
+        [string]$WorkingRepository
+    )
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     if($Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){
         throw "Stato non valido: $Status. Valori ammessi: todo, in_progress, blocked, done, cancelled, unknown"
     }
-    $matching=@($data.tasks|Where-Object {$_.id -eq $TaskId})
+    $next=$target.data
+    $matching=@($next.tasks|Where-Object {$_.id -eq $TaskId})
     if($matching.Count -ne 1){throw "Task non trovato nel tracker: $TaskId"}
-    
-    $next=ConvertTo-SBJson $data|ConvertFrom-Json -AsHashtable -DateKind String
-    $targetTask=@($next.tasks|Where-Object {$_.id -eq $TaskId})[0]
+    $targetTask=$matching[0]
     $targetTask.status=$Status
     if($PSBoundParameters.ContainsKey('StateReason')){
         if(!$targetTask.ContainsKey('extensions') -or $null -eq $targetTask.extensions){$targetTask.extensions=@{}}
@@ -411,26 +460,122 @@ function Set-SBTrackerTaskStatus {
         if(!$targetTask.ContainsKey('evidence') -or $null -eq $targetTask.evidence){$targetTask.evidence=@()}
         foreach($ev in @($Evidence)){$targetTask.evidence+=,$ev}
     }
-    $next.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
-    
-    $entities=@(Get-SBParaEntities $BrainRoot @())
-    $managedIdentities=@($entities|Where-Object kind -eq 'area'|ForEach-Object repository)
-    if($Identity -notin $managedIdentities){$managedIdentities+=,$Identity}
-    $schemaPath=Join-Path $PSScriptRoot '../config/tracker.schema.json'
-    $related=Get-SBTrackerRelatedData $BrainRoot $Identity $entities
-    [void](Test-SBTrackerData $next $Identity $managedIdentities $schemaPath $related)
-    
-    if($WhatIf){
-        return @{applied=$false;taskId=$TaskId;status=$Status;path=$trackerPath;data=$next}
-    }
-    if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $BrainRoot}
-    [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
-    $oldHash=Get-SBFileHash $trackerPath
-    $newBytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $next))
-    $ops=@(@{path=$trackerPath;expected=$oldHash;bytes=$newBytes})
-    $manifest=Invoke-SBParaTransaction -Operations $ops -BackupRoot $BackupRoot -BrainRoot $BrainRoot
-    @{applied=$true;taskId=$TaskId;status=$Status;manifest=$manifest;path=$trackerPath;data=$next}
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf
+    $saved+@{taskId=$TaskId;status=$Status}
 }
+
+# Crea un task con il numero progressivo successivo (mai riusato) e il titolo "#NNN - ".
+# Richiede un tracker gia numerato: per i tracker storici eseguire prima Invoke-SBTrackerRenumber.
+function New-SBTrackerTaskEntry {
+    [CmdletBinding()]
+    param(
+        [string]$BrainRoot,
+        [string]$Identity,
+        [string]$Path,
+        [string]$WorkingRepository,
+        [Parameter(Mandatory)][string]$Title,
+        [string]$Id,
+        [string]$Description,
+        [string]$Priority='P2',
+        [ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
+        [string[]]$DependsOn=@(),
+        [Parameter(Mandatory)][string[]]$Acceptance,
+        [Parameter(Mandatory)][string]$ProvenanceReference,
+        [string]$ProvenancePointer,
+        [hashtable]$Extensions=@{},
+        [string]$BackupRoot,
+        [switch]$WhatIf
+    )
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
+    $next=$target.data
+    $unnumbered=@($next.tasks|Where-Object {!$_.ContainsKey('seq')})
+    if($unnumbered.Count){throw "Tracker non numerato ($($unnumbered.Count) task senza seq): eseguire prima knowledge.ps1 -RenumberTasks"}
+    if(!@($Acceptance|Where-Object {$_ -and $_.Trim()}).Count){throw 'Almeno un criterio di accettazione obbligatorio'}
+    $seq=(Get-SBTrackerLastSeq $next)+1
+    if(!$Id){$Id='TASK-'+$seq.ToString('000')}
+    if(@($next.tasks|Where-Object {$_.id -ceq $Id}).Count){throw "ID task gia presente: $Id"}
+    # La provenienza e un file reale: riferimento relativo al dossier (o assoluto), hash calcolato qui.
+    $dossierDir=Split-Path $target.path
+    $sourcePath=if([IO.Path]::IsPathFullyQualified($ProvenanceReference)){$ProvenanceReference}else{Join-Path $dossierDir (($ProvenanceReference -split '#',2)[0])}
+    if(!(Test-Path -LiteralPath $sourcePath -PathType Leaf)){throw "Provenienza inesistente: $ProvenanceReference"}
+    Assert-SBPlainPath $sourcePath
+    $dependencies=@($DependsOn|Where-Object {$_}|ForEach-Object {
+        $parts=$_ -split '#',2
+        if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$_}}
+    })
+    $task=@{
+        id=$Id;seq=$seq;title=(Format-SBTrackerSeqTitle $seq $Title);status='todo';execution=$Execution;priority=$Priority
+        dependencies=$dependencies;acceptance=@($Acceptance);evidence=@()
+        provenance=@(@{reference=$ProvenanceReference;sha256=(Get-SBFileHash $sourcePath);pointer=$(if($ProvenancePointer){$ProvenancePointer}else{$Title})})
+        extensions=$Extensions
+    }
+    if($Description){$task.description=$Description}
+    $next.tasks+=,$task
+    if($null -eq $next.extensions){$next.extensions=@{}}
+    $next.extensions.lastSeq=$seq
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf
+    $saved+@{taskId=$Id;seq=$seq;title=$task.title}
+}
+
+# Numerazione retroattiva in ordine cronologico: archivio e tracker attivo, data ricavata dall'ID (aaaammgg) o ereditata dal task precedente.
+# Ordinamento stabile; gli originali sono conservati per hash in history/tracker-seq/<sha256>/ nella stessa transazione. Senza -Apply e un'anteprima.
+function Invoke-SBTrackerRenumber {
+    [CmdletBinding()]
+    param(
+        [string]$BrainRoot,
+        [string]$Identity,
+        [string]$Path,
+        [string]$WorkingRepository,
+        [string]$ArchivePath,
+        [string]$BackupRoot,
+        [switch]$Apply
+    )
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
+    $next=$target.data
+    $dossierDir=Split-Path $target.path
+    if(!$ArchivePath){$ArchivePath=Join-Path $dossierDir 'history/tracker-archive.json'}
+    $archive=$null;$archiveHash='absent'
+    if(Test-Path -LiteralPath $ArchivePath -PathType Leaf){
+        Assert-SBPlainPath $ArchivePath
+        $archiveHash=Get-SBFileHash $ArchivePath
+        $archive=ConvertTo-SBJson (Read-SBJson $ArchivePath $null)|ConvertFrom-Json -AsHashtable -DateKind String
+        if($archive -isnot [Collections.IDictionary] -or $archive.repository -cne $target.identity){throw 'Archivio tracker di identita divergente'}
+    }
+    $items=@()
+    if($archive){foreach($t in $archive.tasks){$items+=,@{task=$t;source='archive'}}}
+    foreach($t in $next.tasks){$items+=,@{task=$t;source='tracker'}}
+    $numbered=@($items|Where-Object {$_.task.ContainsKey('seq')})
+    if($items.Count -and $numbered.Count -eq $items.Count){return @{applied=$false;changed=$false;reason='Tracker gia numerato';count=$items.Count;lastSeq=(Get-SBTrackerLastSeq $next)}}
+    if($numbered.Count){throw "Numerazione parziale ($($numbered.Count) su $($items.Count)): riconciliazione esplicita richiesta"}
+    $current='00000000';$index=0
+    foreach($item in $items){
+        $match=[regex]::Match([string]$item.task.id,'(?<!\d)(20\d{6})(?!\d)')
+        if($match.Success){$current=$match.Groups[1].Value}
+        $item.date=$current;$item.index=$index;$index++
+    }
+    $ordered=@($items|Sort-Object @{Expression={$_.date}},@{Expression={$_.index}})
+    $mapping=@();$seq=0
+    foreach($item in $ordered){
+        $seq++
+        $item.task.seq=$seq
+        $item.task.title=Format-SBTrackerSeqTitle $seq ([string]$item.task.title)
+        $mapping+=,@{seq=$seq;id=$item.task.id;source=$item.source}
+    }
+    if($null -eq $next.extensions){$next.extensions=@{}}
+    $next.extensions.lastSeq=$seq
+    $originalRel='history/tracker-seq/'+$target.hash.ToLowerInvariant()
+    $originalRoot=Join-Path $dossierDir $originalRel
+    $extra=@(@{path=(Join-Path $originalRoot 'tracker.json');expected='absent';bytes=[IO.File]::ReadAllBytes($target.path)})
+    if($archive){
+        $extra+=@{path=(Join-Path $originalRoot 'tracker-archive.json');expected='absent';bytes=[IO.File]::ReadAllBytes($ArchivePath)}
+        $extra+=@{path=[IO.Path]::GetFullPath($ArchivePath);expected=$archiveHash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $archive))}
+    }
+    $next.history+=,@{reference=$originalRel+'/tracker.json';sha256=$target.hash;description="Numerazione retroattiva: $seq task (archivio e attivi) in ordine cronologico; originali conservati per hash."}
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:(!$Apply) -ExtraOperations $extra
+    $saved.Remove('data')
+    $saved+@{changed=$true;count=$seq;lastSeq=$seq;originals=$originalRel;mapping=$mapping}
+}
+
 function Update-SBTrackerTask {
     [CmdletBinding()]
     param(

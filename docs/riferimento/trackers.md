@@ -88,6 +88,24 @@ Per aggiornare lo stato di un task nel tracker autorevole senza rischiare corruz
 - Rifiuta stati sconosciuti, task inesistenti o cicli/dipendenze non valide;
 - Esegue la scrittura in modo atomico tramite `Invoke-SBParaTransaction`, creando un backup di rollback e un manifest transazionale sotto `.runtime/backups`.
 
+### Numerazione progressiva e creazione dei task
+
+Ogni task può avere `seq`, un intero univoco nel tracker; il titolo inizia allora con `#NNN — `. Il contatore `extensions.lastSeq` non scende mai: i numeri dei task archiviati o rimossi non si riusano. `Test-SBTrackerData` rifiuta numeri duplicati, titoli senza il prefisso corrispondente e numeri oltre `lastSeq`.
+
+```powershell
+# Numerazione retroattiva (una sola volta per tracker): anteprima, poi applicazione.
+pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks
+pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks -Apply
+
+# Nuovo task: seq = lastSeq + 1, ID predefinito TASK-NNN, provenienza relativa al dossier con hash calcolato.
+# Da una sessione PowerShell: con pwsh -File gli elenchi (-Acceptance, -DependsOn) non arrivano come array.
+& ./scripts/knowledge.ps1 -NewTask 'Titolo' -Acceptance 'criterio 1','criterio 2' -Provenance 'history/<lotto>/report.md' [-TaskId <id>] [-DependsOn <id>,<repo>#<id>] [-Priority P1] [-Execution user_required] [-Description '...']
+```
+
+- La numerazione retroattiva ordina archivio (`history/tracker-archive.json`) e tracker attivo per la data `aaaammgg` dell'ID; un ID senza data eredita quella del task precedente e l'ordine resta stabile. Gli originali sono copiati in `history/tracker-seq/<sha256>/` nella stessa transazione. Su un tracker già numerato non cambia nulla; una numerazione parziale è un errore.
+- `-NewTask` rifiuta un tracker non ancora numerato, un ID già presente, criteri vuoti e una provenienza inesistente. Come `-UpdateTaskId`, scrive solo nel repository in lavoro.
+- Proiezione, `-Tasks` e MCP `get_ready_tasks` riportano `seq` quando presente.
+
 ## Proiezione dei Task e Budget
 
 Il `tracker.json` conserva tutti i task con il loro stato (`todo`, `in_progress`, `blocked`, `done`, `cancelled`, `unknown`); non esiste una archiviazione automatica verso file separati. Per contenere il pacchetto di avvio snello entro **20.000 caratteri**, `knowledge.ps1 -Startup` e il server MCP usano una proiezione: i task chiusi (`done`/`cancelled`) non vengono inclusi, e con `-ReadyOnly` (`get_ready_tasks`) restano solo i task non bloccati le cui dipendenze sono soddisfatte. Se il tracker cresce troppo, la compattazione conservativa (SYS05) archivia gli originali per hash senza cancellare informazioni.

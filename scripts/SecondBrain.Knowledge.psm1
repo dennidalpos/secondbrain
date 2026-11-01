@@ -77,6 +77,7 @@ function Get-SBTaskProjection($Tracker,[string[]]$TaskIds=@(),[switch]$IncludeAc
     }
     @($active|ForEach-Object {
         $task=@{id=$_.id;title=$_.title;status=$_.status;priority=$_.priority;dependencies=$_.dependencies;blocker=$(if($_.extensions.ContainsKey('stateReason')){$_.extensions.stateReason}else{''})}
+        if($_.ContainsKey('seq')){$task.seq=$_.seq}
         if($IncludeAcceptance){$task.acceptance=$_.acceptance}
         $task
     })

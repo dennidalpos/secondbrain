@@ -5,9 +5,14 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][ValidateSet('Slim','Full')][string]$Profile='Slim',
     [Parameter(ParameterSetName='Startup')][switch]$Report,
     [Parameter(Mandatory,ParameterSetName='Compact')][switch]$Compact,
-    [Parameter(ParameterSetName='Compact')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
+    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=50000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
+    [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
+    [Parameter(ParameterSetName='TaskNew')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
+    [Parameter(ParameterSetName='TaskNew')][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
+    [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
+    [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@())
@@ -17,7 +22,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
-    $readOnly=(!$Apply -and !$UpdateTaskId)
+    $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask)
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
@@ -55,6 +60,18 @@ try{
         if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
         $repoId=if($Repository){$Repository}else{$working}
         $result=Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $repoId -WorkingRepository $working -TaskId $UpdateTaskId -Status $Status -StateReason $StateReason -BackupRoot $config.backupRoot
+    }
+    elseif($NewTask -or $RenumberTasks){
+        # Creazione e numerazione restano nel repository in lavoro, come gli aggiornamenti di stato.
+        $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
+        if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
+        $repoId=if($Repository){$Repository}else{$working}
+        $result=if($NewTask){
+            New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repoId -WorkingRepository $working -Title $NewTask -Id $TaskId -Description $Description -Priority $Priority -Execution $Execution -DependsOn $DependsOn -Acceptance $Acceptance -ProvenanceReference $Provenance -ProvenancePointer $ProvenancePointer -BackupRoot $config.backupRoot
+        }else{
+            Invoke-SBTrackerRenumber -BrainRoot $brain -Identity $repoId -WorkingRepository $working -BackupRoot $config.backupRoot -Apply:$Apply
+        }
+        $result.Remove('data')
     }
     elseif($All){
         if($Repository){throw 'Parametri incompatibili: -All e -Repository'}

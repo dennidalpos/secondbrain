@@ -129,6 +129,10 @@
           "minItems": 1,
           "type": "array"
         },
+        "seq": {
+          "minimum": 1,
+          "type": "integer"
+        },
         "status": {
           "enum": [
             "todo",
