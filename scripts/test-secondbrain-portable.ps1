@@ -157,6 +157,17 @@ try{
     foreach($original in $compaction.archives){Assert-Portable ((Get-SBFileHash (Join-Path $dossier $original.archive)) -eq $original.sha256) ('originale preservato '+$original.source)}
     Assert-Portable (Get-SBStartupContext $brain $dossier $repo).withinBudget 'contesto rientra nel budget'
     Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Apply} 'candidato obsoleto rifiutato'
+    # Budget di compattazione: conta le parti caricate da Slim, non le sezioni (storico).
+    $levelSummary=@('## Stato corrente','essenziale','## Vincoli','essenziale','## Problemi aperti','nessuno','## Prossimo passo','nessuno')-join "`n`n"
+    $historyBlock="`n`n## Cronaca (storico)`n`n"+('cronaca di lotto '*4000)
+    $levelCandidate=@{schemaVersion=1;repository=$cfg.bindings[0].identity;reviewed=$true;reviewNote='tiered fixture';sources=@{};summaries=@{'context.md'=($levelSummary+$historyBlock);'memory.md'='# Memoria'};openTaskIds=@()}
+    foreach($name in @('context.md','memory.md')){$levelCandidate.sources[$name]=Get-SBFileHash (Join-Path $dossier $name)}
+    $levelPath=Join-Path $brain '.runtime/compaction-levels.json';Put-Portable $levelPath (ConvertTo-SBJson $levelCandidate)
+    $levelPlan=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $levelPath -BackupRoot $cfg.backupRoot -CheckoutPath $repo
+    Assert-Portable (!$levelPlan.applied -and $levelPlan.originalsPreserved) 'compattazione per livelli: la sezione (storico) non conta per il budget, senza -Budget esplicito'
+    $levelCandidate.summaries['context.md']=$levelSummary+"`n`n## Cronaca`n`n"+('cronaca di lotto '*4000)
+    Put-Portable $levelPath (ConvertTo-SBJson $levelCandidate)
+    Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $levelPath -BackupRoot $cfg.backupRoot -CheckoutPath $repo} 'compattazione: la stessa cronaca senza marcatore di livello supera il budget'
     $searchResults=Find-SBKnowledge -BrainRoot $brain -Search 'autorizzazioni' -Dossier $dossier
     Assert-Portable ($searchResults.count -gt 0 -and $searchResults.withinBudget) 'ricerca trasversale restituisce riscontri entro budget'
     Assert-Portable ($searchResults.extracts[0].path -and $searchResults.extracts[0].line -gt 0 -and $searchResults.extracts[0].sha256.Length -eq 64) 'estratto di ricerca contiene percorso, riga e sha256'
@@ -269,9 +280,20 @@ try{
     $batchLimited=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -MaxTextBytes 400 -MaxHistoryBlobs 2
     Assert-Portable (@($batchLimited.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'blob-limit'}).Count -eq 1 -and $batchLimited.historyBlobs -eq 2 -and !$batchLimited.complete) 'limite di blob in storia dichiarato come copertura incompleta'
     $basePub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial
-    Assert-Portable (Test-Path -LiteralPath (Join-Path $brain '.runtime/publication/baseline.json')) 'Test-SBPublication genera baseline autorizzata con -Initial'
+    $repoBaseline=Get-SBPublicationBaselinePath $brain (Invoke-SBGit $repo @('rev-parse','--show-toplevel')).output
+    Assert-Portable (Test-Path -LiteralPath $repoBaseline -PathType Leaf) 'Test-SBPublication genera baseline autorizzata con -Initial, specifica per repository'
     $incrPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
     Assert-Portable ($incrPub.incremental -and $incrPub.baseline -ne $null) 'Test-SBPublication esegue scansione incrementale usando baseline'
+    $repoBaselineHash=Get-SBFileHash $repoBaseline
+    $batchInitial=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -Initial
+    $batchBaseline=Get-SBPublicationBaselinePath $brain (Invoke-SBGit $batchRepo @('rev-parse','--show-toplevel')).output
+    Assert-Portable ($batchBaseline -ne $repoBaseline -and (Test-Path -LiteralPath $batchBaseline -PathType Leaf) -and (Get-SBFileHash $repoBaseline) -eq $repoBaselineHash) 'baseline per repository: -Initial su un altro repository non altera quello esistente'
+    Assert-Portable ((Test-SBPublication -BrainRoot $brain -RepositoryPath $repo).incremental -and (Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo).incremental) 'baseline per repository: entrambi i repository restano incrementali'
+    $legacyFile=Join-Path $brain '.runtime/publication/baseline.json'
+    Put-Portable $legacyFile (ConvertTo-SBJson @{schemaVersion=1;headCommit=('a'*40);generatedAt='2026-01-01T00:00:00Z';historyBlobs=0;authorized=$true;repository=[IO.Path]::GetFullPath($other)})
+    $legacyHash=Get-SBFileHash $legacyFile
+    Assert-Portable ((Read-SBPublicationBaseline $brain $other).headCommit -eq ('a'*40) -and $null -eq (Read-SBPublicationBaseline $brain ([IO.Path]::GetFullPath((Join-Path $brain 'inesistente')))) ) 'baseline unico precedente letto solo per il repository registrato'
+    Assert-Portable ((Get-SBFileHash $legacyFile) -eq $legacyHash) 'baseline unico precedente non riscritto'
     $syntheticPNG=Join-Path $brain '.runtime/captures/synthetic-test.png'
     [IO.Directory]::CreateDirectory((Split-Path $syntheticPNG))|Out-Null
     [IO.File]::WriteAllBytes($syntheticPNG,[Convert]::FromBase64String('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jCYQAAAAASUVORK5CYII='))

@@ -16,7 +16,7 @@ Struttura dei moduli, dipendenze interne, decisioni architetturali documentate, 
 
 ## Attività specifiche
 
-Ricostruisci moduli, livelli e dipendenze dal codice reale e non dalla documentazione. Cerca cicli di dipendenza, dipendenze inverse tra livelli, moduli con troppe responsabilità, duplicazioni di responsabilità, configurazione sparsa, punti unici di guasto e scorciatoie rimaste (marker TODO, FIXME, HACK, stub, test disabilitati). Confronta con le decisioni documentate e con il tracker.
+Ricostruisci moduli, livelli e dipendenze dal codice reale e non dalla documentazione. Cerca cicli di dipendenza, dipendenze inverse tra livelli, moduli con troppe responsabilità, duplicazioni di responsabilità, configurazione sparsa, punti unici di guasto e scorciatoie rimaste (marker TODO, FIXME, HACK, stub, test disabilitati). Distingui i marker reali da identificatori, fixture e testi di test che contengono la stessa parola. Confronta con le decisioni documentate e con il tracker.
 
 ## Verifiche
 

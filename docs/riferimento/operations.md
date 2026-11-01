@@ -49,7 +49,19 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 ```
 
+![Output reale di secondbrain.ps1 -Check su una fixture sintetica](../assets/cli-check.png)
+
 Check non corregge e non prende lock bloccanti: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
+
+### Verifica prima del push
+
+Prima di inviare modifiche a un remote pubblico (GitHub o GitLab) controlla che nessun dato locale, cartella PARA o runtime sia nell'indice Git:
+
+```powershell
+pwsh -NoProfile -File scripts/check-distribution.ps1
+```
+
+Restituisce 0 se l'indice è conforme e pulito; restituisce 1 e blocca la procedura se individua dati locali tracciati per errore. La verifica di pubblicabilità completa è REP05 (`scripts/publication.ps1`).
 
 ### Output e stato
 
@@ -78,10 +90,9 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 |---|---|
 | [Manutenzione di .runtime e contesto iniziale](runtime-maintenance.md) | Categorie di .runtime, routine mensile, proposta di pulizia, profilo di avvio snello |
 | [Sicurezza e backup](safety-backups.md) | Cosa modifica SecondBrain, dove sono i backup, ripristino e disinstallazione (da leggere per primo) |
-| [Guida Utente End-to-End](user-guide.md) | Installazione, discovery, sincronizzazione, workflow e backup |
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
-| [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo degli 80 workflow, 13 aree, schede, approvazione direttive e generazione |
+| [Prompt e direttive](customizing-prompts-and-directives.md) | Uso dalla chat e dalla CLI, catalogo degli 80 workflow in 13 aree, schede, approvazione direttive, generazione e manutenzione |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |

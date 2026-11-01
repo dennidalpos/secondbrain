@@ -16,7 +16,7 @@ Commit, indice e working tree da pubblicare, tag inclusi, destinazione e visibil
 
 ## Attività specifiche
 
-Determina l’insieme esatto di commit e file che verrebbero inviati (per esempio `@{upstream}..HEAD` e i tag). Esegui `publication.ps1 -RepositoryPath` quando disponibile e le scansioni di SEC04 (segreti) e SEC05 (dati personali) limitate a questo insieme. Controlla anche messaggi di commit, nomi di file, binari, file ignorati aggiunti a forza, percorsi privati e indirizzi email non pubblici. Riporta solo hash e posizioni, mai i valori.
+Determina l’insieme esatto di commit e file che verrebbero inviati (per esempio `@{upstream}..HEAD` e i tag). Esegui `scripts/publication.ps1 -RepositoryPath` del clone SecondBrain (o lo strumento MCP `check_publication`) quando disponibile; ricorda che la scansione incrementale parte dal baseline del repository e non da `@{upstream}`, quindi confrontala con l'insieme appena determinato e le scansioni di SEC04 (segreti) e SEC05 (dati personali) limitate a questo insieme. Controlla anche messaggi di commit, nomi di file, binari, file ignorati aggiunti a forza, percorsi privati e indirizzi email non pubblici. Riporta solo hash e posizioni, mai i valori.
 
 ## Decisioni da raccogliere
 

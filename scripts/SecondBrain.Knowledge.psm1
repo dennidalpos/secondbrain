@@ -368,7 +368,8 @@ function Invoke-SBDossierCompaction {
     if(@($openIds|Where-Object {$_ -notin $candidate.openTaskIds}).Count){throw 'Il candidato omette task aperti: rigenerare la proiezione'}
     $toc=Get-SBDossierTOC $dir;$index=Join-Path $dir 'index.md'
     $ops+=@{path=$index;expected=(Get-SBFileHash $index);bytes=[Text.Encoding]::UTF8.GetBytes($toc)}
-    $total=($ops|Where-Object {[IO.Path]::GetFileName($_.path) -in @('context.md','memory.md') -and $_.path -notmatch '[\\/]history[\\/]'}|ForEach-Object {[Text.Encoding]::UTF8.GetString($_.bytes).Length}|Measure-Object -Sum).Sum
+    # Il budget misura le sole parti caricate all'avvio (profilo Slim): le sezioni (storico) restano nel file ma non contano.
+    $total=($ops|Where-Object {[IO.Path]::GetFileName($_.path) -in @('context.md','memory.md') -and $_.path -notmatch '[\\/]history[\\/]'}|ForEach-Object {(Split-SBTieredMarkdown ([Text.Encoding]::UTF8.GetString($_.bytes))).essential.Length}|Measure-Object -Sum).Sum
     $projection=ConvertTo-SBJson @(Get-SBTaskProjection $tracker.data)
     if($total+$toc.Length+$projection.Length -gt $Budget){throw 'Budget superato: approfondire la sintesi, senza troncare informazioni'}
     $manifest=@{schemaVersion=1;repository=$record.identity;archives=$archives;reviewNote=$candidate.reviewNote;openTaskIds=$openIds;candidateSha256=(Get-SBFileHash $CandidatePath)}

@@ -38,16 +38,31 @@ function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath)
     if(Test-Path -LiteralPath (Join-Path $BrainRoot '.runtime/publication/policy.json') -PathType Leaf){return '.runtime/publication/policy.json'}
     return $null
 }
+function Get-SBPublicationBaselinePath([string]$BrainRoot,[string]$RepositoryRoot) {
+    $key=[IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\','/').ToLowerInvariant().Replace('\','/')
+    $id=(Get-SBHash ([Text.Encoding]::UTF8.GetBytes($key))).ToLowerInvariant().Substring(0,16)
+    Join-Path $BrainRoot ('.runtime/publication/baseline-'+$id+'.json')
+}
+function Read-SBPublicationBaseline([string]$BrainRoot,[string]$RepositoryRoot) {
+    $file=Get-SBPublicationBaselinePath $BrainRoot $RepositoryRoot
+    if(Test-Path -LiteralPath $file -PathType Leaf){return Read-SBJson $file $null}
+    # Compatibilità: il file unico precedente vale solo se registrato per questo repository; non viene mai riscritto.
+    $legacy=Join-Path $BrainRoot '.runtime/publication/baseline.json'
+    if(Test-Path -LiteralPath $legacy -PathType Leaf){
+        $data=Read-SBJson $legacy $null
+        if($data -and $data.repository -and ([IO.Path]::GetFullPath([string]$data.repository).TrimEnd('\','/') -ieq [IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\','/'))){return $data}
+    }
+    $null
+}
 function Test-SBPublication {
     param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[int]$MaxHistoryBlobs=10000,[int]$MaxTextBytes=2097152,[switch]$Initial)
     $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw 'Checkout Git richiesto'};$root=$repo.output
     $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw 'Policy pubblicazione non valida'};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
     $findings=@();$incomplete=@();$checked=0
     
-    $baselineFile = if ($BrainRoot) { Join-Path $BrainRoot '.runtime/publication/baseline.json' } else { $null }
-    $baseline = if (!$Initial -and $baselineFile -and (Test-Path -LiteralPath $baselineFile -PathType Leaf)) {
-        Read-SBJson $baselineFile $null
-    } else { $null }
+    # Un baseline per repository (nome dal percorso normalizzato): -Initial su un repository non altera gli altri.
+    $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root } else { $null }
+    $baseline = if (!$Initial -and $baselineFile) { Read-SBPublicationBaseline $BrainRoot $root } else { $null }
 
     $targetFiles = @()
     if ($baseline -and $baseline.headCommit) {

@@ -16,6 +16,8 @@ Senza agent: `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive`
 
 SecondBrain richiede Windows, Git e PowerShell 7.5+. Il bootstrap non installa software, non richiede percorsi preimpostati e non registra monitor.
 
+Requisiti: Windows 10/11 a 64 bit o Windows Server 2022+, PowerShell 7.5 o successivo (`pwsh`), Git per Windows 2.40+. Strumenti convalidati: Claude, ChatGPT Codex e Antigravity, tutti per Windows. Verifica: `$PSVersionTable.PSVersion` e `git --version`.
+
 ### Procedura rapida
 
 Prima leggi [cosa modifica SecondBrain e dove sono i backup](safety-backups.md). Dalla radice del clone, in PowerShell 7.5+:
@@ -41,7 +43,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 ```
 
-`SECONDBRAIN_HOME` è una variabile utente impostata da `-Setup -Apply` (non con `-NoRegisterEnvironment`): indica il clone ai tuoi agent. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [guida utente](user-guide.md).
+`SECONDBRAIN_HOME` è una variabile utente impostata da `-Setup -Apply` (non con `-NoRegisterEnvironment`): indica il clone ai tuoi agent. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [IDE](adapters.md).
 
 ### Primo avvio con un agent
 
@@ -72,6 +74,24 @@ Eseguire suite principale, Check, verifica IDE e catalogo. File allineati, accou
 La prima implementazione usa Windows; non è dichiarato supporto macOS/Linux. JSON è validato con [PowerShell Test-Json](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/test-json?view=powershell-7.5).
 
 ## Selezione e attivazione
+
+Dopo l'attivazione, `-Setup -Status` mostra binding, IDE e ricevuta di selezione (sola lettura):
+
+![Output reale di secondbrain.ps1 -Setup -Status su una fixture sintetica](../assets/cli-setup-status.png)
+
+Opzioni di `-Setup`:
+
+| Opzione | Effetto |
+| --- | --- |
+| `-Roots` | Radici da analizzare (senza: volumi fissi). `-MaxDirectories` limita la visita. |
+| `-Select` | Repository per id, nome o percorso (più valori separati da virgola). `-All` seleziona tutti. |
+| `-Ides` / `-AllIdes` | IDE da associare (id o nome). |
+| `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. |
+| `-Yes` | Conferma non interattiva: registra utente, host e data nella selezione. Va usata solo dopo la conferma dell'utente. |
+| `-Apply` | Applica; senza, resta l'anteprima. Registra `SECONDBRAIN_HOME` (salvo `-NoRegisterEnvironment`). |
+| `-AndSync` | Dopo l'applicazione esegue `-Sync` invece di `-Check`. |
+
+In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, REP07).
 
 `-Setup` genera la selezione e registra come `confirmation` utente, host, data e modalità (`-Yes` o interattiva); senza conferma resta una proposta con confirmed=false, rifiutata da `-Activate`. Formato (per gli usi diretti di `-Activate`): la selezione JSON ha schemaVersion=1, confirmed=true, confirmation (riferimento alla scelta umana), reportPath, reportSha256, repositories e ides. Ogni repository usa l'id del candidato; approveExistingBlock=true conferma il blocco esistente esaminato. Ogni IDE usa l'id del candidato e può specificare accountAlias/profile/environment. Il flag non sostituisce l'autorizzazione umana. `-Activate -SelectionPath` mostra l'anteprima; aggiungere `-Apply` solo dopo conferma. Fingerprint e hash impediscono di applicare una selezione divenuta obsoleta.
 

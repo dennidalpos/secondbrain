@@ -58,7 +58,7 @@ Ogni file esistente sostituito da `-Sync`, `approve-revision.ps1`, `mcp-server.p
 
 `<id>` è l'identificativo della postazione (`ws-` più 16 cifre esadecimali). `.runtime/` è escluso da Git: i backup restano solo sul tuo PC e non vengono mai pubblicati. Non c'è cancellazione automatica; la pulizia è esplicita (`cleanup.ps1`, vedi [recovery](recovery.md)). Se un file non esisteva, la scrittura lo crea e non c'è nulla da salvare.
 
-`backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip.
+`backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip. Esempi: `backup.ps1` (archivio di `01-projects`, `02-areas`, `03-resources`, `04-archives`, `PARA.md`, `para-index.json` e `.runtime/hosts`), `backup.ps1 -OutputPath D:/Backups/SecondBrain/backup.zip` per un percorso scelto, `backup.ps1 -Verify` (ultimo archivio in `.runtime/backups/`) e `backup.ps1 -Verify -BackupPath <zip>` per uno specifico.
 
 ## Ripristinare un file
 
