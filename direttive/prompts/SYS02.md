@@ -1,6 +1,6 @@
 # SYS02 — Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta
 
-> **Scope**: central | **Modalità**: verifica | **Cosa serve**: registro resource-authoritative-sources e schede locali | **Esempio d'uso**: `sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti`
+> **Scope**: central | **Modalità**: verifica | **Cosa serve**: registro PARA resource-authoritative-sources | **Esempio d'uso**: `sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti`
 
 ## Scopo
 

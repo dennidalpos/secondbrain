@@ -1,4 +1,4 @@
-# INT04 — Verifica internazionalizzazione e localizzazione
+# INT04 — Verifica internazionalizzazione di stringhe, formati e traduzioni
 
 > **Scope**: repo/area | **Modalità**: verifica | **Cosa serve**: interfaccia o messaggi con lingue e formati supportati | **Esempio d'uso**: `sb prompt INT04: verifica stringhe, formati e traduzioni della CLI`
 
@@ -28,6 +28,6 @@ Rapporto con le lingue verificate, rilievi per file e riga, prove di riproduzion
 
 ## Prompt vicini
 
-- INT02: Implementa un'interfaccia seguendo requisiti e riferimenti.
+- INT02: Implementa un’interfaccia seguendo requisiti e riferimenti.
 - INT03: Verifica accessibilità e utilizzo con tastiera e ausili.
 - TST05: Verifica il comportamento reale rispetto ai requisiti.

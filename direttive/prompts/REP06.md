@@ -1,6 +1,6 @@
 # REP06 — Prepara il README GitHub con informazioni e asset verificati
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: codice reale, comandi funzionanti e asset grafici | **Esempio d'uso**: `sb prompt REP06: genera readme github con flussi mermaid`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: documentazione del repository e screenshot approvati | **Esempio d'uso**: `sb prompt REP06: genera readme github con flussi mermaid`
 
 ## Scopo
 

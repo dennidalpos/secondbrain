@@ -1,6 +1,6 @@
 # MEM04 — Elenca e descrivi le attività del tracker e i problemi che risolvono
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: dossier con tracker.json verificato e context.md | **Esempio d'uso**: `sb prompt MEM04: elenca attivita e problemi del tracker`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: tracker del dossier di repository | **Esempio d'uso**: `sb prompt MEM04: elenca attivita e problemi del tracker`
 
 ## Scopo
 

@@ -26,7 +26,7 @@ Ogni riga di tabella o checkbox non riconosciuta fa fallire la conversione, anch
 
 ## Anteprima, preparazione e ripresa
 
-Per riprendere un'importazione, risolvere $manifest dal registro tracker-migrations nel runtime configurato. L anteprima seguente legge lo stato registrato senza scrivere. La preparazione di un elenco esistente richiede -Repository e -SourcePath sul relativo tracker autorevole; non e eseguita automaticamente.
+Per riprendere un'importazione, risolvere $manifest dal registro tracker-imports nel runtime configurato (i registri creati prima della V1.0 in tracker-migrations, con archivi `history/tracker-migration-<id>`, restano leggibili; le nuove importazioni usano `tracker-import`). I dati originali importati sono in `extensions.original`. L anteprima seguente legge lo stato registrato senza scrivere. La preparazione di un elenco esistente richiede -Repository e -SourcePath sul relativo tracker autorevole; non e eseguita automaticamente.
 
 ```powershell
 $cfg = '.runtime/hosts/<id>/workstation.json'

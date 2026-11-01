@@ -1,6 +1,6 @@
 # SYS01 — Verifica gli IDE; mappa o riallinea su richiesta
 
-> **Scope**: central | **Modalità**: verifica | **Cosa serve**: inventario locale ide e direttive approvate | **Esempio d'uso**: `sb prompt SYS01: mappa lo stato di allineamento delle direttive negli ide`
+> **Scope**: central | **Modalità**: verifica | **Cosa serve**: installazioni IDE e autorizzazioni locali | **Esempio d'uso**: `sb prompt SYS01: mappa lo stato di allineamento delle direttive negli ide`
 
 ## Scopo
 

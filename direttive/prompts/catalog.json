@@ -1761,7 +1761,7 @@
         "pmt-77d7bf7a",
         "pmt-821f7dec"
       ],
-      "requires": "dossier target e vincolo di 50.000 caratteri",
+      "requires": "dossier target e tetto di 20.000 caratteri del primo caricamento",
       "scope": "central",
       "status": "active",
       "summary": "Misura i caratteri di contesto, memoria e tracker rispetto al budget.",

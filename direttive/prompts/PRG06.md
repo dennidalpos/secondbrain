@@ -1,4 +1,4 @@
-# PRG06 — Pianifica un refactoring architetturale a fasi
+# PRG06 — Pianifica un refactoring architetturale a fasi con verifiche e rollback
 
 > **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: modulo da riorganizzare, test esistenti e invarianti da preservare | **Esempio d'uso**: `sb prompt PRG06: pianifica il refactoring del modulo di sincronizzazione`
 

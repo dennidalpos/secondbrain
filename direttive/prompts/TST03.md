@@ -1,6 +1,6 @@
 # TST03 — Individua e correggi test instabili o non deterministici
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: log di esecuzione e storico delle suite fallite | **Esempio d'uso**: `sb prompt TST03: risolvi instabilita nei test asincroni della suite`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: log dei fallimenti intermittenti e suite di test | **Esempio d'uso**: `sb prompt TST03: risolvi instabilita nei test asincroni della suite`
 
 ## Scopo
 

@@ -1,6 +1,6 @@
 # REP02 — Scrivi guide e README coerenti con il prodotto reale
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: funzionalita osservate nel codice e documentazione corrente | **Esempio d'uso**: `sb prompt REP02: aggiorna guide e genera flussi mermaid`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: funzionalita implementate e comandi verificati | **Esempio d'uso**: `sb prompt REP02: aggiorna guide e genera flussi mermaid`
 
 ## Scopo
 

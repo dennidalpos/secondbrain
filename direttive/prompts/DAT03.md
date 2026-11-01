@@ -1,6 +1,6 @@
 # DAT03 — Integra servizi API gestendo errori e ripetizione delle richieste
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: specifiche api, endpoint e gestione rate limit | **Esempio d'uso**: `sb prompt DAT03: implementa client rest con retry esponenziale e backoff`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: documentazione API, credenziali di test e schema | **Esempio d'uso**: `sb prompt DAT03: implementa client rest con retry esponenziale e backoff`
 
 ## Scopo
 

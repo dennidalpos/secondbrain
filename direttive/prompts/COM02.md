@@ -1,6 +1,6 @@
 # COM02 — Ricostruisci un flusso e le sue dipendenze nel codice
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: entrypoint del flusso e file sorgente pertinenti | **Esempio d'uso**: `sb prompt COM02: ricostruisci il flusso di autenticazione e sessioni`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: punto di ingresso o scenario da tracciare | **Esempio d'uso**: `sb prompt COM02: ricostruisci il flusso di autenticazione e sessioni`
 
 ## Scopo
 

@@ -1,6 +1,6 @@
 # OPS03 — Aggiungi log, metriche e diagnostica utili al problema
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: flussi critici da osservare e destinazione dei log | **Esempio d'uso**: `sb prompt OPS03: aggiungi logging strutturato json`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: scenario da monitorare e standard di logging | **Esempio d'uso**: `sb prompt OPS03: aggiungi logging strutturato json`
 
 ## Scopo
 

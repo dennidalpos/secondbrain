@@ -1,6 +1,6 @@
 # REP01 — Completa il prossimo task eseguibile del repository aperto
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: tracker.json verificato e repository aperto | **Esempio d'uso**: `sb prompt REP01: esegui il prossimo task autonomo prioritario`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: task pianificato e criteri di accettazione | **Esempio d'uso**: `sb prompt REP01: esegui il prossimo task autonomo prioritario`
 
 ## Scopo
 

@@ -1,6 +1,6 @@
 # OPS02 — Configura pipeline, container e infrastruttura come codice
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: dipendenze di runtime e requisiti di containerizzazione | **Esempio d'uso**: `sb prompt OPS02: configura Dockerfile multi-stage per build riproducibile`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: requisiti di deployment e ambiente di destinazione | **Esempio d'uso**: `sb prompt OPS02: configura Dockerfile multi-stage per build riproducibile`
 
 ## Scopo
 

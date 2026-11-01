@@ -1,6 +1,6 @@
 # MEM02 — Migra progettazione e attività nel dossier SecondBrain
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: file di progetto, annotazioni todo e tracker.json | **Esempio d'uso**: `sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: documentazione storica o issue esterne da migrare | **Esempio d'uso**: `sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier`
 
 ## Scopo
 

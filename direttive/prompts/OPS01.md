@@ -1,6 +1,6 @@
 # OPS01 — Prepara e verifica pacchetti e artefatti distribuibili
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: albero dei file compilati e script di packaging | **Esempio d'uso**: `sb prompt OPS01: prepara archivio zip deterministico e calcola sha-256`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: istruzioni di build e requisiti del pacchetto | **Esempio d'uso**: `sb prompt OPS01: prepara archivio zip deterministico e calcola sha-256`
 
 ## Scopo
 

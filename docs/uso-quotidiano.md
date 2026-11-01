@@ -74,4 +74,4 @@ Non ogni modifica merita un nuovo numero. L'agente, quando serve, propone la ver
 | Allineare | Aggiornare quel testo |
 | MCP | Il collegamento tra agente e SecondBrain |
 
-Più dettagli: [PARA](riferimento/para.md), [task](riferimento/trackers.md), [controlli](riferimento/check-sync.md).
+Più dettagli: [PARA](riferimento/para.md), [task](riferimento/trackers.md), [controlli](riferimento/operations.md#controllo-e-sincronizzazione-su-richiesta).

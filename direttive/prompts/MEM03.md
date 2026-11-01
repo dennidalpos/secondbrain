@@ -1,6 +1,6 @@
 # MEM03 — Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: stato git, verifiche superate e destinazione di consegna | **Esempio d'uso**: `sb prompt MEM03: chiudi la sessione e chiedi commit e push`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: stato del lavoro svolto, task successivi definiti e destinazione di consegna | **Esempio d'uso**: `sb prompt MEM03: chiudi la sessione e chiedi commit e push`
 
 ## Scopo
 

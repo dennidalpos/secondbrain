@@ -1,6 +1,6 @@
 # SEC01 — Revisiona modifiche o codice con rilievi concreti e riferimenti
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: diff delle modifiche e linee guida di sicurezza | **Esempio d'uso**: `sb prompt SEC01: revisiona pull request per rilevamento leak dati`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: diff, commit o file da analizzare | **Esempio d'uso**: `sb prompt SEC01: revisiona pull request per rilevamento leak dati`
 
 ## Scopo
 

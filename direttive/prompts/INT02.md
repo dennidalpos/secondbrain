@@ -1,6 +1,6 @@
 # INT02 — Implementa un’interfaccia seguendo requisiti e riferimenti
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: specifiche grafiche e componenti di base riutilizzabili | **Esempio d'uso**: `sb prompt INT02: realizza schermata di sincronizzazione`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: linee guida o mockup e componenti esistenti | **Esempio d'uso**: `sb prompt INT02: realizza schermata di sincronizzazione`
 
 ## Scopo
 

@@ -1,4 +1,4 @@
-# DEV07 — Classifica e riproduci un'issue prima di correggerla
+# DEV07 — Classifica e riproduci un'issue prima di correggerla, senza modificare codice
 
 > **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: testo dell'issue, ambiente e accesso in lettura al codice | **Esempio d'uso**: `sb prompt DEV07: classifica e riproduci l'issue sul parsing dei percorsi`
 

@@ -1,6 +1,6 @@
-# GOV01 — Applicazione e verifica della licenza d'uso e conformità SPDX
+# GOV01 — Verifica licenze open source, conformità dei file e header SPDX
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: file LICENSE, header dei sorgenti e inventory | **Esempio d'uso**: `sb prompt GOV01: verifica licenza mit e corrispondenza intestazioni spdx`
+> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: albero sorgenti e file di licenza | **Esempio d'uso**: `sb prompt GOV01: verifica licenza mit e corrispondenza intestazioni spdx`
 
 ## Scopo
 
@@ -31,5 +31,5 @@ File LICENSE validato, report di conformità degli header SPDX e attestazione di
 ## Prompt vicini
 
 - REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- GOV02: Analisi delle dipendenze terze parti e compilazione dei credits.
+- GOV02: Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze.
 - AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.

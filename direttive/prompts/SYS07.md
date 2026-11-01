@@ -1,6 +1,6 @@
-# SYS07 — Consultazione e navigazione del PARA centrale
+# SYS07 — Consulta entità e risorse del PARA centrale per identità e percorso
 
-> **Scope**: central | **Modalità**: lettura | **Cosa serve**: para.json, para-index.json e radice SecondBrain | **Esempio d'uso**: `sb prompt SYS07: consulta entita del para centrale per percorso e id`
+> **Scope**: central | **Modalità**: lettura | **Cosa serve**: archivio PARA centrale e para-index.json | **Esempio d'uso**: `sb prompt SYS07: consulta entita del para centrale per percorso e id`
 
 ## Scopo
 

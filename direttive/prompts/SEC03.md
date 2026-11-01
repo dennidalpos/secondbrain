@@ -1,6 +1,6 @@
 # SEC03 — Correggi vulnerabilità e rafforza le difese interessate
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: segnalazione vulnerabilita o cve e codice affetto | **Esempio d'uso**: `sb prompt SEC03: bonifica path traversal nella risoluzione dei percorsi`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: vulnerabilita confermata e contesto del codice | **Esempio d'uso**: `sb prompt SEC03: bonifica path traversal nella risoluzione dei percorsi`
 
 ## Scopo
 

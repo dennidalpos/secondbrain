@@ -1,6 +1,6 @@
 # INT01 — Valuta usabilità, coerenza e stati dei percorsi utente
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: interfaccia o mockup e flussi utente principali | **Esempio d'uso**: `sb prompt INT01: valuta usabilita del wizard di configurazione terminale`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: applicazione avviabile e percorsi da esaminare | **Esempio d'uso**: `sb prompt INT01: valuta usabilita del wizard di configurazione terminale`
 
 ## Scopo
 

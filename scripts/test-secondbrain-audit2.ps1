@@ -73,17 +73,17 @@ try {
             $before=Snapshot-Next (Split-Path $f.brain)
             & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source *> $null
             Assert-Next ($LASTEXITCODE -ne 0 -and (Snapshot-Next (Split-Path $f.brain)) -ceq $before) ('Markdown: anteprima rifiuta senza scrivere '+$index)
-            Reject-Next {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('Markdown: attivazione rifiutata '+$index)
+            Reject-Next {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('Markdown: attivazione rifiutata '+$index)
             Assert-Next ((Get-SBFileHash $f.source) -eq $hash -and !(Test-Path -LiteralPath (Join-Path $f.dir 'tracker.json')) -and !(Read-SBJson (Join-Path $f.dir 'repository.json') $null).ContainsKey('tracker')) ('Markdown: fonte e autorita conservate '+$index)
             $index++
         }
         $f=New-AuditFixture 'markdown-valid';$f.source=Join-Path $f.dir 'tracker.md'
         Put-Audit $f.source ($valid+"## Residui verificati`n- [ ] residuo`n## Note`nTesto da conservare.`n~~~md`n"+$unknown+"~~~`n")
         $data=ConvertTo-SBTracker $f.source $f.identity
-        Assert-Next ($data.tasks.Count -eq 2 -and $data.extensions.legacy.markdown.Contains('APP-01')) 'Markdown: note ed esempi conservati, solo due task reali'
-        $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
+        Assert-Next ($data.tasks.Count -eq 2 -and $data.extensions.original.markdown.Contains('APP-01')) 'Markdown: note ed esempi conservati, solo due task reali'
+        $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
         Assert-Next ((Read-SBTrackerManifest $f.config $manifest).phase -eq 'completed' -and (Read-SBJson (Join-Path $f.dir 'tracker.json') $null).tasks.Count -eq 2) 'Markdown: migrazione supportata completa senza task persi'
-        Restore-SBTrackerMigration $f.config $manifest
+        Restore-SBTrackerImport $f.config $manifest
         Assert-Next (Test-Path -LiteralPath $f.source) 'Markdown: recupero fonte supportata'
         foreach($inputText in @('# Tracker vuoto',"# Tracker`n## Attivita aperte / Prossimi passi`n| ID | Stato | Dipendenze | Criterio |`n|---|---|---|---|")){
             Put-Audit $f.source $inputText
@@ -93,9 +93,9 @@ try {
     if($Case -in @('All','Provenance')){
         foreach($edited in @($false,$true)){
             $f=New-AuditFixture ('provenance-'+$edited);Put-Audit $f.source '{"tasks":[{"id":"X","status":"pending","note":"02-areas/products/Repo/personal"}],"notes":["02-areas/products/Repo/legacy"]}'
-            $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
+            $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
             $m=Read-SBTrackerManifest $f.config $manifest;$candidateHash=Get-SBFileHash $m.candidate;$archiveHash=Get-SBFileHash $m.source.archive
-            $data=Read-SBJson $m.target $null;$legacy=ConvertTo-SBJson $data.extensions.legacy
+            $data=Read-SBJson $m.target $null;$originalJson=ConvertTo-SBJson $data.extensions.original
             if($edited){
                 $shared=Join-Path $f.brain '02-areas/products/Shared/evidence.txt';Put-Audit $shared 'evidence'
                 $data.tasks[0].evidence=@(@{reference=([IO.Path]::GetRelativePath($f.dir,$m.source.archive).Replace('\','/')+'#source');outcome='passed'},@{reference='../Shared/evidence.txt#shared';outcome='passed'})
@@ -108,18 +108,18 @@ try {
                 Assert-Next ($LASTEXITCODE -eq 0) ('provenienza: CLI '+$operation+'; modificato='+$edited)
                 $m=Read-SBTrackerManifest $f.config $manifest;$data=Read-SBJson $m.target $null;$dir=Split-Path $m.target
                 Assert-Next ((Test-Path -LiteralPath (Join-Path $f.brain $data.tasks[0].provenance[0].reference)) -and (Get-SBFileHash $m.source.archive) -eq $archiveHash) ('provenienza: originale risolvibile '+$operation)
-                Assert-Next ((Get-SBFileHash $m.candidate) -eq $candidateHash -and (ConvertTo-SBJson $data.extensions.legacy) -ceq $legacy -and $data.tasks[0].extensions.legacy.note -eq '02-areas/products/Repo/personal') ('provenienza: candidato e legacy intatti '+$operation)
+                Assert-Next ((Get-SBFileHash $m.candidate) -eq $candidateHash -and (ConvertTo-SBJson $data.extensions.original) -ceq $originalJson -and $data.tasks[0].extensions.original.note -eq '02-areas/products/Repo/personal') ('provenienza: candidato e legacy intatti '+$operation)
                 if($edited){
                     foreach($e in $data.tasks[0].evidence){Assert-Next (Test-Path -LiteralPath (Join-Path $dir (($e.reference -split '#',2)[0]))) ('provenienza: evidenza relativa risolvibile '+$operation)}
                     Assert-Next (Test-Path -LiteralPath (Join-Path $f.brain $data.history[0].reference)) ('provenienza: history risolvibile '+$operation)
                 }
-                Assert-Next (@(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) ('provenienza: Check migrazione coerente '+$operation)
+                Assert-Next (@(Get-SBTrackerImportIssues $f.config).Count -eq 0) ('provenienza: Check migrazione coerente '+$operation)
             }
-            if($edited){Reject-Next {Restore-SBTrackerMigration $f.config $manifest} 'provenienza: spostamento non adotta modifiche utente per il rollback'}
-            else{Restore-SBTrackerMigration $f.config $manifest;Assert-Next ((Get-SBFileHash $f.source) -eq $archiveHash) 'provenienza: rollback resta esatto dopo due spostamenti'}
+            if($edited){Reject-Next {Restore-SBTrackerImport $f.config $manifest} 'provenienza: spostamento non adotta modifiche utente per il rollback'}
+            else{Restore-SBTrackerImport $f.config $manifest;Assert-Next ((Get-SBFileHash $f.source) -eq $archiveHash) 'provenienza: rollback resta esatto dopo due spostamenti'}
         }
         $f=New-AuditFixture 'provenance-interrupted';Put-Audit $f.source '{"tasks":[{"id":"X","status":"pending"}]}'
-        $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
+        $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
         $m=Read-SBTrackerManifest $f.config $manifest;$beforeManifest=Get-SBFileHash $manifest;$beforeTracker=Get-SBFileHash $m.target
         $meta=Read-SBJson (Join-Path $f.dir 'para.json') $null;$meta.status='retired';Put-Audit (Join-Path $f.dir 'para.json') (ConvertTo-SBJson $meta)
         $area=@(Get-SBParaEntities $f.brain @('test'))[0];$mapping=@{$area.path='04-archives/areas/repo-area'}
@@ -141,7 +141,7 @@ try {
         Put-Audit $target $deployed
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $marker.manifest -ConfigPath $f.config.configPath -Apply|Out-Null
         Assert-Next ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $m.target) -eq $beforeTracker -and (Get-SBFileHash $manifest) -eq $beforeManifest) 'provenienza: recupero CLI ripristina byte tracker e manifest insieme'
-        Assert-Next (!(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/para-transaction.json')) -and @(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) 'provenienza: recupero rilascia gate e conserva coerenza'
+        Assert-Next (!(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/para-transaction.json')) -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'provenienza: recupero rilascia gate e conserva coerenza'
         $change=@(Get-SBTrackerRelocationData $f.config $area $mapping)[0]
         $concurrent=Read-SBJson $m.target $null
         $concurrent.tasks+=,(New-SBTrackerTask @{id='NEW';status='pending';title='Concorrente'} $f.identity 'tasks' 'fixture' ('A'*64) '/tasks/1')

@@ -1,6 +1,6 @@
 # COM03 — Ricerca fonti ufficiali compatibili con il problema tecnico
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: problema tecnico e stack o libreria coinvolti | **Esempio d'uso**: `sb prompt COM03: cerca documentazione ufficiale PowerShell 7.5`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: problema tecnico o libreria con versione | **Esempio d'uso**: `sb prompt COM03: cerca documentazione ufficiale PowerShell 7.5`
 
 ## Scopo
 

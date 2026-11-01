@@ -100,8 +100,8 @@ function Resolve-SBTracker {
         }
         $found
     }else{''}
-    $source='repository_legacy'
-    if(!$path -or !(Test-Path -LiteralPath $path -PathType Leaf)){$path=Join-Path $dir 'tracker.md';$source='dossier_legacy'}
+    $source='repository_undeclared'
+    if(!$path -or !(Test-Path -LiteralPath $path -PathType Leaf)){$path=Join-Path $dir 'tracker.md';$source='dossier_undeclared'}
     if(!(Test-Path -LiteralPath $path -PathType Leaf)){return @{source='absent';path=$null;declared=$false;schemaVersion=$null}}
     Assert-SBPlainPath $path
     @{source=$source;path=$path;declared=$false;schemaVersion=$null}
@@ -134,7 +134,7 @@ function New-SBTrackerTask($Value,[string]$Identity,[string]$Collection,[string]
       execution=$(switch($Collection){todo_autonomous{'autonomous'};todo_user_required{'user_required'};default{'unspecified'}});
       priority=$priority;dependencies=@();acceptance=$acceptance;evidence=@();
       provenance=@(@{reference=$Reference;sha256=$Hash;pointer=$Pointer;commit=$(if($Commit){$Commit}else{$null});originalId=$(if($record.ContainsKey('id')){[string]$record.id}else{$null});originalStatus=$original;originalCollection=$Collection});
-      extensions=@{legacy=$Value}}
+      extensions=@{original=$Value}}
 }
 
 function Read-SBTrackerReview([string]$Path,[string]$Identity,[string]$SourceHash) {
@@ -159,18 +159,18 @@ function ConvertTo-SBTracker {
     param([string]$SourcePath,[string]$Identity,[string]$Reference=$SourcePath,[string]$Commit='',[string]$HistoryPath='',[string]$ReviewPath='')
     Assert-SBPlainPath $SourcePath
     $hash=Get-SBFileHash $SourcePath;$text=Read-SBText $SourcePath
-    $tasks=[Collections.Generic.List[object]]::new();$history=@();$legacy=$null
+    $tasks=[Collections.Generic.List[object]]::new();$history=@();$originalData=$null
     if([IO.Path]::GetExtension($SourcePath) -eq '.json'){
-        $legacy=Read-SBJson $SourcePath $null
-        if($legacy -isnot [Collections.IDictionary]){throw 'Il tracker JSON originale deve essere un oggetto'}
+        $originalData=Read-SBJson $SourcePath $null
+        if($originalData -isnot [Collections.IDictionary]){throw 'Il tracker JSON originale deve essere un oggetto'}
         foreach($collection in @('tasks','todos','current_tasks','next_tasks','remainingTasks','residuals','todo_autonomous','todo_user_required')){
-            if(!$legacy.ContainsKey($collection)){continue}
-            if($legacy[$collection] -isnot [array]){throw 'Collezione tracker non valida: '+$collection}
+            if(!$originalData.ContainsKey($collection)){continue}
+            if($originalData[$collection] -isnot [array]){throw 'Collezione tracker non valida: '+$collection}
             $i=0
-            foreach($value in $legacy[$collection]){$tasks.Add((New-SBTrackerTask $value $Identity $collection $Reference $hash ('/'+$collection+'/'+$i) $Commit));$i++}
+            foreach($value in $originalData[$collection]){$tasks.Add((New-SBTrackerTask $value $Identity $collection $Reference $hash ('/'+$collection+'/'+$i) $Commit));$i++}
         }
     } elseif([IO.Path]::GetExtension($SourcePath) -eq '.md') {
-        $legacy=@{markdown=$text};$line=0;$inOpen=$false;$inResidual=$false;$fence=''
+        $originalData=@{markdown=$text};$line=0;$inOpen=$false;$inResidual=$false;$fence=''
         foreach($row in $text -split '\r?\n'){
             $line++
             if($row -match '^\s{0,3}(`{3,}|~{3,})'){
@@ -219,7 +219,7 @@ function ConvertTo-SBTracker {
     } else {throw 'Formato tracker originale non supportato'}
     $ids=@{};foreach($task in $tasks){if($ids.ContainsKey($task.id)){throw 'Collisione ID: risoluzione esplicita richiesta per '+$task.id};$ids[$task.id]=$true}
     foreach($task in $tasks){
-        $raw=$task.extensions.legacy
+        $raw=$task.extensions.original
         if($raw -isnot [Collections.IDictionary]){continue}
         foreach($key in @('dependencies','dependsOn')){
             if(!$raw.ContainsKey($key)){continue}
@@ -248,13 +248,13 @@ function ConvertTo-SBTracker {
             $task.extensions.review=@{reason=$item.reason;sourceSha256=$hash;reviewSha256=Get-SBFileHash $ReviewPath}
         }
     }
-    $result=@{schemaVersion=1;repository=$Identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($tasks);history=$history;extensions=@{legacy=$legacy;source=@{reference=$Reference;sha256=$hash}}}
+    $result=@{schemaVersion=1;repository=$Identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($tasks);history=$history;extensions=@{original=$originalData;source=@{reference=$Reference;sha256=$hash}}}
     if($review){$result.extensions.review=@{sha256=Get-SBFileHash $ReviewPath;decisions=$review}}
     $result
 }
 
 function Convert-SBTrackerLocation($Data,[hashtable]$Mapping,[string]$BrainRoot,[string]$Dossier) {
-    # Only typed references move. Imported legacy values and immutable candidates stay exact.
+    # Only typed references move. Imported original values and immutable candidates stay exact.
     $next=ConvertTo-SBJson $Data|ConvertFrom-Json -AsHashtable -DateKind String
     $newDossier=Convert-SBParaReferences $Dossier $Mapping $BrainRoot
     $oldDir=Resolve-SBParaPath $BrainRoot $Dossier
@@ -293,9 +293,9 @@ function Get-SBCuratedReferenceIssues([string]$BrainRoot,$Entities) {
                     continue
                 }
                 if($fence){continue}
-                # I percorsi legacy in prosa o codice inline restano riferimenti; i blocchi sono esclusi.
+                # I percorsi obsoleti in prosa o codice inline restano riferimenti; i blocchi sono esclusi.
                 foreach($match in [regex]::Matches($line,'(?<![\w:/\\.-])repos/[^/\s`<>]+/(?:context|memory|tracker)\.md')){
-                    'Riferimento dossier legacy: '+$area.path+'/'+$name+':'+$lineNumber+': '+$match.Value
+                    'Riferimento dossier obsoleto: '+$area.path+'/'+$name+':'+$lineNumber+': '+$match.Value
                 }
                 $prose=[regex]::Replace($line,'(?<ticks>`+)(?!`)(?:(?!\k<ticks>).)*?\k<ticks>','')
                 foreach($match in [regex]::Matches($prose,'(?<!!)\[[^\]]*\]\((?<target><[^>]+>|[^\s)]+)(?:\s+"[^"]*")?\)')){

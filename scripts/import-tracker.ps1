@@ -32,10 +32,10 @@ try {
         }
         exit 0
     }
-    if($RollbackManifest){Restore-SBTrackerMigration $config $RollbackManifest;'Importazione tracker ripristinata';exit 0}
+    if($RollbackManifest){Restore-SBTrackerImport $config $RollbackManifest;'Importazione tracker ripristinata';exit 0}
     $arguments=@{Config=$config;Activate=$Activate}
     if($ResumeManifest){$arguments.ManifestPath=$ResumeManifest}else{$arguments.Identity=$Repository;$arguments.SourcePath=$SourcePath;$arguments.HistoryPath=$HistoryPath;$arguments.ReviewPath=$ReviewPath}
-    $manifest=Invoke-SBTrackerMigration @arguments
+    $manifest=Invoke-SBTrackerImport @arguments
     $state=Read-SBTrackerManifest $config $manifest
     'Migrazione tracker: '+$state.phase+'; manifest='+$manifest
     if($state.phase -ne 'completed'){'Fonte precedente ancora autorevole; attivazione separata dopo approvazione';exit 1}

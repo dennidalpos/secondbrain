@@ -30,7 +30,7 @@ try {
         Put-Tracker $json (ConvertTo-SBJson $original)
         $converted=ConvertTo-SBTracker $json $identity
         Assert-Tracker ($converted.tasks.Count -eq 1 -and $converted.tasks[0].status -eq 'in_progress') ('famiglia '+$family)
-        Assert-Tracker ((ConvertTo-SBJson $original) -ceq (ConvertTo-SBJson $converted.extensions.legacy)) ('conservazione integrale '+$family)
+        Assert-Tracker ((ConvertTo-SBJson $original) -ceq (ConvertTo-SBJson $converted.extensions.original)) ('conservazione integrale '+$family)
         Assert-Tracker ($converted.tasks[0].priority -eq 'critical-local' -and $converted.tasks[0].acceptance.Count -eq 2 -and !$converted.tasks[0].evidence.Count) ('criteri e priorita senza prove inventate '+$family)
         [void](Test-SBTrackerData $converted $identity @($identity) $schema)
     }
@@ -39,7 +39,7 @@ try {
     Assert-Tracker ($a.tasks.Count -eq 2 -and $a.tasks[0].id -eq 'AUDIT-41' -and $a.tasks[1].id -like 'MIG-*' -and $a.tasks[1].id -eq $b.tasks[1].id) 'ID testuali stabili, note escluse'
     Put-Tracker $json '{"tasks":[],"unknown":{"empty":[]}}'
     $empty=ConvertTo-SBTracker $json $identity
-    Assert-Tracker ($empty.tasks.Count -eq 0 -and $empty.extensions.legacy.unknown.ContainsKey('empty')) 'JSON vuoto senza task inventati'
+    Assert-Tracker ($empty.tasks.Count -eq 0 -and $empty.extensions.original.unknown.ContainsKey('empty')) 'JSON vuoto senza task inventati'
     Put-Tracker $json '{"todos":["ripetuto","ripetuto"]}'
     Reject-Tracker {ConvertTo-SBTracker $json $identity} 'collisione stringhe identiche richiede risoluzione'
     Put-Tracker $json '{"tasks":[{"id":"X","status":"superseded_removed"},{"id":"Y","status":"nuovo"}]}'
@@ -73,7 +73,7 @@ try {
     Put-Tracker $reviewPath (ConvertTo-SBJson $review)
     $reviewed=ConvertTo-SBTracker -SourcePath $json -Identity $identity -ReviewPath $reviewPath
     Assert-Tracker ($reviewed.tasks[0].status -eq 'blocked' -and !$reviewed.tasks[0].dependencies.Count -and $reviewed.tasks[0].extensions.prerequisites[0] -eq 'certificato') 'review riconcilia prerequisito senza inventare dipendenze'
-    Assert-Tracker ((ConvertTo-SBJson $reviewed.extensions.legacy) -ceq (ConvertTo-SBJson $ambiguous.extensions.legacy) -and $reviewed.tasks[0].extensions.unresolvedDependencies[0] -eq 'certificato') 'review conserva dati originali e ambiguita di origine'
+    Assert-Tracker ((ConvertTo-SBJson $reviewed.extensions.original) -ceq (ConvertTo-SBJson $ambiguous.extensions.original) -and $reviewed.tasks[0].extensions.unresolvedDependencies[0] -eq 'certificato') 'review conserva dati originali e ambiguita di origine'
     $review.repository='github.com/test/other';Put-Tracker $reviewPath (ConvertTo-SBJson $review)
     Reject-Tracker {ConvertTo-SBTracker -SourcePath $json -Identity $identity -ReviewPath $reviewPath} 'review di altra identita rifiutata'
     $review.repository=$identity;$review.sourceSha256='A'*64;Put-Tracker $reviewPath (ConvertTo-SBJson $review)
@@ -107,14 +107,14 @@ try {
     $history=Join-Path $brain 'docs/history/completed.md'
     Put-Tracker $history "| SB-OPT-01 | Completato | Primo esito |`n| SB-OPT-02 | Completato | Secondo esito |`n"
     $markdown=ConvertTo-SBTracker -SourcePath $source -Identity $identity -HistoryPath $history
-    Assert-Tracker ($markdown.tasks.Count -eq 4 -and $markdown.tasks[0].dependencies.Count -eq 2 -and $markdown.extensions.legacy.markdown.Contains('Testo storico')) 'Markdown importa solo attivita, residui e completamenti espliciti'
+    Assert-Tracker ($markdown.tasks.Count -eq 4 -and $markdown.tasks[0].dependencies.Count -eq 2 -and $markdown.extensions.original.markdown.Contains('Testo storico')) 'Markdown importa solo attivita, residui e completamenti espliciti'
     [void](Test-SBTrackerData $markdown $identity @($identity) $schema)
     # Rimuove solo il JSON creato da questa fixture per esercitare il fallback.
     [IO.File]::Delete($json)
     $resolved=Resolve-SBTracker $brain $identity $checkout @('test')
-    Assert-Tracker ($resolved.source -eq 'dossier_legacy') 'resolver legacy Markdown'
+    Assert-Tracker ($resolved.source -eq 'dossier_undeclared') 'resolver Markdown non dichiarato'
     Put-Tracker $json '{}'
-    Assert-Tracker ((Resolve-SBTracker $brain $identity $checkout @('test')).source -eq 'repository_legacy') 'precedenza legacy preservata'
+    Assert-Tracker ((Resolve-SBTracker $brain $identity $checkout @('test')).source -eq 'repository_undeclared') 'precedenza della fonte nel checkout preservata'
     $metaPath=Join-Path $dir 'repository.json'
     $declared=@{schemaVersion=1;identity=$identity;tracker=@{location='dossier';path='tracker.json';schemaVersion=1}}
     Put-Tracker $metaPath (ConvertTo-SBJson $declared)
@@ -143,46 +143,57 @@ try {
     Put-Tracker (Join-Path $dir 'snapshots/old.md') '[manca](old.md)'
     $before=Snapshot-Tracker $root
     $issues=@(Get-SBCuratedReferenceIssues $brain @(Get-SBParaEntities $brain @('test')))
-    Assert-Tracker ($issues.Count -eq 2 -and $issues[0] -like '*legacy*' -and $issues[1] -like '*mancante*') 'riferimenti curati rilevati, codice e storico esclusi'
+    Assert-Tracker ($issues.Count -eq 2 -and $issues[0] -like '*obsoleto*' -and $issues[1] -like '*mancante*') 'riferimenti curati rilevati, codice e storico esclusi'
     Assert-Tracker ((Snapshot-Tracker $root) -ceq $before) 'controllo riferimenti non scrive file o timestamp'
     Put-Tracker (Join-Path $dir 'context.md') '# Dossier'
     # Ogni checkpoint viene interrotto e poi ripreso, compreso quello successivo alla rimozione.
     foreach($checkpoint in @('pending','prepared','copied','verified','references_updated','originals_removed','completed')){
         $hash=Get-SBFileHash $source
         $fail={param($name) if($name -eq $checkpoint){throw 'interruzione fixture'}}.GetNewClosure()
-        Reject-Tracker {Invoke-SBTrackerMigration -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate -AfterPhase $fail} ('interruzione '+$checkpoint)
-        $registration=Read-SBJson (Get-SBTrackerMigrationPath $config $identity) $null
+        Reject-Tracker {Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate -AfterPhase $fail} ('interruzione '+$checkpoint)
+        $registration=Read-SBJson (Get-SBTrackerImportPath $config $identity) $null
         $m=Read-SBTrackerManifest $config $registration.manifest
         Assert-Tracker ($m.phase -eq $checkpoint) ('manifest checkpoint '+$checkpoint)
-        [void](Invoke-SBTrackerMigration -Config $config -ManifestPath $registration.manifest -Activate)
+        [void](Invoke-SBTrackerImport -Config $config -ManifestPath $registration.manifest -Activate)
         $m=Read-SBTrackerManifest $config $registration.manifest
         Assert-Tracker ($m.phase -eq 'completed' -and !(Test-Path -LiteralPath $source) -and (Get-SBFileHash $m.source.archive) -eq $hash) ('ripresa senza perdita '+$checkpoint)
-        Assert-Tracker (@(Get-SBTrackerMigrationIssues $config).Count -eq 0) ('audit migrazione completata '+$checkpoint)
+        Assert-Tracker (@(Get-SBTrackerImportIssues $config).Count -eq 0) ('audit migrazione completata '+$checkpoint)
         $again=Snapshot-Tracker $dir
-        [void](Invoke-SBTrackerMigration -Config $config -ManifestPath $registration.manifest -Activate)
+        [void](Invoke-SBTrackerImport -Config $config -ManifestPath $registration.manifest -Activate)
         Assert-Tracker ((Snapshot-Tracker $dir) -ceq $again) ('riesecuzione senza duplicazioni '+$checkpoint)
-        Restore-SBTrackerMigration $config $registration.manifest
+        if($checkpoint -eq 'completed'){
+            # Layout precedente alla V1.0 (prefisso tracker-migration): registro, manifest e archivio restano leggibili e verificabili.
+            $newReg=Get-SBTrackerImportPath $config $identity;$oldReg=$newReg.Replace('tracker-imports','tracker-migrations')
+            $archiveDir=Split-Path (Read-SBJson $registration.manifest $null).source.archive
+            [IO.Directory]::CreateDirectory((Split-Path $oldReg))|Out-Null
+            Move-Item -LiteralPath $newReg -Destination $oldReg
+            Move-Item -LiteralPath $archiveDir -Destination $archiveDir.Replace('tracker-import-','tracker-migration-')
+            $oldText=(Read-SBText $registration.manifest).Replace('tracker-import-','tracker-migration-').Replace('"kind": "tracker-import"','"kind": "tracker-migration"')
+            [IO.File]::WriteAllText($registration.manifest,$oldText,[Text.UTF8Encoding]::new($false))
+            Assert-Tracker ((Read-SBTrackerManifest $config $registration.manifest).kind -eq 'tracker-migration' -and @(Get-SBTrackerImportIssues $config).Count -eq 0 -and (Test-Path -LiteralPath $oldReg)) 'layout tracker-migration precedente ancora letto e verificato'
+        }
+        Restore-SBTrackerImport $config $registration.manifest
         Assert-Tracker ((Get-SBFileHash $source) -eq $hash -and !(Read-SBJson $metaPath @{}).ContainsKey('tracker')) ('recupero esatto '+$checkpoint)
     }
-    # La preparazione reale conserva la fonte legacy finche il testo non e approvato.
+    # La preparazione reale conserva la fonte originale finche il testo non e approvato.
     Put-Tracker (Join-Path $brain 'direttive/workstation.template.md') 'legacy';Approve-TrackerFixture
-    $manifest=Invoke-SBTrackerMigration -Config $config -Identity $identity -SourcePath $source -HistoryPath $history
+    $manifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history
     Assert-Tracker ((Read-SBTrackerManifest $config $manifest).phase -eq 'verified' -and (Test-Path -LiteralPath $source) -and !(Test-Path -LiteralPath (Join-Path $dir 'tracker.json'))) 'preparazione verificata senza attivazione'
-    $before=Snapshot-Tracker $root;$issues=@(Get-SBTrackerMigrationIssues $config)
+    $before=Snapshot-Tracker $root;$issues=@(Get-SBTrackerImportIssues $config)
     Assert-Tracker ($issues.Count -eq 1 -and $issues[0] -like '*incompleta*verified*') 'Check segnala migrazione preparata'
     Assert-Tracker ((Snapshot-Tracker $root) -ceq $before) 'Check manifest non modifica file o timestamp'
-    Reject-Tracker {Invoke-SBTrackerMigration -Config $config -ManifestPath $manifest -Activate} 'attivazione senza approvazione rifiutata'
+    Reject-Tracker {Invoke-SBTrackerImport -Config $config -ManifestPath $manifest -Activate} 'attivazione senza approvazione rifiutata'
     $original=Read-SBText $source;Put-Tracker $source ($original+"`nModifica concorrente")
-    Reject-Tracker {Invoke-SBTrackerMigration -Config $config -ManifestPath $manifest} 'sorgente cambiata dopo copia rifiutata'
-    Restore-SBTrackerMigration $config $manifest
+    Reject-Tracker {Invoke-SBTrackerImport -Config $config -ManifestPath $manifest} 'sorgente cambiata dopo copia rifiutata'
+    Restore-SBTrackerImport $config $manifest
     Assert-Tracker ((Read-SBText $source).Contains('Modifica concorrente')) 'recupero preserva modifica concorrente estranea'
     Put-Tracker $source $original
     Put-Tracker (Join-Path $brain 'direttive/workstation.template.md') '<!-- secondbrain:tracker-contract:1 -->';Approve-TrackerFixture
-    $manifest=Invoke-SBTrackerMigration -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate
+    $manifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate
     $target=Join-Path $dir 'tracker.json';$text=Read-SBText $target
     Put-Tracker $target ($text+"`n")
-    Reject-Tracker {Restore-SBTrackerMigration $config $manifest} 'recupero rifiuta modifiche successive'
-    Put-Tracker $target $text;Restore-SBTrackerMigration $config $manifest
+    Reject-Tracker {Restore-SBTrackerImport $config $manifest} 'recupero rifiuta modifiche successive'
+    Put-Tracker $target $text;Restore-SBTrackerImport $config $manifest
     # I progetti devono convergere sulla dichiarazione, anche se entrambe le copie esistono.
     $project=Join-Path $brain '01-projects/test-project'
     Put-Tracker (Join-Path $project 'brief.md') '# Brief'
@@ -192,25 +203,25 @@ try {
     Assert-Tracker (@(Get-SBTrackerAuthorityIssues $brain @(Get-SBParaEntities $brain @('test'))).Count -eq 1) 'due fonti esistenti ma divergenti rilevate'
     Put-Tracker $metaPath (ConvertTo-SBJson @{schemaVersion=1;identity=$identity})
     [IO.File]::Delete((Join-Path $dir 'tracker.json'))
-    $manifest=Invoke-SBTrackerMigration -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate
+    $manifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history -Activate
     $projectMeta=Read-SBJson (Join-Path $project 'para.json') $null
     Assert-Tracker ($projectMeta.trackers[0].path -eq 'tracker.json' -and @(Get-SBTrackerAuthorityIssues $brain @(Get-SBParaEntities $brain @('test'))).Count -eq 0) 'migrazione riallinea tracker del Progetto'
-    Restore-SBTrackerMigration $config $manifest
+    Restore-SBTrackerImport $config $manifest
     Put-Tracker $json '{"todo_user_required":[{"id":"ENV-01","status":"waiting_user_certificate","dependencies":["certificato"]}]}'
     $review=@{schemaVersion=1;repository=$identity;sourceSha256=Get-SBFileHash $json;tasks=@(@{id='ENV-01';status='blocked';dependencies=@();prerequisites=@('certificato');reason='Certificato esterno richiesto, conservato come prerequisito'})}
     Put-Tracker $reviewPath (ConvertTo-SBJson $review)
     & git -C $checkout init -q
     & git -C $checkout remote add origin 'https://github.com/test/repo.git'
-    $reviewManifest=Invoke-SBTrackerMigration -Config $config -Identity $identity -SourcePath $json -ReviewPath $reviewPath
+    $reviewManifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $json -ReviewPath $reviewPath
     $reviewState=Read-SBTrackerManifest $config $reviewManifest
     Assert-Tracker ($reviewState.phase -eq 'verified' -and (Get-SBFileHash $reviewState.reviewSource.backup) -eq (Get-SBFileHash $reviewPath) -and (Get-SBFileHash $reviewState.reviewSource.archive) -eq (Get-SBFileHash $reviewPath)) 'manifest conserva backup e originale esatto della review'
     Put-Tracker $reviewPath '{}'
-    Reject-Tracker {Invoke-SBTrackerMigration -Config $config -ManifestPath $reviewManifest -Activate} 'ripresa rifiuta review modificata dopo preparazione'
+    Reject-Tracker {Invoke-SBTrackerImport -Config $config -ManifestPath $reviewManifest -Activate} 'ripresa rifiuta review modificata dopo preparazione'
     Put-Tracker $reviewPath (ConvertTo-SBJson $review)
-    [void](Invoke-SBTrackerMigration -Config $config -ManifestPath $reviewManifest -Activate)
+    [void](Invoke-SBTrackerImport -Config $config -ManifestPath $reviewManifest -Activate)
     Assert-Tracker ((Read-SBTrackerManifest $config $reviewManifest).phase -eq 'completed' -and !(Test-Path -LiteralPath $json)) 'ripresa attiva candidato prodotto dalla review registrata'
-    Assert-Tracker (@(Get-SBTrackerMigrationIssues $config).Count -eq 0) 'Check comprende payload della review'
-    Restore-SBTrackerMigration $config $reviewManifest
+    Assert-Tracker (@(Get-SBTrackerImportIssues $config).Count -eq 0) 'Check comprende payload della review'
+    Restore-SBTrackerImport $config $reviewManifest
     Assert-Tracker ((Test-Path -LiteralPath $json) -and (Test-Path -LiteralPath $reviewPath)) 'recupero review preserva entrambe le fonti originali'
     [IO.File]::Delete($json)
     # CLI vera: anteprima in sola lettura e compositore sulla fonte dichiarata.
@@ -226,7 +237,7 @@ try {
     Assert-Tracker ($LASTEXITCODE -eq 0 -and (Snapshot-Tracker $root) -ceq $before) 'CLI anteprima non modifica file o timestamp'
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -Repository $identity -SourcePath $source -HistoryPath $history -ConfigPath $cliConfig -Apply|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 1) 'CLI prepara e segnala attivazione pendente'
-    $registration=Read-SBJson (Get-SBTrackerMigrationPath $config $identity) $null
+    $registration=Read-SBJson (Get-SBTrackerImportPath $config $identity) $null
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -ResumeManifest $registration.manifest -ConfigPath $cliConfig -Apply -Activate|Out-Null
     Assert-Tracker ($LASTEXITCODE -eq 0) 'CLI attiva solo con contratto approvato'
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
@@ -250,7 +261,7 @@ try {
     Assert-Tracker ((Snapshot-Tracker $root) -ceq $beforeMEM02) 'MEM02: composizione e input invalidi senza scritture o migrazioni'
     $probe=Join-Path $root 'standalone-probe.ps1';$probeConfig=Join-Path $root 'standalone-config.json'
     Put-Tracker $probeConfig (ConvertTo-SBJson $config)
-    Put-Tracker $probe 'param($ModulePath,$FixtureConfig,$ManifestPath) $ErrorActionPreference="Stop"; Import-Module $ModulePath; $cfg=Get-Content -LiteralPath $FixtureConfig -Raw|ConvertFrom-Json -AsHashtable; $m=Read-SBTrackerManifest $cfg $ManifestPath; if($m.phase -ne "completed"){throw "phase"}; Invoke-SBTrackerMigration -Config $cfg -ManifestPath $ManifestPath -Activate|Out-Null'
+    Put-Tracker $probe 'param($ModulePath,$FixtureConfig,$ManifestPath) $ErrorActionPreference="Stop"; Import-Module $ModulePath; $cfg=Get-Content -LiteralPath $FixtureConfig -Raw|ConvertFrom-Json -AsHashtable; $m=Read-SBTrackerManifest $cfg $ManifestPath; if($m.phase -ne "completed"){throw "phase"}; Invoke-SBTrackerImport -Config $cfg -ManifestPath $ManifestPath -Activate|Out-Null'
     & pwsh -NoProfile -File $probe -ModulePath (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -FixtureConfig $probeConfig -ManifestPath $registration.manifest
     Assert-Tracker ($LASTEXITCODE -eq 0) 'modulo migrazione autonomo senza import globali impliciti'
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/import-tracker.ps1') -RollbackManifest $registration.manifest -ConfigPath $cliConfig -Apply|Out-Null

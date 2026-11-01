@@ -1,6 +1,6 @@
 # SEC02 — Analizza minacce, confini di fiducia e scenari di abuso
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: diagramma architetturale e confini di fiducia | **Esempio d'uso**: `sb prompt SEC02: threat modeling dei flussi mcp stdio e file system locale`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: architettura e flussi di dati verso l'esterno | **Esempio d'uso**: `sb prompt SEC02: threat modeling dei flussi mcp stdio e file system locale`
 
 ## Scopo
 

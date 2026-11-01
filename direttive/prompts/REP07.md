@@ -1,6 +1,6 @@
 # REP07 — Acquisisci screenshot reali e prepara gli asset pubblici
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: applicazione in esecuzione con dati sintetici sanificati | **Esempio d'uso**: `sb prompt REP07: acquisisci screenshot autentici dall interfaccia reale`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: interfaccia funzionante con dati sintetici | **Esempio d'uso**: `sb prompt REP07: acquisisci screenshot autentici dall interfaccia reale`
 
 ## Scopo
 

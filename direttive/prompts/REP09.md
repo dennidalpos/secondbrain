@@ -1,4 +1,4 @@
-# REP09 — Prepara commit e pull request
+# REP09 — Prepara commit e pull request con perimetro, messaggio e controlli verificati
 
 > **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: modifiche locali da consegnare e richiesta esplicita di commit o pull request | **Esempio d'uso**: `sb prompt REP09: prepara commit e descrizione della pull request`
 

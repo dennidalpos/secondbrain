@@ -2,7 +2,7 @@
 
 > Tool portabile: [procedura corrente](portable-brain.md). Nessun monitor; output operativi sotto .runtime e pulizia solo su richiesta.
 
-Il catalogo contiene i workflow specialistici organizzati in 13 aree tematiche. [Indice generato](../../direttive/prompts/README.md), [metadati autorevoli](../../direttive/prompts/catalog.json).
+Il catalogo contiene i workflow specialistici organizzati in 13 aree tematiche. [Indice generato](../../direttive/prompts/README.md), [metadati autorevoli](../../direttive/prompts/catalog.json). Questa guida comprende anche approvazione delle direttive, generazione del catalogo e manutenzione centrale.
 
 ## Utilizzo dalla chat
 
@@ -64,7 +64,7 @@ Per Progetti usare `-ProjectId`; se ci sono più checkout, `-CheckoutMapPath` co
 
 `catalog.json` schema 1 identifica il catalogo 2, categorie ordinate, `deprecations` facoltative (alias ritirati verso l'ID sostituto) e prompt con `id` (opaco, `pmt-` e 8 esadecimali, immutabile), `code` (alias primario), `aliases`, `category`, `summary`, `target`, `mode`, `file`, `references` e `related`. La destinazione è `repository` o `central`; la modalità è `read`, `write` o `verify`. Le modalità descrivono il workflow e non aumentano permessi o superano Plan. I prompt con destinazione central si compongono solo per SecondBrain; SYS03 dispone del bootstrap senza configurazione.
 
-Le schede Markdown hanno Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna e Prompt vicini. Il validatore controlla schema, unicità di ID, codici e alias in un solo spazio di nomi, categorie, percorsi confinati, sezioni e riferimenti ai prompt vicini (per ID). Non impone un numero fisso di prompt per sempre né numerazione consecutiva. Il catalogo attuale conta 80 workflow (COM01–GOV02). La sezione opzionale «Decisioni da raccogliere» (se presente: unica, non vuota, con rimando a Function Calling o Tool Use) elenca le scelte da sottoporre all’utente; la procedura per aggiungere, modificare o ritirare un prompt è SYS11.
+Le schede Markdown hanno Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna e Prompt vicini. Il validatore controlla schema, unicità di ID, codici e alias in un solo spazio di nomi, categorie, percorsi confinati, sezioni e riferimenti ai prompt vicini (per ID). Titolo, intestazione (scope, modalità, «Cosa serve», esempio) e voci di «Prompt vicini» della scheda devono ripetere i valori del catalogo (`summary`, `scope`, `mode`, `requires`, `example` e `summary` dei prompt correlati): una divergenza o un testo segnaposto fa fallire la build. Non impone un numero fisso di prompt per sempre né numerazione consecutiva. Il catalogo attuale conta 80 workflow (COM01–GOV02). La sezione opzionale «Decisioni da raccogliere» (se presente: unica, non vuota, con rimando a Function Calling o Tool Use) elenca le scelte da sottoporre all’utente; la procedura per aggiungere, modificare o ritirare un prompt è SYS11.
 
 Un prompt si richiama per ID (`pmt-a709a792`), codice (`COM01`) o alias, con `prompts.ps1 -Show|-Compose -Prompt <chiave>` e dagli strumenti MCP `get_prompt`/`prompts/get`: tutte le chiavi risolvono allo stesso prompt. Un alias ritirato o un prompt deprecato risolve al sostituto con un avviso.
 
@@ -102,6 +102,40 @@ Consultazione online: 28 ottobre 2026. Le schede del registro comune sono riferi
 Schede di registro: `openai-prompt-engineering`, `openai-development-workflows`, `anthropic-code-workflows`, `github-copilot-cookbook`, `github-prompt-files`, `github-awesome-copilot`, `google-prompt-strategies`.
 
 I workflow di repository e di sistema (REP01, REP04 e SYS01–SYS02) incorporano anche convenzioni locali SecondBrain: tracker autorevole, blocchi gestiti, migrazione con recupero, centralità delle memorie e distinzione centrale/prodotto. Queste scelte non vengono attribuite ai fornitori. Nessuna raccomandazione specifica di framework, modello o browser è resa universale.
+
+## Direttive comuni e manutenzione
+
+Le regole comuni attive sono [AGENTS.global_ide.md](../../direttive/AGENTS.global_ide.md) e [workstation.template.md](../../direttive/workstation.template.md), [approved.json](../../direttive/approved.json) registra hash e autorizzazione. La [proposta iniziale](../../direttive/proposals/2026-11-01-v1.0/README.md) contiene il testo approvato.
+
+Per cambiare le regole: proposta concreta, approvazione esplicita dei due testi, registrazione con `approve-revision.ps1 -ProposalPath <cartella> -Authorization <riscontro> -ConfigPath <config>`, Sync e [SYS01](adapters.md). Non modificare hash o blocchi generati per eludere il processo.
+
+Gli AGENTS applicativi distinguono revisione comune applicata e revisione specifica del progetto. Una marcatura allineata non prova caricamento in sessione o validità tecnica di tutti i contenuti applicativi.
+
+I comandi `sb prompt` sono istruzioni in chat: l'agente carica la sola scheda scelta e lavora nel repository corrente, rispettando autorizzazioni e modalità Plan.
+
+### Generazione e verifica
+
+```powershell
+$cfg = '.runtime/hosts/<id>/workstation.json'
+./scripts/build-prompts.ps1 -Check -ConfigPath $cfg
+./scripts/build-prompts.ps1 -ConfigPath $cfg
+./scripts/prompts.ps1 -Context -ConfigPath $cfg
+./scripts/prompts.ps1 -Compose -Prompt SEC01 -Objective 'Revisionare le modifiche locali' -ConfigPath $cfg
+```
+
+Metadati in catalog.json e singole schede Markdown sono le sorgenti; README.md è generato. La CLI compone testo e riferimenti locali, senza eseguire task o inviare dati a modelli. L'eventuale nuovo TXT è creato solo con -OutputPath e non sovrascrive file esistenti.
+
+### Alias e ritiri
+
+Gli alias del catalogo sono dichiarati in `catalog.json` accanto all'ID immutabile di ogni prompt (`pmt-` e 8 esadecimali).
+
+Le proposte approvate restano immutabili.
+
+### Manutenzione centrale e prodotti
+
+SecondBrain mantiene direttive, prompt, blocchi AGENTS gestiti e riferimenti. I task prodotto restano ai rispettivi agenti, anche se registrati qui come autonomous. REP01 seleziona solo attività del repository aperto; REP02-MEM01 coprono documentazione, memoria, pulizia e tracker; MEM02 l'importazione nel dossier; SYS01-SYS02 richiedono SecondBrain come repository operativo.
+
+L'agente del prodotto confronta codice e stato Git con dossier corrente, fonte tracker e schede di applicabilità. Consultare un riferimento non autorizza automaticamente esecuzione o modifica delle prescrizioni comuni.
 
 ## Verifiche e limiti
 

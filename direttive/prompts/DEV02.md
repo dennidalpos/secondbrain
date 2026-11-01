@@ -1,6 +1,6 @@
 # DEV02 — Riproduci un difetto e correggine la causa
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: riproduzione del difetto e log di errore | **Esempio d'uso**: `sb prompt DEV02: correggi errore di parsing per percorsi con spazi`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: segnalazione o comportamento atteso ed effettivo | **Esempio d'uso**: `sb prompt DEV02: correggi errore di parsing per percorsi con spazi`
 
 ## Scopo
 

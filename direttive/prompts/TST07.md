@@ -1,4 +1,4 @@
-# TST07 — Configurazione di test harness e fixture isolate
+# TST07 — Configura harness di test con fixture isolate e pulizia sicura
 
 > **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: framework di test, script di test e radice di fixture isolata assegnata | **Esempio d'uso**: `sb prompt TST07: crea fixture isolate su disco e valida cleanup automatico`
 

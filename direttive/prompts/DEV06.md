@@ -1,6 +1,6 @@
-# DEV06 — Configurazione ed esecuzione linter, formattatori e analisi statica
+# DEV06 — Configura ed esegui linter, formattatori e analisi statica del codice
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: configurazione linter, sorgenti del progetto e suite di test | **Esempio d'uso**: `sb prompt DEV06: configura linter ed esegui analisi statica`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: configurazione linter e perimetro di analisi | **Esempio d'uso**: `sb prompt DEV06: configura linter ed esegui analisi statica`
 
 ## Scopo
 

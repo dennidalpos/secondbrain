@@ -1,6 +1,6 @@
 # DEV01 — Implementa una funzionalità con verifiche pertinenti
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: specifiche funzionali e suite di test esistente | **Esempio d'uso**: `sb prompt DEV01: implementa il comando di export con validazione hash`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: requisiti o criteri di accettazione verificati | **Esempio d'uso**: `sb prompt DEV01: implementa il comando di export con validazione hash`
 
 ## Scopo
 
@@ -30,4 +30,4 @@ Comportamento realizzato, prove, percorsi utili e criteri rimasti non verificati
 
 - PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
 - TST05: Verifica il comportamento reale rispetto ai requisiti.
-- DEV06: Configurazione ed esecuzione linter, formattatori e analisi statica.
+- DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.

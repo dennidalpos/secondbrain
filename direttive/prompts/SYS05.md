@@ -1,6 +1,6 @@
 # SYS05 — Compatta il dossier preservando originali, fatti e TOC
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: dossier con file storici e budget da ripristinare | **Esempio d'uso**: `sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc`
+> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: dossier da compattare e storico verificabile | **Esempio d'uso**: `sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc`
 
 ## Scopo
 

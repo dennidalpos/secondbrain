@@ -1,6 +1,6 @@
 # SYS04 — Controlla o allinea gli asset già gestiti della postazione
 
-> **Scope**: central | **Modalità**: verifica | **Cosa serve**: configurazione host e testi approvati in approved.json | **Esempio d'uso**: `sb prompt SYS04: verifica allineamento direttive nei repository gestiti`
+> **Scope**: central | **Modalità**: verifica | **Cosa serve**: configurazione postazione e direttive approvate | **Esempio d'uso**: `sb prompt SYS04: verifica allineamento direttive nei repository gestiti`
 
 ## Scopo
 

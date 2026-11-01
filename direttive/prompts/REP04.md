@@ -1,6 +1,6 @@
 # REP04 — Rimuovi residui e codice inutilizzato dopo le verifiche
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: elenco percorsi candidati e verifica riferimenti attivi | **Esempio d'uso**: `sb prompt REP04: rimuovi file temporanei e build cache orfane`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: verifiche di assenza di riferimenti e test verdi | **Esempio d'uso**: `sb prompt REP04: rimuovi file temporanei e build cache orfane`
 
 ## Scopo
 

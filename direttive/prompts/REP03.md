@@ -1,6 +1,6 @@
 # REP03 — Documenta API e contratti a partire dall’implementazione
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: codice dei controller o handler e contratti dati | **Esempio d'uso**: `sb prompt REP03: documenta parametri e schema risposte degli endpoint`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: codice sorgente di contratti ed endpoint | **Esempio d'uso**: `sb prompt REP03: documenta parametri e schema risposte degli endpoint`
 
 ## Scopo
 

@@ -1,6 +1,6 @@
 # DEV04 — Aggiorna dipendenze verificando compatibilità e regressioni
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: manifest dipendenze e changelog della libreria | **Esempio d'uso**: `sb prompt DEV04: aggiorna pacchetto System.Text.Json`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: manifest delle dipendenze e lock file | **Esempio d'uso**: `sb prompt DEV04: aggiorna pacchetto System.Text.Json`
 
 ## Scopo
 

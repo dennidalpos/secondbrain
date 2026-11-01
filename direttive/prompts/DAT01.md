@@ -1,6 +1,6 @@
 # DAT01 — Migra schema e dati con confronto e recupero verificabili
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: schema corrente, schema di destinazione e dati reali | **Esempio d'uso**: `sb prompt DAT01: migra schema del tracker con script di rollback atomico`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: schema sorgente, destinazione e dati sintetici | **Esempio d'uso**: `sb prompt DAT01: migra schema del tracker con script di rollback atomico`
 
 ## Scopo
 

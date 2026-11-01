@@ -1,6 +1,6 @@
-# SYS09 — Esecuzione e verifica del backup di SecondBrain
+# SYS09 — Esegui il backup compresso deterministico e verifica i digest SHA-256
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: radice SecondBrain, .runtime e script backup.ps1 | **Esempio d'uso**: `sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256`
+> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: configurazione attiva e root runtime di backup | **Esempio d'uso**: `sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256`
 
 ## Scopo
 
@@ -31,4 +31,4 @@ Percorso dell'archivio generato, digest SHA-256 del pacchetto e dei contenuti, c
 ## Prompt vicini
 
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
-- SYS08: Misura delle metriche di memoria e budget caratteri.
+- SYS08: Misura i caratteri di contesto, memoria e tracker rispetto al budget.

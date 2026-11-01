@@ -1,6 +1,6 @@
-# SYS08 — Misura delle metriche di memoria e budget caratteri
+# SYS08 — Misura i caratteri di contesto, memoria e tracker rispetto al budget
 
-> **Scope**: central | **Modalità**: verifica | **Cosa serve**: dossier del repository e scripts/knowledge.ps1 | **Esempio d'uso**: `sb prompt SYS08: verifica conteggio caratteri rispetto a 20000`
+> **Scope**: central | **Modalità**: verifica | **Cosa serve**: dossier target e tetto di 20.000 caratteri del primo caricamento | **Esempio d'uso**: `sb prompt SYS08: verifica conteggio caratteri rispetto a 20000`
 
 ## Scopo
 

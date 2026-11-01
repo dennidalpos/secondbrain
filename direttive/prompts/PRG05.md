@@ -1,6 +1,6 @@
-# PRG05 — Scaffolding di nuovi moduli e progetti
+# PRG05 — Crea lo scaffolding di nuovi moduli con struttura, configurazione e test
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: albero del progetto, manifest e requisiti architetturali | **Esempio d'uso**: `sb prompt PRG05: definisci scaffolding del nuovo modulo`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: perimetro architetturale e dipendenze concordate | **Esempio d'uso**: `sb prompt PRG05: definisci scaffolding del nuovo modulo`
 
 ## Scopo
 

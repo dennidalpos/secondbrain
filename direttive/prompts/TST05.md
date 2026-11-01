@@ -1,6 +1,6 @@
 # TST05 — Verifica il comportamento reale rispetto ai requisiti
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: requisiti approvati e ambiente di esecuzione reale | **Esempio d'uso**: `sb prompt TST05: verifica conformita output rispetto alle specifiche`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: criteri di accettazione e ambiente funzionante | **Esempio d'uso**: `sb prompt TST05: verifica conformita output rispetto alle specifiche`
 
 ## Scopo
 

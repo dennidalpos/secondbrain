@@ -1,4 +1,4 @@
-# DEV08 — Rivedi leggibilità e manutenibilità del codice
+# DEV08 — Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo
 
 > **Scope**: repo/area/file | **Modalità**: lettura | **Cosa serve**: codice da rivedere, convenzioni del repository e test esistenti | **Esempio d'uso**: `sb prompt DEV08: rivedi leggibilità e manutenibilità del modulo di sync`
 

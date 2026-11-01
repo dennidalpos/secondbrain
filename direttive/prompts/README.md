@@ -479,7 +479,7 @@ SYS07 | Consulta entità e risorse del PARA centrale per identità e percorso.
 SYS08 | Misura i caratteri di contesto, memoria e tracker rispetto al budget.
   • ID: pmt-9a32f4e4
   • Scope: central | Modalità: verify
-  • Serve: dossier target e vincolo di 50.000 caratteri
+  • Serve: dossier target e tetto di 20.000 caratteri del primo caricamento
   • Esempio: sb prompt SYS08: verifica conteggio caratteri rispetto a 20000
 
 SYS09 | Esegui il backup compresso deterministico e verifica i digest SHA-256.

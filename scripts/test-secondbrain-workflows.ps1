@@ -159,7 +159,7 @@ try {
     Put-Workflow $card $cardText
     $before=Snapshot-Workflow $temp
     $resolved=Get-SBWorkflowContext -Config $config -RepositoryPath $repo
-    Assert-Workflow ($resolved.repositories[0].checkout -eq $repo -and $resolved.repositories[0].trackerSource -eq 'dossier_legacy') 'contesto dalla radice e tracker esistente'
+    Assert-Workflow ($resolved.repositories[0].checkout -eq $repo -and $resolved.repositories[0].trackerSource -eq 'dossier_undeclared') 'contesto dalla radice e tracker esistente'
     [IO.Directory]::CreateDirectory((Join-Path $repo 'src/nested'))|Out-Null
     $nested=Get-SBWorkflowContext -Config $config -RepositoryPath (Join-Path $repo 'src/nested')
     Assert-Workflow ($nested.repositories[0].checkout -eq $repo) 'sottocartella risolta al checkout'
@@ -205,7 +205,7 @@ try {
     $meta.status='active';Put-Workflow (Join-Path $dir 'para.json') (ConvertTo-SBJson $meta)
     $declaration=@{schemaVersion=1;identity='github.com/test/repo';tracker=@{location='dossier';path='tracker.json';schemaVersion=1}}
     Put-Workflow (Join-Path $dir 'repository.json') (ConvertTo-SBJson $declaration)
-    Reject-Workflow {Get-SBWorkflowContext -Config $config -RepositoryPath $repo} 'tracker dichiarato assente senza fallback legacy'
+    Reject-Workflow {Get-SBWorkflowContext -Config $config -RepositoryPath $repo} 'tracker dichiarato assente senza fallback'
     Put-Workflow (Join-Path $dir 'repository.json') (ConvertTo-SBJson @{schemaVersion=1;identity='github.com/test/repo'})
     [void](Invoke-SBGit $repo @('remote','set-url','origin','https://github.com/excluded/repo.git'))
     Reject-Workflow {Get-SBWorkflowContext -Config $config -RepositoryPath $repo} 'owner escluso rifiutato'
@@ -305,11 +305,30 @@ try {
     Put-Workflow $decisionCard ($decisionOriginal -replace 'Function Calling o Tool Use','una domanda generica' -replace 'Function Calling','domanda' -replace 'Tool Use','domanda')
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'sezione Decisioni da raccogliere senza Function Calling / Tool Use rifiutata'
     Put-Workflow $decisionCard $decisionOriginal
+    # Titolo, intestazione e «Prompt vicini» devono ripetere il catalogo; nessun segnaposto tra i vicini.
+    $driftCard=Join-Path $brain 'direttive/prompts/COM01.md';$driftOriginal=Read-SBText $driftCard
+    Put-Workflow $driftCard ($driftOriginal -replace '\*\*Cosa serve\*\*: ','**Cosa serve**: altro ')
+    Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: intestazione diversa dal catalogo rifiutata'
+    Put-Workflow $driftCard ($driftOriginal -replace '(?m)^# COM01 — .+$','# COM01 — Altro titolo')
+    Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: titolo diverso dal catalogo rifiutato'
+    Put-Workflow $driftCard ($driftOriginal -replace '(?m)^- COM02: .+$','- COM02: descrizione diversa dal catalogo.')
+    Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: Prompt vicini con descrizione diversa dal catalogo rifiutati'
+    Put-Workflow $driftCard ($driftOriginal -replace '(?m)^- COM02: .+$','- COM02: consultare la scheda soltanto quando pertinente.')
+    Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: Prompt vicini segnaposto rifiutati'
+    Put-Workflow $driftCard $driftOriginal
     # Casi d'uso SYS11 su cervello fixture: aggiungi, modifica, rimuovi e rifiuti.
     $uc=Read-SBWorkflowCatalog $brain -ValidateBodies;$sys04=@($uc.prompts|Where-Object code -ceq 'SYS04')[0];$sys11e=@($uc.prompts|Where-Object code -ceq 'SYS11')[0]
     $newId=New-SBWorkflowPromptId $uc
     $newCard=Join-Path $brain 'direttive/prompts/SYS12.md'
-    $newBody=$decisionOriginal.Replace('SYS11','SYS12').Replace('Gestisci il catalogo prompt: aggiungi, modifica, rimuovi','Prova uso aggiunta prompt')
+    # La scheda ripete titolo, intestazione e prompt vicini del catalogo: la fixture li riallinea alla voce di prova.
+    function Get-FixtureCard([string]$Body,[string]$Summary,$Neighbor){
+        $lines=$Body.Split("`n")
+        $lines[0]='# SYS12 — '+$Summary.TrimEnd('.')
+        $lines[2]='> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: prova caso d uso | **Esempio d''uso**: `sb prompt SYS12: prova`'
+        $text=$lines -join "`n"
+        [regex]::Replace($text,"(?s)(## Prompt vicini`n`n).*?(`n`n## |\z)",{param($m) $m.Groups[1].Value+'- '+$Neighbor.code+': '+$Neighbor.summary+$m.Groups[2].Value})
+    }
+    $newBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS12')) 'Prova uso aggiunta prompt.' $sys04
     Put-Workflow $newCard $newBody
     $added=$original|ConvertFrom-Json -AsHashtable
     $entryNew=@{aliases=@();category='sistema';code='SYS12';example='sb prompt SYS12: prova';file='SYS12.md';id=$newId;mode='write';references=@('https://code.claude.com/docs/en/prompt-library');related=@($sys04.id);requires='prova caso d uso';scope='central';status='active';summary='Prova uso aggiunta prompt.';target='central'}
@@ -328,7 +347,8 @@ try {
     Put-Workflow $newCard ($newBody.Replace('SYS04','SYS03'))
     Put-Workflow $catalogPath (ConvertTo-SBJson $added)
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'caso d uso: related non documentato nella scheda rifiutato'
-    Put-Workflow $newCard $newBody
+    $modifiedBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS12')) 'Prova uso modifica prompt.' $sys04
+    Put-Workflow $newCard $modifiedBody
     $modified=(ConvertTo-SBJson $added)|ConvertFrom-Json -AsHashtable
     $modified.prompts[-1].summary='Prova uso modifica prompt.';$modified.prompts[-1].aliases=@('ZZZ12')
     Put-Workflow $catalogPath (ConvertTo-SBJson $modified)

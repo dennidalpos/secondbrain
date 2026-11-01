@@ -70,15 +70,15 @@ function Invoke-SBHostActivation {
                 $operations+=@{path=$metadataPath;expected=(Get-SBFileHash $metadataPath);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $metadata))}
             }
         }
-        $requiresMigration=(!$existing.Count -and (Test-Path -LiteralPath (Join-Path $asset.path 'tracker.md')))
+        $requiresImport=(!$existing.Count -and (Test-Path -LiteralPath (Join-Path $asset.path 'tracker.md')))
         if(!$existing.Count){
             $metadata=New-SBParaMetadata ('area-'+(Get-SBTextHash $identity).Substring(0,20).ToLowerInvariant()) 'area' $asset.name
             $repo=@{schemaVersion=1;identity=$identity}
-            if(!$requiresMigration){$repo.tracker=@{location='dossier';path='tracker.json';schemaVersion=1}}
+            if(!$requiresImport){$repo.tracker=@{location='dossier';path='tracker.json';schemaVersion=1}}
             $seed=@{'para.json'=(ConvertTo-SBJson $metadata);'repository.json'=(ConvertTo-SBJson $repo);'brief.md'=("# "+$asset.name+"`n`nRepository selezionato per la gestione della conoscenza. Perimetro e stato nel contesto corrente.`n");
               'context.md'=("# Contesto`n`n## Stato corrente`n`nRepository selezionato; architettura e comandi da verificare dallʼagente del prodotto.`n`n## Vincoli`n`nNessun task applicativo eseguito dal bootstrap.`n`n## Problemi aperti`n`nQualificare fonti informative e configurazione degli output.`n`n## Prossimo passo`n`nEsaminare codice e documenti del repository.`n");
               'memory.md'="# Memoria essenziale`n`nNessuna decisione tecnica ancora qualificata.`n"}
-            if(!$requiresMigration){$seed['tracker.json']=ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@();history=@();extensions=@{}}}
+            if(!$requiresImport){$seed['tracker.json']=ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@();history=@();extensions=@{}}}
             foreach($name in $seed.Keys){$path=Join-Path $dossier $name;if(Test-Path -LiteralPath $path){throw 'Destinazione non censita gia presente'};$operations+=@{path=$path;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($seed[$name])}}
         }
         $managedHash='absent'
@@ -87,8 +87,8 @@ function Invoke-SBHostActivation {
             if(!$choice.ContainsKey('approveExistingBlock') -or !$choice.approveExistingBlock){throw 'Blocco esistente richiede revisione nella selezione'}
             $managedHash=Get-SBTextHash $existingBlock
         }
-        $newBindings+=@{path=$asset.path;identity=$identity;remoteIdentity=$current.remoteIdentity;fingerprint=$current.fingerprint;dossier=$dossierRelative;managedHash=$managedHash;status=$(if($requiresMigration){'tracker-migration-required'}else{'managed'});outputStatus='unverified'}
-        $plans+=@{identity=$identity;path=$asset.path;dossier=$dossierRelative;trackerMigrationRequired=$requiresMigration}
+        $newBindings+=@{path=$asset.path;identity=$identity;remoteIdentity=$current.remoteIdentity;fingerprint=$current.fingerprint;dossier=$dossierRelative;managedHash=$managedHash;status=$(if($requiresImport){'tracker-import-required'}else{'managed'});outputStatus='unverified'}
+        $plans+=@{identity=$identity;path=$asset.path;dossier=$dossierRelative;trackerImportRequired=$requiresImport}
     }
     $selectedIDEs=@()
     foreach($choice in $selection.ides){
@@ -426,7 +426,7 @@ function Invoke-SBPortableSync {
                     $issues+=@{kind='forbidden-repository-in-bindings';repository=$binding.identity;reason='Repository vietato presente nei binding attivi'}
                     continue
                 }
-                if($binding.status -ne 'managed'){$issues+=@{kind='tracker-migration-required';repository=$binding.identity};continue}
+                if($binding.status -ne 'managed'){$issues+=@{kind='tracker-import-required';repository=$binding.identity};continue}
                 $current=Get-SBCheckoutAsset $binding.path $Config.bindings
                 if($current.fingerprint -ne $binding.fingerprint -or $current.remoteIdentity -cne $binding.remoteIdentity){throw 'Identita/percorso cambiati; nuova riconciliazione richiesta'}
                 $dir=Resolve-SBParaPath $Config.brainRoot $binding.dossier
@@ -503,7 +503,7 @@ function Invoke-SBPortableSync {
         if(!$Repository){
         foreach($issue in @(Get-SBCuratedReferenceIssues $Config.brainRoot $entities)){$issues+=@{kind='curated-reference';detail=$issue}}
         foreach($issue in @(Get-SBTrackerAuthorityIssues $Config.brainRoot $entities)){$issues+=@{kind='tracker-authority';detail=$issue}}
-        foreach($issue in @(Get-SBTrackerMigrationIssues $Config)){$issues+=@{kind='tracker-migration';detail=$issue}}
+        foreach($issue in @(Get-SBTrackerImportIssues $Config)){$issues+=@{kind='tracker-import';detail=$issue}}
         if(@($entities|Where-Object id -eq 'resource-authoritative-sources').Count){
             foreach($issue in @(Get-SBSourceChecks (Read-SBSourceRegistry $Config.brainRoot) $Config -IncludeDossiers)){$issues+=@{kind='authoritative-source';detail=$issue}}
         }
@@ -517,7 +517,7 @@ function Invoke-SBPortableSync {
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason='Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}
         if($pendingTransaction){$warnings+=@{kind='pending-transaction';reason=(Format-SBPendingTransaction $pendingTransaction)}}
-        @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-migrations','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}
+        @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-imports','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}
     }finally{Exit-SBOperation $lock}
 }
 Export-ModuleMember -Function *-SB*

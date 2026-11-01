@@ -1,6 +1,6 @@
 # DAT02 — Realizza importazioni e trasformazioni preservando gli originali
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: file sorgente, mapping delle colonne e directory di output | **Esempio d'uso**: `sb prompt DAT02: importa catalogo da csv a json preservando originali`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: file sorgente, modello destinazione e validazione | **Esempio d'uso**: `sb prompt DAT02: importa catalogo da csv a json preservando originali`
 
 ## Scopo
 

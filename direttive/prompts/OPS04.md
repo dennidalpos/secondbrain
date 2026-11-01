@@ -1,6 +1,6 @@
 # OPS04 — Prepara note di rilascio e verifiche di consegna
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: changelog, commit recenti e tracker delle attivita | **Esempio d'uso**: `sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: commit, issue o task completati dalla release precedente | **Esempio d'uso**: `sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker`
 
 ## Scopo
 
@@ -29,4 +29,4 @@ Note di rilascio, stato dei controlli, rischi e passaggi operativi pendenti.
 ## Prompt vicini
 
 - OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- MEM03: Prepara un passaggio di sessione con ripresa verificabile.
+- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.

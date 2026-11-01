@@ -1,6 +1,6 @@
-# GOV02 — Analisi delle dipendenze terze parti e compilazione dei credits
+# GOV02 — Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: manifest dei pacchetti (npm, nuget, pip) e lockfile | **Esempio d'uso**: `sb prompt GOV02: scansiona dipendenze terze e compila file CREDITS.md`
+> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: lockfile dipendenze e licenze di terze parti | **Esempio d'uso**: `sb prompt GOV02: scansiona dipendenze terze e compila file CREDITS.md`
 
 ## Scopo
 
@@ -31,4 +31,4 @@ File CREDITS.md allineato, matrice di compatibilità delle dipendenze terze e ri
 ## Prompt vicini
 
 - REP06: Prepara il README GitHub con informazioni e asset verificati.
-- GOV01: Applicazione e verifica della licenza d'uso e conformità SPDX.
+- GOV01: Verifica licenze open source, conformità dei file e header SPDX.

@@ -1,6 +1,6 @@
 # TST02 — Copri percorsi utente con test end-to-end
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: interfaccia utente o cli e scenari di collaudo | **Esempio d'uso**: `sb prompt TST02: crea test end-to-end per il ciclo di backup e ripristino`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: ambiente di test e flussi utente concordati | **Esempio d'uso**: `sb prompt TST02: crea test end-to-end per il ciclo di backup e ripristino`
 
 ## Scopo
 

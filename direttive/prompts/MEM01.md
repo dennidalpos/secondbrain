@@ -1,6 +1,6 @@
 # MEM01 — Allinea istruzioni locali, contesto, memoria e tracker
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: modifiche effettuate e dossier del repository | **Esempio d'uso**: `sb prompt MEM01: allinea context.md e memory.md dopo completamento task`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: decisioni o modifiche recenti non registrate | **Esempio d'uso**: `sb prompt MEM01: allinea context.md e memory.md dopo completamento task`
 
 ## Scopo
 
@@ -18,7 +18,7 @@ Repository, istruzioni applicabili, dossier corrente e tracker autorevole.
 
 Confronta codice, manifest e comandi con i documenti. Registra decisioni/gotcha in memoria, architettura/stato nel contesto e attività nel tracker esistente. Modifica istruzioni locali fuori dai blocchi gestiti; proponi separatamente nuove regole comuni. Applica tassativamente la regola di sintesi minima: sintetizza memorie, contesti e dossier al minimo indispensabile registrando soltanto le operazioni chiave effettuate.
 
-Aggiorna il TOC index.md e mantieni il pacchetto iniziale entro 50.000 caratteri senza troncare. Carica tracker e storico in modo selettivo; per la sintesi revisionata usa SYS05. Tutti gli output di lavoro, incluse build/cache dove supportato e verificato, risiedono in SecondBrain/.runtime.
+Aggiorna il TOC index.md e mantieni il pacchetto iniziale snello entro 20.000 caratteri (tetto del solo primo caricamento) senza troncare. Carica tracker e storico in modo selettivo; per la sintesi revisionata usa SYS05. Tutti gli output di lavoro, incluse build/cache dove supportato e verificato, risiedono in SecondBrain/.runtime.
 
 ## Decisioni da raccogliere
 
@@ -41,6 +41,6 @@ Informazioni riconciliate, evidenze e discrepanze residue senza dichiarare verif
 ## Prompt vicini
 
 - REP02: Scrivi guide e README coerenti con il prodotto reale.
-- MEM03: Prepara un passaggio di sessione con ripresa verificabile.
+- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
 - MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
 - SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.

@@ -1,6 +1,6 @@
 # TST04 — Diagnostica e correggi errori di build e test nella CI
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: definizione workflow ci e log del job fallito | **Esempio d'uso**: `sb prompt TST04: correggi fallimento del runner GitHub Actions su Windows`
+> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: log della CI e configurazione della pipeline | **Esempio d'uso**: `sb prompt TST04: correggi fallimento del runner GitHub Actions su Windows`
 
 ## Scopo
 
@@ -30,4 +30,4 @@ Causa, differenza ambientale, correzione e stato verificato del job.
 
 - TST03: Individua e correggi test instabili o non deterministici.
 - OPS02: Configura pipeline, container e infrastruttura come codice.
-- DEV06: Configurazione ed esecuzione linter, formattatori e analisi statica.
+- DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.

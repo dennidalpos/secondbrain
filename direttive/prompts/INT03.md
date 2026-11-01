@@ -1,6 +1,6 @@
 # INT03 — Verifica accessibilità e utilizzo con tastiera e ausili
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: interfaccia web o applicativa e requisiti wcag | **Esempio d'uso**: `sb prompt INT03: verifica conformita aria e accessibilita`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: interfaccia funzionante e standard di riferimento | **Esempio d'uso**: `sb prompt INT03: verifica conformita aria e accessibilita`
 
 ## Scopo
 

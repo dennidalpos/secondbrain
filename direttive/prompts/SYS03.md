@@ -1,6 +1,6 @@
 # SYS03 — Attiva SecondBrain dopo discovery e selezione degli asset
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: discovery completata e conferma esplicita utente | **Esempio d'uso**: `sb prompt SYS03: attiva secondbrain selezionando repository e ide locali`
+> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: volume SecondBrain e consenso utente sugli asset | **Esempio d'uso**: `sb prompt SYS03: attiva secondbrain selezionando repository e ide locali`
 
 ## Scopo
 

@@ -1,6 +1,6 @@
-# SEC05 — Verifica isolamento dei dati personali e conformità al GDPR
+# SEC05 — Verifica isolamento dati personali e conformità a GDPR e policy
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: dossier, log operativi e repository pubblico | **Esempio d'uso**: `sb prompt SEC05: controlla assenza dati personali e conformita privacy gdpr`
+> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: mappatura dei dati e policy di conformita | **Esempio d'uso**: `sb prompt SEC05: controlla assenza dati personali e conformita privacy gdpr`
 
 ## Scopo
 

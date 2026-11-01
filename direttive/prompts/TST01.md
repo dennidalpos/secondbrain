@@ -1,6 +1,6 @@
 # TST01 — Aggiungi test unitari e di integrazione sui rischi rilevanti
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: funzioni target e specifiche dei requisiti | **Esempio d'uso**: `sb prompt TST01: aggiungi test di boundary per il calcolo budget caratteri`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: harness di test e comportamento da verificare | **Esempio d'uso**: `sb prompt TST01: aggiungi test di boundary per il calcolo budget caratteri`
 
 ## Scopo
 

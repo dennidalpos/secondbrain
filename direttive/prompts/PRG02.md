@@ -1,6 +1,6 @@
 # PRG02 — Confronta soluzioni architetturali e motiva una decisione
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: requisiti funzionali, volumi e vincoli di deployment | **Esempio d'uso**: `sb prompt PRG02: confronta sqlite vs json per la persistenza locale`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: alternative da valutare e vincoli di progetto | **Esempio d'uso**: `sb prompt PRG02: confronta sqlite vs json per la persistenza locale`
 
 ## Scopo
 

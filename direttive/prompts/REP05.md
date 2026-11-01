@@ -1,6 +1,6 @@
 # REP05 — Verifica contenuti e cronologia prima della pubblicazione
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: working tree, indice git e storia dei commit | **Esempio d'uso**: `sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: stato Git, cronologia e albero di lavoro | **Esempio d'uso**: `sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti`
 
 ## Scopo
 

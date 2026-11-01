@@ -1,6 +1,6 @@
 # PRG04 — Prepara un piano per fasi con dipendenze e verifiche
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: obiettivi del lotto e mappa delle dipendenze | **Esempio d'uso**: `sb prompt PRG04: pianifica la migrazione in tre rilasci atomici`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: requisiti concordati e perimetro del lavoro | **Esempio d'uso**: `sb prompt PRG04: pianifica la migrazione in tre rilasci atomici`
 
 ## Scopo
 

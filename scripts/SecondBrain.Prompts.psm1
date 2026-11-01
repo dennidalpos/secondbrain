@@ -84,6 +84,16 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog) {
         $target=@($Catalog.prompts|Where-Object id -ceq $related)
         if($target.Count -ne 1 -or $body -notmatch ('\b'+[regex]::Escape($target[0].code)+'\b')){throw 'Prompt vicino non documentato: '+$related}
     }
+    # Titolo e intestazione ripetono i valori del catalogo, che resta la fonte mostrata da elenco e composizione.
+    $modeLabels=@{read='lettura';write='scrittura';verify='verifica'}
+    $expectedHeader='> **Scope**: '+$Prompt.scope+' | **Modalità**: '+$modeLabels[$Prompt.mode]+' | **Cosa serve**: '+$Prompt.requires+' | **Esempio d''uso**: `'+$Prompt.example+'`'
+    if(!($body -split "`n")[2].Equals($expectedHeader,[StringComparison]::Ordinal)){throw 'Intestazione scheda diversa dal catalogo: '+$Prompt.code}
+    if(!($body -split "`n")[0].Equals('# '+$Prompt.code+' — '+$Prompt.summary.TrimEnd('.'),[StringComparison]::Ordinal)){throw 'Titolo scheda diverso dal catalogo: '+$Prompt.code}
+    # Ogni voce di «Prompt vicini» cita un prompt correlato con il suo sommario e nessun altro.
+    $neighbors=@([regex]::Matches((([regex]::Split($body,'(?m)^## Prompt vicini\n')[1] -split '(?m)^## ',2)[0]),'(?m)^- ([A-Z]{3}\d{2}): (.+)$'))
+    $expectedNeighbors=@($Prompt.related|ForEach-Object {$id=$_;$t=@($Catalog.prompts|Where-Object id -ceq $id)[0];$t.code+': '+$t.summary})
+    $actualNeighbors=@($neighbors|ForEach-Object {$_.Groups[1].Value+': '+$_.Groups[2].Value})
+    if(@($actualNeighbors|Sort-Object).Count -ne @($expectedNeighbors|Sort-Object).Count -or @(Compare-Object @($actualNeighbors|Sort-Object) @($expectedNeighbors|Sort-Object) -CaseSensitive).Count){throw 'Prompt vicini diversi dal catalogo: '+$Prompt.code}
     $body.TrimEnd()+"`n"
 }
 

@@ -1,6 +1,6 @@
-# REP08 — Ispeziona il repository, individua task residui e incrocia memorie con codice reale
+# REP08 — Ispeziona il repo, individua task residui e incrocia memorie e codice reale
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: accesso in lettura al repository, tracker.json, context.md e memory.md | **Esempio d'uso**: `sb prompt REP08: ispeziona il repo e rileva task residui`
+> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: albero di lavoro, dossier di memoria e tracker | **Esempio d'uso**: `sb prompt REP08: ispeziona il repo e rileva task residui`
 
 ## Scopo
 

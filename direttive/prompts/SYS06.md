@@ -1,6 +1,6 @@
-# SYS06 — Lettura memoria attiva e contesto del repository
+# SYS06 — Leggi memoria attiva, contesto e tracker del repository corrente
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: dossier del repository con context.md, memory.md e tracker | **Esempio d'uso**: `sb prompt SYS06: carica contesto e memoria del repository nel budget`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: checkout del repository aperto | **Esempio d'uso**: `sb prompt SYS06: carica contesto e memoria del repository nel budget`
 
 ## Scopo
 

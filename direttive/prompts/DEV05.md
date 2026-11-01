@@ -1,6 +1,6 @@
 # DEV05 — Migra codice o framework verso una destinazione definita
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: sorgenti da migrare e documentazione dell ambiente target | **Esempio d'uso**: `sb prompt DEV05: migra script da Windows PowerShell 5.1 a PowerShell 7.5`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: versione sorgente e destinazione con note di rilascio | **Esempio d'uso**: `sb prompt DEV05: migra script da Windows PowerShell 5.1 a PowerShell 7.5`
 
 ## Scopo
 

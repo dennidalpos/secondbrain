@@ -1,6 +1,6 @@
 # PRG01 — Trasforma una richiesta in requisiti e criteri di accettazione
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: richiesta utente e vincoli architetturali | **Esempio d'uso**: `sb prompt PRG01: definisci criteri di accettazione per la ricerca full-text`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: richiesta utente e documentazione esistente | **Esempio d'uso**: `sb prompt PRG01: definisci criteri di accettazione per la ricerca full-text`
 
 ## Scopo
 

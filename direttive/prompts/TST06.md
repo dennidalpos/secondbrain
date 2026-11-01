@@ -1,6 +1,6 @@
 # TST06 — Misura e migliora prestazioni e consumo di risorse
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: profiler o metriche di tempo e allocazione memoria | **Esempio d'uso**: `sb prompt TST06: riduci tempo di discovery host e memoria occupata`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: benchmark o scenario di carico riproducibile | **Esempio d'uso**: `sb prompt TST06: riduci tempo di discovery host e memoria occupata`
 
 ## Scopo
 

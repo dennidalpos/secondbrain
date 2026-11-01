@@ -1,6 +1,6 @@
 # COM04 — Valuta impatto, rischi e dipendenze di una modifica
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: proposta di modifica e punti di contatto nel codice | **Esempio d'uso**: `sb prompt COM04: valuta impatto dell isolamento dei log runtime`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: proposta di modifica o difetto da correggere | **Esempio d'uso**: `sb prompt COM04: valuta impatto dell isolamento dei log runtime`
 
 ## Scopo
 

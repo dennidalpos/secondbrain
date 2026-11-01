@@ -1,4 +1,4 @@
-# SYS10 — Rollback o dismissione di un repository con restituzione dei dati e pulizia privacy
+# SYS10 — Esegui rollback e dismissione repository restituendo i dati per privacy
 
 > **Scope**: central | **Modalità**: scrittura | **Cosa serve**: dossier del repository, checkout di destinazione e consenso utente | **Esempio d'uso**: `sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati`
 
@@ -30,6 +30,6 @@ Rapporto di dismissione con percorsi coinvolti, elenco file trasferiti, conferma
 
 ## Prompt vicini
 
-- SYS03: Attivazione e discovery di nuovi repository.
+- SYS03: Attiva SecondBrain dopo discovery e selezione degli asset.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
 - SYS05: Compatta il dossier preservando originali, fatti e TOC.

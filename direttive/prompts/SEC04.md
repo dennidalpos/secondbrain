@@ -1,6 +1,6 @@
 # SEC04 — Cerca credenziali esposte e verifica la validazione degli input
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: working tree, file manifest e regole di pubblicabilita | **Esempio d'uso**: `sb prompt SEC04: esegui audit sicurezza credenziali`
+> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: albero di lavoro e strumenti di scansione | **Esempio d'uso**: `sb prompt SEC04: esegui audit sicurezza credenziali`
 
 ## Scopo
 

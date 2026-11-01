@@ -1,4 +1,4 @@
-# SYS11 — Gestisci il catalogo prompt: aggiungi, modifica, rimuovi
+# SYS11 — Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato
 
 > **Scope**: central | **Modalità**: scrittura | **Cosa serve**: catalogo valido, area di destinazione e sessione di scrittura | **Esempio d'uso**: `sb prompt SYS11: aggiungi un prompt al catalogo nell'area test`
 
@@ -18,7 +18,7 @@ Operazione richiesta (aggiungi, modifica, rimuovi), codice o ID del prompt, area
 
 Leggi catalogo e schede senza modificarli e individua l'operazione. Lavora in una sessione di scrittura (`scripts/access.ps1 -Start -Mode Write`, `-End` nello stesso script).
 
-**Aggiungi.** Scegli il codice libero della sua area (`^[A-Z]{2,4}[0-9]{2}$`, numerazione successiva, nessun riuso di codici ritirati), genera un ID `pmt-` con 8 esadecimali non presente tra ID, alias e `deprecations`, scrivi la scheda `CODICE.md` con intestazione standardizzata e tutte le sezioni (Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna, Prompt vicini; «Decisioni da raccogliere» se il prompt chiede scelte) e aggiungi la voce a `catalog.json` con `file`, `summary` (codice e titolo entro 88 caratteri), `example`, `requires`, `references`, `related`. Ogni prompt collegato deve comparire con il suo codice nella scheda, in entrambe le direzioni.
+**Aggiungi.** Scegli il codice libero della sua area (`^[A-Z]{2,4}[0-9]{2}$`, numerazione successiva, nessun riuso di codici ritirati), genera un ID `pmt-` con 8 esadecimali non presente tra ID, alias e `deprecations`, scrivi la scheda `CODICE.md` con intestazione standardizzata e tutte le sezioni (Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna, Prompt vicini; «Decisioni da raccogliere» se il prompt chiede scelte) e aggiungi la voce a `catalog.json` con `file`, `summary` (codice e titolo entro 88 caratteri), `example`, `requires`, `references`, `related`. Titolo, intestazione (scope, modalità, «Cosa serve», esempio) e voci di «Prompt vicini» della scheda ripetono parola per parola `summary`, `scope`, `mode`, `requires`, `example` e il `summary` dei prompt in `related` (il controllo li rifiuta se divergono). Ogni prompt collegato deve comparire con il suo codice nella scheda, in entrambe le direzioni.
 
 **Modifica.** L'ID e gli alias esistenti non cambiano mai. Un cambio di corpo, titolo, modalità o scope aggiorna scheda e voce insieme. Se il codice cambia, il vecchio codice resta come alias oppure in `deprecations` verso lo stesso ID; i collegamenti `related` usano ID e restano validi.
 

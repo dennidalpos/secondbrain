@@ -1,6 +1,6 @@
 # DEV03 — Esegui un refactoring preservando contratti e comportamento
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: codice sorgente da refactorizzare e test di regressione | **Esempio d'uso**: `sb prompt DEV03: estrai modulo per la gestione transazioni para`
+> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: codice da migliorare e test esistenti | **Esempio d'uso**: `sb prompt DEV03: estrai modulo per la gestione transazioni para`
 
 ## Scopo
 

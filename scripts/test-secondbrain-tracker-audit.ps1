@@ -43,24 +43,24 @@ try {
             Put-Audit $f.source '{"tasks":[{"id":"X","title":"Originale","status":"pending"}]}'
             $hash=Get-SBFileHash $f.source;$source=$f.source
             $edit={param($phase) if($phase -eq $checkpoint){Put-Audit $source '{"tasks":[{"id":"X","title":"Originale","status":"pending"},{"id":"NEW","title":"Concorrente","status":"pending"}]}'}}.GetNewClosure()
-            Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $source -Activate -AfterPhase $edit} ('modifica nella fase '+$checkpoint+' rifiutata')
-            $m=Read-SBTrackerManifest $f.config (Read-SBJson (Get-SBTrackerMigrationPath $f.config $f.identity) $null).manifest
+            Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $source -Activate -AfterPhase $edit} ('modifica nella fase '+$checkpoint+' rifiutata')
+            $m=Read-SBTrackerManifest $f.config (Read-SBJson (Get-SBTrackerImportPath $f.config $f.identity) $null).manifest
             Assert-Audit ((Read-SBJson $source $null).tasks.Count -eq 2 -and (Get-SBFileHash $m.source.backup) -eq $hash -and (Get-SBFileHash $m.source.archive) -eq $hash) ('entrambe le versioni preservate '+$checkpoint)
-            Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -ManifestPath (Read-SBJson (Get-SBTrackerMigrationPath $f.config $f.identity) $null).manifest -Activate} ('ripresa con fonte mutata rifiutata '+$checkpoint)
+            Reject-Audit {Invoke-SBTrackerImport -Config $f.config -ManifestPath (Read-SBJson (Get-SBTrackerImportPath $f.config $f.identity) $null).manifest -Activate} ('ripresa con fonte mutata rifiutata '+$checkpoint)
             if(Test-Path -LiteralPath $m.candidate){Assert-Audit ((Read-SBJson $m.candidate $null).tasks.Count -eq 1) ('candidato derivato dalla copia verificata '+$checkpoint)}
         }
         $f=New-AuditFixture 'source-missing';Put-Audit $f.source '{"tasks":[]}'
-        $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source
+        $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source
         [IO.File]::Delete($f.source)
-        Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate} 'assenza senza rimozione registrata rifiutata'
+        Reject-Audit {Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate} 'assenza senza rimozione registrata rifiutata'
         $f=New-AuditFixture 'source-journal-removal';Put-Audit $f.source '{"tasks":[]}'
         $source=$f.source
         $interrupt={param($phase) if($phase -eq 'references_updated'){Set-SBWriteGuard {if(!(Test-Path -LiteralPath $source)){throw 'interruzione dopo rimozione'}}.GetNewClosure()}}.GetNewClosure()
-        try{Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $source -Activate -AfterPhase $interrupt} 'interruzione fra rimozione e salvataggio fase'}finally{Set-SBWriteGuard $null}
-        $manifest=(Read-SBJson (Get-SBTrackerMigrationPath $f.config $f.identity) $null).manifest
-        [void](Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate)
+        try{Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $source -Activate -AfterPhase $interrupt} 'interruzione fra rimozione e salvataggio fase'}finally{Set-SBWriteGuard $null}
+        $manifest=(Read-SBJson (Get-SBTrackerImportPath $f.config $f.identity) $null).manifest
+        [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
         Assert-Audit ((Read-SBTrackerManifest $f.config $manifest).phase -eq 'completed') 'assenza con rimozione registrata consente ripresa'
-        Restore-SBTrackerMigration $f.config $manifest
+        Restore-SBTrackerImport $f.config $manifest
         Assert-Audit ((Read-SBJson $source $null).tasks.Count -eq 0) 'recupero dopo rimozione interrotta preserva originale'
     }
     if($Case -in @('All','References')){
@@ -77,9 +77,9 @@ try {
             Put-Audit (Join-Path $f.dir 'history/old.md') ('[Tracker]('+ $relative +')')
             $oldHash=Get-SBFileHash (Join-Path $f.dir 'history/old.md')
             $stop={param($phase) if($phase -eq 'references_updated'){throw 'checkpoint riferimenti'}}
-            Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate -AfterPhase $stop} ('interruzione riferimenti '+$kind)
-            $manifest=(Read-SBJson (Get-SBTrackerMigrationPath $f.config $f.identity) $null).manifest
-            [void](Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate)
+            Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate -AfterPhase $stop} ('interruzione riferimenti '+$kind)
+            $manifest=(Read-SBJson (Get-SBTrackerImportPath $f.config $f.identity) $null).manifest
+            [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
             $meta=Read-SBJson (Join-Path $project 'para.json') $null
             Assert-Audit ($meta.trackers[0].path -eq 'tracker.json' -and !$meta.trackers[0].ContainsKey('repository') -and $meta.personal -eq 'preservare') ('Progetto riconciliato '+$kind)
             $expected=$text.Replace('[Tracker]('+ $relative +'#open "Attivita")','[Tracker](tracker.json#open "Attivita")')
@@ -89,7 +89,7 @@ try {
             Put-Audit (Join-Path $f.brain 'para-index.json') (Get-SBParaIndex $f.brain @('test')).json
             $composed=@(& pwsh -NoProfile -File (Join-Path $f.brain 'scripts/prompts.ps1') -Compose -ConfigPath $f.config.configPath -ProjectId project -Prompt REP01 -Objective fixture) -join "`n"
             Assert-Audit ($LASTEXITCODE -eq 0 -and $composed.Contains('Tracker: '+(Join-Path $f.dir 'tracker.json'))) ('composizione reale del Progetto '+$kind)
-            Restore-SBTrackerMigration $f.config $manifest
+            Restore-SBTrackerImport $f.config $manifest
             Assert-Audit ((Read-SBText (Join-Path $f.dir 'context.md')) -ceq $text -and (Get-SBFileHash (Join-Path $project 'para.json')) -eq $beforeMeta -and (Test-Path -LiteralPath $f.source)) ('rollback esatto dei riferimenti '+$kind)
             Put-Audit (Join-Path $f.brain 'para-index.json') (Get-SBParaIndex $f.brain @('test')).json
             $composed=@(& pwsh -NoProfile -File (Join-Path $f.brain 'scripts/prompts.ps1') -Compose -ConfigPath $f.config.configPath -ProjectId project -Prompt REP01 -Objective fixture) -join "`n"
@@ -114,25 +114,25 @@ try {
             $sourceHash=Get-SBFileHash $f.source
             $preview=@(& pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source 2>&1)
             $previewExit=$LASTEXITCODE
-            Assert-Audit ($previewExit -eq $(if($scenario -in @('valid','changed')){0}else{1}) -and (Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Get-SBTrackerMigrationPath $f.config $f.identity))) ('anteprima grafo '+$scenario)
+            Assert-Audit ($previewExit -eq $(if($scenario -in @('valid','changed')){0}else{1}) -and (Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Get-SBTrackerImportPath $f.config $f.identity))) ('anteprima grafo '+$scenario)
             if($scenario -in @('missing','cycle','foreign')){
-                Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('migrazione rifiuta grafo '+$scenario) 'Dipendenza|Ciclo'
+                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('migrazione rifiuta grafo '+$scenario) 'Dipendenza|Ciclo'
                 Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash -and !(Read-SBJson (Join-Path $f.dir 'repository.json') @{}).ContainsKey('tracker')) ('rifiuto preserva fonte e dichiarazione '+$scenario)
                 continue
             }
-            $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source
+            $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source
             Assert-Audit ((Read-SBTrackerManifest $f.config $manifest).phase -eq 'verified') ('preparazione grafo '+$scenario)
             if($scenario -eq 'changed'){
                 $related.tasks=@();Put-Audit $relatedPath (ConvertTo-SBJson $related)
-                Reject-Audit {Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate} 'dipendenza rimossa dopo preparazione rifiutata' 'Dipendenza'
+                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate} 'dipendenza rimossa dopo preparazione rifiutata' 'Dipendenza'
                 Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Join-Path $f.dir 'tracker.json'))) 'rivalidazione precede attivazione'
                 continue
             }
             & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
             Assert-Audit ($LASTEXITCODE -eq 0 -and (Read-SBTrackerManifest $f.config $manifest).phase -eq 'completed') 'CLI attiva grafo cross-repository valido'
             & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/import-tracker.ps1') -ConfigPath $f.config.configPath -ResumeManifest $manifest -Apply -Activate|Out-Null
-            Assert-Audit ($LASTEXITCODE -eq 0 -and @(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) 'ripresa grafo completato idempotente'
-            Restore-SBTrackerMigration $f.config $manifest
+            Assert-Audit ($LASTEXITCODE -eq 0 -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'ripresa grafo completato idempotente'
+            Restore-SBTrackerImport $f.config $manifest
             Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash) 'rollback grafo conserva originale'
         }
     }
@@ -141,8 +141,8 @@ try {
             $f=New-AuditFixture ('para-'+$kind)
             if($kind -eq 'markdown'){$f.source=Join-Path $f.dir 'tracker.md';Put-Audit $f.source "# Tracker`n## Attività aperte / Prossimi passi`n"}else{Put-Audit $f.source '{"tasks":[]}'}
             $sourceHash=Get-SBFileHash $f.source
-            $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
-            if($kind -eq 'rolled-back'){Restore-SBTrackerMigration $f.config $manifest}
+            $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
+            if($kind -eq 'rolled-back'){Restore-SBTrackerImport $f.config $manifest}
             $m=Read-SBTrackerManifest $f.config $manifest;$candidateHash=$m.candidateHash
             if($kind -eq 'json'){
                 $station=@{}+$f.config;$station.runtimeRoot=Join-Path (Split-Path $f.brain) 'station-runtime';$station.backupRoot=Join-Path (Split-Path $f.brain) 'station-backups'
@@ -150,10 +150,10 @@ try {
                 Copy-Item -LiteralPath (Split-Path $manifest) -Destination $journal -Recurse
                 $otherManifest=Join-Path $journal 'manifest.json';$other=Read-SBJson $otherManifest $null
                 $other.candidate=Join-Path $journal 'candidate.json'
-                foreach($payload in @(Get-SBTrackerMigrationPayloads $other)){$payload.backup=Join-Path $journal (Split-Path $payload.backup -Leaf)}
+                foreach($payload in @(Get-SBTrackerImportPayloads $other)){$payload.backup=Join-Path $journal (Split-Path $payload.backup -Leaf)}
                 foreach($op in $other.operations){$op.backup=Join-Path $journal (Split-Path $op.backup -Leaf)}
                 Put-Audit $otherManifest (ConvertTo-SBJson $other)
-                Put-Audit (Get-SBTrackerMigrationPath $station $f.identity) (ConvertTo-SBJson @{schemaVersion=1;identity=$f.identity;manifest=$otherManifest})
+                Put-Audit (Get-SBTrackerImportPath $station $f.identity) (ConvertTo-SBJson @{schemaVersion=1;identity=$f.identity;manifest=$otherManifest})
                 Put-Audit (Join-Path $f.config.coordinationRoot 'workstations.json') (ConvertTo-SBJson @{other=@{identity='other';runtimeRoot=$station.runtimeRoot;backupRoot=$station.backupRoot;repositoryRoot=$station.repositoryRoot}})
             }
             $meta=Read-SBJson (Join-Path $f.dir 'para.json') $null;$meta.status='retired';Put-Audit (Join-Path $f.dir 'para.json') (ConvertTo-SBJson $meta)
@@ -161,10 +161,10 @@ try {
             & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Archive -EntityId repo-area -BackupRoot $f.config.backupRoot|Out-Null
             Assert-Audit ($LASTEXITCODE -eq 0 -and !(Test-Path -LiteralPath $f.dir)) ('CLI archivia Area migrata '+$kind)
             $m=Read-SBTrackerManifest $f.config $manifest
-            Assert-Audit ($m.dossier -eq '04-archives/areas/repo-area' -and $m.candidateHash -eq $candidateHash -and @(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) ('manifest e Check coerenti in archivio '+$kind)
-            if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerMigrationIssues $station).Count -eq 0) 'manifest della seconda postazione spostato nella stessa transazione'}
+            Assert-Audit ($m.dossier -eq '04-archives/areas/repo-area' -and $m.candidateHash -eq $candidateHash -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) ('manifest e Check coerenti in archivio '+$kind)
+            if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerImportIssues $station).Count -eq 0) 'manifest della seconda postazione spostato nella stessa transazione'}
             if($kind -ne 'rolled-back'){
-                [void](Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate)
+                [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
                 Assert-Audit ((Get-SBFileHash $m.source.archive) -eq $sourceHash) ('ripresa completed archiviata e originale esatto '+$kind)
             }
             & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Check|Out-Null
@@ -172,26 +172,26 @@ try {
             & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Restore -EntityId repo-area -BackupRoot $f.config.backupRoot|Out-Null
             Assert-Audit ($LASTEXITCODE -eq 0) ('CLI ripristina Area su percorso diverso '+$kind)
             $m=Read-SBTrackerManifest $f.config $manifest
-            Assert-Audit ($m.dossier -eq '02-areas/products/repo-area' -and @(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) ('manifest e Check coerenti dopo Restore '+$kind)
-            if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerMigrationIssues $station).Count -eq 0) 'manifest della seconda postazione ripristinato'}
+            Assert-Audit ($m.dossier -eq '02-areas/products/repo-area' -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) ('manifest e Check coerenti dopo Restore '+$kind)
+            if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerImportIssues $station).Count -eq 0) 'manifest della seconda postazione ripristinato'}
             if($kind -ne 'rolled-back'){
-                [void](Invoke-SBTrackerMigration -Config $f.config -ManifestPath $manifest -Activate)
+                [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
                 $targetText=Read-SBText $m.target;Put-Audit $m.target ($targetText+"`n")
-                Reject-Audit {Restore-SBTrackerMigration $f.config $manifest} ('rollback rifiuta modifiche dopo spostamento '+$kind) 'modifiche successive'
+                Reject-Audit {Restore-SBTrackerImport $f.config $manifest} ('rollback rifiuta modifiche dopo spostamento '+$kind) 'modifiche successive'
                 Put-Audit $m.target $targetText
-                Restore-SBTrackerMigration $f.config $manifest
+                Restore-SBTrackerImport $f.config $manifest
             }
             $m=Read-SBTrackerManifest $f.config $manifest
             Assert-Audit ($m.phase -eq 'rolled_back' -and (Get-SBFileHash $m.source.path) -eq $sourceHash) ('rollback esatto nel percorso corrente '+$kind)
         }
         $f=New-AuditFixture 'para-pending';Put-Audit $f.source '{"tasks":[]}'
-        $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source
+        $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source
         $before=Get-SBFileHash $manifest
         $meta=Read-SBJson (Join-Path $f.dir 'para.json') $null;$meta.status='retired';Put-Audit (Join-Path $f.dir 'para.json') (ConvertTo-SBJson $meta)
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/para.ps1') -ConfigPath $f.config.configPath -Archive -EntityId repo-area -BackupRoot $f.config.backupRoot *> $null
         Assert-Audit ($LASTEXITCODE -ne 0 -and (Test-Path -LiteralPath $f.dir) -and !(Test-Path -LiteralPath (Join-Path $f.brain '04-archives/areas/repo-area')) -and (Get-SBFileHash $manifest) -eq $before) 'migrazione pendente impedisce ogni spostamento'
         $f=New-AuditFixture 'para-interrupted';Put-Audit $f.source '{"tasks":[]}'
-        $manifest=Invoke-SBTrackerMigration -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
+        $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
         $before=Get-SBFileHash $manifest;$destination='04-archives/areas/repo-area';$target=Join-Path $f.brain $destination
         $ops=@()
         foreach($file in Get-ChildItem -LiteralPath $f.dir -Recurse -File -Force){
@@ -213,7 +213,7 @@ try {
         Put-Audit $targetContext $original
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $marker.manifest -ConfigPath $f.config.configPath -Apply|Out-Null
         Assert-Audit ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $manifest) -eq $before -and (Test-Path -LiteralPath (Join-Path $f.dir 'repository.json')) -and !(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/para-transaction.json'))) 'CLI recupera insieme dossier e manifest esterno'
-        Assert-Audit (@(Get-SBTrackerMigrationIssues $f.config).Count -eq 0) 'Check coerente dopo recupero transazionale'
+        Assert-Audit (@(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'Check coerente dopo recupero transazionale'
     }
     $success=$true
     'SUCCESS TRACKER AUDIT: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion

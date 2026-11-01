@@ -36,6 +36,42 @@ flowchart TD
     Sviluppo --> Pubblicazione
 ```
 
+## Controllo e sincronizzazione su richiesta
+
+SecondBrain non programma scansioni, controlli o aggiornamenti in background: Check e Sync si eseguono solo su richiesta.
+
+### Controllare e aggiornare
+
+Nella chat dell'IDE, `sb controlla` carica SYS04 in verifica; `sb allinea` applica gli aggiornamenti già autorizzati nel perimetro gestito. Entrambi distinguono i nuovi asset che richiedono selezione tramite SYS03.
+
+```powershell
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
+```
+
+Check non corregge e non prende lock bloccanti: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
+
+### Output e stato
+
+L'inventario e la mappa IDE risiedono nel runtime locale della postazione. I dossier e l'indice PARA sono condivisi. La presenza di un nuovo checkout nel filesystem non lo aggiunge al perimetro gestito; l'assenza di un percorso non elimina dossier o task.
+
+Il pacchetto iniziale (profilo snello) comprende TOC, sezioni essenziali di contesto e memoria, task pronti in una riga e l'elenco dei livelli non caricati. Quando supera il tetto del primo caricamento (20.000 caratteri, solo per l'avvio), SYS04 prepara con SYS05 una compattazione revisionata; la CLI non inventa sintesi e non tronca dati. Gli originali restano conservati.
+
+| Exit code | Significato |
+|---|---|
+| 0 | Verifiche richieste concluse senza segnalazioni |
+| 1 | Disallineamenti, conflitti o verifiche mancanti |
+| 2 | Errore operativo o discovery incompleta |
+| 3 | Lock di scrittura non ottenuto entro l'attesa (`-WaitSeconds`, predefinita 60 s) |
+
+Il risultato JSON espone i problemi specifici. Le prove IDE sono vincolate alla sessione e all'account osservati: il confronto dei file non certifica il caricamento.
+
+### Recupero
+
+Non esistono monitor o task pianificati.
+
+Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portabile](portable-brain.md).
+
 ## Indice dei Documenti Operativi
 
 | Ambito | Contenuto |
@@ -45,13 +81,11 @@ flowchart TD
 | [Guida Utente End-to-End](user-guide.md) | Installazione, discovery, sincronizzazione, workflow e backup |
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
-| [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo degli 80 workflow, 13 aree tematiche e schede |
+| [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo degli 80 workflow, 13 aree, schede, approvazione direttive e generazione |
 | [Configurazione](setup.md) | Requisiti, percorsi, schemi e nuovo PC |
-| [Check e Sync](check-sync.md) | Controlli, file generati, exit code |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |
-| [Direttive e cataloghi](directives-prompts.md) | Approvazioni, catalogo e generazione |
 | [IDE](adapters.md) | Mappa, verifica dei file e caricamento manuale |
 | [PARA e workflow](para.md) | Metadati, Progetti, composizione e archiviazione |
 | [Tracker](trackers.md) | Fonti autorevoli, conversione, manifest, ripresa e recupero |
