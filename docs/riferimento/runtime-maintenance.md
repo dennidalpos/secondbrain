@@ -69,4 +69,6 @@ Il tetto di `-Compact` (`-Budget`, predefinito 50.000) conta le sole parti caric
 
 **Baseline di pubblicazione**: `publication.ps1 -Initial` scrive il baseline REP05 in `publication/baseline-<id>.json`, un file per repository (l'id deriva dal percorso del checkout). Un `-Initial` su un repository non altera il baseline degli altri. Il file unico `publication/baseline.json` delle versioni precedenti è letto solo se registrato per lo stesso repository e non viene riscritto.
 
+**Riferimenti scansionati da REP05**: la storia esaminata (primo controllo e `-Initial`) parte da rami, tag, remoti e `HEAD`. I riferimenti locali che non lasciano il clone (per esempio `refs/codex/*` creati dagli strumenti, stash, notes) non sono scansionati e il rapporto li elenca in `excludedRefs`; se uno di essi va pubblicato, trasformalo in ramo o tag prima del controllo. La scansione incrementale (`baseline..HEAD`) non cambia.
+
 Cosa il rapporto **non** misura: prompt di sistema, definizioni degli strumenti MCP e skill dell'IDE. Se il contesto iniziale resta alto, guarda il riepilogo del contesto dell'IDE per vedere quali server MCP e skill pesano di più. Le misure sono in caratteri, non in token (la stima è caratteri/4).

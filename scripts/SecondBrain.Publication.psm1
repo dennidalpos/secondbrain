@@ -146,7 +146,15 @@ function Test-SBPublication {
             Invoke-SBGit $root @('rev-list', '--objects', "$($baseline.headCommit)..$currentHead")
         }
     } else {
-        Invoke-SBGit $root @('rev-list', '--objects', '--all')
+        # Solo i riferimenti pubblicabili (rami, tag, remoti) e HEAD: i ref locali degli strumenti (refs/codex/*, stash, notes) non lasciano il clone.
+        $scanRefs = @('--branches', '--tags', '--remotes')
+        if ($currentHead) { $scanRefs += 'HEAD' }
+        Invoke-SBGit $root (@('rev-list', '--objects') + $scanRefs)
+    }
+    $excludedRefs = @()
+    $refList = Invoke-SBGit $root @('for-each-ref', '--format=%(refname)')
+    if ($refList.code -eq 0 -and $refList.output) {
+        $excludedRefs = @($refList.output -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -notmatch '^refs/(heads|tags|remotes)/' })
     }
 
     $historyCount = if ($baseline -and $baseline.historyBlobs) { [int]$baseline.historyBlobs } else { 0 }
@@ -202,7 +210,7 @@ function Test-SBPublication {
     }
 
     @{schemaVersion=1;repositoryPath=$root;ready=(!$unresolved.Count -and !$incomplete.Count);complete=(!$incomplete.Count);findings=$findings;incomplete=$incomplete;
-      checkedTextSurfaces=$checked;historyBlobs=$historyCount;workingTreeDirty=[bool]$status.output;historyRewritten=$false;incremental=[bool]$baseline;baseline=$baseline;coverage='Rule-based text and Git inventory checks; binary contents and legal compliance are not certified.'}
+      checkedTextSurfaces=$checked;historyBlobs=$historyCount;workingTreeDirty=[bool]$status.output;historyRewritten=$false;incremental=[bool]$baseline;baseline=$baseline;excludedRefs=$excludedRefs;coverage='Rule-based text and Git inventory checks on branches, tags, remotes and HEAD (local tool refs listed in excludedRefs are not scanned); binary contents and legal compliance are not certified.'}
 }
 function New-SBCaptureRecord {
     param([string]$BrainRoot,[string]$SourcePath,[string]$Repository,[string]$Application,[string]$Version,[string]$Commit,[string]$Scenario,[string]$CaptureTool,[string]$Reproduction,[bool]$Dirty=$false)

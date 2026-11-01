@@ -279,6 +279,25 @@ try{
     Assert-Portable (@($batchPub.findings|Where-Object {$_.surface -eq 'index' -and $_.rule -eq 'personal-email'}).Count -ge 1 -and !@($batchPub.incomplete|Where-Object reason -eq 'unreadable').Count) 'superficie indice letta in batch senza oggetti illeggibili'
     $batchLimited=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -MaxTextBytes 400 -MaxHistoryBlobs 2
     Assert-Portable (@($batchLimited.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'blob-limit'}).Count -eq 1 -and $batchLimited.historyBlobs -eq 2 -and !$batchLimited.complete) 'limite di blob in storia dichiarato come copertura incompleta'
+    # Riferimenti locali di strumenti (refs/codex/*): non pubblicabili, esclusi dalla storia scansionata e dichiarati in excludedRefs.
+    $refsRepo=Join-Path $fixture 'refs-scan';[IO.Directory]::CreateDirectory($refsRepo)|Out-Null;Git-Portable $refsRepo @('init','-q')|Out-Null
+    $gitIdentity=@('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','commit.gpgsign=false')
+    Put-Portable (Join-Path $refsRepo 'ok.txt') 'pulito'
+    Git-Portable $refsRepo @('add','-A')|Out-Null
+    Git-Portable $refsRepo ($gitIdentity+@('commit','-qm','base'))|Out-Null
+    $refsMain=(Git-Portable $refsRepo @('rev-parse','HEAD')).Trim()
+    Git-Portable $refsRepo @('checkout','-q','--orphan','tool-turn')|Out-Null
+    Put-Portable (Join-Path $refsRepo 'tool-secret.txt') ('token='+$secret)
+    Git-Portable $refsRepo @('add','-A')|Out-Null
+    Git-Portable $refsRepo ($gitIdentity+@('commit','-qm','tool diff'))|Out-Null
+    Git-Portable $refsRepo @('update-ref','refs/codex/turn-diffs/x','HEAD')|Out-Null
+    Git-Portable $refsRepo @('checkout','-q','-f',$refsMain)|Out-Null
+    Git-Portable $refsRepo @('branch','-q','-D','tool-turn')|Out-Null
+    $refsPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $refsRepo
+    Assert-Portable (!@($refsPub.findings|Where-Object {$_.surface -eq 'history'}).Count -and @($refsPub.excludedRefs) -contains 'refs/codex/turn-diffs/x') 'storia REP05: i riferimenti locali di strumenti non producono rilievi e sono dichiarati in excludedRefs'
+    Git-Portable $refsRepo @('update-ref','refs/heads/pubblicabile','refs/codex/turn-diffs/x')|Out-Null
+    $refsBranchPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $refsRepo
+    Assert-Portable (@($refsBranchPub.findings|Where-Object {$_.surface -eq 'history' -and $_.path -ceq 'tool-secret.txt'}).Count -ge 1) 'storia REP05: lo stesso contenuto su un ramo pubblicabile produce il rilievo'
     $basePub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial
     $repoBaseline=Get-SBPublicationBaselinePath $brain (Invoke-SBGit $repo @('rev-parse','--show-toplevel')).output
     Assert-Portable (Test-Path -LiteralPath $repoBaseline -PathType Leaf) 'Test-SBPublication genera baseline autorizzata con -Initial, specifica per repository'
