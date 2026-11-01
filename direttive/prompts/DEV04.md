@@ -4,7 +4,7 @@
 
 ## Scopo
 
-Portare dipendenze selezionate a versioni motivate e compatibili.
+Aggiornare dipendenze selezionate a versioni motivate e compatibili, con compatibilità, build e test verificati. Per l’analisi preliminare dello stato delle dipendenze usa AUD04.
 
 ## Quando usarlo
 
@@ -30,3 +30,4 @@ Versioni cambiate, incompatibilità gestite, verifiche e rischi residui.
 
 - DEV05: Migra codice o framework verso una destinazione definita.
 - SEC03: Correggi vulnerabilità e rafforza le difese interessate.
+- AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.

@@ -30,3 +30,4 @@ Rilievi ordinati per gravità con file/riga e riproduzione; verifiche e limiti. 
 
 - TST05: Verifica il comportamento reale rispetto ai requisiti.
 - SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
+- AUD06: Esporta rapporti e metriche nel formato scelto dall’utente.

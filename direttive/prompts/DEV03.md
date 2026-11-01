@@ -30,3 +30,5 @@ Semplificazioni realizzate, contratti preservati e prove di equivalenza disponib
 
 - DEV05: Migra codice o framework verso una destinazione definita.
 - REP04: Rimuovi residui e codice inutilizzato dopo le verifiche.
+- DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.
+- DEV10: Ottimizza il codice sull’intero perimetro con misure prima e dopo.

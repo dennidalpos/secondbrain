@@ -40,3 +40,5 @@ Documento di piano per fasi con dipendenze, verifiche, rollback, punti di decisi
 - PRG04: Prepara un piano per fasi con dipendenze e verifiche.
 - DEV03: Esegui un refactoring preservando contratti e comportamento.
 - PRG05: Crea lo scaffolding di nuovi moduli con struttura, configurazione e test.
+- AUD03: Audita architettura e debito tecnico non ancora tracciato.
+- DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.

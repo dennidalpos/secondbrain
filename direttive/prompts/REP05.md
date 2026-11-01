@@ -38,6 +38,10 @@ Rapporto di preparazione alla pubblicazione, rilievi, decisioni motivate e attiv
 
 ## Prompt vicini
 
-- SEC02: workflow collegato; consultare la scheda soltanto quando pertinente.
-- OPS01: workflow collegato; consultare la scheda soltanto quando pertinente.
-- REP06: workflow collegato; consultare la scheda soltanto quando pertinente.
+- SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
+- OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
+- REP06: Prepara il README GitHub con informazioni e asset verificati.
+- SEC07: Analizza i dati sensibili del diff prima del push.
+- SEC08: Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
+- SEC09: Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati.
+- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.

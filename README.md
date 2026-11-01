@@ -4,7 +4,7 @@
 [![PowerShell: 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE?logo=powershell&logoColor=white)](#prerequisiti)
 [![Architecture: Deterministic](https://img.shields.io/badge/Architecture-Deterministic%20Governance-success)](#i-6-pilastri-ingegneristici)
 [![JSON Schema: Draft 2020-12](https://img.shields.io/badge/JSON%20Schema-Draft%202020--12-blue)](config/tracker.schema.json)
-[![Catalog: 67 Workflows](https://img.shields.io/badge/Workflows-67%20Eng%20Prompts%20(12%20Aree)-orange)](direttive/prompts/README.md)
+[![Catalog: 80 Workflows](https://img.shields.io/badge/Workflows-80%20Eng%20Prompts%20(13%20Aree)-orange)](direttive/prompts/README.md)
 
 **SecondBrain** è una piattaforma locale per Windows (PowerShell 7.5+ e Git) progettata per chi sviluppa e mantiene **decine di repository software** impiegando contemporaneamente più **IDE e coding agent** (Claude Code, OpenAI Codex, Google Antigravity, Continue, VS Code, Cursor, Android Studio).
 
@@ -85,7 +85,7 @@ flowchart TB
     end
 
     subgraph Brain["Clone SecondBrain"]
-        DIR["Direttive Approvate (SHA-256)<br/>+ 67 Workflow (COM01-GOV02)"]
+        DIR["Direttive Approvate (SHA-256)<br/>+ 80 Workflow (COM01-GOV02)"]
         PARA["Dossier PARA Locali (01-projects / 02-areas / 03-resources)<br/>index.md | context.md | memory.md | tracker.json"]
         SRC["Registro Fonti Autorevoli<br/>(Normative, Standard, Spec Tecniche)"]
         MCP["Server MCP (stdio JSON-RPC)<br/>scripts/mcp-server.ps1"]
@@ -155,7 +155,7 @@ SecondBrain implementa un modello a doppio confine:
 ```
 SecondBrain/ (Clone Locale)
 ├── scripts/              <-- [PUBBLICO] Moduli PowerShell, CLI, test runner e validatori
-├── direttive/            <-- [PUBBLICO] Direttive comuni approvate e 67 schede workflow Greenfield
+├── direttive/            <-- [PUBBLICO] Direttive comuni approvate e 80 schede workflow Greenfield
 ├── config/               <-- [PUBBLICO] Schemi JSON (tracker, cataloghi, configurazioni)
 ├── docs/                 <-- [PUBBLICO] Documentazione architetturale e contratti tecnici
 ├── README.md, AGENTS.md  <-- [PUBBLICO] Presentazione e regole di governance
@@ -232,32 +232,33 @@ Questo approccio consente a qualsiasi agente aperto nel repository satellite di 
 
 ---
 
-## Catalogo dei 67 Workflow Operativi (v2)
+## Catalogo degli 80 Workflow Operativi (v2)
 
 I workflow sono schede ingegneristiche standardizzate composte dalla CLI (`scripts/prompts.ps1`) che forniscono all'agente contesto verificato, riferimenti locali e criteri di accettazione:
 
-In chat (con le direttive caricate) `sb prompt` mostra il link al file Markdown del catalogo completo e la tabella dei comandi `sb`; `sb prompt tutti` elenca tutti i 67 workflow, uno per riga; `sb prompt ambito test`, `sb prompt mostra TST04` e `sb prompt TST04: obiettivo` filtrano per area, mostrano una scheda o compongono il prompt. Il diagramma delle forme è in [Workflow di prompting](docs/prompt-workflows.md).
+In chat (con le direttive caricate) `sb prompt` mostra il link al file Markdown del catalogo completo e la tabella dei comandi `sb`; `sb prompt tutti` elenca tutti gli 80 workflow, uno per riga; `sb prompt ambito test`, `sb prompt mostra TST04` e `sb prompt TST04: obiettivo` filtrano per area, mostrano una scheda o compongono il prompt. Il diagramma delle forme è in [Workflow di prompting](docs/prompt-workflows.md).
 
 | Ambito | Codici | Scopo |
 | :--- | :--- | :--- |
 | **Comprensione e Ricerca** | `COM01`–`COM04` | Esplorazione architettura, ricostruzione flussi, ricerca fonti ufficiali, analisi di impatto e rischi. |
 | **Requisiti e Progettazione** | `PRG01`–`PRG06` | Formalizzazione requisiti, confronto architetturale, design API/dati, pianificazione per fasi, scaffolding (PRG05) e piano di refactoring (PRG06). |
-| **Sviluppo e Modernizzazione**| `DEV01`–`DEV08` | Nuove feature con test, riproduzione bug e root cause, refactoring conservativo, aggiornamento dipendenze, migrazione stack, linter e analisi statica (DEV06), triage di issue (DEV07) e revisione di qualità del codice (DEV08). |
+| **Sviluppo e Modernizzazione**| `DEV01`–`DEV10` | Nuove feature con test, riproduzione bug e root cause, refactoring conservativo, aggiornamento dipendenze, migrazione stack, linter e analisi statica (DEV06), triage di issue (DEV07) e revisione di qualità del codice (DEV08). |
 | **Test e Verifica** | `TST01`–`TST07` | Test unitari/integrazione, test end-to-end, diagnosi test instabili (flaky), correzione fallimenti CI, collaudo funzionale, benchmark prestazioni, test harness protetto (TST07). |
-| **Review e Sicurezza** | `SEC01`–`SEC05` | Code review con rilievi verificati, threat modeling e confini di fiducia, mitigazione vulnerabilità, secret scanning (SEC04), isolamento dati e GDPR (SEC05). |
+| **Review e Sicurezza** | `SEC01`–`SEC09` | Code review con rilievi verificati, threat modeling e confini di fiducia, mitigazione vulnerabilità, secret scanning (SEC04), isolamento dati e GDPR (SEC05), hardening (SEC06), dati sensibili prima del push (SEC07), esposizione remota (SEC08), reset del remoto GitHub (SEC09). |
 | **Interfaccia ed Esperienza** | `INT01`–`INT04` | Valutazione usabilità e stati UX, implementazione UI conforme ai requisiti, accessibilità (a11y) e navigazione da tastiera, internazionalizzazione e localizzazione (INT04). |
 | **Dati e Integrazioni** | `DAT01`–`DAT03` | Migrazioni schema con verifica e rollback, pipeline di importazione/trasformazione deterministiche, integrazioni API resilienti. |
 | **Build e Operatività** | `OPS01`–`OPS04` | Packaging artefatti, pipeline CI/CD e Infrastructure-as-Code, osservabilità e log diagnostici, note di rilascio e verifiche di consegna. |
-| **Repository e Documentazione**| `REP01`–`REP09` | Esecuzione del prossimo task, guide coerenti col codice reale, documentazione contratti API, pulizia verificata, verifica pubblicabilità (REP05), preparazione README (REP06), screenshot reali certificati (REP07), ispezione repo e residui (REP08), preparazione di commit e pull request (REP09). |
+| **Repository e Documentazione**| `REP01`–`REP10` | Esecuzione del prossimo task, guide coerenti col codice reale, documentazione contratti API, pulizia verificata, verifica pubblicabilità (REP05), preparazione README (REP06), screenshot reali certificati (REP07), ispezione repo e residui (REP08), preparazione di commit e pull request (REP09). |
 | **Memoria e Continuità** | `MEM01`–`MEM04`, `SYS06` | Allineamento istruzioni locali/memoria/tracker, migrazione progettazione nel dossier PARA, handoff di sessione verificabile, elenco task tracker (MEM04), caricamento di memoria e contesto del repository (SYS06). |
 | **Manutenzione Centrale** | `SYS01`–`SYS11` | Verifica e mappatura IDE, conformità fonti autorevoli, discovery e attivazione postazione (SYS03), check/sync della postazione (SYS04), compattazione dossier a budget fisso (SYS05), PARA (SYS07), metriche (SYS08), backup (SYS09), gestione del catalogo prompt (SYS11). |
+| **Audit e Metriche** | `AUD01`–`AUD06` | Audit completo, metriche del repository, architettura e debito tecnico, dipendenze, prestazioni, esportazione dei rapporti in Markdown, JSON, HTML, CSV, SARIF, DOCX, PDF o XLSX. |
 | **Governance e Licenze** | `GOV01`, `GOV02` | Verifica conformità licenze open source SPDX (GOV01), registro CREDITS e licenze terze parti (GOV02). |
 
 ### Interazione Guidata con Tool Use e Architettura Anti-Overload (Revisione 4.2)
 
 - **Selezione Interattiva (Function Calling)**: I prompt decisionali (`COM01`, `COM02`, `PRG01`, `PRG02`, `SYS03`, `SYS04`, `SYS05`, `REP05`) adottano prioritariamente strumenti di Function Calling/Tool Use (come `ask_question`) per presentare selezioni a scelta multipla nell'interfaccia dell'IDE anziché richiedere continue conferme testuali o risposte a testo libero ripetitive.
 - **Recupero a Strati e Budget Rigoroso**: La pipeline `scripts/knowledge.ps1` e il server MCP caricano all'avvio solo il contesto essenziale entro **20.000 caratteri** (profilo snello: indice, sezioni essenziali di `context.md` e `memory.md`, task pronti in una riga, livelli non caricati); il tetto vale solo per il primo caricamento, poi il resto si richiede (`-Profile Full`, `-Search`) senza ulteriore tetto. I task conclusi (`done`/`cancelled`) non entrano nella proiezione di avvio, prevenendo la saturazione della memoria di lavoro.
-- **Caricamento Atomico On-Demand**: I 67 workflow operativi non vengono mai iniettati simultaneamente nel contesto; l'agente o lo sviluppatore richiamano esclusivamente la singola scheda necessaria al task corrente.
+- **Caricamento Atomico On-Demand**: Gli 80 workflow operativi non vengono mai iniettati simultaneamente nel contesto; l'agente o lo sviluppatore richiamano esclusivamente la singola scheda necessaria al task corrente.
 
 ---
 
@@ -290,22 +291,23 @@ In chat (con le direttive caricate) `sb prompt` mostra il link al file Markdown 
 
 ---
 
-## Catalogo Workflow e 12 Aree Ingegneristiche (COM01–GOV02)
+## Catalogo Workflow e 13 Aree Ingegneristiche (COM01–GOV02)
 
-I 67 prompt ingegneristici di SecondBrain sono organizzati in 12 aree tematiche ben distinte:
+Gli 80 prompt ingegneristici di SecondBrain sono organizzati in 13 aree tematiche ben distinte:
 
 | Area | Codici | Scopo e Responsabilità |
 | :--- | :--- | :--- |
 | **Sistema** | `SYS01..SYS11` | Manutenzione centrale, bootstrap SYS03, allineamento SYS04, compattazione SYS05, navigazione PARA SYS07, metriche memoria SYS08, backup SYS09 e gestione del catalogo prompt SYS11. |
 | **Comprensione** | `COM01..COM04` | Esplorazione repository, tracciamento flussi e consultazione fonti ufficiali compatibili. |
 | **Progettazione** | `PRG01..PRG06` | Requisiti, architettura, spike tecnici, piani a fasi, scaffolding (PRG05) e piano di refactoring (PRG06). |
-| **Sviluppo** | `DEV01..DEV08` | Implementazione incrementale, refactoring, gestione dipendenze, bug fixing, linter/analisi statica (DEV06), triage issue (DEV07) e qualità del codice (DEV08). |
+| **Sviluppo** | `DEV01..DEV10` | Implementazione incrementale, refactoring, gestione dipendenze, bug fixing, linter/analisi statica (DEV06), triage issue (DEV07) e qualità del codice (DEV08), consolidamento e leggibilità (DEV09) e ottimizzazione (DEV10). |
 | **Test** | `TST01..TST07` | Piramide dei test, unità, integrazione, regressione e test harness isolati con fixture protette (TST07). |
-| **Sicurezza** | `SEC01..SEC05` | Code review, secret scanning (SEC04), hardening, conformità privacy e isolamento GDPR dei dati personali (SEC05). |
+| **Sicurezza** | `SEC01..SEC09` | Code review, secret scanning (SEC04), hardening, conformità privacy e isolamento GDPR dei dati personali (SEC05), hardening (SEC06), gate dei dati sensibili prima del push (SEC07), verifica dell’esposizione remota (SEC08) e reset del remoto GitHub (SEC09). |
 | **Interfaccia** | `INT01..INT04` | UI/UX, accessibilità da tastiera, flussi utente e internazionalizzazione (INT04). |
 | **Dati** | `DAT01..DAT03` | Modellazione dati, migrazioni di schema con rollback e contratti API. |
 | **Operatività** | `OPS01..OPS04` | Scripting, automazione build, diagnostica runtime e pipeline CI/CD. |
-| **Repository** | `REP01..REP09` | Igiene del repository, gate di pubblicabilità (REP05), README coerenti (REP06), screenshot reali (REP07), ispezione residui/memoria/codice (REP08) e preparazione di commit e pull request (REP09). |
+| **Repository** | `REP01..REP10` | Igiene del repository, gate di pubblicabilità (REP05), README coerenti (REP06), screenshot reali (REP07), ispezione residui/memoria/codice (REP08) preparazione di commit e pull request (REP09) e allineamento di .gitignore e .gitkeep (REP10). |
+| **Audit** | `AUD01..AUD06` | Audit completo del repository (AUD01), metriche (AUD02), architettura e debito tecnico (AUD03), dipendenze (AUD04), prestazioni (AUD05) ed esportazione dei rapporti nel formato scelto (AUD06). |
 | **Governance** | `GOV01`, `GOV02` | Adozione licenze software (SPDX) e attribuzione crediti terze parti (GOV02 / CREDITS.md). |
 | **Memoria** | `MEM01..MEM04`, `SYS06` | Allineamento dossier, migrazione attività, handoff verificabile, elenco/descrizione task del tracker (MEM04) e caricamento di contesto e memoria del repository (SYS06). |
 
@@ -363,7 +365,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 # Senza argomenti: link al catalogo completo e tabella dei comandi sb (è ciò che mostra `sb prompt` in chat)
 pwsh -NoProfile -File scripts/prompts.ps1
 
-# Tutti i 67 workflow, una riga ciascuno (è ciò che mostra `sb prompt tutti`)
+# Tutti gli 80 workflow, una riga ciascuno (è ciò che mostra `sb prompt tutti`)
 pwsh -NoProfile -File scripts/prompts.ps1 -List -Compact
 
 # Elenco esteso (ID, scope, requisiti ed esempio) di tutto il catalogo o di un'area, per id o prefisso (test, TST, sistema)
@@ -434,7 +436,7 @@ pwsh -NoProfile -File scripts/para.ps1 -Check              # Indice PARA e integ
 * [Architettura e Moduli di Sistema](docs/architecture.md)
 * [Guida Setup e Pairing Server MCP negli IDE](docs/mcp-setup.md)
 * [Personalizzazione di Prompt, Direttive, Repository e Tracker](docs/customizing-prompts-and-directives.md)
-* [Catalogo dei 67 Workflow (COM01–GOV02)](direttive/prompts/README.md)
+* [Catalogo degli 80 Workflow (COM01–GOV02)](direttive/prompts/README.md)
 * [Motore Portabile e Discovery (SYS03)](docs/portable-brain.md)
 * [SecondBrain su una share di rete con più PC](docs/shared-brain.md)
 * [Sessioni di Accesso, Lock e Concorrenza](docs/access.md)

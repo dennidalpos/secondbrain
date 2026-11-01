@@ -22,6 +22,10 @@
       "title": "Review e sicurezza"
     },
     {
+      "id": "audit",
+      "title": "Audit e metriche"
+    },
+    {
       "id": "interfaccia",
       "title": "Interfaccia ed esperienza utente"
     },
@@ -131,7 +135,8 @@
       ],
       "related": [
         "pmt-83764c0d",
-        "pmt-8541aed1"
+        "pmt-8541aed1",
+        "pmt-c692cc23"
       ],
       "requires": "proposta di modifica o difetto da correggere",
       "scope": "repo",
@@ -267,7 +272,9 @@
       "related": [
         "pmt-8541aed1",
         "pmt-2b07a693",
-        "pmt-884419a5"
+        "pmt-884419a5",
+        "pmt-c692cc23",
+        "pmt-672f52fc"
       ],
       "requires": "modulo da riorganizzare, test esistenti e invarianti da preservare",
       "scope": "repo/area",
@@ -334,7 +341,9 @@
       ],
       "related": [
         "pmt-22863973",
-        "pmt-40772e6e"
+        "pmt-40772e6e",
+        "pmt-672f52fc",
+        "pmt-61ef1616"
       ],
       "requires": "codice da migliorare e test esistenti",
       "scope": "repo/area",
@@ -356,7 +365,8 @@
       ],
       "related": [
         "pmt-22863973",
-        "pmt-b4cb6659"
+        "pmt-b4cb6659",
+        "pmt-7dc63766"
       ],
       "requires": "manifest delle dipendenze e lock file",
       "scope": "repo/area/file",
@@ -445,12 +455,60 @@
       "related": [
         "pmt-2b07a693",
         "pmt-f3082c1b",
-        "pmt-27896824"
+        "pmt-27896824",
+        "pmt-4a9a4b4f",
+        "pmt-672f52fc"
       ],
       "requires": "codice da rivedere, convenzioni del repository e test esistenti",
       "scope": "repo/area/file",
       "status": "active",
       "summary": "Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sviluppo",
+      "code": "DEV09",
+      "example": "sb prompt DEV09: consolida e rendi leggibile il modulo di discovery",
+      "file": "DEV09.md",
+      "id": "pmt-672f52fc",
+      "mode": "write",
+      "references": [
+        "https://refactoring.com/catalog/",
+        "https://code.claude.com/docs/en/prompt-library"
+      ],
+      "related": [
+        "pmt-b16674bd",
+        "pmt-2b07a693",
+        "pmt-3731bb7d"
+      ],
+      "requires": "suite di test e build verdi come baseline, convenzioni del repository",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Consolida e rendi leggibile il codice a fasi preservando il comportamento.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sviluppo",
+      "code": "DEV10",
+      "example": "sb prompt DEV10: ottimizza I/O e allocazioni dei moduli di scansione",
+      "file": "DEV10.md",
+      "id": "pmt-61ef1616",
+      "mode": "write",
+      "references": [
+        "https://code.claude.com/docs/en/prompt-library",
+        "https://refactoring.com/catalog/"
+      ],
+      "related": [
+        "pmt-9de57e24",
+        "pmt-4efbc54f",
+        "pmt-2b07a693"
+      ],
+      "requires": "baseline e profilo delle prestazioni (AUD05), suite di test verde",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Ottimizza il codice sull’intero perimetro con misure prima e dopo.",
       "target": "repository"
     },
     {
@@ -578,7 +636,9 @@
       ],
       "related": [
         "pmt-c2785b9c",
-        "pmt-ef96dea5"
+        "pmt-ef96dea5",
+        "pmt-4efbc54f",
+        "pmt-61ef1616"
       ],
       "requires": "benchmark o scenario di carico riproducibile",
       "scope": "repo/area",
@@ -623,7 +683,8 @@
       ],
       "related": [
         "pmt-deb7d01a",
-        "pmt-ef96dea5"
+        "pmt-ef96dea5",
+        "pmt-ac962f79"
       ],
       "requires": "diff, commit o file da analizzare",
       "scope": "repo",
@@ -667,7 +728,8 @@
       ],
       "related": [
         "pmt-e2405036",
-        "pmt-deb7d01a"
+        "pmt-deb7d01a",
+        "pmt-c356eede"
       ],
       "requires": "vulnerabilita confermata e contesto del codice",
       "scope": "repo/area/file",
@@ -685,16 +747,19 @@
       "mode": "verify",
       "references": [
         "https://owasp.org/www-project-top-ten/",
+        "https://owasp.org/www-project-application-security-verification-standard/",
         "https://code.claude.com/docs/en/prompt-library"
       ],
       "related": [
         "pmt-27896824",
-        "pmt-24189cb6"
+        "pmt-24189cb6",
+        "pmt-c356eede",
+        "pmt-058c474f"
       ],
       "requires": "albero di lavoro e strumenti di scansione",
       "scope": "repo",
       "status": "active",
-      "summary": "Scansione credenziali, analisi dipendenze e hardening del codice.",
+      "summary": "Cerca credenziali esposte e verifica la validazione degli input.",
       "target": "repository"
     },
     {
@@ -707,16 +772,255 @@
       "mode": "verify",
       "references": [
         "https://gdpr-info.eu/",
-        "https://code.claude.com/docs/en/prompt-library"
+        "https://code.claude.com/docs/en/prompt-library",
+        "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
       ],
       "related": [
         "pmt-27896824",
-        "pmt-73fb4547"
+        "pmt-73fb4547",
+        "pmt-058c474f"
       ],
       "requires": "mappatura dei dati e policy di conformita",
       "scope": "repo",
       "status": "active",
       "summary": "Verifica isolamento dati personali e conformità a GDPR e policy.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sicurezza",
+      "code": "SEC06",
+      "example": "sb prompt SEC06: hardening dei workflow GitHub Actions e dei container",
+      "file": "SEC06.md",
+      "id": "pmt-c356eede",
+      "mode": "write",
+      "references": [
+        "https://docs.github.com/en/actions/reference/security/secure-use",
+        "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+        "https://scorecard.dev/"
+      ],
+      "related": [
+        "pmt-73fb4547",
+        "pmt-ce00f261",
+        "pmt-b4cb6659"
+      ],
+      "requires": "configurazioni, workflow di CI, container e impostazioni del repository",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Applica hardening a configurazioni, CI, container e accessi del repository.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sicurezza",
+      "code": "SEC07",
+      "example": "sb prompt SEC07: controlla dati sensibili nei commit prima del push",
+      "file": "SEC07.md",
+      "id": "pmt-058c474f",
+      "mode": "verify",
+      "references": [
+        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
+        "https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning"
+      ],
+      "related": [
+        "pmt-73fb4547",
+        "pmt-24189cb6",
+        "pmt-6055dd39",
+        "pmt-55186b10"
+      ],
+      "requires": "commit e modifiche da inviare, destinazione e visibilità del remoto",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Analizza i dati sensibili del diff prima del push.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sicurezza",
+      "code": "SEC08",
+      "example": "sb prompt SEC08: verifica run, cache e link ancora accessibili",
+      "file": "SEC08.md",
+      "id": "pmt-55186b10",
+      "mode": "verify",
+      "references": [
+        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
+        "https://docs.github.com/en/rest/actions/cache",
+        "https://cli.github.com/manual/gh_run_delete"
+      ],
+      "related": [
+        "pmt-058c474f",
+        "pmt-7fc91f08",
+        "pmt-6055dd39"
+      ],
+      "requires": "sola lettura sul remoto GitHub e impronte o pattern dei dati da cercare",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Verifica se dati sensibili restano raggiungibili sul remoto GitHub.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sicurezza",
+      "code": "SEC09",
+      "example": "sb prompt SEC09: azzera storia, run e cache del remoto dopo l’esposizione",
+      "file": "SEC09.md",
+      "id": "pmt-7fc91f08",
+      "mode": "write",
+      "references": [
+        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
+        "https://cli.github.com/manual/gh_run_delete",
+        "https://cli.github.com/manual/gh_cache_delete",
+        "https://github.com/newren/git-filter-repo"
+      ],
+      "related": [
+        "pmt-55186b10",
+        "pmt-6055dd39",
+        "pmt-73fb4547"
+      ],
+      "requires": "richiesta esplicita, backup verificato e accesso amministrativo al remoto",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD01",
+      "example": "sb prompt AUD01: audit completo del repository prima della release",
+      "file": "AUD01.md",
+      "id": "pmt-ccbf18b8",
+      "mode": "read",
+      "references": [
+        "https://code.claude.com/docs/en/prompt-library",
+        "https://owasp.org/www-project-top-ten/"
+      ],
+      "related": [
+        "pmt-4a9a4b4f",
+        "pmt-c692cc23",
+        "pmt-7dc63766",
+        "pmt-4efbc54f",
+        "pmt-ac962f79"
+      ],
+      "requires": "lettura del repository, del dossier e degli strumenti di misura",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Esegui un audit completo del repository con un unico rapporto.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD02",
+      "example": "sb prompt AUD02: metriche e hotspot del repository",
+      "file": "AUD02.md",
+      "id": "pmt-4a9a4b4f",
+      "mode": "read",
+      "references": [
+        "https://code.claude.com/docs/en/prompt-library",
+        "https://git-scm.com/docs/git-log"
+      ],
+      "related": [
+        "pmt-ccbf18b8",
+        "pmt-b16674bd",
+        "pmt-ac962f79"
+      ],
+      "requires": "lettura del repository, della storia Git e degli strumenti di misura",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Misura il repository con metriche riproducibili e individua i punti critici.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD03",
+      "example": "sb prompt AUD03: audit di architettura e debito tecnico del repository",
+      "file": "AUD03.md",
+      "id": "pmt-c692cc23",
+      "mode": "read",
+      "references": [
+        "https://code.claude.com/docs/en/prompt-library",
+        "https://refactoring.com/catalog/"
+      ],
+      "related": [
+        "pmt-ccbf18b8",
+        "pmt-179b9acc",
+        "pmt-3731bb7d"
+      ],
+      "requires": "lettura del codice, del tracker e della documentazione architetturale",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Audita architettura e debito tecnico non ancora tracciato.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD04",
+      "example": "sb prompt AUD04: audit delle dipendenze prima dell’aggiornamento",
+      "file": "AUD04.md",
+      "id": "pmt-7dc63766",
+      "mode": "read",
+      "references": [
+        "https://osv.dev/",
+        "https://docs.github.com/en/code-security/dependabot",
+        "https://owasp.org/www-project-top-ten/"
+      ],
+      "related": [
+        "pmt-ccbf18b8",
+        "pmt-e2405036",
+        "pmt-313da996"
+      ],
+      "requires": "manifest, lock file e accesso ai registri o agli advisory delle dipendenze",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD05",
+      "example": "sb prompt AUD05: individua i percorsi critici per tempo e memoria",
+      "file": "AUD05.md",
+      "id": "pmt-4efbc54f",
+      "mode": "read",
+      "references": [
+        "https://code.claude.com/docs/en/prompt-library"
+      ],
+      "related": [
+        "pmt-ccbf18b8",
+        "pmt-9de57e24",
+        "pmt-61ef1616"
+      ],
+      "requires": "scenario di carico rappresentativo e strumenti di profilo o di misura",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Audita le prestazioni e individua i percorsi critici senza modificare il codice.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "audit",
+      "code": "AUD06",
+      "example": "sb prompt AUD06: esporta i rilievi dell’audit in SARIF e in HTML",
+      "file": "AUD06.md",
+      "id": "pmt-ac962f79",
+      "mode": "write",
+      "references": [
+        "https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html",
+        "https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning"
+      ],
+      "related": [
+        "pmt-ccbf18b8",
+        "pmt-4a9a4b4f",
+        "pmt-27896824"
+      ],
+      "requires": "risultati già verificati di audit, metriche o verifiche e formato di uscita",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Esporta rapporti e metriche nel formato scelto dall’utente.",
       "target": "repository"
     },
     {
@@ -910,7 +1214,8 @@
       ],
       "related": [
         "pmt-a5c78cc6",
-        "pmt-bd98736f"
+        "pmt-bd98736f",
+        "pmt-c356eede"
       ],
       "requires": "requisiti di deployment e ambiente di destinazione",
       "scope": "repo",
@@ -1044,7 +1349,8 @@
       ],
       "related": [
         "pmt-2b07a693",
-        "pmt-f02db9d0"
+        "pmt-f02db9d0",
+        "pmt-f1df8757"
       ],
       "requires": "verifiche di assenza di riferimenti e test verdi",
       "scope": "repo/area",
@@ -1066,7 +1372,11 @@
       "related": [
         "pmt-a5c78cc6",
         "pmt-60dba781",
-        "pmt-deb7d01a"
+        "pmt-deb7d01a",
+        "pmt-058c474f",
+        "pmt-55186b10",
+        "pmt-7fc91f08",
+        "pmt-f1df8757"
       ],
       "requires": "stato Git, cronologia e albero di lavoro",
       "scope": "repo",
@@ -1163,6 +1473,28 @@
       "scope": "repo",
       "status": "active",
       "summary": "Prepara commit e pull request con perimetro, messaggio e controlli verificati.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "repository",
+      "code": "REP10",
+      "example": "sb prompt REP10: allinea gitignore e gitkeep prima della pubblicazione",
+      "file": "REP10.md",
+      "id": "pmt-f1df8757",
+      "mode": "write",
+      "references": [
+        "https://git-scm.com/docs/gitignore"
+      ],
+      "related": [
+        "pmt-40772e6e",
+        "pmt-6055dd39",
+        "pmt-24189cb6"
+      ],
+      "requires": "stato Git, regole di esclusione e cartelle da preservare nel repository",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Allinea .gitignore e .gitkeep alla struttura e ai file reali.",
       "target": "repository"
     },
     {
@@ -1517,7 +1849,8 @@
       ],
       "related": [
         "pmt-adb9bfc0",
-        "pmt-6055dd39"
+        "pmt-6055dd39",
+        "pmt-7dc63766"
       ],
       "requires": "albero sorgenti e file di licenza",
       "scope": "repo",

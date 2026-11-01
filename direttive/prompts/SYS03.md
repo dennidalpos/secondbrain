@@ -38,5 +38,5 @@ Rapporto locale, selezione, asset gestiti e passi manuali o impedimenti. Nessun 
 
 ## Prompt vicini
 
-- SYS01: workflow collegato; consultare la scheda soltanto quando pertinente.
-- SYS04: workflow collegato; consultare la scheda soltanto quando pertinente.
+- SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
+- SYS04: Controlla o allinea gli asset già gestiti della postazione.

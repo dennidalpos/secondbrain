@@ -4,7 +4,7 @@
 
 ## Scopo
 
-Ridurre un collo di bottiglia dimostrabile.
+Ridurre un singolo collo di bottiglia dimostrabile in tempo, memoria o I/O con misure prima e dopo. Per un’ottimizzazione estesa a più moduli usa DEV10, per la sola analisi AUD05.
 
 ## Quando usarlo
 
@@ -30,3 +30,5 @@ Misure confrontabili, intervento, beneficio osservato e limiti del benchmark.
 
 - TST05: Verifica il comportamento reale rispetto ai requisiti.
 - OPS03: Aggiungi log, metriche e diagnostica utili al problema.
+- AUD05: Audita le prestazioni e individua i percorsi critici senza modificare il codice.
+- DEV10: Ottimizza il codice sull’intero perimetro con misure prima e dopo.

@@ -167,7 +167,7 @@ Il comando `scripts/ide-map.ps1 -Verify` segnala `manuale, account/profilo e car
 
 ## 5. Consultazione e Composizione dei Workflow (COM01–GOV02)
 
-SecondBrain mette a disposizione un catalogo strutturato di 67 workflow ingegneristici suddivisi in 12 aree tematiche.
+SecondBrain mette a disposizione un catalogo strutturato di 80 workflow ingegneristici suddivisi in 13 aree tematiche.
 
 ### Elenco dei Prompt
 ```powershell
@@ -216,7 +216,7 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
 * `get_startup_context`: Pacchetto di avvio del repository: profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento) o `full` senza tetto.
 * `get_ready_tasks`: Elenco dei soli compiti eseguibili con dipendenze soddisfatte.
 * `search_knowledge`: Ricerca deterministica nei dossier PARA e nello storico compattato; con `mode=relevance` più termini ordinati per pertinenza (sezioni, titolo, frase esatta).
-* `list_prompts` / `get_prompt` / `get_prompt_home`: Consultazione del catalogo dei 67 workflow v2 (COM01–GOV02) e schermata iniziale di `sb prompt`.
+* `list_prompts` / `get_prompt` / `get_prompt_home`: Consultazione del catalogo degli 80 workflow v2 (COM01–GOV02) e schermata iniziale di `sb prompt`.
 
 Per i dettagli su configurazioni manuali e file TOML/JSON, consulta la [Guida Setup MCP](mcp-setup.md).
 

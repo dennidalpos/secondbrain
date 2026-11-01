@@ -18,7 +18,7 @@ sb prompt mostra TST04
 sb prompt REP01: completa il prossimo task eseguibile
 ```
 
-Il [catalogo v2](../direttive/prompts/README.md) contiene 67 workflow (COM01–GOV02). La [guida](prompt-workflows.md) descrive CLI, contesto, input e numerazione. I comandi sono istruzioni in chat, non alias installati nella shell. L'agente carica la sola scheda scelta e lavora nel repository corrente, rispettando autorizzazioni e modalità Plan.
+Il [catalogo v2](../direttive/prompts/README.md) contiene 80 workflow (COM01–GOV02). La [guida](prompt-workflows.md) descrive CLI, contesto, input e numerazione. I comandi sono istruzioni in chat, non alias installati nella shell. L'agente carica la sola scheda scelta e lavora nel repository corrente, rispettando autorizzazioni e modalità Plan.
 
 ## Generazione e verifica
 

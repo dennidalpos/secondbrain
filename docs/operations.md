@@ -45,7 +45,7 @@ flowchart TD
 | [Guida Utente End-to-End](user-guide.md) | Installazione, discovery, sincronizzazione, workflow e backup |
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
-| [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo dei 67 workflow, 12 aree tematiche e schede v2 |
+| [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo degli 80 workflow, 13 aree tematiche e schede v2 |
 | [Configurazione](setup.md) | Requisiti, percorsi, schemi e nuovo PC |
 | [Check e Sync](check-sync.md) | Controlli, file generati, exit code |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |

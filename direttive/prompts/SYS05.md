@@ -37,6 +37,6 @@ Sintesi e TOC, manifest degli originali, dimensione prima/dopo e eventuale budge
 
 ## Prompt vicini
 
-- MEM01: workflow collegato; consultare la scheda soltanto quando pertinente.
-- MEM03: workflow collegato; consultare la scheda soltanto quando pertinente.
-- SYS04: workflow collegato; consultare la scheda soltanto quando pertinente.
+- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
+- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
+- SYS04: Controlla o allinea gli asset già gestiti della postazione.

@@ -52,7 +52,7 @@ Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2024-11-05`) su stan
 - `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento) o `full` senza tetto.
 - `get_ready_tasks`: restituisce la lista delle sole attività sbloccate con dipendenze soddisfatte (`-ReadyOnly`).
 - `search_knowledge`: effettua la ricerca trasversale nei file di conoscenza (`context.md`, `memory.md`, `tracker.json`, `history/compaction/`) senza tetto per impostazione predefinita.
-- `list_prompts`: elenca il catalogo dei prompt v2 organizzati nelle 12 aree tematiche; con `compact` una riga per prompt, con `category` filtra per id o prefisso.
+- `list_prompts`: elenca il catalogo dei prompt v2 organizzati nelle 13 aree tematiche; con `compact` una riga per prompt, con `category` filtra per id o prefisso.
 - `get_prompt_home`: schermata iniziale di `sb prompt` (link al catalogo e comandi `sb`).
 - `get_prompt`: restituisce la scheda Markdown completa del prompt specificato (es. SYS03, REP05).
 - `check_publication`: esegue la verifica di pubblicabilità REP05 sul repository indicato.

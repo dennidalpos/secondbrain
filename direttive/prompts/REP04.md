@@ -4,7 +4,7 @@
 
 ## Scopo
 
-Eliminare soltanto elementi confermati come superflui.
+Rimuovere file, codice, configurazioni, branch o worktree solo dopo aver dimostrato che sono superflui e che il recupero è possibile.
 
 ## Quando usarlo
 
@@ -32,3 +32,4 @@ Elementi rimossi, prove di inutilizzo e recupero, residui preservati con motivo.
 
 - DEV03: Esegui un refactoring preservando contratti e comportamento.
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
+- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.

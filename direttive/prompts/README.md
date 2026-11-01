@@ -122,6 +122,18 @@ DEV08 | Rivedi leggibilità, coerenza e manutenibilità del codice senza modific
   • Serve: codice da rivedere, convenzioni del repository e test esistenti
   • Esempio: sb prompt DEV08: rivedi leggibilità e manutenibilità del modulo di sync
 
+DEV09 | Consolida e rendi leggibile il codice a fasi preservando il comportamento.
+  • ID: pmt-672f52fc
+  • Scope: repo/area | Modalità: write
+  • Serve: suite di test e build verdi come baseline, convenzioni del repository
+  • Esempio: sb prompt DEV09: consolida e rendi leggibile il modulo di discovery
+
+DEV10 | Ottimizza il codice sull’intero perimetro con misure prima e dopo.
+  • ID: pmt-61ef1616
+  • Scope: repo/area | Modalità: write
+  • Serve: baseline e profilo delle prestazioni (AUD05), suite di test verde
+  • Esempio: sb prompt DEV10: ottimizza I/O e allocazioni dei moduli di scansione
+
 
 TEST E VERIFICA
 TST01 | Aggiungi test unitari e di integrazione sui rischi rilevanti.
@@ -186,7 +198,7 @@ SEC03 | Correggi vulnerabilità e rafforza le difese interessate.
   • Serve: vulnerabilita confermata e contesto del codice
   • Esempio: sb prompt SEC03: bonifica path traversal nella risoluzione dei percorsi
 
-SEC04 | Scansione credenziali, analisi dipendenze e hardening del codice.
+SEC04 | Cerca credenziali esposte e verifica la validazione degli input.
   • ID: pmt-73fb4547
   • Scope: repo | Modalità: verify
   • Serve: albero di lavoro e strumenti di scansione
@@ -197,6 +209,68 @@ SEC05 | Verifica isolamento dati personali e conformità a GDPR e policy.
   • Scope: repo | Modalità: verify
   • Serve: mappatura dei dati e policy di conformita
   • Esempio: sb prompt SEC05: controlla assenza dati personali e conformita privacy gdpr
+
+SEC06 | Applica hardening a configurazioni, CI, container e accessi del repository.
+  • ID: pmt-c356eede
+  • Scope: repo/area | Modalità: write
+  • Serve: configurazioni, workflow di CI, container e impostazioni del repository
+  • Esempio: sb prompt SEC06: hardening dei workflow GitHub Actions e dei container
+
+SEC07 | Analizza i dati sensibili del diff prima del push.
+  • ID: pmt-058c474f
+  • Scope: repo | Modalità: verify
+  • Serve: commit e modifiche da inviare, destinazione e visibilità del remoto
+  • Esempio: sb prompt SEC07: controlla dati sensibili nei commit prima del push
+
+SEC08 | Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
+  • ID: pmt-55186b10
+  • Scope: repo | Modalità: verify
+  • Serve: sola lettura sul remoto GitHub e impronte o pattern dei dati da cercare
+  • Esempio: sb prompt SEC08: verifica run, cache e link ancora accessibili
+
+SEC09 | Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati.
+  • ID: pmt-7fc91f08
+  • Scope: repo | Modalità: write
+  • Serve: richiesta esplicita, backup verificato e accesso amministrativo al remoto
+  • Esempio: sb prompt SEC09: azzera storia, run e cache del remoto dopo l’esposizione
+
+
+AUDIT E METRICHE
+AUD01 | Esegui un audit completo del repository con un unico rapporto.
+  • ID: pmt-ccbf18b8
+  • Scope: repo/area | Modalità: read
+  • Serve: lettura del repository, del dossier e degli strumenti di misura
+  • Esempio: sb prompt AUD01: audit completo del repository prima della release
+
+AUD02 | Misura il repository con metriche riproducibili e individua i punti critici.
+  • ID: pmt-4a9a4b4f
+  • Scope: repo/area | Modalità: read
+  • Serve: lettura del repository, della storia Git e degli strumenti di misura
+  • Esempio: sb prompt AUD02: metriche e hotspot del repository
+
+AUD03 | Audita architettura e debito tecnico non ancora tracciato.
+  • ID: pmt-c692cc23
+  • Scope: repo/area | Modalità: read
+  • Serve: lettura del codice, del tracker e della documentazione architetturale
+  • Esempio: sb prompt AUD03: audit di architettura e debito tecnico del repository
+
+AUD04 | Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
+  • ID: pmt-7dc63766
+  • Scope: repo/area | Modalità: read
+  • Serve: manifest, lock file e accesso ai registri o agli advisory delle dipendenze
+  • Esempio: sb prompt AUD04: audit delle dipendenze prima dell’aggiornamento
+
+AUD05 | Audita le prestazioni e individua i percorsi critici senza modificare il codice.
+  • ID: pmt-4efbc54f
+  • Scope: repo/area | Modalità: read
+  • Serve: scenario di carico rappresentativo e strumenti di profilo o di misura
+  • Esempio: sb prompt AUD05: individua i percorsi critici per tempo e memoria
+
+AUD06 | Esporta rapporti e metriche nel formato scelto dall’utente.
+  • ID: pmt-ac962f79
+  • Scope: repo/area | Modalità: write
+  • Serve: risultati già verificati di audit, metriche o verifiche e formato di uscita
+  • Esempio: sb prompt AUD06: esporta i rilievi dell’audit in SARIF e in HTML
 
 
 INTERFACCIA ED ESPERIENZA UTENTE
@@ -325,6 +399,12 @@ REP09 | Prepara commit e pull request con perimetro, messaggio e controlli verif
   • Scope: repo | Modalità: write
   • Serve: modifiche locali da consegnare e richiesta esplicita di commit o pull request
   • Esempio: sb prompt REP09: prepara commit e descrizione della pull request
+
+REP10 | Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+  • ID: pmt-f1df8757
+  • Scope: repo | Modalità: write
+  • Serve: stato Git, regole di esclusione e cartelle da preservare nel repository
+  • Esempio: sb prompt REP10: allinea gitignore e gitkeep prima della pubblicazione
 
 
 MEMORIA E CONTINUITÀ

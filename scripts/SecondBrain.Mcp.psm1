@@ -60,7 +60,7 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'list_prompts'
-            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (67 workflow attivi) nelle 12 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
+            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (80 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
             inputSchema = @{
                 type = 'object'
                 properties = @{

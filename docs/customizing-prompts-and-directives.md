@@ -62,7 +62,7 @@ Ogni prompt deve essere censito in `direttive/prompts/catalog.json`:
 - `id`: identificatore opaco e immutabile `pmt-` + 8 esadecimali minuscoli, generato una sola volta (`New-SBWorkflowPromptId`) e mai riusato, anche dopo rimozione. Le relazioni (`related`, `supersededBy`, `deprecations`) usano solo ID.
 - `code`: alias primario conforme al pattern per area tematica (es. `COM01`, `DEV01`, `SYS01`); dà il nome alla scheda (`<CODE>.md`) e compare nell'indice.
 - `aliases`: array (anche vuoto) di ulteriori codici che risolvono allo stesso prompt, per esempio il vecchio codice dopo una rinomina. ID, codici, alias e alias ritirati condividono un solo spazio di nomi: un duplicato fa fallire la validazione.
-- `category`: identificativo di una delle 12 aree tematiche registrate in `categories`.
+- `category`: identificativo di una delle 13 aree tematiche registrate in `categories`.
 - `summary`: descrizione sintetica (massimo 82 caratteri; `code + ' | ' + summary` non deve superare 88 caratteri).
 - `target`: `repository` (eseguibile nei repository prodotto) o `central` (riservato alla manutenzione di SecondBrain).
 - `mode`: `read`, `write` o `verify`.
@@ -108,7 +108,7 @@ SecondBrain supporta un modello ibrido che distingue tra **file di configurazion
 
 ### Google Antigravity & Gemini
 - **File di Progetto**: `AGENTS.md` e regole `.gemini/antigravity`.
-- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con i 67 workflow del catalogo v2 (COM01–GOV02).
+- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con gli 80 workflow del catalogo v2 (COM01–GOV02).
 
 ---
 

@@ -28,6 +28,6 @@ Asset selezionati, manifest locale, procedura di riproduzione e schermate effett
 
 ## Prompt vicini
 
-- TST05: workflow collegato; consultare la scheda soltanto quando pertinente.
-- REP05: workflow collegato; consultare la scheda soltanto quando pertinente.
-- REP06: workflow collegato; consultare la scheda soltanto quando pertinente.
+- TST05: Verifica il comportamento reale rispetto ai requisiti.
+- REP05: Verifica contenuti e cronologia prima della pubblicazione.
+- REP06: Prepara il README GitHub con informazioni e asset verificati.

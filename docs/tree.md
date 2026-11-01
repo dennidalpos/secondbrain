@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `config/local/` | Segnaposto locale (`workstation.json`, schema 0) che inoltra alla configurazione migrata sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela: serve solo a chi usa il vecchio `-ConfigPath`; si può togliere se nessuno lo passa |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione (4.2, 4.3): stato alla preparazione e motivazioni. | Sì | Con cautela (storia delle approvazioni) |
-| `direttive/prompts/` | 67 schede del catalogo v2 (COM01–GOV02) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 80 schede del catalogo v2 (COM01–GOV02) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 

@@ -30,3 +30,4 @@ Matrice sintetica di impatto, rischi, controlli necessari e stima qualitativa de
 
 - PRG03: Progetta contratti API, modelli dati e compatibilità.
 - PRG04: Prepara un piano per fasi con dipendenze e verifiche.
+- AUD03: Audita architettura e debito tecnico non ancora tracciato.

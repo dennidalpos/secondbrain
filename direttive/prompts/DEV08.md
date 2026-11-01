@@ -31,3 +31,5 @@ Elenco di rilievi prioritizzati con percorso, motivazione e proposta, più event
 - DEV03: Esegui un refactoring preservando contratti e comportamento.
 - DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.
 - SEC01: Revisiona modifiche o codice con rilievi concreti e riferimenti.
+- AUD02: Misura il repository con metriche riproducibili e individua i punti critici.
+- DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.

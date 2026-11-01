@@ -32,3 +32,4 @@ File LICENSE validato, report di conformità degli header SPDX e attestazione di
 
 - REP05: Verifica contenuti e cronologia prima della pubblicazione.
 - GOV02: Analisi delle dipendenze terze parti e compilazione dei credits.
+- AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.

@@ -30,3 +30,4 @@ Mitigazioni, prove, dipendenze interessate e rischi residui.
 
 - DEV04: Aggiorna dipendenze verificando compatibilità e regressioni.
 - SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
+- SEC06: Applica hardening a configurazioni, CI, container e accessi del repository.

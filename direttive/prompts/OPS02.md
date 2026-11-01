@@ -30,3 +30,4 @@ Configurazioni, prove locali, piano degli effetti e passaggi operativi ancora da
 
 - TST04: Diagnostica e correggi errori di build e test nella CI.
 - OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
+- SEC06: Applica hardening a configurazioni, CI, container e accessi del repository.

@@ -38,7 +38,7 @@ Esiti distinti per asset e copertura; modifiche effettive, conflitti e attività
 
 ## Prompt vicini
 
-- SYS03: workflow collegato; consultare la scheda soltanto quando pertinente.
-- SYS05: workflow collegato; consultare la scheda soltanto quando pertinente.
-- SYS01: workflow collegato; consultare la scheda soltanto quando pertinente.
+- SYS03: Attiva SecondBrain dopo discovery e selezione degli asset.
+- SYS05: Compatta il dossier preservando originali, fatti e TOC.
+- SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
 - SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.

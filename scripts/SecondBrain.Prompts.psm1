@@ -79,6 +79,7 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog) {
         if(!$decisions.Trim() -or $decisions -notmatch 'Function Calling|Tool Use'){throw 'Sezione Decisioni da raccogliere vuota o senza Function Calling / Tool Use: '+$Prompt.code}
     }
     if($body -match '\{\{|\$\{input:'){throw 'Segnaposto irrisolto: '+$Prompt.code}
+    if($body -match 'consultare la scheda soltanto quando pertinente'){throw 'Prompt vicini con testo segnaposto: '+$Prompt.code}
     foreach($related in $Prompt.related){
         $target=@($Catalog.prompts|Where-Object id -ceq $related)
         if($target.Count -ne 1 -or $body -notmatch ('\b'+[regex]::Escape($target[0].code)+'\b')){throw 'Prompt vicino non documentato: '+$related}

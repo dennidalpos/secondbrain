@@ -28,6 +28,6 @@ README e guide con diagrammi Mermaid conformi, preview effettiva, fonti delle in
 
 ## Prompt vicini
 
-- REP02: workflow collegato; consultare la scheda soltanto quando pertinente.
-- REP05: workflow collegato; consultare la scheda soltanto quando pertinente.
-- REP07: workflow collegato; consultare la scheda soltanto quando pertinente.
+- REP02: Scrivi guide e README coerenti con il prodotto reale.
+- REP05: Verifica contenuti e cronologia prima della pubblicazione.
+- REP07: Acquisisci screenshot reali e prepara gli asset pubblici.

@@ -4,7 +4,7 @@
 
 ## Scopo
 
-Fornire documentazione operativa accurata ai destinatari indicati.
+Scrivere o aggiornare guide, README e diagrammi di flusso che descrivano soltanto ciò che il prodotto fa davvero, per i destinatari indicati, con comandi ed esempi verificati.
 
 ## Quando usarlo
 
