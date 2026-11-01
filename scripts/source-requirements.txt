@@ -1,0 +1,2 @@
+# Python 3.13; install only in runtimeRoot/sources/python, never in product environments.
+markitdown[pdf,docx]==0.1.9

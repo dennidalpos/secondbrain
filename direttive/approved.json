@@ -1,0 +1,13 @@
+{
+  "approvedAt": "2026-11-01T01:50:30.5716302+01:00",
+  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): proposta contesto-iniziale-snello",
+  "files": {
+    "direttive/AGENTS.global_ide.md": "DC71F0157A62D90CF87843EF7E5F9B979E45EE1B2A3EEB43AB6A40526C363CEA",
+    "direttive/workstation.template.md": "55BD29D05C7BB277CAB0B33C5C68DCA4EAE0CD91347C0727C49ECE4D65FC5295"
+  },
+  "proposal": {
+    "path": "direttive/proposals/2026-11-01-contesto-iniziale-snello",
+    "readmeHash": "64325D6A6D01F5FF2BB0E1C06FB2875049FB27A0DB3A1B80E5E5A5F15D4B9983"
+  },
+  "schemaVersion": 1
+}

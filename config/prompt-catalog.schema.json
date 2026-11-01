@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "catalogVersion", "categories", "prompts"],
+  "properties": {
+    "schemaVersion": {"const": 2},
+    "catalogVersion": {"const": 2},
+    "categories": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["id", "title"], "properties": {
+      "id": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+      "title": {"type": "string", "minLength": 1, "maxLength": 88, "pattern": "^[^\\r\\n\\t]+$"}
+    }}},
+    "deprecations": {"type": "array", "uniqueItems": true, "items": {"type": "object", "additionalProperties": false, "required": ["alias", "supersededBy"], "properties": {
+      "alias": {"type": "string", "pattern": "^[A-Z]{2,4}[0-9]{2}$"},
+      "supersededBy": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"}
+    }}},
+    "prompts": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["id", "code", "aliases", "category", "summary", "target", "mode", "scope", "requires", "status", "example", "file", "references", "related"], "properties": {
+      "id": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"},
+      "code": {"type": "string", "pattern": "^[A-Z]{2,4}[0-9]{2}$"},
+      "aliases": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[A-Z]{2,4}[0-9]{2}$"}},
+      "category": {"type": "string", "pattern": "^[a-z][a-z0-9-]*$"},
+      "summary": {"type": "string", "minLength": 1, "maxLength": 82, "pattern": "^[^\\r\\n\\t]+$"},
+      "target": {"enum": ["repository", "central"]},
+      "mode": {"enum": ["read", "write", "verify"]},
+      "scope": {"type": "string", "pattern": "^(repo|area|file|central)(/(repo|area|file|central))*$"},
+      "requires": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^\\r\\n\\t]+$"},
+      "status": {"enum": ["active", "deprecated"], "default": "active"},
+      "supersededBy": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"},
+      "example": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^\\r\\n\\t]+$"},
+      "file": {"type": "string", "pattern": "^[A-Z]{2,4}[0-9]{2}\\.md$"},
+      "references": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^https://[^\\s]+$"}},
+      "related": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"}}
+    }}}
+  }
+}

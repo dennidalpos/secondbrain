@@ -1,0 +1,288 @@
+#requires -Version 7.5
+Set-StrictMode -Version Latest
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+
+function Resolve-SBParaPath([string]$Root,[string]$Relative) {
+    if (!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:') { throw 'Percorso PARA non relativo o non confinato' }
+    $boundary=[IO.Path]::GetFullPath($Root).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+    $full=[IO.Path]::GetFullPath((Join-Path $Root $Relative))
+    if (!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)) { throw 'Percorso fuori radice PARA' }
+    Assert-SBPlainPath $full
+    $full
+}
+
+$script:SBParaCache=@{}
+function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners) {
+    # Su una share la scansione completa dei dossier a ogni chiamata e costosa: memoizzazione di breve durata, invalidata da ogni scrittura
+    # di questo processo (generazione) e dalla scadenza. In locale resta disattivata (SECONDBRAIN_PARA_CACHE=1 la forza).
+    if(!($BrainRoot.StartsWith('\\') -or $env:SECONDBRAIN_PARA_CACHE -eq '1')){return @(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)}
+    $key=[IO.Path]::GetFullPath($BrainRoot).ToLowerInvariant()+'|'+((@($AllowedOwners)|Sort-Object) -join ',')
+    $generation=Get-SBWriteGeneration
+    $entry=if($script:SBParaCache.ContainsKey($key)){$script:SBParaCache[$key]}else{$null}
+    if($entry -and $entry.generation -eq $generation -and ([DateTimeOffset]::UtcNow-$entry.at).TotalSeconds -lt 10){return @($entry.items)}
+    $items=@(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)
+    $script:SBParaCache[$key]=@{generation=$generation;at=[DateTimeOffset]::UtcNow;items=$items}
+    $items
+}
+function Read-SBParaEntitiesFromDisk([string]$BrainRoot,[string[]]$AllowedOwners) {
+    $items=[Collections.Generic.List[object]]::new();$ids=@{};$repositories=@{}
+    foreach($root in @('01-projects','02-areas','03-resources','04-archives')) {
+        $path=Resolve-SBParaPath $BrainRoot $root
+        if(!(Test-Path -LiteralPath $path)){continue}
+        $queue=[Collections.Generic.Queue[string]]::new();$queue.Enqueue($path)
+        while($queue.Count){
+            $dir=$queue.Dequeue();Assert-SBPlainPath $dir
+            foreach($child in Get-ChildItem -LiteralPath $dir -Directory -Force){
+                if($child.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse point nella conoscenza PARA'}
+                if($child.Name -ne 'snapshots'){$queue.Enqueue($child.FullName)}
+            }
+            $metadata=Join-Path $dir 'para.json'
+            if(!(Test-Path -LiteralPath $metadata)){continue}
+            Assert-SBPlainPath $metadata
+            $m=Read-SBJson $metadata $null
+            foreach($field in @('schemaVersion','id','kind','title','status')){if(!$m.ContainsKey($field)){throw "Metadato PARA mancante: $field"}}
+            if($m.schemaVersion -ne 1 -or $m.id -notmatch '^[a-z][a-z0-9-]{0,95}$' -or $m.kind -notin @('project','area','resource') -or !$m.title.Trim() -or $m.title -match '[\r\n]'){throw 'Metadati PARA non validi'}
+            $statuses=@{project=@('active','completed','cancelled');area=@('active','retired');resource=@('active','retired')}
+            if($m.status -notin $statuses[$m.kind]){throw 'Stato PARA non valido'}
+            if($ids.ContainsKey($m.id)){throw "Identificatore PARA duplicato: $($m.id)"};$ids[$m.id]=$true
+            $relative=[IO.Path]::GetRelativePath($BrainRoot,$dir).Replace('\','/')
+            $expected=@{project='01-projects/';area='02-areas/';resource='03-resources/'}[$m.kind]
+            $archive=@{project='projects';area='areas';resource='resources'}[$m.kind]
+            $archived=$relative.StartsWith('04-archives/',[StringComparison]::Ordinal)
+            if(!$relative.StartsWith($expected,[StringComparison]::Ordinal) -and !$relative.StartsWith("04-archives/$archive/",[StringComparison]::Ordinal)){throw 'Categoria e percorso PARA divergenti'}
+            if(!(Test-Path -LiteralPath (Join-Path $dir 'brief.md') -PathType Leaf)){throw "Brief mancante: $relative"}
+            Assert-SBPlainPath (Join-Path $dir 'brief.md')
+            if($m.kind -eq 'project'){
+                foreach($field in @('areas','trackers')){if(!$m.ContainsKey($field) -or $m[$field] -isnot [array]){throw "Campo progetto non valido: $field"}}
+                if(!$m.areas.Count){throw 'Progetto senza Area'}
+                foreach($tracker in $m.trackers){
+                    if(!$tracker.ContainsKey('area') -or !$tracker.ContainsKey('path')){throw 'Riferimento tracker non valido'}
+                    if($tracker.ContainsKey('repository') -and $tracker.repository){
+                        if(!$tracker.path){throw 'Percorso tracker repository mancante'}
+                    }else{[void](Resolve-SBParaPath $dir $tracker.path)}
+                }
+            }
+            $repo=Read-SBJson (Join-Path $dir 'repository.json') $null
+            if($m.kind -eq 'area'){
+                if(!$repo -or !(Test-SBRepositoryIdentity $repo.identity $AllowedOwners)){throw 'Identita Area non ammessa'}
+                if($repositories.ContainsKey($repo.identity)){throw 'Repository associato a piu Aree'};$repositories[$repo.identity]=$true
+                foreach($file in @('context.md','memory.md')){if(!(Test-Path -LiteralPath (Join-Path $dir $file) -PathType Leaf)){throw "Dossier Area incompleto: $relative/$file"}}
+            }
+            $items.Add(@{id=$m.id;kind=$m.kind;title=$m.title;status=$m.status;path=$relative;archived=$archived;metadata=$m;repository=$(if($repo){$repo.identity}else{''})})
+        }
+    }
+    foreach($item in $items|Where-Object kind -eq 'project'){
+        foreach($area in $item.metadata.areas){
+            if(!@($items|Where-Object { $_.id -eq $area -and $_.kind -eq 'area' }).Count){throw "Area collegata inesistente: $area"}
+        }
+        foreach($tracker in $item.metadata.trackers){
+            $area=@($items|Where-Object {$_.id -eq $tracker.area -and $_.kind -eq 'area'})
+            if($area.Count -ne 1 -or $tracker.area -notin $item.metadata.areas){throw 'Tracker non collegato alle Aree del progetto'}
+            if(!$tracker.ContainsKey('repository') -or !$tracker.repository){
+                if(!(Test-Path -LiteralPath (Resolve-SBParaPath (Join-Path $BrainRoot $area[0].path) $tracker.path) -PathType Leaf)){throw 'Tracker locale inesistente'}
+            }
+        }
+    }
+    @($items|Sort-Object id)
+}
+
+function Get-SBParaIndex([string]$BrainRoot,[string[]]$AllowedOwners) {
+    $entities=@(Get-SBParaEntities $BrainRoot $AllowedOwners)
+    $candidates=@()
+    foreach($item in $entities){
+        if($item.archived){continue}
+        $eligible=($item.kind -eq 'project' -and $item.status -in @('completed','cancelled')) -or ($item.kind -in @('area','resource') -and $item.status -eq 'retired')
+        if($item.kind -eq 'area' -and @($entities|Where-Object {$_.kind -eq 'project' -and !$_.archived -and $_.status -eq 'active' -and $item.id -in $_.metadata.areas}).Count){$eligible=$false}
+        if($eligible){$candidates+=@{id=$item.id;reason=$item.status}}
+    }
+    $data=@{schemaVersion=1;entities=@($entities|ForEach-Object {@{id=$_.id;kind=$_.kind;title=$_.title;status=$_.status;path=$_.path;archived=$_.archived}});archiveCandidates=@($candidates)}
+    $lines=@('# Indice PARA','')
+    foreach($item in $entities){$label=$item.title.Replace('[','\[').Replace(']','\]');$lines+='- ['+$label+']('+[Uri]::EscapeUriString($item.path+'/brief.md')+'): '+$item.kind+' / '+$item.status+$(if($item.archived){' / archived'}else{''})}
+    $lines+=@('','## Proposte di archiviazione','')
+    foreach($item in $candidates){$lines+='- '+$item.id+': '+$item.reason}
+    @{json=(ConvertTo-SBJson $data);markdown=($lines -join "`n")+"`n";entities=$entities;candidates=$candidates}
+}
+
+function Update-SBParaIndex($Config,[switch]$Check) {
+    $index=Get-SBParaIndex $Config.brainRoot $Config.allowedOwners
+    foreach($pair in @(@('para-index.json','json'),@('PARA.md','markdown'))){
+        $path=Join-Path $Config.brainRoot $pair[0];$text=$index[$pair[1]]
+        if((Get-SBFileHash $path) -ne (Get-SBTextHash $text)){
+            if($Check){throw 'Indice PARA da aggiornare'}
+            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($text)) (Get-SBFileHash $path) $Config.backupRoot|Out-Null
+        }
+    }
+    $index
+}
+
+# File-level journal: every old payload is verified before the first write. Recovery
+# verifies the deployed hashes and never overwrites a subsequent user edit.
+function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[string]$BrainRoot,[string[]]$AllowedPaths=@(),[string]$RecoveryManifest='') {
+    $backupFull=[IO.Path]::GetFullPath($BackupRoot)
+    $brainFull=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+    if($backupFull.StartsWith($brainFull,[StringComparison]::OrdinalIgnoreCase)){
+        [void](Assert-SBCentralDataPath $BrainRoot $backupFull)
+    }
+    Assert-SBPlainPath $BackupRoot
+    $journalRoot=Join-Path $BackupRoot ('para-'+[guid]::NewGuid().ToString('N'))
+    [IO.Directory]::CreateDirectory($journalRoot)|Out-Null
+    $records=@();$seen=@{}
+    foreach($op in $Operations){
+        $path=[IO.Path]::GetFullPath($op.path);Assert-SBPlainPath $path
+        if(!$path.StartsWith($brainFull,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw 'Operazione transazionale fuori perimetro'}
+        if($seen.ContainsKey($path)){throw 'Destinazione duplicata nella transazione'};$seen[$path]=$true
+        if((Get-SBFileHash $path) -ne $op.expected){throw "Contenuto cambiato: $path"}
+        $payload=Join-Path $journalRoot ($records.Count.ToString()+'.bin')
+        if($op.expected -ne 'absent'){
+            [IO.File]::Copy($path,$payload)
+            if((Get-SBFileHash $payload) -ne $op.expected){throw 'Backup transazionale non verificato'}
+        }
+        $records+=@{path=$path;previousHash=$op.expected;backup=$payload;deployedHash=$(if($null -eq $op.bytes){'absent'}else{Get-SBHash $op.bytes});applied=$false}
+    }
+    $manifest=Join-Path $journalRoot 'manifest.json'
+    $journal=@{schemaVersion=1;brainRoot=[IO.Path]::GetFullPath($BrainRoot);status='applying';records=$records}
+    function Save-Journal {
+        $temp=$manifest+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+        try {
+            $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $journal))
+            $stream=[IO.FileStream]::new($temp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+            try{$stream.Write($bytes);$stream.Flush($true)}finally{$stream.Dispose()}
+            [IO.File]::Move($temp,$manifest,$true)
+        }finally{if([IO.File]::Exists($temp)){[IO.File]::Delete($temp)}}
+    }
+    Save-Journal
+    $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
+    $markerHash=Get-SBFileHash $marker
+    if($markerHash -ne 'absent'){
+        $pending=Read-SBJson $marker @{}
+        # Il marker puo essere stato scritto da un altro host con un alias diverso dello stesso cervello.
+        $pendingManifest=if($pending.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pending.manifest) ([string]$pending.brainRoot) $BrainRoot}else{[string]$pending.manifest}
+        if(!$RecoveryManifest -or $pendingManifest -ne [IO.Path]::GetFullPath($RecoveryManifest)){throw 'Transazione PARA incompleta: ripristinare prima il manifest pendente'}
+    }
+    $markerText=ConvertTo-SBJson @{manifest=$manifest;brainRoot=[IO.Path]::GetFullPath($BrainRoot);computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;processId=$PID;startedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    Write-SBFile $marker ([Text.Encoding]::UTF8.GetBytes($markerText)) $markerHash $journalRoot|Out-Null
+    try {
+        for($i=0;$i -lt $Operations.Count;$i++){
+            Assert-SBWriteGuard
+            $op=$Operations[$i];$record=$records[$i]
+            if($null -eq $op.bytes){Remove-SBFile $op.path (Split-Path $op.path) $op.expected $journalRoot|Out-Null}
+            else{Write-SBFile $op.path $op.bytes $op.expected $journalRoot|Out-Null}
+            $record.applied=$true;Save-Journal
+        }
+        $journal.status='complete';Save-Journal
+        if((Get-SBFileHash $marker) -ne (Get-SBTextHash $markerText)){throw 'Indicatore transazione modificato'}
+        Assert-SBWriteGuard;[IO.File]::Delete($marker)
+        $manifest
+    }catch{$journal.status='interrupted';Save-Journal;throw "Transazione interrotta; ripristino con manifest $manifest. $($_.Exception.Message)"}
+}
+
+function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[string]$BackupRoot,[string[]]$AllowedPaths=@()) {
+    Assert-SBPlainPath $ManifestPath
+    $manifestFull=[IO.Path]::GetFullPath($ManifestPath)
+    $backupBoundary=[IO.Path]::GetFullPath($BackupRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+    if(!$manifestFull.StartsWith($backupBoundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Manifest fuori radice backup autorizzata'}
+    $journal=Read-SBJson $ManifestPath $null
+    if(!$journal -or $journal.schemaVersion -ne 1 -or !(Test-SBSamePath $journal.brainRoot $BrainRoot)){throw 'Manifest di altra installazione o non valido'}
+    $ops=@()
+    foreach($r in $journal.records){
+        # Il journal puo essere stato scritto da un altro host che raggiunge lo stesso cervello con un alias diverso.
+        $r.path=Convert-SBBrainAlias $r.path $journal.brainRoot $BrainRoot
+        if($r.backup){$r.backup=Convert-SBBrainAlias $r.backup $journal.brainRoot $BrainRoot}
+        $path=[IO.Path]::GetFullPath($r.path)
+        $boundary=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+        if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw 'Record di recupero fuori perimetro'}
+        # Also covers a process killed after a file change but before journal flush.
+        $current=Get-SBFileHash $r.path
+        if($current -eq $r.previousHash){continue}
+        if($current -ne $r.deployedHash){throw "Ripristino rifiutato: file modificato $($r.path)"}
+        if($r.previousHash -ne 'absent' -and (Get-SBFileHash $r.backup) -ne $r.previousHash){throw 'Backup alterato'}
+        if($r.previousHash -ne 'absent' -and ![IO.Path]::GetFullPath($r.backup).StartsWith((Split-Path $manifestFull)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Payload fuori registro di recupero'}
+        $ops=@(@{path=$r.path;expected=$current;bytes=$(if($r.previousHash -eq 'absent'){$null}else{[IO.File]::ReadAllBytes($r.backup)})})+$ops
+    }
+    if($ops.Count){Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot $AllowedPaths $ManifestPath}else{
+        $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
+        if(Test-Path -LiteralPath $marker){
+            $pendingMarker=Read-SBJson $marker @{}
+            $pendingManifest=if($pendingMarker.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pendingMarker.manifest) ([string]$pendingMarker.brainRoot) $BrainRoot}else{[string]$pendingMarker.manifest}
+            if($pendingManifest -ne $manifestFull){throw 'Altro recupero pendente'}
+            Assert-SBWriteGuard;[IO.File]::Delete($marker)
+        }
+        'Nessun ripristino necessario'
+    }
+}
+
+function New-SBParaMetadata([string]$Id,[string]$Kind,[string]$Title) {
+    @{schemaVersion=1;id=$Id;kind=$Kind;title=$Title;status='active'}
+}
+
+function Convert-SBParaReferences($Value,[hashtable]$Mapping,[string]$BrainRoot) {
+    if($Value -is [Collections.IDictionary]){
+        $result=@{}
+        foreach($key in $Value.Keys){$newKey=Convert-SBParaReferences ([string]$key) $Mapping $BrainRoot;$result[$newKey]=Convert-SBParaReferences $Value[$key] $Mapping $BrainRoot}
+        return $result
+    }
+    if($Value -is [array]){return ,@($Value|ForEach-Object {Convert-SBParaReferences $_ $Mapping $BrainRoot})}
+    if($Value -is [string]){
+        foreach($old in $Mapping.Keys|Sort-Object Length -Descending){
+            foreach($pair in @(@($old,$Mapping[$old]),@((Join-Path $BrainRoot $old),(Join-Path $BrainRoot $Mapping[$old])))){
+                if($Value -eq $pair[0] -or $Value.StartsWith($pair[0]+'/',[StringComparison]::Ordinal) -or $Value.StartsWith($pair[0]+'\',[StringComparison]::Ordinal)){return $pair[1]+$Value.Substring($pair[0].Length)}
+            }
+        }
+    }
+    $Value
+}
+
+function Get-SBParaReferenceOperations($Config,[hashtable]$Mapping,[switch]$Upgrade) {
+    $paths=@((Join-Path $Config.brainRoot 'inventory.json'))
+    $registry=Read-SBJson (Join-Path $Config.coordinationRoot 'workstations.json') @{}
+    $runtimeRoots=@($Config.runtimeRoot)+@($registry.Values|ForEach-Object runtimeRoot)|Sort-Object -Unique
+    foreach($runtime in $runtimeRoots){
+        Assert-SBPlainPath $runtime
+        foreach($name in @('state.json','inventory.json','workstation.json')){$paths+=Join-Path $runtime $name}
+    }
+    foreach($path in $paths|Sort-Object -Unique){
+        if(!(Test-Path -LiteralPath $path -PathType Leaf)){continue}
+        $original=Read-SBJson $path $null
+        $value=Convert-SBParaReferences $original $Mapping $Config.brainRoot
+        if((Split-Path $path -Leaf) -eq 'state.json'){
+            # Baseline keys use an absolute file path followed by |snapshot.
+            $managed=@{}
+            foreach($key in $original.managed.Keys){
+                $parts=$key -split '\|',2
+                $new=Convert-SBParaReferences $parts[0] $Mapping $Config.brainRoot
+                $managed[$new+'|'+$parts[1]]=$original.managed[$key]
+            }
+            $value.managed=$managed
+            if($Upgrade){
+                $value.schemaVersion=2
+                foreach($id in @($value.dossierMap.Keys)){$old='repos/'+$original.dossierMap[$id];if($Mapping.ContainsKey($old)){$value.dossierMap[$id]=$Mapping[$old]}else{throw 'Dossier della baseline non risolto'}}
+            }
+        }elseif($Upgrade){
+            $value.schemaVersion=3
+            if($value.ContainsKey('workstations')){foreach($station in $value.workstations){$station.schemaVersion=3}}
+        }
+        $text=ConvertTo-SBJson $value
+        if((Get-SBTextHash $text) -ne (Get-SBFileHash $path)){@{path=$path;expected=(Get-SBFileHash $path);bytes=[Text.Encoding]::UTF8.GetBytes($text)}}
+    }
+}
+
+function Remove-SBParaEmptyTree([string]$Path,[string]$BrainRoot) {
+    $relative=[IO.Path]::GetRelativePath($BrainRoot,$Path)
+    [void](Resolve-SBParaPath $BrainRoot $relative)
+    $dirs=@(Get-ChildItem -LiteralPath $Path -Recurse -Directory -Force|Sort-Object {$_.FullName.Length} -Descending)+@(Get-Item -LiteralPath $Path)
+    foreach($dir in $dirs){
+        Assert-SBPlainPath $dir.FullName
+        if(!@(Get-ChildItem -LiteralPath $dir.FullName -Force).Count){Assert-SBWriteGuard;[IO.Directory]::Delete($dir.FullName)}
+    }
+}
+
+function Get-SBParaRuntimePaths($Config) {
+    $registry=Read-SBJson (Join-Path $Config.coordinationRoot 'workstations.json') @{}
+    foreach($runtime in @($Config.runtimeRoot)+@($registry.Values|ForEach-Object runtimeRoot)|Sort-Object -Unique){
+        foreach($name in @('state.json','inventory.json','workstation.json')){[IO.Path]::GetFullPath((Join-Path $runtime $name))}
+    }
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerMigration.psm1')
+    foreach($registration in @(Get-SBTrackerManifestRegistrations $Config)){$registration.path}
+}
+
+Export-ModuleMember -Function *-SBPara*

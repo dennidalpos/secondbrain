@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "code": "COM01",
+      "mode": "read",
+      "objective": "Esplora questo servizio sintetico: individua entrypoint HTTP e comandi di test senza avviare setup.",
+      "purpose": "Orientamento senza mutazioni"
+    },
+    {
+      "code": "TST04",
+      "mode": "write",
+      "objective": "Il job Windows fallisce solo in CI: log fixture 'tool not found'; confronta PATH e toolchain del runner, poi verifica il comando corretto.",
+      "purpose": "Diagnosi CI distinta dal bug applicativo"
+    },
+    {
+      "code": "DEV04",
+      "mode": "write",
+      "objective": "Aggiorna il pacchetto fixture dalla versione concordata alle release compatibili; verifica lock e note di migrazione senza assumere latest.",
+      "purpose": "Dipendenze e compatibilita"
+    },
+    {
+      "code": "DAT01",
+      "mode": "write",
+      "objective": "Su una copia isolata migra la tabella fixture aggiungendo la chiave esterna; confronta conteggi e relazioni e prova il recupero.",
+      "purpose": "Migrazione con verifica dati"
+    },
+    {
+      "code": "INT03",
+      "mode": "read",
+      "objective": "Verifica il dialogo fixture con tastiera: apertura, focus, Escape e ritorno al controllo; segnala gli ausili non disponibili.",
+      "purpose": "Accessibilita in sola verifica"
+    },
+    {
+      "code": "MEM03",
+      "mode": "write",
+      "objective": "Salva un handoff della fixture: test unitari superati, integrazione non verificata, prossimo passo riproducibile; nessun commit.",
+      "purpose": "Continuita senza autorizzazioni implicite"
+    }
+  ]
+}
