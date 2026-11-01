@@ -38,7 +38,14 @@ try {
         if($ide.mode -eq 'manual'){
             $valid=Test-SBIDEObservation $ide (Get-SBTextHash $expected) $observations $config.brainRoot $config.workstationId
             if(!$valid){$pending++}
-            "$($ide.name): manuale, account/profilo e caricamento "+$(if($valid){'verificati nella sessione osservata'}else{'non verificati o disallineati'})
+            # Più account dello stesso IDE: la riga riporta id e alias; un testo osservato diverso da quello approvato è segnalato come obsoleto.
+            $label=$ide.name+$(if($ide.ContainsKey('id')){' ['+$ide.id+$(if($ide.ContainsKey('accountAlias') -and $ide.accountAlias){', alias '+$ide.accountAlias})+']'})
+            $line="${label}: manuale, account/profilo e caricamento "+$(if($valid){'verificati nella sessione osservata'}else{'non verificati o disallineati'})
+            if($ide.ContainsKey('observedHash') -and $ide.observedHash -and [string]$ide.observedHash -cne (Get-SBTextHash $expected)){
+                $pending++
+                $line+="; testo account obsoleto (revisione osservata $(if($ide.ContainsKey('observedRevision') -and $ide.observedRevision){$ide.observedRevision}else{'sconosciuta'}), attesa $expectedRevision)"
+            }
+            $line
             continue
         }
         if(![IO.Path]::IsPathFullyQualified([string]$ide.instructions)){throw "Percorso assoluto richiesto per $($ide.name)"}

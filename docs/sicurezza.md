@@ -22,7 +22,7 @@ flowchart LR
 
 `-Sync` scrive subito: esegui prima `-Check` per vedere le differenze. Se un tuo file di regole non contiene già il blocco di SecondBrain, non viene toccato.
 
-Non vengono mai toccati: il tuo codice, le password, gli archivi di accesso.
+Non vengono mai toccati: il tuo codice, le password, gli archivi di accesso. Per questo SecondBrain non rileva gli account di un IDE: con più account li dichiari tu (`sb prompt SYS12`).
 
 ## Dove sono i backup
 

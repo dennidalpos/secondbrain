@@ -39,20 +39,20 @@ try {
     $config=@{brainRoot=$brain;allowedOwners=@('test','example-user');workstationId='fixture'}
     $cli=Join-Path $brain 'scripts/prompts.ps1';$build=Join-Path $brain 'scripts/build-prompts.ps1'
     $catalog=Read-SBWorkflowCatalog $brain -ValidateBodies
-    Assert-Workflow ($catalog.prompts.Count -eq 80 -and $catalog.categories.Count -eq 13) '80 workflow in 13 ambiti'
+    Assert-Workflow ($catalog.prompts.Count -eq 81 -and $catalog.categories.Count -eq 13) '81 workflow in 13 ambiti'
     $listing=Format-SBWorkflowList $catalog
-    Assert-Workflow (@($listing -split "`n"|Where-Object Length -gt 88).Count -eq 0 -and [regex]::Matches($listing,'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 77) 'elenco una riga per prompt entro 88 caratteri'
+    Assert-Workflow (@($listing -split "`n"|Where-Object Length -gt 88).Count -eq 0 -and [regex]::Matches($listing,'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 78) 'elenco una riga per prompt entro 88 caratteri'
     Assert-Workflow ($listing -notmatch 'P01.P14' -and $listing -notmatch 'vecchi codici') 'Format-SBWorkflowList privo di nomenclature storiche'
     $testList=Format-SBWorkflowList $catalog 'test'
     Assert-Workflow ($testList -match 'TST04 \|' -and $testList -notmatch 'SYS01 \|') 'filtro ambito'
     Reject-Workflow {Format-SBWorkflowList $catalog 'inesistente'} 'ambito sconosciuto rifiutato'
     $compact=Format-SBWorkflowList $catalog -Compact
-    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 100).Count -eq 0 -and [regex]::Matches($compact,'(?m)^[A-Z]{2,4}\d{2} \| (lettura|scrittura|verifica) +\| ').Count -eq 77 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 77 righe entro 100 caratteri'
+    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 100).Count -eq 0 -and [regex]::Matches($compact,'(?m)^[A-Z]{2,4}\d{2} \| (lettura|scrittura|verifica) +\| ').Count -eq 78 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 78 righe entro 100 caratteri'
     $prefixList=Format-SBWorkflowList $catalog 'TST' -Compact
     Assert-Workflow ($prefixList -match 'TST04 \|' -and $prefixList -notmatch 'SYS01 \|' -and (Format-SBWorkflowList $catalog 'Test') -match 'TST04 \|' -and (Format-SBWorkflowList $catalog 'sys') -match 'SYS06 \|' -and (Format-SBWorkflowList $catalog 'SYS') -match 'SYS11 \|' -and (Format-SBWorkflowList $catalog 'MEM') -notmatch 'SYS06 \|') 'filtro ambito per id o prefisso senza distinguere le maiuscole; SYS include SYS06'
     $homeText=Format-SBWorkflowHome $brain $catalog
     $homePath=Join-Path $brain 'direttive/prompts/README.md'
-    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '77 prompt in 13 aree') 'schermata iniziale: link al catalogo esistente e conteggio'
+    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '78 prompt in 13 aree') 'schermata iniziale: link al catalogo esistente e conteggio'
     $template=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     $commands=@(Get-SBWorkflowCommands)
     Assert-Workflow ($commands.Count -ge 9 -and @($commands|Where-Object {!$homeText.Contains('`'+$_.command+'`') -or !$_.does -or !$_.mode}).Count -eq 0) 'schermata iniziale: ogni comando con descrizione e modalità'
@@ -102,7 +102,7 @@ try {
     $cliHome=& pwsh -NoProfile -File $cli
     Assert-Workflow ($LASTEXITCODE -eq 0 -and ($cliHome -join "`n") -match 'sb prompt tutti' -and ($cliHome -join "`n") -notmatch 'TST04 \|') 'CLI senza argomenti mostra la schermata iniziale e non l''elenco'
     $cliCompact=& pwsh -NoProfile -File $cli -List -Compact
-    Assert-Workflow ($LASTEXITCODE -eq 0 -and [regex]::Matches(($cliCompact -join "`n"),'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 77) 'CLI -List -Compact elenca i 77 prompt attivi'
+    Assert-Workflow ($LASTEXITCODE -eq 0 -and [regex]::Matches(($cliCompact -join "`n"),'(?m)^[A-Z]{2,4}\d{2} \| ').Count -eq 78) 'CLI -List -Compact elenca i 78 prompt attivi'
     $catalogPath=Join-Path $brain 'direttive/prompts/catalog.json';$original=Read-SBText $catalogPath
     foreach($case in @('duplicate','category','path','mode','newline','related','relatedCode','duplicateId','aliasOfCode','aliasTwice','aliasSelfId','missingAliases','retiredUnknown','retiredConflict','deprecatedNoSuccessor','successorUnknown')){
         $bad=$original|ConvertFrom-Json -AsHashtable
@@ -127,7 +127,7 @@ try {
         Put-Workflow $catalogPath (ConvertTo-SBJson $bad)
         Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} ('validazione '+$case)
     }
-    Assert-Workflow (@($catalog.prompts.id|Select-Object -Unique).Count -eq 80 -and @($catalog.prompts|Where-Object {$_.id -cnotmatch '^pmt-[0-9a-f]{8}$'}).Count -eq 0) 'ogni prompt ha un ID univoco pmt-esadecimale'
+    Assert-Workflow (@($catalog.prompts.id|Select-Object -Unique).Count -eq 81 -and @($catalog.prompts|Where-Object {$_.id -cnotmatch '^pmt-[0-9a-f]{8}$'}).Count -eq 0) 'ogni prompt ha un ID univoco pmt-esadecimale'
     # Raffinamento catalogo (SB-EVO-PROMPT-CATALOG-REFINE): PRG05 scaffolding (scrittura) e PRG06 piano (lettura), SYS06 in memoria, TST07 in scrittura, nuove schede.
     $byCode=@{};foreach($entry in $catalog.prompts){$byCode[$entry.code]=$entry}
     $refined=@{PRG05=@('progettazione','write');PRG06=@('progettazione','read');SYS06=@('memoria','read');TST07=@('test','write');REP09=@('repository','write');DEV07=@('sviluppo','read');DEV08=@('sviluppo','read');INT04=@('interfaccia','verify')}
@@ -283,7 +283,7 @@ try {
         foreach($label in $cardLabels){if(!$cardText.Contains($label)){$incomplete+=$entry.code+':'+$label}}
         if($cardText -notmatch 'Function Calling o Tool Use a scelta multipla' -or $cardText -match 'Cosa fa: \s*$'){$incomplete+=$entry.code+':contenuto'}
     }
-    Assert-Workflow ($incomplete.Count -eq 0) ('scheda uniforme completa per tutti gli 80 prompt'+$(if($incomplete.Count){': '+($incomplete|Select-Object -First 3 -join ', ')}))
+    Assert-Workflow ($incomplete.Count -eq 0) ('scheda uniforme completa per tutti gli 81 prompt'+$(if($incomplete.Count){': '+($incomplete|Select-Object -First 3 -join ', ')}))
     $sample=@($catalog.prompts|Where-Object code -ceq 'DEV02')[0]
     $sampleCard=Format-SBWorkflowCard $sample (Read-SBWorkflowPrompt $brain $sample $catalog)
     $shown=(& pwsh -NoProfile -File $cli -Show -Prompt DEV02|Out-String).Replace("`r`n","`n")
@@ -291,7 +291,7 @@ try {
     Assert-Workflow ($shown.Contains($sampleCard) -and $composed.Contains($sampleCard)) 'stessa scheda in -Show e -Compose (anche per ID)'
     Assert-Workflow ([regex]::Matches($composed,'Regola vincolante: se hai dubbi').Count -eq 2 -and $composed.Contains('fermati e non procedere per ipotesi')) 'composizione impone Function Calling o Tool Use per i dubbi'
     # Decisioni da raccogliere: sezione opzionale ma obbligatoria nei prompt che chiedono scelte, con Function Calling / Tool Use.
-    $decisionCodes=@('SYS11','MEM03','COM01','COM02','PRG01','PRG02','SYS03','SYS04','SYS05','REP05','MEM01','PRG06','DEV07','REP09')
+    $decisionCodes=@('SYS11','SYS12','MEM03','COM01','COM02','PRG01','PRG02','SYS03','SYS04','SYS05','REP05','MEM01','PRG06','DEV07','REP09')
     $decisionIssues=@()
     foreach($code in $decisionCodes){
         $entry=@($catalog.prompts|Where-Object code -ceq $code)[0]
@@ -326,25 +326,25 @@ try {
     # Casi d'uso SYS11 su cervello fixture: aggiungi, modifica, rimuovi e rifiuti.
     $uc=Read-SBWorkflowCatalog $brain -ValidateBodies;$sys04=@($uc.prompts|Where-Object code -ceq 'SYS04')[0];$sys11e=@($uc.prompts|Where-Object code -ceq 'SYS11')[0]
     $newId=New-SBWorkflowPromptId $uc
-    $newCard=Join-Path $brain 'direttive/prompts/SYS12.md'
+    $newCard=Join-Path $brain 'direttive/prompts/SYS98.md'
     # La scheda ripete titolo, intestazione e prompt vicini del catalogo: la fixture li riallinea alla voce di prova.
     function Get-FixtureCard([string]$Body,[string]$Summary,$Neighbor){
         $lines=$Body.Split("`n")
-        $lines[0]='# SYS12 — '+$Summary.TrimEnd('.')
-        $lines[2]='> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: prova caso d uso | **Esempio d''uso**: `sb prompt SYS12: prova`'
+        $lines[0]='# SYS98 — '+$Summary.TrimEnd('.')
+        $lines[2]='> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: prova caso d uso | **Esempio d''uso**: `sb prompt SYS98: prova`'
         $text=$lines -join "`n"
         [regex]::Replace($text,"(?s)(## Prompt vicini`n`n).*?(`n`n## |\z)",{param($m) $m.Groups[1].Value+'- '+$Neighbor.code+': '+$Neighbor.summary+$m.Groups[2].Value})
     }
-    $newBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS12')) 'Prova uso aggiunta prompt.' $sys04
+    $newBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS98')) 'Prova uso aggiunta prompt.' $sys04
     Put-Workflow $newCard $newBody
     $added=$original|ConvertFrom-Json -AsHashtable
-    $entryNew=@{aliases=@();category='sistema';code='SYS12';example='sb prompt SYS12: prova';file='SYS12.md';id=$newId;mode='write';references=@('https://code.claude.com/docs/en/prompt-library');related=@($sys04.id);requires='prova caso d uso';scope='central';status='active';summary='Prova uso aggiunta prompt.';target='central'}
+    $entryNew=@{aliases=@();category='sistema';code='SYS98';example='sb prompt SYS98: prova';file='SYS98.md';id=$newId;mode='write';references=@('https://code.claude.com/docs/en/prompt-library');related=@($sys04.id);requires='prova caso d uso';scope='central';status='active';summary='Prova uso aggiunta prompt.';target='central'}
     $added.prompts=@($added.prompts)+@($entryNew)
     Put-Workflow $catalogPath (ConvertTo-SBJson $added)
     $afterAdd=Read-SBWorkflowCatalog $brain -ValidateBodies
-    Assert-Workflow ($afterAdd.prompts.Count -eq 81 -and (Resolve-SBWorkflowPrompt $afterAdd 'SYS12').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterAdd $newId).via -eq 'id') 'caso d uso: aggiunta di un prompt con ID nuovo risolvibile per codice e ID'
+    Assert-Workflow ($afterAdd.prompts.Count -eq 82 -and (Resolve-SBWorkflowPrompt $afterAdd 'SYS98').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterAdd $newId).via -eq 'id') 'caso d uso: aggiunta di un prompt con ID nuovo risolvibile per codice e ID'
     $driftAdd=@(Get-SBWorkflowDrift $brain)
-    Assert-Workflow ($driftAdd.Count -eq 1 -and $driftAdd[0].text -match 'SYS12 \| Prova uso aggiunta prompt\.') 'caso d uso: l indice generato richiede rigenerazione dopo l aggiunta e include il nuovo prompt'
+    Assert-Workflow ($driftAdd.Count -eq 1 -and $driftAdd[0].text -match 'SYS98 \| Prova uso aggiunta prompt\.') 'caso d uso: l indice generato richiede rigenerazione dopo l aggiunta e include il nuovo prompt'
     $dupId=(ConvertTo-SBJson $added)|ConvertFrom-Json -AsHashtable;$dupId.prompts[-1].id=$sys11e.id
     Put-Workflow $catalogPath (ConvertTo-SBJson $dupId)
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'caso d uso: aggiunta con ID duplicato rifiutata'
@@ -354,13 +354,13 @@ try {
     Put-Workflow $newCard ($newBody.Replace('SYS04','SYS03'))
     Put-Workflow $catalogPath (ConvertTo-SBJson $added)
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'caso d uso: related non documentato nella scheda rifiutato'
-    $modifiedBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS12')) 'Prova uso modifica prompt.' $sys04
+    $modifiedBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS98')) 'Prova uso modifica prompt.' $sys04
     Put-Workflow $newCard $modifiedBody
     $modified=(ConvertTo-SBJson $added)|ConvertFrom-Json -AsHashtable
     $modified.prompts[-1].summary='Prova uso modifica prompt.';$modified.prompts[-1].aliases=@('ZZZ12')
     Put-Workflow $catalogPath (ConvertTo-SBJson $modified)
     $afterModify=Read-SBWorkflowCatalog $brain -ValidateBodies
-    Assert-Workflow ((Resolve-SBWorkflowPrompt $afterModify 'ZZZ12').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterModify 'SYS12').prompt.id -ceq $newId -and (Format-SBWorkflowList $afterModify) -match 'SYS12 \| Prova uso modifica prompt\.') 'caso d uso: modifica mantiene l ID e aggiunge un alias risolvibile'
+    Assert-Workflow ((Resolve-SBWorkflowPrompt $afterModify 'ZZZ12').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterModify 'SYS98').prompt.id -ceq $newId -and (Format-SBWorkflowList $afterModify) -match 'SYS98 \| Prova uso modifica prompt\.') 'caso d uso: modifica mantiene l ID e aggiunge un alias risolvibile'
     $removed=(ConvertTo-SBJson $modified)|ConvertFrom-Json -AsHashtable
     $removed.prompts[-1].status='deprecated'
     Put-Workflow $catalogPath (ConvertTo-SBJson $removed)
@@ -368,10 +368,10 @@ try {
     $removed.prompts[-1].supersededBy=$sys11e.id;$removed.deprecations=@(@{alias='OLD12';supersededBy=$sys11e.id})
     Put-Workflow $catalogPath (ConvertTo-SBJson $removed)
     $afterRemove=Read-SBWorkflowCatalog $brain -ValidateBodies
-    Assert-Workflow ((Format-SBWorkflowList $afterRemove) -notmatch 'SYS12 \|' -and (Resolve-SBWorkflowPrompt $afterRemove 'SYS12').warning -match 'SYS11' -and (Resolve-SBWorkflowPrompt $afterRemove 'OLD12').prompt.id -ceq $sys11e.id -and (Test-Path -LiteralPath $newCard)) 'caso d uso: ritiro con sostituto nasconde il prompt, risolve con avviso e conserva la scheda'
+    Assert-Workflow ((Format-SBWorkflowList $afterRemove) -notmatch 'SYS98 \|' -and (Resolve-SBWorkflowPrompt $afterRemove 'SYS98').warning -match 'SYS11' -and (Resolve-SBWorkflowPrompt $afterRemove 'OLD12').prompt.id -ceq $sys11e.id -and (Test-Path -LiteralPath $newCard)) 'caso d uso: ritiro con sostituto nasconde il prompt, risolve con avviso e conserva la scheda'
     Put-Workflow $catalogPath $original
     Remove-Item -LiteralPath $newCard -Force
-    Assert-Workflow ((Read-SBWorkflowCatalog $brain -ValidateBodies).prompts.Count -eq 80 -and @(Get-SBWorkflowDrift $brain).Count -eq 0) 'caso d uso: catalogo fixture ripristinato e allineato'
+    Assert-Workflow ((Read-SBWorkflowCatalog $brain -ValidateBodies).prompts.Count -eq 81 -and @(Get-SBWorkflowDrift $brain).Count -eq 0) 'caso d uso: catalogo fixture ripristinato e allineato'
     $proposalText=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     Assert-Workflow (($cardLabels|Where-Object {$_ -notin @('SCHEDA PROMPT','ID: pmt-')}|Where-Object {!$proposalText.Contains($_.TrimEnd(' ',':'))}).Count -eq 0 -and $proposalText.Contains('ID') -and $proposalText -match 'Function Calling / Tool Use a scelta multipla' -and $proposalText -match 'fermati') 'direttive: elencano i campi della scheda e la regola tool-use'
     $costarCatalog=Read-SBWorkflowCatalog $brain -ValidateBodies

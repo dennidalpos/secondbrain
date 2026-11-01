@@ -96,8 +96,19 @@ function Invoke-SBHostActivation {
         $ide=@{}+$assets[0]
         if($ide.mode -eq 'file' -and (Get-SBFileHash $ide.instructions) -ne $ide.sha256){throw 'Istruzioni IDE cambiate dopo la discovery'}
         foreach($key in @('accountAlias','profile','environment','accountObservation','observedRevision','observedHash')){if($choice.ContainsKey($key)){$ide[$key]=$choice[$key]}}
+        # Radice di configurazione alternativa (es. altro CLAUDE_CONFIG_DIR): solo IDE di tipo file; la voce ha percorso, hash e fingerprint propri.
+        if($choice.ContainsKey('instructionsPath') -and $choice.instructionsPath){
+            if($ide.mode -ne 'file'){throw 'Percorso istruzioni alternativo ammesso solo per IDE di tipo file: '+$ide.name}
+            $custom=Assert-SBIDEInstructionsPath $ide.name ([string]$choice.instructionsPath)
+            if($custom -ine [IO.Path]::GetFullPath($ide.instructions)){
+                $ide.instructions=$custom;$ide.sha256=Get-SBFileHash $custom;$ide.customInstructionsPath=$true
+                $ide.environmentFingerprint=Get-SBTextHash (([string]$ide.environmentFingerprint)+'|'+$custom.ToLowerInvariant())
+            }
+        }
         $ide.assetId=$ide.id
-        $ide.id=$ide.assetId+'-'+(Get-SBTextHash ($ide.profile+'|'+$ide.accountAlias+'|'+$(if($ide.ContainsKey('environment')){$ide.environment}else{''}))).Substring(0,12).ToLowerInvariant()
+        $customKey=if($ide.ContainsKey('customInstructionsPath') -and $ide.customInstructionsPath){'|'+([string]$ide.instructions).ToLowerInvariant()}else{''}
+        $ide.id=$ide.assetId+'-'+(Get-SBTextHash ($ide.profile+'|'+$ide.accountAlias+'|'+$(if($ide.ContainsKey('environment')){$ide.environment}else{''})+$customKey)).Substring(0,12).ToLowerInvariant()
+        if($ide.id -in @($selectedIDEs|ForEach-Object {$_.id})){throw 'Integrazione IDE duplicata nella selezione (stesso profilo, alias, ambiente e percorso): '+$ide.name}
         $ide.selected=$true;$selectedIDEs+=$ide
     }
     $retirePaths=if($selection.ContainsKey('retireCheckoutPaths')){@($selection.retireCheckoutPaths)}else{@()}
@@ -173,8 +184,20 @@ function Read-SBSetupNumbers([string]$Prompt,[int]$Count) {
     }
     @($indexes|Sort-Object -Unique)
 }
+function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
+    # Percorso istruzioni alternativo (altra radice di configurazione) per un IDE di tipo file: assoluto, nome file atteso, sotto il profilo utente, fuori da cartelle di credenziali.
+    $expected=switch -Regex ($Name){'^Claude Code'{'CLAUDE.md'}'^Codex'{'AGENTS.md'}'^Antigravity'{'GEMINI.md'}default{''}}
+    if(!$expected){throw "Percorso istruzioni alternativo non supportato per $Name"}
+    if(!$Path -or ![IO.Path]::IsPathFullyQualified($Path)){throw 'Percorso istruzioni alternativo non assoluto'}
+    $full=[IO.Path]::GetFullPath($Path)
+    if([IO.Path]::GetFileName($full) -cne $expected){throw "Il file delle istruzioni di $Name deve chiamarsi $expected"}
+    $profileRoot=[IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+    if(!$full.StartsWith($profileRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Percorso istruzioni alternativo fuori dal profilo utente'}
+    if(@($full.Substring($profileRoot.Length) -split '[\\/]'|Where-Object {$_ -match '(?i)^(\.ssh|\.gnupg|\.aws|\.azure|credentials?|auth|tokens?|secrets?)$'}).Count){throw 'Percorso istruzioni alternativo in una cartella di credenziali'}
+    $full
+}
 function Invoke-SBSetup {
-    param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,
+    param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
           [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$NoRegisterEnvironment,[switch]$AndSync,[string]$SessionId)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain;$hostId=Get-SBHostId
     # Da -File un elenco arriva come stringa unica separata da virgole.
@@ -184,8 +207,8 @@ function Invoke-SBSetup {
     $preflight=@(Test-SBSetupPreflight $brain);$result.preflight=$preflight
     $failed=@($preflight|Where-Object {$_.blocking -and !$_.ok})
     if($failed.Count){throw 'Preflight non superato: '+(($failed|ForEach-Object {$_.name+' ('+$_.detail+')'}) -join '; ')}
-    $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes)
-    if($needSelection -and !$Interactive -and [Console]::IsInputRedirected){throw 'Selezione assente: indicare -Select, -All, -Ides, -AllIdes oppure -Interactive'}
+    $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
+    if($needSelection -and !$Interactive -and [Console]::IsInputRedirected){throw 'Selezione assente: indicare -Select, -All, -Ides, -AllIdes, -IdeAccount oppure -Interactive'}
     $prompting=($Interactive -or $needSelection)
     if($prompting -and !$Roots.Count){
         $answer=([string](Read-Host 'Radici da analizzare separate da ; (invio = tutti i volumi fissi)')).Trim()
@@ -234,6 +257,37 @@ function Invoke-SBSetup {
         foreach($n in @(Read-SBSetupNumbers 'Numeri da gestire separati da virgola, tutti, invio = nessuno' $ideReport.Count)){$chosenIdes+=$ideReport[$n-1]}
     }
     $chosenIdes=@($chosenIdes|Sort-Object id -Unique)
+    # Più account o radici dello stesso IDE: ogni voce "id-o-nome|alias[|chiave=valore...]" diventa una integrazione distinta (voci separate da ';', campi da '|').
+    # Chiavi: profile, environment, path (solo IDE di tipo file), revision e hash (testo account osservato, dichiarato dall'utente).
+    $accountEntries=@();$plainIdes=$chosenIdes
+    foreach($spec in @($IdeAccount|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})){
+        $parts=@($spec -split '\|'|ForEach-Object {$_.Trim()})
+        if($parts.Count -lt 2 -or !$parts[0] -or !$parts[1] -or $parts[1].Contains('=')){throw "IdeAccount non valido (atteso id-o-nome|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): $spec"}
+        $found=@($ideReport|Where-Object {$_.id -ceq $parts[0] -or $_.name -ieq $parts[0]})
+        if($found.Count -ne 1){throw "IDE non selezionabile o ambiguo: $($parts[0]) ($($found.Count) corrispondenze)"}
+        $entry=@{id=$found[0].id;accountAlias=$parts[1]};$fields=@{}
+        foreach($token in @($parts|Select-Object -Skip 2)){
+            $eq=$token.IndexOf('=')
+            if($eq -lt 1){throw "Campo IdeAccount non valido (atteso chiave=valore): $token"}
+            $key=$token.Substring(0,$eq).ToLowerInvariant();$value=$token.Substring($eq+1).Trim()
+            if($key -notin @('profile','environment','path','revision','hash') -or !$value -or $fields.ContainsKey($key)){throw "Campo IdeAccount non valido o ripetuto: $key"}
+            $fields[$key]=$value
+        }
+        if($fields.ContainsKey('profile')){$entry.profile=$fields.profile}
+        if($fields.ContainsKey('environment')){$entry.environment=$fields.environment}
+        if($fields.ContainsKey('path')){
+            if($found[0].mode -ne 'file'){throw "Percorso alternativo ammesso solo per IDE di tipo file: $($found[0].name)"}
+            $entry.instructionsPath=Assert-SBIDEInstructionsPath $found[0].name $fields.path
+        }
+        if($fields.ContainsKey('revision') -or $fields.ContainsKey('hash')){
+            if($found[0].mode -ne 'manual'){throw "Revisione e hash osservati si registrano solo per le superfici manuali: $($found[0].name)"}
+            if(!$fields.ContainsKey('revision') -or !$fields.ContainsKey('hash') -or $fields.revision -notmatch '^\d+(\.\d+)+$' -or $fields.hash -notmatch '^[0-9A-Fa-f]{64}$'){throw "revision (es. 1.0) e hash SHA-256 vanno indicati insieme: $spec"}
+            $entry.observedRevision=$fields.revision;$entry.observedHash=$fields.hash.ToUpperInvariant()
+            $entry.accountObservation='Testo account dichiarato dall utente come osservato nelle impostazioni; il caricamento in una chat resta non verificato.'
+        }
+        $accountEntries+=$entry
+        if($found[0].id -notin @($chosenIdes|ForEach-Object {$_.id})){$chosenIdes+=$found[0]}
+    }
     if(!$chosen.Count -and !$chosenIdes.Count){throw 'Nessun repository o IDE selezionato'}
     # Blocchi gestiti gia presenti: richiedono revisione esplicita.
     $approvals=@{}
@@ -256,7 +310,7 @@ function Invoke-SBSetup {
     $confirmation=if($confirmed){[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'}else{''}
     $selection=@{schemaVersion=1;confirmed=$confirmed;confirmation=$confirmation;reportPath=$paths.report;reportSha256=(Get-SBFileHash $paths.report)
         repositories=@($chosen|ForEach-Object {$entry=@{id=$_.id};if($approvals.ContainsKey($_.id)){$entry.approveExistingBlock=$true};$entry})
-        ides=@($chosenIdes|ForEach-Object {@{id=$_.id}})}
+        ides=@(@($plainIdes|ForEach-Object {@{id=$_.id}})+$accountEntries)}
     $selectionPath=Assert-SBCentralDataPath $brain $paths.selection
     Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) (Join-Path $paths.hostRoot 'backups')|Out-Null
     $result.selection=$selectionPath;$result.confirmed=$confirmed
@@ -278,10 +332,21 @@ function Invoke-SBSetup {
     $result.next=if($AndSync){'Verificare caricamento IDE e account (manuale).'}else{'Distribuire le direttive con secondbrain.ps1 -Sync dopo aver riletto il -Check.'}
     $result
 }
+function Get-SBIDEStaleObservation($Ide,[string]$GlobalText) {
+    # Voce manuale con testo osservato (observedHash) diverso da quello approvato: restituisce revisione osservata e attesa, altrimenti $null.
+    if(!$Ide.ContainsKey('observedHash') -or !$Ide.observedHash){return $null}
+    $text=$GlobalText.Trim()
+    if([string]$Ide.observedHash -ceq (Get-SBTextHash $text)){return $null}
+    $expected=if($text -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
+    $observed=if($Ide.ContainsKey('observedRevision') -and $Ide.observedRevision){[string]$Ide.observedRevision}else{'sconosciuta'}
+    @{observedRevision=$observed;expectedRevision=$expected}
+}
 function Get-SBIDEContextState($Ide,$State) {
     # Confronta il contesto corrente con la base registrata (configurazione, altrimenti state.json): unrecorded, unchanged, changed o unknown.
     $name=[string]$Ide.name;$context=Get-SBIDEContext $name
     if(!$context){return @{status='unknown';current='';recorded=''}}
+    # Voce con radice alternativa: il fingerprint corrente include il suo percorso, come alla registrazione.
+    if($Ide.ContainsKey('customInstructionsPath') -and $Ide.customInstructionsPath){$context.fingerprint=Get-SBTextHash ($context.fingerprint+'|'+([string]$Ide.instructions).ToLowerInvariant())}
     $recorded=if($Ide.ContainsKey('environmentFingerprint') -and $Ide.environmentFingerprint){[string]$Ide.environmentFingerprint}
         elseif($State -and $State.ContainsKey('ideContext') -and $State.ideContext.ContainsKey([string]$Ide.id)){[string]$State.ideContext[[string]$Ide.id]}else{''}
     $status=if(!$recorded){'unrecorded'}elseif($recorded -ceq $context.fingerprint){'unchanged'}else{'changed'}
@@ -475,7 +540,14 @@ function Invoke-SBPortableSync {
                 if($contextState.status -eq 'unrecorded' -and !$Check -and $contextState.current){$state.ideContext[[string]$ide.id]=$contextState.current}
                 elseif($contextState.status -eq 'changed'){$issues+=@{kind='ide-context-changed';ide=$ide.name;reason='Contesto IDE diverso da quello registrato: riverificare login e caricamento, quindi riattivare con Setup e ritirare il vecchio accesso con Unbind'}}
                 $observed=Test-SBIDEObservation $ide (Get-SBTextHash $global.Trim()) $observations $Config.brainRoot $Config.workstationId
-                if($ide.mode -eq 'manual'){if(!$observed){$issues+=@{kind='account-unverified';ide=$ide.name}};continue}
+                if($ide.mode -eq 'manual'){
+                    $alias=if($ide.ContainsKey('accountAlias')){[string]$ide.accountAlias}else{''}
+                    if(!$observed){$issues+=@{kind='account-unverified';ide=$ide.name;id=$ide.id;accountAlias=$alias}}
+                    # Testo account osservato diverso da quello approvato: va riallineato (nuova revisione o account non aggiornato).
+                    $stale=Get-SBIDEStaleObservation $ide $global
+                    if($stale){$issues+=@{kind='ide-directive-stale';ide=$ide.name;id=$ide.id;accountAlias=$alias;observedRevision=$stale.observedRevision;expectedRevision=$stale.expectedRevision}}
+                    continue
+                }
                 $key=[IO.Path]::GetFullPath($ide.instructions)+'|global'
                 if(!$state.managed.ContainsKey($key) -and (Get-SBFileHash $ide.instructions) -ne 'absent'){
                     if((Get-SBFileHash $ide.instructions) -ne $ide.sha256){$issues+=@{kind='ide-conflict';ide=$ide.name};continue}
@@ -512,7 +584,7 @@ function Invoke-SBPortableSync {
         }
         $fileIssueKinds=@('directive-pending','directive-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
-        $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed')}).Count
+        $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.
         $warnings=@()
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason='Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'}}

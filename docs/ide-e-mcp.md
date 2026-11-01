@@ -19,6 +19,8 @@ flowchart LR
 
 Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
 
+Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS12` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
+
 ## Collega
 
 ```powershell

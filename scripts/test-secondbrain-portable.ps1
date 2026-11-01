@@ -66,6 +66,19 @@ try{
     Put-Portable $selection (ConvertTo-SBJson $multiAccount)
     $multiPreview=Invoke-SBHostActivation $brain $selection
     Assert-Portable (@($multiPreview.ideBindings|ForEach-Object id|Sort-Object -Unique).Count -eq 2) 'account distinti hanno associazioni IDE distinte'
+    $dupAccount=@{}+$choice;$dupAccount.ides=@(@{id=$manualAsset.id;accountAlias='account-a'},@{id=$manualAsset.id;accountAlias='account-a'})
+    Put-Portable $selection (ConvertTo-SBJson $dupAccount)
+    Reject-Portable {Invoke-SBHostActivation $brain $selection} 'integrazione IDE duplicata nella selezione rifiutata'
+    $manualPath=@{}+$choice;$manualPath.ides=@(@{id=$manualAsset.id;accountAlias='account-a';instructionsPath=(Join-Path $env:USERPROFILE 'altro/CLAUDE.md')})
+    Put-Portable $selection (ConvertTo-SBJson $manualPath)
+    Reject-Portable {Invoke-SBHostActivation $brain $selection} 'percorso istruzioni alternativo rifiutato per un IDE manuale'
+    $altHome=$env:USERPROFILE;$altPath=Join-Path $altHome '.claude-lavoro/CLAUDE.md'
+    Assert-Portable ((Assert-SBIDEInstructionsPath 'Claude Code' $altPath) -ieq [IO.Path]::GetFullPath($altPath)) 'percorso istruzioni alternativo valido accettato'
+    Reject-Portable {Assert-SBIDEInstructionsPath 'Claude Code' (Join-Path $altHome 'x/AGENTS.md')} 'percorso alternativo con nome file errato rifiutato'
+    Reject-Portable {Assert-SBIDEInstructionsPath 'Claude Code' 'relativo/CLAUDE.md'} 'percorso alternativo relativo rifiutato'
+    Reject-Portable {Assert-SBIDEInstructionsPath 'Claude Code' ([IO.Path]::GetPathRoot($altHome)+'CLAUDE.md')} 'percorso alternativo fuori dal profilo utente rifiutato'
+    Reject-Portable {Assert-SBIDEInstructionsPath 'Claude Code' (Join-Path $altHome '.ssh/CLAUDE.md')} 'percorso alternativo in cartella di credenziali rifiutato'
+    Reject-Portable {Assert-SBIDEInstructionsPath 'Cursor' $altPath} 'percorso alternativo non supportato per un IDE manuale'
     Put-Portable $selection (ConvertTo-SBJson $choice)
     $beforeEnvironment=[Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User')
     $activation=Invoke-SBHostActivation $brain $selection -Apply
@@ -335,6 +348,7 @@ try{
     Put-Portable (Join-Path $cfg.runtimeRoot 'ide-map.json') (ConvertTo-SBJson $map)
     $ideResult=& pwsh -NoProfile -File (Join-Path $brain 'scripts/ide-map.ps1') -Verify -ConfigPath $activation.configuration 2>&1
     Assert-Portable ($LASTEXITCODE -eq 1 -and ($ideResult -join "`n") -match 'non verificati o disallineati') 'file 3.3 non nasconde account 3.1'
+    Assert-Portable (($ideResult -join "`n") -match 'testo account obsoleto \(revisione osservata 3\.1, attesa 3\.3\)') 'ide-map segnala il testo account obsoleto con revisione osservata e attesa'
     $evidencePath=Join-Path $brain '.runtime/observation.txt';Put-Portable $evidencePath 'synthetic observation protocol fixture; not a real account verification'
     $observationIDE=@{id='account-fixture';name='Account Fixture';mode='manual';profile='current-user';accountAlias='account-a';environment='desktop'}
     $observation=@{ideId='account-fixture';workstationId=$cfg.workstationId;profile='current-user';accountAlias='account-a';environment='desktop';observedAt=[DateTimeOffset]::UtcNow.ToString('o');observedHash=(Get-SBTextHash $globalText);loadingVerified=$true;accountVerified=$true;sessionId='synthetic-test';evidencePath=$evidencePath;evidenceSha256=(Get-SBFileHash $evidencePath)}
@@ -354,6 +368,12 @@ try{
     Assert-Portable ($unobservedSync.filesAligned -eq $true -and $unobservedSync.liveLoadingVerified -eq $false) 'filesAligned distinto da liveLoadingVerified'
     $observedSync=Invoke-SBPortableSync $manualCfg -ObservationPath $receiptJsonPath -Check
     Assert-Portable ($observedSync.filesAligned -eq $true -and $observedSync.liveLoadingVerified -eq $true) 'liveLoadingVerified confermato con osservazione valida'
+    $staleIDE=@{}+$observationIDE;$staleIDE.observedHash=(Get-SBTextHash 'testo precedente');$staleIDE.observedRevision='0.9'
+    $staleCfg=@{}+$manualCfg;$staleCfg.ides=@($staleIDE)
+    $staleSync=Invoke-SBPortableSync $staleCfg -ObservationPath $receiptJsonPath -Check
+    $staleIssue=@($staleSync.issues|Where-Object kind -eq 'ide-directive-stale')
+    Assert-Portable ($staleIssue.Count -eq 1 -and $staleIssue[0].id -eq 'account-fixture' -and $staleIssue[0].accountAlias -eq 'account-a' -and $staleIssue[0].observedRevision -eq '0.9' -and $staleIssue[0].expectedRevision -ne 'sconosciuta' -and $staleSync.liveLoadingVerified -eq $false -and $staleSync.filesAligned -eq $true) 'testo account obsoleto segnalato per id e alias senza toccare filesAligned'
+    Assert-Portable (!@($observedSync.issues|Where-Object kind -eq 'ide-directive-stale').Count) 'nessun testo obsoleto senza hash osservato'
     Put-Portable $agents 'manually drifted agents'
     $driftSync=Invoke-SBPortableSync $manualCfg -Check
     Assert-Portable ($driftSync.filesAligned -eq $false) 'filesAligned falso in presenza di drift'
@@ -422,7 +442,7 @@ try{
     Assert-Portable (!$mcpListRes.result.isError -and $mcpListRes.result.content[0].text -match 'SYS03') 'strumento list_prompts filtra per categoria'
     $mcpCompact = @{ jsonrpc = '2.0'; id = 1051; method = 'tools/call'; params = @{ name = 'list_prompts'; arguments = @{ category = 'SYS'; compact = $true } } } | ConvertTo-Json -Compress -Depth 5
     $mcpCompactRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCompact | ConvertFrom-Json
-    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^SYS\d{2} \| ').Count -eq 9 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
+    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^SYS\d{2} \| ').Count -eq 10 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
     $mcpHome = @{ jsonrpc = '2.0'; id = 1052; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{} } } | ConvertTo-Json -Compress
     $mcpHomeRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHome | ConvertFrom-Json
     Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'

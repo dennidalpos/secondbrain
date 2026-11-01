@@ -1606,7 +1606,8 @@
       ],
       "related": [
         "pmt-f02db9d0",
-        "pmt-5b593404"
+        "pmt-5b593404",
+        "pmt-3a875788"
       ],
       "requires": "installazioni IDE e autorizzazioni locali",
       "scope": "central",
@@ -1649,7 +1650,8 @@
       ],
       "related": [
         "pmt-26817a61",
-        "pmt-677a10ab"
+        "pmt-677a10ab",
+        "pmt-3a875788"
       ],
       "requires": "volume SecondBrain e consenso utente sugli asset",
       "scope": "central",
@@ -1837,6 +1839,29 @@
       "scope": "central",
       "status": "active",
       "summary": "Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.",
+      "target": "central"
+    },
+    {
+      "aliases": [],
+      "category": "sistema",
+      "code": "SYS12",
+      "example": "sb prompt SYS12: registra un ide con due account o due radici",
+      "file": "SYS12.md",
+      "id": "pmt-3a875788",
+      "mode": "write",
+      "references": [
+        "https://code.claude.com/docs/en/memory",
+        "https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features"
+      ],
+      "related": [
+        "pmt-26817a61",
+        "pmt-5f9f93e0",
+        "pmt-677a10ab"
+      ],
+      "requires": "postazione attivata, IDE rilevato, alias degli account e consenso utente",
+      "scope": "central",
+      "status": "active",
+      "summary": "Registra un IDE con più account o percorsi, con disclaimer e conferma.",
       "target": "central"
     },
     {

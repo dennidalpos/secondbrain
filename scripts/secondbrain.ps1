@@ -39,6 +39,7 @@ param(
     [Parameter(ParameterSetName='Setup')][switch]$All,
     [Parameter(ParameterSetName='Setup')][string[]]$Ides=@(),
     [Parameter(ParameterSetName='Setup')][switch]$AllIdes,
+    [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
     [Parameter(ParameterSetName='Setup')][switch]$Yes,
@@ -70,7 +71,7 @@ try {
         if ($outputOptions -and !$outputBound) { throw ('-' + ($outputOptions -join ', -') + ' richiede -Output') }
         if ($Status -or $outputBound -or $Unbind.Count -or $PSBoundParameters.ContainsKey('Unbind')) {
             if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw '-Status, -Unbind e -Output sono alternativi' }
-            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'ApproveExistingBlocks', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw ('-Status/-Unbind/-Output non accettano: -' + ($conflicting -join ', -')) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano' }
@@ -84,7 +85,7 @@ try {
             if ($result.stage -in @('status', 'preview', 'applied')) { exit 0 }
             exit 1
         }
-        $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes `
+        $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
             -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
         ConvertTo-SBJson $result
         # 0: anteprima valida o attivazione applicata; 1: proposta senza conferma, discovery in pausa o controllo successivo non eseguibile.

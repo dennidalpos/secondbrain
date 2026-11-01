@@ -32,3 +32,4 @@ Esiti per IDE, prove e passaggi manuali; exit 0 non certifica il caricamento.
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
 - SYS02: Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.
+- SYS12: Registra un IDE con più account o percorsi, con disclaimer e conferma.

@@ -482,6 +482,12 @@ SYS11 | Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
   • Serve: catalogo valido, area di destinazione e sessione di scrittura
   • Esempio: sb prompt SYS11: aggiungi un prompt al catalogo nell'area test
 
+SYS12 | Registra un IDE con più account o percorsi, con disclaimer e conferma.
+  • ID: pmt-3a875788
+  • Scope: central | Modalità: write
+  • Serve: postazione attivata, IDE rilevato, alias degli account e consenso utente
+  • Esempio: sb prompt SYS12: registra un ide con due account o due radici
+
 
 GOVERNANCE, LICENZE E CONFORMITÀ
 GOV01 | Verifica licenze open source, conformità dei file e header SPDX.

@@ -40,3 +40,4 @@ Rapporto locale, selezione, asset gestiti e passi manuali o impedimenti. Nessun 
 
 - SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
+- SYS12: Registra un IDE con più account o percorsi, con disclaimer e conferma.

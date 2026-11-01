@@ -94,6 +94,27 @@ Procedura per un nuovo accesso (nuovo account, profilo o radice):
 3. Ritira l'accesso precedente: `scripts/secondbrain.ps1 -Setup -Unbind <id-precedente> -Yes -Apply`. I file dell'IDE non vengono modificati.
 4. In una sessione nuova dell'IDE registra la ricevuta di osservazione e rilancia `scripts/ide-map.ps1 -Verify -ObservationPath <path>`: l'allineamento dei file non dimostra il caricamento.
 
+### 5. Più account o più radici dello stesso IDE (`sb prompt SYS12`)
+
+Un IDE usato con più account (per esempio l'app Claude con due login) o con più radici di configurazione (`CLAUDE_CONFIG_DIR`, `CODEX_HOME` diversi) va registrato come più integrazioni, una per account o radice. Il prompt di sistema SYS12 guida la procedura: mostra il disclaimer, raccoglie le scelte con una domanda a scelta multipla per decisione, registra e verifica.
+
+> **Disclaimer.** SecondBrain non rileva gli account e non legge archivi di autenticazione: l'account è dichiarato dall'utente (`accountAlias`) e provato da una ricevuta di osservazione. Un file allineato o una ricevuta non provano il caricamento nelle chat. Nessuna automazione del login. L'aggiornamento del testo nelle impostazioni account è assistito e richiede il login e l'autorizzazione dell'utente. `.runtime` contiene dati locali e non si pubblica.
+
+Registrazione guidata (l'agente non scrive `selection.json` a mano):
+
+```powershell
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Status
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude account instructions|personale;Claude account instructions|lavoro" -Yes -Apply
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude Code|lavoro|profile=current-user|environment=prod|path=<percorso-assoluto-sotto-il-profilo>/.claude-lavoro/CLAUDE.md" -Yes -Apply
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude account instructions|personale|revision=1.0|hash=<sha256 del testo letto dalle impostazioni>" -Yes -Apply
+```
+
+- Formato: `id-o-nome|alias[|chiave=valore...]`; più voci separate da `;`. Chiavi: `profile`, `environment`, `path`, `revision`, `hash`. Profilo, ambiente e percorso definiscono, con l'alias, l'id dell'integrazione.
+- Il percorso alternativo è ammesso solo per gli IDE di tipo file (Claude Code, Codex, Antigravity): assoluto, sotto il profilo utente, con il nome file atteso (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) e fuori da cartelle di credenziali. La voce ha percorso, hash e fingerprint propri e il blocco `global` viene distribuito anche in quel file da `-Sync`.
+- Voci con stesso profilo, alias, ambiente e percorso sono duplicati e vengono rifiutate. Senza `-Yes -Apply` il comando mostra solo l'anteprima.
+- Per le superfici manuali (impostazioni account) `revision` e `hash` (insieme, solo IDE manuali) registrano nella voce la revisione e l'hash SHA-256 del testo letto dalle impostazioni (`observedRevision`, `observedHash`), dichiarati dall'utente: dopo una nuova revisione delle direttive `-Sync`, `-Check` e `ide-map.ps1 -Verify` segnalano `ide-directive-stale` con revisione osservata e attesa, finché il testo dell'account non viene riallineato e riosservato.
+- `ide-map.ps1 -Verify` riporta id e alias di ogni integrazione. Ritira un accesso superato con `-Unbind <id>`.
+
 ## Integrazione Server MCP con OpenAI Codex
 
 Per OpenAI Codex (CLI e Desktop), SecondBrain offre il server MCP stdio locale (`scripts/mcp-server.ps1`).
