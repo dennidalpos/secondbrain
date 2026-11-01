@@ -92,6 +92,13 @@ try {
     Assert-Workflow ($readmeRoot.Contains('docs/sicurezza.md') -and (Read-SBText (Join-Path $repoRoot 'docs/riferimento/operations.md')).Contains('safety-backups.md')) 'guida sicurezza linkata da README e operations'
     $guideProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     Assert-Workflow ($guideProposal -match 'primi passi' -and $guideProposal -match 'guide per il primo avvio' -and $guideProposal -match 'get_prompt_home') 'proposta direttive: primi passi e guide'
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1') -Force
+    $policyBrain=Join-Path $temp 'policy-brain'
+    Assert-Workflow ($null -eq (Resolve-SBPublicationPolicyPath $policyBrain $null)) 'policy pubblicazione: assente senza file di default'
+    Put-Workflow (Join-Path $policyBrain '.runtime/publication/policy.json') '{"schemaVersion":1,"allowances":[]}'
+    Assert-Workflow ((Resolve-SBPublicationPolicyPath $policyBrain $null) -eq '.runtime/publication/policy.json' -and (Resolve-SBPublicationPolicyPath $policyBrain 'altra.json') -eq 'altra.json') 'policy pubblicazione: default se presente, override esplicito prevalente'
+    Assert-Workflow ((Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')).Contains('Resolve-SBPublicationPolicyPath') -and (Read-SBText (Join-Path $PSScriptRoot 'publication.ps1')).Contains('Resolve-SBPublicationPolicyPath')) 'policy pubblicazione: MCP e CLI usano la stessa risoluzione'
+    Assert-Workflow ((Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')) -match '(?s)\$budget = 20000.{0,400}-Profile Slim') 'Check: compaction-required misura il profilo Slim a 20.000 caratteri'
     $cliHome=& pwsh -NoProfile -File $cli
     Assert-Workflow ($LASTEXITCODE -eq 0 -and ($cliHome -join "`n") -match 'sb prompt tutti' -and ($cliHome -join "`n") -notmatch 'TST04 \|') 'CLI senza argomenti mostra la schermata iniziale e non l''elenco'
     $cliCompact=& pwsh -NoProfile -File $cli -List -Compact

@@ -82,12 +82,11 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
 | [Workflow Operativi (COM01-GOV02)](prompt-workflows.md) | Catalogo degli 80 workflow, 13 aree, schede, approvazione direttive e generazione |
-| [Configurazione](setup.md) | Requisiti, percorsi, schemi e nuovo PC |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |
 | [IDE](adapters.md) | Mappa, verifica dei file e caricamento manuale |
-| [PARA e workflow](para.md) | Metadati, Progetti, composizione e archiviazione |
+| [PARA e Progetti](tree.md#para-gestione-dei-progetti) | Metadati, Progetti, composizione e archiviazione |
 | [Tracker](trackers.md) | Fonti autorevoli, conversione, manifest, ripresa e recupero |
 | [Registro delle fonti](authoritative-sources.md) | Normative, standard, dati ufficiali, applicabilita e verifica settimanale |
 | [Audit GitHub](external-audit.md) | Raccolta GET esplicita, paginazione, copertura e limiti esterni |

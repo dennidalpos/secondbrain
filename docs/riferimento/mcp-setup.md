@@ -16,7 +16,7 @@ Il server MCP di SecondBrain è un servizio conforme allo standard di settore **
 ### Prerequisiti di Sistema
 - **PowerShell 7.5+** (`pwsh`) installato su Windows.
 - Percorso assoluto del clone SecondBrain (es. `C:\Progetti\SecondBrain` o `$env:SECONDBRAIN_HOME`).
-- Il pairing (`-Pair`) non richiede la postazione attivata: legge solo il percorso del clone. Per usare il server con il contesto dei tuoi repository attiva prima la postazione (`secondbrain.ps1 -Setup`, vedi [setup](setup.md)).
+- Il pairing (`-Pair`) non richiede la postazione attivata: legge solo il percorso del clone. Per usare il server con il contesto dei tuoi repository attiva prima la postazione (`secondbrain.ps1 -Setup`, vedi [setup](portable-brain.md#configurazione-e-prerequisiti)).
 - Prima di `-Apply` leggi [cosa modifica SecondBrain e dove sono i backup](safety-backups.md).
 
 ---

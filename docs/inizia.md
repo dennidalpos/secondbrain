@@ -77,4 +77,4 @@ pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 | Dopo l'attivazione `-Check` termina con codice 1 | Leggi le voci in `issues`: spesso sono solo promemoria |
 | Vuoi tornare indietro | [Ripristina un file](sicurezza.md#ripristina-un-file) |
 
-Prossimo passo: [uso quotidiano](uso-quotidiano.md). Tutte le opzioni: [configurazione](riferimento/setup.md).
+Prossimo passo: [uso quotidiano](uso-quotidiano.md). Tutte le opzioni: [configurazione](riferimento/portable-brain.md#configurazione-e-prerequisiti).

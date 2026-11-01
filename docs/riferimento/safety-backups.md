@@ -97,4 +97,4 @@ SecondBrain non ha un disinstallatore automatico. Per rimuovere ciò che ha scri
 5. **Hook Git**: `publication.ps1 -RepositoryPath <repo> -UninstallHook -Apply`.
 6. **Clone**: cancellalo per ultimo; contiene `.runtime` con tutti i backup, quindi copia prima ciò che vuoi conservare.
 
-Altre guide: [manutenzione di .runtime](runtime-maintenance.md), [setup iniziale](setup.md), [server MCP](mcp-setup.md), [alberatura e cartelle cancellabili](tree.md).
+Altre guide: [manutenzione di .runtime](runtime-maintenance.md), [setup iniziale](portable-brain.md#configurazione-e-prerequisiti), [server MCP](mcp-setup.md), [alberatura e cartelle cancellabili](tree.md).

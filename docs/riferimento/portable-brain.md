@@ -12,6 +12,65 @@ Apri questo checkout nell'IDE e usa `sb attiva`. Se l'IDE non legge AGENTS.md, i
 
 Senza agent: `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive`. Git e PowerShell 7.5+ sono prerequisiti; non vengono installati silenziosamente. `-Setup` esegue preflight, discovery, proposta, conferma, anteprima e (con `-Apply`) attivazione; report e selezione sono per host in `.runtime/hosts/<id>/`. `scripts/secondbrain.ps1 -Discover` usa i volumi locali fissi accessibili; `-Roots` include esplicitamente altri percorsi. `-MaxDirectories` e `-ReportPath` consentono checkpoint riprendibili con `-ResumePath`. Rapporti e selezioni devono risiedere sotto .runtime. La scansione esclude gli alberi di sistema e di build noti (`Windows`, `Program Files`, `Program Files (x86)`, `AppData`, `node_modules`, `.venv`, `bin`, `obj`), registrandoli in `excluded` senza esplorarne le directory per ridurre l'occupazione e i tempi di visita. La scansione legge metadati e Git; non legge archivi di credenziali. Gli errori non diventano assenza di asset.
 
+## Configurazione e prerequisiti
+
+SecondBrain richiede Windows, Git e PowerShell 7.5+. Il bootstrap non installa software, non richiede percorsi preimpostati e non registra monitor.
+
+### Procedura rapida
+
+Prima leggi [cosa modifica SecondBrain e dove sono i backup](safety-backups.md). Dalla radice del clone, in PowerShell 7.5+:
+
+```powershell
+# 1. Clone (privato o tuo fork) e ingresso nella cartella: scegli un percorso senza spazi
+git clone https://github.com/dennidalpos/SecondBrain.git C:/Progetti/SecondBrain
+cd C:/Progetti/SecondBrain
+
+# 2. Schermata iniziale (è ciò che mostra `sb prompt` in chat) e controllo in sola lettura
+pwsh -NoProfile -File scripts/prompts.ps1
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
+
+# 3. Attivazione guidata: elenca repository e IDE, scrive solo dopo CONFERMO e APPLICA
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive
+
+# 4. Server MCP: anteprima, poi applicazione a un IDE (backup automatico)
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude -Apply
+
+# 5. Direttive globali: distribuzione del blocco gestito e verifica
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
+pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
+```
+
+`SECONDBRAIN_HOME` è una variabile utente impostata da `-Setup -Apply` (non con `-NoRegisterEnvironment`): indica il clone ai tuoi agent. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [guida utente](user-guide.md).
+
+### Primo avvio con un agent
+
+Apri il checkout SecondBrain nell'IDE e scrivi `sb attiva`. Se l'IDE non carica AGENTS.md, usa il prompt completo di [Avvio da un nuovo PC](#avvio-da-un-nuovo-pc). SYS03 guida discovery, selezione e attivazione tramite `scripts/secondbrain.ps1 -Setup` (utilizzabile anche senza agent: `-Setup -Interactive`): i repository scoperti non vengono gestiti finché non li selezioni.
+
+Il clone corrente viene registrato nella variabile utente `SECONDBRAIN_HOME`. Configurazione, inventario host, backup e output restano sotto `.runtime` nel clone e sono esclusi da Git. Ogni PC mantiene la propria mappa; dossier e identità sono condivisi tramite il Git privato di SecondBrain.
+
+### File e percorsi
+
+La configurazione locale viene generata dall'attivazione. [L'esempio schema 1](../../config/workstation.example.json) illustra i campi senza contenere percorsi personali; non copiarlo come autorizzazione a gestire asset. `-ConfigPath` è un override esplicito; in assenza di override le CLI risolvono la configurazione della postazione.
+
+Le istruzioni comuni e gli account IDE non devono contenere percorsi del singolo PC. Gli IDE già aperti possono avere una vecchia copia dell'ambiente di processo: verificare il valore utente aggiornato senza sovrascrivere variabili globali dei tool prodotto.
+
+### Schemi
+
+| Dato | Schema |
+|---|---|
+| Configurazione postazione | 1 |
+| Inventario locale | 1 |
+| Mappa IDE con profili e account | 1 |
+| Metadati PARA e tracker dei dossier | 1 |
+| Catalogo prompt | 1 |
+
+### Verifiche e limiti
+
+Eseguire suite principale, Check, verifica IDE e catalogo. File allineati, account osservati, funzionamento reale e copertura della scansione sono esiti distinti. La prova di portabilità su un secondo PC rimane distinta dalle fixture.
+
+La prima implementazione usa Windows; non è dichiarato supporto macOS/Linux. JSON è validato con [PowerShell Test-Json](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/test-json?view=powershell-7.5).
+
 ## Selezione e attivazione
 
 `-Setup` genera la selezione e registra come `confirmation` utente, host, data e modalità (`-Yes` o interattiva); senza conferma resta una proposta con confirmed=false, rifiutata da `-Activate`. Formato (per gli usi diretti di `-Activate`): la selezione JSON ha schemaVersion=1, confirmed=true, confirmation (riferimento alla scelta umana), reportPath, reportSha256, repositories e ides. Ogni repository usa l'id del candidato; approveExistingBlock=true conferma il blocco esistente esaminato. Ogni IDE usa l'id del candidato e può specificare accountAlias/profile/environment. Il flag non sostituisce l'autorizzazione umana. `-Activate -SelectionPath` mostra l'anteprima; aggiungere `-Apply` solo dopo conferma. Fingerprint e hash impediscono di applicare una selezione divenuta obsoleta.

@@ -54,10 +54,7 @@ try{
         ConvertTo-SBJson $res
         exit 0
     }
-    if(!$PolicyPath){
-        $defaultPolicy=Join-Path $brain '.runtime/publication/policy.json'
-        if(Test-Path -LiteralPath $defaultPolicy -PathType Leaf){$PolicyPath='.runtime/publication/policy.json'}
-    }
+    $PolicyPath=Resolve-SBPublicationPolicyPath $brain $PolicyPath
     $report=Test-SBPublication -RepositoryPath $RepositoryPath -BrainRoot $brain -PolicyPath $PolicyPath -MaxHistoryBlobs $MaxHistoryBlobs -Initial:$Initial
     if($ReportPath){$path=Assert-SBCentralDataPath $brain $ReportPath;[IO.Directory]::CreateDirectory((Split-Path $path))|Out-Null;Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $path) (Join-Path $brain '.runtime/backups/publication')|Out-Null}
     ConvertTo-SBJson $report

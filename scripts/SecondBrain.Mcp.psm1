@@ -184,7 +184,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
                 throw 'Il parametro repositoryPath è obbligatorio per check_publication'
             }
             $repoPath = [string]$Arguments.repositoryPath
-            $report = Test-SBPublication -RepositoryPath $repoPath -BrainRoot $BrainRoot
+            $report = Test-SBPublication -RepositoryPath $repoPath -BrainRoot $BrainRoot -PolicyPath (Resolve-SBPublicationPolicyPath $BrainRoot $null)
             return ConvertTo-SBMcpJson $report
         }
         default {

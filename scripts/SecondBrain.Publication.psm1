@@ -32,6 +32,12 @@ function Test-SBPublicationText([string]$Text,[string]$Path,[string]$Surface,$Al
         }
     }
 }
+function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath) {
+    # Senza -PolicyPath esplicito usa la policy locale di default, se esiste (CLI e MCP danno lo stesso esito).
+    if($PolicyPath){return $PolicyPath}
+    if(Test-Path -LiteralPath (Join-Path $BrainRoot '.runtime/publication/policy.json') -PathType Leaf){return '.runtime/publication/policy.json'}
+    return $null
+}
 function Test-SBPublication {
     param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[int]$MaxHistoryBlobs=10000,[int]$MaxTextBytes=2097152,[switch]$Initial)
     $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw 'Checkout Git richiesto'};$root=$repo.output
