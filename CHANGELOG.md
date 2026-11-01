@@ -4,6 +4,14 @@ Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazi
 
 ## [Non rilasciato]
 
+## [1.1.0] - 2026-11-01
+
+### Modificato
+
+- Direttive comuni 1.1: ogni decisione durevole è una riga «Decisione: … — Motivo: …» in `memory.md` (nessun file ADR separato) e il cambio di versione accettato si registra nel `CHANGELOG.md`.
+- `SYS11`: il ritiro predefinito di un prompt non usa `deprecations`, riservate a eliminazione e rinomina.
+- Il modello di postazione rimanda a REP02 per la preparazione del README (REP06 è fuso in REP02).
+
 ## [1.0.0] - 2026-11-01
 
 ### Aggiunto

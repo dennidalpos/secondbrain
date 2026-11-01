@@ -1,13 +1,13 @@
 {
-  "approvedAt": "2026-11-01T11:57:25.6036101+01:00",
-  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): direttive 1.0",
+  "approvedAt": "2026-11-01T19:23:02.2053786+01:00",
+  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): direttive 1.1 (ADR leggere, CHANGELOG, REP02)",
   "files": {
-    "direttive/AGENTS.global_ide.md": "BD71FC9AF31D22DD21A0E6243F905300631B85120A6A3E7C12EF9FAD4193CA8C",
-    "direttive/workstation.template.md": "B5821F83D2567E84690DFF9B3336CE235D9E6BC837E8172A057C26B7A377A9A2"
+    "direttive/AGENTS.global_ide.md": "3F9E3C0B305FE5BCF931B2543DC73B78A945A8025DCA84975472AEE4E6CB3ED9",
+    "direttive/workstation.template.md": "1088CFF25F78FEEEEA2984B3F7E7E1C96F95B0E8D4BE38C98CBECA862B1B6FCB"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-01-v1.0",
-    "readmeHash": "04605E88F5C7A6B243AB5DC242E89F7235ECC22997EB462BCD0856B7F2E259E4"
+    "path": "direttive/proposals/2026-11-01-adr",
+    "readmeHash": "6C6094F8D925474084B1854951F01BC3E5C3DA330655A10AD666165EE156701E"
   },
   "schemaVersion": 1
 }

@@ -1,6 +1,6 @@
 # SecondBrain
 
-![Versione 1.0.0](https://img.shields.io/badge/versione-1.0.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
+![Versione 1.1.0](https://img.shields.io/badge/versione-1.1.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
 
 **Dà ai tuoi agenti di sviluppo una memoria e le stesse regole su tutti i progetti.**
 
