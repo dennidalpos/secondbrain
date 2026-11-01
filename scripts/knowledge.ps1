@@ -13,8 +13,12 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='TaskNew')][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
-    [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
+    [Parameter(Mandatory,ParameterSetName='Lifecycle')][ValidateSet('greenfield','none')][string]$SetLifecycle,
+    [Parameter(Mandatory,ParameterSetName='Task')][string]$Task,
+    [Parameter(Mandatory,ParameterSetName='Section')][string]$Section,[Parameter(ParameterSetName='Section')][string]$Source,
+    [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Task')][Parameter(ParameterSetName='Section')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
+    [Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@())
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
@@ -22,7 +26,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
-    $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask)
+    $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask -and !$SetLifecycle)
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
@@ -53,13 +57,26 @@ try{
         }
     }
     elseif($Compact){$result=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $Dossier -CandidatePath $CandidatePath -BackupRoot $config.backupRoot -Apply:$Apply -CheckoutPath $CheckoutPath -Budget $effectiveBudget}
-    elseif($Search){$result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $Repository -Budget $effectiveBudget -Mode $Mode}
+    elseif($Search){$result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $Repository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $Limit}
+    elseif($Task -or $Section){
+        # Strati di approfondimento: dettaglio integro di un task (anche archiviato) o sezione intera per titolo, dal dossier del repository in lavoro.
+        if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
+        elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
+        $result=if($Task){Get-SBTaskDetail -BrainRoot $brain -Dossier $Dossier -Task $Task -CheckoutPath $CheckoutPath}else{Get-SBSection -BrainRoot $brain -Dossier $Dossier -Title $Section -Source $Source}
+    }
     elseif($UpdateTaskId){
         # Le scritture restano nel repository in lavoro: un -Repository diverso dal checkout corrente e rifiutato.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
         $repoId=if($Repository){$Repository}else{$working}
         $result=Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $repoId -WorkingRepository $working -TaskId $UpdateTaskId -Status $Status -StateReason $StateReason -BackupRoot $config.backupRoot
+    }
+    elseif($SetLifecycle){
+        # Blocco greenfield: come per i task, si modifica soltanto il repository in lavoro.
+        $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
+        if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
+        if($Repository -and $Repository -cne $working){throw 'Il ciclo di vita si modifica soltanto per il repository in lavoro'}
+        $result=Set-SBRepositoryLifecycle -Dossier (Join-Path $brain (Resolve-SBWorkingDossier $brain $working)) -Lifecycle $SetLifecycle -BackupRoot $config.backupRoot
     }
     elseif($NewTask -or $RenumberTasks){
         # Creazione e numerazione restano nel repository in lavoro, come gli aggiornamenti di stato.

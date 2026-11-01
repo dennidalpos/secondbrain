@@ -488,6 +488,18 @@ SYS12 | Registra un IDE con più account o percorsi, con disclaimer e conferma.
   • Serve: postazione attivata, IDE rilevato, alias degli account e consenso utente
   • Esempio: sb prompt SYS12: registra un ide con due account o due radici
 
+SYS13 | Fissa il blocco greenfield: niente versioni, changelog, migrazioni, alias.
+  • ID: pmt-29b3278f
+  • Scope: repo/area | Modalità: write
+  • Serve: repository gestito, dossier attivo e conferma dell'utente
+  • Esempio: sb prompt SYS13: fissa il blocco greenfield su questo repository
+
+SYS14 | Rimuovi il blocco greenfield e riprendi il ciclo normale di versione.
+  • ID: pmt-b799f469
+  • Scope: repo/area | Modalità: write
+  • Serve: repository gestito con blocco greenfield attivo e conferma dell'utente
+  • Esempio: sb prompt SYS14: rimuovi il blocco greenfield da questo repository
+
 
 GOVERNANCE, LICENZE E CONFORMITÀ
 GOV01 | Verifica licenze open source, conformità dei file e header SPDX.

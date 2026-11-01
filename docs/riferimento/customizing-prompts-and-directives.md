@@ -28,7 +28,7 @@ Le direttive comuni (`direttive/AGENTS.global_ide.md`) e l'integrazione di posta
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 81 schede operative (COM01–GOV02, di cui 78 attive e 3 ritirate con sostituto) in 13 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
+I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 83 schede operative (COM01–GOV02, di cui 80 attive e 3 ritirate con sostituto) in 13 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
 
 Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta, evitando sovraccarichi di contesto nel prompt dell'agente. La build valida tutte le schede prima di generare l'indice. Una riga logica dell'elenco è lunga al massimo 88 caratteri; finestre molto strette possono applicare il wrapping dell'IDE.
 
@@ -74,6 +74,7 @@ Ogni prompt deve essere censito in `direttive/prompts/catalog.json`:
 - `mode`: `read`, `write` o `verify`. Le modalità descrivono il workflow e non aumentano i permessi né superano la modalità Plan.
 - `file`: nome del file corrispondente (es. `DEV99.md`).
 - `references`: array di URL HTTPS ufficiali compatibili.
+- `next`: facoltativo, da 1 a 4 ID di prompt da proporre a fine task (esistenti, diversi dal prompt, non ritirati). La composizione chiude con la «Proposta del prompt successivo»: i candidati (fuori da SecondBrain senza prompt centrali) e i task pronti del repository, da offrire all'utente a scelta multipla senza avviare nulla. Ogni scheda attiva ne ha almeno uno.
 - `related`: array di ID di prompt vicini; deve contenere almeno un ID esistente e il codice di ciascun prompt vicino deve comparire nel testo della scheda (sezione *Prompt vicini*).
 - Sono obbligatori anche `scope`, `requires`, `status` (`active` o `deprecated`) ed `example`; il codice segue `^[A-Z]{2,4}[0-9]{2}$` e la scheda deve iniziare con `# <CODE> — ` e contenere le sezioni *Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna, Prompt vicini*. Il modo più rapido è copiare una scheda esistente e la sua voce.
 - Il catalogo è `catalog.json` schema 1 (catalogo 2), con categorie ordinate, `deprecations` facoltative (alias ritirati verso l'ID sostituto) e i prompt.
@@ -120,7 +121,7 @@ SecondBrain supporta un modello ibrido che distingue tra **file di configurazion
 
 ### Google Antigravity & Gemini
 - **File di Progetto**: `AGENTS.md` e regole `.gemini/antigravity`.
-- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con i 78 workflow attivi del catalogo (COM01–GOV02).
+- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con gli 80 workflow attivi del catalogo (COM01–GOV02).
 
 ---
 
@@ -242,7 +243,7 @@ flowchart TD
     B -->|"mostra CHIAVE"| F["prompts.ps1 -Show -Prompt CHIAVE"]
     B -->|"CHIAVE: obiettivo"| G["prompts.ps1 -Compose -Prompt CHIAVE -Objective ..."]
     C --> H["Link a direttive/prompts/README.md e tabella dei comandi sb"]
-    D --> I["78 righe: codice, modalità, sommario"]
+    D --> I["80 righe: codice, modalità, sommario"]
     E --> J["Prompt dell'area con ID, scope e requisiti"]
     F --> K["Scheda uniforme e corpo del prompt"]
     G --> L["Prompt con contesto del repository, eseguito dall'agente nei permessi della sessione"]

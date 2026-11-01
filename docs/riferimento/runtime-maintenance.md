@@ -58,10 +58,14 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Report
 # Contesto completo (senza tetto) o ricerca mirata nei livelli non caricati
 pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Profile Full
 pwsh -NoProfile -File scripts/knowledge.ps1 -Search "termine"
-pwsh -NoProfile -File scripts/knowledge.ps1 -Search "più termini della richiesta" -Mode Relevance
+pwsh -NoProfile -File scripts/knowledge.ps1 -Search "più termini della richiesta" -Mode Relevance -Limit 10 -Offset 0
+
+# Recupero a strati: task integro (anche archiviato) o sezione intera
+pwsh -NoProfile -File scripts/knowledge.ps1 -Task SB-SIMP-QUEUE-20261101
+pwsh -NoProfile -File scripts/knowledge.ps1 -Section "Stato" -Source context
 ```
 
-Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `full`; i task completi con `get_ready_tasks` (`includeAcceptance`).
+Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `full`; i task completi con `get_ready_tasks` (`includeAcceptance`) o `get_task` (ID o `#seq`, anche archiviati).
 
 **Caricamento a strati**: il profilo snello applica la Progressive Summarization (metodo di Tiago Forte, autore di PARA): ogni livello è un riassunto più breve dell'originale, e i livelli più profondi si leggono solo su richiesta. Qui il riassunto è sempre una scelta di sezioni, mai una riscrittura che perde informazioni: gli originali restano per hash.
 

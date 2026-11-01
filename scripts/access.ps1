@@ -4,6 +4,8 @@
 Registra gli accessi cooperativi a SecondBrain; vedere docs/riferimento/operations.md.
 Lo stato (-Status) e in sola lettura; -Purge elimina le sessioni chiuse, scadute o abbandonate da piu di 60 minuti.
 -Reconcile conferma esplicitamente uno spostamento della postazione (stesso workstationId, percorsi diversi) e aggiorna il registro.
+-Queue elenca la coda FIFO dei writer (posizione 1 = prossimo); con -Purge rimuove i ticket di processi terminati senza toccare writer.lock.
+Exit 3: scrittura occupata oltre l'attesa (-WaitSeconds, SECONDBRAIN_LOCK_WAIT_SECONDS o lockWaitSeconds in config/shared.json).
 .EXAMPLE
 pwsh -NoProfile -File scripts/access.ps1 -Start -Mode Write -Client Codex -Repository my-org/secondbrain
 #>
@@ -12,7 +14,8 @@ param(
     [Parameter(Mandatory,ParameterSetName='Reconcile')][switch]$Reconcile,
     [Parameter(Mandatory,ParameterSetName='Start')][switch]$Start,
     [Parameter(ParameterSetName='Status')][switch]$Status,
-    [Parameter(ParameterSetName='Status')][switch]$Purge,
+    [Parameter(Mandatory,ParameterSetName='Queue')][switch]$Queue,
+    [Parameter(ParameterSetName='Status')][Parameter(ParameterSetName='Queue')][switch]$Purge,
     [Parameter(Mandatory,ParameterSetName='End')][switch]$End,
     [Parameter(Mandatory,ParameterSetName='Renew')][switch]$Renew,
     [Parameter(Mandatory,ParameterSetName='Hold')][switch]$Hold,
@@ -21,12 +24,16 @@ param(
     [string]$Client='PowerShell',
     [string]$Repository='secondbrain',
     [string]$TargetPath=(Get-Location).Path,
-    [string]$SessionId
+    [string]$SessionId,
+    [ValidateRange(0,600)][int]$WaitSeconds=-1
 )
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
-$config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -eq 'Status')
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+if ($WaitSeconds -ge 0) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS=[string]$WaitSeconds }
+$config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -in @('Status','Queue'))
 $sessions=Join-Path $config.coordinationRoot 'sessions'
 if ($Reconcile) {
     # Conferma esplicita dello spostamento di cartelle della postazione: aggiorna la registrazione sotto lock di scrittura.
@@ -39,6 +46,10 @@ if ($PSCmdlet.ParameterSetName -eq 'Status') {
     @(Get-SBAccessStatus $config) | ConvertTo-Json -Depth 8
     # Una transazione interrotta blocca le scritture di tutti gli host: chi, quando e come recuperarla.
     if ($config.ContainsKey('pendingTransaction')) { [Console]::Error.WriteLine((Format-SBPendingTransaction $config.pendingTransaction)) }
+    exit 0
+}
+if ($Queue) {
+    @(Get-SBQueueStatus $config -Purge:$Purge) | ConvertTo-Json -Depth 8
     exit 0
 }
 if ($End -or $Renew) {
@@ -63,9 +74,11 @@ if ($Start) {
     foreach($arg in @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Hold','-ConfigPath',$config.configPath,'-SessionId',$SessionId,'-Mode',$Mode,'-Client',$Client,'-Repository',$Repository,'-TargetPath',$TargetPath)){$processInfo.ArgumentList.Add($arg)}
     $process=[Diagnostics.Process]::Start($processInfo)
     try {
-        for($i=0;$i -lt 100;$i++) {
+        # La sessione di scrittura attende in coda fino a lockWaitMs: la finestra di apertura la include.
+        $openPolls=100+$(if($Mode -eq 'Write'){[int]((Get-SBLockWaitMs $config)/100)}else{0})
+        for($i=0;$i -lt $openPolls;$i++) {
             $entry=Read-SBJson (Join-Path $sessions ($SessionId+'.json')) $null
-            if($entry){if($entry.status -ne 'active'){throw $entry.error};ConvertTo-SBJson $entry;exit 0}
+            if($entry){if($entry.status -ne 'active'){if($entry.ContainsKey('busy') -and $entry.busy){[Console]::Error.WriteLine($entry.error);exit 3};throw $entry.error};ConvertTo-SBJson $entry;exit 0}
             if($process.HasExited){throw 'Processo di coordinamento terminato prima della registrazione'}
             Start-Sleep -Milliseconds 100
         }
@@ -79,7 +92,9 @@ $metadata=@{sessionId=$SessionId;user=[Security.Principal.WindowsIdentity]::GetC
 try {
     if($Mode -eq 'Write') {
         $writerPath=Join-Path $config.coordinationRoot 'writer.lock';Assert-SBPlainPath $writerPath
-        $writer=Open-SBLockFile $writerPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) 3000
+        $waitMs=Get-SBLockWaitMs $config
+        $onWait={ [Console]::Error.WriteLine('SecondBrain: scrittura occupata, attesa fino a '+[int]($waitMs/1000)+' s. Titolare: '+(Get-SBOperationOwnerText $config)) }.GetNewClosure()
+        $writer=Open-SBWriterLock $config $writerPath $waitMs $onWait
     }
     $lease=[IO.File]::Open((Join-Path $sessions ($SessionId+'.lease')),[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
     $expires=[DateTimeOffset]::UtcNow.AddMinutes($config.sessionTimeoutMinutes)
@@ -96,7 +111,11 @@ try {
         Start-Sleep -Milliseconds 500
     }
     if($metadata.status -eq 'active'){$metadata.status='closed'}
-} catch {$metadata.status='failed';$metadata.error=$_.Exception.Message}
+} catch {
+    $metadata.status='failed'
+    if(Test-SBBusyError $_){$metadata.busy=$true;$metadata.error='SecondBrain occupato dopo '+[int]((Get-SBLockWaitMs $config)/1000)+' s. Titolare: '+(Get-SBOperationOwnerText $config)}
+    else{$metadata.error=$_.Exception.Message}
+}
 finally {
     try{Write-SBAccessMetadata $path $metadata}catch{Write-Warning 'Metadati finali non disponibili'}
     if($lease){$lease.Dispose()};if($writer){$writer.Dispose()}

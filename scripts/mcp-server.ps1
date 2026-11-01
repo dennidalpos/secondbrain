@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
 Server MCP (Model Context Protocol) stdio locale in sola lettura per SecondBrain.
-Espone contesto di avvio, task pronti (-ReadyOnly), ricerca trasversale, catalogo prompt e verifica di pubblicabilità (REP05) agli IDE conformi.
+Espone contesto di avvio, task pronti (-ReadyOnly), dettaglio integro di un task (get_task), ricerca trasversale paginata, catalogo prompt e verifica di pubblicabilità (REP05) agli IDE conformi.
 Supporta l'accoppiamento con tutti i principali IDE (-Pair -Target <ide> o -Target all) e la generazione di pacchetti di configurazione (-ExportPackage).
 
 .EXAMPLE
@@ -36,6 +36,9 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
 if (!$BrainRoot) {
     $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -54,7 +57,9 @@ if ($ExportPackage) {
 
 if ($Pair) {
     if ($Apply) {
-        $applied = Set-SBMcpConfiguration -BrainRoot $BrainRoot -Target $Target
+        # Le configurazioni degli IDE sono scritte fuori dal cervello: stessa coda FIFO e lock di ogni writer, anche a postazione non attivata.
+        $pairLock = Enter-SBOperation @{coordinationRoot=(Join-Path $BrainRoot '.runtime/access');brainRoot=$BrainRoot;workstationId='non-attivata'} -LockOnly
+        try { $applied = Set-SBMcpConfiguration -BrainRoot $BrainRoot -Target $Target } finally { Exit-SBOperation $pairLock }
         Write-Host "=== Configurazione MCP SecondBrain applicata ===" -ForegroundColor Green
         $items = if ($applied -is [array]) { $applied } else { @($applied) }
         foreach ($item in $items) {

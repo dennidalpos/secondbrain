@@ -9,7 +9,7 @@ Stato della verifica: i comportamenti sono provati su fixture locali (processi `
 | Dato | Dove | Condivisione |
 | --- | --- | --- |
 | Dossier, `para-index.json`, `config/shared.json`, direttive | clone sulla share | condiviso |
-| `.runtime/access/` (lock, sessioni, `workstations.json`), `.runtime/para-transaction.json` | clone sulla share | condiviso (coordinamento) |
+| `.runtime/access/` (lock, coda FIFO `queue/`, sessioni, `workstations.json`), `.runtime/para-transaction.json` | clone sulla share | condiviso (coordinamento) |
 | `.runtime/hosts/<id>/` (`workstation.json`, `discovery.json`, `selection.json`, `state.json`, `inventory.json`, `ide-map.json`, backup) | clone sulla share | per host: `<id>` deriva da PC e utente |
 | `SECONDBRAIN_HOME` | ambiente utente di ogni PC | per host |
 | Cache e build dei prodotti | di norma `.runtime/hosts/<id>/` | per host; opzionalmente su disco locale |
@@ -31,7 +31,7 @@ Su ogni PC: `pwsh -NoProfile -File \\server\share\SecondBrain\scripts\secondbrai
 
 ## Scritture
 
-- Un solo writer alla volta: `writer.lock` e `operation.lock`. Chi trova il lock occupato attende (predefinito 60 s; `-WaitSeconds` su `secondbrain.ps1`, `SECONDBRAIN_LOCK_WAIT_SECONDS`, oppure `lockWaitSeconds` 0–600 in `config/shared.json`) e scrive su stderr il titolare (utente, PC, client, sessione). Solo a timeout esce con exit 3 e lo stesso messaggio.
+- Un solo writer alla volta: `writer.lock` e `operation.lock`, con coda FIFO dei ticket in `.runtime/access/queue/` (chi arriva prima entra prima; un ticket di un processo morto è rimosso senza forzare i lock). Chi trova il lock occupato attende (predefinito 60 s; `-WaitSeconds` su `secondbrain.ps1`, `SECONDBRAIN_LOCK_WAIT_SECONDS`, oppure `lockWaitSeconds` 0–600 in `config/shared.json`) e scrive su stderr il titolare (utente, PC, client, sessione). Solo a timeout esce con exit 3 e lo stesso messaggio.
 - Letture (`-Check`, `prompts.ps1 -Context`, `knowledge.ps1` in lettura, `ide-map.ps1 -Verify`, MCP) non prendono lock bloccanti e non fanno attendere il writer. Se un writer è attivo o c'è una transazione pendente, il risultato porta un avviso (`warnings`: `concurrent-writer`, `pending-transaction`; su stderr per gli altri comandi): il dato letto può essere intermedio, ripetere il controllo.
 - Le scritture protette (`Write-SBFile`) verificano l'hash precedente e conservano backup; i metadati di sessione si sostituiscono in modo atomico con nuovi tentativi, così un lettore su un altro PC non segna la sessione come fallita.
 
@@ -55,7 +55,7 @@ Il percorso del manifest riportato è già riscritto sull'alias del PC corrente.
 
 | Sintomo | Azione |
 | --- | --- |
-| Exit 3 "occupato" | Contattare il titolare indicato; aumentare l'attesa con `-WaitSeconds`; `access.ps1 -Status` mostra le sessioni. Non cancellare i lock. |
+| Exit 3 "occupato" | Contattare il titolare indicato; aumentare l'attesa con `-WaitSeconds`; `access.ps1 -Status` mostra le sessioni e `-Queue` i writer in coda. Non cancellare i lock. |
 | "workstationId già registrato con percorsi diversi" | Verificare che sia davvero uno spostamento, poi `access.ps1 -Reconcile`. |
 | "Transazione PARA incompleta" | `recover.ps1` come sopra, da qualunque PC. |
 | git "dubious ownership" | `safe.directory` come sopra. |
@@ -65,7 +65,7 @@ Il percorso del manifest riportato è già riscritto sull'alias del PC corrente.
 ## Checklist di prova manuale
 
 ### Cosa è già simulato in locale (non è una prova SMB)
-`test-secondbrain-portable.ps1` esercita su NTFS locale, con processi `pwsh` distinti: un writer in un altro processo che tiene il lock, due writer concorrenti che escono con exit 3 e il titolare, l'attesa governata da `lockWaitSeconds` e da `SECONDBRAIN_LOCK_WAIT_SECONDS` (l'ambiente prevale), il processo writer terminato con `Stop-Process -Force` (il sistema rilascia il lock, nessun marker, il successivo writer procede), tre `-Sync` simultanei che si serializzano, la transazione interrotta e il suo recupero (anche tramite `\\localhost\<drive>$`, se raggiungibile), gli alias di percorso (loopback, nome macchina, FQDN, maiuscole, share non amministrative escluse). Non coperti: semantica di `FileShare.None`, oplocks e lease su SMB, comportamento di NAS/Samba, utenti e permessi diversi, latenza.
+`test-secondbrain-portable.ps1` esercita su NTFS locale, con processi `pwsh` distinti: un writer in un altro processo che tiene il lock, due writer concorrenti che escono con exit 3 e il titolare (per ogni script che scrive), l'ordine di ingresso in coda FIFO con un ticket orfano scaduto senza forzature, l'attesa governata da `lockWaitSeconds` e da `SECONDBRAIN_LOCK_WAIT_SECONDS` (l'ambiente prevale), il processo writer terminato con `Stop-Process -Force` (il sistema rilascia il lock, nessun marker, il successivo writer procede), tre `-Sync` simultanei che si serializzano, la transazione interrotta e il suo recupero (anche tramite `\\localhost\<drive>$`, se raggiungibile), gli alias di percorso (loopback, nome macchina, FQDN, maiuscole, share non amministrative escluse). Non coperti: semantica di `FileShare.None`, oplocks e lease su SMB, comportamento di NAS/Samba, utenti e permessi diversi, latenza.
 
 ### Secondo host simulato (non è una prova su un secondo PC)
 Sempre in `test-secondbrain-portable.ps1`: un clone del cervello in un percorso più profondo e con spazi, checkout con gli stessi remoti in una radice diversa e profilo utente deviato (`USERPROFILE`, `APPDATA`, `LOCALAPPDATA`). Il test verifica che `-Setup` sul secondo percorso crei binding propri con le stesse identità, riusi i dossier esistenti senza duplicarli, sia idempotente, non modifichi la configurazione del primo clone né `SECONDBRAIN_HOME`, e che `-Setup -Status` e `-Check` operino sulla sola configurazione locale. Resta non coperto, e quindi `SB-PORTABLE-SECONDHOST-20261029` non può dirsi chiuso: `MachineName` e SID reali di un altro PC (l'id di postazione deriva da entrambi), variabili utente persistenti, drive e permessi diversi, IDE e account realmente installati.

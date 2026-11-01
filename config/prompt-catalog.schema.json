@@ -31,7 +31,8 @@
       "tone": {"type": "string", "minLength": 1, "maxLength": 200, "pattern": "^[^\\r\\n\\t]+$"},
       "file": {"type": "string", "pattern": "^[A-Z]{2,4}[0-9]{2}\\.md$"},
       "references": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^https://[^\\s]+$"}},
-      "related": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"}}
+      "related": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"}},
+      "next": {"type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true, "items": {"type": "string", "pattern": "^pmt-[0-9a-f]{8}$"}}
     }}}
   }
 }

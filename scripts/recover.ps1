@@ -17,6 +17,8 @@ param([Parameter(Mandatory)][string]$ManifestPath,[switch]$Apply,[string]$Config
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 # Con -ConfigPath il manifest puo stare nel backupRoot della postazione, anche fuori da .runtime: Restore-SBParaTransaction ne verifica il confinamento.
 $resolvePath={param($p) if($ConfigPath){if(!(Test-Path -LiteralPath $p)){throw "Percorso non trovato: $p"};[IO.Path]::GetFullPath($p)}else{Assert-SBCentralDataPath $brain $p}}

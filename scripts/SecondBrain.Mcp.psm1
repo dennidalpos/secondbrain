@@ -44,8 +44,22 @@ function Get-SBMcpToolDefinitions {
             }
         },
         @{
+            name = 'get_task'
+            description = 'Restituisce il dettaglio integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) per id o numero seq, dal tracker attivo o dall''archivio del dossier. Serve per i task che il profilo slim mostra solo in forma breve.'
+            inputSchema = @{
+                type = 'object'
+                required = @('task')
+                properties = @{
+                    task = @{ type = 'string'; description = 'ID del task (es. SB-SIMP-QUEUE-20261101) oppure numero seq (es. 197 o #197)' }
+                    repository = @{ type = 'string'; description = 'Identificatore del repository (opzionale; default: checkout in lavoro)' }
+                    checkoutPath = @{ type = 'string'; description = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)' }
+                    dossier = @{ type = 'string'; description = 'Percorso relativo del dossier (opzionale)' }
+                }
+            }
+        },
+        @{
             name = 'search_knowledge'
-            description = 'Esegue una ricerca trasversale nei file di conoscenza (context.md, memory.md, tracker.json, history/compaction/). Nessun tetto per impostazione predefinita: restituisce tutti i riscontri pertinenti; budget è un limite facoltativo. mode=literal (predefinito) cerca la sottostringa esatta; mode=relevance cerca più termini e ordina sezioni e blocchi per pertinenza (copertura dei termini, titolo, frase esatta), con score e section in ogni estratto.'
+            description = 'Esegue una ricerca trasversale nei file di conoscenza (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti in history/, history/compaction/). Con offset e limit pagina i riscontri (hasMore indica se ce ne sono altri). Nessun tetto per impostazione predefinita: restituisce tutti i riscontri pertinenti; budget è un limite facoltativo. mode=literal (predefinito) cerca la sottostringa esatta; mode=relevance cerca più termini e ordina sezioni e blocchi per pertinenza (copertura dei termini, titolo, frase esatta), con score e section in ogni estratto.'
             inputSchema = @{
                 type = 'object'
                 required = @('query')
@@ -55,12 +69,14 @@ function Get-SBMcpToolDefinitions {
                     dossier = @{ type = 'string'; description = 'Percorso relativo di un dossier specifico (opzionale)' }
                     repository = @{ type = 'string'; description = 'Identificatore del repository per selezionare il dossier' }
                     mode = @{ type = 'string'; enum = @('literal', 'relevance'); description = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza' }
+                    offset = @{ type = 'integer'; description = 'Numero di riscontri da saltare (paginazione, default 0)' }
+                    limit = @{ type = 'integer'; description = 'Numero massimo di riscontri restituiti (default: tutti)' }
                 }
             }
         },
         @{
             name = 'list_prompts'
-            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (78 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
+            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (80 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
             inputSchema = @{
                 type = 'object'
                 properties = @{
@@ -144,6 +160,14 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
                      else { @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository (Resolve-SBMcpRepository $BrainRoot $Arguments) -ReadyOnly) }
             return ConvertTo-SBMcpJson $tasks
         }
+        { $_ -in @('get_task', 'secondbrain_get_task') } {
+            if (!$Arguments.ContainsKey('task') -or !"$($Arguments.task)") {
+                throw 'Il parametro task è obbligatorio per get_task'
+            }
+            $dossier = if ($Arguments.ContainsKey('dossier') -and $Arguments.dossier) { [string]$Arguments.dossier } else { Resolve-SBWorkingDossier $BrainRoot (Resolve-SBMcpRepository $BrainRoot $Arguments) }
+            $dossierPath = if ([IO.Path]::IsPathRooted($dossier)) { $dossier } else { Join-Path $BrainRoot $dossier }
+            return ConvertTo-SBMcpJson (Get-SBTaskDetail -BrainRoot $BrainRoot -Dossier $dossierPath -Task ([string]$Arguments.task))
+        }
         { $_ -in @('search_knowledge', 'secondbrain_search') } {
             if (!$Arguments.ContainsKey('query') -or !$Arguments.query) {
                 throw 'Il parametro query è obbligatorio per search_knowledge'
@@ -157,7 +181,11 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if ($mode -notin @('literal', 'relevance')) { throw 'Modalità non valida: usare literal o relevance' }
             $mode = if ($mode -eq 'relevance') { 'Relevance' } else { 'Literal' }
 
-            $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode
+            $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
+            $limit = if ($Arguments.ContainsKey('limit') -and $Arguments.limit) { [int]$Arguments.limit } else { 0 }
+            if ($offset -lt 0 -or $limit -lt 0) { throw 'offset e limit devono essere interi non negativi' }
+
+            $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode -Offset $offset -Limit $limit
             return ConvertTo-SBMcpJson $res
         }
         { $_ -in @('list_prompts', 'secondbrain_list_prompts') } {

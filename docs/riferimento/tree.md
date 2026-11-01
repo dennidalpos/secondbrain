@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 81 schede del catalogo (COM01–GOV02, di cui 78 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 83 schede del catalogo (COM01–GOV02, di cui 80 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 

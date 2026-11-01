@@ -29,6 +29,8 @@ $ErrorActionPreference = 'Stop'
 $brain = if ($BrainRoot) { [IO.Path]::GetFullPath($BrainRoot) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
 

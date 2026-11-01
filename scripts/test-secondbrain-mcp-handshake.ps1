@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
 Handshake stdio reale del server MCP di SecondBrain per le configurazioni dei 6 IDE.
-Per ogni IDE avvia il comando registrato (stesso command/args scritti da -Pair) e verifica initialize, tools/list (7 strumenti),
+Per ogni IDE avvia il comando registrato (stesso command/args scritti da -Pair) e verifica initialize, tools/list (8 strumenti),
 tools/call di ciascuno strumento, prompts/list, resources/list e resources/read. La prova visiva nelle GUI degli IDE non e coperta.
 .EXAMPLE
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1
@@ -23,7 +23,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -Force
 if (!$BrainRoot) { $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 $BrainRoot = [IO.Path]::GetFullPath($BrainRoot)
 if (!$PublicationPath) { $PublicationPath = $BrainRoot }
-$expectedTools = @('check_publication','get_prompt','get_prompt_home','get_ready_tasks','get_startup_context','list_prompts','search_knowledge')
+$expectedTools = @('check_publication','get_prompt','get_prompt_home','get_ready_tasks','get_startup_context','get_task','list_prompts','search_knowledge')
 
 $failures = 0
 function Assert-Handshake([bool]$Condition, [string]$Name, [string]$Ide) {
@@ -49,6 +49,11 @@ Add-Request 'tools/list' @{}
 $calls = [ordered]@{}
 if ($dossierRelative) { $calls['get_startup_context'] = @{ dossier = $dossierRelative; budget = 20000 } }
 $calls['get_ready_tasks'] = @{ all = $true }
+# get_task: primo task del tracker del dossier di esempio (assente = strumento verificato come saltato).
+if ($dossierRelative) {
+    $sampleTracker = Read-SBJson (Join-Path $BrainRoot ($dossierRelative + '/tracker.json')) $null
+    if ($sampleTracker -and $sampleTracker.ContainsKey('tasks') -and @($sampleTracker.tasks).Count) { $calls['get_task'] = @{ dossier = $dossierRelative; task = [string]@($sampleTracker.tasks)[0].id } }
+}
 $calls['search_knowledge'] = @{ query = 'SecondBrain'; budget = 20000 }
 $calls['list_prompts'] = @{}
 $calls['get_prompt'] = @{ prompt = 'SYS03' }
@@ -98,7 +103,7 @@ foreach ($pairing in $pairings) {
     $checks += Assert-Handshake ($init -and $init.ContainsKey('result') -and $init.result.serverInfo.name -eq 'secondbrain-mcp') 'initialize: serverInfo secondbrain-mcp' $ide
     $list = $responses[2]
     $names = if ($list -and $list.ContainsKey('result')) { @($list.result.tools | ForEach-Object { $_.name } | Sort-Object) } else { @() }
-    $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: esattamente i 7 strumenti attesi' $ide
+    $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: esattamente gli 8 strumenti attesi' $ide
     foreach ($name in $calls.Keys) {
         $response = $responses[[int]$callIds[$name]]
         $ok = $response -and $response.ContainsKey('result') -and $response.result.isError -eq $false -and @($response.result.content).Count -ge 1 -and [string]@($response.result.content)[0].text

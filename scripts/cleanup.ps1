@@ -23,6 +23,8 @@ param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPat
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {

@@ -8,6 +8,8 @@ param([Parameter(Mandatory)][string]$RepositoryPath,[Parameter(Mandatory)][strin
     [Parameter(ParameterSetName='Export')][switch]$Apply)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 $config=Read-SBConfiguration $ConfigPath;$lock=Enter-SBOperation $config $SessionId -ReadOnly:($Export -and !$Apply)

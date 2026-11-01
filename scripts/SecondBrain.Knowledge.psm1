@@ -102,12 +102,12 @@ function Split-SBTieredMarkdown([string]$Text) {
     @{essential=$essential.ToString();history=$history.ToString();historyTitles=$titles}
 }
 function Format-SBSlimTasks($Projection) {
-    # Una riga per task pronto: ID, priorita, stato, titolo. Descrizione e criteri di accettazione restano a get_ready_tasks / knowledge.ps1 -Tasks.
+    # Una riga per task pronto: ID, priorita, stato, titolo. Descrizione, criteri ed evidenze restano a get_task / knowledge.ps1 -Task.
     $rows=@()
     foreach($task in @($Projection)){
         if($null -eq $task){continue}
         $blocker=if($task -is [Collections.IDictionary] -and $task.Contains('blocker')){[string]$task['blocker']}else{''}
-        # Il motivo è abbreviato: il testo completo resta nel tracker (get_ready_tasks).
+        # Il motivo è abbreviato: il testo completo resta nel tracker (get_task).
         if($blocker.Length -gt 90){$blocker=$blocker.Substring(0,90).TrimEnd()+'…'}
         $rows+=('- '+$task['id']+' ['+$task['priority']+'/'+$task['status']+'] '+$task['title']+$(if($blocker){' (motivo: '+$blocker+')'}else{''}))
     }
@@ -133,10 +133,10 @@ function Get-SBStartupContext {
         $contextTiers=Split-SBTieredMarkdown $contextText;$memoryTiers=Split-SBTieredMarkdown $memoryText
         $omitted=@()
         foreach($entry in @(@{name='context';tiers=$contextTiers;file='context.md'},@{name='memory';tiers=$memoryTiers;file='memory.md'})){
-            if($entry.tiers.history.Length){$omitted+=@{part=$entry.name+' (storico)';characters=$entry.tiers.history.Length;sections=@($entry.tiers.historyTitles);how='knowledge.ps1 -Search "<termine>" oppure -Startup -Profile Full; file '+$entry.file}}
+            if($entry.tiers.history.Length){$omitted+=@{part=$entry.name+' (storico)';characters=$entry.tiers.history.Length;sections=@($entry.tiers.historyTitles);how='knowledge.ps1 -Section "<titolo>", -Search "<termine>" oppure -Startup -Profile Full; file '+$entry.file}}
         }
-        $omitted+=@{part='task: descrizioni, criteri di accettazione, task non pronti';characters=0;sections=@();how='knowledge.ps1 -Tasks (-All per la vista globale) oppure MCP get_ready_tasks con includeAcceptance'}
-        $omitted+=@{part='storico del dossier (history/, knowledge/, topics/)';characters=0;sections=@();how='history/index.md e indice del dossier; ricerca con knowledge.ps1 -Search'}
+        $omitted+=@{part='task: descrizioni, criteri di accettazione, task non pronti';characters=0;sections=@();how='knowledge.ps1 -Task <id|#seq> (dettaglio integro, anche archiviati), -Tasks (-All per la vista globale), oppure MCP get_task e get_ready_tasks'}
+        $omitted+=@{part='storico del dossier (history/, knowledge/, topics/)';characters=0;sections=@();how='history/index.md e indice del dossier; knowledge.ps1 -Section <titolo> per una sezione intera, -Search per cercare anche in archivio tracker e rapporti (-Offset/-Limit)'}
         $levelLines=@('# Livelli non caricati','','Profilo Slim: sono caricate le sole parti essenziali. Nulla è stato eliminato; richiedi il resto quando serve.','')
         foreach($item in $omitted){$levelLines+=('- '+$item.part+$(if($item.characters){' — '+$item.characters+' caratteri'}else{''})+$(if(@($item.sections).Count){' ('+(@($item.sections) -join '; ')+')'}else{''})+': '+$item.how)}
         $parts=@{index=$toc;context=$contextTiers.essential;memory=$memoryTiers.essential;tasks=(Format-SBSlimTasks $projection);levels=(($levelLines -join "`n")+"`n")}
@@ -228,7 +228,9 @@ function Find-SBKnowledge {
         [string]$Repository='',
         [int]$Budget=0,
         $Entities=@(),
-        [ValidateSet('Literal','Relevance')][string]$Mode='Literal'
+        [ValidateSet('Literal','Relevance')][string]$Mode='Literal',
+        [ValidateRange(0,[int]::MaxValue)][int]$Offset=0,
+        [ValidateRange(0,[int]::MaxValue)][int]$Limit=0
     )
     $root=[IO.Path]::GetFullPath($BrainRoot)
     $targetDirs=@()
@@ -244,10 +246,10 @@ function Find-SBKnowledge {
         $targetDirs=@($Entities|Where-Object {$_.kind -eq 'area' -and !$_.archived}|ForEach-Object {Resolve-SBParaPath $root $_.path})
     }
     $extracts=[Collections.Generic.List[object]]::new()
-    $totalMatches=0
+    $candidates=[Collections.Generic.List[object]]::new()
     $totalChars=0
     if([string]::IsNullOrWhiteSpace($Search)){
-        return @{search=$Search;query=$Search;mode=$Mode;budget=$Budget;characters=0;withinBudget=$true;totalMatches=0;count=0;extracts=@();matches=@()}
+        return @{search=$Search;query=$Search;mode=$Mode;budget=$Budget;offset=$Offset;limit=$Limit;hasMore=$false;characters=0;withinBudget=$true;totalMatches=0;count=0;extracts=@();matches=@()}
     }
     $tokens=@();$rankUnits=[Collections.Generic.List[object]]::new()
     if($Mode -eq 'Relevance'){$tokens=@(Get-SBSearchTokens $Search)}
@@ -264,6 +266,16 @@ function Find-SBKnowledge {
                 if($item.Extension -in @('.md','.json','.txt')){$filesToSearch.Add($item.FullName)}
             }
         }
+        # Strato di approfondimento: task archiviati e rapporti dei lotti (sempre cercabili, a richiesta con Offset/Limit).
+        $archiveFile=Join-Path $dir 'history/tracker-archive.json'
+        if(Test-Path -LiteralPath $archiveFile -PathType Leaf){$filesToSearch.Add($archiveFile)}
+        $historyDir=Join-Path $dir 'history'
+        if(Test-Path -LiteralPath $historyDir -PathType Container){
+            foreach($folder in (Get-ChildItem -LiteralPath $historyDir -Directory|Sort-Object Name)){
+                $reportFile=Join-Path $folder.FullName 'report.md'
+                if(Test-Path -LiteralPath $reportFile -PathType Leaf){$filesToSearch.Add($reportFile)}
+            }
+        }
         foreach($filePath in $filesToSearch){
             $hash=Get-SBFileHash $filePath
             $relPath=[IO.Path]::GetRelativePath($root,$filePath).Replace('\','/')
@@ -276,14 +288,8 @@ function Find-SBKnowledge {
             foreach($line in $lines){
                 $lineNum++
                 if($line.Contains($Search,[StringComparison]::OrdinalIgnoreCase)){
-                    $totalMatches++
                     $trimmed=$line.Trim()
-                    $extract=@{path=$relPath;line=$lineNum;sha256=$hash;text=$trimmed}
-                    $extractSize=$relPath.Length + $trimmed.Length + $hash.Length + 20
-                    if($Budget -le 0 -or $totalChars + $extractSize -le $Budget){
-                        $extracts.Add($extract)
-                        $totalChars += $extractSize
-                    }
+                    $candidates.Add(@{extract=@{path=$relPath;line=$lineNum;sha256=$hash;text=$trimmed};size=($relPath.Length + $trimmed.Length + $hash.Length + 20)})
                 }
             }
         }
@@ -311,18 +317,22 @@ function Find-SBKnowledge {
                 $lineNum++
                 $lower=$line.ToLowerInvariant()
                 if(!@($tokens|Where-Object {$lower.Contains($_)}).Count){continue}
-                $totalMatches++
                 $trimmed=$line.Trim()
-                $extract=@{path=$unit.path;line=$lineNum;sha256=$unit.sha256;text=$trimmed;score=$entry.score;section=[string]$unit.title}
-                $extractSize=$unit.path.Length + $trimmed.Length + $unit.sha256.Length + 20
-                if($Budget -le 0 -or $totalChars + $extractSize -le $Budget){
-                    $extracts.Add($extract)
-                    $totalChars += $extractSize
-                }
+                $candidates.Add(@{extract=@{path=$unit.path;line=$lineNum;sha256=$unit.sha256;text=$trimmed;score=$entry.score;section=[string]$unit.title};size=($unit.path.Length + $trimmed.Length + $unit.sha256.Length + 20)})
             }
         }
     }
-    $withinBudget=($totalMatches -eq $extracts.Count -and ($Budget -le 0 -or $totalChars -le $Budget))
+    # Paginazione sull'elenco ordinato dei riscontri, poi tetto facoltativo di caratteri sulla pagina.
+    $totalMatches=$candidates.Count
+    $page=@($candidates|Select-Object -Skip $Offset)
+    if($Limit -gt 0){$page=@($page|Select-Object -First $Limit)}
+    foreach($candidate in $page){
+        if($Budget -le 0 -or $totalChars + $candidate.size -le $Budget){
+            $extracts.Add($candidate.extract)
+            $totalChars += $candidate.size
+        }
+    }
+    $withinBudget=($page.Count -eq $extracts.Count)
     @{
         search=$Search
         query=$Search
@@ -332,11 +342,99 @@ function Find-SBKnowledge {
         budget=$Budget
         characters=$totalChars
         withinBudget=$withinBudget
+        offset=$Offset
+        limit=$Limit
+        hasMore=(($Offset + $page.Count) -lt $totalMatches)
         totalMatches=$totalMatches
         count=$extracts.Count
         extracts=@($extracts)
         matches=@($extracts)
     }
+}
+# Ciclo di vita del repository nel repository.json del dossier: assente (normale) oppure greenfield (blocco di versioni, changelog, migrazioni, alias e deprecations).
+function Get-SBRepositoryLifecycle([string]$Dossier) {
+    $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
+    if(!$record -or !$record.ContainsKey('lifecycle')){return ''}
+    if([string]$record.lifecycle -cne 'greenfield'){throw 'lifecycle non valido in repository.json: ammesso soltanto greenfield'}
+    'greenfield'
+}
+function Set-SBRepositoryLifecycle {
+    param([Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][ValidateSet('greenfield','none')][string]$Lifecycle,[Parameter(Mandatory)][string]$BackupRoot)
+    $path=Join-Path $Dossier 'repository.json'
+    $record=Read-SBJson $path $null
+    if(!$record){throw 'repository.json assente'}
+    $before=$(if($record.ContainsKey('lifecycle')){[string]$record.lifecycle}else{''})
+    if($Lifecycle -eq 'greenfield'){$record.lifecycle='greenfield'}else{[void]$record.Remove('lifecycle')}
+    $changed=($before -ne $(if($Lifecycle -eq 'greenfield'){'greenfield'}else{''}))
+    if($changed){[void](Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $record))) (Get-SBFileHash $path) $BackupRoot)}
+    @{repository=$record.identity;lifecycle=$(if($Lifecycle -eq 'greenfield'){'greenfield'}else{''});changed=$changed}
+}
+function Get-SBTaskDetail {
+    # Dettaglio integro di un task per id o seq (anche "#203"), dal tracker attivo o dall'archivio del dossier.
+    param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Task,[string]$CheckoutPath)
+    $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
+    if(!$record){throw 'Dossier non valido'}
+    $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $Dossier -AllowedOwners @()
+    if(!$tracker.ContainsKey('data') -or !$tracker.data){throw 'Tracker non disponibile per il dossier'}
+    $key=$Task.Trim();$seq=0
+    $bySeq=($key -match '^#?\d+$') -and [int]::TryParse($key.TrimStart('#'),[ref]$seq)
+    $sources=@(@{name='tracker';tasks=@($tracker.data.tasks);path=[string]$tracker.path})
+    $archivePath=Join-Path $Dossier 'history/tracker-archive.json'
+    $archive=Read-SBJson $archivePath $null
+    if($archive -and $archive.ContainsKey('tasks')){$sources+=@{name='archive';tasks=@($archive.tasks);path=$archivePath}}
+    foreach($source in $sources){
+        $found=@($source.tasks|Where-Object {if($bySeq){$_.ContainsKey('seq') -and [int]$_.seq -eq $seq}else{[string]$_.id -ieq $key}})
+        if($found.Count -gt 1){throw "Piu task corrispondono a: $Task"}
+        if($found.Count){return @{repository=$record.identity;source=$source.name;path=[IO.Path]::GetRelativePath([IO.Path]::GetFullPath($BrainRoot),$source.path).Replace('\','/');task=$found[0]}}
+    }
+    throw "Task non trovato: $Task"
+}
+function Get-SBMarkdownSections([string[]]$Lines) {
+    # Sezioni di un Markdown: intestazione di qualunque livello fino alla successiva dello stesso livello o superiore (sottosezioni incluse); i blocchi di codice non contano.
+    $headings=@();$fence=$false;$number=0
+    foreach($line in $Lines){
+        $number++
+        if($line -match '^\s*(```|~~~)'){$fence=!$fence;continue}
+        if(!$fence -and $line -match '^(?<marks>#{1,6})\s+(?<title>.+?)\s*$'){$headings+=@{title=$Matches.title;level=$Matches.marks.Length;start=$number;end=$Lines.Count}}
+    }
+    for($i=0;$i -lt $headings.Count;$i++){
+        for($j=$i+1;$j -lt $headings.Count;$j++){if($headings[$j].level -le $headings[$i].level){$headings[$i].end=$headings[$j].start-1;break}}
+    }
+    $headings
+}
+function Get-SBSection {
+    # Sezione intera per titolo da context.md, memory.md e history/*/report.md (Source: context, memory, history, history/<cartella>).
+    param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Title,[string]$Source='')
+    $root=[IO.Path]::GetFullPath($BrainRoot)
+    $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
+    if(!$record){throw 'Dossier non valido'}
+    $files=@()
+    $wanted=$Source.Trim().Trim('/').ToLowerInvariant()
+    if($wanted -and $wanted -notmatch '^(context|memory|history(/[^/\\]+)?)$'){throw 'Fonte non valida: usare context, memory, history oppure history/<cartella>'}
+    if(!$wanted -or $wanted -eq 'context'){$files+=Join-Path $Dossier 'context.md'}
+    if(!$wanted -or $wanted -eq 'memory'){$files+=Join-Path $Dossier 'memory.md'}
+    if(!$wanted -or $wanted -eq 'history'){
+        $historyDir=Join-Path $Dossier 'history'
+        if(Test-Path -LiteralPath $historyDir -PathType Container){foreach($folder in Get-ChildItem -LiteralPath $historyDir -Directory|Sort-Object Name){$files+=Join-Path $folder.FullName 'report.md'}}
+    }elseif($wanted -like 'history/*'){$files+=Join-Path $Dossier ($wanted+'/report.md')}
+    $wantedTitle=$Title.Trim()
+    $exact=@();$partial=@()
+    foreach($file in $files){
+        if(!(Test-Path -LiteralPath $file -PathType Leaf)){continue}
+        $lines=(Read-SBText $file) -split '\r?\n'
+        $hash=Get-SBFileHash $file
+        foreach($section in @(Get-SBMarkdownSections $lines)){
+            $hit=@{path=[IO.Path]::GetRelativePath($root,$file).Replace('\','/');sha256=$hash;title=$section.title;level=$section.level;line=$section.start;endLine=$section.end;lines=$lines}
+            if($section.title -ieq $wantedTitle){$exact+=$hit}elseif($section.title.Contains($wantedTitle,[StringComparison]::OrdinalIgnoreCase)){$partial+=$hit}
+        }
+    }
+    $hits=if($exact.Count){$exact}else{$partial}
+    if(!$hits.Count){throw "Sezione non trovata: $Title"}
+    $found=@($hits|ForEach-Object {
+        $text=(($_.lines[($_.line-1)..($_.endLine-1)]) -join "`n").TrimEnd()
+        @{path=$_.path;sha256=$_.sha256;title=$_.title;level=$_.level;line=$_.line;endLine=$_.endLine;characters=$text.Length;text=$text}
+    })
+    @{repository=$record.identity;section=$Title;matchKind=$(if($exact.Count){'exact'}else{'partial'});count=$found.Count;matches=$found}
 }
 function Invoke-SBDossierCompaction {
     param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=50000)

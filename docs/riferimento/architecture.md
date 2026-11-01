@@ -142,7 +142,7 @@ sequenceDiagram
     participant Storage as File di destinazione
 
     Caller->>Access: Enter-SBOperation (con o senza SessionId)
-    Access->>Lock: Apertura esclusiva con attesa breve (1 s)
+    Access->>Lock: Ticket in coda FIFO, poi apertura esclusiva con attesa (predefinita 60 s)
     Access->>Access: Registro postazioni e guardia di scrittura
     alt Lock occupato
         Access-->>Caller: Errore con titolare (utente, computer, sessione)

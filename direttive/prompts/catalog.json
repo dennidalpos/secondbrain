@@ -63,6 +63,10 @@
       "file": "COM01.md",
       "id": "pmt-a709a792",
       "mode": "read",
+      "next": [
+        "pmt-e0fd59da",
+        "pmt-179b9acc"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -85,6 +89,10 @@
       "file": "COM02.md",
       "id": "pmt-e0fd59da",
       "mode": "read",
+      "next": [
+        "pmt-a709a792",
+        "pmt-25ac264e"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -107,6 +115,10 @@
       "file": "COM03.md",
       "id": "pmt-25c97d58",
       "mode": "read",
+      "next": [
+        "pmt-3e0ad55e",
+        "pmt-5b593404"
+      ],
       "references": [
         "https://developers.openai.com/api/docs/guides/prompt-engineering",
         "https://code.claude.com/docs/en/prompt-library"
@@ -129,6 +141,11 @@
       "file": "COM04.md",
       "id": "pmt-179b9acc",
       "mode": "read",
+      "next": [
+        "pmt-83764c0d",
+        "pmt-8541aed1",
+        "pmt-c692cc23"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -152,6 +169,10 @@
       "file": "PRG01.md",
       "id": "pmt-98071f85",
       "mode": "read",
+      "next": [
+        "pmt-3e0ad55e",
+        "pmt-8541aed1"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -174,6 +195,11 @@
       "file": "PRG02.md",
       "id": "pmt-3e0ad55e",
       "mode": "read",
+      "next": [
+        "pmt-179b9acc",
+        "pmt-83764c0d",
+        "pmt-884419a5"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -197,6 +223,10 @@
       "file": "PRG03.md",
       "id": "pmt-83764c0d",
       "mode": "read",
+      "next": [
+        "pmt-32e3cf59",
+        "pmt-6e82e3a9"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files",
         "https://code.claude.com/docs/en/prompt-library"
@@ -219,6 +249,11 @@
       "file": "PRG04.md",
       "id": "pmt-8541aed1",
       "mode": "read",
+      "next": [
+        "pmt-98071f85",
+        "pmt-884419a5",
+        "pmt-4cc383ba"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -243,6 +278,11 @@
       "file": "PRG05.md",
       "id": "pmt-884419a5",
       "mode": "write",
+      "next": [
+        "pmt-3e0ad55e",
+        "pmt-8541aed1",
+        "pmt-3731bb7d"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
       ],
@@ -265,6 +305,11 @@
       "file": "PRG06.md",
       "id": "pmt-3731bb7d",
       "mode": "read",
+      "next": [
+        "pmt-8541aed1",
+        "pmt-2b07a693",
+        "pmt-884419a5"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles",
         "https://code.claude.com/docs/en/common-workflows"
@@ -290,6 +335,11 @@
       "file": "DEV01.md",
       "id": "pmt-83df1685",
       "mode": "write",
+      "next": [
+        "pmt-f3082c1b",
+        "pmt-98071f85",
+        "pmt-ef96dea5"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -313,6 +363,10 @@
       "file": "DEV02.md",
       "id": "pmt-25ac264e",
       "mode": "write",
+      "next": [
+        "pmt-91021b67",
+        "pmt-bd98736f"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -335,6 +389,11 @@
       "file": "DEV03.md",
       "id": "pmt-2b07a693",
       "mode": "write",
+      "next": [
+        "pmt-22863973",
+        "pmt-40772e6e",
+        "pmt-672f52fc"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -359,6 +418,11 @@
       "file": "DEV04.md",
       "id": "pmt-e2405036",
       "mode": "write",
+      "next": [
+        "pmt-22863973",
+        "pmt-b4cb6659",
+        "pmt-7dc63766"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -382,6 +446,10 @@
       "file": "DEV05.md",
       "id": "pmt-22863973",
       "mode": "write",
+      "next": [
+        "pmt-32e3cf59",
+        "pmt-e2405036"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -404,6 +472,10 @@
       "file": "DEV06.md",
       "id": "pmt-f3082c1b",
       "mode": "write",
+      "next": [
+        "pmt-83df1685",
+        "pmt-bd98736f"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/powershell/utility-modules/psscriptanalyzer/overview"
       ],
@@ -425,6 +497,11 @@
       "file": "DEV07.md",
       "id": "pmt-9bd26aad",
       "mode": "read",
+      "next": [
+        "pmt-25ac264e",
+        "pmt-cc2c5f5a",
+        "pmt-98071f85"
+      ],
       "references": [
         "https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues",
         "https://code.claude.com/docs/en/common-workflows"
@@ -448,6 +525,11 @@
       "file": "DEV08.md",
       "id": "pmt-b16674bd",
       "mode": "read",
+      "next": [
+        "pmt-2b07a693",
+        "pmt-f3082c1b",
+        "pmt-27896824"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/",
         "https://code.claude.com/docs/en/common-workflows"
@@ -473,6 +555,11 @@
       "file": "DEV09.md",
       "id": "pmt-672f52fc",
       "mode": "write",
+      "next": [
+        "pmt-b16674bd",
+        "pmt-2b07a693",
+        "pmt-3731bb7d"
+      ],
       "references": [
         "https://refactoring.com/catalog/",
         "https://code.claude.com/docs/en/prompt-library"
@@ -496,6 +583,11 @@
       "file": "DEV10.md",
       "id": "pmt-61ef1616",
       "mode": "write",
+      "next": [
+        "pmt-9de57e24",
+        "pmt-4efbc54f",
+        "pmt-2b07a693"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://refactoring.com/catalog/"
@@ -519,6 +611,10 @@
       "file": "TST01.md",
       "id": "pmt-08bff671",
       "mode": "write",
+      "next": [
+        "pmt-286c3225",
+        "pmt-91021b67"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files",
         "https://code.claude.com/docs/en/prompt-library"
@@ -541,6 +637,10 @@
       "file": "TST02.md",
       "id": "pmt-286c3225",
       "mode": "write",
+      "next": [
+        "pmt-08bff671",
+        "pmt-ef96dea5"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -563,6 +663,10 @@
       "file": "TST03.md",
       "id": "pmt-91021b67",
       "mode": "write",
+      "next": [
+        "pmt-25ac264e",
+        "pmt-bd98736f"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -585,6 +689,11 @@
       "file": "TST04.md",
       "id": "pmt-bd98736f",
       "mode": "write",
+      "next": [
+        "pmt-f3082c1b",
+        "pmt-ce00f261",
+        "pmt-91021b67"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -608,6 +717,10 @@
       "file": "TST05.md",
       "id": "pmt-ef96dea5",
       "mode": "read",
+      "next": [
+        "pmt-27896824",
+        "pmt-286c3225"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -630,6 +743,11 @@
       "file": "TST06.md",
       "id": "pmt-9de57e24",
       "mode": "write",
+      "next": [
+        "pmt-c2785b9c",
+        "pmt-ef96dea5",
+        "pmt-4efbc54f"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -654,6 +772,11 @@
       "file": "TST07.md",
       "id": "pmt-37c695fe",
       "mode": "write",
+      "next": [
+        "pmt-08bff671",
+        "pmt-286c3225",
+        "pmt-91021b67"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://developers.openai.com/api/docs/guides/prompt-engineering"
@@ -677,6 +800,11 @@
       "file": "SEC01.md",
       "id": "pmt-27896824",
       "mode": "read",
+      "next": [
+        "pmt-deb7d01a",
+        "pmt-ef96dea5",
+        "pmt-ac962f79"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files",
         "https://code.claude.com/docs/en/prompt-library"
@@ -700,6 +828,10 @@
       "file": "SEC02.md",
       "id": "pmt-deb7d01a",
       "mode": "read",
+      "next": [
+        "pmt-179b9acc",
+        "pmt-b4cb6659"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -722,6 +854,11 @@
       "file": "SEC03.md",
       "id": "pmt-b4cb6659",
       "mode": "write",
+      "next": [
+        "pmt-e2405036",
+        "pmt-deb7d01a",
+        "pmt-c356eede"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -745,6 +882,11 @@
       "file": "SEC04.md",
       "id": "pmt-73fb4547",
       "mode": "verify",
+      "next": [
+        "pmt-27896824",
+        "pmt-24189cb6",
+        "pmt-c356eede"
+      ],
       "references": [
         "https://owasp.org/www-project-top-ten/",
         "https://owasp.org/www-project-application-security-verification-standard/",
@@ -770,6 +912,11 @@
       "file": "SEC05.md",
       "id": "pmt-24189cb6",
       "mode": "verify",
+      "next": [
+        "pmt-27896824",
+        "pmt-73fb4547",
+        "pmt-058c474f"
+      ],
       "references": [
         "https://gdpr-info.eu/",
         "https://code.claude.com/docs/en/prompt-library",
@@ -794,6 +941,11 @@
       "file": "SEC06.md",
       "id": "pmt-c356eede",
       "mode": "write",
+      "next": [
+        "pmt-73fb4547",
+        "pmt-ce00f261",
+        "pmt-b4cb6659"
+      ],
       "references": [
         "https://docs.github.com/en/actions/reference/security/secure-use",
         "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
@@ -818,6 +970,11 @@
       "file": "SEC07.md",
       "id": "pmt-058c474f",
       "mode": "verify",
+      "next": [
+        "pmt-73fb4547",
+        "pmt-24189cb6",
+        "pmt-6055dd39"
+      ],
       "references": [
         "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
         "https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning"
@@ -842,6 +999,11 @@
       "file": "SEC08.md",
       "id": "pmt-55186b10",
       "mode": "verify",
+      "next": [
+        "pmt-058c474f",
+        "pmt-7fc91f08",
+        "pmt-6055dd39"
+      ],
       "references": [
         "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
         "https://docs.github.com/en/rest/actions/cache",
@@ -866,6 +1028,11 @@
       "file": "SEC09.md",
       "id": "pmt-7fc91f08",
       "mode": "write",
+      "next": [
+        "pmt-55186b10",
+        "pmt-6055dd39",
+        "pmt-73fb4547"
+      ],
       "references": [
         "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
         "https://cli.github.com/manual/gh_run_delete",
@@ -891,6 +1058,11 @@
       "file": "AUD01.md",
       "id": "pmt-ccbf18b8",
       "mode": "read",
+      "next": [
+        "pmt-4a9a4b4f",
+        "pmt-c692cc23",
+        "pmt-7dc63766"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://owasp.org/www-project-top-ten/"
@@ -916,6 +1088,11 @@
       "file": "AUD02.md",
       "id": "pmt-4a9a4b4f",
       "mode": "read",
+      "next": [
+        "pmt-ccbf18b8",
+        "pmt-b16674bd",
+        "pmt-ac962f79"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://git-scm.com/docs/git-log"
@@ -939,6 +1116,11 @@
       "file": "AUD03.md",
       "id": "pmt-c692cc23",
       "mode": "read",
+      "next": [
+        "pmt-ccbf18b8",
+        "pmt-179b9acc",
+        "pmt-3731bb7d"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://refactoring.com/catalog/"
@@ -962,6 +1144,11 @@
       "file": "AUD04.md",
       "id": "pmt-7dc63766",
       "mode": "read",
+      "next": [
+        "pmt-ccbf18b8",
+        "pmt-e2405036",
+        "pmt-313da996"
+      ],
       "references": [
         "https://osv.dev/",
         "https://docs.github.com/en/code-security/dependabot",
@@ -986,6 +1173,11 @@
       "file": "AUD05.md",
       "id": "pmt-4efbc54f",
       "mode": "read",
+      "next": [
+        "pmt-ccbf18b8",
+        "pmt-9de57e24",
+        "pmt-61ef1616"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library"
       ],
@@ -1008,6 +1200,11 @@
       "file": "AUD06.md",
       "id": "pmt-ac962f79",
       "mode": "write",
+      "next": [
+        "pmt-ccbf18b8",
+        "pmt-4a9a4b4f",
+        "pmt-27896824"
+      ],
       "references": [
         "https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html",
         "https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning"
@@ -1031,6 +1228,10 @@
       "file": "INT01.md",
       "id": "pmt-33216f62",
       "mode": "read",
+      "next": [
+        "pmt-db55c30d",
+        "pmt-2ea0c993"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1053,6 +1254,10 @@
       "file": "INT02.md",
       "id": "pmt-db55c30d",
       "mode": "write",
+      "next": [
+        "pmt-33216f62",
+        "pmt-2ea0c993"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1075,6 +1280,10 @@
       "file": "INT03.md",
       "id": "pmt-2ea0c993",
       "mode": "read",
+      "next": [
+        "pmt-db55c30d",
+        "pmt-ef96dea5"
+      ],
       "references": [
         "https://raw.githubusercontent.com/github/awesome-copilot/main/agents/accessibility-runtime-tester.agent.md",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1097,6 +1306,11 @@
       "file": "INT04.md",
       "id": "pmt-805ca095",
       "mode": "verify",
+      "next": [
+        "pmt-db55c30d",
+        "pmt-2ea0c993",
+        "pmt-ef96dea5"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/globalization/",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1120,6 +1334,10 @@
       "file": "DAT01.md",
       "id": "pmt-32e3cf59",
       "mode": "write",
+      "next": [
+        "pmt-3ddd1df9",
+        "pmt-83764c0d"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1142,6 +1360,10 @@
       "file": "DAT02.md",
       "id": "pmt-3ddd1df9",
       "mode": "write",
+      "next": [
+        "pmt-32e3cf59",
+        "pmt-6b7b0e8d"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1164,6 +1386,10 @@
       "file": "DAT03.md",
       "id": "pmt-6b7b0e8d",
       "mode": "write",
+      "next": [
+        "pmt-83764c0d",
+        "pmt-6e82e3a9"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/copilot-cookbook",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1186,6 +1412,10 @@
       "file": "OPS01.md",
       "id": "pmt-a5c78cc6",
       "mode": "write",
+      "next": [
+        "pmt-ce00f261",
+        "pmt-0618969e"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1208,6 +1438,11 @@
       "file": "OPS02.md",
       "id": "pmt-ce00f261",
       "mode": "write",
+      "next": [
+        "pmt-a5c78cc6",
+        "pmt-bd98736f",
+        "pmt-c356eede"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1231,6 +1466,10 @@
       "file": "OPS03.md",
       "id": "pmt-c2785b9c",
       "mode": "write",
+      "next": [
+        "pmt-25ac264e",
+        "pmt-9de57e24"
+      ],
       "references": [
         "https://github.com/github/awesome-copilot",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1253,6 +1492,10 @@
       "file": "OPS04.md",
       "id": "pmt-0618969e",
       "mode": "write",
+      "next": [
+        "pmt-76604e4a",
+        "pmt-a5c78cc6"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1275,6 +1518,11 @@
       "file": "REP01.md",
       "id": "pmt-4cc383ba",
       "mode": "write",
+      "next": [
+        "pmt-83df1685",
+        "pmt-8541aed1",
+        "pmt-cc2c5f5a"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1299,6 +1547,11 @@
       "file": "REP02.md",
       "id": "pmt-07430e8c",
       "mode": "write",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-6e82e3a9",
+        "pmt-6055dd39"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1323,6 +1576,10 @@
       "file": "REP03.md",
       "id": "pmt-6e82e3a9",
       "mode": "write",
+      "next": [
+        "pmt-83764c0d",
+        "pmt-07430e8c"
+      ],
       "references": [
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1345,6 +1602,11 @@
       "file": "REP04.md",
       "id": "pmt-40772e6e",
       "mode": "write",
+      "next": [
+        "pmt-2b07a693",
+        "pmt-f02db9d0",
+        "pmt-f1df8757"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1368,6 +1630,11 @@
       "file": "REP05.md",
       "id": "pmt-6055dd39",
       "mode": "verify",
+      "next": [
+        "pmt-a5c78cc6",
+        "pmt-07430e8c",
+        "pmt-deb7d01a"
+      ],
       "references": [
         "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository"
       ],
@@ -1417,6 +1684,11 @@
       "file": "REP07.md",
       "id": "pmt-75786fd6",
       "mode": "write",
+      "next": [
+        "pmt-6055dd39",
+        "pmt-07430e8c",
+        "pmt-ef96dea5"
+      ],
       "references": [
         "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files"
       ],
@@ -1439,6 +1711,11 @@
       "file": "REP08.md",
       "id": "pmt-cc2c5f5a",
       "mode": "read",
+      "next": [
+        "pmt-a709a792",
+        "pmt-23c3d2be",
+        "pmt-4cc383ba"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/about-repository-insights"
@@ -1463,6 +1740,11 @@
       "file": "REP09.md",
       "id": "pmt-3e3728b6",
       "mode": "write",
+      "next": [
+        "pmt-6055dd39",
+        "pmt-40772e6e",
+        "pmt-4cc383ba"
+      ],
       "references": [
         "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests",
         "https://www.conventionalcommits.org/en/v1.0.0/"
@@ -1486,6 +1768,11 @@
       "file": "REP10.md",
       "id": "pmt-f1df8757",
       "mode": "write",
+      "next": [
+        "pmt-40772e6e",
+        "pmt-6055dd39",
+        "pmt-24189cb6"
+      ],
       "references": [
         "https://git-scm.com/docs/gitignore"
       ],
@@ -1508,6 +1795,11 @@
       "file": "MEM01.md",
       "id": "pmt-f02db9d0",
       "mode": "write",
+      "next": [
+        "pmt-76604e4a",
+        "pmt-23c3d2be",
+        "pmt-07430e8c"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1532,6 +1824,10 @@
       "file": "MEM02.md",
       "id": "pmt-64dfa49f",
       "mode": "write",
+      "next": [
+        "pmt-32e3cf59",
+        "pmt-f02db9d0"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1554,6 +1850,11 @@
       "file": "MEM03.md",
       "id": "pmt-76604e4a",
       "mode": "write",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-8541aed1",
+        "pmt-677a10ab"
+      ],
       "references": [
         "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1577,6 +1878,11 @@
       "file": "MEM04.md",
       "id": "pmt-23c3d2be",
       "mode": "read",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-821f7dec",
+        "pmt-cc2c5f5a"
+      ],
       "references": [
         "https://learn.microsoft.com/en-us/powershell/scripting/overview"
       ],
@@ -1600,6 +1906,11 @@
       "file": "SYS01.md",
       "id": "pmt-26817a61",
       "mode": "verify",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-5b593404",
+        "pmt-3a875788"
+      ],
       "references": [
         "https://code.claude.com/docs/en/common-workflows",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1623,6 +1934,10 @@
       "file": "SYS02.md",
       "id": "pmt-5b593404",
       "mode": "verify",
+      "next": [
+        "pmt-25c97d58",
+        "pmt-26817a61"
+      ],
       "references": [
         "https://developers.openai.com/api/docs/guides/prompt-engineering",
         "https://code.claude.com/docs/en/prompt-library"
@@ -1645,6 +1960,11 @@
       "file": "SYS03.md",
       "id": "pmt-5f9f93e0",
       "mode": "write",
+      "next": [
+        "pmt-26817a61",
+        "pmt-677a10ab",
+        "pmt-3a875788"
+      ],
       "references": [
         "https://git-scm.com/docs/git-rev-parse"
       ],
@@ -1667,6 +1987,11 @@
       "file": "SYS04.md",
       "id": "pmt-677a10ab",
       "mode": "verify",
+      "next": [
+        "pmt-26817a61",
+        "pmt-5f9f93e0",
+        "pmt-77d7bf7a"
+      ],
       "references": [
         "https://git-scm.com/docs/git-config"
       ],
@@ -1690,6 +2015,11 @@
       "file": "SYS05.md",
       "id": "pmt-77d7bf7a",
       "mode": "write",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-76604e4a",
+        "pmt-677a10ab"
+      ],
       "references": [
         "https://code.claude.com/docs/en/memory"
       ],
@@ -1712,6 +2042,11 @@
       "file": "SYS06.md",
       "id": "pmt-821f7dec",
       "mode": "read",
+      "next": [
+        "pmt-f02db9d0",
+        "pmt-23c3d2be",
+        "pmt-cc2c5f5a"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://developers.openai.com/api/docs/guides/prompt-engineering"
@@ -1781,6 +2116,10 @@
       "file": "SYS09.md",
       "id": "pmt-e498353a",
       "mode": "write",
+      "next": [
+        "pmt-677a10ab",
+        "pmt-821f7dec"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://developers.openai.com/api/docs/guides/prompt-engineering"
@@ -1803,6 +2142,11 @@
       "file": "SYS10.md",
       "id": "pmt-b98acaaa",
       "mode": "write",
+      "next": [
+        "pmt-5f9f93e0",
+        "pmt-677a10ab",
+        "pmt-77d7bf7a"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://developers.openai.com/api/docs/guides/prompt-engineering"
@@ -1826,6 +2170,11 @@
       "file": "SYS11.md",
       "id": "pmt-364616bb",
       "mode": "write",
+      "next": [
+        "pmt-677a10ab",
+        "pmt-f02db9d0",
+        "pmt-adb9bfc0"
+      ],
       "references": [
         "https://code.claude.com/docs/en/prompt-library",
         "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files"
@@ -1849,6 +2198,11 @@
       "file": "SYS12.md",
       "id": "pmt-3a875788",
       "mode": "write",
+      "next": [
+        "pmt-26817a61",
+        "pmt-5f9f93e0",
+        "pmt-677a10ab"
+      ],
       "references": [
         "https://code.claude.com/docs/en/memory",
         "https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features"
@@ -1866,12 +2220,71 @@
     },
     {
       "aliases": [],
+      "category": "sistema",
+      "code": "SYS13",
+      "example": "sb prompt SYS13: fissa il blocco greenfield su questo repository",
+      "file": "SYS13.md",
+      "id": "pmt-29b3278f",
+      "mode": "write",
+      "next": [
+        "pmt-677a10ab",
+        "pmt-f02db9d0"
+      ],
+      "references": [
+        "https://keepachangelog.com/it-IT/1.1.0/",
+        "https://semver.org/lang/it/"
+      ],
+      "related": [
+        "pmt-b799f469",
+        "pmt-f02db9d0",
+        "pmt-677a10ab"
+      ],
+      "requires": "repository gestito, dossier attivo e conferma dell'utente",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Fissa il blocco greenfield: niente versioni, changelog, migrazioni, alias.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sistema",
+      "code": "SYS14",
+      "example": "sb prompt SYS14: rimuovi il blocco greenfield da questo repository",
+      "file": "SYS14.md",
+      "id": "pmt-b799f469",
+      "mode": "write",
+      "next": [
+        "pmt-677a10ab",
+        "pmt-f02db9d0"
+      ],
+      "references": [
+        "https://keepachangelog.com/it-IT/1.1.0/",
+        "https://semver.org/lang/it/"
+      ],
+      "related": [
+        "pmt-29b3278f",
+        "pmt-f02db9d0",
+        "pmt-677a10ab"
+      ],
+      "requires": "repository gestito con blocco greenfield attivo e conferma dell'utente",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Rimuovi il blocco greenfield e riprendi il ciclo normale di versione.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
       "category": "governance",
       "code": "GOV01",
       "example": "sb prompt GOV01: verifica licenza mit e corrispondenza intestazioni spdx",
       "file": "GOV01.md",
       "id": "pmt-313da996",
       "mode": "verify",
+      "next": [
+        "pmt-adb9bfc0",
+        "pmt-6055dd39",
+        "pmt-7dc63766"
+      ],
       "references": [
         "https://spdx.dev/learn/handling-license-info/",
         "https://opensource.org/licenses/MIT"
@@ -1895,6 +2308,10 @@
       "file": "GOV02.md",
       "id": "pmt-adb9bfc0",
       "mode": "write",
+      "next": [
+        "pmt-313da996",
+        "pmt-07430e8c"
+      ],
       "references": [
         "https://spdx.dev/learn/handling-license-info/",
         "https://code.claude.com/docs/en/prompt-library"

@@ -105,6 +105,7 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks -Apply
 - La numerazione retroattiva ordina archivio (`history/tracker-archive.json`) e tracker attivo per la data `aaaammgg` dell'ID; un ID senza data eredita quella del task precedente e l'ordine resta stabile. Gli originali sono copiati in `history/tracker-seq/<sha256>/` nella stessa transazione. Su un tracker già numerato non cambia nulla; una numerazione parziale è un errore.
 - `-NewTask` rifiuta un tracker non ancora numerato, un ID già presente, criteri vuoti e una provenienza inesistente. Come `-UpdateTaskId`, scrive solo nel repository in lavoro.
 - Proiezione, `-Tasks` e MCP `get_ready_tasks` riportano `seq` quando presente.
+- Il record integro di un task (anche archiviato in `history/tracker-archive.json`) si legge con `knowledge.ps1 -Task <id|#seq>` o con il tool MCP `get_task`.
 
 ## Proiezione dei Task e Budget
 

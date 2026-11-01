@@ -111,6 +111,84 @@ function Test-SBBusyError($ErrorRecord) {
     $base = $ErrorRecord.Exception.GetBaseException()
     $base -is [IO.IOException] -and ($base.HResult -band 0xffff) -in @(32, 33)
 }
+function Test-SBQueueTicketAlive([string]$LeasePath) {
+    # Il ticket e vivo finche il suo processo tiene aperto il lease; un lease apribile e di un processo terminato.
+    $probe = $null
+    try { $probe = [IO.File]::Open($LeasePath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None); return $false }
+    catch [IO.FileNotFoundException] { return $false }
+    catch [IO.DirectoryNotFoundException] { return $false }
+    catch [UnauthorizedAccessException] { return $false }
+    catch [IO.IOException] { if (($_.Exception.HResult -band 0xffff) -in @(32, 33)) { return $true }; throw }
+    finally { if ($probe) { $probe.Dispose() } }
+}
+function Remove-SBQueueTicketFiles([string]$Root, [string]$Name) {
+    foreach ($suffix in @('.json','.lease')) { try { [IO.File]::Delete((Join-Path $Root ($Name+$suffix))) } catch {} }
+}
+function Get-SBQueueTicketNames([string]$Root) {
+    # Ordine di arrivo: il nome inizia con i tick UTC a larghezza fissa, poi un guid di spareggio.
+    if (!(Test-Path -LiteralPath $Root)) { return @() }
+    $names = @(Get-ChildItem -LiteralPath $Root -Filter '*.lease' -File -ErrorAction SilentlyContinue | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_.Name) })
+    [Array]::Sort($names, [StringComparer]::Ordinal)
+    $names
+}
+function Enter-SBQueue($Config, [int]$WaitMs, [scriptblock]$OnWait) {
+    # Coda FIFO dei writer sopra writer.lock: il ticket e un lease esclusivo tenuto aperto; i ticket di processi terminati
+    # (lease apribile) vengono rimossi senza toccare writer.lock ne i marker di transazione.
+    $root = Join-Path $Config.coordinationRoot 'queue'
+    Assert-SBPlainPath $root
+    [IO.Directory]::CreateDirectory($root) | Out-Null
+    $name = [DateTimeOffset]::UtcNow.UtcTicks.ToString('D19') + '-' + [guid]::NewGuid().ToString('N')
+    $leasePath = Join-Path $root ($name+'.lease')
+    Assert-SBPlainPath $leasePath
+    $ticket = @{ name=$name; root=$root; lease=[IO.FileStream]::new($leasePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None) }
+    try {
+        Write-SBAccessMetadata (Join-Path $root ($name+'.json')) @{ticket=$name;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';workstationId=$Config.workstationId;enqueuedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+        $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
+        $delay = 100; $notified = $false
+        while ($true) {
+            $ahead = $null
+            foreach ($other in @(Get-SBQueueTicketNames $root)) {
+                if ($other -ceq $name) { break }
+                if (Test-SBQueueTicketAlive (Join-Path $root ($other+'.lease'))) { $ahead = $other; break }
+                Remove-SBQueueTicketFiles $root $other
+            }
+            if (!$ahead) { return $ticket }
+            if ([DateTimeOffset]::UtcNow -ge $deadline) { throw [IO.IOException]::new('Coda di scrittura SecondBrain non disponibile entro il tempo di attesa', [int]-2147024864) }
+            if ($OnWait -and !$notified) { $notified = $true; & $OnWait }
+            Start-Sleep -Milliseconds $delay
+            $delay = [Math]::Min(500, [int]($delay * 1.5))
+        }
+    } catch { Exit-SBQueue $ticket; throw }
+}
+function Exit-SBQueue($Ticket) {
+    if (!$Ticket) { return }
+    if ($Ticket.lease) { $Ticket.lease.Dispose() }
+    Remove-SBQueueTicketFiles $Ticket.root $Ticket.name
+}
+function Open-SBWriterLock($Config, [string]$WriterPath, [int]$WaitMs, [scriptblock]$OnWait) {
+    # Ticket in coda, poi writer.lock entro l'attesa residua; il ticket si libera appena il lock e acquisito.
+    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
+    $state = @{ notified=$false }
+    $notify = { if (!$state.notified) { $state.notified = $true; if ($OnWait) { & $OnWait } } }.GetNewClosure()
+    $ticket = Enter-SBQueue $Config $WaitMs $notify
+    try {
+        $remaining = [int][Math]::Max(0, ($deadline - [DateTimeOffset]::UtcNow).TotalMilliseconds)
+        Open-SBLockFile $WriterPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) $remaining $notify
+    } finally { Exit-SBQueue $ticket }
+}
+function Get-SBQueueStatus($Config, [switch]$Purge) {
+    # Sola lettura (con -Purge rimuove i ticket orfani): posizione 1 = prossimo writer.
+    $root = Join-Path $Config.coordinationRoot 'queue'
+    $position = 0
+    foreach ($name in @(Get-SBQueueTicketNames $root)) {
+        $meta = Read-SBJson (Join-Path $root ($name+'.json')) @{}
+        $alive = Test-SBQueueTicketAlive (Join-Path $root ($name+'.lease'))
+        $entry = @{} + $meta
+        $entry.ticket = $name
+        if ($alive) { $position++; $entry.state = 'waiting'; $entry.position = $position } else { $entry.state = 'orphan'; if ($Purge) { Remove-SBQueueTicketFiles $root $name } }
+        $entry
+    }
+}
 function Write-SBReadWarnings($Operation, $Config) {
     # Lettori senza lock: segnala su stderr uno stato potenzialmente intermedio, senza fallire.
     if ($Operation -and $Operation.concurrentWriter) { [Console]::Error.WriteLine('Avviso: un writer SecondBrain e attivo, i dati letti possono essere intermedi.') }
@@ -205,7 +283,8 @@ function Assert-SBSession($Config, [string]$SessionId, [switch]$AllowRead) {
     $entry[0]
 }
 
-function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]$WaitMs = -1, [switch]$ReconcileWorkstation) {
+function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]$WaitMs = -1, [switch]$ReconcileWorkstation, [switch]$LockOnly) {
+    # -LockOnly: solo coda e lock di scrittura (nessun registro postazioni ne guardia), per i writer che operano fuori dal cervello e a postazione non attivata.
     $result = @{ writer=$null; operation=$null; metadata=$null; ownerSessionId=$null; config=$Config; concurrentWriter=$false; pendingTransaction=$null }
     $waitTotal = Get-SBLockWaitMs $Config $WaitMs
     try {
@@ -233,7 +312,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             else {
                 Assert-SBPlainPath $writerPath
                 $onWait = { [Console]::Error.WriteLine('SecondBrain: scrittura occupata, attesa fino a ' + [int]($waitTotal / 1000) + ' s. Titolare: ' + (Get-SBOperationOwnerText $Config)) }.GetNewClosure()
-                $result.writer = Open-SBLockFile $writerPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) $waitTotal $onWait
+                $result.writer = Open-SBWriterLock $Config $writerPath $waitTotal $onWait
                 $result.metadata = Join-Path $Config.coordinationRoot 'operation-owner.json'
                 $result.ownerSessionId = [guid]::NewGuid().ToString('N')
                 Write-SBAccessMetadata $result.metadata @{sessionId=$result.ownerSessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';repository=(Get-SBBrainIdentity $Config.brainRoot);workstationId=$Config.workstationId;path=$Config.brainRoot;mode='Write';heartbeat=[DateTimeOffset]::UtcNow.ToString('o')}
@@ -241,6 +320,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             $opPath = Join-Path $Config.coordinationRoot 'operation.lock'
             Assert-SBPlainPath $opPath
             $result.operation = Open-SBLockFile $opPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) $waitTotal
+            if ($LockOnly) { return $result }
             # La registrazione impedisce due postazioni con stesso id o baseline condivisa per errore.
             $registryPath = Join-Path $Config.coordinationRoot 'workstations.json'
             $registry = Read-SBJson $registryPath @{}

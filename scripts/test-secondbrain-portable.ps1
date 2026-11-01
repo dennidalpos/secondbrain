@@ -201,6 +201,46 @@ try{
     Assert-Portable (!$rankedCapped.withinBudget -and $rankedCapped.count -lt $ranked.totalMatches) 'ricerca per pertinenza: budget facoltativo segnalato da withinBudget'
     Assert-Portable ((Find-SBKnowledge -BrainRoot $brain -Search 'il di la' -Dossier $dossier -Mode Relevance).tokens.Count -eq 3 -and (Find-SBKnowledge -BrainRoot $brain -Search 'La rotazione' -Dossier $dossier -Mode Relevance).tokens.Count -eq 1) 'parole vuote ignorate, salvo query composta solo da parole vuote'
     Put-Portable (Join-Path $dossier 'memory.md') $relevanceMemory
+    # Strati di approfondimento: dettaglio integro di un task (anche archiviato), sezione intera per titolo, ricerca su archivio e rapporti con paginazione.
+    $layerArchive=Join-Path $dossier 'history/tracker-archive.json';$layerReport=Join-Path $dossier 'history/2026-01-01-lotto-prova/report.md'
+    $layerTrackerPath=Join-Path $dossier 'tracker.json';$layerTrackerOriginal=Read-SBText $layerTrackerPath
+    $layerDoc=Read-SBJson $layerTrackerPath $null
+    $layerActive=New-SBTrackerTask @{id='LAYER-ACTIVE';title='Layer active';status='todo'} $layerDoc.repository 'test' 'test.md' (Get-SBTextHash 'test') 'line:1'
+    $layerDoc.tasks=@($layerActive)
+    Put-Portable $layerTrackerPath (ConvertTo-SBJson $layerDoc)
+    Put-Portable $layerArchive (ConvertTo-SBJson @{schemaVersion=1;repository=$cfg.bindings[0].identity;tasks=@(@{id='ARCHIVED-ONE';seq=5;title='#005 - Archived fixture';status='done';priority='P3';execution='autonomous';dependencies=@();acceptance=@('archived criteria');evidence=@();provenance=@();extensions=@{}})})
+    Put-Portable $layerReport "# Rapporto di prova`n`n## Esito`n`nMarcatore-rapporto-unico`n`n### Dettaglio`n`nsotto-sezione`n`n## Altro`n`naltro`n"
+    try{
+        $detailActive=Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task ([string]$layerActive.id)
+        Assert-Portable ($detailActive.source -eq 'tracker' -and $detailActive.task.id -eq $layerActive.id -and $detailActive.task.ContainsKey('acceptance') -and $detailActive.task.ContainsKey('evidence') -and $detailActive.task.ContainsKey('provenance')) 'dettaglio task: record integro dal tracker attivo'
+        $detailArchived=Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task '#5'
+        Assert-Portable ($detailArchived.source -eq 'archive' -and $detailArchived.task.id -eq 'ARCHIVED-ONE' -and $detailArchived.task.acceptance[0] -eq 'archived criteria' -and $detailArchived.path -eq ([IO.Path]::GetRelativePath($brain,$layerArchive).Replace('\','/'))) 'dettaglio task: numero seq risolto anche nell archivio'
+        Assert-Portable ((Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task 'archived-one').task.seq -eq 5) 'dettaglio task: id senza distinzione di maiuscole'
+        Reject-Portable {Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task 'NON-ESISTE'} 'dettaglio task: id inesistente rifiutato'
+        $layerSection=Get-SBSection -BrainRoot $brain -Dossier $dossier -Title 'Esito'
+        Assert-Portable ($layerSection.count -eq 1 -and $layerSection.matchKind -eq 'exact' -and $layerSection.matches[0].text.Contains('Marcatore-rapporto-unico') -and $layerSection.matches[0].text.Contains('### Dettaglio') -and $layerSection.matches[0].text.Contains('sotto-sezione') -and !$layerSection.matches[0].text.Contains('## Altro')) 'sezione per titolo: intera, con sottosezioni e senza la successiva'
+        Assert-Portable ((Get-SBSection -BrainRoot $brain -Dossier $dossier -Title 'Dettaglio').matches[0].text -notmatch 'altro') 'sezione per titolo: una sottosezione si ferma alla successiva dello stesso livello o superiore'
+        Assert-Portable ((Get-SBSection -BrainRoot $brain -Dossier $dossier -Title 'Esit' -Source 'history/2026-01-01-lotto-prova').matchKind -eq 'partial') 'sezione per titolo: corrispondenza parziale dichiarata, fonte history/<cartella>'
+        Reject-Portable {Get-SBSection -BrainRoot $brain -Dossier $dossier -Title 'Esito' -Source context} 'sezione per titolo: la fonte limita la ricerca'
+        Reject-Portable {Get-SBSection -BrainRoot $brain -Dossier $dossier -Title 'Esito' -Source 'altro'} 'sezione per titolo: fonte non valida rifiutata'
+        $reportHit=Find-SBKnowledge -BrainRoot $brain -Search 'Marcatore-rapporto-unico' -Dossier $dossier
+        $archiveHit=Find-SBKnowledge -BrainRoot $brain -Search 'ARCHIVED-ONE' -Dossier $dossier
+        Assert-Portable ($reportHit.count -eq 1 -and $reportHit.extracts[0].path -match 'history/2026-01-01-lotto-prova/report\.md$' -and $archiveHit.count -ge 1 -and $archiveHit.extracts[0].path -match 'history/tracker-archive\.json$') 'ricerca estesa a rapporti dei lotti e archivio tracker'
+        $pageAll=Find-SBKnowledge -BrainRoot $brain -Search 'status' -Dossier $dossier
+        $pageMid=Find-SBKnowledge -BrainRoot $brain -Search 'status' -Dossier $dossier -Offset 1 -Limit 2
+        $pageLast=Find-SBKnowledge -BrainRoot $brain -Search 'status' -Dossier $dossier -Offset ($pageAll.totalMatches-1) -Limit 5
+        Assert-Portable ($pageAll.totalMatches -ge 4 -and $pageAll.offset -eq 0 -and !$pageAll.hasMore -and $pageMid.count -eq 2 -and $pageMid.offset -eq 1 -and $pageMid.hasMore -and $pageMid.totalMatches -eq $pageAll.totalMatches -and $pageMid.extracts[0].line -eq $pageAll.extracts[1].line -and $pageMid.extracts[0].path -eq $pageAll.extracts[1].path) 'ricerca paginata: offset e limit selezionano la finestra dei riscontri ordinati'
+        Assert-Portable ($pageLast.count -eq 1 -and !$pageLast.hasMore -and $pageLast.withinBudget) 'ricerca paginata: ultima pagina senza altri riscontri'
+        $mcpTask=Invoke-SBMcpToolCall $brain 'get_task' @{task='#5';dossier=[IO.Path]::GetRelativePath($brain,$dossier)}
+        Assert-Portable ($mcpTask -match 'ARCHIVED-ONE' -and $mcpTask -match 'archived criteria') 'MCP get_task: dettaglio integro per seq'
+        Reject-Portable {Invoke-SBMcpToolCall $brain 'get_task' @{}} 'MCP get_task: parametro task obbligatorio'
+        $mcpPage=Invoke-SBMcpToolCall $brain 'search_knowledge' @{query='status';dossier=[IO.Path]::GetRelativePath($brain,$dossier);offset=1;limit=2} | ConvertFrom-Json
+        Assert-Portable ($mcpPage.count -eq 2 -and $mcpPage.offset -eq 1 -and $mcpPage.hasMore) 'MCP search_knowledge: offset e limit'
+    }finally{
+        Put-Portable $layerTrackerPath $layerTrackerOriginal
+        Remove-Item -LiteralPath $layerArchive -ErrorAction SilentlyContinue
+        Remove-Item -LiteralPath (Split-Path $layerReport) -Recurse -ErrorAction SilentlyContinue
+    }
     $readyFixtureTasks=@(
         @{id='DEP-DONE';title='Done task';status='done';priority='P2';dependencies=@();acceptance=@('criteria');extensions=@{}},
         @{id='TASK-READY';title='Ready task';status='todo';priority='P1';dependencies=@(@{id='DEP-DONE'});acceptance=@('criteria');extensions=@{}},
@@ -453,7 +493,7 @@ try{
     
     $mcpTools = @{ jsonrpc = '2.0'; id = 103; method = 'tools/list'; params = @{} } | ConvertTo-Json -Compress
     $mcpToolsRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpTools | ConvertFrom-Json
-    Assert-Portable ($mcpToolsRes.result.tools.Count -ge 7) 'server MCP espone almeno 7 strumenti conformi'
+    Assert-Portable ($mcpToolsRes.result.tools.Count -ge 8) 'server MCP espone almeno 8 strumenti conformi'
     
     $mcpPromptCall = @{ jsonrpc = '2.0'; id = 104; method = 'tools/call'; params = @{ name = 'get_prompt'; arguments = @{ prompt = 'SYS03' } } } | ConvertTo-Json -Compress
     $mcpPromptRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpPromptCall | ConvertFrom-Json
@@ -475,7 +515,7 @@ try{
     Assert-Portable (!$mcpListRes.result.isError -and $mcpListRes.result.content[0].text -match 'SYS03') 'strumento list_prompts filtra per categoria'
     $mcpCompact = @{ jsonrpc = '2.0'; id = 1051; method = 'tools/call'; params = @{ name = 'list_prompts'; arguments = @{ category = 'SYS'; compact = $true } } } | ConvertTo-Json -Compress -Depth 5
     $mcpCompactRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCompact | ConvertFrom-Json
-    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^SYS\d{2} \| ').Count -eq 10 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
+    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^SYS\d{2} \| ').Count -eq 12 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
     $mcpHome = @{ jsonrpc = '2.0'; id = 1052; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{} } } | ConvertTo-Json -Compress
     $mcpHomeRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHome | ConvertFrom-Json
     Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
@@ -490,7 +530,7 @@ try{
 
     # Handshake stdio reale: il comando registrato per l IDE viene avviato come processo e interrogato su tutti gli strumenti (cervello fixture).
     $handshakeOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/test-secondbrain-mcp-handshake.ps1') -BrainRoot $brain -Target 'codex,vscode' -PublicationPath $other -ReportPath (Join-Path $brain '.runtime/mcp-handshake/fixture.json') 2>&1|Out-String)
-    Assert-Portable ($LASTEXITCODE -eq 0 -and $handshakeOut -match 'SUCCESS MCP-HANDSHAKE: 2 IDE' -and $handshakeOut -notmatch 'FAIL MCP') 'handshake stdio MCP: initialize, tools/list (7) e tools/call di ogni strumento per le configurazioni IDE'
+    Assert-Portable ($LASTEXITCODE -eq 0 -and $handshakeOut -match 'SUCCESS MCP-HANDSHAKE: 2 IDE' -and $handshakeOut -notmatch 'FAIL MCP') 'handshake stdio MCP: initialize, tools/list (8) e tools/call di ogni strumento per le configurazioni IDE'
     $handshakeReport=Read-SBJson (Join-Path $brain '.runtime/mcp-handshake/fixture.json') $null
     Assert-Portable ($handshakeReport.guiVerified -eq $false -and @($handshakeReport.skippedTools).Count -eq 0 -and @($handshakeReport.ides).Count -eq 2) 'rapporto handshake dichiara la prova visiva GUI non verificata e nessuno strumento saltato'
 
@@ -880,6 +920,37 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((Invoke-SBPortableSync $isoCfg -Check).scope.coverage -eq 'workstation') 'Check senza filtro resta a livello di postazione'
     Reject-Portable {Invoke-SBPortableSync $isoCfg -Check -Repository 'gitlab.example/team/inesistente'} 'Check filtrato su repository non gestito rifiutato'
 
+    # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS14.
+    $twoDossier=Join-Path $brain $twoBinding.dossier
+    $greenKinds={param($check) @($check.issues|Where-Object kind -eq 'greenfield-violation')}
+    Assert-Portable ((Get-SBRepositoryLifecycle $twoDossier) -eq '' -and !(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: senza flag nessuna violazione e ciclo di vita normale'
+    Reject-Portable {Set-SBRepositoryLifecycle -Dossier $twoDossier -Lifecycle 'altro' -BackupRoot $isoCfg.backupRoot} 'greenfield: valore di ciclo di vita sconosciuto rifiutato'
+    Push-Location $other
+    try{
+        $setGreen=(& pwsh -NoProfile -File $knowledgeCli -SetLifecycle greenfield -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
+        Assert-Portable ($LASTEXITCODE -eq 0 -and $setGreen.lifecycle -eq 'greenfield' -and $setGreen.changed -and (Get-SBRepositoryLifecycle $twoDossier) -eq 'greenfield') 'greenfield: knowledge -SetLifecycle fissa il flag nel dossier del repository in lavoro'
+        & pwsh -NoProfile -File $knowledgeCli -SetLifecycle greenfield -Repository $localBinding.identity -ConfigPath $isoActivation.configuration *> $null
+        Assert-Portable ($LASTEXITCODE -ne 0 -and !((Read-SBJson (Join-Path (Join-Path $brain $localBinding.dossier) 'repository.json') $null).ContainsKey('lifecycle'))) 'greenfield: il flag di un altro repository non si modifica'
+    }finally{Pop-Location}
+    Assert-Portable (!(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: flag attivo senza violazioni resta pulito'
+    Put-Portable (Join-Path $other 'VERSION') '1.0.0'
+    Put-Portable (Join-Path $other 'CHANGELOG.md') '# Changelog'
+    $recordPath=Join-Path $twoDossier 'repository.json';$recordBackup=[IO.File]::ReadAllBytes($recordPath)
+    try{
+        $greenRecord=Read-SBJson $recordPath $null;$greenRecord.aliases=@('vecchio-nome')
+        Put-Portable $recordPath (ConvertTo-SBJson $greenRecord)
+        $greenCheck=Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity
+        $greenReasons=@(& $greenKinds $greenCheck|ForEach-Object reason)
+        Assert-Portable (@($greenReasons|Where-Object {$_ -like 'VERSION*'}).Count -eq 1 -and @($greenReasons|Where-Object {$_ -like 'CHANGELOG*'}).Count -eq 1 -and @($greenReasons|Where-Object {$_ -like 'alias*'}).Count -eq 1 -and !$greenCheck.aligned) 'greenfield: Check segnala VERSION, CHANGELOG e alias'
+    }finally{[IO.File]::WriteAllBytes($recordPath,$recordBackup)}
+    Push-Location $other
+    try{
+        $setNone=(& pwsh -NoProfile -File $knowledgeCli -SetLifecycle none -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
+        Assert-Portable ($LASTEXITCODE -eq 0 -and $setNone.lifecycle -eq '' -and (Get-SBRepositoryLifecycle $twoDossier) -eq '') 'greenfield: -SetLifecycle none rimuove il blocco'
+    }finally{Pop-Location}
+    Assert-Portable (!(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: rimosso il blocco le violazioni non sono piu segnalate'
+    Remove-Item -LiteralPath (Join-Path $other 'VERSION'),(Join-Path $other 'CHANGELOG.md') -Force
+
     # Attivazione guidata -Setup: proposta, conferma, anteprima, applicazione; mai interattiva senza richiesta e senza toccare l'ambiente utente.
     $setupRepos=Join-Path $fixture 'setup-roots'
     foreach($name in @('alpha','beta')){
@@ -1152,6 +1223,63 @@ Start-Sleep -Seconds 300
     $contenderOutputs=@($contenders|Receive-Job -Wait -AutoRemoveJob)
     Assert-Portable (@($contenderOutputs|Where-Object {$_ -match 'EXIT=(0|1)\b'}).Count -eq 3) 'tre Sync simultanei si serializzano e terminano tutti senza errore ne exit 3'
     Assert-Portable ($null -eq (Get-SBPendingTransaction $brain) -and (Invoke-FixtureCli 'secondbrain.ps1' @('-Check')).exit -in @(0,1)) 'dopo la contesa il cervello e consistente (nessun marker, Check eseguibile)'
+
+    # Coda FIFO dei writer: ordine di arrivo, ticket orfano di un processo terminato, exit 3 uniforme in tutti gli script di scrittura.
+    $queueScript=Join-Path $hostRoot 'queue-waiter.ps1';$queueLog=Join-Path $hostRoot 'queue-order.log'
+    Put-Portable $queueScript @'
+param($Brain,$ConfigPath,$Label,$Log)
+$ErrorActionPreference='Stop'
+Import-Module (Join-Path $Brain 'scripts/SecondBrain.Core.psm1')
+Import-Module (Join-Path $Brain 'scripts/SecondBrain.Access.psm1')
+$config=Read-SBConfiguration $ConfigPath
+$lock=Enter-SBOperation $config $null -WaitMs 120000
+try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}finally{Exit-SBOperation $lock}
+'@
+    function Get-FixtureQueue { @((Invoke-FixtureCli $accessCli @('-Queue')).text|ConvertFrom-Json) }
+    Remove-Item -LiteralPath $queueLog -ErrorAction SilentlyContinue
+    Assert-Portable ((Get-FixtureQueue).Count -eq 0) 'coda FIFO: vuota senza writer in attesa'
+    $simHolder=Start-SmbSimHolder
+    $queueProcs=@()
+    try{
+        foreach($label in 'A','B','C','D'){
+            $queueProcs+=Start-Process pwsh -ArgumentList @('-NoProfile','-File',$queueScript,'-Brain',$brain,'-ConfigPath',$isoActivation.configuration,'-Label',$label,'-Log',$queueLog) -PassThru -WindowStyle Hidden
+            # Il ticket successivo parte solo quando quello precedente e in coda: l'ordine di arrivo e noto.
+            for($i=0;$i -lt 160 -and (Get-FixtureQueue).Count -lt $queueProcs.Count;$i++){Start-Sleep -Milliseconds 250}
+        }
+        $queued=Get-FixtureQueue
+        Assert-Portable ($queued.Count -eq 4 -and @($queued|Where-Object state -eq 'waiting').Count -eq 4 -and ($queued.position -join ',') -eq '1,2,3,4') 'coda FIFO: quattro writer in attesa, posizioni 1..4 in ordine di arrivo'
+        Stop-Process -Id $queueProcs[1].Id -Force
+        $queueProcs[1].WaitForExit(10000)|Out-Null
+        Assert-Portable (@(Get-FixtureQueue|Where-Object state -eq 'orphan').Count -eq 1) 'coda FIFO: il ticket di un processo terminato risulta orfano'
+        Stop-Process -Id $simHolder.Id -Force
+        $simHolder.WaitForExit(10000)|Out-Null
+        foreach($index in 0,2,3){$queueProcs[$index].WaitForExit(90000)|Out-Null}
+    }finally{
+        foreach($process in @($simHolder)+$queueProcs){if($process -and !$process.HasExited){Stop-Process -Id $process.Id -Force}}
+    }
+    Assert-Portable ((@(Get-Content -LiteralPath $queueLog -ErrorAction SilentlyContinue) -join ',') -eq 'A,C,D') 'coda FIFO: i writer entrano in ordine di arrivo e il ticket orfano non blocca la coda'
+    Assert-Portable ((Get-FixtureQueue).Count -eq 0 -and $null -eq (Get-SBPendingTransaction $brain)) 'coda FIFO: ticket orfani rimossi senza forzare il lock ne lasciare marker'
+    $simHolder=Start-SmbSimHolder
+    $env:SECONDBRAIN_LOCK_WAIT_SECONDS='1'
+    try{
+        $hostConfigPath=Get-SBHostConfigPath $brain;$missingJson=Join-Path $brain '.runtime/inesistente.json'
+        $writerCalls=[ordered]@{
+            'build-prompts.ps1'=@();'cleanup.ps1'=@('-Apply','-ManifestPath',$missingJson);'approve-revision.ps1'=@('-Authorization','test','-ConfigPath',$hostConfigPath)
+            'restore-managed.ps1'=@('-MetadataPath',$missingJson);'import-tracker.ps1'=@('-Apply','-Repository','github.com/acme/repo','-SourcePath',$missingJson)
+            'rollback-repo.ps1'=@('-RepositoryIdentity','github.com/acme/repo','-Apply');'para.ps1'=@('-BuildIndex')
+            'assets.ps1'=@('-RepositoryPath',$brain,'-ManifestPath',$missingJson,'-Export','-Name','n','-Apply');'access.ps1'=@('-Reconcile')
+            'mcp-server.ps1'=@('-Pair','-Target','codex','-Apply')
+        }
+        foreach($writerName in $writerCalls.Keys){
+            $writerResult=Invoke-FixtureCli $writerName $writerCalls[$writerName]
+            Assert-Portable ($writerResult.exit -eq 3 -and $writerResult.text -match 'Titolare') ("lock occupato: $writerName esce con 3 e il titolare")
+        }
+        $startBusy=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-queue')
+        Assert-Portable ($startBusy.exit -eq 3 -and $startBusy.text -match 'occupato') 'lock occupato: access -Start in scrittura esce con 3'
+    }finally{
+        Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue
+        if(!$simHolder.HasExited){Stop-Process -Id $simHolder.Id -Force};$simHolder.WaitForExit(10000)|Out-Null
+    }
     $mixedDrive=$brain.Substring(0,1);$mixedTail=$brain.Substring(2);$otherDrive=if($mixedDrive -ieq 'Z'){'Y'}else{'Z'}
     Assert-Portable ((Test-SBSamePath ('\\127.0.0.1\'+$mixedDrive+'$'+$mixedTail) $brain) -and (Test-SBSamePath ('\\'+$env:COMPUTERNAME+'\'+$mixedDrive.ToLowerInvariant()+'$'+$mixedTail) $brain) -and (Test-SBSamePath ('\\'+$env:COMPUTERNAME+'.corp.local\'+$mixedDrive+'$'+$mixedTail) $brain)) 'alias amministrativi locali: indirizzo di loopback, nome macchina e FQDN equivalgono al drive'
     Assert-Portable (!(Test-SBSamePath ('\\localhost\'+$otherDrive+'$'+$mixedTail) $brain) -and !(Test-SBSamePath ('\\localhost\dati'+$mixedTail) $brain)) 'alias amministrativi: drive diverso o condivisione non amministrativa non equivalgono'

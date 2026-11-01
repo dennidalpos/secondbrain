@@ -3,6 +3,7 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 
 function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
     $root=Resolve-SBParaPath $BrainRoot 'direttive/prompts'
@@ -32,6 +33,8 @@ function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
     }
     foreach($prompt in $catalog.prompts){
         foreach($related in $prompt.related){if(!$ids.ContainsKey($related) -or $related -eq $prompt.id){throw 'Prompt vicino non valido: '+$related}}
+        # Candidati del prompt successivo: esistenti e diversi dal prompt; i ritirati restano ammessi (il ritiro morbido non obbliga a riscrivere) ma la composizione non li propone.
+        if($prompt.ContainsKey('next')){foreach($candidate in $prompt.next){if(!$ids.ContainsKey($candidate) -or $candidate -eq $prompt.id){throw 'Prompt successivo non valido: '+$prompt.code+' -> '+$candidate}}}
         if($prompt.ContainsKey('supersededBy') -and (!$ids.ContainsKey($prompt.supersededBy) -or $prompt.supersededBy -eq $prompt.id)){throw 'Sostituto non valido: '+$prompt.code}
         if($prompt.status -eq 'deprecated' -and !$prompt.ContainsKey('supersededBy')){throw 'Prompt ritirato senza sostituto: '+$prompt.code}
         if($ValidateBodies){[void](Read-SBWorkflowPrompt $BrainRoot $prompt $catalog)}
@@ -294,6 +297,7 @@ function Get-SBWorkflowContext {
         foreach($field in @('agents','context','memory')){Assert-SBPlainPath $record[$field];if(!(Test-Path -LiteralPath $record[$field] -PathType Leaf)){throw 'Riferimento locale mancante: '+$record[$field]}}
         $tracker=Resolve-SBTracker -BrainRoot $brain -Identity $area.repository -CheckoutPath $checkout.path -AllowedOwners $Config.allowedOwners -Entities $entities
         $record.tracker=$tracker.path; $record.trackerSource=$tracker.source
+        $record.lifecycle=Get-SBRepositoryLifecycle $dir
         $sourceMap=Join-Path $dir 'authoritative-sources.json'
         $record.sourceApplicability=if(Test-Path -LiteralPath $sourceMap -PathType Leaf){Assert-SBPlainPath $sourceMap;$sourceMap}else{$null}
         if($project){
@@ -338,6 +342,27 @@ function Get-SBWorkflowAudience($Prompt) {
     $script:SBWorkflowAudience.default
 }
 
+# Candidati del prompt successivo: voci `next` della scheda (senza ritirati; fuori da SecondBrain anche senza prompt centrali) e task pronti dei repository nel contesto.
+function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Context) {
+    $centralHere=(@($Context.repositories).Count -eq 1 -and [IO.Path]::GetFullPath($Context.repositories[0].checkout) -eq [IO.Path]::GetFullPath($BrainRoot))
+    $prompts=@()
+    if($Prompt.ContainsKey('next')){
+        foreach($id in $Prompt.next){
+            $candidate=@($Catalog.prompts|Where-Object {$_.id -ceq $id -and $_.status -ne 'deprecated' -and ($centralHere -or $_.target -ne 'central')})
+            if($candidate.Count -eq 1){$prompts+=$candidate[0]}
+        }
+    }
+    $tasks=@()
+    foreach($record in @($Context.repositories)){
+        try{
+            foreach($task in @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository $record.identity -ReadyOnly)){
+                if($task -is [Collections.IDictionary] -and $task.ContainsKey('id') -and $task.ContainsKey('title')){$tasks+=$task}
+            }
+        }catch{}
+    }
+    @{prompts=@($prompts);tasks=@($tasks|Select-Object -First 4)}
+}
+
 # Il prompt finale segue CO-STAR: Context, Objective, Style, Tone, Audience, Response. Le schede restano la sorgente.
 function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,[string]$Objective) {
     if($Prompt.target -eq 'central' -and (@($Context.repositories).Count -ne 1 -or [IO.Path]::GetFullPath($Context.repositories[0].checkout) -ne [IO.Path]::GetFullPath($BrainRoot))){throw 'Prompt centrale: aprire SecondBrain; nessun cambio implicito di repository'}
@@ -352,6 +377,7 @@ function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,
     foreach($record in $Context.repositories){
         $lines+=@('',('Repository: '+$record.identity),('Checkout: '+$record.checkout),('Leggi: '+$record.agents),('Contesto: '+$record.context),('Memoria: '+$record.memory))
         if($record.tracker){$lines+='Tracker: '+$record.tracker+' (fonte: '+$record.trackerSource+')'}
+        if($record.ContainsKey('lifecycle') -and $record.lifecycle -eq 'greenfield'){$lines+='Ciclo di vita: greenfield (blocco attivo). Vietati: bump di VERSION, voci di CHANGELOG, migrazioni o importazioni di schema, alias di compatibilità, deprecations. Per rimuovere il blocco usa SYS14.'}
         if($record.sourceApplicability){$lines+='Applicabilità fonti: '+$record.sourceApplicability}
     }
     if($Context.sourceRegistry){$lines+='Registro fonti: '+$Context.sourceRegistry}
@@ -384,7 +410,15 @@ function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,
         '- Registra novità verificate e decisioni durevoli in memory.md, in una riga ''Decisione: … — Motivo: …''; aggiorna lo stato in context.md.',
         '- Registra esplicitamente nel report o nel dossier la sezione ''## Registro Azioni Autonome'' elencando tutte le azioni intraprese in autonomia dall''agente o IDE senza aver ricevuto una preventiva approvazione specifica dell''utente.',
         '- Se il task ha modificato direttive o dossier, esegui secondbrain.ps1 -Sync e -Check.',
-        '','### Prompt vicini',$sections['Prompt vicini'])
+        '')
+    $proposals=Get-SBWorkflowNextProposals $BrainRoot $Catalog $Prompt $Context
+    $lines+=@('### Proposta del prompt successivo',
+        'A task concluso non avviare altri prompt o task di tua iniziativa: proponi all''utente da 2 a 4 prossimi passi come scelta multipla (stessa regola di Function Calling / Tool Use; senza strumenti, opzioni numerate) e attendi la scelta.')
+    if($proposals.prompts.Count){$lines+=@('Prompt candidati della scheda:')+@($proposals.prompts|ForEach-Object {'- '+$_.code+': '+$_.summary})}
+    if($proposals.tasks.Count){$lines+=@('Task pronti del repository:')+@($proposals.tasks|ForEach-Object {'- '+$_.id+' ['+$_.priority+'/'+$_.status+'] '+$_.title})}
+    if(!$proposals.prompts.Count -and !$proposals.tasks.Count){$lines+='Nessun candidato disponibile: chiedi quale prompt usare oppure concludi.'}
+    $lines+='La scelta non esegue nulla da sola: il prompt scelto si compone con `sb prompt CODICE: obiettivo` e conserva le proprie autorizzazioni.'
+    $lines+=@('','### Prompt vicini',$sections['Prompt vicini'])
     ($lines -join "`n").TrimEnd()+"`n"
 }
 

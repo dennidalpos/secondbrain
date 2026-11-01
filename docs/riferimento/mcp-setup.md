@@ -28,18 +28,19 @@ Il server MCP di SecondBrain è un servizio conforme allo standard di settore **
 | :--- | :---: | :--- | :--- |
 | `get_startup_context` | `read` | `repository`, `checkoutPath`, `dossier`, `readyOnly`, `profile`, `budget` | Restituisce il pacchetto di avvio del repository in lavoro. Profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento): indice, sezioni essenziali di `context.md` e `memory.md`, task pronti in una riga ed elenco dei livelli non caricati. Profilo `full`: tutto, senza tetto. Senza `repository` né `dossier` il repository si risolve dal checkout (`checkoutPath` o directory corrente); non esiste più un default sul dossier di SecondBrain. |
 | `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance` | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, è in sola lettura, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
+| `get_task` | `read` | `task` *(obbligatorio: ID o `#seq`)*, `repository`, `checkoutPath`, `dossier` | Restituisce il record integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) dal tracker o da `history/tracker-archive.json`. Alias `secondbrain_get_task`. |
 | `search_knowledge` | `read` | `query` *(obbligatorio)*, `budget` *(facoltativo)*, `dossier`, `repository`, `mode` *(`literal` predefinito, `relevance` per termini multipli ordinati per pertinenza)* | Esegue una ricerca deterministica nei file di conoscenza (`context.md`, `memory.md`, `tracker.json`, compattazioni storiche). Nessun tetto per impostazione predefinita: restituisce tutti i riscontri pertinenti. |
-| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)* | Elenca il catalogo dei 78 workflow attivi (COM01–GOV02) nelle 13 aree. Con `compact` una riga per prompt (codice, modalità, sommario). |
+| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)* | Elenca il catalogo dei 80 workflow attivi (COM01–GOV02) nelle 13 aree. Con `compact` una riga per prompt (codice, modalità, sommario). |
 | `get_prompt` | `read` | `prompt` *(obbligatorio: ID `pmt-…`, codice come `TST04` o alias)* | Restituisce il testo integrale della scheda ingegneristica con Scopo, Attività specifiche, Verifiche e Consegna. |
 | `get_prompt_home` | `read` | *(nessuno)* | Schermata iniziale di `sb prompt`: percorso del file Markdown del catalogo completo e tabella dei comandi `sb` con descrizione. |
 | `check_publication` | `verify` | `repositoryPath` *(obbligatorio)* | Esegue la verifica di pubblicabilità (REP05) del working tree, indice e storia del repository specificato prima di push o rilascio. |
 
 ### Prompt Standard MCP (`prompts/list` e `prompts/get`)
-Il server implementa il protocollo standard MCP Prompts: tutti i 78 workflow attivi sono esposti nativamente come template richiamabili direttamente dall'interfaccia dell'IDE (es. selezionando `SYS03`, `DEV01`, `REP05`).
+Il server implementa il protocollo standard MCP Prompts: tutti i 80 workflow attivi sono esposti nativamente come template richiamabili direttamente dall'interfaccia dell'IDE (es. selezionando `SYS03`, `DEV01`, `REP05`).
 
 ### Risorse Standard MCP (`resources/list` e `resources/read`)
 - URI: `secondbrain://prompts/catalog`
-- Descrizione: catalogo strutturato in formato JSON dei 78 workflow attivi con metadati completi.
+- Descrizione: catalogo strutturato in formato JSON dei 80 workflow attivi con metadati completi.
 
 ---
 
@@ -258,7 +259,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | pwsh -NoProfile -File scripts/mcp-server.ps1
 ```
-*Esito atteso*: una risposta JSON valida contenente la lista dei 7 tool con schemi e proprietà.
+*Esito atteso*: una risposta JSON valida contenente la lista degli 8 tool con schemi e proprietà.
 
 ### Test 2: Ping rapido
 ```powershell
@@ -276,7 +277,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1 [-Target codex,vscode|all] [-PublicationPath <repository Git>] [-ReportPath <file>]
 ```
-Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno dei 7 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 7 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
+Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno degli 8 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 7 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
 
 ---
 

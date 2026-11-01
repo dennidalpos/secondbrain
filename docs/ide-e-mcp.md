@@ -36,7 +36,8 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 |---|---|
 | `get_startup_context` | Leggere contesto e memoria del progetto |
 | `get_ready_tasks` | Vedere i task pronti |
-| `search_knowledge` | Cercare negli appunti |
+| `get_task` | Leggere un task per intero (criteri, evidenze), anche archiviato |
+| `search_knowledge` | Cercare negli appunti (archivio e report inclusi, a pagine) |
 | `list_prompts`, `get_prompt`, `get_prompt_home` | Consultare i prompt |
 | `check_publication` | Controllare un progetto prima del push |
 

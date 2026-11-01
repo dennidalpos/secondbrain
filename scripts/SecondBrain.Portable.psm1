@@ -468,6 +468,28 @@ function Invoke-SBSetupOutput {
     $result.stage='applied';$result.applied=$true;$result.confirmation=[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'
     $result
 }
+# Blocco greenfield: segnali, rispetto a HEAD, di versioni, changelog, migrazioni, alias di compatibilita e deprecations. Una modifica gia committata non e segnalata.
+function Get-SBGreenfieldViolations($Config,$Binding,[string]$Dossier) {
+    $found=@()
+    $version=Invoke-SBGit $Binding.path @('status','--porcelain=v1','--','VERSION')
+    if($version.code -eq 0 -and $version.output){$found+='VERSION modificato rispetto a HEAD'}
+    $changelog=Invoke-SBGit $Binding.path @('status','--porcelain=v1','--','CHANGELOG.md')
+    if($changelog.code -eq 0 -and $changelog.output){
+        if($changelog.output.StartsWith('??')){$found+='CHANGELOG.md nuovo'}
+        else{
+            $stat=Invoke-SBGit $Binding.path @('diff','HEAD','--numstat','--','CHANGELOG.md')
+            if($stat.code -eq 0 -and $stat.output -match '^(\d+)\s' -and [int]$Matches[1] -gt 0){$found+='CHANGELOG.md con nuove voci rispetto a HEAD'}
+        }
+    }
+    $record=Read-SBJson (Join-Path $Dossier 'repository.json') @{}
+    if($record.ContainsKey('aliases') -and @($record.aliases).Count){$found+='alias di compatibilita in repository.json'}
+    foreach($registry in @(Get-SBTrackerImportPaths $Config ([string]$Binding.identity))){if(Test-Path -LiteralPath $registry -PathType Leaf){$found+='importazione o migrazione di schema del tracker registrata';break}}
+    if(Test-SBSamePath $Binding.path $Config.brainRoot){
+        $catalog=Read-SBJson (Join-Path $Config.brainRoot 'direttive/prompts/catalog.json') @{}
+        if($catalog.ContainsKey('deprecations')){$found+='deprecations nel catalogo prompt'}
+    }
+    $found
+}
 function Invoke-SBPortableSync {
     param($Config,[switch]$Check,[string]$SessionId,[string]$ObservationPath,[string]$Repository)
     $lock=Enter-SBOperation $Config $SessionId -ReadOnly:$Check
@@ -497,6 +519,7 @@ function Invoke-SBPortableSync {
                 $dir=Resolve-SBParaPath $Config.brainRoot $binding.dossier
                 $record=Read-SBJson (Join-Path $dir 'repository.json') $null
                 if(!$record -or $record.identity -cne $binding.identity){throw 'Identita dossier divergente'}
+                if((Get-SBRepositoryLifecycle $dir) -eq 'greenfield'){foreach($reason in @(Get-SBGreenfieldViolations $Config $binding $dir)){$issues+=@{kind='greenfield-violation';repository=$binding.identity;reason=$reason}}}
                 $outputVerified=$false
                 if($binding.ContainsKey('outputStatus') -and $binding.outputStatus -eq 'exception-accepted' -and $binding.ContainsKey('outputException') -and $binding.outputException){$outputVerified=$true}
                 if($binding.ContainsKey('outputStatus') -and $binding.outputStatus -eq 'verified' -and $binding.ContainsKey('outputEvidence') -and $binding.ContainsKey('outputEvidenceSha256')){

@@ -92,7 +92,7 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 | [Sicurezza e backup](safety-backups.md) | Cosa modifica SecondBrain, dove sono i backup, ripristino e disinstallazione (da leggere per primo) |
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
-| [Prompt e direttive](customizing-prompts-and-directives.md) | Uso dalla chat e dalla CLI, catalogo dei 78 workflow attivi in 13 aree, schede, approvazione direttive, generazione e manutenzione |
+| [Prompt e direttive](customizing-prompts-and-directives.md) | Uso dalla chat e dalla CLI, catalogo dei 80 workflow attivi in 13 aree, schede, approvazione direttive, generazione e manutenzione |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |

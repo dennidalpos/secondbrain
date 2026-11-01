@@ -35,5 +35,5 @@ try {
     if($target){[void](Write-SBFile $target ([Text.Encoding]::UTF8.GetBytes($json)) $expected $config.backupRoot);'Audit salvato: '+$target}else{$json}
     if(!$audit.complete){exit 1}
     exit 0
-} catch {[Console]::Error.WriteLine($_.Exception.Message);exit 2}
+} catch {[Console]::Error.WriteLine($_.Exception.Message);exit $(if(Test-SBBusyError $_){3}else{2})}
 finally {Exit-SBOperation $lock}
