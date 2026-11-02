@@ -904,6 +904,20 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ProposalPath',$proposalFile)).exit -eq 0 -and (Test-Path -LiteralPath $proposalFile) -and (Read-SBJson $proposalFile @{}).scope -eq 'runtime-cleanup-proposal') 'ProposeRuntime salva la proposta in un nuovo file con -ProposalPath'
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ProposalPath',$proposalFile)).exit -ne 0) 'ProposeRuntime non sovrascrive una proposta esistente'
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ListRuntime')).exit -ne 0 -and (Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-Apply')).exit -ne 0) 'ProposeRuntime non e combinabile con ListRuntime o Apply'
+    # Backup .bin: duplicato di Git solo con SHA-256 pari a previousHash e blob presente; senza blob e l'unica copia.
+    $binRepo=Join-Path $fixture 'bin-proposal-repo';[IO.Directory]::CreateDirectory($binRepo)|Out-Null;Git-Portable $binRepo @('init','-q')|Out-Null
+    Put-Portable (Join-Path $binRepo 'con-blob.txt') 'versione committata';Put-Portable (Join-Path $binRepo 'senza-blob.txt') 'versione committata'
+    Git-Portable $binRepo @('add','.')|Out-Null;Git-Portable $binRepo @('-c','user.name=prova','-c','user.email=prova@example.invalid','commit','-qm','base')|Out-Null
+    $binBackups=Join-Path $brain ".runtime/hosts/$stationId/backups"
+    foreach($case in @(@{name='con-blob';content='versione committata'},@{name='senza-blob';content='contenuto mai committato'})){
+        $binFile=Join-Path $binBackups ($case.name+'.bin');Put-Portable $binFile $case.content
+        Put-Portable (Join-Path $binBackups ($case.name+'.bin.json')) (ConvertTo-SBJson @{schemaVersion=1;path=(Join-Path $binRepo ($case.name+'.txt'));backup=$binFile;previousHash=(Get-SBFileHash $binFile);deployedHash='0'})
+    }
+    $binProposal=(Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime')).text|ConvertFrom-Json -AsHashtable
+    $binCandidate=@($binProposal.candidates|Where-Object {$_.path -like 'hosts/*/backups/*.bin'})[0]
+    Assert-Portable ($binCandidate.files -eq 1) 'ProposeRuntime conta come duplicato di Git solo il .bin con blob presente'
+    Remove-Item -LiteralPath (Join-Path $binBackups 'con-blob.bin.json') -Force
+    Assert-Portable (@((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime')).text|ConvertFrom-Json -AsHashtable|ForEach-Object {$_.candidates}|Where-Object {$_.path -like 'hosts/*/backups/*.bin'}).Count -eq 0) 'ProposeRuntime non propone alcun .bin quando manca il blob'
     Remove-Item -LiteralPath $proposalFile -Force
     Get-ChildItem -LiteralPath (Join-Path $brain '.runtime/tests') -Directory -Filter 'portable-prova-*'|ForEach-Object {Remove-Item -LiteralPath $_.FullName -Recurse -Force}
     (Get-Item -LiteralPath (Join-Path $brain '.runtime/collegamento')).Delete()

@@ -125,6 +125,24 @@ function Get-SBGitFileState([string]$Path) {
     $blob = (& $gitExe -C $dir rev-parse "HEAD:./$name" 2>$null | Select-Object -First 1)
     @{ dirty = ($status.Length -gt 0); commit = [string]$commit; blob = [string]$blob }
 }
+function Test-SBBackupInGit([string]$MetadataPath) {
+    # Sola lettura: true solo se il .bin di un .bin.json e un duplicato di Git (copia presente con SHA-256 pari a previousHash, file origine tracciato e pulito, contenuto presente come blob).
+    $info = $null; try { $info = Read-SBJson $MetadataPath $null } catch { return $false }
+    if ($null -eq $info -or !$info.path -or !$info.backup) { return $false }
+    $backup = [string]$info.backup
+    if (!(Test-Path -LiteralPath $backup -PathType Leaf)) { return $false }
+    if ($info.previousHash -and (Get-SBFileHash $backup) -ne [string]$info.previousHash) { return $false }
+    $git = Get-SBGitFileState ([string]$info.path)
+    if ($null -eq $git -or $git.dirty) { return $false }
+    $gitExe = (Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    $full = [IO.Path]::GetFullPath([string]$info.path)
+    $dir = [IO.Path]::GetDirectoryName($full)
+    $pathArgument = '--path=' + [IO.Path]::GetFileName($full)
+    $blob = (& $gitExe -C $dir hash-object $pathArgument -- $backup 2>$null | Select-Object -First 1)
+    if (!$blob) { return $false }
+    $null = & $gitExe -C $dir cat-file -e $blob 2>$null
+    $LASTEXITCODE -eq 0
+}
 function Write-SBFile {
     param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty)
     Assert-SBWriteGuard
@@ -322,14 +340,12 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
             $zips=@()
             if(Test-Path -LiteralPath $backupsDir -PathType Container){$zips=@(Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.zip' -Force|Sort-Object LastWriteTimeUtc -Descending)}
             $oldZips=@($zips|Select-Object -Skip 2)
-            # Backup .bin di file oggi tracciati da Git e puliti: Git ne conserva il contenuto (commit e blob), quindi sono duplicati da valutare.
+            # Backup .bin il cui contenuto esiste come blob in Git (SHA-256 pari a previousHash, file origine tracciato e pulito): duplicati da valutare. Senza blob il .bin e l'unica copia e non e candidato.
             if(Test-Path -LiteralPath $backupsDir -PathType Container){
                 $gitBins=@();$gitBytes=0L;$oldestBin=$null
                 foreach($meta in Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.bin.json' -Force){
                     $info=$null;try{$info=Read-SBJson $meta.FullName $null}catch{continue}
-                    if($null -eq $info -or !$info.path -or !$info.backup){continue}
-                    $git=Get-SBGitFileState ([string]$info.path)
-                    if($null -eq $git -or $git.dirty){continue}
+                    if(!(Test-SBBackupInGit $meta.FullName)){continue}
                     $gitBins+=$meta
                     $gitBytes+=$meta.Length;if(Test-Path -LiteralPath $info.backup -PathType Leaf){$gitBytes+=([IO.FileInfo]::new($info.backup)).Length}
                     if($null -eq $oldestBin -or $meta.LastWriteTimeUtc -lt $oldestBin){$oldestBin=$meta.LastWriteTimeUtc}

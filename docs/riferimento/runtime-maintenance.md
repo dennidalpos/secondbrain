@@ -32,7 +32,7 @@ pwsh -NoProfile -File scripts/cleanup.ps1 -ProposeRuntime -ProposalPath .runtime
 pwsh -NoProfile -File scripts/cleanup.ps1 -ListStageRecords -OlderThanDays 90
 ```
 
-La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFixtures`, rapporti handshake oltre soglia, ambiente Python delle fonti, zip di backup oltre i due più recenti, backup `.bin` di file ora tracciati da Git e puliti, lavoro di agent senza riferimenti), con dimensione, età, riferimenti e come si ricreano. **Non è un manifest eseguibile.** Rimuovere le cartelle è un passo separato:
+La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFixtures`, rapporti handshake oltre soglia, ambiente Python delle fonti, zip di backup oltre i due più recenti, backup `.bin` duplicati di Git (file ora tracciato e pulito, copia con SHA-256 pari a `previousHash` e contenuto presente come blob: senza blob il `.bin` è l'unica copia e non è candidato), lavoro di agent senza riferimenti), con dimensione, età, riferimenti e come si ricreano. **Non è un manifest eseguibile.** Rimuovere le cartelle è un passo separato:
 
 1. Chiudi le sessioni di scrittura (`access.ps1 -Status`) e verifica che non esista `.runtime/para-transaction.json`.
 2. **Cartelle rigenerabili** (fixture di test oltre le ultime `-KeepFixtures` e `hosts/<id>/sources/python`): usa `cleanup.ps1 -Regenerable`.

@@ -100,9 +100,11 @@ try {
     Assert ($managedOutput -contains 'conflict' -and @($managedOutput|Where-Object {$_ -is [Management.Automation.WarningRecord]}).Count -ge 1) 'blocco gestito su file tracciato sporco: conflitto con avviso'
     $pruneRoot=Join-Path $root 'prune-brain';$pruneBackups=Join-Path $pruneRoot '.runtime/hosts/h1/backups';[IO.Directory]::CreateDirectory($pruneBackups)|Out-Null
     $pruneFile=Join-Path $gitRepo 'prune.md';Put $pruneFile "uno`n";Git $gitRepo @('add','prune.md')|Out-Null;Git $gitRepo @('commit','-q','-m','prune')|Out-Null
-    $oldBin=Join-Path $pruneBackups 'old.bin';[IO.File]::WriteAllText($oldBin,'vecchio');[IO.File]::WriteAllText($oldBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash='x';deployedHash='y';backup=$oldBin}))
+    $oldBin=Join-Path $pruneBackups 'old.bin';[IO.File]::WriteAllText($oldBin,"uno`n");[IO.File]::WriteAllText($oldBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash=(Get-SBFileHash $oldBin);deployedHash='y';backup=$oldBin}))
+    $lostBin=Join-Path $pruneBackups 'lost.bin';[IO.File]::WriteAllText($lostBin,"mai committato`n");[IO.File]::WriteAllText($lostBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash=(Get-SBFileHash $lostBin);deployedHash='y';backup=$lostBin}))
     $proposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
-    Assert (@($proposal.candidates|Where-Object {$_.path -like '*backups/*.bin'}).Count -eq 1 -and $proposal.applied -eq $false -and (Test-Path $oldBin)) 'proposta di potatura dei .bin ora tracciati, senza eseguirla'
+    $binCandidates=@($proposal.candidates|Where-Object {$_.path -like '*backups/*.bin'})
+    Assert ($binCandidates.Count -eq 1 -and $binCandidates[0].files -eq 1 -and $proposal.applied -eq $false -and (Test-Path $oldBin) -and (Test-Path $lostBin)) 'proposta di potatura dei soli .bin con blob in Git, senza eseguirla (il .bin senza blob e escluso)'
     $state=@{}
     Assert ((Set-SBManagedContent $path 'regola' 'test' $state $true $backup) -eq 'pending') 'Check rileva blocco mancante'
     Assert ((Get-SBFileHash $path) -eq $hash -and $state.Count -eq 0) 'Check senza scritture o adozione'
