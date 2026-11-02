@@ -57,7 +57,10 @@ try{
             exit 0
         }
     }
-    elseif($Compact){$result=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $Dossier -CandidatePath $CandidatePath -BackupRoot $config.backupRoot -Apply:$Apply -CheckoutPath $CheckoutPath -Budget $effectiveBudget}
+    elseif($Compact){
+        if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
+        elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
+        $result=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $Dossier -CandidatePath $CandidatePath -BackupRoot $config.backupRoot -Apply:$Apply -CheckoutPath $CheckoutPath -Budget $effectiveBudget}
     elseif($Search){$result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $Repository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $Limit}
     elseif($Task -or $Section){
         # Strati di approfondimento: dettaglio integro di un task (anche archiviato) o sezione intera per titolo, dal dossier del repository in lavoro.

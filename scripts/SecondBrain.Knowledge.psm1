@@ -456,6 +456,7 @@ function Get-SBSection {
 }
 function Invoke-SBDossierCompaction {
     param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=50000)
+    if([string]::IsNullOrWhiteSpace($Dossier)){throw 'Dossier non indicato: eseguire dal checkout del repository o passare -Dossier (assoluto o relativo alla radice SecondBrain)'}
     $root=[IO.Path]::GetFullPath($BrainRoot);$dir=[IO.Path]::GetFullPath($Dossier)
     [void](Assert-SBPlainPath $dir)
     $relative=[IO.Path]::GetRelativePath($root,$dir).Replace('\','/');[void](Resolve-SBParaPath $root $relative)

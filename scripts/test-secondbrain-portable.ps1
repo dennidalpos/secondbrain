@@ -986,6 +986,16 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($LASTEXITCODE -eq 0 -and (@((Read-SBJson (Join-Path (Join-Path $brain $twoBinding.dossier) 'tracker.json') $null).tasks)[0].status -eq 'in_progress')) 'scrittura sul tracker del repository in lavoro consentita'
         $startupCli=(& pwsh -NoProfile -File $knowledgeCli -Startup -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
         Assert-Portable ($startupCli.repository -eq $twoBinding.identity) 'knowledge -Startup senza dossier risolve il checkout corrente'
+        # #230: -Compact risolve il dossier come -Startup (checkout corrente o percorso relativo); il candidato obsoleto prova che la risoluzione e riuscita.
+        $staleCandidate=@{schemaVersion=1;repository=$twoBinding.identity;reviewed=$true;reviewNote='dossier resolution fixture';sources=@{'context.md'='0';'memory.md'='0'};summaries=@{'context.md'='x';'memory.md'='x'};openTaskIds=@()}
+        $stalePath=Join-Path $brain '.runtime/compaction-resolve.json';Put-Portable $stalePath (ConvertTo-SBJson $staleCandidate)
+        $compactDefault=(& pwsh -NoProfile -File $knowledgeCli -Compact -CandidatePath $stalePath -ConfigPath $isoActivation.configuration 2>&1|Out-String)
+        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactDefault -match 'Fonte modificata dopo la preparazione' -and $compactDefault -notmatch 'GetFullPath') 'knowledge -Compact senza -Dossier risolve il checkout corrente'
+        $compactRelative=(& pwsh -NoProfile -File $knowledgeCli -Compact -Dossier $twoBinding.dossier -CandidatePath $stalePath -ConfigPath $isoActivation.configuration 2>&1|Out-String)
+        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactRelative -match 'Fonte modificata dopo la preparazione') 'knowledge -Compact accetta un -Dossier relativo alla radice'
+        Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot} 'Invoke-SBDossierCompaction rifiuta un dossier vuoto'
+        try{Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot|Out-Null;$emptyDossier=''}catch{$emptyDossier=$_.Exception.Message}
+        Assert-Portable ($emptyDossier -match 'Dossier non indicato') 'dossier vuoto: errore chiaro invece di GetFullPath'
         # pwsh -File passa gli elenchi come stringa unica: ';' separa criteri e dipendenze.
         $twoDossierDir=Join-Path $brain $twoBinding.dossier;$twoTrackerPath=Join-Path $twoDossierDir 'tracker.json'
         Put-Portable (Join-Path $twoDossierDir 'history/cli-source.md') "fonte`n"
