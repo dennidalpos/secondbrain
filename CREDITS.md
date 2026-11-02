@@ -56,3 +56,13 @@ Questo documento riconosce e ringrazia progetti, standard, toolchain e riferimen
 ## 4. Note Legali
 
 Tutti i marchi, loghi e nomi commerciali registrati citati in questo repository appartengono ai rispettivi proprietari. Il software **SecondBrain** è distribuito sotto licenza [MIT](LICENSE).
+
+### Compatibilità con la licenza MIT del progetto
+
+| Componente | Licenza | Uso in SecondBrain | Esito |
+| --- | --- | --- | --- |
+| PowerShell 7 | MIT | Runtime richiesto, non ridistribuito | Compatibile |
+| Git | GPL-2.0 | Strumento esterno invocato da riga di comando, non incorporato né ridistribuito | Compatibile (nessun lavoro derivato) |
+| JSON Schema, SPDX, OWASP, PARA | Specifiche e riferimenti | Citati nella documentazione, nessun codice incorporato | Compatibile |
+
+Il repository non contiene lockfile né dipendenze di pacchetti (NuGet, npm, pip, Cargo, Gradle): non esistono dipendenze transitive da censire. Strumenti opzionali usati solo in locale per le catture (per esempio Pillow, licenza MIT-CMU) non sono ridistribuiti. Verifica del 2026-11-02 sul repository; non estende la garanzia a futuri componenti.

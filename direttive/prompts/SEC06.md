@@ -16,7 +16,7 @@ Configurazioni, workflow di CI, Dockerfile e infrastruttura come codice, imposta
 
 ## Attività specifiche
 
-Verifica i permessi minimi dei workflow (`permissions`), le azioni di terzi fissate per hash di commit, i trigger rischiosi come `pull_request_target`, l’uso dei segreti, le immagini base e l’utente non privilegiato nei container, la protezione dei rami, le revisioni obbligatorie, la firma di commit e tag, il secret scanning con push protection, i lock delle dipendenze e le impostazioni di sicurezza dei framework. Dichiara come non applicabili le superfici assenti (per esempio nessun workflow o container tracciato) senza inventare interventi. Prima di modificare mostra la differenza e l’impatto operativo. Le impostazioni remote (protezione dei rami, secret scanning) si propongono con i comandi e si applicano solo con autorizzazione esplicita. Non modificare impostazioni di sistema o di sicurezza della postazione.
+Verifica i permessi minimi dei workflow (`permissions`), le azioni di terzi fissate per hash di commit, i trigger rischiosi come `pull_request_target`, l’uso dei segreti, le immagini base e l’utente non privilegiato nei container, la protezione dei rami, le revisioni obbligatorie, la firma di commit e tag, il secret scanning con push protection, i lock delle dipendenze e le impostazioni di sicurezza dei framework. Dichiara come non applicabili le superfici assenti (per esempio nessun workflow o container tracciato) senza inventare interventi. Per fissare azioni e immagini risolvi hash e digest con letture remote in sola lettura (per esempio `gh api repos/<owner>/<repo>/commits/<ref> --jq .sha`); se un riferimento non è risolvibile, lascialo com’è, segnalalo come non fissato e non inventare hash. Prima di modificare mostra la differenza e l’impatto operativo. Le impostazioni remote (protezione dei rami, secret scanning) si propongono con i comandi e si applicano solo con autorizzazione esplicita. Non modificare impostazioni di sistema o di sicurezza della postazione.
 
 ## Decisioni da raccogliere
 
@@ -28,7 +28,7 @@ Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richieder
 
 ## Verifiche
 
-Esegui pipeline e controlli locali pertinenti dopo le modifiche e verifica che nessuna correzione blocchi il lavoro legittimo. Distingui il rischio effettivo dalle raccomandazioni generiche e non dichiarare conformità a uno standard senza controlli puntuali.
+Esegui pipeline e controlli locali pertinenti dopo le modifiche e verifica che nessuna correzione blocchi il lavoro legittimo; se mancano gli strumenti (per esempio `actionlint`, `hadolint`, `docker`), dichiara il controllo come non eseguito invece di desumerne l’esito. Distingui il rischio effettivo dalle raccomandazioni generiche e non dichiarare conformità a uno standard senza controlli puntuali.
 
 ## Consegna
 
