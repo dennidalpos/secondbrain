@@ -1,6 +1,6 @@
 # Proposta: pacchetti `list` e `maintenance` del catalogo prompt
 
-Stato: **proposta, in attesa di approvazione esplicita dell'utente**. Non modifica `direttive/` né `approved.json`.
+Stato: **approvata dall'utente in chat (2026-11-02)** con `approve-revision.ps1 -ProposalPath`; i testi della proposta (`workstation.template.md` con le tre sostituzioni, `AGENTS.global_ide.md` invariato) sono copiati in `direttive/`.
 
 ## Problema ed evidenze
 

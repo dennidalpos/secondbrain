@@ -60,7 +60,7 @@ try {
     Assert-Workflow ($commands.Count -ge 9 -and @($commands|Where-Object {!$homeText.Contains('`'+$_.command+'`') -or !$_.does -or !$_.mode}).Count -eq 0) 'schermata iniziale: ogni comando con descrizione e modalità'
     Assert-Workflow (@($commands|Where-Object {$_.command -match '^sb (attiva|controlla|allinea|compatta)$' -and $template -notmatch [regex]::Escape($_.command)}).Count -eq 0) 'comandi sb del registro presenti nella direttiva di postazione'
     $homeProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
-    Assert-Workflow ($homeProposal -match 'sb prompt tutti' -and $homeProposal -match 'get_prompt_home' -and $homeProposal -match 'senza riassumerli') 'proposta direttive: schermata iniziale e elenco integrale'
+    Assert-Workflow ($homeProposal -match 'sb prompt list \(alias tutti\)' -and $homeProposal -match 'sb prompt maintenance' -and $homeProposal -notmatch 'REP0[257]' -and $homeProposal -match 'get_prompt_home' -and $homeProposal -match 'senza riassumerli') 'proposta direttive: schermata iniziale e elenco integrale'
     $repoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     Assert-Workflow ($homeText -match 'PRIMI PASSI' -and $homeText -match '(?m)^GUIDE$') 'schermata iniziale: primi passi e guide'
     $guides=@(Get-SBWorkflowGuides)
