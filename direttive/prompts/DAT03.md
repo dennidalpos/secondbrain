@@ -1,32 +1,32 @@
-# DAT03 — Integra servizi API gestendo errori e ripetizione delle richieste
+# DAT03 — Integrate API services with error handling and request retries
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: documentazione API, credenziali di test e schema | **Esempio d'uso**: `sb prompt DAT03: implementa client rest con retry esponenziale e backoff`
+> **Scope**: repo/area | **Mode**: write | **Needs**: API documentation, test credentials and schema | **Example**: `implement a REST client with exponential backoff and retry`
 
-## Scopo
+## Purpose
 
-Collegare un servizio esterno con contratti e gestione dei guasti verificabili.
+Connect an external service with verifiable contracts and failure handling.
 
-## Quando usarlo
+## When to use
 
-Per nuove integrazioni o correzioni del comportamento ai confini.
+For new integrations or fixes to behavior at the boundaries.
 
 ## Input
 
-API e versione, operazioni, autenticazione prevista, limiti e ambiente di prova.
+API and version, operations, expected authentication, limits and a test environment.
 
-## Attività specifiche
+## Activities
 
-Verifica documentazione primaria e contratti; gestisci timeout, cancellazione, paginazione, rate limit ed errori. Usa retry soltanto dove sicuro e prevedi idempotenza quando si ripetono operazioni con effetti.
+Check the primary documentation and contracts; handle timeouts, cancellation, pagination, rate limits and errors. Use retries only where safe and provide idempotence when operations with effects are repeated.
 
-## Verifiche
+## Checks
 
-Prova successo, risposte inattese, errori transitori e permanenti, richieste duplicate e segreti assenti. Usa mock o sandbox per effetti non autorizzati.
+Test success, unexpected responses, transient and permanent errors, duplicate requests and the absence of secrets. Use mocks or a sandbox for effects that are not authorized.
 
-## Consegna
+## Delivery
 
-Integrazione, configurazione priva di credenziali, prove e limiti delle chiamate reali.
+The integration, configuration free of credentials, tests and the limits of the real calls.
 
-## Prompt vicini
+## Related prompts
 
-- PRG03: Progetta contratti API, modelli dati e compatibilità.
-- REP03: Documenta API e contratti a partire dall’implementazione.
+- PRG03: Design API contracts, data models and compatibility.
+- DOC02: Document APIs and contracts from the implementation.

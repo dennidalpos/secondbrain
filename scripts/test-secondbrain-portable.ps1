@@ -579,7 +579,7 @@ try{
     Assert-Portable (!$mcpListRes.result.isError -and $mcpListRes.result.content[0].text -match 'SYS03') 'strumento list_prompts filtra per categoria'
     $mcpCompact = @{ jsonrpc = '2.0'; id = 1051; method = 'tools/call'; params = @{ name = 'list_prompts'; arguments = @{ category = 'SYS'; compact = $true } } } | ConvertTo-Json -Compress -Depth 5
     $mcpCompactRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCompact | ConvertFrom-Json
-    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^SYS\d{2} \| ').Count -eq 12 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
+    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^\S+ SYS\d{2} \| ').Count -eq 9 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
     $mcpHome = @{ jsonrpc = '2.0'; id = 1052; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{} } } | ConvertTo-Json -Compress
     $mcpHomeRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHome | ConvertFrom-Json
     Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
@@ -1045,11 +1045,11 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($cliList -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'list_prompts' @{compact=$true})))) 'parità CLI-MCP: list_prompts'
     $cliHome=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli 2>$null|Out-String)
     Assert-Portable ($cliHome -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{})))) 'parità CLI-MCP: get_prompt_home'
-    $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt DEV10 2>$null|Out-String)
-    $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='DEV10'}))
+    $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 2>$null|Out-String)
+    $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06'}))
     Assert-Portable ($cliShow.StartsWith('CATALOGO PROMPT') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
 
-    # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS14.
+    # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS13.
     $twoDossier=Join-Path $brain $twoBinding.dossier
     $greenKinds={param($check) @($check.issues|Where-Object kind -eq 'greenfield-violation')}
     Assert-Portable ((Get-SBRepositoryLifecycle $twoDossier) -eq '' -and !(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: senza flag nessuna violazione e ciclo di vita normale'

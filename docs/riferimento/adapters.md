@@ -94,9 +94,9 @@ Procedura per un nuovo accesso (nuovo account, profilo o radice):
 3. Ritira l'accesso precedente: `scripts/secondbrain.ps1 -Setup -Unbind <id-precedente> -Yes -Apply`. I file dell'IDE non vengono modificati.
 4. In una sessione nuova dell'IDE registra la ricevuta di osservazione e rilancia `scripts/ide-map.ps1 -Verify -ObservationPath <path>`: l'allineamento dei file non dimostra il caricamento.
 
-### 5. Più account o più radici dello stesso IDE (`sb prompt SYS12`)
+### 5. Più account o più radici dello stesso IDE (`sb prompt SYS01`)
 
-Un IDE usato con più account (per esempio l'app Claude con due login) o con più radici di configurazione (`CLAUDE_CONFIG_DIR`, `CODEX_HOME` diversi) va registrato come più integrazioni, una per account o radice. Il prompt di sistema SYS12 guida la procedura: mostra il disclaimer, raccoglie le scelte con una domanda a scelta multipla per decisione, registra e verifica.
+Un IDE usato con più account (per esempio l'app Claude con due login) o con più radici di configurazione (`CLAUDE_CONFIG_DIR`, `CODEX_HOME` diversi) va registrato come più integrazioni, una per account o radice. Il prompt di sistema SYS01 guida la procedura: mostra il disclaimer, raccoglie le scelte con una domanda a scelta multipla per decisione, registra e verifica.
 
 > **Disclaimer.** SecondBrain non rileva gli account e non legge archivi di autenticazione: l'account è dichiarato dall'utente (`accountAlias`) e provato da una ricevuta di osservazione. Un file allineato o una ricevuta non provano il caricamento nelle chat. Nessuna automazione del login. L'aggiornamento del testo nelle impostazioni account è assistito e richiede il login e l'autorizzazione dell'utente. `.runtime` contiene dati locali e non si pubblica.
 

@@ -10,7 +10,7 @@
 |---|---|---|---|
 | `protected` | `hosts/<id>/` (configurazione, `state.json`, `inventory.json`), `access/` (sessioni e lock), `backups/` della postazione corrente | **No** | Non si rigenera: è la configurazione e la prova di cosa è gestito |
 | `regenerable` | `tests/` (fixture delle suite), `mcp-handshake/`, `hosts/<id>/sources/python` | Sì | `tests/`: rieseguendo le suite `test-secondbrain*.ps1`; handshake: rieseguendo il test; `sources/python`: lo ricrea `sources.ps1` |
-| `evidence` | `cleanup/` (registro delle pulizie), `trace/` (turni di fine prompt, solo metadati), `captures/` (originali degli screenshot), `publication/` (policy e baseline REP05), `directives-activation/` | Con cautela | Non si rigenerano identiche: servono come prova o provenienza |
+| `evidence` | `cleanup/` (registro delle pulizie), `trace/` (turni di fine prompt, solo metadati), `captures/` (originali degli screenshot), `publication/` (policy e baseline SEC07), `directives-activation/` | Con cautela | Non si rigenerano identiche: servono come prova o provenienza |
 | `backup` | `backups/` e `workstations/<id di origine>/` (host precedenti), `backup/mcp-pairing/` | Con cautela, solo con manifest | Sono i recuperi dei file che SecondBrain ha sostituito |
 | `working` | `operations/`, `q201/`, `t<numero>/`, `lotto-*`, `classify-*`, `compaction*/`, file sciolti e ogni cartella creata da un agent senza prefisso | Dopo verifica | Lavoro temporaneo: controlla riferimenti e proprietà; nessun codice le legge |
 
@@ -86,8 +86,8 @@ Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `fu
 
 Il tetto di `-Compact` (`-Budget`, predefinito 50.000) conta le sole parti caricate all'avvio: `context.md` e `memory.md` senza le sezioni storiche, più indice e proiezione dei task. Una riorganizzazione per livelli che sposta la cronaca in sezioni `(storico)` non richiede quindi un `-Budget` esplicito; la stessa cronaca senza marcatore di livello supera il tetto e viene rifiutata.
 
-**Baseline di pubblicazione**: `publication.ps1 -Initial` scrive il baseline REP05 in `publication/baseline-<id>.json`, un file per repository (l'id deriva dal percorso del checkout). Un `-Initial` su un repository non altera il baseline degli altri. Il file unico `publication/baseline.json` delle versioni precedenti è letto solo se registrato per lo stesso repository e non viene riscritto.
+**Baseline di pubblicazione**: `publication.ps1 -Initial` scrive il baseline SEC07 in `publication/baseline-<id>.json`, un file per repository (l'id deriva dal percorso del checkout). Un `-Initial` su un repository non altera il baseline degli altri. Il file unico `publication/baseline.json` delle versioni precedenti è letto solo se registrato per lo stesso repository e non viene riscritto.
 
-**Riferimenti scansionati da REP05**: la storia esaminata (primo controllo e `-Initial`) parte da rami, tag, remoti e `HEAD`. I riferimenti locali che non lasciano il clone (per esempio `refs/codex/*` creati dagli strumenti, stash, notes) non sono scansionati e il rapporto li elenca in `excludedRefs`; se uno di essi va pubblicato, trasformalo in ramo o tag prima del controllo. La scansione incrementale (`baseline..HEAD`) non cambia.
+**Riferimenti scansionati da SEC07**: la storia esaminata (primo controllo e `-Initial`) parte da rami, tag, remoti e `HEAD`. I riferimenti locali che non lasciano il clone (per esempio `refs/codex/*` creati dagli strumenti, stash, notes) non sono scansionati e il rapporto li elenca in `excludedRefs`; se uno di essi va pubblicato, trasformalo in ramo o tag prima del controllo. La scansione incrementale (`baseline..HEAD`) non cambia.
 
 Cosa il rapporto **non** misura: prompt di sistema, definizioni degli strumenti MCP e skill dell'IDE. Se il contesto iniziale resta alto, guarda il riepilogo del contesto dell'IDE per vedere quali server MCP e skill pesano di più. Le misure sono in caratteri, non in token (la stima è caratteri/4).

@@ -1,33 +1,33 @@
-# OPS02 — Configura pipeline, container e infrastruttura come codice
+# OPS02 — Configure pipelines, containers and infrastructure as code
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: requisiti di deployment e ambiente di destinazione | **Esempio d'uso**: `sb prompt OPS02: configura Dockerfile multi-stage per build riproducibile`
+> **Scope**: repo | **Mode**: write | **Needs**: deployment requirements and target environment | **Example**: `configure a multi-stage Dockerfile for a reproducible build`
 
-## Scopo
+## Purpose
 
-Rendere ripetibile una procedura operativa nel perimetro autorizzato.
+Make an operational procedure repeatable within the authorized scope.
 
-## Quando usarlo
+## When to use
 
-Per creare o modificare configurazioni CI/CD, container o infrastruttura.
+To create or change CI/CD, container or infrastructure configuration.
 
 ## Input
 
-Provider, ambienti, comandi, risorse e confini di autorizzazione.
+Provider, environments, commands, resources and authorization boundaries.
 
-## Attività specifiche
+## Activities
 
-Riusa strumenti e convenzioni; definisci input, dipendenze, cache, permessi minimi e gestione dei segreti. Mantieni espliciti gli ambienti e gli effetti di ogni fase.
+Reuse tools and conventions; define inputs, dependencies, caches, minimal permissions and secret handling. Keep the environments and the effects of each stage explicit.
 
-## Verifiche
+## Checks
 
-Valida sintassi e semantica con strumenti reali; usa plan/dry-run dove disponibili e verifica idempotenza pertinente. Configurare una pipeline non autorizza deploy o apply su ambienti reali.
+Validate syntax and semantics with real tools; use plan or dry-run where available and check relevant idempotence. Configuring a pipeline does not authorize a deploy or apply on real environments.
 
-## Consegna
+## Delivery
 
-Configurazioni, prove locali, piano degli effetti e passaggi operativi ancora da autorizzare.
+Configurations, local evidence, a plan of the effects and the operational steps still to be authorized.
 
-## Prompt vicini
+## Related prompts
 
-- TST04: Diagnostica e correggi errori di build e test nella CI.
-- OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- SEC06: Applica hardening a configurazioni, CI, container e accessi del repository.
+- OPS01: Prepare and verify distributable packages and artifacts.
+- TST04: Diagnose and fix build and test failures in CI.
+- SEC06: Harden repository configuration, CI, containers and access.

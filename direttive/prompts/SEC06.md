@@ -1,41 +1,38 @@
-# SEC06 — Applica hardening a configurazioni, CI, container e accessi del repository
+# SEC06 — Harden repository configuration, CI, containers and access
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: configurazioni, workflow di CI, container e impostazioni del repository | **Esempio d'uso**: `sb prompt SEC06: hardening dei workflow GitHub Actions e dei container`
+> **Scope**: repo/area | **Mode**: write | **Needs**: configuration, CI workflows, containers and repository settings | **Example**: `harden the GitHub Actions workflows and containers`
 
-## Scopo
+## Purpose
 
-Ridurre la superficie d’attacco del repository e della sua catena di build e rilascio con configurazioni verificabili e privilegio minimo.
+Reduce the attack surface of the repository and of its build and release chain with verifiable configurations and least privilege.
 
-## Quando usarlo
+## When to use
 
-Prima di rendere pubblico un repository, prima di una release, dopo un incidente e periodicamente.
+Before making a repository public, before a release, after an incident and periodically.
 
 ## Input
 
-Configurazioni, workflow di CI, Dockerfile e infrastruttura come codice, impostazioni del repository, permessi e segreti usati.
+Configurations, CI workflows, Dockerfiles and infrastructure as code, repository settings, permissions and the secrets used.
 
-## Attività specifiche
+## Activities
 
-Verifica i permessi minimi dei workflow (`permissions`), le azioni di terzi fissate per hash di commit, i trigger rischiosi come `pull_request_target`, l’uso dei segreti, le immagini base e l’utente non privilegiato nei container, la protezione dei rami, le revisioni obbligatorie, la firma di commit e tag, il secret scanning con push protection, i lock delle dipendenze e le impostazioni di sicurezza dei framework. Dichiara come non applicabili le superfici assenti (per esempio nessun workflow o container tracciato) senza inventare interventi. Per fissare azioni e immagini risolvi hash e digest con letture remote in sola lettura (per esempio `gh api repos/<owner>/<repo>/commits/<ref> --jq .sha`); se un riferimento non è risolvibile, lascialo com’è, segnalalo come non fissato e non inventare hash. Prima di modificare mostra la differenza e l’impatto operativo. Le impostazioni remote (protezione dei rami, secret scanning) si propongono con i comandi e si applicano solo con autorizzazione esplicita. Non modificare impostazioni di sistema o di sicurezza della postazione.
+Check the minimal permissions of workflows (`permissions`), third-party actions pinned to commit hashes, risky triggers such as `pull_request_target`, the use of secrets, base images and the non-privileged user in containers, branch protection, required reviews, signing of commits and tags, secret scanning with push protection, dependency locks and the security settings of frameworks. Declare surfaces that are absent as not applicable (for example no workflow or tracked container) without inventing work. To pin actions and images resolve hashes and digests with read-only remote lookups (for example `gh api repos/<owner>/<repo>/commits/<ref> --jq .sha`); if a reference cannot be resolved, leave it as is, flag it as not pinned and do not invent hashes. Show the difference and the operational impact before changing anything. Remote settings (branch protection, secret scanning) are proposed with their commands and applied only with explicit authorization. Do not change system or security settings of the machine.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- superfici da irrobustire (scelta multipla: CI, container, rami, segreti);
-- applicare le modifiche o solo proporle.
+- surfaces to harden (multiple choice: CI, containers, branches, secrets);
+- apply the changes or only propose them.
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+## Checks
 
-## Verifiche
+Run the relevant local pipeline and checks after the changes and verify that no fix blocks legitimate work; if tools are missing (for example `actionlint`, `hadolint`, `docker`), declare the check as not run instead of inferring its outcome. Distinguish actual risk from generic recommendations and do not claim conformity to a standard without specific checks.
 
-Esegui pipeline e controlli locali pertinenti dopo le modifiche e verifica che nessuna correzione blocchi il lavoro legittimo; se mancano gli strumenti (per esempio `actionlint`, `hadolint`, `docker`), dichiara il controllo come non eseguito invece di desumerne l’esito. Distingui il rischio effettivo dalle raccomandazioni generiche e non dichiarare conformità a uno standard senza controlli puntuali.
+## Delivery
 
-## Consegna
+Measures applied or proposed with evidence, residual risk and manual steps.
 
-Misure applicate o proposte con prova, rischio residuo e passi manuali.
+## Related prompts
 
-## Prompt vicini
-
-- SEC04: Cerca credenziali esposte e verifica la validazione degli input.
-- OPS02: Configura pipeline, container e infrastruttura come codice.
-- SEC03: Correggi vulnerabilità e rafforza le difese interessate.
+- SEC04: Find exposed credentials and verify input validation.
+- OPS02: Configure pipelines, containers and infrastructure as code.
+- SEC03: Fix vulnerabilities and strengthen the affected defenses.

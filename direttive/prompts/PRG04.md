@@ -1,34 +1,34 @@
-# PRG04 — Prepara un piano per fasi con dipendenze e verifiche
+# PRG04 — Prepare a phased plan with dependencies and checks
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: requisiti concordati e perimetro del lavoro | **Esempio d'uso**: `sb prompt PRG04: pianifica la migrazione in tre rilasci atomici`
+> **Scope**: repo/area | **Mode**: read | **Needs**: agreed requirements and scope of the work | **Example**: `plan the migration in three atomic releases`
 
-## Scopo
+## Purpose
 
-Preparare un piano attuabile senza lasciare decisioni sostanziali implicite.
+Prepare a workable plan without leaving substantial decisions implicit.
 
-## Quando usarlo
+## When to use
 
-Per lavoro complesso, interventi multipli o una ripresa programmata.
+For complex work, multiple changes or a planned resumption.
 
 ## Input
 
-Obiettivo, perimetro autorizzato, stato corrente e criteri di completamento.
+Goal, authorized scope, current state and completion criteria.
 
-## Attività specifiche
+## Activities
 
-Esplora il codice prima di pianificare. Definisci fasi ordinate, prerequisiti, interfacce, rischi, verifiche e condizioni di recupero proporzionate. Chiarisci scelte sostanziali non deducibili dai file.
+Explore the code before planning. Define ordered phases, prerequisites, interfaces, risks, checks and proportionate recovery conditions. Clarify substantial choices that cannot be deduced from the files.
 
-## Verifiche
+## Checks
 
-Controlla che ogni fase contribuisca all’obiettivo e abbia un esito verificabile. Non implementare e non aggiornare il tracker salvo richiesta esplicita.
+Check that every phase contributes to the goal and has a verifiable outcome. Do not implement and do not update the backlog unless explicitly asked.
 
-## Consegna
+## Delivery
 
-Piano completo con dipendenze, criteri di accettazione, assunzioni e limiti.
+Complete plan with dependencies, acceptance criteria, assumptions and limits.
 
-## Prompt vicini
+## Related prompts
 
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
-- REP01: Completa il prossimo task eseguibile del repository aperto.
-- PRG05: Crea lo scaffolding di nuovi moduli con struttura, configurazione e test.
-- PRG06: Pianifica un refactoring architetturale a fasi con verifiche e rollback.
+- PRG01: Turn a request into requirements and acceptance criteria.
+- PRG05: Scaffold new modules with structure, configuration and tests.
+- REP01: Complete the next ready task of the open repository.
+- PRG06: Plan a phased architectural refactoring with checks and rollback.

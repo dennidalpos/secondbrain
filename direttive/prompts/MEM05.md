@@ -35,13 +35,9 @@ Non cancellare né sovrascrivere entità esistenti, non toccare `.runtime/para-t
 
 ## Decisioni da raccogliere
 
-Se tipo, identificatore, Aree collegate o stato non sono ricavabili dalla richiesta, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`.
-
 - tipo di entità e identificatore;
 - Aree collegate al progetto;
 - archiviare ora o solo proporre (`-SuggestArchive`).
-
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non chiedere di nuovo ciò che è già autorizzato nel perimetro del task.
 
 ## Verifiche
 
@@ -53,6 +49,6 @@ Entità create, spostate o con stato cambiato (identificatore, percorso, stato p
 
 ## Prompt vicini
 
-- SYS06: Leggi memoria attiva, contesto e tracker del repository corrente.
+- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
 - SYS05: Compatta il dossier preservando originali, fatti e TOC.
 - MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.

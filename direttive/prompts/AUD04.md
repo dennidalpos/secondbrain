@@ -1,33 +1,33 @@
-# AUD04 — Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze
+# AUD04 — Audit dependencies: outdated, vulnerable, unused and licenses
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: manifest, lock file e accesso ai registri o agli advisory delle dipendenze | **Esempio d'uso**: `sb prompt AUD04: audit delle dipendenze prima dell’aggiornamento`
+> **Scope**: repo/area | **Mode**: read | **Needs**: manifests, lock files and access to package registries or dependency advisories | **Example**: `dependency audit before the upgrade`
 
-## Scopo
+## Purpose
 
-Fotografare lo stato delle dipendenze dirette e transitive per decidere cosa aggiornare, sostituire o rimuovere.
+Take stock of direct and transitive dependencies to decide what to update, replace or remove.
 
-## Quando usarlo
+## When to use
 
-Prima di aggiornare (DEV04), prima di una release o periodicamente.
+Before updating (DEV04), before a release or periodically.
 
 ## Input
 
-Manifest e lock, registri dei pacchetti raggiungibili, advisory noti e politica di licenza del progetto.
+Manifests and lock files, reachable package registries, known advisories and the project's license policy.
 
-## Attività specifiche
+## Activities
 
-Elenca le dipendenze dirette e transitive con la versione in uso e la più recente compatibile. Segnala quelle non più mantenute o deprecate, con advisory censiti (verifica sulle fonti ufficiali, come il database OSV e gli advisory GitHub), non referenziate dal codice, con licenze incompatibili o non dichiarate. Classifica per urgenza: vulnerabilità sfruttabile, fine supporto, ritardo di versioni major.
+List direct and transitive dependencies with the version in use and the latest compatible one. Flag those that are unmaintained or deprecated, with recorded advisories (check official sources such as the OSV database and GitHub advisories), not referenced by the code, or with incompatible or undeclared licenses. Rank by urgency: exploitable vulnerability, end of support, major versions behind.
 
-## Verifiche
+## Checks
 
-Non dedurre una vulnerabilità dal solo numero di versione: verifica l’applicabilità al percorso di codice realmente usato. Controlla a mano le dipendenze apparentemente inutilizzate (uso dinamico, plugin, script di build). Non modificare manifest né lock.
+Do not infer a vulnerability from the version number alone: check that it applies to the code path actually used. Check apparently unused dependencies by hand (dynamic use, plugins, build scripts). Do not modify manifests or lock files.
 
-## Consegna
+## Delivery
 
-Inventario con stato per dipendenza, priorità di aggiornamento, rischi e task proposti per DEV04; licenze da approfondire con GOV01.
+Inventory with status per dependency, update priority, risks and proposed work items for DEV04; licenses to examine further with GOV01.
 
-## Prompt vicini
+## Related prompts
 
-- AUD01: Esegui un audit completo del repository con un unico rapporto.
-- DEV04: Aggiorna dipendenze verificando compatibilità e regressioni.
-- GOV01: Verifica licenze open source, conformità dei file e header SPDX.
+- AUD01: Run a full repository audit with a single report, optionally exported.
+- DEV04: Update dependencies checking compatibility and regressions.
+- GOV01: Check open source licenses, file compliance and SPDX headers.

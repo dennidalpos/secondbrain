@@ -1,34 +1,33 @@
-# REP01 — Completa il prossimo task eseguibile del repository aperto
+# REP01 — Complete the next ready task of the open repository
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: task pianificato e criteri di accettazione | **Esempio d'uso**: `sb prompt REP01: esegui il prossimo task autonomo prioritario`
+> **Scope**: repo | **Mode**: write | **Needs**: planned task and acceptance criteria | **Example**: `run the next priority task that can be done autonomously`
 
-## Scopo
+## Purpose
 
-Portare a completamento una sola attività concreta del tracker autorevole. Per elencare le attività usa MEM04, per individuare residui non tracciati nel codice REP08.
+Bring one concrete item from the authoritative backlog (issue tracker, task file or board) to completion. To find work that is not tracked in the code use REP08.
 
-## Quando usarlo
+## When to use
 
-Quando viene richiesto di avanzare il lavoro già registrato.
+When asked to advance work that is already recorded.
 
 ## Input
 
-Repository aperto e fonte del tracker risolta; eventuale preferenza sul task.
+The open repository and its backlog source; any preference about which task.
 
-## Attività specifiche
+## Activities
 
-Valuta priorità, dipendenze, stato e criteri reali senza presumere schema. Seleziona un task eseguibile del repository corrente, implementalo e verifica l’esito. Elenca i task con `knowledge.ps1 -Tasks -ReadyOnly` dal checkout (o `get_ready_tasks`), che risolvono il repository in lavoro; la vista globale (`-All`, `all=true`) è solo informativa. Rifiuta i task di altri repository, anche se autonomous: SecondBrain è un perimetro singolo e le scritture sul tracker restano nel repository in lavoro.
+Assess priority, dependencies, status and the real criteria without assuming a schema. Pick one ready task of the current repository, implement it and verify the result. Refuse tasks that belong to other repositories, even if they are marked autonomous: the scope is the repository in hand, and backlog updates stay there.
 
-## Verifiche
+## Checks
 
-Chiudi solo criteri dimostrati; conserva parziali e bloccati con motivo. Non considerare una voce del tracker come autorizzazione indipendente dalla richiesta.
+Close only criteria that are proven; keep partial and blocked items with the reason. A backlog entry is not an authorization independent of the user's request.
 
-## Consegna
+## Delivery
 
-Task scelto, risultato, prove e aggiornamento secondo schema e storico esistenti; motivo se nessun task è eseguibile.
+The task chosen, the result, evidence and the backlog update following its existing schema and history; the reason if no task is ready.
 
-## Prompt vicini
+## Related prompts
 
-- PRG04: Prepara un piano per fasi con dipendenze e verifiche.
-- DEV01: Implementa una funzionalità con verifiche pertinenti.
-- REP08: Ispeziona il repo, individua task residui e incrocia memorie e codice reale.
-- MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
+- DEV01: Implement a feature with relevant checks.
+- PRG04: Prepare a phased plan with dependencies and checks.
+- REP08: Inspect the repo and find leftover tasks against the real code.

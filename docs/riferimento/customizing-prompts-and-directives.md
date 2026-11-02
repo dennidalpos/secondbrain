@@ -68,7 +68,7 @@ Ogni prompt deve essere censito in `direttive/prompts/catalog.json`:
 - `id`: identificatore opaco e immutabile `pmt-` + 8 esadecimali minuscoli, generato una sola volta (`New-SBWorkflowPromptId`) e mai riusato, anche dopo rimozione. Le relazioni (`related`, `supersededBy`, `deprecations`) usano solo ID.
 - `code`: alias primario conforme al pattern per area tematica (es. `COM01`, `DEV01`, `SYS01`); dà il nome alla scheda (`<CODE>.md`) e compare nell'indice.
 - `aliases`: array (anche vuoto) di ulteriori codici che risolvono allo stesso prompt, per esempio il vecchio codice dopo una rinomina. ID, codici, alias e alias ritirati condividono un solo spazio di nomi: un duplicato fa fallire la validazione.
-- `category`: identificativo di una delle 13 aree tematiche registrate in `categories`.
+- `category`: identificativo di una delle 14 aree tematiche registrate in `categories`.
 - `summary`: descrizione sintetica (massimo 82 caratteri; `code + ' | ' + summary` non deve superare 88 caratteri).
 - `target`: `repository` (eseguibile nei repository prodotto) o `central` (riservato alla manutenzione di SecondBrain: si compone solo per SecondBrain; SYS03 dispone del bootstrap senza configurazione).
 - `mode`: `read`, `write` o `verify`. Le modalità descrivono il workflow e non aumentano i permessi né superano la modalità Plan.
@@ -224,7 +224,8 @@ Con le direttive comuni caricate nella sessione:
 
 ```text
 sb prompt
-sb prompt tutti
+sb prompt list
+sb prompt maintenance
 sb prompt ambito test
 sb prompt mostra TST04
 sb prompt TST04: analizza e correggi il fallimento del job Windows
@@ -243,7 +244,7 @@ flowchart TD
     B -->|"mostra CHIAVE"| F["prompts.ps1 -Show -Prompt CHIAVE"]
     B -->|"CHIAVE: obiettivo"| G["prompts.ps1 -Compose -Prompt CHIAVE -Objective ..."]
     C --> H["Link a direttive/prompts/README.md e tabella dei comandi sb"]
-    D --> I["82 righe: codice, modalità, sommario"]
+    D --> I["una riga per prompt: codice, modalità, sommario"]
     E --> J["Prompt dell'area con ID, scope e requisiti"]
     F --> K["Scheda uniforme e corpo del prompt"]
     G --> L["Prompt con contesto del repository, eseguito dall'agente nei permessi della sessione"]
@@ -284,7 +285,7 @@ $cfg = '.runtime/hosts/<id>/workstation.json'
 ## 8. Interazione Strutturata e Tool Use (Function Calling)
 
 I prompt e il compositore centrale integrano il supporto a **Function Calling / Tool Use** (es. strumento `ask_question`) per gestire dubbi, chiarimenti architetturali e scelte tra opzioni predefinite:
-- Quando l'agente deve raccogliere una decisione sostanziale non desumibile dal codice (es. in `COM01`, `COM02`, `PRG01`, `PRG02`, `SYS03`, `SYS04`, `SYS05`, `REP05`), adotta prioritariamente il tool use (`ask_question`) per visualizzare una finestra di selezione a scelta multipla nell'interfaccia utente.
+- Quando l'agente deve raccogliere una decisione sostanziale non desumibile dal codice (es. in `COM01`, `COM02`, `PRG01`, `PRG02`, `SYS03`, `SYS04`, `SYS05`, `SEC07`), adotta prioritariamente il tool use (`ask_question`) per visualizzare una finestra di selezione a scelta multipla nell'interfaccia utente.
 - Viene indicata la scelta raccomandata con prefisso `(Recommended)` e opzioni atomiche e non numerate.
 - Si evitano domande a testo libero ripetute o continue richieste di conferma per operazioni già autorizzate nel perimetro del task.
 

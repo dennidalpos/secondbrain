@@ -1,41 +1,37 @@
-# AUD05 — Audita le prestazioni e individua i percorsi critici senza modificare il codice
+# AUD05 — Audit performance and find critical paths without changing code
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: scenario di carico rappresentativo e strumenti di profilo o di misura | **Esempio d'uso**: `sb prompt AUD05: individua i percorsi critici per tempo e memoria`
+> **Scope**: repo/area | **Mode**: read | **Needs**: representative load scenario and profiling or measurement tools | **Example**: `find the critical paths for time and memory`
 
-## Scopo
+## Purpose
 
-Individuare con misure i percorsi che dominano tempo, memoria e I/O, prima di ottimizzare.
+Find, with measurements, the paths that dominate time, memory and I/O, before optimizing.
 
-## Quando usarlo
+## When to use
 
-Prima di TST06 o DEV10, quando mancano misure o l’obiettivo non è definito.
+Before TST06, when measurements are missing or the goal is not defined.
 
 ## Input
 
-Flussi significativi, carico rappresentativo, ambiente e obiettivi o soglie, se esistono.
+Significant flows, representative load, environment and goals or thresholds, if they exist.
 
-## Attività specifiche
+## Activities
 
-Definisci scenari e metriche (latenza, throughput, memoria, I/O, avvio), acquisisci baseline ripetute e profilo con gli strumenti del progetto o della piattaforma. Individua percorsi dominanti, lavoro ripetuto, chiamate di I/O o di rete evitabili, strutture dati inadatte, avvio lento, crescita di memoria e rischi di scala (complessità superlineare).
+Define scenarios and metrics (latency, throughput, memory, I/O, startup), collect repeated baselines and a profile with the project's or the platform's tools. Find dominant paths, repeated work, avoidable I/O or network calls, unsuitable data structures, slow startup, memory growth and scaling risks (superlinear complexity).
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- scenari e carico da misurare;
-- metriche e soglie obiettivo.
+- scenarios and load to measure;
+- metrics and target thresholds.
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+## Checks
 
-## Verifiche
+Report the dispersion and measurement conditions; do not infer bottlenecks from reading the code alone; distinguish measured cost from estimates. Do not modify files.
 
-Riporta dispersione e condizioni di misura; non dedurre colli di bottiglia dalla sola lettura del codice; distingui costo misurato da stima. Non modificare file.
+## Delivery
 
-## Consegna
+Baseline, critical paths ranked by expected benefit, hypotheses to verify and proposed work items for TST06.
 
-Baseline, percorsi critici ordinati per beneficio atteso, ipotesi da verificare e task proposti per TST06 o DEV10.
+## Related prompts
 
-## Prompt vicini
-
-- AUD01: Esegui un audit completo del repository con un unico rapporto.
-- TST06: Misura e migliora prestazioni e consumo di risorse.
-- DEV10: Ottimizza il codice sull’intero perimetro con misure prima e dopo.
+- AUD01: Run a full repository audit with a single report, optionally exported.
+- TST06: Measure and optimize performance and resources: one bottleneck or many modules.

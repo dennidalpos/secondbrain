@@ -1,32 +1,32 @@
-# TST02 — Copri percorsi utente con test end-to-end
+# TST02 — Cover user journeys with end-to-end tests
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: ambiente di test e flussi utente concordati | **Esempio d'uso**: `sb prompt TST02: crea test end-to-end per il ciclo di backup e ripristino`
+> **Scope**: repo/area | **Mode**: write | **Needs**: test environment and agreed user flows | **Example**: `create an end-to-end test for the backup and restore cycle`
 
-## Scopo
+## Purpose
 
-Verificare un percorso completo attraverso i componenti reali interessati.
+Verify a complete path across the real components involved.
 
-## Quando usarlo
+## When to use
 
-Per flussi critici che i test dei singoli componenti non dimostrano.
+For critical flows that tests of the individual components do not prove.
 
 ## Input
 
-Percorso, criteri di successo, ambiente di test e dati consentiti.
+Path, success criteria, test environment and the data allowed.
 
-## Attività specifiche
+## Activities
 
-Prepara ambiente e dati isolati; guida il flusso attraverso interfacce reali. Usa selettori e attese basati su comportamento osservabile. Copri fallimenti e ripetizione del percorso dove pertinenti.
+Prepare an isolated environment and data; drive the flow through the real interfaces. Use selectors and waits based on observable behavior. Cover failures and repeating the path where relevant.
 
-## Verifiche
+## Checks
 
-Verifica stato iniziale e finale, ripetibilità, pulizia dei dati creati e artefatti diagnostici utili. Non usare dati di produzione implicitamente.
+Check the initial and final state, repeatability, cleanup of the data created and useful diagnostic artifacts. Do not use production data implicitly.
 
-## Consegna
+## Delivery
 
-Scenari automatizzati, istruzioni di esecuzione e limiti delle integrazioni effettivamente provate.
+Automated scenarios, run instructions and the limits of the integrations actually tested.
 
-## Prompt vicini
+## Related prompts
 
-- TST01: Aggiungi test unitari e di integrazione sui rischi rilevanti.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+- TST01: Add unit and integration tests for the relevant risks.
+- TST05: Verify real behavior against the requirements.

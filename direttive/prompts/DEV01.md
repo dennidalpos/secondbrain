@@ -1,33 +1,33 @@
-# DEV01 — Implementa una funzionalità con verifiche pertinenti
+# DEV01 — Implement a feature with relevant checks
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: requisiti o criteri di accettazione verificati | **Esempio d'uso**: `sb prompt DEV01: implementa il comando di export con validazione hash`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: verified requirements or acceptance criteria | **Example**: `implement the export command with hash validation`
 
-## Scopo
+## Purpose
 
-Consegnare una capacità richiesta funzionante nel perimetro concordato.
+Deliver a requested capability that works within the agreed scope.
 
-## Quando usarlo
+## When to use
 
-Quando requisiti e risultato desiderato sono sufficientemente definiti.
+When requirements and the desired result are sufficiently defined.
 
 ## Input
 
-Funzionalità, criteri di accettazione, vincoli e riferimenti esistenti.
+Feature, acceptance criteria, constraints and existing references.
 
-## Attività specifiche
+## Activities
 
-Segui il flusso completo tra interfaccia, logica, dati ed errori. Riusa convenzioni e strumenti del progetto; implementa in passi verificabili. Integra input, stati vuoti e fallimenti pertinenti.
+Follow the full flow across interface, logic, data and errors. Reuse the project's conventions and tools; implement in verifiable steps. Handle relevant inputs, empty states and failures.
 
-## Verifiche
+## Checks
 
-Esegui controlli obbligatori e verifiche significative degli scenari interessati; distingue esito dei test e funzionamento reale.
+Run the mandatory checks and meaningful checks of the scenarios involved; distinguish test results from real behavior.
 
-## Consegna
+## Delivery
 
-Comportamento realizzato, prove, percorsi utili e criteri rimasti non verificati.
+Behavior implemented, evidence, useful paths and criteria left unverified.
 
-## Prompt vicini
+## Related prompts
 
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
-- DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.
+- DEV06: Configure and run linters, formatters and static analysis.
+- PRG01: Turn a request into requirements and acceptance criteria.
+- TST05: Verify real behavior against the requirements.

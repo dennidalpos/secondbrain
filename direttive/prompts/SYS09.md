@@ -31,4 +31,4 @@ Percorso dell'archivio generato, digest SHA-256 del pacchetto e dei contenuti, c
 ## Prompt vicini
 
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
-- SYS06: Leggi memoria attiva, contesto e tracker del repository corrente.
+- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.

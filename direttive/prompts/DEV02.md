@@ -1,32 +1,34 @@
-# DEV02 — Riproduci un difetto e correggine la causa
+# DEV02 — Reproduce a defect and fix its cause
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: segnalazione o comportamento atteso ed effettivo | **Esempio d'uso**: `sb prompt DEV02: correggi errore di parsing per percorsi con spazi`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: report or expected and actual behavior | **Example**: `fix the parsing error for paths containing spaces`
 
-## Scopo
+## Purpose
 
-Eliminare la causa di un comportamento errato e prevenirne la ricomparsa.
+Remove the cause of incorrect behavior and prevent it from coming back.
 
-## Quando usarlo
+## When to use
 
-Per un difetto applicativo con sintomo o risultato atteso identificabile.
+For an application defect with an identifiable symptom or expected result.
 
 ## Input
 
-Riproduzione, errori, log, ambiente e differenza tra atteso e osservato.
+Reproduction, errors, logs, environment and the difference between expected and observed.
 
-## Attività specifiche
+## Activities
 
-Ricostruisci il flusso e cerca una riproduzione minima. Formula e verifica ipotesi; correggi la causa e controlla ricorrenze della stessa origine. Se non riproducibile, separa diagnosi statica e prove.
+Reconstruct the flow and look for a minimal reproduction. Formulate and verify hypotheses; fix the cause and check for recurrences from the same origin. If it cannot be reproduced, separate static diagnosis from evidence.
 
-## Verifiche
+## Checks
 
-Dimostra il prima/dopo quando possibile e aggiungi una regressione significativa. Non modificare aspettative dei test per nascondere il difetto.
+Show before and after when possible and add a meaningful regression test. Do not change test expectations to hide the defect.
 
-## Consegna
+## Delivery
 
-Causa, correzione, riproduzione e verifiche con i limiti rimasti.
+Cause, fix, reproduction and checks, with the remaining limits.
 
-## Prompt vicini
+## Related prompts
 
-- TST03: Individua e correggi test instabili o non deterministici.
-- TST04: Diagnostica e correggi errori di build e test nella CI.
+- TST03: Find and fix flaky or non-deterministic tests.
+- TST04: Diagnose and fix build and test failures in CI.
+- COM05: Analyze logs and incidents to find the root cause, without changing code.
+- OPS06: Prepare a release hotfix and rollback with verification and communication.

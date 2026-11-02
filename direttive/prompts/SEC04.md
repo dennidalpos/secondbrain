@@ -1,34 +1,34 @@
-# SEC04 — Cerca credenziali esposte e verifica la validazione degli input
+# SEC04 — Find exposed credentials and verify input validation
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: albero di lavoro e strumenti di scansione | **Esempio d'uso**: `sb prompt SEC04: esegui audit sicurezza credenziali`
+> **Scope**: repo | **Mode**: verify | **Needs**: working tree and scanning tools | **Example**: `run a credentials security audit`
 
-## Scopo
+## Purpose
 
-Rilevare credenziali esposte (password, token, chiavi, certificati, stringhe di connessione) e input non validati ai confini del sistema. Per le dipendenze usa AUD04, per l’hardening SEC06, per i dati personali SEC05 e per il controllo sul diff prima del push SEC07.
+Detect exposed credentials (passwords, tokens, keys, certificates, connection strings) and unvalidated input at the system boundaries. For dependencies use AUD04, for hardening SEC06, for personal data SEC05 and for the check on the diff before a push SEC07.
 
-## Quando usarlo
+## When to use
 
-Prima del commit, della creazione di pull request o della distribuzione di codice ed eseguibili, e dopo l’introduzione di integrazioni che gestiscono segreti.
+Before committing, opening a pull request or distributing code and executables, and after introducing integrations that handle secrets.
 
 ## Input
 
-Working tree Git, indice, commit recenti, file di configurazione ed esempi di variabili d’ambiente.
+Git working tree, index, recent commits, configuration files and examples of environment variables.
 
-## Attività specifiche
+## Activities
 
-Esegui la scansione per individuare password, token API, certificati e chiavi private, stringhe di connessione e URL con credenziali nel working tree, nell’indice e nei commit pertinenti, con gli strumenti del progetto o con regole deterministiche. Verifica che gli input ai confini del sistema (richieste, file, argomenti, variabili d’ambiente, deserializzazione) siano validati e sanitizzati e che i segreti non finiscano in log ed errori. Segnala i rilievi con file, riga e tipo senza riprodurre il valore. Non rimuovere né riscrivere nulla senza autorizzazione: proponi come isolare i residui sensibili nell’area locale esclusa dal versionamento e quali credenziali ruotare.
+Scan for passwords, API tokens, certificates and private keys, connection strings and URLs with credentials in the working tree, the index and the relevant commits, with the project's tools or with deterministic rules. Check that inputs at the system boundaries (requests, files, arguments, environment variables, deserialization) are validated and sanitized and that secrets do not end up in logs and errors. Report findings with file, line and type without reproducing the value. Do not remove or rewrite anything without authorization: propose how to isolate sensitive leftovers in a local area excluded from version control and which credentials to rotate.
 
-## Verifiche
+## Checks
 
-Controlla che `git diff --staged` non contenga credenziali o percorsi privati della postazione. Distingui i falsi positivi motivati (valori di esempio, hash pubblici) dai rischi effettivi: una credenziale reale esposta richiede la rotazione, non solo la rimozione.
+Check that `git diff --staged` contains no credentials or private workstation paths. Distinguish justified false positives (example values, public hashes) from real risks: a real exposed credential requires rotation, not just removal.
 
-## Consegna
+## Delivery
 
-Report con classificazione dei rilievi (posizione, tipo, gravità, falso positivo o rischio), correzioni applicate se autorizzate e limiti della copertura.
+Report classifying the findings (location, type, severity, false positive or risk), fixes applied if authorized and the limits of the coverage.
 
-## Prompt vicini
+## Related prompts
 
-- SEC01: Revisiona modifiche o codice con rilievi concreti e riferimenti.
-- SEC05: Verifica isolamento dati personali e conformità a GDPR e policy.
-- SEC06: Applica hardening a configurazioni, CI, container e accessi del repository.
-- SEC07: Analizza i dati sensibili del diff prima del push.
+- SEC01: Review changes or code with concrete findings and references.
+- SEC05: Verify personal data isolation and compliance with GDPR and policies.
+- SEC06: Harden repository configuration, CI, containers and access.
+- SEC07: Check diff, repository and history for sensitive data before publishing.

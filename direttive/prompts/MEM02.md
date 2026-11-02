@@ -28,5 +28,5 @@ Trasferito, conservato, ambiguo e non verificato; manifest, prove, tracker e Syn
 
 ## Prompt vicini
 
-- DAT01: Migra schema e dati con confronto e recupero verificabili.
+- DAT01: Migrate schema and data with verifiable comparison and recovery.
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.

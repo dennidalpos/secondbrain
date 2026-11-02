@@ -1,33 +1,33 @@
-# PRG05 — Crea lo scaffolding di nuovi moduli con struttura, configurazione e test
+# PRG05 — Scaffold new modules with structure, configuration and tests
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: perimetro architetturale e dipendenze concordate | **Esempio d'uso**: `sb prompt PRG05: definisci scaffolding del nuovo modulo`
+> **Scope**: repo/area | **Mode**: write | **Needs**: agreed architectural scope and dependencies | **Example**: `define the scaffolding of the new module`
 
-## Scopo
+## Purpose
 
-Definire l'ossatura iniziale di un nuovo modulo, componente o servizio seguendo le convenzioni del repository.
+Define the initial skeleton of a new module, component or service following the repository's conventions.
 
-## Quando usarlo
+## When to use
 
-All'avvio di un nuovo componente o servizio. Per riorganizzare codice esistente usa PRG06 (piano di refactoring) e DEV03 (esecuzione).
+When starting a new component or service. To reorganize existing code use PRG06 (refactoring plan) and DEV03 (execution).
 
 ## Input
 
-Albero delle cartelle, manifest di progetto, invarianti architetturali e requisiti del nuovo modulo.
+Folder tree, project manifests, architectural invariants and the requirements of the new module.
 
-## Attività specifiche
+## Activities
 
-Analizza i confini dei moduli e le dipendenze correnti. Crea la struttura delle cartelle, i file di configurazione, i manifest e i test skeleton seguendo le convenzioni del repository, senza introdurre dipendenze non concordate e senza sovrascrivere file esistenti.
+Analyze the module boundaries and current dependencies. Create the folder structure, configuration files, manifests and skeleton tests following the repository's conventions, without introducing dependencies that were not agreed and without overwriting existing files.
 
-## Verifiche
+## Checks
 
-Verifica che la separazione delle responsabilità sia rispettata, che lo scheletro si costruisca e che i test skeleton vengano eseguiti.
+Check that the separation of responsibilities is respected, that the skeleton builds and that the skeleton tests run.
 
-## Consegna
+## Delivery
 
-Struttura del progetto creata, file generati e verifiche eseguite con i limiti rimasti.
+Project structure created, files generated and checks run, with the limits that remain.
 
-## Prompt vicini
+## Related prompts
 
-- PRG02: Confronta soluzioni architetturali e motiva una decisione.
-- PRG04: Prepara un piano per fasi con dipendenze e verifiche.
-- PRG06: Pianifica un refactoring architetturale a fasi con verifiche e rollback.
+- PRG02: Compare architectural options and justify a decision.
+- PRG04: Prepare a phased plan with dependencies and checks.
+- PRG06: Plan a phased architectural refactoring with checks and rollback.

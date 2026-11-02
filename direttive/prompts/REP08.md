@@ -1,36 +1,34 @@
-# REP08 — Ispeziona il repo, individua task residui e incrocia memorie e codice reale
+# REP08 — Inspect the repo and find leftover tasks against the real code
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: albero di lavoro, dossier di memoria e tracker | **Esempio d'uso**: `sb prompt REP08: ispeziona il repo e rileva task residui`
+> **Scope**: repo/area | **Mode**: read | **Needs**: working tree, recent history and any backlog or notes | **Example**: `inspect the repo and detect leftover tasks`
 
-## Scopo
+## Purpose
 
-Individuare task incompiuti, lavorazioni a metà, debiti tecnici non tracciati e discrepanze tra memorie/tracker e il codice reale del repository. Non si limita a elencare il tracker (MEM04) né a caricare il contesto (SYS06): confronta ciò che è dichiarato con ciò che esiste.
+Find unfinished tasks, half-done work, untracked technical debt and discrepancies between what the notes or backlog declare and the repository's real code. It does not just list the backlog nor load context: it compares what is declared with what exists.
 
-## Quando usarlo
+## When to use
 
-All'avvio di una nuova sessione, prima di pianificare un lotto, durante il subentro in un progetto o quando si sospetta che lavorazioni precedenti siano state interrotte.
+At the start of a new session, before planning a batch of work, during a handover or when earlier work is suspected to have been interrupted.
 
 ## Input
 
-Working tree e indice Git, storico commit recente, dossier del repository (`context.md`, `memory.md`, `tracker.json`) ed eventuali file transitori o note residue.
+Working tree and Git index, recent commit history, the backlog and any notes or project documentation, and any transient files or leftover notes.
 
-## Attività specifiche
+## Activities
 
-Ispeziona lo stato Git: working tree, file staged non committati, file non tracciati o rami locali orfani. Cerca nel codice sorgente tracce di lavorazioni lasciate a metà, come marker `TODO`, `FIXME`, `HACK`, `XXX`, eccezioni non implementate (`NotImplementedException`), stub vuoti, test disabilitati (`@Ignore`, `[Ignore]`, `Skip`, `.skip()`) o mock provvisori.
+Inspect the Git state: working tree, staged but uncommitted files, untracked files or orphaned local branches. Search the source for traces of work left half-done, such as `TODO`, `FIXME`, `HACK`, `XXX` markers, unimplemented exceptions (`NotImplementedException`), empty stubs, disabled tests (`@Ignore`, `[Ignore]`, `Skip`, `.skip()`) or temporary mocks.
 
-Consulta `context.md`, `memory.md` e `tracker.json`: incrocia ogni attività aperta, promessa tecnica o gotcha con i file, classi e test reali. Verifica se un task è stato parzialmente eseguito senza essere documentato, oppure completato senza aggiornamento del tracker. Distingui con rigore i fatti verificati nel codice dalle semplici dichiarazioni.
+Read the backlog and any notes: cross-check each open item, technical promise or known pitfall against the real files, classes and tests. Check whether a task was partly done without being documented, or completed without the backlog being updated. Distinguish rigorously facts verified in the code from mere statements.
 
-## Verifiche
+## Checks
 
-Verifica la reale presenza e lo stato dei file o simboli indicati come incompiuti; accerta se le modifiche parziali rompono la build o la suite di test. Controlla che i residui rilevati non siano già tracciati nel tracker sotto altro identificatore per evitare duplicazioni.
+Check that the files or symbols reported as unfinished really exist and in what state; find out whether partial changes break the build or the test suite. Check that the leftovers found are not already in the backlog under another identifier, to avoid duplicates.
 
-## Consegna
+## Delivery
 
-Rapporto strutturato con: lavorazioni in corso o a metà, residui e debiti tecnici nel codice (con percorsi e linee), discrepanze rispetto a memoria e tracker, e proposta concreta di task prioritizzati da censire.
+A structured report with: work in progress or half done, leftovers and technical debt in the code (with paths and lines), discrepancies with the notes and backlog, and a concrete proposal of prioritized work items to record.
 
-## Prompt vicini
+## Related prompts
 
-- COM01: Esplora il repository e individua componenti e comandi principali.
-- REP01: Completa il prossimo task eseguibile del repository aperto.
-- MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
-- SYS06: Leggi memoria attiva, contesto e tracker del repository corrente.
+- COM01: Explore the repository and identify main components and commands.
+- REP01: Complete the next ready task of the open repository.

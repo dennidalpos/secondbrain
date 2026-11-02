@@ -93,7 +93,7 @@ Opzioni di `-Setup`:
 | `-NoRegisterEnvironment` | Esclude la variabile utente (anche in `-Activate -Apply`); incompatibile con `-RegisterEnvironment`. |
 | `-AndSync` | Dopo l'applicazione esegue `-Sync` invece di `-Check`. |
 
-In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, REP07).
+In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, DOC03).
 
 `-Setup` genera la selezione e registra come `confirmation` utente, host, data e modalità (`-Yes` o interattiva); senza conferma resta una proposta con confirmed=false, rifiutata da `-Activate`. Formato (per gli usi diretti di `-Activate`): la selezione JSON ha schemaVersion=1, confirmed=true, confirmation (riferimento alla scelta umana), reportPath, reportSha256, repositories e ides. Ogni repository usa l'id del candidato; approveExistingBlock=true conferma il blocco esistente esaminato. Ogni IDE usa l'id del candidato e può specificare accountAlias/profile/environment. Il flag non sostituisce l'autorizzazione umana. `-Activate -SelectionPath` mostra l'anteprima; aggiungere `-Apply` solo dopo conferma. Fingerprint e hash impediscono di applicare una selezione divenuta obsoleta.
 
@@ -127,15 +127,15 @@ La ricerca trasversale `knowledge.ps1 -Search <termine> [-Dossier <percorso>] [-
 
 Recupero a strati dopo il pacchetto snello: `knowledge.ps1 -Task <id|#seq>` restituisce il record integro di un task (anche archiviato) e `knowledge.ps1 -Section <titolo> [-Source context|memory|history|history/<cartella>]` una sezione Markdown intera (titolo esatto, poi parziale). Dal server MCP: `get_task` e `search_knowledge` con `offset` e `limit`.
 
-Ciclo di vita: `knowledge.ps1 -SetLifecycle greenfield|none` fissa o rimuove il blocco greenfield nel `repository.json` del dossier del repository in lavoro (SYS13 e SYS14). Con il blocco attivo la composizione dei prompt lo riporta e `secondbrain.ps1 -Check` segnala come `greenfield-violation` un `VERSION` modificato, un `CHANGELOG.md` nuovo o con voci aggiunte rispetto a HEAD, importazioni di schema registrate, `aliases` in `repository.json` e `deprecations` nel catalogo (solo SecondBrain).
+Ciclo di vita: `knowledge.ps1 -SetLifecycle greenfield|none` fissa o rimuove il blocco greenfield nel `repository.json` del dossier del repository in lavoro (SYS13). Con il blocco attivo la composizione dei prompt lo riporta e `secondbrain.ps1 -Check` segnala come `greenfield-violation` un `VERSION` modificato, un `CHANGELOG.md` nuovo o con voci aggiunte rispetto a HEAD, importazioni di schema registrate, `aliases` in `repository.json` e `deprecations` nel catalogo (solo SecondBrain).
 
 ## Pubblicabilità e asset
 
 publication.ps1 esamina working tree, indice e blob storici con regole locali; i rapporti non contengono i valori trovati. Codici: 0 pronto entro la copertura, 1 rilievi/revisioni, 2 incompleto o errore. I binari richiedono ispezione specifica e non sono certificati dal controllo testuale. Le eccezioni ammesse sono vincolate a fingerprint e motivazione nel runtime.
 
-L'installazione opzionale dell'hook Git pre-push (`scripts/publication.ps1 -InstallHook -Apply`) collega la verifica REP05 all'operazione `git push`, bloccando tempestivamente tentativi di invio di credenziali, percorsi host o residui operativi. L'hook è scritto in shell POSIX portabile, non contiene percorsi personali o credenziali cablate, ed è **fail-closed**: se `pwsh` manca, `SECONDBRAIN_HOME` non è impostata o punta a un percorso senza `scripts/publication.ps1` (clone spostato, variabile obsoleta) il push si ferma con istruzioni; fuori da un repository Git esce con 0. Il bypass una tantum e consapevole è `SECONDBRAIN_SKIP_PRE_PUSH=1 git push`. Può essere verificato con `-HookStatus` e rimosso con `-UninstallHook -Apply`.
+L'installazione opzionale dell'hook Git pre-push (`scripts/publication.ps1 -InstallHook -Apply`) collega la verifica SEC07 all'operazione `git push`, bloccando tempestivamente tentativi di invio di credenziali, percorsi host o residui operativi. L'hook è scritto in shell POSIX portabile, non contiene percorsi personali o credenziali cablate, ed è **fail-closed**: se `pwsh` manca, `SECONDBRAIN_HOME` non è impostata o punta a un percorso senza `scripts/publication.ps1` (clone spostato, variabile obsoleta) il push si ferma con istruzioni; fuori da un repository Git esce con 0. Il bypass una tantum e consapevole è `SECONDBRAIN_SKIP_PRE_PUSH=1 git push`. Può essere verificato con `-HookStatus` e rimosso con `-UninstallHook -Apply`.
 
-REP06 prepara README e guide Markdown, senza GitHub Pages implicito. REP07 richiede app reale, dati sintetici, versione e scenario. New-SBCaptureRecord registra PNG e provenienza; il manifest deve essere revisionato prima di Export-SBPublicCapture. Solo le copie pubbliche selezionate entrano in docs/assets. Non viene inventata una UI se la cattura non è disponibile. Pubblicazione, riscrittura di storia e rotazione di credenziali richiedono operazioni specifiche.
+DOC01 prepara README e guide Markdown, senza GitHub Pages implicito. DOC03 richiede app reale, dati sintetici, versione e scenario. New-SBCaptureRecord registra PNG e provenienza; il manifest deve essere revisionato prima di Export-SBPublicCapture. Solo le copie pubbliche selezionate entrano in docs/assets. Non viene inventata una UI se la cattura non è disponibile. Pubblicazione, riscrittura di storia e rotazione di credenziali richiedono operazioni specifiche.
 
 ## Integrazione IDE via Server MCP (Model Context Protocol)
 
@@ -145,10 +145,10 @@ Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2024-11-05`) su stan
 - `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento) o `full` senza tetto.
 - `get_ready_tasks`: restituisce la lista delle sole attività sbloccate con dipendenze soddisfatte (`-ReadyOnly`).
 - `search_knowledge`: effettua la ricerca trasversale nei file di conoscenza (`context.md`, `memory.md`, `tracker.json`, `history/compaction/`) senza tetto per impostazione predefinita.
-- `list_prompts`: elenca il catalogo dei prompt organizzati nelle 13 aree tematiche; con `compact` una riga per prompt, con `category` filtra per id o prefisso.
+- `list_prompts`: elenca il catalogo dei prompt organizzati nelle aree tematiche (parametro `pack`: `core` predefinito, `maintenance`, `all`); con `compact` una riga per prompt, con `category` filtra per id o prefisso.
 - `get_prompt_home`: schermata iniziale di `sb prompt` (link al catalogo e comandi `sb`).
-- `get_prompt`: restituisce la scheda Markdown completa del prompt specificato (es. SYS03, REP05).
-- `check_publication`: esegue la verifica di pubblicabilità REP05 sul repository indicato.
+- `get_prompt`: restituisce la scheda Markdown completa del prompt specificato (es. SYS03, SEC07).
+- `check_publication`: esegue la verifica di pubblicabilità SEC07 sul repository indicato.
 
 Configurazione JSON (Claude Desktop, Cursor, Antigravity, VS Code):
 ```json

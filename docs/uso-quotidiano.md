@@ -15,7 +15,8 @@ flowchart LR
 | Scrivi | Succede |
 |---|---|
 | `sb prompt` | Mostra comandi e guide |
-| `sb prompt tutti` | Elenca tutti i prompt |
+| `sb prompt list` | Elenca i prompt generici (`tutti` è un alias) |
+| `sb prompt maintenance` | Elenca i prompt di manutenzione di SecondBrain |
 | `sb prompt ambito test` | Elenca i prompt di un'area |
 | `sb prompt mostra TST04` | Mostra un prompt |
 | `sb prompt TST04: controlla il login` | Usa il prompt per il tuo obiettivo |

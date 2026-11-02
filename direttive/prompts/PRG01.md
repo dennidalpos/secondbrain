@@ -1,42 +1,38 @@
-# PRG01 — Trasforma una richiesta in requisiti e criteri di accettazione
+# PRG01 — Turn a request into requirements and acceptance criteria
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: richiesta utente e documentazione esistente | **Esempio d'uso**: `sb prompt PRG01: definisci criteri di accettazione per la ricerca full-text`
+> **Scope**: repo | **Mode**: read | **Needs**: user request and existing documentation | **Example**: `define acceptance criteria for full-text search`
 
-## Scopo
+## Purpose
 
-Rendere una richiesta verificabile e sufficientemente precisa per progettare.
+Make a request verifiable and precise enough to design.
 
-## Quando usarlo
+## When to use
 
-Per funzionalità ancora ambigue o richieste basate su feedback degli utenti.
+For features that are still ambiguous or requests based on user feedback.
 
 ## Input
 
-Esigenza, utenti, esempi, vincoli e informazioni già disponibili.
+Need, users, examples, constraints and information already available.
 
-## Attività specifiche
+## Activities
 
-Separa problema, risultato desiderato e soluzione ipotizzata. Definisci scenari positivi, negativi e limite, confini e requisiti non funzionali rilevanti. Chiarisci solo le ambiguità che cambiano la soluzione, preferendo Function Calling o Tool Use (es. `ask_question`) per sottoporre scelte definite all'utente.
+Separate the problem, the desired result and the proposed solution. Define positive, negative and boundary scenarios, scope boundaries and the non-functional requirements that matter. Clarify only the ambiguities that change the solution, putting defined choices to the user.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
+- requirement ambiguities that change the solution;
+- scenarios and non-functional requirements to include (multiple choice);
+- boundaries of the work and acceptance criteria.
 
-- ambiguità dei requisiti che cambiano la soluzione;
-- scenari e requisiti non funzionali da includere (scelta multipla);
-- confini del lavoro e criteri di accettazione.
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Tie each requirement to an observable criterion; avoid invented goals and arbitrary thresholds.
 
-## Verifiche
+## Delivery
 
-Associa a ogni requisito un criterio osservabile; evita obiettivi inventati e soglie arbitrarie.
+Requirements, acceptance criteria, exclusions and remaining questions. Save them in the backlog only if asked.
 
-## Consegna
+## Related prompts
 
-Requisiti, criteri di accettazione, esclusioni e domande residue. Salva nel tracker solo se richiesto.
-
-## Prompt vicini
-
-- PRG02: Confronta soluzioni architetturali e motiva una decisione.
-- PRG04: Prepara un piano per fasi con dipendenze e verifiche.
+- PRG02: Compare architectural options and justify a decision.
+- PRG04: Prepare a phased plan with dependencies and checks.

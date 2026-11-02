@@ -1,42 +1,38 @@
-# PRG02 — Confronta soluzioni architetturali e motiva una decisione
+# PRG02 — Compare architectural options and justify a decision
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: alternative da valutare e vincoli di progetto | **Esempio d'uso**: `sb prompt PRG02: confronta sqlite vs json per la persistenza locale`
+> **Scope**: repo/area | **Mode**: read | **Needs**: alternatives to evaluate and project constraints | **Example**: `compare SQLite and JSON for local persistence`
 
-## Scopo
+## Purpose
 
-Scegliere un approccio compatibile con architettura e vincoli reali.
+Choose an approach compatible with the real architecture and constraints.
 
-## Quando usarlo
+## When to use
 
-Quando esistono alternative con differenze sostanziali di costo, rischio o manutenzione.
+When there are alternatives with substantial differences in cost, risk or maintenance.
 
 ## Input
 
-Problema, criteri di successo, vincoli e componenti coinvolti.
+Problem, success criteria, constraints and the components involved.
 
-## Attività specifiche
+## Activities
 
-Descrivi alternative praticabili, incluso il riuso dell’esistente. Confronta compromessi, dipendenze, reversibilità e conseguenze operative. Consulta fonti ufficiali quando la scelta dipende dalle capacità di una tecnologia. Presenta le scelte o raccogli la decisione finale tramite Function Calling o Tool Use (es. `ask_question`).
+Describe the practicable alternatives, including reuse of what exists. Compare trade-offs, dependencies, reversibility and operational consequences. Consult official sources when the choice depends on the capabilities of a technology. Present the choices and collect the final decision as defined options.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
+- architectural alternative to adopt among those compared;
+- trade-offs accepted (multiple choice) and final confirmation of the decision.
 
-- alternativa architetturale da adottare tra quelle confrontate;
-- compromessi accettati (scelta multipla) e conferma finale della decisione.
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Check assumptions against the code and versions; distinguish facts, estimates and preferences. Do not introduce a new architecture out of convention.
 
-## Verifiche
+## Delivery
 
-Verifica assunzioni contro codice e versioni; distingui fatti, stime e preferenze. Non introdurre una nuova architettura per convenzione.
+Proposed decision with its rationale, discarded alternatives and the conditions that would make it be revisited; no implicit writing of decision records.
 
-## Consegna
+## Related prompts
 
-Decisione proposta con motivazione, alternative scartate e condizioni che la farebbero rivedere; nessuna scrittura implicita di ADR.
-
-## Prompt vicini
-
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- PRG03: Progetta contratti API, modelli dati e compatibilità.
-- PRG05: Crea lo scaffolding di nuovi moduli con struttura, configurazione e test.
+- COM04: Assess the impact, risks and dependencies of a change.
+- PRG03: Design API contracts, data models and compatibility.
+- PRG05: Scaffold new modules with structure, configuration and tests.

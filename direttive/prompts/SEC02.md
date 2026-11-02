@@ -1,32 +1,32 @@
-# SEC02 — Analizza minacce, confini di fiducia e scenari di abuso
+# SEC02 — Analyze threats, trust boundaries and abuse scenarios
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: architettura e flussi di dati verso l'esterno | **Esempio d'uso**: `sb prompt SEC02: threat modeling dei flussi mcp stdio e file system locale`
+> **Scope**: repo | **Mode**: read | **Needs**: architecture and data flows toward the outside | **Example**: `threat model of the stdio and local file system flows`
 
-## Scopo
+## Purpose
 
-Identificare rischi di sicurezza legati ai flussi reali.
+Identify security risks tied to the real flows.
 
-## Quando usarlo
+## When to use
 
-Prima di progettare difese o quando cambiano dati, privilegi o integrazioni.
+Before designing defenses or when data, privileges or integrations change.
 
 ## Input
 
-Asset, utenti, ruoli, ingressi, dati e perimetro del sistema.
+Assets, users, roles, entry points, data and system scope.
 
-## Attività specifiche
+## Activities
 
-Ricostruisci flussi e confini di fiducia; valuta attori, capacità, scenari di abuso e controlli osservati. Prioritizza per impatto ed evidenze senza inventare una certificazione.
+Reconstruct flows and trust boundaries; assess actors, capabilities, abuse scenarios and the controls observed. Prioritize by impact and evidence without inventing a certification.
 
-## Verifiche
+## Checks
 
-Collega ogni rischio a un punto del sistema e distingui controllo verificato, mancante e non accertabile. Mantieni la sola analisi.
+Link each risk to a point in the system and distinguish a control that is verified, missing or cannot be established. Stay with analysis only.
 
-## Consegna
+## Delivery
 
-Modello delle minacce, scenari prioritari, prove e mitigazioni proposte.
+Threat model, priority scenarios, evidence and proposed mitigations.
 
-## Prompt vicini
+## Related prompts
 
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- SEC03: Correggi vulnerabilità e rafforza le difese interessate.
+- COM04: Assess the impact, risks and dependencies of a change.
+- SEC03: Fix vulnerabilities and strengthen the affected defenses.

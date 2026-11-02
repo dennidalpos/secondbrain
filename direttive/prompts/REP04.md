@@ -1,35 +1,34 @@
-# REP04 — Rimuovi residui e codice inutilizzato dopo le verifiche
+# REP04 — Remove leftovers and unused code after verification
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: verifiche di assenza di riferimenti e test verdi | **Esempio d'uso**: `sb prompt REP04: rimuovi file temporanei e build cache orfane`
+> **Scope**: repo/area | **Mode**: write | **Needs**: proof of no references and green tests | **Example**: `remove temporary files and orphaned build caches`
 
-## Scopo
+## Purpose
 
-Rimuovere file, codice, configurazioni, branch o worktree solo dopo aver dimostrato che sono superflui e che il recupero è possibile.
+Remove files, code, configuration, branches or worktrees only after showing that they are superfluous and that recovery is possible.
 
-## Quando usarlo
+## When to use
 
-Per pulizia richiesta di file, codice, configurazioni, branch o worktree.
+For requested cleanup of files, code, configuration, branches or worktrees.
 
 ## Input
 
-Perimetro, stato Git reale, riferimenti e dati da preservare.
+Scope, real Git state, references and the data to preserve.
 
-## Attività specifiche
+## Activities
 
-Verifica consumatori e dipendenze; per branch/worktree controlla modifiche, commit e lavoro unico. Predisponi recupero verificabile per i dati interessati. I nomi delle cartelle e lo stato ignorato sono indizi, non prove di eliminabilità.
+Check consumers and dependencies; for branches and worktrees check changes, commits and unique work. Arrange a verifiable recovery for the data involved. Folder names and ignored status are hints, not proof that something can be deleted.
 
-La pulizia di backup, build, cache, fixture e catture richiede richiesta esplicita con perimetro concreto. Usa manifest e hash; nessuna retention distruttiva automatica. I nomi delle directory non autorizzano cancellazioni. Conserva gli artefatti quando la pulizia non è richiesta.
+Cleaning backups, builds, caches, fixtures and captures requires an explicit request with a concrete scope. Use manifests and hashes; no automatic destructive retention. Directory names do not authorize deletions. Keep the artifacts when cleanup is not requested.
 
-## Verifiche
+## Checks
 
-Usa anteprima degli strumenti disponibili, verifica target assoluti e backup prima delle rimozioni. Controlla diff e funzionalità interessate; conserva artefatti ufficiali.
+Use the preview of the tools available, check absolute targets and back up before removals. Check the diff and the features involved; keep official artifacts.
 
-## Consegna
+## Delivery
 
-Elementi rimossi, prove di inutilizzo e recupero, residui preservati con motivo.
+Items removed, proof of non-use and of recovery, leftovers preserved with the reason.
 
-## Prompt vicini
+## Related prompts
 
-- DEV03: Esegui un refactoring preservando contratti e comportamento.
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+- DEV03: Refactor code preserving contracts: targeted, phased or periodic.
+- REP10: Align .gitignore and .gitkeep with the real structure and files.

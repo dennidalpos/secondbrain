@@ -76,11 +76,12 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'list_prompts'
-            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (82 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
+            description = 'Elenca il catalogo dei prompt e workflow ingegneristici generici (pacchetto core), per area tematica; con pack=maintenance elenca i prompt di manutenzione di SecondBrain. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
             inputSchema = @{
                 type = 'object'
                 properties = @{
-                    category = @{ type = 'string'; description = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole' }
+                    category = @{ type = 'string'; description = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole; cerca in tutti i pacchetti' }
+                    pack = @{ type = 'string'; enum = @('core', 'maintenance', 'all'); description = 'Pacchetto da elencare (predefinito core)' }
                     compact = @{ type = 'boolean'; description = 'Se true, una riga per prompt invece della scheda sintetica' }
                 }
             }
@@ -192,7 +193,9 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $category = if ($Arguments.ContainsKey('category')) { [string]$Arguments.category } else { $null }
             $compact = $Arguments.ContainsKey('compact') -and [bool]$Arguments.compact
-            return Format-SBWorkflowList $catalog $category -Compact:$compact
+            $pack = if ($Arguments.ContainsKey('pack')) { [string]$Arguments.pack } else { 'core' }
+            if ($pack -notin @('core', 'maintenance', 'all')) { throw 'Pacchetto non valido: core, maintenance o all' }
+            return Format-SBWorkflowList $catalog $category -Compact:$compact -Pack $pack
         }
         { $_ -in @('get_prompt_home', 'secondbrain_prompt_home') } {
             return Format-SBWorkflowHome $BrainRoot (Read-SBWorkflowCatalog $BrainRoot)

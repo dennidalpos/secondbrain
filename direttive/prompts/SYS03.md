@@ -20,13 +20,9 @@ Ricava la radice dal checkout e usa lo script guidato secondbrain.ps1 -Setup: è
 
 ## Decisioni da raccogliere
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-
 - repository da gestire (scelta multipla) e radici da esaminare;
 - integrazioni IDE o agent da associare, con profilo e account (scelta multipla);
 - blocchi gestiti esistenti da approvare e conferma finale prima di `-Yes` e `-Apply`.
-
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
 
 ## Verifiche
 
@@ -38,6 +34,5 @@ Rapporto locale, selezione, asset gestiti e passi manuali o impedimenti. Nessun 
 
 ## Prompt vicini
 
-- SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
+- SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
-- SYS12: Registra un IDE con più account o percorsi, con disclaimer e conferma.

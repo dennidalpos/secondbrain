@@ -1,32 +1,33 @@
-# OPS01 — Prepara e verifica pacchetti e artefatti distribuibili
+# OPS01 — Prepare and verify distributable packages and artifacts
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: istruzioni di build e requisiti del pacchetto | **Esempio d'uso**: `sb prompt OPS01: prepara archivio zip deterministico e calcola sha-256`
+> **Scope**: repo | **Mode**: write | **Needs**: build instructions and package requirements | **Example**: `build a deterministic zip archive and compute its SHA-256`
 
-## Scopo
+## Purpose
 
-Produrre l’artefatto previsto dal progetto in modo verificabile.
+Produce the artifact the project calls for, in a verifiable way.
 
-## Quando usarlo
+## When to use
 
-Per build, packaging, installer e preparazione locale di un rilascio.
+For builds, packaging, installers and local preparation of a release.
 
 ## Input
 
-Destinazione, versione richiesta, runtime, firma e comandi del progetto.
+Target, requested version, runtime, signing and the project's commands.
 
-## Attività specifiche
+## Activities
 
-Verifica manifest, toolchain e prerequisiti; esegui build e packaging previsti. Conserva artefatti ufficiali e separa cache e temporanei. Non incrementare versioni senza motivazione o richiesta.
+Check manifests, toolchain and prerequisites; run the build and packaging the project provides. Keep official artifacts and separate caches and temporary files. Do not bump versions without a reason or a request.
 
-## Verifiche
+## Checks
 
-Controlla contenuti, versione, dipendenze e smoke test in ambiente appropriato. Distingui artefatto creato, installato e verificato.
+Check contents, version, dependencies and run a smoke test in a suitable environment. Distinguish an artifact that was created, installed and verified.
 
-## Consegna
+## Delivery
 
-Percorsi degli artefatti, versione, comandi e limiti; produrre il pacchetto non autorizza pubblicarlo.
+Artifact paths, version, commands and limits; producing the package does not authorize publishing it.
 
-## Prompt vicini
+## Related prompts
 
-- OPS02: Configura pipeline, container e infrastruttura come codice.
-- OPS04: Prepara note di rilascio e verifiche di consegna.
+- OPS02: Configure pipelines, containers and infrastructure as code.
+- OPS04: Prepare release notes and delivery checks.
+- OPS06: Prepare a release hotfix and rollback with verification and communication.

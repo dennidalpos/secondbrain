@@ -1,32 +1,32 @@
-# INT03 — Verifica accessibilità e utilizzo con tastiera e ausili
+# INT03 — Verify accessibility and keyboard and assistive-technology use
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: interfaccia funzionante e standard di riferimento | **Esempio d'uso**: `sb prompt INT03: verifica conformita aria e accessibilita`
+> **Scope**: repo/area | **Mode**: verify | **Needs**: working interface and reference standards | **Example**: `verify ARIA conformance and accessibility`
 
-## Scopo
+## Purpose
 
-Accertare l’accessibilità di percorsi interattivi specifici.
+Determine the accessibility of specific interactive paths.
 
-## Quando usarlo
+## When to use
 
-Per verifiche con tastiera, focus, nomi accessibili, errori e aggiornamenti dinamici.
+For checks of keyboard use, focus, accessible names, errors and dynamic updates.
 
 ## Input
 
-Percorso, piattaforma, strumenti disponibili e requisiti applicabili.
+Path, platform, tools available and the requirements that apply.
 
-## Attività specifiche
+## Activities
 
-Esegui il percorso con tastiera; controlla ordine e ripristino del focus, dialoghi, nomi, stati, errori e annunci. Usa strumenti automatici come supporto e consulta requisiti ufficiali pertinenti alla piattaforma.
+Run the path with the keyboard; check focus order and restoration, dialogs, names, states, errors and announcements. Use automated tools as support and consult the official requirements relevant to the platform.
 
-## Verifiche
+## Checks
 
-Raccogli atteso/osservato e riproduzione. Dichiara ausili e piattaforme non provati; un audit automatico non dimostra accessibilità complessiva. Non correggere implicitamente.
+Collect expected versus observed and how to reproduce. State the assistive technologies and platforms not tested; an automated audit does not prove overall accessibility. Do not fix anything implicitly.
 
-## Consegna
+## Delivery
 
-Difetti per gravità, prove e riferimenti ai criteri applicabili senza attestazioni generali.
+Defects by severity, evidence and references to the applicable criteria, without general attestations.
 
-## Prompt vicini
+## Related prompts
 
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
-- INT02: Implementa un’interfaccia seguendo requisiti e riferimenti.
+- INT02: Implement an interface following requirements and references.
+- TST05: Verify real behavior against the requirements.

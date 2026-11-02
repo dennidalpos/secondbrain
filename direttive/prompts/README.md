@@ -2,528 +2,409 @@
 
 Indice generato da catalog.json e schede Markdown con scripts/build-prompts.ps1. Non modificare questo indice a mano.
 
-Nella chat: `sb prompt`, `sb prompt tutti`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: descrizione`. Ogni prompt ha un ID immutabile (`pmt-` e 8 esadecimali) e uno o più alias (codice incluso): ID e alias risolvono allo stesso prompt.
+Nella chat: `sb prompt`, `sb prompt list`, `sb prompt maintenance`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: descrizione`. Ogni prompt ha un ID immutabile (`pmt-` e 8 esadecimali) e uno o più alias (codice incluso): ID e alias risolvono allo stesso prompt.
+
+Questo indice elenca i prompt generici (pacchetto core). I prompt di manutenzione di SecondBrain (memoria, dossier, postazione) sono separati: `sb prompt maintenance`.
 
 La CLI compone testo; il task viene svolto dall'agente nei permessi e nella modalità della sessione. [Come usare e modificare i prompt](../../docs/prompt.md).
 
 ```text
 Catalogo prompt
+Legenda: 🔭 legge · ✅ verifica · 🔥 scrive · ⛔ distruttivo/irreversibile
 
-COMPRENSIONE E RICERCA
-COM01 | Esplora il repository e individua componenti e comandi principali.
+UNDERSTANDING AND RESEARCH
+🔭 COM01 | Explore the repository and identify main components and commands.
   • ID: pmt-a709a792
   • Scope: repo | Modalità: read
-  • Serve: accesso in lettura al repository e shell
-  • Esempio: sb prompt COM01: esplora struttura e moduli principali
+  • Serve: read access to the repository and a shell
+  • Esempio: explore the structure and main modules
 
-COM02 | Ricostruisci un flusso e le sue dipendenze nel codice.
+🔭 COM02 | Trace a flow and its dependencies through the code.
   • ID: pmt-e0fd59da
   • Scope: repo/area | Modalità: read
-  • Serve: punto di ingresso o scenario da tracciare
-  • Esempio: sb prompt COM02: ricostruisci il flusso di autenticazione e sessioni
+  • Serve: entry point or scenario to trace
+  • Esempio: trace the authentication and session flow
 
-COM03 | Ricerca fonti ufficiali compatibili con il problema tecnico.
+🔭 COM03 | Find official sources that fit the technical problem.
   • ID: pmt-25c97d58
   • Scope: repo/area | Modalità: read
-  • Serve: problema tecnico o libreria con versione
-  • Esempio: sb prompt COM03: cerca documentazione ufficiale PowerShell 7.5
+  • Serve: technical problem or library with its version
+  • Esempio: find the official documentation for the runtime version in use
 
-COM04 | Valuta impatto, rischi e dipendenze di una modifica.
+🔭 COM04 | Assess the impact, risks and dependencies of a change.
   • ID: pmt-179b9acc
   • Scope: repo | Modalità: read
-  • Serve: proposta di modifica o difetto da correggere
-  • Esempio: sb prompt COM04: valuta impatto dell isolamento dei log runtime
+  • Serve: proposed change or defect to fix
+  • Esempio: assess the impact of isolating runtime logs
+
+🔭 COM05 | Analyze logs and incidents to find the root cause, without changing code.
+  • ID: pmt-1839927a
+  • Scope: repo/area | Modalità: read
+  • Serve: logs, errors or symptoms of the incident, time window and read access
+  • Esempio: find the root cause of yesterday's errors in the logs
 
 
-REQUISITI E PROGETTAZIONE
-PRG01 | Trasforma una richiesta in requisiti e criteri di accettazione.
+REQUIREMENTS AND DESIGN
+🔭 PRG01 | Turn a request into requirements and acceptance criteria.
   • ID: pmt-98071f85
   • Scope: repo | Modalità: read
-  • Serve: richiesta utente e documentazione esistente
-  • Esempio: sb prompt PRG01: definisci criteri di accettazione per la ricerca full-text
+  • Serve: user request and existing documentation
+  • Esempio: define acceptance criteria for full-text search
 
-PRG02 | Confronta soluzioni architetturali e motiva una decisione.
+🔭 PRG02 | Compare architectural options and justify a decision.
   • ID: pmt-3e0ad55e
   • Scope: repo/area | Modalità: read
-  • Serve: alternative da valutare e vincoli di progetto
-  • Esempio: sb prompt PRG02: confronta sqlite vs json per la persistenza locale
+  • Serve: alternatives to evaluate and project constraints
+  • Esempio: compare SQLite and JSON for local persistence
 
-PRG03 | Progetta contratti API, modelli dati e compatibilità.
+🔭 PRG03 | Design API contracts, data models and compatibility.
   • ID: pmt-83764c0d
   • Scope: repo/area | Modalità: read
-  • Serve: requisiti o schema attuale con versione
-  • Esempio: sb prompt PRG03: progetta schema json e contratti api per il tracker
+  • Serve: requirements or current schema with its version
+  • Esempio: design the JSON schema and API contracts for the task list
 
-PRG04 | Prepara un piano per fasi con dipendenze e verifiche.
+🔭 PRG04 | Prepare a phased plan with dependencies and checks.
   • ID: pmt-8541aed1
   • Scope: repo/area | Modalità: read
-  • Serve: requisiti concordati e perimetro del lavoro
-  • Esempio: sb prompt PRG04: pianifica la migrazione in tre rilasci atomici
+  • Serve: agreed requirements and scope of the work
+  • Esempio: plan the migration in three atomic releases
 
-PRG05 | Crea lo scaffolding di nuovi moduli con struttura, configurazione e test.
+🔥 PRG05 | Scaffold new modules with structure, configuration and tests.
   • ID: pmt-884419a5
   • Scope: repo/area | Modalità: write
-  • Serve: perimetro architetturale e dipendenze concordate
-  • Esempio: sb prompt PRG05: definisci scaffolding del nuovo modulo
+  • Serve: agreed architectural scope and dependencies
+  • Esempio: define the scaffolding of the new module
 
-PRG06 | Pianifica un refactoring architetturale a fasi con verifiche e rollback.
+🔭 PRG06 | Plan a phased architectural refactoring with checks and rollback.
   • ID: pmt-3731bb7d
   • Scope: repo/area | Modalità: read
-  • Serve: modulo da riorganizzare, test esistenti e invarianti da preservare
-  • Esempio: sb prompt PRG06: pianifica il refactoring del modulo di sincronizzazione
+  • Serve: module to reorganize, existing tests and invariants to preserve
+  • Esempio: plan the refactoring of the synchronization module
 
 
-SVILUPPO E MODERNIZZAZIONE
-DEV01 | Implementa una funzionalità con verifiche pertinenti.
+DEVELOPMENT AND MODERNIZATION
+🔥 DEV01 | Implement a feature with relevant checks.
   • ID: pmt-83df1685
   • Scope: repo/area/file | Modalità: write
-  • Serve: requisiti o criteri di accettazione verificati
-  • Esempio: sb prompt DEV01: implementa il comando di export con validazione hash
+  • Serve: verified requirements or acceptance criteria
+  • Esempio: implement the export command with hash validation
 
-DEV02 | Riproduci un difetto e correggine la causa.
+🔥 DEV02 | Reproduce a defect and fix its cause.
   • ID: pmt-25ac264e
   • Scope: repo/area/file | Modalità: write
-  • Serve: segnalazione o comportamento atteso ed effettivo
-  • Esempio: sb prompt DEV02: correggi errore di parsing per percorsi con spazi
+  • Serve: report or expected and actual behavior
+  • Esempio: fix the parsing error for paths containing spaces
 
-DEV03 | Esegui un refactoring preservando contratti e comportamento.
+🔥 DEV03 | Refactor code preserving contracts: targeted, phased or periodic.
   • ID: pmt-2b07a693
   • Scope: repo/area | Modalità: write
-  • Serve: codice da migliorare e test esistenti
-  • Esempio: sb prompt DEV03: estrai modulo per la gestione transazioni para
+  • Serve: code to improve, existing tests and scope (targeted, phased or periodic)
+  • Esempio: extract transaction handling into its own module
 
-DEV04 | Aggiorna dipendenze verificando compatibilità e regressioni.
+🔥 DEV04 | Update dependencies checking compatibility and regressions.
   • ID: pmt-e2405036
   • Scope: repo/area/file | Modalità: write
-  • Serve: manifest delle dipendenze e lock file
-  • Esempio: sb prompt DEV04: aggiorna pacchetto System.Text.Json
+  • Serve: dependency manifests and lock files
+  • Esempio: update the JSON serialization package
 
-DEV05 | Migra codice o framework verso una destinazione definita.
+🔥 DEV05 | Migrate code or a framework to a defined target.
   • ID: pmt-22863973
   • Scope: repo/area | Modalità: write
-  • Serve: versione sorgente e destinazione con note di rilascio
-  • Esempio: sb prompt DEV05: migra script da Windows PowerShell 5.1 a PowerShell 7.5
+  • Serve: source and target versions with release notes
+  • Esempio: migrate the scripts from the old runtime version to the current one
 
-DEV06 | Configura ed esegui linter, formattatori e analisi statica del codice.
+🔥 DEV06 | Configure and run linters, formatters and static analysis.
   • ID: pmt-f3082c1b
   • Scope: repo/area/file | Modalità: write
-  • Serve: configurazione linter e perimetro di analisi
-  • Esempio: sb prompt DEV06: configura linter ed esegui analisi statica
+  • Serve: linter configuration and analysis scope
+  • Esempio: configure the linter and run static analysis
 
-DEV07 | Classifica e riproduci un'issue prima di correggerla, senza modificare codice.
+🔭 DEV07 | Triage and reproduce an issue before fixing it, without changing code.
   • ID: pmt-9bd26aad
   • Scope: repo/area | Modalità: read
-  • Serve: testo dell'issue, ambiente e accesso in lettura al codice
-  • Esempio: sb prompt DEV07: classifica e riproduci l'issue sul parsing dei percorsi
+  • Serve: issue text, environment and read access to the code
+  • Esempio: triage and reproduce the path parsing issue
 
-DEV08 | Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo.
+🔭 DEV08 | Review readability, consistency and maintainability without changing code.
   • ID: pmt-b16674bd
   • Scope: repo/area/file | Modalità: read
-  • Serve: codice da rivedere, convenzioni del repository e test esistenti
-  • Esempio: sb prompt DEV08: rivedi leggibilità e manutenibilità del modulo di sync
-
-DEV09 | Consolida e rendi leggibile il codice a fasi preservando il comportamento.
-  • ID: pmt-672f52fc
-  • Scope: repo/area | Modalità: write
-  • Serve: suite di test e build verdi come baseline, convenzioni del repository
-  • Esempio: sb prompt DEV09: consolida e rendi leggibile il modulo di discovery
-
-DEV10 | Ottimizza il codice sull’intero perimetro con misure prima e dopo.
-  • ID: pmt-61ef1616
-  • Scope: repo/area | Modalità: write
-  • Serve: baseline e profilo delle prestazioni (AUD05), suite di test verde
-  • Esempio: sb prompt DEV10: ottimizza I/O e allocazioni dei moduli di scansione
-
-DEV11 | Mantieni il repository: duplicati, export, codice morto e leggibilità.
-  • ID: pmt-be2533c9
-  • Scope: repo/area | Modalità: write
-  • Serve: suite di test e build verdi come baseline, storico delle modifiche recenti
-  • Esempio: sb prompt DEV11: manutenzione dei moduli dopo molte modifiche
+  • Serve: code to review, repository conventions and existing tests
+  • Esempio: review readability and maintainability of the sync module
 
 
-TEST E VERIFICA
-TST01 | Aggiungi test unitari e di integrazione sui rischi rilevanti.
+TESTING AND VERIFICATION
+🔥 TST01 | Add unit and integration tests for the relevant risks.
   • ID: pmt-08bff671
   • Scope: repo/area | Modalità: write
-  • Serve: harness di test e comportamento da verificare
-  • Esempio: sb prompt TST01: aggiungi test di boundary per il calcolo budget caratteri
+  • Serve: test harness and the behavior to verify
+  • Esempio: add boundary tests for the budget calculation
 
-TST02 | Copri percorsi utente con test end-to-end.
+🔥 TST02 | Cover user journeys with end-to-end tests.
   • ID: pmt-286c3225
   • Scope: repo/area | Modalità: write
-  • Serve: ambiente di test e flussi utente concordati
-  • Esempio: sb prompt TST02: crea test end-to-end per il ciclo di backup e ripristino
+  • Serve: test environment and agreed user flows
+  • Esempio: create an end-to-end test for the backup and restore cycle
 
-TST03 | Individua e correggi test instabili o non deterministici.
+🔥 TST03 | Find and fix flaky or non-deterministic tests.
   • ID: pmt-91021b67
   • Scope: repo/area | Modalità: write
-  • Serve: log dei fallimenti intermittenti e suite di test
-  • Esempio: sb prompt TST03: risolvi instabilita nei test asincroni della suite
+  • Serve: logs of the intermittent failures and the test suite
+  • Esempio: fix the instability in the async tests of the suite
 
-TST04 | Diagnostica e correggi errori di build e test nella CI.
+🔥 TST04 | Diagnose and fix build and test failures in CI.
   • ID: pmt-bd98736f
   • Scope: repo/area/file | Modalità: write
-  • Serve: log della CI e configurazione della pipeline
-  • Esempio: sb prompt TST04: correggi fallimento del runner GitHub Actions su Windows
+  • Serve: CI logs and pipeline configuration
+  • Esempio: fix the GitHub Actions runner failure on Windows
 
-TST05 | Verifica il comportamento reale rispetto ai requisiti.
+✅ TST05 | Verify real behavior against the requirements.
   • ID: pmt-ef96dea5
-  • Scope: repo | Modalità: read
-  • Serve: criteri di accettazione e ambiente funzionante
-  • Esempio: sb prompt TST05: verifica conformita output rispetto alle specifiche
+  • Scope: repo | Modalità: verify
+  • Serve: acceptance criteria and a working environment
+  • Esempio: verify that the output conforms to the specifications
 
-TST06 | Misura e migliora prestazioni e consumo di risorse.
+🔥 TST06 | Measure and optimize performance and resources: one bottleneck or many modules.
   • ID: pmt-9de57e24
   • Scope: repo/area | Modalità: write
-  • Serve: benchmark o scenario di carico riproducibile
-  • Esempio: sb prompt TST06: riduci tempo di discovery host e memoria occupata
+  • Serve: flow, representative load, environment, metric and threshold
+  • Esempio: reduce host discovery time and memory use
 
-TST07 | Configura harness di test con fixture isolate e pulizia sicura.
+🔥 TST07 | Set up a test harness with isolated fixtures and safe cleanup.
   • ID: pmt-37c695fe
   • Scope: repo | Modalità: write
-  • Serve: framework di test, script di test e radice di fixture isolata assegnata
-  • Esempio: sb prompt TST07: crea fixture isolate su disco e valida cleanup automatico
+  • Serve: test framework, test scripts and an assigned isolated fixture root
+  • Esempio: create isolated on-disk fixtures and validate the automatic cleanup
 
 
-REVIEW E SICUREZZA
-SEC01 | Revisiona modifiche o codice con rilievi concreti e riferimenti.
+REVIEW AND SECURITY
+🔭 SEC01 | Review changes or code with concrete findings and references.
   • ID: pmt-27896824
   • Scope: repo | Modalità: read
-  • Serve: diff, commit o file da analizzare
-  • Esempio: sb prompt SEC01: revisiona pull request per rilevamento leak dati
+  • Serve: diff, commit or files to analyze
+  • Esempio: review the pull request for data leaks
 
-SEC02 | Analizza minacce, confini di fiducia e scenari di abuso.
+🔭 SEC02 | Analyze threats, trust boundaries and abuse scenarios.
   • ID: pmt-deb7d01a
   • Scope: repo | Modalità: read
-  • Serve: architettura e flussi di dati verso l'esterno
-  • Esempio: sb prompt SEC02: threat modeling dei flussi mcp stdio e file system locale
+  • Serve: architecture and data flows toward the outside
+  • Esempio: threat model of the stdio and local file system flows
 
-SEC03 | Correggi vulnerabilità e rafforza le difese interessate.
+🔥 SEC03 | Fix vulnerabilities and strengthen the affected defenses.
   • ID: pmt-b4cb6659
   • Scope: repo/area/file | Modalità: write
-  • Serve: vulnerabilita confermata e contesto del codice
-  • Esempio: sb prompt SEC03: bonifica path traversal nella risoluzione dei percorsi
+  • Serve: confirmed vulnerability and code context
+  • Esempio: fix path traversal in path resolution
 
-SEC04 | Cerca credenziali esposte e verifica la validazione degli input.
+✅ SEC04 | Find exposed credentials and verify input validation.
   • ID: pmt-73fb4547
   • Scope: repo | Modalità: verify
-  • Serve: albero di lavoro e strumenti di scansione
-  • Esempio: sb prompt SEC04: esegui audit sicurezza credenziali
+  • Serve: working tree and scanning tools
+  • Esempio: run a credentials security audit
 
-SEC05 | Verifica isolamento dati personali e conformità a GDPR e policy.
+✅ SEC05 | Verify personal data isolation and compliance with GDPR and policies.
   • ID: pmt-24189cb6
   • Scope: repo | Modalità: verify
-  • Serve: mappatura dei dati e policy di conformita
-  • Esempio: sb prompt SEC05: controlla assenza dati personali e conformita privacy gdpr
+  • Serve: data mapping and compliance policy
+  • Esempio: check for personal data and GDPR privacy compliance
 
-SEC06 | Applica hardening a configurazioni, CI, container e accessi del repository.
+🔥 SEC06 | Harden repository configuration, CI, containers and access.
   • ID: pmt-c356eede
   • Scope: repo/area | Modalità: write
-  • Serve: configurazioni, workflow di CI, container e impostazioni del repository
-  • Esempio: sb prompt SEC06: hardening dei workflow GitHub Actions e dei container
+  • Serve: configuration, CI workflows, containers and repository settings
+  • Esempio: harden the GitHub Actions workflows and containers
 
-SEC07 | Analizza i dati sensibili del diff prima del push.
+✅ SEC07 | Check diff, repository and history for sensitive data before publishing.
   • ID: pmt-058c474f
   • Scope: repo | Modalità: verify
-  • Serve: commit e modifiche da inviare, destinazione e visibilità del remoto
-  • Esempio: sb prompt SEC07: controlla dati sensibili nei commit prima del push
+  • Serve: commits, index, working tree and history to publish; destination
+  • Esempio: check that it is safe to publish before the push
 
-SEC08 | Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
+✅ SEC08 | Check whether sensitive data is still reachable on the GitHub remote.
   • ID: pmt-55186b10
   • Scope: repo | Modalità: verify
-  • Serve: sola lettura sul remoto GitHub e impronte o pattern dei dati da cercare
-  • Esempio: sb prompt SEC08: verifica run, cache e link ancora accessibili
+  • Serve: read-only access to the GitHub remote and fingerprints or patterns to look for
+  • Esempio: check which runs, caches and links are still accessible
 
-SEC09 | Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati.
+⛔ SEC09 | Wipe remote GitHub history and artifacts after a data exposure.
   • ID: pmt-7fc91f08
   • Scope: repo | Modalità: write
-  • Serve: richiesta esplicita, backup verificato e accesso amministrativo al remoto
-  • Esempio: sb prompt SEC09: azzera storia, run e cache del remoto dopo l’esposizione
+  • Serve: explicit request, verified backup and administrative access to the remote
+  • Esempio: wipe the remote history, runs and caches after the exposure
 
 
-AUDIT E METRICHE
-AUD01 | Esegui un audit completo del repository con un unico rapporto.
+AUDIT AND METRICS
+🔭 AUD01 | Run a full repository audit with a single report, optionally exported.
   • ID: pmt-ccbf18b8
   • Scope: repo/area | Modalità: read
-  • Serve: lettura del repository, del dossier e degli strumenti di misura
-  • Esempio: sb prompt AUD01: audit completo del repository prima della release
+  • Serve: read access to the repository, its documentation and measurement tools
+  • Esempio: full audit of the repository before the release
 
-AUD02 | Misura il repository con metriche riproducibili e individua i punti critici.
+🔭 AUD02 | Measure the repository with reproducible metrics and find hotspots.
   • ID: pmt-4a9a4b4f
   • Scope: repo/area | Modalità: read
-  • Serve: lettura del repository, della storia Git e degli strumenti di misura
-  • Esempio: sb prompt AUD02: metriche e hotspot del repository
+  • Serve: read access to the repository, its Git history and measurement tools
+  • Esempio: metrics and hotspots of the repository
 
-AUD03 | Audita architettura e debito tecnico non ancora tracciato.
+🔭 AUD03 | Audit architecture and technical debt not yet tracked.
   • ID: pmt-c692cc23
   • Scope: repo/area | Modalità: read
-  • Serve: lettura del codice, del tracker e della documentazione architetturale
-  • Esempio: sb prompt AUD03: audit di architettura e debito tecnico del repository
+  • Serve: read access to the code, the backlog and architecture documentation
+  • Esempio: audit of architecture and technical debt of the repository
 
-AUD04 | Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
+🔭 AUD04 | Audit dependencies: outdated, vulnerable, unused and licenses.
   • ID: pmt-7dc63766
   • Scope: repo/area | Modalità: read
-  • Serve: manifest, lock file e accesso ai registri o agli advisory delle dipendenze
-  • Esempio: sb prompt AUD04: audit delle dipendenze prima dell’aggiornamento
+  • Serve: manifests, lock files and access to package registries or dependency advisories
+  • Esempio: dependency audit before the upgrade
 
-AUD05 | Audita le prestazioni e individua i percorsi critici senza modificare il codice.
+🔭 AUD05 | Audit performance and find critical paths without changing code.
   • ID: pmt-4efbc54f
   • Scope: repo/area | Modalità: read
-  • Serve: scenario di carico rappresentativo e strumenti di profilo o di misura
-  • Esempio: sb prompt AUD05: individua i percorsi critici per tempo e memoria
-
-AUD06 | Esporta rapporti e metriche nel formato scelto dall’utente.
-  • ID: pmt-ac962f79
-  • Scope: repo/area | Modalità: write
-  • Serve: risultati già verificati di audit, metriche o verifiche e formato di uscita
-  • Esempio: sb prompt AUD06: esporta i rilievi dell’audit in SARIF e in HTML
+  • Serve: representative load scenario and profiling or measurement tools
+  • Esempio: find the critical paths for time and memory
 
 
-INTERFACCIA ED ESPERIENZA UTENTE
-INT01 | Valuta usabilità, coerenza e stati dei percorsi utente.
+INTERFACE AND USER EXPERIENCE
+🔭 INT01 | Assess usability, consistency and states of user flows.
   • ID: pmt-33216f62
   • Scope: repo/area | Modalità: read
-  • Serve: applicazione avviabile e percorsi da esaminare
-  • Esempio: sb prompt INT01: valuta usabilita del wizard di configurazione terminale
+  • Serve: runnable application and flows to examine
+  • Esempio: assess the usability of the setup wizard
 
-INT02 | Implementa un’interfaccia seguendo requisiti e riferimenti.
+🔥 INT02 | Implement an interface following requirements and references.
   • ID: pmt-db55c30d
   • Scope: repo/area | Modalità: write
-  • Serve: linee guida o mockup e componenti esistenti
-  • Esempio: sb prompt INT02: realizza schermata di sincronizzazione
+  • Serve: guidelines or mockups and existing components
+  • Esempio: build the synchronization screen
 
-INT03 | Verifica accessibilità e utilizzo con tastiera e ausili.
+✅ INT03 | Verify accessibility and keyboard and assistive-technology use.
   • ID: pmt-2ea0c993
-  • Scope: repo/area | Modalità: read
-  • Serve: interfaccia funzionante e standard di riferimento
-  • Esempio: sb prompt INT03: verifica conformita aria e accessibilita
+  • Scope: repo/area | Modalità: verify
+  • Serve: working interface and reference standards
+  • Esempio: verify ARIA conformance and accessibility
 
-INT04 | Verifica internazionalizzazione di stringhe, formati e traduzioni.
+✅ INT04 | Verify internationalization of strings, formats and translations.
   • ID: pmt-805ca095
   • Scope: repo/area | Modalità: verify
-  • Serve: interfaccia o messaggi con lingue e formati supportati
-  • Esempio: sb prompt INT04: verifica stringhe, formati e traduzioni della CLI
+  • Serve: interface or messages with supported languages and formats
+  • Esempio: verify the strings, formats and translations of the CLI
 
 
-DATI E INTEGRAZIONI
-DAT01 | Migra schema e dati con confronto e recupero verificabili.
+DATA AND INTEGRATIONS
+🔥 DAT01 | Migrate schema and data with verifiable comparison and recovery.
   • ID: pmt-32e3cf59
   • Scope: repo/area | Modalità: write
-  • Serve: schema sorgente, destinazione e dati sintetici
-  • Esempio: sb prompt DAT01: migra schema del tracker con script di rollback atomico
+  • Serve: source schema, target schema and synthetic data
+  • Esempio: migrate the schema with an atomic rollback script
 
-DAT02 | Realizza importazioni e trasformazioni preservando gli originali.
+🔥 DAT02 | Build imports and transformations that preserve the originals.
   • ID: pmt-3ddd1df9
   • Scope: repo/area | Modalità: write
-  • Serve: file sorgente, modello destinazione e validazione
-  • Esempio: sb prompt DAT02: importa catalogo da csv a json preservando originali
+  • Serve: source files, target model and validation rules
+  • Esempio: import the catalog from CSV to JSON preserving the originals
 
-DAT03 | Integra servizi API gestendo errori e ripetizione delle richieste.
+🔥 DAT03 | Integrate API services with error handling and request retries.
   • ID: pmt-6b7b0e8d
   • Scope: repo/area | Modalità: write
-  • Serve: documentazione API, credenziali di test e schema
-  • Esempio: sb prompt DAT03: implementa client rest con retry esponenziale e backoff
+  • Serve: API documentation, test credentials and schema
+  • Esempio: implement a REST client with exponential backoff and retry
 
 
-BUILD E OPERATIVITÀ
-OPS01 | Prepara e verifica pacchetti e artefatti distribuibili.
+RELEASE AND OPERATIONS
+🔥 OPS01 | Prepare and verify distributable packages and artifacts.
   • ID: pmt-a5c78cc6
   • Scope: repo | Modalità: write
-  • Serve: istruzioni di build e requisiti del pacchetto
-  • Esempio: sb prompt OPS01: prepara archivio zip deterministico e calcola sha-256
+  • Serve: build instructions and package requirements
+  • Esempio: build a deterministic zip archive and compute its SHA-256
 
-OPS02 | Configura pipeline, container e infrastruttura come codice.
+🔥 OPS02 | Configure pipelines, containers and infrastructure as code.
   • ID: pmt-ce00f261
   • Scope: repo | Modalità: write
-  • Serve: requisiti di deployment e ambiente di destinazione
-  • Esempio: sb prompt OPS02: configura Dockerfile multi-stage per build riproducibile
+  • Serve: deployment requirements and target environment
+  • Esempio: configure a multi-stage Dockerfile for a reproducible build
 
-OPS03 | Aggiungi log, metriche e diagnostica utili al problema.
+🔥 OPS03 | Add logs, metrics and diagnostics useful for the problem.
   • ID: pmt-c2785b9c
   • Scope: repo/area/file | Modalità: write
-  • Serve: scenario da monitorare e standard di logging
-  • Esempio: sb prompt OPS03: aggiungi logging strutturato json
+  • Serve: scenario to monitor and logging standards
+  • Esempio: add structured JSON logging
 
-OPS04 | Prepara note di rilascio e verifiche di consegna.
+🔥 OPS04 | Prepare release notes and delivery checks.
   • ID: pmt-0618969e
   • Scope: repo | Modalità: write
-  • Serve: commit, issue o task completati dalla release precedente
-  • Esempio: sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker
+  • Serve: commits, issues or tasks completed since the previous release
+  • Esempio: compile the v1.1 release notes from commits and issues
+
+🔥 OPS05 | Prepare commits and pull requests with verified scope, message and checks.
+  • ID: pmt-3e3728b6 | Alias: REP09
+  • Scope: repo | Modalità: write
+  • Serve: local changes to deliver and an explicit request for a commit or pull request
+  • Esempio: prepare the commits and the pull request description
+
+🔥 OPS06 | Prepare a release hotfix and rollback with verification and communication.
+  • ID: pmt-b377d5f0
+  • Scope: repo | Modalità: write
+  • Serve: faulty release, known previous version and criteria for going back
+  • Esempio: prepare the hotfix and rollback for release 2.3.1
 
 
-REPOSITORY E DOCUMENTAZIONE
-REP01 | Completa il prossimo task eseguibile del repository aperto.
+DOCUMENTATION
+🔥 DOC01 | Write guides and READMEs consistent with the real product.
+  • ID: pmt-07430e8c | Alias: REP02
+  • Scope: repo | Modalità: write
+  • Serve: implemented features, verified commands and approved screenshots
+  • Esempio: update the guides and add Mermaid flow diagrams
+
+🔥 DOC02 | Document APIs and contracts from the implementation.
+  • ID: pmt-6e82e3a9 | Alias: REP03
+  • Scope: repo/area | Modalità: write
+  • Serve: source code of the contracts and endpoints
+  • Esempio: document the parameters and response schemas of the endpoints
+
+🔥 DOC03 | Capture real screenshots and prepare public assets.
+  • ID: pmt-75786fd6 | Alias: REP07
+  • Scope: repo | Modalità: write
+  • Serve: working interface with synthetic data
+  • Esempio: capture authentic screenshots from the real interface
+
+
+REPOSITORY HYGIENE
+🔥 REP01 | Complete the next ready task of the open repository.
   • ID: pmt-4cc383ba
   • Scope: repo | Modalità: write
-  • Serve: task pianificato e criteri di accettazione
-  • Esempio: sb prompt REP01: esegui il prossimo task autonomo prioritario
+  • Serve: planned task and acceptance criteria
+  • Esempio: run the next priority task that can be done autonomously
 
-REP02 | Scrivi guide e README coerenti con il prodotto reale.
-  • ID: pmt-07430e8c
-  • Scope: repo | Modalità: write
-  • Serve: funzionalita implementate, comandi verificati e screenshot approvati
-  • Esempio: sb prompt REP02: aggiorna guide e genera flussi mermaid
-
-REP03 | Documenta API e contratti a partire dall’implementazione.
-  • ID: pmt-6e82e3a9
-  • Scope: repo/area | Modalità: write
-  • Serve: codice sorgente di contratti ed endpoint
-  • Esempio: sb prompt REP03: documenta parametri e schema risposte degli endpoint
-
-REP04 | Rimuovi residui e codice inutilizzato dopo le verifiche.
+⛔ REP04 | Remove leftovers and unused code after verification.
   • ID: pmt-40772e6e
   • Scope: repo/area | Modalità: write
-  • Serve: verifiche di assenza di riferimenti e test verdi
-  • Esempio: sb prompt REP04: rimuovi file temporanei e build cache orfane
+  • Serve: proof of no references and green tests
+  • Esempio: remove temporary files and orphaned build caches
 
-REP05 | Verifica contenuti e cronologia prima della pubblicazione.
-  • ID: pmt-6055dd39
-  • Scope: repo | Modalità: verify
-  • Serve: stato Git, cronologia e albero di lavoro
-  • Esempio: sb prompt REP05: verifica pubblicabilita per prevenire leak di segreti
-
-REP07 | Acquisisci screenshot reali e prepara gli asset pubblici.
-  • ID: pmt-75786fd6
-  • Scope: repo | Modalità: write
-  • Serve: interfaccia funzionante con dati sintetici
-  • Esempio: sb prompt REP07: acquisisci screenshot autentici dall interfaccia reale
-
-REP08 | Ispeziona il repo, individua task residui e incrocia memorie e codice reale.
+🔭 REP08 | Inspect the repo and find leftover tasks against the real code.
   • ID: pmt-cc2c5f5a
   • Scope: repo/area | Modalità: read
-  • Serve: albero di lavoro, dossier di memoria e tracker
-  • Esempio: sb prompt REP08: ispeziona il repo e rileva task residui
+  • Serve: working tree, recent history and any backlog or notes
+  • Esempio: inspect the repo and detect leftover tasks
 
-REP09 | Prepara commit e pull request con perimetro, messaggio e controlli verificati.
-  • ID: pmt-3e3728b6
-  • Scope: repo | Modalità: write
-  • Serve: modifiche locali da consegnare e richiesta esplicita di commit o pull request
-  • Esempio: sb prompt REP09: prepara commit e descrizione della pull request
-
-REP10 | Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+🔥 REP10 | Align .gitignore and .gitkeep with the real structure and files.
   • ID: pmt-f1df8757
   • Scope: repo | Modalità: write
-  • Serve: stato Git, regole di esclusione e cartelle da preservare nel repository
-  • Esempio: sb prompt REP10: allinea gitignore e gitkeep prima della pubblicazione
+  • Serve: Git state, exclusion rules and folders to preserve in the repository
+  • Esempio: align gitignore and gitkeep before publishing
 
 
-MEMORIA E CONTINUITÀ
-MEM01 | Allinea istruzioni locali, contesto, memoria e tracker.
-  • ID: pmt-f02db9d0
-  • Scope: repo/area | Modalità: write
-  • Serve: decisioni o modifiche recenti non registrate
-  • Esempio: sb prompt MEM01: allinea context.md e memory.md dopo completamento task
-
-MEM02 | Migra progettazione e attività nel dossier SecondBrain.
-  • ID: pmt-64dfa49f
-  • Scope: repo/area | Modalità: write
-  • Serve: documentazione storica o issue esterne da migrare
-  • Esempio: sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier
-
-MEM03 | Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
-  • ID: pmt-76604e4a
-  • Scope: repo/area | Modalità: write
-  • Serve: stato del lavoro svolto, task successivi definiti e destinazione di consegna
-  • Esempio: sb prompt MEM03: chiudi la sessione e chiedi commit e push
-
-MEM04 | Elenca e descrivi le attività del tracker e i problemi che risolvono.
-  • ID: pmt-23c3d2be
-  • Scope: repo/area | Modalità: read
-  • Serve: tracker del dossier di repository
-  • Esempio: sb prompt MEM04: elenca attivita e problemi del tracker
-
-MEM05 | Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.
-  • ID: pmt-4e1b7c52
-  • Scope: central | Modalità: write
-  • Serve: obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain
-  • Esempio: sb prompt MEM05: archivia la risorsa conclusa res-guida
-
-SYS06 | Leggi memoria attiva, contesto e tracker del repository corrente.
-  • ID: pmt-821f7dec
-  • Scope: repo | Modalità: read
-  • Serve: checkout del repository aperto
-  • Esempio: sb prompt SYS06: carica contesto e memoria del repository nel budget
-
-
-SISTEMA E MANUTENZIONE CENTRALE
-SYS01 | Verifica gli IDE; mappa o riallinea su richiesta.
-  • ID: pmt-26817a61
-  • Scope: central | Modalità: verify
-  • Serve: installazioni IDE e autorizzazioni locali
-  • Esempio: sb prompt SYS01: mappa lo stato di allineamento delle direttive negli ide
-
-SYS02 | Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.
-  • ID: pmt-5b593404
-  • Scope: central | Modalità: verify
-  • Serve: registro PARA resource-authoritative-sources
-  • Esempio: sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti
-
-SYS03 | Attiva SecondBrain dopo discovery e selezione degli asset.
-  • ID: pmt-5f9f93e0
-  • Scope: central | Modalità: write
-  • Serve: volume SecondBrain e consenso utente sugli asset
-  • Esempio: sb prompt SYS03: attiva secondbrain selezionando repository e ide locali
-
-SYS04 | Controlla o allinea gli asset già gestiti della postazione.
-  • ID: pmt-677a10ab
-  • Scope: central | Modalità: verify
-  • Serve: configurazione postazione e direttive approvate
-  • Esempio: sb prompt SYS04: verifica allineamento direttive nei repository gestiti
-
-SYS05 | Compatta il dossier preservando originali, fatti e TOC.
-  • ID: pmt-77d7bf7a
-  • Scope: central | Modalità: write
-  • Serve: dossier da compattare e storico verificabile
-  • Esempio: sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc
-
-SYS09 | Esegui il backup compresso deterministico e verifica i digest SHA-256.
-  • ID: pmt-e498353a
-  • Scope: central | Modalità: write
-  • Serve: configurazione attiva e root runtime di backup
-  • Esempio: sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256
-
-SYS10 | Esegui rollback e dismissione repository restituendo i dati per privacy.
-  • ID: pmt-b98acaaa
-  • Scope: central | Modalità: write
-  • Serve: dossier del repository, checkout di destinazione e consenso utente
-  • Esempio: sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati
-
-SYS11 | Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
-  • ID: pmt-364616bb
-  • Scope: central | Modalità: write
-  • Serve: catalogo valido, area di destinazione e sessione di scrittura
-  • Esempio: sb prompt SYS11: aggiungi un prompt al catalogo nell'area test
-
-SYS12 | Registra un IDE con più account o percorsi, con disclaimer e conferma.
-  • ID: pmt-3a875788
-  • Scope: central | Modalità: write
-  • Serve: postazione attivata, IDE rilevato, alias degli account e consenso utente
-  • Esempio: sb prompt SYS12: registra un ide con due account o due radici
-
-SYS13 | Fissa il blocco greenfield: niente versioni, changelog, migrazioni, alias.
-  • ID: pmt-29b3278f
-  • Scope: repo/area | Modalità: write
-  • Serve: repository gestito, dossier attivo e conferma dell'utente
-  • Esempio: sb prompt SYS13: fissa il blocco greenfield su questo repository
-
-SYS14 | Rimuovi il blocco greenfield e riprendi il ciclo normale di versione.
-  • ID: pmt-b799f469
-  • Scope: repo/area | Modalità: write
-  • Serve: repository gestito con blocco greenfield attivo e conferma dell'utente
-  • Esempio: sb prompt SYS14: rimuovi il blocco greenfield da questo repository
-
-
-GOVERNANCE, LICENZE E CONFORMITÀ
-GOV01 | Verifica licenze open source, conformità dei file e header SPDX.
+GOVERNANCE, LICENSING AND COMPLIANCE
+✅ GOV01 | Check open source licenses, file compliance and SPDX headers.
   • ID: pmt-313da996
   • Scope: repo | Modalità: verify
-  • Serve: albero sorgenti e file di licenza
-  • Esempio: sb prompt GOV01: verifica licenza mit e corrispondenza intestazioni spdx
+  • Serve: source tree and license files
+  • Esempio: check the MIT license and that the SPDX headers match
 
-GOV02 | Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze.
+🔥 GOV02 | Scan third-party dependencies and compile the CREDITS register of licenses.
   • ID: pmt-adb9bfc0
   • Scope: repo | Modalità: write
-  • Serve: lockfile dipendenze e licenze di terze parti
-  • Esempio: sb prompt GOV02: scansiona dipendenze terze e compila file CREDITS.md
+  • Serve: dependency lock files and third-party licenses
+  • Esempio: scan third-party dependencies and compile CREDITS.md
 
 ```

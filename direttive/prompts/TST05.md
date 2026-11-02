@@ -1,32 +1,32 @@
-# TST05 — Verifica il comportamento reale rispetto ai requisiti
+# TST05 — Verify real behavior against the requirements
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: criteri di accettazione e ambiente funzionante | **Esempio d'uso**: `sb prompt TST05: verifica conformita output rispetto alle specifiche`
+> **Scope**: repo | **Mode**: verify | **Needs**: acceptance criteria and a working environment | **Example**: `verify that the output conforms to the specifications`
 
-## Scopo
+## Purpose
 
-Accertare cosa funziona realmente nel perimetro indicato.
+Establish what really works within the scope indicated.
 
-## Quando usarlo
+## When to use
 
-Per collaudo, conferma di una correzione o verifica di una consegna.
+For acceptance testing, confirming a fix or verifying a delivery.
 
 ## Input
 
-Criteri di accettazione, build o applicazione da provare, ambiente e dati di prova.
+Acceptance criteria, the build or application to test, environment and test data.
 
-## Attività specifiche
+## Activities
 
-Associa i criteri a percorsi osservabili. Esegui prove positive, negative e limite pertinenti; raccogli esiti e riferimenti. Usa copie o fixture isolate per non cambiare dati reali.
+Map the criteria to observable paths. Run the relevant positive, negative and boundary tests; collect outcomes and references. Use copies or isolated fixtures so as not to change real data.
 
-## Verifiche
+## Checks
 
-Distingui ispezione statica, test automatizzati e interazione reale. Non correggere codice né aggiornare dossier per una richiesta di sola verifica.
+Distinguish static inspection, automated tests and real interaction. Do not fix code or update notes for a verification-only request.
 
-## Consegna
+## Delivery
 
-Matrice criterio/esito/prova, difetti riproducibili e parti non accessibili.
+Matrix of criterion, outcome and evidence, reproducible defects and the parts that could not be reached.
 
-## Prompt vicini
+## Related prompts
 
-- TST02: Copri percorsi utente con test end-to-end.
-- SEC01: Revisiona modifiche o codice con rilievi concreti e riferimenti.
+- SEC01: Review changes or code with concrete findings and references.
+- TST02: Cover user journeys with end-to-end tests.

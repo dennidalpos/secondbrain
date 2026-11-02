@@ -1,33 +1,33 @@
-# COM04 — Valuta impatto, rischi e dipendenze di una modifica
+# COM04 — Assess the impact, risks and dependencies of a change
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: proposta di modifica o difetto da correggere | **Esempio d'uso**: `sb prompt COM04: valuta impatto dell isolamento dei log runtime`
+> **Scope**: repo | **Mode**: read | **Needs**: proposed change or defect to fix | **Example**: `assess the impact of isolating runtime logs`
 
-## Scopo
+## Purpose
 
-Stimare gli effetti di una modifica prima dell’implementazione.
+Estimate the effects of a change before implementing it.
 
-## Quando usarlo
+## When to use
 
-Per interventi trasversali, contratti condivisi o comportamenti poco documentati.
+For cross-cutting changes, shared contracts or poorly documented behavior.
 
 ## Input
 
-Modifica proposta, perimetro e vincoli da preservare.
+The proposed change, its scope and the constraints to preserve.
 
-## Attività specifiche
+## Activities
 
-Ricerca consumatori, dipendenze, dati persistiti, compatibilità e percorsi di errore. Distingui codice da cambiare, integrazioni da verificare e rischi di migrazione. Non estendere l’analisi ad altri repository senza autorizzazione.
+Search for consumers, dependencies, persisted data, compatibility and error paths. Distinguish code to change, integrations to verify and migration risks. Do not extend the analysis to other repositories without authorization.
 
-## Verifiche
+## Checks
 
-Collega ogni rischio a una dipendenza o a un comportamento concreto; segnala copertura incompleta. Non modificare file.
+Link each risk to a concrete dependency or behavior; flag incomplete coverage. Do not modify files.
 
-## Consegna
+## Delivery
 
-Matrice sintetica di impatto, rischi, controlli necessari e stima qualitativa dell’intervento.
+A concise impact matrix, risks, the checks needed and a qualitative estimate of the work.
 
-## Prompt vicini
+## Related prompts
 
-- PRG03: Progetta contratti API, modelli dati e compatibilità.
-- PRG04: Prepara un piano per fasi con dipendenze e verifiche.
-- AUD03: Audita architettura e debito tecnico non ancora tracciato.
+- PRG03: Design API contracts, data models and compatibility.
+- PRG04: Prepare a phased plan with dependencies and checks.
+- AUD03: Audit architecture and technical debt not yet tracked.

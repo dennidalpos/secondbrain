@@ -1,41 +1,37 @@
-# COM01 — Esplora il repository e individua componenti e comandi principali
+# COM01 — Explore the repository and identify main components and commands
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: accesso in lettura al repository e shell | **Esempio d'uso**: `sb prompt COM01: esplora struttura e moduli principali`
+> **Scope**: repo | **Mode**: read | **Needs**: read access to the repository and a shell | **Example**: `explore the structure and main modules`
 
-## Scopo
+## Purpose
 
-Ottenere una mappa iniziale utile a lavorare nel repository.
+Get an initial map that is useful for working in the repository.
 
-## Quando usarlo
+## When to use
 
-All’ingresso in un prodotto o in una sua area poco conosciuta.
+When starting with a product or an area you do not know well.
 
 ## Input
 
-Repository o area di interesse; domanda che motiva l’esplorazione.
+The repository or area of interest; the question that motivates the exploration.
 
-## Attività specifiche
+## Activities
 
-Individua entrypoint, manifest, moduli, persistenza e test. Segui le istruzioni locali e verifica i comandi nei file reali. Collega i componenti alle responsabilità senza elencare indiscriminatamente ogni file. Se emergono percorsi alternativi da esplorare, presentali tramite Function Calling o Tool Use (es. `ask_question`).
+Identify entry points, manifests, modules, persistence and tests. Follow the local instructions and verify commands in the real files. Link components to their responsibilities without listing every file indiscriminately. Present alternative paths worth exploring as defined choices.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
+- components or alternative paths to look into (multiple choice);
+- depth of the exploration and where the report goes.
 
-- componenti o percorsi alternativi da approfondire (scelta multipla);
-- profondità dell'esplorazione e destinazione del rapporto.
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Check that the commands and paths cited exist; distinguish observed architecture from hypotheses. Do not run setup or builds out of curiosity alone.
 
-## Verifiche
+## Delivery
 
-Controlla che comandi e percorsi citati esistano; distingui architettura osservata e ipotesi. Non avviare setup o build per sola curiosità.
+Concise map, entry points, initial risks and the next files to read.
 
-## Consegna
+## Related prompts
 
-Mappa sintetica, punti di ingresso, rischi iniziali e prossimi file da leggere.
-
-## Prompt vicini
-
-- COM02: Ricostruisci un flusso e le sue dipendenze nel codice.
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
+- COM02: Trace a flow and its dependencies through the code.
+- COM04: Assess the impact, risks and dependencies of a change.

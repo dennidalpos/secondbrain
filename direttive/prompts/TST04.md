@@ -1,33 +1,33 @@
-# TST04 — Diagnostica e correggi errori di build e test nella CI
+# TST04 — Diagnose and fix build and test failures in CI
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: log della CI e configurazione della pipeline | **Esempio d'uso**: `sb prompt TST04: correggi fallimento del runner GitHub Actions su Windows`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: CI logs and pipeline configuration | **Example**: `fix the GitHub Actions runner failure on Windows`
 
-## Scopo
+## Purpose
 
-Ripristinare il controllo fallito comprendendo la differenza tra CI e locale.
+Restore the failing check by understanding the difference between CI and the local environment.
 
-## Quando usarlo
+## When to use
 
-Quando una pipeline fallisce o il fallimento dipende dal runner.
+When a pipeline fails or the failure depends on the runner.
 
 ## Input
 
-Job, commit, log completi pertinenti, runner, versioni, comandi e artefatti.
+Job, commit, the relevant full logs, runner, versions, commands and artifacts.
 
-## Attività specifiche
+## Activities
 
-Individua il primo errore causale e confronta checkout, toolchain, cache, permessi e variabili non segrete con l’ambiente locale. Riproduci il comando su fixture o ambiente compatibile; correggi codice o pipeline secondo le prove.
+Find the first causal error and compare checkout, toolchain, caches, permissions and non-secret variables with the local environment. Reproduce the command on a fixture or a compatible environment; fix the code or the pipeline according to the evidence.
 
-## Verifiche
+## Checks
 
-Riesegui il controllo pertinente. Non eliminare gate, allargare permessi o marcare successo per aggirare il fallimento. Distingui verifica locale e nuovo run remoto.
+Run the relevant check again. Do not remove gates, widen permissions or mark success to get around the failure. Distinguish local verification from a new remote run.
 
-## Consegna
+## Delivery
 
-Causa, differenza ambientale, correzione e stato verificato del job.
+Cause, environmental difference, fix and the verified status of the job.
 
-## Prompt vicini
+## Related prompts
 
-- TST03: Individua e correggi test instabili o non deterministici.
-- OPS02: Configura pipeline, container e infrastruttura come codice.
-- DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.
+- DEV06: Configure and run linters, formatters and static analysis.
+- OPS02: Configure pipelines, containers and infrastructure as code.
+- TST03: Find and fix flaky or non-deterministic tests.

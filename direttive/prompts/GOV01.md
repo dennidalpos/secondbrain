@@ -1,35 +1,35 @@
-# GOV01 — Verifica licenze open source, conformità dei file e header SPDX
+# GOV01 — Check open source licenses, file compliance and SPDX headers
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: albero sorgenti e file di licenza | **Esempio d'uso**: `sb prompt GOV01: verifica licenza mit e corrispondenza intestazioni spdx`
+> **Scope**: repo | **Mode**: verify | **Needs**: source tree and license files | **Example**: `check the MIT license and that the SPDX headers match`
 
-## Scopo
+## Purpose
 
-Applicare e verificare la licenza software del repository e la conformità degli identificatori SPDX.
+Apply and verify the repository's software license and the compliance of SPDX identifiers.
 
-## Quando usarlo
+## When to use
 
-All'inizializzazione di un repository pubblico, prima di un rilascio o durante l'audit legale del progetto.
+When initializing a public repository, before a release or during the project's legal audit.
 
 ## Input
 
-File LICENSE, sorgenti distribuiti, manifest di pacchetto e informazioni di copyright.
+LICENSE file, distributed sources, package manifests and copyright information.
 
-## Attività specifiche
+## Activities
 
-Verifica la presenza del file LICENSE conforme allo standard prescelto (es. MIT) nella radice del repository. Inserisci o convalida gli header con identificatore SPDX-License-Identifier nei sorgenti distribuiti.
+Check that the LICENSE file conforms to the chosen standard (for example MIT) and sits at the repository root. Insert or validate SPDX-License-Identifier headers in the distributed sources.
 
-Verifica che l'intestazione di copyright indichi l'anno corrente e l'autore legittimo. Accerta che non vi siano clausole discordanti o licenze non compatibili tra i moduli del progetto.
+Check that the copyright notice shows the current year and the legitimate author. Make sure there are no conflicting clauses or incompatible licenses among the project's modules.
 
-## Verifiche
+## Checks
 
-Accerta che il testo di LICENSE sia integro e non alterato rispetto al testo ufficiale SPDX. Controlla che tutti i componenti pubblici rechino l'attribuzione corretta.
+Make sure the LICENSE text is intact and unaltered compared with the official SPDX text. Check that all public components carry the correct attribution.
 
-## Consegna
+## Delivery
 
-File LICENSE validato, report di conformità degli header SPDX e attestazione di compatibilità legale per il rilascio.
+Validated LICENSE file, SPDX header compliance report and a statement of legal compatibility for the release.
 
-## Prompt vicini
+## Related prompts
 
-- REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- GOV02: Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze.
-- AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
+- GOV02: Scan third-party dependencies and compile the CREDITS register of licenses.
+- SEC07: Check diff, repository and history for sensitive data before publishing.
+- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.

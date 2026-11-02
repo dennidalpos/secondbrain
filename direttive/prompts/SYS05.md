@@ -20,12 +20,8 @@ Leggi index.md e le fonti necessarie. Applica la regola di sintesi minima regist
 
 ## Decisioni da raccogliere
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-
 - dossier da compattare (scelta multipla) e budget da raggiungere;
 - informazioni da conservare in sintesi e conferma del candidato prima di `-Apply`.
-
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
 
 ## Verifiche
 

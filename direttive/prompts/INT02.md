@@ -1,32 +1,32 @@
-# INT02 — Implementa un’interfaccia seguendo requisiti e riferimenti
+# INT02 — Implement an interface following requirements and references
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: linee guida o mockup e componenti esistenti | **Esempio d'uso**: `sb prompt INT02: realizza schermata di sincronizzazione`
+> **Scope**: repo/area | **Mode**: write | **Needs**: guidelines or mockups and existing components | **Example**: `build the synchronization screen`
 
-## Scopo
+## Purpose
 
-Realizzare un’interfaccia coerente e utilizzabile nel prodotto esistente.
+Build an interface that is consistent and usable within the existing product.
 
-## Quando usarlo
+## When to use
 
-Per nuove schermate, componenti o modifiche visive richieste.
+For new screens, components or requested visual changes.
 
 ## Input
 
-Scopo, contenuti, utenti, riferimenti e design system presente.
+Purpose, content, users, references and the design system, if there is one.
 
-## Attività specifiche
+## Activities
 
-Riusa componenti, token e convenzioni; implementa gerarchia e stati interattivi, errori e contenuti realistici. Gestisci dimensioni e dispositivi effettivamente supportati senza imporre uno stack.
+Reuse components, tokens and conventions; implement hierarchy and interactive states, errors and realistic content. Handle the sizes and devices actually supported without imposing a stack.
 
-## Verifiche
+## Checks
 
-Controlla il risultato renderizzato e i percorsi interessati, inclusi focus e tastiera dove pertinenti. Distingui rendering osservato e valutazione statica.
+Check the rendered result and the paths involved, including focus and keyboard where relevant. Distinguish observed rendering from static assessment.
 
-## Consegna
+## Delivery
 
-Interfaccia realizzata, riferimenti visivi, prove e stati non verificati.
+The interface built, visual references, evidence and states not verified.
 
-## Prompt vicini
+## Related prompts
 
-- INT01: Valuta usabilità, coerenza e stati dei percorsi utente.
-- INT03: Verifica accessibilità e utilizzo con tastiera e ausili.
+- INT01: Assess usability, consistency and states of user flows.
+- INT03: Verify accessibility and keyboard and assistive-technology use.

@@ -58,7 +58,7 @@ flowchart TB
 
     PROMPTS["SecondBrain.Prompts.psm1<br/>- Validazione e parsing catalogo (COM01-GOV02)<br/>- Composizione guidata con contesto dossier"]
 
-    PUBLICATION["SecondBrain.Publication.psm1<br/>- Pre-push gate: scansione credenziali e host-path<br/>- Validazione link Markdown e artefatti operativi<br/>- Verifica certificata screenshot reali (REP07)"]
+    PUBLICATION["SecondBrain.Publication.psm1<br/>- Pre-push gate: scansione credenziali e host-path<br/>- Validazione link Markdown e artefatti operativi<br/>- Verifica certificata screenshot reali (DOC03)"]
 
     MCP["SecondBrain.Mcp.psm1<br/>- Server stdio JSON-RPC locale in sola lettura<br/>- Esposizione tool per IDE: contesto, task, prompt"]
 
@@ -214,7 +214,7 @@ sequenceDiagram
 
 ---
 
-## 7. Pre-Push Gate e Controllo di Pubblicabilità (REP05)
+## 7. Pre-Push Gate e Controllo di Pubblicabilità (SEC07)
 
 Due controlli distinti, entrambi in sola lettura:
 

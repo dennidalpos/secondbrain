@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 85 schede del catalogo (COM01–GOV02, di cui 82 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 77 schede del catalogo (62 core e 15 di manutenzione) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 
@@ -74,9 +74,9 @@ Tutti gli output operativi gestiti stanno qui, isolati per host. Il clone può s
 | `access/` | `access.ps1`, `Enter-SBOperation` | Sessioni, `writer.lock`, `operation.lock`, registro `workstations.json`. | **No** con sessioni attive; lock e sessioni orfane si trattano con `access.ps1 -Reconcile` o `recover.ps1`, non a mano |
 | `para-transaction.json` | `Invoke-SBParaTransaction` | Marker di una transazione in corso (assente a riposo). | **No**: se presente, recuperare con `recover.ps1` |
 | `backups/transactions/` | Transazioni PARA e tracker | Manifest e originali di ogni scrittura transazionale (recuperabili con `recover.ps1`). | Con cautela (retention con `cleanup.ps1` e manifest) |
-| `backups/tracker/`, `backups/tracker-*`, `backups/publication/` | Aggiornamenti del tracker, rapporti REP05 | Copie dei tracker prima di una modifica e dei rapporti di pubblicazione. | Con cautela |
+| `backups/tracker/`, `backups/tracker-*`, `backups/publication/` | Aggiornamenti del tracker, rapporti SEC07 | Copie dei tracker prima di una modifica e dei rapporti di pubblicazione. | Con cautela |
 | `backup/mcp-pairing/` | Configurazione MCP degli IDE | Copie dei file di configurazione IDE prima della modifica. | Con cautela (recupero) |
-| `publication/` | `publication.ps1` | `policy.json` (allowances e `binaryReviews` degli asset), `baseline.json` (incrementale REP05), rapporti e copie `.bak-*`. | `policy.json` e `baseline.json`: **No**; rapporti e `.bak-*` vecchi: Sì |
+| `publication/` | `publication.ps1` | `policy.json` (allowances e `binaryReviews` degli asset), `baseline.json` (incrementale SEC07), rapporti e copie `.bak-*`. | `policy.json` e `baseline.json`: **No**; rapporti e `.bak-*` vecchi: Sì |
 | `captures/` | `assets.ps1`, script di cattura | Originali degli screenshot (stdout reale, fixture, manifest di revisione). Le copie pubbliche stanno in `docs/assets`. | Con cautela: perdi la provenienza; non si rigenerano identiche |
 | `mcp-handshake/` | `test-secondbrain-mcp-handshake.ps1` | Rapporti dell'handshake MCP con gli IDE. | Sì |
 | `tests/` | Suite `test-secondbrain*.ps1` | Fixture conservate di ogni esecuzione (portable, workflows, tracker, sorgenti…). | **Sì**, tutte: le suite le ricreano. Tenere le ultime se serve ripetere un fallimento |

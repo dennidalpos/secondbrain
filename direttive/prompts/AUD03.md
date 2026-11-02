@@ -1,33 +1,33 @@
-# AUD03 — Audita architettura e debito tecnico non ancora tracciato
+# AUD03 — Audit architecture and technical debt not yet tracked
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: lettura del codice, del tracker e della documentazione architetturale | **Esempio d'uso**: `sb prompt AUD03: audit di architettura e debito tecnico del repository`
+> **Scope**: repo/area | **Mode**: read | **Needs**: read access to the code, the backlog and architecture documentation | **Example**: `audit of architecture and technical debt of the repository`
 
-## Scopo
+## Purpose
 
-Individuare accoppiamenti, violazioni dei confini tra moduli e debiti tecnici che non compaiono nel tracker.
+Find coupling, module boundary violations and technical debt that are not in the backlog.
 
-## Quando usarlo
+## When to use
 
-Prima di un refactoring architetturale, dopo una crescita rapida o quando il costo delle modifiche aumenta.
+Before an architectural refactoring, after rapid growth or when the cost of changes is rising.
 
 ## Input
 
-Struttura dei moduli, dipendenze interne, decisioni architetturali documentate, tracker e memoria.
+Module structure, internal dependencies, documented architectural decisions and the backlog or notes, if any.
 
-## Attività specifiche
+## Activities
 
-Ricostruisci moduli, livelli e dipendenze dal codice reale e non dalla documentazione. Cerca cicli di dipendenza, dipendenze inverse tra livelli, moduli con troppe responsabilità, duplicazioni di responsabilità, configurazione sparsa, punti unici di guasto e scorciatoie rimaste (marker TODO, FIXME, HACK, stub, test disabilitati). Distingui i marker reali da identificatori, fixture e testi di test che contengono la stessa parola. Confronta con le decisioni documentate e con il tracker.
+Reconstruct modules, layers and dependencies from the real code, not from the documentation. Look for dependency cycles, inverted dependencies between layers, modules with too many responsibilities, duplicated responsibilities, scattered configuration, single points of failure and leftover shortcuts (TODO, FIXME, HACK markers, stubs, disabled tests). Tell real markers apart from identifiers, fixtures and test texts that contain the same word. Compare with the documented decisions and the backlog.
 
-## Verifiche
+## Checks
 
-Ogni debito ha percorso, impatto concreto e costo stimato (basso, medio, alto) motivato. Controlla che non sia già nel tracker con altro identificatore e distingui le scelte volute e documentate dai difetti.
+Every debt item has a path, a concrete impact and a justified estimated cost (low, medium, high). Check that it is not already in the backlog under another identifier and distinguish deliberate, documented choices from defects.
 
-## Consegna
+## Delivery
 
-Mappa dei confini osservati, debiti ordinati per impatto e task proposti da censire; per il piano di intervento usa PRG06.
+Map of the observed boundaries, debt ordered by impact and proposed work items to record; for the remediation plan use PRG06.
 
-## Prompt vicini
+## Related prompts
 
-- AUD01: Esegui un audit completo del repository con un unico rapporto.
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- PRG06: Pianifica un refactoring architetturale a fasi con verifiche e rollback.
+- AUD01: Run a full repository audit with a single report, optionally exported.
+- COM04: Assess the impact, risks and dependencies of a change.
+- PRG06: Plan a phased architectural refactoring with checks and rollback.

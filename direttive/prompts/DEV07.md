@@ -1,42 +1,39 @@
-# DEV07 — Classifica e riproduci un'issue prima di correggerla, senza modificare codice
+# DEV07 — Triage and reproduce an issue before fixing it, without changing code
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: testo dell'issue, ambiente e accesso in lettura al codice | **Esempio d'uso**: `sb prompt DEV07: classifica e riproduci l'issue sul parsing dei percorsi`
+> **Scope**: repo/area | **Mode**: read | **Needs**: issue text, environment and read access to the code | **Example**: `triage and reproduce the path parsing issue`
 
-## Scopo
+## Purpose
 
-Valutare una segnalazione prima di intervenire: tipo, gravità, completezza, duplicati e riproducibilità, per decidere se e come lavorarla.
+Assess a report before acting on it: type, severity, completeness, duplicates and reproducibility, to decide whether and how to work on it.
 
-## Quando usarlo
+## When to use
 
-Quando arriva una nuova issue o un rapporto di errore non ancora verificato. Per correggere un difetto già riproducibile usa DEV02.
+When a new issue or an unverified error report arrives. To fix a defect that is already reproducible use DEV02; to find the root cause from logs COM05.
 
 ## Input
 
-Testo dell'issue, passi di riproduzione dichiarati, versioni e ambiente, log o allegati, issue e task già tracciati.
+Issue text, declared reproduction steps, versions and environment, logs or attachments, issues and tasks already tracked.
 
-## Attività specifiche
+## Activities
 
-Classifica la segnalazione (difetto, richiesta, domanda, fuori perimetro) e stimane gravità e impatto. Cerca duplicati tra issue e tracker e verifica con REP08 se il residuo è già noto. Tenta una riproduzione minima nell'ambiente indicato senza modificare codice, configurazione o dati reali; se non riproducibile, separa diagnosi statica e prove e indica quali informazioni mancano. Non chiudere né commentare issue su sistemi esterni senza richiesta esplicita.
+Classify the report (defect, request, question, out of scope) and estimate its severity and impact. Look for duplicates among issues and the backlog and use REP08 to check whether the leftover is already known. Attempt a minimal reproduction in the stated environment without modifying code, configuration or real data; if it cannot be reproduced, separate static diagnosis from evidence and say what information is missing. Do not close or comment on issues in external systems without an explicit request.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più esiti sono plausibili, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`.
+- proposed classification and priority;
+- outcome: fix now (DEV02), track in the backlog, ask for information or discard.
 
-- classificazione e priorità proposte;
-- esito: correggere ora (DEV02), tracciare nel tracker, chiedere informazioni o scartare.
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Make sure the reproduction is shown with commands and output or declared unsuccessful with the reasons. Distinguish observed facts, hypotheses and preferences.
 
-## Verifiche
+## Delivery
 
-Accerta che la riproduzione sia dimostrata con comandi e output o dichiarata non riuscita con i motivi. Distingui fatti osservati, ipotesi e preferenze.
+Triage note with classification, severity, duplicates, reproduction outcome, missing information and recommended action; no changes to the code.
 
-## Consegna
+## Related prompts
 
-Scheda di triage con classificazione, gravità, duplicati, esito della riproduzione, informazioni mancanti e azione consigliata; nessuna modifica al codice.
-
-## Prompt vicini
-
-- DEV02: Riproduci un difetto e correggine la causa.
-- REP08: Ispeziona il repo, individua task residui e incrocia memorie e codice reale.
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
+- DEV02: Reproduce a defect and fix its cause.
+- REP08: Inspect the repo and find leftover tasks against the real code.
+- PRG01: Turn a request into requirements and acceptance criteria.
+- COM05: Analyze logs and incidents to find the root cause, without changing code.

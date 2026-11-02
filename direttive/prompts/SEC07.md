@@ -1,42 +1,46 @@
-# SEC07 — Analizza i dati sensibili del diff prima del push
+# SEC07 — Check diff, repository and history for sensitive data before publishing
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: commit e modifiche da inviare, destinazione e visibilità del remoto | **Esempio d'uso**: `sb prompt SEC07: controlla dati sensibili nei commit prima del push`
+> **Scope**: repo | **Mode**: verify | **Needs**: commits, index, working tree and history to publish; destination | **Example**: `check that it is safe to publish before the push`
 
-## Scopo
+## Purpose
 
-Impedire che segreti, dati personali e residui privati arrivino su un remoto con il prossimo push.
+Prevent secrets, personal data and private leftovers from reaching a remote or a release, by checking the diff about to be sent and, when needed, the whole repository and its history.
 
-## Quando usarlo
+## When to use
 
-Prima di ogni push o pull request. È un controllo mirato sul diff; REP05 qualifica l’intero repository e la sua storia.
+Before every push, pull request, release or publication of a repository. A check on the diff is the minimum; the whole repository and its history are qualified at the first publication, after imports or history rewrites and before a release. If the data is already on the remote use SEC08, to clean it up SEC09.
 
 ## Input
 
-Commit, indice e working tree da pubblicare, tag inclusi, destinazione e visibilità del remoto.
+Commits, index and working tree to publish (tags included), reachable history, destination and visibility of the remote, scanning tools available and any exceptions already agreed.
 
-## Attività specifiche
+## Activities
 
-Determina l’insieme esatto di commit e file che verrebbero inviati (per esempio `@{upstream}..HEAD` e i tag). Esegui `scripts/publication.ps1 -RepositoryPath` del clone SecondBrain (o lo strumento MCP `check_publication`) quando disponibile; ricorda che la scansione incrementale parte dal baseline del repository e non da `@{upstream}`, quindi confrontala con l'insieme appena determinato e le scansioni di SEC04 (segreti) e SEC05 (dati personali) limitate a questo insieme. Controlla anche messaggi di commit, nomi di file, binari, file ignorati aggiunti a forza, percorsi privati e indirizzi email non pubblici. Riporta solo hash e posizioni, mai i valori.
+Determine the exact set of commits and files that would be sent (for example `@{upstream}..HEAD` and the tags). Run separate checks on the working tree, the index and the history with the tools available (secrets with SEC04, personal data with SEC05) and compare their scope with the set you just determined. Also check commit messages, file names, binaries, screenshots and metadata, ignored files added by force, private paths, non-public email addresses, licenses and content that is deliberately public. Report only hashes and locations, never the values.
 
-## Decisioni da raccogliere
+For false positives propose targeted exceptions (rule, path, fingerprint and reason), never whole categories. Private information and operational artifacts do not belong in the public repository.
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- remoto e visibilità di destinazione;
-- azione per ogni rilievo (correggere, ammettere con motivazione, rinviare).
+## Decisions to collect
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+- remote and destination visibility;
+- action for each finding (fix, accept with a reason, defer);
+- confirmation before any intervention on history or credential rotation.
 
-## Verifiche
+## Checks
 
-Distingui i falsi positivi motivati dai rischi reali. Se un segreto è già in un commit locale, indica che la storia locale va riscritta prima del push e non procedere. Nessun push in presenza di rilievi non valutati.
+Distinguish checks run, justified false positives, binary content not qualified and limited coverage; do not declare general compliance on the basis of text patterns. If a secret is already in a local commit, local history must be rewritten before the push: do not proceed. No reset or deletion of local work and no push while findings remain unassessed; moving or ignoring a file does not rewrite commits.
 
-## Consegna
+## Delivery
 
-Esito per commit (pronto, bloccato, da valutare), rilievi con posizione e azioni suggerite; il push resta una scelta dell’utente.
+Outcome per commit (ready, blocked, to assess), findings with location and suggested actions, reasoned decisions and remaining work; the push and the publication remain the user's choice.
 
-## Prompt vicini
+## Related prompts
 
-- SEC04: Cerca credenziali esposte e verifica la validazione degli input.
-- SEC05: Verifica isolamento dati personali e conformità a GDPR e policy.
-- REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- SEC08: Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
+- SEC04: Find exposed credentials and verify input validation.
+- SEC05: Verify personal data isolation and compliance with GDPR and policies.
+- SEC08: Check whether sensitive data is still reachable on the GitHub remote.
+- OPS01: Prepare and verify distributable packages and artifacts.
+- DOC01: Write guides and READMEs consistent with the real product.
+- SEC02: Analyze threats, trust boundaries and abuse scenarios.
+- SEC09: Wipe remote GitHub history and artifacts after a data exposure.
+- REP10: Align .gitignore and .gitkeep with the real structure and files.

@@ -9,6 +9,8 @@ pwsh -NoProfile -File scripts/prompts.ps1 -List -Compact
 .EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1 -List -Category TST
 .EXAMPLE
+pwsh -NoProfile -File scripts/prompts.ps1 -List -Compact -Pack maintenance
+.EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1 -Compose -Prompt TST04 -Objective 'Diagnostica il job Windows'
 #>
 [CmdletBinding(DefaultParameterSetName='Home')]
@@ -22,6 +24,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Show')]
     [Parameter(Mandatory,ParameterSetName='Compose')][ValidatePattern('^([A-Z]{2,4}[0-9]{2}|pmt-[0-9a-f]{8})$')][string]$Prompt,
     [Parameter(ParameterSetName='List')][string]$Category,
+    [Parameter(ParameterSetName='List')][ValidateSet('core','maintenance','all')][string]$Pack='core',
     [Parameter(ParameterSetName='Compose')][string]$Objective,
     [Parameter(ParameterSetName='Compose')][string]$OutputPath,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
@@ -49,7 +52,7 @@ try {
     if($PSCmdlet.ParameterSetName -eq 'Home'){
         Format-SBWorkflowHome $brain $catalog
     } elseif($PSCmdlet.ParameterSetName -eq 'List'){
-        Format-SBWorkflowList $catalog $Category -Compact:$Compact
+        Format-SBWorkflowList $catalog $Category -Compact:$Compact -Pack $Pack
     } elseif($Show){
         $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
         if($resolution.warning){Write-Warning $resolution.warning}

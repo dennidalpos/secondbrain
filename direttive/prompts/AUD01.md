@@ -1,44 +1,43 @@
-# AUD01 — Esegui un audit completo del repository con un unico rapporto
+# AUD01 — Run a full repository audit with a single report, optionally exported
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: lettura del repository, del dossier e degli strumenti di misura | **Esempio d'uso**: `sb prompt AUD01: audit completo del repository prima della release`
+> **Scope**: repo/area | **Mode**: read | **Needs**: read access to the repository, its documentation and measurement tools | **Example**: `full audit of the repository before the release`
 
-## Scopo
+## Purpose
 
-Valutare in un’unica passata architettura, qualità, sicurezza, dipendenze, prestazioni, test e documentazione, con rilievi verificati e priorità.
+Assess architecture, quality, security, dependencies, performance, tests and documentation in a single pass, with verified findings and priorities, and deliver the result as one report, exported in the requested format.
 
-## Quando usarlo
+## When to use
 
-Prima di una release, di un subentro o di una pianificazione, quando serve una fotografia complessiva e non un singolo controllo.
+Before a release, a handover or a planning session, when an overall picture is needed rather than a single check. Export also applies to already verified results from AUD02-AUD05, SEC01 or SEC04.
 
 ## Input
 
-Perimetro e profondità richiesti, dossier del repository (contesto, memoria, tracker) e formato desiderato del rapporto (vedi AUD06).
+Scope and depth requested, repository documentation and any backlog and, if exporting, output format, audience and destination.
 
-## Attività specifiche
+## Activities
 
-Orchestra senza duplicare le schede specializzate: carica AUD02 (metriche), AUD03 (architettura e debito), AUD04 (dipendenze), AUD05 (prestazioni), SEC01, SEC04 e SEC05 (sicurezza e dati sensibili), GOV01 (licenze), DEV08 (leggibilità) e TST05 (comportamento) solo per le dimensioni incluse nel perimetro. Esegui in sola lettura e, se disponibili, con subagent per le dimensioni indipendenti. Unifica i rilievi, elimina i duplicati e confrontali con il tracker per non ridefinire task già censiti.
+Orchestrate without duplicating the specialised cards: use AUD02 (metrics), AUD03 (architecture and debt), AUD04 (dependencies), AUD05 (performance), SEC01, SEC04 and SEC05 (security and sensitive data), GOV01 (licenses), DEV08 (readability) and TST05 (behavior) only for the dimensions included in the scope. Work read-only and, where available, with parallel agents for independent dimensions. Merge the findings, remove duplicates and compare them with the backlog so that already tracked work is not redefined.
 
-## Decisioni da raccogliere
+Export, only on request: start from a single data structure (findings with identifier, severity, path, line, evidence and status; metrics with method and date) from which every format is derived, without reinterpreting the results. Formats: Markdown, JSON, standalone HTML, CSV, SARIF 2.1.0 for analysis findings, DOCX, PDF and XLSX with the tools available. Choose the destination with the user, outside the product repository unless asked otherwise, and never include secrets, sensitive values or private paths: report hashes and locations.
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- dimensioni da includere (scelta multipla);
-- profondità: rapida o approfondita;
-- formato del rapporto, se da esportare con AUD06.
+## Decisions to collect
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+- dimensions to include (multiple choice);
+- depth: quick or in-depth;
+- export: format or formats, destination and minimum severity of findings to include.
 
-## Verifiche
+## Checks
 
-Ogni rilievo ha prova (file e riga, comando o misura) e gravità; distingui fatti da ipotesi, dichiara le dimensioni non coperte e i controlli non eseguibili. Non modificare file, tracker o memorie.
+Every finding has evidence (file and line, command or measurement) and a severity; separate facts from hypotheses, state the dimensions not covered and the checks that could not be run. The analysis does not modify repository files, the backlog or notes. An exported file is opened or validated (JSON or SARIF schema, CSV rows and columns, the document opens), counts match the source and formats that cannot be verified are declared; an existing report is never overwritten, a new dated version is created.
 
-## Consegna
+## Delivery
 
-Rapporto unico con sintesi, rilievi per dimensione ordinati per gravità, lacune di copertura e task proposti da censire; per salvarlo o esportarlo usa AUD06.
+A single report with summary, findings per dimension ordered by severity, coverage gaps and proposed work items; if requested, a file in the chosen format with its path, counts and conversion limits.
 
-## Prompt vicini
+## Related prompts
 
-- AUD02: Misura il repository con metriche riproducibili e individua i punti critici.
-- AUD03: Audita architettura e debito tecnico non ancora tracciato.
-- AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
-- AUD05: Audita le prestazioni e individua i percorsi critici senza modificare il codice.
-- AUD06: Esporta rapporti e metriche nel formato scelto dall’utente.
+- AUD02: Measure the repository with reproducible metrics and find hotspots.
+- AUD03: Audit architecture and technical debt not yet tracked.
+- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.
+- AUD05: Audit performance and find critical paths without changing code.
+- SEC01: Review changes or code with concrete findings and references.

@@ -1,32 +1,32 @@
-# TST03 — Individua e correggi test instabili o non deterministici
+# TST03 — Find and fix flaky or non-deterministic tests
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: log dei fallimenti intermittenti e suite di test | **Esempio d'uso**: `sb prompt TST03: risolvi instabilita nei test asincroni della suite`
+> **Scope**: repo/area | **Mode**: write | **Needs**: logs of the intermittent failures and the test suite | **Example**: `fix the instability in the async tests of the suite`
 
-## Scopo
+## Purpose
 
-Rendere affidabile una verifica che cambia esito senza modifiche funzionali.
+Make reliable a check whose outcome changes without functional changes.
 
-## Quando usarlo
+## When to use
 
-Per fallimenti intermittenti, dipendenze dall’ordine o differenze temporali.
+For intermittent failures, order dependencies or timing differences.
 
 ## Input
 
-Test, frequenza osservata, log, seed, ambiente e comandi di riproduzione.
+Test, observed frequency, logs, seeds, environment and reproduction commands.
 
-## Attività specifiche
+## Activities
 
-Ripeti in modo limitato e motivato; cerca gare, tempo, casualità, stato condiviso e servizi esterni. Correggi isolamento o sincronizzazione mantenendo il comportamento protetto.
+Repeat in a limited and justified way; look for races, time, randomness, shared state and external services. Fix isolation or synchronization while keeping the behavior protected.
 
-## Verifiche
+## Checks
 
-Ripeti la riproduzione nelle condizioni causali individuate. Evita sleep arbitrari, retry indiscriminati, disabilitazione e riduzione delle asserzioni.
+Repeat the reproduction under the causal conditions identified. Avoid arbitrary sleeps, indiscriminate retries, disabling tests and reducing assertions.
 
-## Consegna
+## Delivery
 
-Causa dell’instabilità, correzione e numero/condizioni delle ripetizioni; nessuna garanzia assoluta.
+Cause of the instability, the fix and the number and conditions of the repetitions; no absolute guarantee.
 
-## Prompt vicini
+## Related prompts
 
-- DEV02: Riproduci un difetto e correggine la causa.
-- TST04: Diagnostica e correggi errori di build e test nella CI.
+- DEV02: Reproduce a defect and fix its cause.
+- TST04: Diagnose and fix build and test failures in CI.

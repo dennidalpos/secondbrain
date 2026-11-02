@@ -1,32 +1,32 @@
-# PRG03 — Progetta contratti API, modelli dati e compatibilità
+# PRG03 — Design API contracts, data models and compatibility
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: requisiti o schema attuale con versione | **Esempio d'uso**: `sb prompt PRG03: progetta schema json e contratti api per il tracker`
+> **Scope**: repo/area | **Mode**: read | **Needs**: requirements or current schema with its version | **Example**: `design the JSON schema and API contracts for the task list`
 
-## Scopo
+## Purpose
 
-Definire interfacce e modelli coerenti prima di implementarli.
+Define consistent interfaces and models before implementing them.
 
-## Quando usarlo
+## When to use
 
-Quando cambia un confine tra moduli, servizi o formati persistiti.
+When a boundary between modules, services or persisted formats changes.
 
 ## Input
 
-Consumatori, casi d’uso, contratti esistenti e compatibilità richiesta.
+Consumers, use cases, existing contracts and the compatibility required.
 
-## Attività specifiche
+## Activities
 
-Specifica input, output, errori, invarianti, versionamento e responsabilità. Distingui modello pubblico e rappresentazione interna. Considera evoluzione dei dati e compatibilità con i consumatori conosciuti.
+Specify inputs, outputs, errors, invariants, versioning and responsibilities. Distinguish the public model from the internal representation. Consider data evolution and compatibility with the known consumers.
 
-## Verifiche
+## Checks
 
-Percorri esempi validi, invalidi e di evoluzione; controlla le convenzioni reali del progetto. Evita dettagli di wire format non necessari.
+Walk through valid, invalid and evolution examples; check the project's real conventions. Avoid unnecessary wire-format details.
 
-## Consegna
+## Delivery
 
-Contratto proposto, esempi, impatti sui consumatori e piano minimo di verifica.
+Proposed contract, examples, impact on consumers and a minimal verification plan.
 
-## Prompt vicini
+## Related prompts
 
-- DAT01: Migra schema e dati con confronto e recupero verificabili.
-- REP03: Documenta API e contratti a partire dall’implementazione.
+- DAT01: Migrate schema and data with verifiable comparison and recovery.
+- DOC02: Document APIs and contracts from the implementation.

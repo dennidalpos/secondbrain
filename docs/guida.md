@@ -27,9 +27,10 @@ Senza `-Apply` il collegamento mostra solo l'anteprima. Nell'agente scrivi:
 | Scrivi | Richiama |
 |---|---|
 | `sb prompt` | `scripts/prompts.ps1` (guide e comandi) |
-| `sb prompt tutti` | `prompts.ps1 -List -Compact` |
-| `sb prompt mostra DEV11` | `prompts.ps1 -Show -Prompt DEV11` |
-| `sb prompt DEV11: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto in CO-STAR) |
+| `sb prompt list` / `sb prompt tutti` | `prompts.ps1 -List -Compact` (pacchetto core) |
+| `sb prompt maintenance` | `prompts.ps1 -List -Compact -Pack maintenance` |
+| `sb prompt mostra DEV03` | `prompts.ps1 -Show -Prompt DEV03` |
+| `sb prompt DEV03: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto in CO-STAR) |
 | `sb controlla` / `sb allinea` | `secondbrain.ps1 -Check` / `-Sync` |
 | `sb attiva` | `secondbrain.ps1 -Setup` |
 
@@ -72,7 +73,7 @@ Una scrittura prolungata usa `access.ps1 -Start -Mode Write` e `-End` nello stes
 
 ## Greenfield
 
-`knowledge.ps1 -SetLifecycle greenfield` fissa nel `repository.json` del dossier che il repository si presenta come nuovo: `secondbrain.ps1 -Check` segnala `greenfield-violation` se compaiono `VERSION` modificato, `CHANGELOG.md` nuovo o con voci aggiunte, importazioni di schema o alias. `-SetLifecycle none` toglie il blocco (prompt SYS13 e SYS14).
+`knowledge.ps1 -SetLifecycle greenfield` fissa nel `repository.json` del dossier che il repository si presenta come nuovo: `secondbrain.ps1 -Check` segnala `greenfield-violation` se compaiono `VERSION` modificato, `CHANGELOG.md` nuovo o con voci aggiunte, importazioni di schema o alias. `-SetLifecycle none` toglie il blocco (prompt SYS13).
 
 ## Git e backup
 

@@ -20,13 +20,9 @@ Riesegui discovery dell’host e confronta gli asset con le associazioni approva
 
 ## Decisioni da raccogliere
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-
 - correzione da applicare per ogni divergenza (allinea, conserva il conflitto, rinvia);
 - asset nuovi da proporre con SYS03 e dossier da compattare con SYS05 (scelta multipla);
 - IDE o account con caricamento da riverificare dopo un cambio di login.
-
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
 
 ## Verifiche
 
@@ -38,7 +34,7 @@ Esiti distinti per asset e copertura; modifiche effettive, conflitti e attività
 
 ## Prompt vicini
 
+- SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.
 - SYS03: Attiva SecondBrain dopo discovery e selezione degli asset.
 - SYS05: Compatta il dossier preservando originali, fatti e TOC.
-- SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
 - SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.

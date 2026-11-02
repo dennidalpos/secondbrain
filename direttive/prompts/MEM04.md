@@ -29,6 +29,6 @@ Prospetto chiaro e ordinato per priorità delle attività, con indicazione immed
 ## Prompt vicini
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- SYS06: Leggi memoria attiva, contesto e tracker del repository corrente.
-- REP08: Ispeziona il repo, individua task residui e incrocia memorie e codice reale.
-- REP01: Completa il prossimo task eseguibile del repository aperto.
+- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
+- REP08: Inspect the repo and find leftover tasks against the real code.
+- REP01: Complete the next ready task of the open repository.

@@ -27,7 +27,7 @@ flowchart TD
 
     subgraph Pubblicazione["4. Salvaguardia e Pubblicazione"]
         SYS09Node["Backup Deterministico (SYS09)<br/>scripts/backup.ps1 -Verify"]
-        REP05Node["Audit Pubblicabilita (REP05)<br/>scripts/publication.ps1 -RepositoryPath {repo}"]
+        SEC07Node["Audit Pubblicabilita (SEC07)<br/>scripts/publication.ps1 -RepositoryPath {repo}"]
         HOOK["Hook Pre-Push Git<br/>scripts/publication.ps1 -InstallHook -Apply"]
     end
 
@@ -61,7 +61,7 @@ Prima di inviare modifiche a un remote pubblico (GitHub o GitLab) controlla che 
 pwsh -NoProfile -File scripts/check-distribution.ps1
 ```
 
-Restituisce 0 se l'indice è conforme e pulito; restituisce 1 e blocca la procedura se individua dati locali tracciati per errore. La verifica di pubblicabilità completa è REP05 (`scripts/publication.ps1`).
+Restituisce 0 se l'indice è conforme e pulito; restituisce 1 e blocca la procedura se individua dati locali tracciati per errore. La verifica di pubblicabilità completa è SEC07 (`scripts/publication.ps1`).
 
 ### Output e stato
 
@@ -92,7 +92,7 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 | [Sicurezza e backup](safety-backups.md) | Cosa modifica SecondBrain, dove sono i backup, ripristino e disinstallazione (da leggere per primo) |
 | [Architettura](architecture.md) | Visione d'insieme, moduli PowerShell, diagrammi Mermaid e invarianti |
 | [Integrazione MCP](mcp-setup.md) | Setup server stdio locale e pairing con Codex, Claude, Cursor, VS Code |
-| [Prompt e direttive](customizing-prompts-and-directives.md) | Uso dalla chat e dalla CLI, catalogo degli 82 workflow attivi in 13 aree, schede, approvazione direttive, generazione e manutenzione |
+| [Prompt e direttive](customizing-prompts-and-directives.md) | Uso dalla chat e dalla CLI, catalogo dei workflow attivi per area, schede, approvazione direttive, generazione e manutenzione |
 | [Accessi](access.md) | Letture dirette, sessioni Write, lock e rinnovo |
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |

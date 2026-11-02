@@ -1,32 +1,32 @@
-# OPS04 — Prepara note di rilascio e verifiche di consegna
+# OPS04 — Prepare release notes and delivery checks
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: commit, issue o task completati dalla release precedente | **Esempio d'uso**: `sb prompt OPS04: compila note di rilascio v1.1 da commit e tracker`
+> **Scope**: repo | **Mode**: write | **Needs**: commits, issues or tasks completed since the previous release | **Example**: `compile the v1.1 release notes from commits and issues`
 
-## Scopo
+## Purpose
 
-Descrivere una consegna e verificarne i prerequisiti.
+Describe a delivery and verify its prerequisites.
 
-## Quando usarlo
+## When to use
 
-Quando una versione o un lotto è pronto per la revisione di rilascio.
+When a version or a batch is ready for release review.
 
 ## Input
 
-Intervallo di modifiche, artefatti, destinatari e criteri di rilascio.
+Range of changes, artifacts, audience and release criteria.
 
-## Attività specifiche
+## Activities
 
-Ricava cambiamenti da diff e prove, separando funzionalità, correzioni, incompatibilità e migrazioni. Prepara note, istruzioni e controlli di consegna coerenti con il progetto.
+Derive the changes from diffs and evidence, separating features, fixes, breaking changes and migrations. Prepare notes, instructions and delivery checks consistent with the project.
 
-## Verifiche
+## Checks
 
-Controlla che ogni affermazione abbia evidenze e che versione/artefatti coincidano. Evidenzia impedimenti; non pubblicare o distribuire implicitamente. Non cambiare il numero di versione senza chiedere: proponilo con scelta multipla; se l'utente accetta esegui il cambio ovunque serva, se rifiuta lascialo invariato.
+Check that every statement has evidence and that the version and artifacts match. Highlight blockers; do not publish or distribute implicitly. Do not change the version number without asking: propose it as a multiple choice; if the user accepts, make the change wherever needed, if they decline leave it unchanged.
 
-## Consegna
+## Delivery
 
-Note di rilascio, stato dei controlli, rischi e passaggi operativi pendenti.
+Release notes, status of the checks, risks and pending operational steps.
 
-## Prompt vicini
+## Related prompts
 
-- OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
+- OPS01: Prepare and verify distributable packages and artifacts.
+- OPS06: Prepare a release hotfix and rollback with verification and communication.

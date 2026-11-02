@@ -1,35 +1,35 @@
-# TST07 — Configura harness di test con fixture isolate e pulizia sicura
+# TST07 — Set up a test harness with isolated fixtures and safe cleanup
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: framework di test, script di test e radice di fixture isolata assegnata | **Esempio d'uso**: `sb prompt TST07: crea fixture isolate su disco e valida cleanup automatico`
+> **Scope**: repo | **Mode**: write | **Needs**: test framework, test scripts and an assigned isolated fixture root | **Example**: `create isolated on-disk fixtures and validate the automatic cleanup`
 
-## Scopo
+## Purpose
 
-Allestire harness di test controllati, fixture isolate ed esecuzione sicura delle suite.
+Set up controlled test harnesses, isolated fixtures and safe execution of the suites.
 
-## Quando usarlo
+## When to use
 
-Nello sviluppo di nuove suite di test, validazione di scenari di migrazione o collaudo di script CLI. Per test instabili già esistenti usa TST03.
+When developing new test suites, validating migration scenarios or testing CLI scripts. For flaky tests that already exist use TST03.
 
 ## Input
 
-Script di test, percorsi per fixture temporanee (.test-tmp/ o .runtime/tests/), dati sintetici.
+Test scripts, paths for temporary fixtures (a dedicated directory outside the tracked tree) and synthetic data.
 
-## Attività specifiche
+## Activities
 
-Configura directory dedicate e isolate per le fixture di test evitando sovrapposizioni con l'ambiente reale. Utilizza blocchi try/finally per assicurare la conservazione o pulizia controllata secondo le policy del progetto.
+Set up dedicated, isolated directories for the test fixtures, avoiding overlap with the real environment. Use try/finally blocks to ensure fixtures are kept or cleaned up in a controlled way according to the project's policy.
 
-Simula condizioni di boundary, conflitti concorrenti, dati corrotti e ripristino da crash. Non invocare risorse di rete o endpoint remoti durante i test unitari o di integrazione locale.
+Simulate boundary conditions, concurrent conflicts, corrupted data and recovery after a crash. Do not call network resources or remote endpoints during unit or local integration tests.
 
-## Verifiche
+## Checks
 
-Verifica che le fixture non scrivano al di fuori della radice di test assegnata. Accerta che i test verifichino sia rami nominali che casi di errore. Conferma che nessun dato reale o personale sia presente nelle fixture.
+Check that fixtures do not write outside the assigned test root. Make sure the tests exercise both nominal paths and error cases. Confirm that no real or personal data is present in the fixtures.
 
-## Consegna
+## Delivery
 
-Script di test aggiornati, harness validato, fixture isolate verificate e rapporto di esecuzione della suite.
+Updated test scripts, a validated harness, verified isolated fixtures and an execution report of the suite.
 
-## Prompt vicini
+## Related prompts
 
-- TST01: Aggiungi test unitari e di integrazione sui rischi rilevanti.
-- TST02: Copri percorsi utente con test end-to-end.
-- TST03: Individua e correggi test instabili o non deterministici.
+- TST01: Add unit and integration tests for the relevant risks.
+- TST02: Cover user journeys with end-to-end tests.
+- TST03: Find and fix flaky or non-deterministic tests.

@@ -1,32 +1,32 @@
-# TST01 — Aggiungi test unitari e di integrazione sui rischi rilevanti
+# TST01 — Add unit and integration tests for the relevant risks
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: harness di test e comportamento da verificare | **Esempio d'uso**: `sb prompt TST01: aggiungi test di boundary per il calcolo budget caratteri`
+> **Scope**: repo/area | **Mode**: write | **Needs**: test harness and the behavior to verify | **Example**: `add boundary tests for the budget calculation`
 
-## Scopo
+## Purpose
 
-Proteggere comportamenti importanti con test affidabili.
+Protect important behaviors with reliable tests.
 
-## Quando usarlo
+## When to use
 
-Quando mancano prove sui comportamenti o sui confini tra componenti.
+When there is no evidence for behaviors or for the boundaries between components.
 
 ## Input
 
-Comportamento da proteggere, rischio e framework realmente usato.
+Behavior to protect, the risk and the framework actually in use.
 
-## Attività specifiche
+## Activities
 
-Individua scenari scoperti, casi limite ed errori. Scegli il livello del test secondo il confine da verificare; usa fixture isolate e dipendenze controllate. Evita asserzioni che riproducono l’implementazione.
+Find uncovered scenarios, edge cases and errors. Choose the level of the test according to the boundary to verify; use isolated fixtures and controlled dependencies. Avoid assertions that restate the implementation.
 
-## Verifiche
+## Checks
 
-Verifica che i test distinguano risultati corretti ed errati e non dipendano da ordine, rete o stato utente non previsto.
+Check that the tests tell correct results from wrong ones and do not depend on order, network or unexpected user state.
 
-## Consegna
+## Delivery
 
-Test aggiunti, comportamenti coperti, comando e risultato; nessuna percentuale arbitraria di copertura.
+Tests added, behaviors covered, command and result; no arbitrary coverage percentage.
 
-## Prompt vicini
+## Related prompts
 
-- TST02: Copri percorsi utente con test end-to-end.
-- TST03: Individua e correggi test instabili o non deterministici.
+- TST02: Cover user journeys with end-to-end tests.
+- TST03: Find and fix flaky or non-deterministic tests.

@@ -1,42 +1,39 @@
-# SEC09 — Azzera storia e artefatti remoti GitHub dopo un’esposizione di dati
+# SEC09 — Wipe remote GitHub history and artifacts after a data exposure
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: richiesta esplicita, backup verificato e accesso amministrativo al remoto | **Esempio d'uso**: `sb prompt SEC09: azzera storia, run e cache del remoto dopo l’esposizione`
+> **Scope**: repo | **Mode**: write | **Needs**: explicit request, verified backup and administrative access to the remote | **Example**: `wipe the remote history, runs and caches after the exposure`
 
-## Scopo
+## Purpose
 
-Eliminare dal remoto GitHub storia e artefatti che espongono dati sensibili e riportare il repository a uno stato pulito, dopo la rotazione delle credenziali.
+Remove from the GitHub remote the history and artifacts that expose sensitive data and bring the repository back to a clean state, after the credentials have been rotated.
 
-## Quando usarlo
+## When to use
 
-Solo su richiesta esplicita, dopo un’esposizione confermata (SEC08, REP05). Le operazioni sono distruttive e irreversibili per il remoto.
+Only on explicit request, after a confirmed exposure (SEC08, SEC07). The operations are destructive and irreversible for the remote.
 
 ## Input
 
-Repository, autorizzazione dell’utente per ogni passo distruttivo, backup verificato, elenco dei segreti da ruotare e storia da conservare, se esiste.
+Repository, the user's authorization for each destructive step, a verified backup, the list of secrets to rotate and the history to keep, if any.
 
-## Attività specifiche
+## Activities
 
-Ruota o revoca per prima cosa le credenziali esposte: la pulizia non rende sicuro un segreto già pubblicato. Poi, nell’ordine e con conferma per ciascun passo: 1) backup locale verificato (mirror e inventario di rami, tag, release e issue); 2) scelta della strategia: riscrittura mirata con `git filter-repo`, nuova storia con ramo orfano e un solo commit, oppure ricreazione del repository; 3) aggiornamento dei riferimenti remoti con `--force-with-lease` ed eliminazione di rami e tag residui; 4) eliminazione di workflow run e log, artefatti, cache di Actions, release e asset interessati (`gh run delete`, `gh cache delete`, API); 5) richiesta al supporto GitHub per riferimenti `refs/pull` e oggetti non eliminabili da soli; 6) avviso a proprietari di fork e di cloni perché riclonino. Verifica prima la disponibilità degli strumenti (`gh`, `git filter-repo`): se manca, proponi l’alternativa (ramo orfano o ricreazione) senza installare nulla senza autorizzazione. Mostra ogni comando in anteprima prima dell’esecuzione. Non eseguire alcuna operazione distruttiva senza richiesta esplicita dell’utente nel messaggio corrente.
+First rotate or revoke the exposed credentials: cleanup does not make an already published secret safe. Then, in order and with confirmation for each step: 1) a verified local backup (mirror and inventory of branches, tags, releases and issues); 2) choice of strategy: targeted rewrite with `git filter-repo`, a new history with an orphan branch and a single commit, or re-creating the repository; 3) update the remote references with `--force-with-lease` and delete leftover branches and tags; 4) delete workflow runs and logs, artifacts, Actions caches, releases and the assets involved (`gh run delete`, `gh cache delete`, the API); 5) a request to GitHub support for `refs/pull` references and objects that cannot be deleted by yourself; 6) notify owners of forks and clones so they re-clone. Check first that the tools are available (`gh`, `git filter-repo`): if one is missing, propose the alternative (orphan branch or re-creation) without installing anything without authorization. Show every command as a preview before running it. Do not perform any destructive operation without an explicit request from the user in the current message.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- strategia: riscrittura mirata, nuova storia o ricreazione del repository;
-- rami, tag e release da conservare;
-- conferma esplicita per ogni passo distruttivo.
+- strategy: targeted rewrite, new history or re-creating the repository;
+- branches, tags and releases to keep;
+- explicit confirmation for every destructive step.
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+## Checks
 
-## Verifiche
+Repeat SEC08 to show what is no longer reachable, compare the tree of the new state with the expected one and run SEC07 on the result. State what cannot be verified: third-party copies, caches and unreachable objects until GitHub removes them.
 
-Ripeti SEC08 per dimostrare cosa non è più raggiungibile, confronta l’albero del nuovo stato con quello atteso ed esegui REP05 sul risultato. Dichiara ciò che non si può verificare: copie di terzi, cache e oggetti irraggiungibili finché GitHub non li elimina.
+## Delivery
 
-## Consegna
+Actions performed with their outcome, state before and after, credentials rotated, residual exposures and manual steps (request to GitHub support).
 
-Azioni eseguite con esito, stato prima e dopo, credenziali ruotate, esposizioni residue e passi manuali (richiesta al supporto GitHub).
+## Related prompts
 
-## Prompt vicini
-
-- SEC08: Verifica se dati sensibili restano raggiungibili sul remoto GitHub.
-- REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- SEC04: Cerca credenziali esposte e verifica la validazione degli input.
+- SEC08: Check whether sensitive data is still reachable on the GitHub remote.
+- SEC07: Check diff, repository and history for sensitive data before publishing.
+- SEC04: Find exposed credentials and verify input validation.

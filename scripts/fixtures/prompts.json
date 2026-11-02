@@ -27,7 +27,7 @@
     },
     {
       "code": "INT03",
-      "mode": "read",
+      "mode": "verify",
       "objective": "Verifica il dialogo fixture con tastiera: apertura, focus, Escape e ritorno al controllo; segnala gli ausili non disponibili.",
       "purpose": "Accessibilita in sola verifica"
     },

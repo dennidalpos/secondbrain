@@ -1,34 +1,34 @@
-# GOV02 — Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze
+# GOV02 — Scan third-party dependencies and compile the CREDITS register of licenses
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: lockfile dipendenze e licenze di terze parti | **Esempio d'uso**: `sb prompt GOV02: scansiona dipendenze terze e compila file CREDITS.md`
+> **Scope**: repo | **Mode**: write | **Needs**: dependency lock files and third-party licenses | **Example**: `scan third-party dependencies and compile CREDITS.md`
 
-## Scopo
+## Purpose
 
-Censire le librerie esterne utilizzate e compilare il documento CREDITS.md con licenze e attribuzioni.
+List the external libraries in use and compile the CREDITS.md document with licenses and attributions.
 
-## Quando usarlo
+## When to use
 
-Prima del rilascio open source del repository o all'integrazione di nuove dipendenze terze parti.
+Before the open source release of the repository or when adding new third-party dependencies.
 
 ## Input
 
-Manifest delle dipendenze, lockfile, avvisi di licenza di pacchetti terzi e albero dei moduli.
+Dependency manifests, lock files, license notices of third-party packages and the module tree.
 
-## Attività specifiche
+## Activities
 
-Analizza le dipendenze dirette e transitive del repository. Raccogli per ciascuna il nome del componente, versione, autori, licenza di distribuzione e URL del repository o della documentazione ufficiale.
+Analyze the repository's direct and transitive dependencies. For each one collect the component name, version, authors, distribution license and the URL of the repository or official documentation.
 
-Compila o aggiorna il file CREDITS.md nella radice del repository, strutturando le attribuzioni per ambito o per linguaggio e allegando i testi o i link alle licenze originali richieste dai termini d'uso.
+Compile or update CREDITS.md at the repository root, structuring the attributions by scope or language and attaching the texts or links to the original licenses required by their terms of use.
 
-## Verifiche
+## Checks
 
-Verifica che tutte le dipendenze esterne siano censite senza omissioni. Accerta che non siano presenti componenti con licenze incompatibili con la licenza del progetto.
+Check that all external dependencies are listed with no omissions. Make sure there are no components whose licenses are incompatible with the project's license.
 
-## Consegna
+## Delivery
 
-File CREDITS.md allineato, matrice di compatibilità delle dipendenze terze e riepilogo delle attribuzioni verificate.
+Aligned CREDITS.md file, a compatibility matrix of the third-party dependencies and a summary of the verified attributions.
 
-## Prompt vicini
+## Related prompts
 
-- REP02: Scrivi guide e README coerenti con il prodotto reale.
-- GOV01: Verifica licenze open source, conformità dei file e header SPDX.
+- GOV01: Check open source licenses, file compliance and SPDX headers.
+- DOC01: Write guides and READMEs consistent with the real product.

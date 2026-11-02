@@ -1,36 +1,34 @@
-# DEV08 — Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo
+# DEV08 — Review readability, consistency and maintainability without changing code
 
-> **Scope**: repo/area/file | **Modalità**: lettura | **Cosa serve**: codice da rivedere, convenzioni del repository e test esistenti | **Esempio d'uso**: `sb prompt DEV08: rivedi leggibilità e manutenibilità del modulo di sync`
+> **Scope**: repo/area/file | **Mode**: read | **Needs**: code to review, repository conventions and existing tests | **Example**: `review readability and maintainability of the sync module`
 
-## Scopo
+## Purpose
 
-Valutare qualità, coerenza e manutenibilità del codice indicato, con rilievi concreti e proposte, senza modificarlo.
+Assess the quality, consistency and maintainability of the indicated code, with concrete findings and proposals, without modifying it.
 
-## Quando usarlo
+## When to use
 
-Prima di un refactoring o di una revisione di qualità. Per rilievi di sicurezza e correttezza di una modifica usa SEC01, per le regole automatiche DEV06, per applicare le correzioni DEV03.
+Before a refactoring or a quality review. For security and correctness findings on a change use SEC01, for automatic rules DEV06, to apply the fixes DEV03.
 
 ## Input
 
-File o moduli da rivedere, convenzioni e istruzioni del repository, risultati di linter e test, storico recente delle modifiche.
+Files or modules to review, conventions and instructions of the repository, linter and test results, recent change history.
 
-## Attività specifiche
+## Activities
 
-Leggi il codice nel contesto delle convenzioni di nomi, commenti e struttura del repository. Individua duplicazioni, complessità eccessiva, responsabilità confuse, accoppiamenti, gestione degli errori incoerente e codice morto. Ordina i rilievi per impatto sulla manutenzione e indica per ciascuno percorso e riga, motivo e proposta. Non modificare file e non introdurre nuove convenzioni: segui quelle esistenti.
+Read the code in the context of the repository's conventions for names, comments and structure. Find duplication, excessive complexity, confused responsibilities, coupling, inconsistent error handling and dead code. Order the findings by impact on maintenance and give for each the path and line, the reason and a proposal. Do not modify files and do not introduce new conventions: follow the existing ones.
 
-## Verifiche
+## Checks
 
-Verifica ogni rilievo sul codice reale e controlla che non sia già coperto da linter o da un task del tracker. Distingui difetti dimostrati da preferenze di stile.
+Verify each finding on the real code and check that it is not already covered by a linter or a backlog item. Distinguish proven defects from style preferences.
 
-## Consegna
+## Delivery
 
-Elenco di rilievi prioritizzati con percorso, motivazione e proposta, più eventuali task da censire; nessuna modifica al codice.
+A prioritized list of findings with path, reason and proposal, plus any work items to record; no changes to the code.
 
-## Prompt vicini
+## Related prompts
 
-- DEV03: Esegui un refactoring preservando contratti e comportamento.
-- DEV06: Configura ed esegui linter, formattatori e analisi statica del codice.
-- SEC01: Revisiona modifiche o codice con rilievi concreti e riferimenti.
-- AUD02: Misura il repository con metriche riproducibili e individua i punti critici.
-- DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.
-- DEV11: Mantieni il repository: duplicati, export, codice morto e leggibilità.
+- DEV03: Refactor code preserving contracts: targeted, phased or periodic.
+- DEV06: Configure and run linters, formatters and static analysis.
+- SEC01: Review changes or code with concrete findings and references.
+- AUD02: Measure the repository with reproducible metrics and find hotspots.

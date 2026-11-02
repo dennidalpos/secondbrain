@@ -19,7 +19,7 @@ flowchart LR
 
 Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
 
-Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS12` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
+Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS01` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
 
 ## Collega
 
@@ -54,9 +54,9 @@ MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dall
 | `get_task` | `knowledge.ps1 -Task <id o #seq>` | — |
 | `search_knowledge` | `knowledge.ps1 -Search <testo> [-Mode Relevance]` | — |
 | `get_prompt_home` | `prompts.ps1` | `sb prompt` |
-| `list_prompts` | `prompts.ps1 -List -Compact` | `sb prompt tutti` |
+| `list_prompts` | `prompts.ps1 -List -Compact` | `sb prompt list` |
 | `get_prompt` | `prompts.ps1 -Show -Prompt <CHIAVE>` | `sb prompt mostra CHIAVE` |
-| `check_publication` | `publication.ps1 -RepositoryPath <repo>` | `sb prompt REP05` |
+| `check_publication` | `publication.ps1 -RepositoryPath <repo>` | `sb prompt SEC07` |
 
 Dal checkout di un repository gestito i comandi `knowledge.ps1` risolvono da soli il dossier; altrove indica `-Repository` o `-CheckoutPath`. `sb controlla` e `sb allinea` corrispondono a `secondbrain.ps1 -Check` e `-Sync`.
 ## Controlla

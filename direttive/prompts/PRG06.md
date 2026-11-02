@@ -1,44 +1,39 @@
-# PRG06 — Pianifica un refactoring architetturale a fasi con verifiche e rollback
+# PRG06 — Plan a phased architectural refactoring with checks and rollback
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: modulo da riorganizzare, test esistenti e invarianti da preservare | **Esempio d'uso**: `sb prompt PRG06: pianifica il refactoring del modulo di sincronizzazione`
+> **Scope**: repo/area | **Mode**: read | **Needs**: module to reorganize, existing tests and invariants to preserve | **Example**: `plan the refactoring of the synchronization module`
 
-## Scopo
+## Purpose
 
-Impostare un piano di refactoring architetturale a fasi atomiche e verificabili che preservi contratti pubblici e comportamento esistente.
+Set up an architectural refactoring plan in atomic, verifiable phases that preserves public contracts and existing behavior.
 
-## Quando usarlo
+## When to use
 
-Quando il debito tecnico o la complessità richiedono una riorganizzazione strutturale. Per un piano generico usa PRG04, per eseguire le modifiche DEV03, per un nuovo modulo PRG05.
+When technical debt or complexity calls for a structural reorganization. For a generic plan use PRG04, to carry out the changes DEV03, for a new module PRG05.
 
 ## Input
 
-Codice e confini dei moduli, dipendenze correnti, copertura dei test, invarianti architetturali e obiettivo della riorganizzazione.
+Code and module boundaries, current dependencies, test coverage, architectural invariants and the goal of the reorganization.
 
-## Attività specifiche
+## Activities
 
-Mappa responsabilità, dipendenze e contratti pubblici. Individua i punti di rottura e dividi il lavoro in fasi atomiche, ciascuna con passi intermedi eseguibili, criteri di verifica, ordine delle dipendenze e rollback. Non modificare il codice e non aggiornare il tracker salvo richiesta esplicita.
+Map responsibilities, dependencies and public contracts. Find the breaking points and split the work into atomic phases, each with executable intermediate steps, verification criteria, dependency order and rollback. Do not modify the code and do not update the backlog unless explicitly asked.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`.
+- boundary of the refactoring and phases to include in the plan;
+- compatibility to preserve for the public contracts.
 
-- confine del refactoring e fasi da includere nel piano;
-- compatibilità da preservare per i contratti pubblici.
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Check that each phase has a verifiable outcome, that public contracts are not broken by accident and that the test suite covers the behavior to preserve.
 
-## Verifiche
+## Delivery
 
-Controlla che ogni fase abbia un esito verificabile, che i contratti pubblici non vengano spezzati inavvertitamente e che la suite di test copra il comportamento da preservare.
+A phased plan document with dependencies, checks, rollback, agreed decision points, assumptions and limits.
 
-## Consegna
+## Related prompts
 
-Documento di piano per fasi con dipendenze, verifiche, rollback, punti di decisione concordati, assunzioni e limiti.
-
-## Prompt vicini
-
-- PRG04: Prepara un piano per fasi con dipendenze e verifiche.
-- DEV03: Esegui un refactoring preservando contratti e comportamento.
-- PRG05: Crea lo scaffolding di nuovi moduli con struttura, configurazione e test.
-- AUD03: Audita architettura e debito tecnico non ancora tracciato.
-- DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.
+- PRG04: Prepare a phased plan with dependencies and checks.
+- DEV03: Refactor code preserving contracts: targeted, phased or periodic.
+- PRG05: Scaffold new modules with structure, configuration and tests.
+- AUD03: Audit architecture and technical debt not yet tracked.

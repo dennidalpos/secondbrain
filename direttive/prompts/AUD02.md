@@ -1,41 +1,37 @@
-# AUD02 — Misura il repository con metriche riproducibili e individua i punti critici
+# AUD02 — Measure the repository with reproducible metrics and find hotspots
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: lettura del repository, della storia Git e degli strumenti di misura | **Esempio d'uso**: `sb prompt AUD02: metriche e hotspot del repository`
+> **Scope**: repo/area | **Mode**: read | **Needs**: read access to the repository, its Git history and measurement tools | **Example**: `metrics and hotspots of the repository`
 
-## Scopo
+## Purpose
 
-Quantificare dimensione, complessità, duplicazione, variazione nel tempo e copertura del repository con misure riproducibili.
+Quantify size, complexity, duplication, change over time and coverage of the repository with reproducible measurements.
 
-## Quando usarlo
+## When to use
 
-Per avere una base oggettiva prima di refactoring, ottimizzazioni o pianificazione, e per confrontare due momenti.
+To get an objective baseline before refactoring, optimization or planning, and to compare two points in time.
 
 ## Input
 
-Perimetro (percorsi e linguaggi), intervallo di storia Git e strumenti di misura già adottati dal progetto.
+Scope (paths and languages), Git history range and the measurement tools the project already uses.
 
-## Attività specifiche
+## Activities
 
-Usa gli strumenti del progetto o `git` e utilità standard già presenti; non installare dipendenze senza autorizzazione. Rileva file e righe per linguaggio, complessità ciclomatica e funzioni lunghe, duplicazione, variazione per file (churn) e hotspot (modifiche frequenti in codice complesso), contributori per area, copertura dei test, numero ed età delle dipendenze, dimensione di binari e artefatti tracciati. Registra comando, versione dello strumento e data di ogni misura.
+Use the project's tools or `git` and standard utilities already present; do not install dependencies without authorization. Measure files and lines per language, cyclomatic complexity and long functions, duplication, change per file (churn) and hotspots (frequent changes in complex code), contributors per area, test coverage, number and age of dependencies, size of tracked binaries and artifacts. Record the command, tool version and date of every measurement.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- perimetro e linguaggi;
-- intervallo di storia da analizzare.
+- scope and languages;
+- history range to analyze.
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+## Checks
 
-## Verifiche
+Repeat each measurement to verify its stability; exclude generated files, vendor code and fixtures and say so; do not compare values obtained with different tools or thresholds.
 
-Ripeti ogni misura per verificarne la stabilità; escludi file generati, vendor e fixture dichiarandolo; non confrontare valori ottenuti con strumenti o soglie diverse.
+## Delivery
 
-## Consegna
+Metrics table with method and scope, ranked hotspots, proposed thresholds (to be confirmed) and limits; exportable with AUD01.
 
-Tabella delle metriche con metodo e perimetro, hotspot ordinati, soglie proposte (da confermare) e limiti; esportabile con AUD06.
+## Related prompts
 
-## Prompt vicini
-
-- AUD01: Esegui un audit completo del repository con un unico rapporto.
-- DEV08: Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo.
-- AUD06: Esporta rapporti e metriche nel formato scelto dall’utente.
+- AUD01: Run a full repository audit with a single report, optionally exported.
+- DEV08: Review readability, consistency and maintainability without changing code.

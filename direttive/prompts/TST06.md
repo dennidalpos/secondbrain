@@ -1,34 +1,39 @@
-# TST06 — Misura e migliora prestazioni e consumo di risorse
+# TST06 — Measure and optimize performance and resources: one bottleneck or many modules
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: benchmark o scenario di carico riproducibile | **Esempio d'uso**: `sb prompt TST06: riduci tempo di discovery host e memoria occupata`
+> **Scope**: repo/area | **Mode**: write | **Needs**: flow, representative load, environment, metric and threshold | **Example**: `reduce host discovery time and memory use`
 
-## Scopo
+## Purpose
 
-Ridurre un singolo collo di bottiglia dimostrabile in tempo, memoria o I/O con misure prima e dopo. Per un’ottimizzazione estesa a più moduli usa DEV10, per la sola analisi AUD05.
+Reduce time, memory and I/O with changes driven by measurements: a single demonstrable bottleneck or, with a profile and goals already available, several modules.
 
-## Quando usarlo
+## When to use
 
-Quando tempi, memoria, I/O o reattività non soddisfano un obiettivo.
+When times, memory, I/O or responsiveness do not meet a goal. For analysis only without changes, or if measurements are missing, use AUD05 first.
 
 ## Input
 
-Flusso, carico rappresentativo, ambiente, metrica e soglia se già definita.
+Flow or scope, representative load, environment, metric and threshold; for wide optimization the profile and baseline (AUD05), goals and constraints on compatibility and readability.
 
-## Attività specifiche
+## Activities
 
-Acquisisci baseline e profilo; individua il percorso dominante. Modifica la causa misurata e mantieni correttezza e costi operativi accettabili. Evita ottimizzazioni speculative fuori perimetro.
+Collect repeated baselines and a profile; find the dominant path. Order the changes by measured benefit: algorithms and data structures, repeated or cacheable work, batchable I/O and network calls, allocations, startup, heavy dependencies. Apply one change at a time to the measured cause, keeping correctness, readability and operating costs acceptable. Avoid speculative optimizations and micro-optimizations with no measurable effect.
 
-## Verifiche
+## Decisions to collect
 
-Confronta prima/dopo sullo stesso carico, indicando dispersione e condizioni. Verifica regressioni funzionali; non dedurre benefici da una sola lettura del codice.
+- measurable goals, thresholds and priorities;
+- trade-offs accepted between readability and performance (wide optimization only).
 
-## Consegna
+## Checks
 
-Misure confrontabili, intervento, beneficio osservato e limiti del benchmark.
+Compare before and after on the same load, reporting dispersion and conditions; run the functional tests, check that any added complexity is justified by the gain and discard and revert changes with no benefit. Do not infer benefits from reading the code alone.
 
-## Prompt vicini
+## Delivery
 
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
-- OPS03: Aggiungi log, metriche e diagnostica utili al problema.
-- AUD05: Audita le prestazioni e individua i percorsi critici senza modificare il codice.
-- DEV10: Ottimizza il codice sull’intero perimetro con misure prima e dopo.
+Comparable measurements, changes, observed benefits, accepted trade-offs and the limits of the benchmark.
+
+## Related prompts
+
+- OPS03: Add logs, metrics and diagnostics useful for the problem.
+- TST05: Verify real behavior against the requirements.
+- AUD05: Audit performance and find critical paths without changing code.
+- DEV03: Refactor code preserving contracts: targeted, phased or periodic.

@@ -1,33 +1,33 @@
-# SEC03 — Correggi vulnerabilità e rafforza le difese interessate
+# SEC03 — Fix vulnerabilities and strengthen the affected defenses
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: vulnerabilita confermata e contesto del codice | **Esempio d'uso**: `sb prompt SEC03: bonifica path traversal nella risoluzione dei percorsi`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: confirmed vulnerability and code context | **Example**: `fix path traversal in path resolution`
 
-## Scopo
+## Purpose
 
-Mitigare rischi di sicurezza verificati nel perimetro richiesto.
+Mitigate verified security risks within the requested scope.
 
-## Quando usarlo
+## When to use
 
-Per finding confermati, advisory applicabili o hardening mirato.
+For confirmed findings, applicable advisories or targeted hardening.
 
 ## Input
 
-Finding, evidenze, componenti e versioni; scenari da impedire.
+Finding, evidence, components and versions; scenarios to prevent.
 
-## Attività specifiche
+## Activities
 
-Valida il finding e l’applicabilità. Correggi il confine vulnerabile con minimo privilegio e validazione coerente; proteggi segreti e messaggi di errore. Usa fonti primarie per advisory e mitigazioni.
+Validate the finding and its applicability. Fix the vulnerable boundary with least privilege and consistent validation; protect secrets and error messages. Use primary sources for advisories and mitigations.
 
-## Verifiche
+## Checks
 
-Prova input avversi e regressioni pertinenti in ambiente isolato. Distingui corretto, residuo e non verificato; non dichiarare assenza generale di vulnerabilità.
+Test adversarial inputs and relevant regressions in an isolated environment. Distinguish fixed, residual and unverified; do not claim a general absence of vulnerabilities.
 
-## Consegna
+## Delivery
 
-Mitigazioni, prove, dipendenze interessate e rischi residui.
+Mitigations, evidence, the dependencies involved and residual risks.
 
-## Prompt vicini
+## Related prompts
 
-- DEV04: Aggiorna dipendenze verificando compatibilità e regressioni.
-- SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
-- SEC06: Applica hardening a configurazioni, CI, container e accessi del repository.
+- DEV04: Update dependencies checking compatibility and regressions.
+- SEC02: Analyze threats, trust boundaries and abuse scenarios.
+- SEC06: Harden repository configuration, CI, containers and access.

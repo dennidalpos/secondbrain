@@ -9,7 +9,7 @@ Ogni agente riparte da quello che sa già: contesto, decisioni e task. I tuoi da
 ```mermaid
 flowchart LR
     T["Tu"] --> A["Agente<br/>Claude, Codex, Antigravity"]
-    A <--> S["SecondBrain<br/>memoria, regole, 82 prompt"]
+    A <--> S["SecondBrain<br/>memoria, regole, 62 prompt"]
     A --> P["I tuoi progetti"]
 ```
 
@@ -33,7 +33,7 @@ Poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvi
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 82 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
+| 62 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 

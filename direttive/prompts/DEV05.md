@@ -1,32 +1,32 @@
-# DEV05 — Migra codice o framework verso una destinazione definita
+# DEV05 — Migrate code or a framework to a defined target
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: versione sorgente e destinazione con note di rilascio | **Esempio d'uso**: `sb prompt DEV05: migra script da Windows PowerShell 5.1 a PowerShell 7.5`
+> **Scope**: repo/area | **Mode**: write | **Needs**: source and target versions with release notes | **Example**: `migrate the scripts from the old runtime version to the current one`
 
-## Scopo
+## Purpose
 
-Trasferire un’area di codice a una tecnologia o versione concordata.
+Move an area of code to an agreed technology or version.
 
-## Quando usarlo
+## When to use
 
-Per modernizzazione strutturale che supera un normale aggiornamento pacchetti.
+For structural modernization that goes beyond an ordinary package update.
 
 ## Input
 
-Sorgente, destinazione, motivazione, compatibilità e vincoli di rilascio.
+Source, target, motivation, compatibility and release constraints.
 
-## Attività specifiche
+## Activities
 
-Censisci API deprecate, integrazioni e differenze semantiche. Usa guide ufficiali della destinazione, migra per unità verificabili e rimuovi il percorso sostituito dopo controllo dei consumatori. Conserva un recupero proporzionato.
+Inventory deprecated APIs, integrations and semantic differences. Use the target's official guides, migrate in verifiable units and remove the replaced path after checking consumers. Keep a proportionate recovery option.
 
-## Verifiche
+## Checks
 
-Confronta funzionalità e contratti con baseline; esegui build e test interessati, dichiarando piattaforme non provate.
+Compare features and contracts against a baseline; run the relevant build and tests, declaring platforms not tested.
 
-## Consegna
+## Delivery
 
-Unità migrate, differenze intenzionali, prove e passaggi ancora necessari.
+Units migrated, intentional differences, evidence and steps still needed.
 
-## Prompt vicini
+## Related prompts
 
-- DEV04: Aggiorna dipendenze verificando compatibilità e regressioni.
-- DAT01: Migra schema e dati con confronto e recupero verificabili.
+- DAT01: Migrate schema and data with verifiable comparison and recovery.
+- DEV04: Update dependencies checking compatibility and regressions.

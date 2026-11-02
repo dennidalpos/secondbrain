@@ -1,6 +1,6 @@
-# SYS06 — Leggi memoria attiva, contesto e tracker del repository corrente
+# MEM06 — Leggi memoria attiva, contesto e tracker del repository corrente
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: checkout del repository aperto | **Esempio d'uso**: `sb prompt SYS06: carica contesto e memoria del repository nel budget`
+> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: checkout del repository aperto | **Esempio d'uso**: `sb prompt MEM06: carica contesto e memoria del repository nel budget`
 
 ## Scopo
 
@@ -36,4 +36,4 @@ Quadro sintetico dello stato del repository, attività aperte pertinenti, vincol
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
 - MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
-- REP08: Ispeziona il repo, individua task residui e incrocia memorie e codice reale.
+- REP08: Inspect the repo and find leftover tasks against the real code.

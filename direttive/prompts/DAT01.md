@@ -1,32 +1,32 @@
-# DAT01 — Migra schema e dati con confronto e recupero verificabili
+# DAT01 — Migrate schema and data with verifiable comparison and recovery
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: schema sorgente, destinazione e dati sintetici | **Esempio d'uso**: `sb prompt DAT01: migra schema del tracker con script di rollback atomico`
+> **Scope**: repo/area | **Mode**: write | **Needs**: source schema, target schema and synthetic data | **Example**: `migrate the schema with an atomic rollback script`
 
-## Scopo
+## Purpose
 
-Eseguire una trasformazione dei dati senza perdere informazione necessaria.
+Carry out a data transformation without losing necessary information.
 
-## Quando usarlo
+## When to use
 
-Per evoluzioni di schema, cambi di motore o migrazioni di formati persistiti.
+For schema evolution, engine changes or migrations of persisted formats.
 
 ## Input
 
-Sorgente, destinazione, volumi, semantica, vincoli e ambiente autorizzato.
+Source, target, volumes, semantics, constraints and the authorized environment.
 
-## Attività specifiche
+## Activities
 
-Censisci dati e consumatori; verifica backup e recupero prima delle mutazioni. Definisci trasformazioni, idempotenza o ripresa, compatibilità e confronto. Prova prima su copia isolata e gestisci cambi concorrenti senza sovrascriverli.
+Inventory data and consumers; verify backup and recovery before any mutation. Define the transformations, idempotence or resumption, compatibility and comparison. Try first on an isolated copy and handle concurrent changes without overwriting them.
 
-## Verifiche
+## Checks
 
-Confronta conteggi, chiavi, relazioni, valori significativi e casi limite; prova il recupero. Non migrare ambienti ulteriori per implicazione.
+Compare counts, keys, relationships, significant values and edge cases; test the recovery. Do not migrate further environments by implication.
 
-## Consegna
+## Delivery
 
-Manifest o evidenze proporzionate, trasformazioni, confronto, recupero provato e residui.
+Manifest or proportionate evidence, transformations, comparison, proven recovery and leftovers.
 
-## Prompt vicini
+## Related prompts
 
-- PRG03: Progetta contratti API, modelli dati e compatibilità.
-- DAT02: Realizza importazioni e trasformazioni preservando gli originali.
+- DAT02: Build imports and transformations that preserve the originals.
+- PRG03: Design API contracts, data models and compatibility.

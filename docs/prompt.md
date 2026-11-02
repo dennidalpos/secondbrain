@@ -1,9 +1,10 @@
 # Prompt
 
-82 prompt pronti in 13 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+62 prompt generici in 12 aree, più 15 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
-sb prompt tutti
+sb prompt list
+sb prompt maintenance
 sb prompt mostra DEV01
 sb prompt DEV01: aggiungi l'esportazione in PDF
 ```
@@ -36,21 +37,35 @@ Vale per i prompt composti (`sb prompt CODICE: obiettivo`). `sb prompt mostra` f
 
 ## Le aree
 
+Pacchetto core (generico, schede in inglese, valido per qualunque repository):
+
 | Codice | Area |
 |---|---|
-| COM | Capire il codice |
-| PRG | Requisiti e progetto |
-| DEV | Sviluppo |
-| TST | Test |
-| SEC | Sicurezza |
+| COM | Comprensione e ricerca |
+| PRG | Requisiti e progettazione |
+| DEV | Sviluppo e modernizzazione |
+| TST | Test e verifica |
+| SEC | Review e sicurezza |
 | AUD | Audit e metriche |
-| INT | Interfaccia |
-| DAT | Dati |
-| OPS | Build e rilascio |
-| REP | Repository e documentazione |
-| MEM | Memoria |
-| SYS | Gestione di SecondBrain |
-| GOV | Regole e fonti |
+| INT | Interfaccia ed esperienza utente |
+| DAT | Dati e integrazioni |
+| OPS | Rilascio e operatività |
+| DOC | Documentazione |
+| REP | Igiene del repository |
+| GOV | Licenze e conformità |
+
+Pacchetto maintenance (`sb prompt maintenance`, schede in italiano): MEM (memoria e continuità) e SYS (sistema e manutenzione centrale), per gestire SecondBrain stesso.
+
+## Le icone
+
+Ogni elenco mostra la modalità del prompt:
+
+| Icona | Modalità | Significato |
+|---|---|---|
+| 🔭 | lettura | analizza e riporta; nessun effetto |
+| ✅ | verifica | confronta con criteri, esito pass/fail; non modifica |
+| 🔥 | scrittura | modifica file o stato |
+| ⛔ | distruttivo | scrittura irreversibile: chiede conferma esplicita |
 
 ## Personalizza
 

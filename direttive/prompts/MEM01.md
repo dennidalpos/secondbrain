@@ -22,13 +22,9 @@ Aggiorna il TOC index.md e mantieni il pacchetto iniziale snello entro 20.000 ca
 
 ## Decisioni da raccogliere
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-
 - documenti e fonti da allineare (scelta multipla: contesto, memoria, tracker, istruzioni locali);
 - novità da registrare come decisione, gotcha o residuo;
 - compattazione con SYS05 quando il pacchetto supera il budget.
-
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
 
 ## Verifiche
 
@@ -40,7 +36,7 @@ Informazioni riconciliate, evidenze e discrepanze residue senza dichiarare verif
 
 ## Prompt vicini
 
-- REP02: Scrivi guide e README coerenti con il prodotto reale.
 - MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
 - MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
+- DOC01: Write guides and READMEs consistent with the real product.
 - SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.

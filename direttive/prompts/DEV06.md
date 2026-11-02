@@ -1,32 +1,32 @@
-# DEV06 — Configura ed esegui linter, formattatori e analisi statica del codice
+# DEV06 — Configure and run linters, formatters and static analysis
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: configurazione linter e perimetro di analisi | **Esempio d'uso**: `sb prompt DEV06: configura linter ed esegui analisi statica`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: linter configuration and analysis scope | **Example**: `configure the linter and run static analysis`
 
-## Scopo
+## Purpose
 
-Configurare e applicare linter, formattatori e strumenti di analisi statica per garantire uniformità stilistica, qualità e assenza di pattern rischiosi nel codice.
+Configure and apply linters, formatters and static analysis tools to ensure stylistic consistency, quality and the absence of risky patterns in the code.
 
-## Quando usarlo
+## When to use
 
-Prima di aprire pull request, durante la modernizzazione del codice o per standardizzare le regole di linting del progetto.
+Before opening a pull request, during code modernization or to standardize the project's linting rules.
 
 ## Input
 
-Manifest del progetto, configurazione corrente dei linter (es. PSScriptAnalyzer, ESLint, Ruff), codice sorgente e suite di test.
+Project manifests, the current linter configuration (for example ESLint, Ruff, PSScriptAnalyzer), source code and the test suite.
 
-## Attività specifiche
+## Activities
 
-Configura i file di impostazioni del linter nel rispetto degli standard del progetto. Esegui la scansione e distingui errori critici, avvisi e preferenze stilistiche. Applica correzioni automatiche sicure solo dove non vi è rischio di alterare la semantica; per i rilievi complessi proponi modifiche puntuali.
+Configure the linter settings files in line with the project's standards. Run the scan and distinguish critical errors, warnings and stylistic preferences. Apply safe automatic fixes only where there is no risk of altering semantics; for complex findings propose targeted changes.
 
-## Verifiche
+## Checks
 
-Esegui nuovamente l'analisi statica per confermare zero violazioni o la riduzione dei rilievi; esegui la suite di test del progetto per assicurare assenza di regressioni funzionali.
+Run the static analysis again to confirm zero violations or fewer findings; run the project's test suite to make sure there are no functional regressions.
 
-## Consegna
+## Delivery
 
-Codice formattato e bonificato, configurazione linter aggiornata e rapporto sintetico delle regole verificate.
+Formatted and cleaned code, updated linter configuration and a concise report of the rules verified.
 
-## Prompt vicini
+## Related prompts
 
-- DEV01: Implementa una funzionalità con verifiche pertinenti.
-- TST04: Diagnostica e correggi errori di build e test nella CI.
+- DEV01: Implement a feature with relevant checks.
+- TST04: Diagnose and fix build and test failures in CI.

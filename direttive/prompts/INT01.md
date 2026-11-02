@@ -1,32 +1,32 @@
-# INT01 — Valuta usabilità, coerenza e stati dei percorsi utente
+# INT01 — Assess usability, consistency and states of user flows
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: applicazione avviabile e percorsi da esaminare | **Esempio d'uso**: `sb prompt INT01: valuta usabilita del wizard di configurazione terminale`
+> **Scope**: repo/area | **Mode**: read | **Needs**: runnable application and flows to examine | **Example**: `assess the usability of the setup wizard`
 
-## Scopo
+## Purpose
 
-Individuare ostacoli concreti all’uso dell’interfaccia.
+Find concrete obstacles to using the interface.
 
-## Quando usarlo
+## When to use
 
-Per un flusso confuso, un’interfaccia incoerente o una valutazione UX.
+For a confusing flow, an inconsistent interface or a UX assessment.
 
 ## Input
 
-Utenti, compiti, flussi, vincoli e riferimenti visivi disponibili.
+Users, tasks, flows, constraints and the visual references available.
 
-## Attività specifiche
+## Activities
 
-Percorri attività reali e valuta gerarchia, etichette, feedback, prevenzione errori e stati vuoti/caricamento/fallimento. Confronta con il linguaggio visivo esistente, distinguendo evidenze e giudizi progettuali.
+Walk through real tasks and assess hierarchy, labels, feedback, error prevention and empty, loading and failure states. Compare with the existing visual language, separating evidence from design judgment.
 
-## Verifiche
+## Checks
 
-Documenta il punto di frizione e il compito impedito; non attribuire dati di ricerca utenti non raccolti. Nessuna modifica implicita.
+Document the point of friction and the task it blocks; do not attribute user research data that was not collected. No implicit changes.
 
-## Consegna
+## Delivery
 
-Problemi prioritari con percorso, impatto e proposta concreta; limiti delle osservazioni.
+Prioritized problems with path, impact and a concrete proposal; limits of the observations.
 
-## Prompt vicini
+## Related prompts
 
-- INT02: Implementa un’interfaccia seguendo requisiti e riferimenti.
-- INT03: Verifica accessibilità e utilizzo con tastiera e ausili.
+- INT02: Implement an interface following requirements and references.
+- INT03: Verify accessibility and keyboard and assistive-technology use.

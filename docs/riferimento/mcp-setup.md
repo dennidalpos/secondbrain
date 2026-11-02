@@ -30,17 +30,17 @@ Il server MCP di SecondBrain è un servizio conforme allo standard di settore **
 | `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance` | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, è in sola lettura, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
 | `get_task` | `read` | `task` *(obbligatorio: ID o `#seq`)*, `repository`, `checkoutPath`, `dossier` | Restituisce il record integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) dal tracker o da `history/tracker-archive.json`. Alias `secondbrain_get_task`. |
 | `search_knowledge` | `read` | `query` *(obbligatorio)*, `budget` *(facoltativo)*, `dossier`, `repository`, `mode` *(`literal` predefinito, `relevance` per termini multipli ordinati per pertinenza)* | Esegue una ricerca deterministica nei file di conoscenza (`context.md`, `memory.md`, `tracker.json`, compattazioni storiche). Nessun tetto per impostazione predefinita: restituisce tutti i riscontri pertinenti. |
-| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)* | Elenca il catalogo degli 82 workflow attivi (COM01–GOV02) nelle 13 aree. Con `compact` una riga per prompt (codice, modalità, sommario). |
-| `get_prompt` | `read` | `prompt` *(obbligatorio: ID `pmt-…`, codice come `TST04` o alias)* | Restituisce il testo integrale della scheda ingegneristica con Scopo, Attività specifiche, Verifiche e Consegna. |
+| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `pack` *(opzionale: `core`, `maintenance`, `all`)* | Elenca il catalogo dei 62 workflow generici (pacchetto core; `pack` = `maintenance` per i 15 di manutenzione SecondBrain). Con `compact` una riga per prompt (codice, modalità, sommario). |
+| `get_prompt` | `read` | `prompt` *(obbligatorio: ID `pmt-…`, codice come `TST04` o alias)* | Restituisce il testo integrale della scheda ingegneristica con scopo, attività, verifiche e consegna. |
 | `get_prompt_home` | `read` | *(nessuno)* | Schermata iniziale di `sb prompt`: percorso del file Markdown del catalogo completo e tabella dei comandi `sb` con descrizione. |
-| `check_publication` | `verify` | `repositoryPath` *(obbligatorio)* | Esegue la verifica di pubblicabilità (REP05) del working tree, indice e storia del repository specificato prima di push o rilascio. |
+| `check_publication` | `verify` | `repositoryPath` *(obbligatorio)* | Esegue la verifica di pubblicabilità (SEC07) del working tree, indice e storia del repository specificato prima di push o rilascio. |
 
 ### Prompt Standard MCP (`prompts/list` e `prompts/get`)
-Il server implementa il protocollo standard MCP Prompts: tutti gli 82 workflow attivi sono esposti nativamente come template richiamabili direttamente dall'interfaccia dell'IDE (es. selezionando `SYS03`, `DEV01`, `REP05`).
+Il server implementa il protocollo standard MCP Prompts: tutti i workflow attivi sono esposti nativamente come template richiamabili direttamente dall'interfaccia dell'IDE (es. selezionando `SYS03`, `DEV01`, `SEC07`).
 
 ### Risorse Standard MCP (`resources/list` e `resources/read`)
 - URI: `secondbrain://prompts/catalog`
-- Descrizione: catalogo strutturato in formato JSON degli 82 workflow attivi con metadati completi.
+- Descrizione: catalogo strutturato in formato JSON dei workflow attivi con metadati completi.
 
 ---
 

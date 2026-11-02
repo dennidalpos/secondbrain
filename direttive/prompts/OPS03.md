@@ -1,32 +1,33 @@
-# OPS03 — Aggiungi log, metriche e diagnostica utili al problema
+# OPS03 — Add logs, metrics and diagnostics useful for the problem
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: scenario da monitorare e standard di logging | **Esempio d'uso**: `sb prompt OPS03: aggiungi logging strutturato json`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: scenario to monitor and logging standards | **Example**: `add structured JSON logging`
 
-## Scopo
+## Purpose
 
-Rendere osservabile un comportamento senza esporre dati sensibili.
+Make a behavior observable without exposing sensitive data.
 
-## Quando usarlo
+## When to use
 
-Per errori difficili da ricostruire o assenza di segnali operativi utili.
+For errors that are hard to reconstruct or when useful operational signals are missing.
 
 ## Input
 
-Domanda diagnostica, flusso, segnali esistenti e vincoli sui dati.
+Diagnostic question, flow, existing signals and constraints on the data.
 
-## Attività specifiche
+## Activities
 
-Scegli eventi, identificatori di correlazione e misure che rispondono alla domanda. Evita segreti, payload personali e cardinalità incontrollata. Integra strumenti esistenti senza imporre un fornitore.
+Choose events, correlation identifiers and measurements that answer the question. Avoid secrets, personal payloads and uncontrolled cardinality. Integrate existing tools without imposing a vendor.
 
-## Verifiche
+## Checks
 
-Genera scenari di successo e fallimento; verifica utilità, redazione e costo dei segnali. Non collegare sistemi o modificare monitor di produzione implicitamente.
+Generate success and failure scenarios; verify the usefulness, redaction and cost of the signals. Do not connect systems or change production monitors implicitly.
 
-## Consegna
+## Delivery
 
-Segnali aggiunti, esempi sanitizzati, prove e modo di usarli per la diagnosi.
+Signals added, sanitized examples, evidence and how to use them for diagnosis.
 
-## Prompt vicini
+## Related prompts
 
-- DEV02: Riproduci un difetto e correggine la causa.
-- TST06: Misura e migliora prestazioni e consumo di risorse.
+- DEV02: Reproduce a defect and fix its cause.
+- TST06: Measure and optimize performance and resources: one bottleneck or many modules.
+- COM05: Analyze logs and incidents to find the root cause, without changing code.

@@ -30,5 +30,5 @@ Fonti controllate, variazioni, limiti, impatto e riferimenti per gli agenti prod
 
 ## Prompt vicini
 
-- COM03: Ricerca fonti ufficiali compatibili con il problema tecnico.
-- SYS01: Verifica gli IDE; mappa o riallinea su richiesta.
+- COM03: Find official sources that fit the technical problem.
+- SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.

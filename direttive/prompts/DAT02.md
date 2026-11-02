@@ -1,32 +1,32 @@
-# DAT02 — Realizza importazioni e trasformazioni preservando gli originali
+# DAT02 — Build imports and transformations that preserve the originals
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: file sorgente, modello destinazione e validazione | **Esempio d'uso**: `sb prompt DAT02: importa catalogo da csv a json preservando originali`
+> **Scope**: repo/area | **Mode**: write | **Needs**: source files, target model and validation rules | **Example**: `import the catalog from CSV to JSON preserving the originals`
 
-## Scopo
+## Purpose
 
-Produrre dati utilizzabili da input eterogenei con provenienza chiara.
+Produce usable data from heterogeneous inputs with clear provenance.
 
-## Quando usarlo
+## When to use
 
-Per import, normalizzazione, deduplicazione o conversioni richieste.
+For imports, normalization, deduplication or requested conversions.
 
 ## Input
 
-Formati, esempi, schema atteso, regole di qualità e destinazione.
+Formats, samples, expected schema, quality rules and destination.
 
-## Attività specifiche
+## Activities
 
-Analizza gli originali senza modificarli; definisci mapping e trattamento degli errori. Distingui record accettati, trasformati e rifiutati; conserva provenienza, precisione numerica e codifiche pertinenti.
+Analyze the originals without modifying them; define the mapping and the handling of errors. Distinguish accepted, transformed and rejected records; preserve provenance, numeric precision and relevant encodings.
 
-## Verifiche
+## Checks
 
-Prova input malformati, duplicati, valori limite e riesecuzione. Confronta record e totali; non eliminare anomalie silenziosamente.
+Test malformed inputs, duplicates, boundary values and re-runs. Compare records and totals; never drop anomalies silently.
 
-## Consegna
+## Delivery
 
-Output, regole applicate, scarti motivati e riconciliazione con gli originali.
+Output, rules applied, justified rejections and a reconciliation with the originals.
 
-## Prompt vicini
+## Related prompts
 
-- DAT01: Migra schema e dati con confronto e recupero verificabili.
-- DAT03: Integra servizi API gestendo errori e ripetizione delle richieste.
+- DAT01: Migrate schema and data with verifiable comparison and recovery.
+- DAT03: Integrate API services with error handling and request retries.

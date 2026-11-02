@@ -28,16 +28,12 @@ Dopo ogni operazione rigenera l'indice con `scripts/build-prompts.ps1` (non modi
 
 ## Decisioni da raccogliere
 
-Se più elementi non sono ricavabili dal catalogo, fermati e poni le domande con Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`), una sola decisione per domanda e la scelta raccomandata come prima opzione con `(Recommended)`:
-
 - operazione: aggiungi, modifica, rimuovi (anche più operazioni in un lotto: scelta multipla);
 - area e codice proposto tra i primi codici liberi;
 - modalità (lettura, scrittura, verifica) e scope (repo, area, file, central) del prompt;
 - prompt collegati da documentare in entrambe le direzioni;
 - ritiro (predefinito) o eliminazione definitiva, e sostituto quando più prompt attivi sono compatibili;
 - conferma finale del perimetro prima di scrivere.
-
-Se lo strumento non è disponibile, elenca opzioni numerate e attendi la risposta. Non chiedere di nuovo ciò che l'utente ha già autorizzato nel perimetro.
 
 ## Verifiche
 
@@ -51,4 +47,4 @@ Voce di catalogo e scheda nuove o modificate, ID e alias coinvolti, indice rigen
 
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- GOV02: Scansiona dipendenze esterne e compila il registro CREDITS con licenze terze.
+- GOV02: Scan third-party dependencies and compile the CREDITS register of licenses.

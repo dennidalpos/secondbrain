@@ -1,41 +1,37 @@
-# COM02 — Ricostruisci un flusso e le sue dipendenze nel codice
+# COM02 — Trace a flow and its dependencies through the code
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: punto di ingresso o scenario da tracciare | **Esempio d'uso**: `sb prompt COM02: ricostruisci il flusso di autenticazione e sessioni`
+> **Scope**: repo/area | **Mode**: read | **Needs**: entry point or scenario to trace | **Example**: `trace the authentication and session flow`
 
-## Scopo
+## Purpose
 
-Spiegare il percorso effettivo di una richiesta, evento o dato.
+Explain the actual path of a request, event or piece of data.
 
-## Quando usarlo
+## When to use
 
-Quando serve comprendere un comportamento preciso prima di intervenire.
+When a specific behavior must be understood before acting on it.
 
 ## Input
 
-Evento iniziale, operazione o sintomo; risultato di cui ricostruire l’origine.
+Initial event, operation or symptom; the result whose origin must be reconstructed.
 
-## Attività specifiche
+## Activities
 
-Segui chiamanti e chiamati dal punto d’ingresso fino agli effetti. Individua validazioni, autorizzazioni, trasformazioni, errori, confini asincroni e dipendenze esterne. Evidenzia responsabilità e punti in cui cambia lo stato. Se emergono bivi o scenari alternativi su cui raccogliere indicazioni, presentali tramite Function Calling o Tool Use (es. `ask_question`).
+Follow callers and callees from the entry point to the effects. Identify validations, authorizations, transformations, errors, asynchronous boundaries and external dependencies. Highlight responsibilities and the points where state changes. Present forks or alternative scenarios that need guidance as defined choices.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
+- alternative flow or scenario to follow when the entry point has several branches;
+- boundaries (asynchronous, external) to include in the trace (multiple choice).
 
-- flusso o scenario alternativo da seguire quando il punto d'ingresso ha più rami;
-- confini (asincroni, esterni) da includere nella traccia (scelta multipla).
+## Checks
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+Verify each step against real symbols and references; separate possible branches from those observed at runtime.
 
-## Verifiche
+## Delivery
 
-Verifica ogni passaggio contro simboli e riferimenti reali; separa i rami possibili da quelli osservati a runtime.
+Sequence of the flow with precise references and a diagram only if it clarifies the relationships.
 
-## Consegna
+## Related prompts
 
-Sequenza del flusso con riferimenti puntuali e diagramma soltanto se chiarisce le relazioni.
-
-## Prompt vicini
-
-- COM01: Esplora il repository e individua componenti e comandi principali.
-- DEV02: Riproduci un difetto e correggine la causa.
+- COM01: Explore the repository and identify main components and commands.
+- DEV02: Reproduce a defect and fix its cause.

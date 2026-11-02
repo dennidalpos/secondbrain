@@ -1,41 +1,38 @@
-# REP10 — Allinea .gitignore e .gitkeep alla struttura e ai file reali
+# REP10 — Align .gitignore and .gitkeep with the real structure and files
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: stato Git, regole di esclusione e cartelle da preservare nel repository | **Esempio d'uso**: `sb prompt REP10: allinea gitignore e gitkeep prima della pubblicazione`
+> **Scope**: repo | **Mode**: write | **Needs**: Git state, exclusion rules and folders to preserve in the repository | **Example**: `align gitignore and gitkeep before publishing`
 
-## Scopo
+## Purpose
 
-Rendere coerenti le regole di esclusione e i segnaposto di cartella con la struttura che il repository deve avere.
+Make the exclusion rules and folder placeholders consistent with the structure the repository should have.
 
-## Quando usarlo
+## When to use
 
-Dopo aver aggiunto strumenti, build, cache o cartelle locali e prima di REP05 o di una pubblicazione.
+After adding tools, builds, caches or local folders and before SEC07 or a publication.
 
 ## Input
 
-`.gitignore` (radice e annidati), `.gitkeep`, file tracciati e ignorati, cartelle da preservare e regole di pubblicazione.
+`.gitignore` (root and nested), `.gitkeep`, tracked and ignored files, folders to preserve and the publication rules.
 
-## Attività specifiche
+## Activities
 
-Confronta `git ls-files`, `git ls-files -ci --exclude-standard` (tracciati ma ignorati), `git status --ignored` e `git check-ignore -v`. Individua file generati o privati non ignorati, regole obsolete, duplicate o troppo ampie che nascondono file legittimi, eccezioni `!` inefficaci su directory ignorate, cartelle da preservare senza `.gitkeep` e `.gitkeep` superflui in cartelle già popolate. Mostra la differenza prima di modificare. Non togliere dall’indice file già tracciati senza conferma: `git rm --cached` solo su richiesta e dopo aver verificato che il file locale resti.
+Compare `git ls-files`, `git ls-files -ci --exclude-standard` (tracked but ignored), `git status --ignored` and `git check-ignore -v`. Find generated or private files that are not ignored, obsolete, duplicate or overly broad rules that hide legitimate files, `!` exceptions that have no effect on ignored directories, folders to preserve without `.gitkeep` and unnecessary `.gitkeep` files in folders that already have content. Show the difference before changing anything. Do not remove already tracked files from the index without confirmation: `git rm --cached` only on request and after checking that the local file stays.
 
-## Decisioni da raccogliere
+## Decisions to collect
 
-Se più opzioni non sono ricavabili dal codice o dalle fonti, fermati e usa Function Calling o Tool Use a scelta multipla (es. `ask_question`, `AskUserQuestion`): una decisione per domanda, scelta raccomandata come prima opzione con `(Recommended)`, opzioni atomiche e non numerate; scelta multipla quando le opzioni non si escludono.
-- file tracciati ma ignorati: mantenere o togliere dall’indice;
-- cartelle da preservare con `.gitkeep`.
+- files tracked but ignored: keep or remove from the index;
+- folders to preserve with `.gitkeep`.
 
-Senza lo strumento, elenca opzioni numerate e attendi la risposta. Non richiedere di nuovo ciò che è già autorizzato nel perimetro del task.
+## Checks
 
-## Verifiche
+Verify each new rule with `git check-ignore -v` on positive and negative examples, check that `git status` shows no private files and that no wanted file ends up ignored, and run the project's distribution checks.
 
-Verifica ogni regola nuova con `git check-ignore -v` su esempi positivi e negativi, controlla che `git status` non mostri file privati e che nessun file voluto risulti ignorato, ed esegui i controlli di distribuzione del progetto.
+## Delivery
 
-## Consegna
+A justified diff of `.gitignore` and `.gitkeep`, decisions on tracked-but-ignored files and leftovers.
 
-Differenza di `.gitignore` e `.gitkeep` motivata, decisioni sui file tracciati ma ignorati e residui.
+## Related prompts
 
-## Prompt vicini
-
-- REP04: Rimuovi residui e codice inutilizzato dopo le verifiche.
-- REP05: Verifica contenuti e cronologia prima della pubblicazione.
-- SEC05: Verifica isolamento dati personali e conformità a GDPR e policy.
+- REP04: Remove leftovers and unused code after verification.
+- SEC07: Check diff, repository and history for sensitive data before publishing.
+- SEC05: Verify personal data isolation and compliance with GDPR and policies.

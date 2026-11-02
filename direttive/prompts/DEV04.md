@@ -1,33 +1,33 @@
-# DEV04 — Aggiorna dipendenze verificando compatibilità e regressioni
+# DEV04 — Update dependencies checking compatibility and regressions
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: manifest delle dipendenze e lock file | **Esempio d'uso**: `sb prompt DEV04: aggiorna pacchetto System.Text.Json`
+> **Scope**: repo/area/file | **Mode**: write | **Needs**: dependency manifests and lock files | **Example**: `update the JSON serialization package`
 
-## Scopo
+## Purpose
 
-Aggiornare dipendenze selezionate a versioni motivate e compatibili, con compatibilità, build e test verificati. Per l’analisi preliminare dello stato delle dipendenze usa AUD04.
+Update selected dependencies to justified, compatible versions, with compatibility, build and tests verified. For the preliminary analysis of dependency status use AUD04.
 
-## Quando usarlo
+## When to use
 
-Per manutenzione di pacchetti o aggiornamenti con advisory o incompatibilità.
+For package maintenance or updates driven by advisories or incompatibilities.
 
 ## Input
 
-Pacchetti, versioni attuali, destinazione e motivazione dell’aggiornamento.
+Packages, current versions, target and the reason for the update.
 
-## Attività specifiche
+## Activities
 
-Leggi manifest e lock reali, note di rilascio e guide ufficiali di migrazione. Valuta dipendenze transitive, runtime, peer dependency e cambiamenti incompatibili. Aggiorna con il package manager del progetto.
+Read the real manifests and lock files, release notes and official migration guides. Assess transitive dependencies, runtime, peer dependencies and breaking changes. Update with the project's package manager.
 
-## Verifiche
+## Checks
 
-Verifica lock, risoluzione, build e comportamenti influenzati. Non dichiarare risolta una vulnerabilità sulla sola base del numero di versione.
+Verify the lock, resolution, build and the behaviors affected. Do not declare a vulnerability fixed on the version number alone.
 
-## Consegna
+## Delivery
 
-Versioni cambiate, incompatibilità gestite, verifiche e rischi residui.
+Versions changed, incompatibilities handled, checks and residual risks.
 
-## Prompt vicini
+## Related prompts
 
-- DEV05: Migra codice o framework verso una destinazione definita.
-- SEC03: Correggi vulnerabilità e rafforza le difese interessate.
-- AUD04: Audita dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
+- DEV05: Migrate code or a framework to a defined target.
+- SEC03: Fix vulnerabilities and strengthen the affected defenses.
+- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.

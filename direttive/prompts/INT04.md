@@ -1,33 +1,33 @@
-# INT04 — Verifica internazionalizzazione di stringhe, formati e traduzioni
+# INT04 — Verify internationalization of strings, formats and translations
 
-> **Scope**: repo/area | **Modalità**: verifica | **Cosa serve**: interfaccia o messaggi con lingue e formati supportati | **Esempio d'uso**: `sb prompt INT04: verifica stringhe, formati e traduzioni della CLI`
+> **Scope**: repo/area | **Mode**: verify | **Needs**: interface or messages with supported languages and formats | **Example**: `verify the strings, formats and translations of the CLI`
 
-## Scopo
+## Purpose
 
-Verificare che stringhe, messaggi, date, numeri e codifiche dell'interfaccia rispettino le lingue e le impostazioni regionali supportate.
+Verify that the interface's strings, messages, dates, numbers and encodings respect the supported languages and locales.
 
-## Quando usarlo
+## When to use
 
-Prima del rilascio di un'interfaccia o di messaggi in più lingue o con formati regionali. Per l'accessibilità usa INT03, per implementare le schermate INT02.
+Before releasing an interface or messages in several languages or with regional formats. For accessibility use INT03, to implement the screens INT02.
 
 ## Input
 
-Elenco delle lingue e impostazioni regionali supportate, file di risorse o stringhe nel codice, interfaccia funzionante, codifica dei file.
+List of supported languages and locales, resource files or strings in the code, a working interface, file encodings.
 
-## Attività specifiche
+## Activities
 
-Individua stringhe incorporate nel codice, concatenazioni che impediscono la traduzione, formati di data, ora, numero e valuta fissi, ordinamenti dipendenti dalla lingua e codifiche non UTF-8. Confronta le lingue supportate cercando chiavi mancanti o inutilizzate, segnaposto non coerenti e testi troncati. Prova l'interfaccia con almeno una impostazione regionale diversa da quella di sviluppo. Non tradurre né modificare file senza richiesta esplicita.
+Find strings embedded in code, concatenations that prevent translation, fixed date, time, number and currency formats, language-dependent sorting and non-UTF-8 encodings. Compare the supported languages looking for missing or unused keys, inconsistent placeholders and truncated text. Try the interface with at least one locale different from the development one. Do not translate or modify files without an explicit request.
 
-## Verifiche
+## Checks
 
-Riproduci ogni rilievo con la lingua o il formato indicato e verifica che i testi con accenti, caratteri non latini e percorsi con spazi si visualizzino correttamente. Distingui difetti dimostrati da proposte.
+Reproduce each finding with the language or format indicated and verify that text with accents, non-Latin characters and paths containing spaces displays correctly. Distinguish proven defects from proposals.
 
-## Consegna
+## Delivery
 
-Rapporto con le lingue verificate, rilievi per file e riga, prove di riproduzione e raccomandazioni; modifiche solo se richieste.
+A report with the languages verified, findings by file and line, reproduction evidence and recommendations; changes only if requested.
 
-## Prompt vicini
+## Related prompts
 
-- INT02: Implementa un’interfaccia seguendo requisiti e riferimenti.
-- INT03: Verifica accessibilità e utilizzo con tastiera e ausili.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+- INT02: Implement an interface following requirements and references.
+- INT03: Verify accessibility and keyboard and assistive-technology use.
+- TST05: Verify real behavior against the requirements.
