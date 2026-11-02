@@ -1,13 +1,13 @@
 {
-  "approvedAt": "2026-11-02T17:30:07.1874238+01:00",
-  "authorization": "Approvazione esplicita dell utente in chat (2026-11-02): proposta list/maintenance (sb prompt list/maintenance, codici DOC01/SEC07/DOC03)",
+  "approvedAt": "2026-11-02T20:55:22.0728913+01:00",
+  "authorization": "Approvazione esplicita dell utente in chat (2026-11-02): Fase 3 #234, opzione Solo correzioni (direttive senza testo errato sulla ricerca e senza ripetizioni, revisione 1.2)",
   "files": {
-    "direttive/AGENTS.global_ide.md": "F107E3F32CD220344B204204FD44B77D925DB0940B7444B5FB232AC3AE1CA50B",
-    "direttive/workstation.template.md": "02CE92BB0C1E8287F8B2D5E1250397B195F9032D79A0BFA73B65C27F485986B7"
+    "direttive/AGENTS.global_ide.md": "D0578CD3722904F51A4AAC3809ADE6A3AEC7A5EB8482CC1B40BA0E95E21D2D18",
+    "direttive/workstation.template.md": "002E9F0AE6F73498E180423B2638EABF39C5FADEBB1C517AEFC681B31CE35B0A"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-02-prompt-list-maintenance",
-    "readmeHash": "00FB38A08C0176826E422D2CC87CA0B3D4F3601958876FA6A8136AC2BD634B87"
+    "path": "direttive/proposals/2026-11-02-direttive-snelle",
+    "readmeHash": "BB547F6E0DC0F1C075D60D3AFF113270D3032571BD48DE0B4F2B26D06E51346D"
   },
   "schemaVersion": 1
 }
