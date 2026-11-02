@@ -49,7 +49,7 @@ try {
     Assert-Workflow ($testList -match 'TST04 \|' -and $testList -notmatch 'SYS01 \|') 'filtro ambito'
     Reject-Workflow {Format-SBWorkflowList $catalog 'inesistente'} 'ambito sconosciuto rifiutato'
     $compact=Format-SBWorkflowList $catalog -Compact
-    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 106).Count -eq 0 -and [regex]::Matches($compact,'(?m)^\S+ [A-Z]{2,4}\d{2} \| (lettura|scrittura|verifica) +\| ').Count -eq 62 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 62 righe entro 106 caratteri'
+    Assert-Workflow (@($compact -split "`n"|Where-Object Length -gt 106).Count -eq 0 -and [regex]::Matches($compact,'(?m)^\S+ [A-Z]{2,4}\d{2} \| (read|write|verify) +\| ').Count -eq 62 -and $compact -notmatch 'ID: pmt-') 'elenco compatto: 62 righe entro 106 caratteri'
     $prefixList=Format-SBWorkflowList $catalog 'TST' -Compact
     Assert-Workflow ($prefixList -match 'TST04 \|' -and $prefixList -notmatch 'SYS01 \|' -and (Format-SBWorkflowList $catalog 'Test') -match 'TST04 \|' -and (Format-SBWorkflowList $catalog 'sys') -match 'SYS13 \|' -and (Format-SBWorkflowList $catalog 'SYS') -match 'SYS11 \|' -and (Format-SBWorkflowList $catalog 'MEM') -match 'MEM06 \|' -and (Format-SBWorkflowList $catalog 'MEM') -notmatch 'SYS11 \|') 'filtro ambito per id o prefisso senza distinguere le maiuscole; ambito cerca anche nella manutenzione'
     $homeText=Format-SBWorkflowHome $brain $catalog
@@ -193,12 +193,14 @@ try {
     Assert-Workflow ($composition.Contains($literal) -and !$composition.Contains('PRIVATE_DOSSIER_CONTENT') -and $composition.Contains($resolved.repositories[0].memory)) 'input letterale e riferimenti senza incorporare dossier'
     Reject-Workflow {New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'SYS01')[0]) $resolved 'verifica'} 'prompt centrale rifiutato da repo prodotto'
     Assert-Workflow ((Snapshot-Workflow $temp) -ceq $before) 'consultazione e composizione non modificano file o timestamp'
-    Assert-Workflow (!$resolved.repositories[0].lifecycle -and !$composition.Contains('Ciclo di vita: greenfield')) 'greenfield: senza flag nessun avviso nella composizione'
+    Assert-Workflow (!$resolved.repositories[0].lifecycle -and !$composition.Contains('Lifecycle: greenfield')) 'greenfield: senza flag nessun avviso nella composizione'
     $recordFile=Join-Path $dir 'repository.json';$recordOriginal=Read-SBText $recordFile
     Put-Workflow $recordFile (ConvertTo-SBJson @{schemaVersion=1;identity='github.com/test/repo';lifecycle='greenfield'})
     $greenContext=Get-SBWorkflowContext -Config $config -RepositoryPath $repo
     $greenComposition=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'TST04')[0]) $greenContext 'obiettivo'
-    Assert-Workflow ($greenContext.repositories[0].lifecycle -eq 'greenfield' -and $greenComposition.Contains('Ciclo di vita: greenfield (blocco attivo)') -and $greenComposition.Contains('SYS13')) 'greenfield: la composizione riporta il blocco e i divieti'
+    Assert-Workflow ($greenContext.repositories[0].lifecycle -eq 'greenfield' -and $greenComposition.Contains('Lifecycle: greenfield (block active)') -and !$greenComposition.Contains('SYS13')) 'greenfield: la composizione core riporta il blocco e i divieti senza rimandare a prompt maintenance'
+    $greenMaintenance=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'MEM02')[0]) $greenContext 'obiettivo'
+    Assert-Workflow ($greenMaintenance.Contains('Ciclo di vita: greenfield (blocco attivo)') -and $greenMaintenance.Contains('SYS13')) 'greenfield: la composizione maintenance rimanda a SYS13'
     Put-Workflow $recordFile (ConvertTo-SBJson @{schemaVersion=1;identity='github.com/test/repo';lifecycle='altro'})
     Reject-Workflow {Get-SBWorkflowContext -Config $config -RepositoryPath $repo} 'greenfield: valore di lifecycle sconosciuto rifiutato'
     Put-Workflow $recordFile $recordOriginal
@@ -302,17 +304,22 @@ try {
     $cases=Read-SBJson (Join-Path $PSScriptRoot 'fixtures/prompts.json') $null
     foreach($case in $cases.cases){
         $rendered=(& pwsh -NoProfile -File $cli -Compose -Prompt $case.code -Objective $case.objective -RepositoryPath $repo -ConfigPath $configPath|Out-String)
-        Assert-Workflow ($LASTEXITCODE -eq 0 -and $rendered.StartsWith('CATALOGO PROMPT — '+$case.code+' | ')) ('fixture workflow '+$case.code+': selezione CLI')
-        Assert-Workflow ($rendered.Contains($case.objective) -and $rendered.Contains('Modalità della scheda: '+$case.mode)) ('fixture workflow '+$case.code+': richiesta e modalita')
-        Assert-Workflow ([regex]::Matches($rendered,'(?m)^Titolo: [A-Z]{2,4}[0-9]{2} — ').Count -eq 1 -and !$rendered.Contains('PRIVATE_DOSSIER_CONTENT')) ('fixture workflow '+$case.code+': una sola scheda, dossier per riferimento')
+        $caseEntry=@($catalog.prompts|Where-Object code -ceq $case.code)[0];$caseText=Get-SBWorkflowText $caseEntry
+        Assert-Workflow ($LASTEXITCODE -eq 0 -and $rendered.StartsWith($caseText.catalog+' — '+$case.code+' | ')) ('fixture workflow '+$case.code+': selezione CLI')
+        Assert-Workflow ($rendered.Contains($case.objective) -and $rendered.Contains(($caseText.cardMode -f $case.mode,$caseEntry.target))) ('fixture workflow '+$case.code+': richiesta e modalita')
+        Assert-Workflow ([regex]::Matches($rendered,'(?m)^'+$caseText.title+': [A-Z]{2,4}[0-9]{2} — ').Count -eq 1 -and !$rendered.Contains('PRIVATE_DOSSIER_CONTENT')) ('fixture workflow '+$case.code+': una sola scheda, dossier per riferimento')
     }
-    $cardLabels=@('SCHEDA PROMPT','ID: pmt-','Titolo: ','Cosa fa: ','Esempio d''uso: ','Modalità: ','Ambito: ','Cosa serve: ','Regola vincolante: ')
+    # Etichette della scheda per pacchetto: core in inglese, maintenance in italiano.
+    function Get-CardLabels($Text){@($Text.card,($Text.id+': pmt-'),($Text.title+': '),($Text.does+': '),($Text.example+': '),($Text.mode+': '),($Text.scope+': '),($Text.needs+': '),($Text.rule.Substring(0,$Text.rule.IndexOf(':')+2)))}
+    $cardLabels=Get-CardLabels (Get-SBWorkflowText @{pack='maintenance'})
     $incomplete=@()
     foreach($entry in $catalog.prompts){
+        $entryText=Get-SBWorkflowText $entry
         $cardBody=Read-SBWorkflowPrompt $brain $entry $catalog
         $cardText=Format-SBWorkflowCard $entry $cardBody
-        foreach($label in $cardLabels){if(!$cardText.Contains($label)){$incomplete+=$entry.code+':'+$label}}
-        if($cardText -notmatch 'Function Calling o Tool Use a scelta multipla' -or $cardText -match 'Cosa fa: \s*$'){$incomplete+=$entry.code+':contenuto'}
+        foreach($label in (Get-CardLabels $entryText)){if(!$cardText.Contains($label)){$incomplete+=$entry.code+':'+$label}}
+        $toolUse=if($entry.pack -eq 'maintenance'){'Function Calling o Tool Use a scelta multipla'}else{'Function Calling or Tool Use as multiple choice'}
+        if($cardText -notmatch $toolUse -or $cardText -match ([regex]::Escape($entryText.does)+': \s*$')){$incomplete+=$entry.code+':contenuto'}
     }
     Assert-Workflow ($incomplete.Count -eq 0) ('scheda uniforme completa per tutti i 77 prompt'+$(if($incomplete.Count){': '+($incomplete|Select-Object -First 3 -join ', ')}))
     $sample=@($catalog.prompts|Where-Object code -ceq 'DEV02')[0]
@@ -320,7 +327,10 @@ try {
     $shown=(& pwsh -NoProfile -File $cli -Show -Prompt DEV02|Out-String).Replace("`r`n","`n")
     $composed=(& pwsh -NoProfile -File $cli -Compose -Prompt $sample.id -Objective 'x' -RepositoryPath $repo -ConfigPath $configPath|Out-String).Replace("`r`n","`n")
     Assert-Workflow ($shown.Contains($sampleCard) -and $composed.Contains($sampleCard)) 'stessa scheda in -Show e -Compose (anche per ID)'
-    Assert-Workflow ([regex]::Matches($composed,'Regola vincolante: se hai dubbi').Count -eq 2 -and $composed.Contains('fermati e non procedere per ipotesi')) 'composizione impone Function Calling o Tool Use per i dubbi'
+    Assert-Workflow ([regex]::Matches($composed,'Binding rule: if in doubt').Count -eq 2 -and $composed.Contains('stop and do not proceed on assumptions') -and $composed -notmatch 'tracker del dossier|Decisione:|secondbrain\.ps1|Registro Azioni|Set-SBTrackerTaskStatus') 'composizione core in inglese: impone Function Calling o Tool Use per i dubbi, chiusura neutra'
+    $maintenanceSample=@($catalog.prompts|Where-Object code -ceq 'MEM02')[0]
+    $maintenanceComposed=(& pwsh -NoProfile -File $cli -Compose -Prompt MEM02 -Objective 'x' -RepositoryPath $repo -ConfigPath $configPath|Out-String).Replace("`r`n","`n")
+    Assert-Workflow ([regex]::Matches($maintenanceComposed,'Regola vincolante: se hai dubbi').Count -eq 2 -and $maintenanceComposed.Contains('fermati e non procedere per ipotesi') -and $maintenanceComposed.Contains('Chiusura del task e aggiornamento SecondBrain') -and $maintenanceComposed.Contains('memory.md')) 'composizione maintenance in italiano con chiusura SecondBrain'
     # Decisioni da raccogliere: sezione opzionale ma obbligatoria nei prompt che chiedono scelte, con Function Calling / Tool Use.
     $decisionCodes=@('SYS11','SYS01','MEM03','COM01','COM02','PRG01','PRG02','SYS03','SYS04','SYS05','SEC07','MEM01','PRG06','DEV07','OPS05')
     $decisionIssues=@()
@@ -415,16 +425,19 @@ try {
     Assert-Workflow ($costarBad.Count -eq 0) 'CO-STAR: tutti i prompt composti hanno le 6 sezioni in ordine'
     $dodBad=@($costarCatalog.prompts|Where-Object {
         $composed=New-SBWorkflowComposition $brain $costarCatalog $_ $costarContext 'obiettivo di prova'
-        $response=$composed.IndexOf("`n## Response`n");$dod=$composed.IndexOf("`n### Definizione di completamento`n");$near=$composed.IndexOf("`n### Prompt vicini`n")
+        $dodText=Get-SBWorkflowText $_
+        $response=$composed.IndexOf("`n## Response`n");$dod=$composed.IndexOf("`n### $($dodText.dod)`n");$near=$composed.IndexOf("`n### $($dodText.related)`n")
         $dod -le $response -or $dod -ge $near -or $composed.IndexOf("`n## Response`n",$response+1) -ge 0
     })
     Assert-Workflow ($dodBad.Count -eq 0) 'DoD: ogni prompt composto ha la definizione di completamento dentro Response'
     $proposalBad=@($costarCatalog.prompts|Where-Object {
         $composed=New-SBWorkflowComposition $brain $costarCatalog $_ $costarContext 'obiettivo di prova'
-        $at=$composed.IndexOf("`n### Proposta del prompt successivo`n");$near=$composed.IndexOf("`n### Prompt vicini`n");$dod=$composed.IndexOf("`n### Definizione di completamento`n")
+        $nextText=Get-SBWorkflowText $_
+        $at=$composed.IndexOf("`n### $($nextText.next)`n");$near=$composed.IndexOf("`n### $($nextText.related)`n");$dod=$composed.IndexOf("`n### $($nextText.dod)`n")
         $expected=if($_.ContainsKey('next')){@($_.next|ForEach-Object {$id=$_;($costarCatalog.prompts|Where-Object id -eq $id).code})}else{@()}
         $block=if($at -ge 0 -and $near -gt $at){$composed.Substring($at,$near-$at)}else{''}
-        $at -le $dod -or $near -le $at -or $block -notmatch 'scelta multipla' -or $block -notmatch 'non avviare altri prompt' -or @($expected|Where-Object {$block -notmatch ('(?m)^- '+$_+': ')}).Count
+        $choice,$noStart=if($_.pack -eq 'maintenance'){'scelta multipla','non avviare altri prompt'}else{'multiple choice','do not start other prompts'}
+        $at -le $dod -or $near -le $at -or $block -notmatch $choice -or $block -notmatch $noStart -or @($expected|Where-Object {$block -notmatch ('(?m)^- '+$_+': ')}).Count
     })
     Assert-Workflow ($proposalBad.Count -eq 0) 'prompt successivo: ogni composizione chiude con la proposta a scelta multipla dopo la DoD e con i candidati della scheda'
     $repoPrompt=@($costarCatalog.prompts|Where-Object {$_.target -eq 'repository' -and $_.status -ne 'deprecated'})[0]
@@ -433,7 +446,8 @@ try {
     $probePrompt=@{}+$repoPrompt;$probePrompt.next=@($centralCandidate.id,$repoCandidate.id)
     $productContext=@{repositories=@(@{identity='github.com/test/repo';checkout=(Join-Path $temp 'repos/Repo');agents='AGENTS.md';context='context.md';memory='memory.md';tracker=$null;trackerSource=$null;sourceApplicability=$null});sourceRegistry=$null;project=$null}
     $productComposed=New-SBWorkflowComposition $brain $costarCatalog $probePrompt $productContext 'obiettivo di prova'
-    $productBlock=$productComposed.Substring($productComposed.IndexOf("`n### Proposta del prompt successivo`n"),$productComposed.IndexOf("`n### Prompt vicini`n")-$productComposed.IndexOf("`n### Proposta del prompt successivo`n"))
+    $productText=Get-SBWorkflowText $probePrompt
+    $productBlock=$productComposed.Substring($productComposed.IndexOf("`n### $($productText.next)`n"),$productComposed.IndexOf("`n### $($productText.related)`n")-$productComposed.IndexOf("`n### $($productText.next)`n"))
     Assert-Workflow ($productBlock -match ('(?m)^- '+$repoCandidate.code+': ') -and $productBlock -notmatch ('(?m)^- '+$centralCandidate.code+': ')) 'prompt successivo: fuori da SecondBrain i prompt centrali non sono proposti'
     $productVersion=(Read-SBText (Join-Path $PSScriptRoot '../VERSION')).Trim()
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value

@@ -1047,7 +1047,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($cliHome -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{})))) 'parità CLI-MCP: get_prompt_home'
     $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 2>$null|Out-String)
     $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06'}))
-    Assert-Portable ($cliShow.StartsWith('CATALOGO PROMPT') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
+    Assert-Portable ($cliShow.StartsWith('PROMPT CATALOG') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
 
     # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS13.
     $twoDossier=Join-Path $brain $twoBinding.dossier
@@ -1308,6 +1308,18 @@ public static bool Set(string name,bool enabled){
     $waited=Receive-Job -Job $waiter -Wait -AutoRemoveJob
     Assert-Portable ($waited -match 'attesa fino a' -and $waited -match 'EXIT=(0|1)\b') 'scrittura B attende il rilascio di A e poi procede senza exit 3'
     Assert-Portable ($waited -notmatch 'EXIT=3') 'scrittura B non termina con exit 3 se il writer viene rilasciato entro l attesa'
+    # Regressione #222: il write guard con -SessionId risolve Assert-SBSession anche dentro la closure.
+    $guardSession=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-guard')
+    $guardId=if($guardSession.text -match '"sessionId":\s*"([a-f0-9]{32})"'){$Matches[1]}else{''}
+    Assert-Portable ($guardSession.exit -eq 0 -and $guardId) 'sessione di scrittura per il write guard aperta'
+    try{
+        $guarded=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync','-SessionId',$guardId)
+        Assert-Portable ($guarded.exit -in @(0,1) -and $guarded.text -notmatch 'Assert-SBSession') 'scrittura con -SessionId di una sessione Write riesce (write guard risolve Assert-SBSession)'
+        $badSession=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync','-SessionId',('0'*32))
+        Assert-Portable ($badSession.exit -ne 0 -and $badSession.text -match 'Sessione di scrittura assente') 'scrittura con -SessionId inesistente rifiutata'
+    }finally{
+        & pwsh -NoProfile -File (Join-Path $brain 'scripts/access.ps1') -End -SessionId $guardId *> $null
+    }
     $badWait=Join-Path $brain 'config/shared.json';$sharedOriginal=Read-SBText $badWait
     try{
         $sharedDoc=Read-SBJson $badWait @{};$sharedDoc.lockWaitSeconds=-5;Put-Portable $badWait (ConvertTo-SBJson $sharedDoc)

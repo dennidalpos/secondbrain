@@ -35,6 +35,8 @@ flowchart LR
 
 Vale per i prompt composti (`sb prompt CODICE: obiettivo`). `sb prompt mostra` fa vedere la scheda sorgente, con le sue sezioni.
 
+La lingua segue il pacchetto: per i prompt core la scheda, il testo composto e l'elenco del catalogo sono in inglese e la chiusura è neutra (criteri verificati, documentazione aggiornata, residui dichiarati, nessun riferimento a SecondBrain); per i prompt maintenance restano in italiano e la chiusura aggiorna tracker, `memory.md` e `context.md` del dossier. La struttura della scheda è la stessa in entrambi.
+
 ## Le aree
 
 Pacchetto core (generico, schede in inglese, valido per qualunque repository):

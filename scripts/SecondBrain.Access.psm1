@@ -339,8 +339,10 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             $moved = $known -and !((Test-SBSamePath $known.runtimeRoot $station.runtimeRoot) -and (Test-SBSamePath $known.backupRoot $station.backupRoot) -and (Test-SBSamePath $known.repositoryRoot $station.repositoryRoot))
             if ($moved -and !$ReconcileWorkstation) { throw "workstationId '$($Config.workstationId)' gia registrato con percorsi diversi (registrato: $($known.repositoryRoot); corrente: $($station.repositoryRoot)). Verificare lo spostamento e riconciliare con scripts/access.ps1 -Reconcile." }
             if (!$known -or $moved) { $registry[$Config.workstationId]=$station; Write-SBAccessMetadata $registryPath $registry }
+            # La closure non vede le funzioni private del modulo: si cattura il comando prima di GetNewClosure().
+            $assertSession=${function:Assert-SBSession}
             $writeGuard={
-                if($SessionId){Assert-SBSession $Config $SessionId|Out-Null}
+                if($SessionId){& $assertSession $Config $SessionId|Out-Null}
                 # Un vero I/O sull'handle condiviso rileva la perdita del coordinamento.
                 $result.operation.Position=0;$result.operation.WriteByte(1);$result.operation.Flush($true)
                 if($result.writer){$result.writer.Position=0;$result.writer.WriteByte(1);$result.writer.Flush($true)}

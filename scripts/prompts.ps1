@@ -57,7 +57,8 @@ try {
         $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
         if($resolution.warning){Write-Warning $resolution.warning}
         $selected=@($resolution.prompt)
-        'CATALOGO PROMPT — modalità '+$selected[0].mode+'; destinazione '+$selected[0].target+'; ID '+$selected[0].id
+        $showText=Get-SBWorkflowText $selected[0]
+        $showText.catalog+' — '+$showText.mode.ToLowerInvariant()+' '+$selected[0].mode+'; '+$showText.target+' '+$selected[0].target+'; ID '+$selected[0].id
         $showBody=Read-SBWorkflowPrompt $brain $selected[0] $catalog
         Format-SBWorkflowCard $selected[0] $showBody
         $showBody
