@@ -422,4 +422,19 @@ function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,
     ($lines -join "`n").TrimEnd()+"`n"
 }
 
-Export-ModuleMember -Function *-SBWorkflow*
+Export-ModuleMember -Function @(
+    'Read-SBWorkflowCatalog',
+    'Resolve-SBWorkflowPrompt',
+    'New-SBWorkflowPromptId',
+    'Read-SBWorkflowPrompt',
+    'Format-SBWorkflowCard',
+    'Format-SBWorkflowList',
+    'Get-SBWorkflowCommands',
+    'Get-SBWorkflowGuides',
+    'Get-SBWorkflowFirstSteps',
+    'Format-SBWorkflowHome',
+    'New-SBWorkflowIndex',
+    'Get-SBWorkflowDrift',
+    'Get-SBWorkflowContext',
+    'New-SBWorkflowComposition'
+)

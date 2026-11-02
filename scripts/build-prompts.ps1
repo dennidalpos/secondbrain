@@ -27,7 +27,7 @@ try {
     }else{
         foreach($item in $drift){
             $path=Join-Path $brain $item.path
-            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($item.text)) (Get-SBFileHash $path) $config.backupRoot|Out-Null
+            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($item.text)) (Get-SBFileHash $path) $config.backupRoot -BackupDirty | Out-Null
             'Aggiornato: '+$item.path
         }
     }

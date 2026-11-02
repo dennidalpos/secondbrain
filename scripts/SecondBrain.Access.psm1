@@ -371,4 +371,21 @@ function Exit-SBOperation($Operation) {
     if ($Operation.writer) { $Operation.writer.Dispose() }
 }
 
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Get-SBPendingTransaction',
+    'Format-SBPendingTransaction',
+    'Get-SBLockWaitMs',
+    'Read-SBConfiguration',
+    'Write-SBAccessMetadata',
+    'Test-SBSessionId',
+    'Open-SBLockFile',
+    'Test-SBBusyError',
+    'Open-SBWriterLock',
+    'Get-SBQueueStatus',
+    'Write-SBReadWarnings',
+    'Get-SBOperationOwnerText',
+    'Get-SBAccessStatus',
+    'Clear-SBStaleSessions',
+    'Enter-SBOperation',
+    'Exit-SBOperation'
+)

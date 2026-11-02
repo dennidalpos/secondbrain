@@ -110,12 +110,33 @@ function Assert-SBPlainPath([string]$Path, [hashtable]$VerifiedAncestors) {
 }
 $script:SBWriteGeneration = 0
 function Get-SBWriteGeneration { $script:SBWriteGeneration }
+function Get-SBGitFileState([string]$Path) {
+    # Sola lettura: $null se il file non esiste, Git non e disponibile o il file non e tracciato (dossier ignorati, IDE globali, config MCP).
+    $gitExe = (Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+    if (!$gitExe) { return $null }
+    $full = [IO.Path]::GetFullPath($Path)
+    $dir = [IO.Path]::GetDirectoryName($full)
+    if (!(Test-Path -LiteralPath $full -PathType Leaf)) { return $null }
+    $name = [IO.Path]::GetFileName($full)
+    $null = & $gitExe -C $dir ls-files --error-unmatch -- $name 2>$null
+    if ($LASTEXITCODE -ne 0) { return $null }
+    $status = (& $gitExe -C $dir status --porcelain -- $name 2>$null) -join ''
+    $commit = (& $gitExe -C $dir rev-parse HEAD 2>$null | Select-Object -First 1)
+    $blob = (& $gitExe -C $dir rev-parse "HEAD:./$name" 2>$null | Select-Object -First 1)
+    @{ dirty = ($status.Length -gt 0); commit = [string]$commit; blob = [string]$blob }
+}
 function Write-SBFile {
-    param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot)
+    param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty)
     Assert-SBWriteGuard
     Assert-SBPlainPath $Path
     if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw "Modifica concorrente: $Path" }
     if ((Get-SBHash $Bytes) -eq $ExpectedHash) { return $false }
+    # Git salva i file tracciati: pulito = niente .bin (commit e blob registrati); sporco = rifiuto, salvo -BackupDirty (file rigenerati: resta il .bin).
+    $git = Get-SBGitFileState $Path
+    if ($null -ne $git -and $git.dirty -and !$BackupDirty) {
+        throw "File tracciato con modifiche non committate: $Path. Committa o metti da parte (git stash) le modifiche al file, poi ripeti l'operazione."
+    }
+    $gitOnly = ($null -ne $git -and !$git.dirty)
     $script:SBWriteGeneration++
     $parent = Split-Path -Parent $Path
     [IO.Directory]::CreateDirectory($parent) | Out-Null
@@ -139,12 +160,21 @@ function Write-SBFile {
             $localBackup = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.recovery')
             $stageRecord.recovery=$localBackup
             [IO.File]::Replace($temp, $Path, $localBackup)
-            [IO.File]::Copy($localBackup, $backup)
-            $actual = Get-SBFileHash $backup
-            if ($actual -ne (Get-SBFileHash $localBackup)) { throw "Backup non verificato; recupero locale: $localBackup" }
-            $metadata = @{ path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; backup = $backup }
-            [IO.File]::WriteAllText($backup + '.json', (ConvertTo-SBJson $metadata), [Text.UTF8Encoding]::new($false))
-            [IO.File]::Delete($localBackup)
+            if ($gitOnly) {
+                $actual = Get-SBFileHash $localBackup
+                $backup = $null
+                $record = @{ schemaVersion = 1; path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; gitCommit = $git.commit; gitBlob = $git.blob }
+                [IO.File]::WriteAllText((Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.git.json')), (ConvertTo-SBJson $record), [Text.UTF8Encoding]::new($false))
+                if ($actual -ne $ExpectedHash) { throw "Gara di scrittura rilevata; copia concorrente conservata: $localBackup" }
+                [IO.File]::Delete($localBackup)
+            } else {
+                [IO.File]::Copy($localBackup, $backup)
+                $actual = Get-SBFileHash $backup
+                if ($actual -ne (Get-SBFileHash $localBackup)) { throw "Backup non verificato; recupero locale: $localBackup" }
+                $metadata = @{ path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; backup = $backup }
+                [IO.File]::WriteAllText($backup + '.json', (ConvertTo-SBJson $metadata), [Text.UTF8Encoding]::new($false))
+                [IO.File]::Delete($localBackup)
+            }
             if ($actual -ne $ExpectedHash) {
                 # Non tentare un rollback con Copy(overwrite): un editor esterno
                 # potrebbe avere cambiato ancora il file dopo il controllo hash.
@@ -239,7 +269,8 @@ function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@()
     }
     $byCategory=[ordered]@{}
     foreach($group in @($entries|Group-Object {$_.category})){$byCategory[$group.Name]=@{entries=$group.Count;files=[long](($group.Group|Measure-Object files -Sum).Sum);bytes=[long](($group.Group|Measure-Object bytes -Sum).Sum)}}
-    @{olderThanDays=$OlderThanDays;entries=$entries;reviewable=@($entries|Where-Object {!$_.protected -and $_.olderThanThreshold}|ForEach-Object {$_.name});totalBytes=[long](($entries|Measure-Object bytes -Sum).Sum);byCategory=$byCategory}
+    $entryBytes=0L;foreach($e in $entries){$entryBytes+=[long]$e.bytes}
+    @{olderThanDays=$OlderThanDays;entries=$entries;reviewable=@($entries|Where-Object {!$_.protected -and $_.olderThanThreshold}|ForEach-Object {$_.name});totalBytes=[long]$entryBytes;byCategory=$byCategory}
 }
 # Classificazione delle voci di primo livello di .runtime: protected (configurazione/accessi), evidence (prove da tenere), backup (recuperi), regenerable (si ricrea), working (lavoro temporaneo di agent da verificare).
 function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
@@ -291,6 +322,20 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
             $zips=@()
             if(Test-Path -LiteralPath $backupsDir -PathType Container){$zips=@(Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.zip' -Force|Sort-Object LastWriteTimeUtc -Descending)}
             $oldZips=@($zips|Select-Object -Skip 2)
+            # Backup .bin di file oggi tracciati da Git e puliti: Git ne conserva il contenuto (commit e blob), quindi sono duplicati da valutare.
+            if(Test-Path -LiteralPath $backupsDir -PathType Container){
+                $gitBins=@();$gitBytes=0L;$oldestBin=$null
+                foreach($meta in Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.bin.json' -Force){
+                    $info=$null;try{$info=Read-SBJson $meta.FullName $null}catch{continue}
+                    if($null -eq $info -or !$info.path -or !$info.backup){continue}
+                    $git=Get-SBGitFileState ([string]$info.path)
+                    if($null -eq $git -or $git.dirty){continue}
+                    $gitBins+=$meta
+                    $gitBytes+=$meta.Length;if(Test-Path -LiteralPath $info.backup -PathType Leaf){$gitBytes+=([IO.FileInfo]::new($info.backup)).Length}
+                    if($null -eq $oldestBin -or $meta.LastWriteTimeUtc -lt $oldestBin){$oldestBin=$meta.LastWriteTimeUtc}
+                }
+                if($gitBins.Count){$candidates+=@{path=(& $relative $backupsDir)+'/*.bin';category='backup';action=('valutare '+$gitBins.Count+' backup .bin di file ora tracciati da Git e puliti (Git ne conserva il contenuto)');folders=0;files=$gitBins.Count;bytes=$gitBytes;oldestUtc=$oldestBin.ToString('o');recovery='il contenuto precedente è recuperabile da Git (git log, git show); rimuovere solo con manifest revisionato (cleanup.ps1 -ManifestPath)';references=0}}
+            }
             if($oldZips.Count){$candidates+=@{path=(& $relative $backupsDir)+'/*.zip';category='backup';action=('valutare '+$oldZips.Count+' zip di backup oltre i 2 più recenti (non esiste un restore automatico: verificare il più recente con backup.ps1 -Verify prima)');folders=0;files=$oldZips.Count;bytes=[long](($oldZips|Measure-Object Length -Sum).Sum);oldestUtc=($oldZips|Sort-Object LastWriteTimeUtc|Select-Object -First 1).LastWriteTimeUtc.ToString('o');recovery='copia compressa dei dati locali: tenere almeno uno zip verificato';references=0}}
         }
     }
@@ -298,7 +343,7 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
     foreach($entry in @($report.entries|Where-Object {$_.category -eq 'working' -and !$_.protected -and $_.olderThanThreshold -and $_.references.mentions -eq 0})){
         $candidates+=@{path=$entry.name+'/';category='working';action='valutare la rimozione (lavoro temporaneo senza riferimenti nel repository)';folders=1;files=$entry.files;bytes=$entry.bytes;oldestUtc=$entry.newestWriteUtc;recovery=$entry.recovery;references=0}
     }
-    $regenerable=[long](($candidates|Where-Object {$_.category -eq 'regenerable'}|Measure-Object bytes -Sum).Sum)
+    $regenerable=0L;foreach($c in $candidates){if($c.category -eq 'regenerable'){$regenerable+=[long]$c.bytes}}
     @{scope='runtime-cleanup-proposal';applied=$false;generatedAt=[DateTimeOffset]::UtcNow.ToString('o');olderThanDays=$OlderThanDays;keepFixtures=$KeepFixtures;totalBytes=$report.totalBytes;byCategory=$report.byCategory;regenerableCandidateBytes=$regenerable;candidates=$candidates;
         note='Proposta di sola lettura, non un manifest eseguibile. Nessuna cartella è stata rimossa. L''applicazione richiede una richiesta esplicita e un perimetro concreto; i file con backup passano da cleanup.ps1 -ManifestPath.'}
 }
@@ -544,13 +589,6 @@ function Assert-SBCentralDataPath([string]$BrainRoot,[string]$Path) {
     Assert-SBPlainPath $full
     $full
 }
-function Get-SBTestRoot {
-    $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-    $root=if($env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT}else{Join-Path $brain '.runtime/tests'}
-    $root=Assert-SBCentralDataPath $brain $root
-    [IO.Directory]::CreateDirectory($root)|Out-Null
-    $root
-}
 function Test-SBIDEObservation($Ide,[string]$ExpectedHash,$Observations,[string]$BrainRoot,[string]$WorkstationId) {
     try{
         if(!$Ide.ContainsKey('id')){return $false}
@@ -597,7 +635,11 @@ function Set-SBManagedContent {
         $title=[regex]::Match($text,'\A# [^\r\n]*(?:\r?\n|$)')
         if($title.Success){$text.Insert($title.Length,"`n"+$wanted+"`n")}else{$wanted+"`n`n"+$text}
     } elseif ($text.Length) { $text+"`n`n"+$wanted+"`n" } else { $wanted+"`n" }
-    Write-SBFile $Path ([Text.Encoding]::UTF8.GetBytes($updated)) $beforeHash $BackupRoot | Out-Null
+    try { Write-SBFile $Path ([Text.Encoding]::UTF8.GetBytes($updated)) $beforeHash $BackupRoot | Out-Null }
+    catch {
+        if ($_.Exception.Message -like 'File tracciato con modifiche non committate*') { Write-Warning $_.Exception.Message; return 'conflict' }
+        throw
+    }
     $State[$key] = Get-SBTextHash $wanted
     'updated'
 }
@@ -684,4 +726,43 @@ function Test-SBApproval([string]$BrainRoot) {
     }
     return $true
 }
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Set-SBWriteGuard',
+    'Assert-SBWriteGuard',
+    'Get-SBHash',
+    'Get-SBTextHash',
+    'Get-SBVersion',
+    'Read-SBText',
+    'Get-SBFileHash',
+    'Read-SBJson',
+    'ConvertTo-SBComparablePath',
+    'Test-SBSamePath',
+    'Convert-SBBrainAlias',
+    'ConvertTo-SBStableValue',
+    'ConvertTo-SBJson',
+    'Assert-SBPlainPath',
+    'Get-SBWriteGeneration',
+    'Write-SBFile',
+    'Get-SBStageRetention',
+    'Get-SBRuntimeRetention',
+    'Get-SBRuntimeCleanupProposal',
+    'Get-SBRegenerableRuntimeTargets',
+    'Remove-SBRuntimeTree',
+    'Invoke-SBGit',
+    'Get-SBGitObjectInfo',
+    'Read-SBGitBlobs',
+    'ConvertTo-SBRepositoryIdentity',
+    'Get-SBBrainIdentity',
+    'Test-SBRepositoryIdentity',
+    'Resolve-SBBoundIdentity',
+    'Resolve-SBWorkingRepository',
+    'Test-SBCheckoutScope',
+    'Get-SBLocalRoot',
+    'Assert-SBCentralDataPath',
+    'Test-SBIDEObservation',
+    'Get-SBManagedContent',
+    'Set-SBManagedContent',
+    'Get-SBApprovedDirectiveRevision',
+    'Remove-SBFile',
+    'Test-SBApproval'
+)

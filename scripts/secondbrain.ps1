@@ -7,6 +7,7 @@ Exit code: 0 allineato, 1 attenzione, 2 errore, 3 archivio occupato (lock di scr
 Le letture (-Check) non prendono lock bloccanti: un writer attivo o una transazione pendente compaiono come warnings.
 -Setup: attivazione guidata (preflight, discovery, proposta, conferma, anteprima, -Apply); 0 anteprima valida o attivazione applicata,
 1 proposta non confermata o discovery in pausa. Report e selezione per host in .runtime/hosts/<id>/.
+-Setup scrive la variabile utente SECONDBRAIN_HOME solo con conferma (-RegisterEnvironment, o risposta SI in -Interactive); -NoRegisterEnvironment la esclude anche da -Activate -Apply.
 -Setup -Status: stato di binding, IDE e ultima ricevuta di selezione (sola lettura, exit 0).
 -Setup -Unbind <repo|percorso|idIDE|nomeIDE>[,..]: disassocia repository e integrazioni IDE gestiti con proposta, conferma (-Yes o -Interactive) e anteprima come l'attivazione; -Apply per applicare. I dossier e i file IDE non vengono eliminati.
 -Setup -Output <repo|percorso> -OutputStatus verified|exception-accepted|unverified [-Evidence <file sotto .runtime>] [-Exception <motivo>]: registra nel binding l'esito della collocazione degli output dopo la prova dell'agent prodotto (anteprima, conferma -Yes o -Interactive, -Apply). verified lega la prova ai suoi byte (SHA-256); exception-accepted richiede un motivo; nessuna build o test dei prodotti viene eseguito.
@@ -18,6 +19,8 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check -Repository github.com/my-o
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Discover -Roots D:\Projects
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots D:\Projects -Select my-product -Yes -Apply
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots D:\Projects -Select my-product -Yes -Apply -RegisterEnvironment
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Activate -SelectionPath .runtime/hosts/<id>/selection.json -Apply -NoRegisterEnvironment
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Status
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Unbind github.com/my-org/my-product -Yes -Apply
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Output github.com/my-org/my-product -OutputStatus verified -Evidence .runtime/proofs/my-product-output.json -Yes -Apply
@@ -43,7 +46,8 @@ param(
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
     [Parameter(ParameterSetName='Setup')][switch]$Yes,
-    [Parameter(ParameterSetName='Setup')][switch]$NoRegisterEnvironment,
+    [Parameter(ParameterSetName='Setup')][switch]$RegisterEnvironment,
+    [Parameter(ParameterSetName='Setup')][Parameter(ParameterSetName='Activate')][switch]$NoRegisterEnvironment,
     [Parameter(ParameterSetName='Setup')][switch]$AndSync,
     [Parameter(ParameterSetName='Setup')][switch]$Status,
     [Parameter(ParameterSetName='Setup')][string[]]$Unbind=@(),
@@ -61,6 +65,7 @@ $ErrorActionPreference = 'Stop'
 if ($PSBoundParameters.ContainsKey('WaitSeconds')) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS = [string]$WaitSeconds }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 
 try {
@@ -71,7 +76,7 @@ try {
         if ($outputOptions -and !$outputBound) { throw ('-' + ($outputOptions -join ', -') + ' richiede -Output') }
         if ($Status -or $outputBound -or $Unbind.Count -or $PSBoundParameters.ContainsKey('Unbind')) {
             if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw '-Status, -Unbind e -Output sono alternativi' }
-            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw ('-Status/-Unbind/-Output non accettano: -' + ($conflicting -join ', -')) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano' }
@@ -86,7 +91,7 @@ try {
             exit 1
         }
         $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
-            -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
+            -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
         ConvertTo-SBJson $result
         # 0: anteprima valida o attivazione applicata; 1: proposta senza conferma, discovery in pausa o controllo successivo non eseguibile.
         if ($result.stage -in @('preview', 'applied') -and !($result.Contains('check') -and $result.check.Contains('error'))) { exit 0 }
@@ -100,7 +105,7 @@ try {
         exit 0
     }
     if ($Activate) {
-        ConvertTo-SBJson (Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $SelectionPath -SessionId $SessionId -Apply:$Apply -RegisterEnvironment:$Apply)
+        ConvertTo-SBJson (Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $SelectionPath -SessionId $SessionId -Apply:$Apply -RegisterEnvironment:($Apply -and !$NoRegisterEnvironment))
         exit 0
     }
     $config = Read-SBConfiguration $ConfigPath -ReadOnly:(!$Sync)

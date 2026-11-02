@@ -12,6 +12,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 $config=Read-SBConfiguration $ConfigPath;$lock=Enter-SBOperation $config $SessionId -ReadOnly:($Export -and !$Apply)
 try{
     if($Export){ConvertTo-SBJson (Export-SBPublicCapture -BrainRoot $config.brainRoot -ManifestPath $ManifestPath -RepositoryPath $RepositoryPath -Name $Name -BackupRoot $config.backupRoot -Apply:$Apply -Bindings $config.bindings)}

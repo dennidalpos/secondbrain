@@ -33,3 +33,4 @@ Elenco di rilievi prioritizzati con percorso, motivazione e proposta, più event
 - SEC01: Revisiona modifiche o codice con rilievi concreti e riferimenti.
 - AUD02: Misura il repository con metriche riproducibili e individua i punti critici.
 - DEV09: Consolida e rendi leggibile il codice a fasi preservando il comportamento.
+- DEV11: Mantieni il repository: duplicati, export, codice morto e leggibilità.

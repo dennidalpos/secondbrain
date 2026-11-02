@@ -539,7 +539,8 @@
         "pmt-f3082c1b",
         "pmt-27896824",
         "pmt-4a9a4b4f",
-        "pmt-672f52fc"
+        "pmt-672f52fc",
+        "pmt-be2533c9"
       ],
       "requires": "codice da rivedere, convenzioni del repository e test esistenti",
       "scope": "repo/area/file",
@@ -567,7 +568,8 @@
       "related": [
         "pmt-b16674bd",
         "pmt-2b07a693",
-        "pmt-3731bb7d"
+        "pmt-3731bb7d",
+        "pmt-be2533c9"
       ],
       "requires": "suite di test e build verdi come baseline, convenzioni del repository",
       "scope": "repo/area",
@@ -595,12 +597,41 @@
       "related": [
         "pmt-9de57e24",
         "pmt-4efbc54f",
-        "pmt-2b07a693"
+        "pmt-2b07a693",
+        "pmt-be2533c9"
       ],
       "requires": "baseline e profilo delle prestazioni (AUD05), suite di test verde",
       "scope": "repo/area",
       "status": "active",
       "summary": "Ottimizza il codice sull’intero perimetro con misure prima e dopo.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "sviluppo",
+      "code": "DEV11",
+      "example": "sb prompt DEV11: manutenzione dei moduli dopo molte modifiche",
+      "file": "DEV11.md",
+      "id": "pmt-be2533c9",
+      "mode": "write",
+      "next": [
+        "pmt-b16674bd",
+        "pmt-672f52fc",
+        "pmt-61ef1616"
+      ],
+      "references": [
+        "https://refactoring.com/catalog/",
+        "https://code.claude.com/docs/en/common-workflows"
+      ],
+      "related": [
+        "pmt-b16674bd",
+        "pmt-672f52fc",
+        "pmt-61ef1616"
+      ],
+      "requires": "suite di test e build verdi come baseline, storico delle modifiche recenti",
+      "scope": "repo/area",
+      "status": "active",
+      "summary": "Mantieni il repository: duplicati, export, codice morto e leggibilità.",
       "target": "repository"
     },
     {

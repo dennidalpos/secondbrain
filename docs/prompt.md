@@ -1,6 +1,6 @@
 # Prompt
 
-80 prompt pronti in 13 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+81 prompt pronti in 13 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt tutti

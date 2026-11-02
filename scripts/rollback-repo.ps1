@@ -33,6 +33,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1') -Force
 
 function ConvertTo-RollbackPath([string]$Path) { [IO.Path]::GetFullPath($Path).TrimEnd('\','/') }
 
@@ -208,7 +209,7 @@ try {
             if ($content -match $pattern) {
                 $newContent = ($content -replace $pattern, "`n").Trim() + "`n"
                 # Scrittura con controllo hash e backup verificato (ripristinabile con restore-managed.ps1).
-                Write-SBFile $agentsPath ([Text.UTF8Encoding]::new($false).GetBytes($newContent)) (Get-SBFileHash $agentsPath) $config.backupRoot | Out-Null
+                Write-SBFile $agentsPath ([Text.UTF8Encoding]::new($false).GetBytes($newContent)) (Get-SBFileHash $agentsPath) $config.backupRoot -BackupDirty | Out-Null
                 Write-Host "  Rimosso blocco gestito SecondBrain da $agentsPath" -ForegroundColor Green
             }
         }

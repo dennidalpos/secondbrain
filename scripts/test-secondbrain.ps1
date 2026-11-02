@@ -5,6 +5,7 @@ $script:Full = [bool]$Full
 Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + $(if(!$script:Full){ ' [Modalità Fast]' }else{ ' [Modalità Full]' }))
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:passed=0
 function Assert($Condition,[string]$Message){
     if(!$Condition){throw "FAIL: $Message"}
@@ -71,6 +72,37 @@ try {
     Assert ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino esatto'
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig *> $null
     Assert ($LASTEXITCODE -ne 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino rifiuta destinazione cambiata'
+    # Git salva i file tracciati: pulito = nessun .bin (commit e blob registrati), sporco = rifiuto, non tracciato = .bin invariato.
+    $gitRepo=Join-Path $root 'git repo';[IO.Directory]::CreateDirectory($gitRepo)|Out-Null
+    Git $gitRepo @('init','-q')|Out-Null
+    Git $gitRepo @('config','user.email','test@example.invalid')|Out-Null
+    Git $gitRepo @('config','user.name','Test')|Out-Null
+    $tracked=Join-Path $gitRepo 'tracked.md';Put $tracked "uno`n"
+    $untracked=Join-Path $gitRepo 'untracked.md';Put $untracked "uno`n"
+    Git $gitRepo @('add','tracked.md')|Out-Null
+    Git $gitRepo @('commit','-q','-m','base')|Out-Null
+    $gitBackup=Join-Path $root 'git-backups'
+    $trackedHash=Get-SBFileHash $tracked
+    Assert ((Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("due`n")) $trackedHash $gitBackup) -eq $true) 'file tracciato pulito riscritto'
+    Assert (@(Get-ChildItem $gitBackup -Filter '*.bin' -ErrorAction SilentlyContinue).Count -eq 0) 'file tracciato pulito: nessun .bin'
+    $gitRecord=Read-SBJson (Get-ChildItem $gitBackup -Filter '*.git.json'|Select-Object -First 1).FullName @{}
+    Assert ($gitRecord.gitCommit -eq (Git $gitRepo @('rev-parse','HEAD')|Select-Object -First 1) -and $gitRecord.gitBlob -and $gitRecord.previousHash -eq $trackedHash) 'record Git con commit e blob'
+    Assert (@(Get-ChildItem $gitRepo -Force -Filter '.secondbrain-*').Count -eq 0) 'nessun residuo accanto al file tracciato'
+    $dirtyHash=Get-SBFileHash $tracked
+    Throws {Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup} 'file tracciato sporco rifiutato'
+    Assert ((Get-SBFileHash $tracked) -eq $dirtyHash) 'file tracciato sporco intatto dopo rifiuto'
+    $dirtyMessage='';try{Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup|Out-Null}catch{$dirtyMessage=$_.Exception.Message}
+    Assert ($dirtyMessage -like '*modifiche non committate*git stash*') 'rifiuto con istruzioni chiare'
+    Assert ((Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup -BackupDirty) -eq $true -and @(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 1) 'rigenerato sporco con -BackupDirty conserva il .bin'
+    Write-SBFile $untracked ([Text.Encoding]::UTF8.GetBytes("due`n")) (Get-SBFileHash $untracked) $gitBackup|Out-Null
+    Assert (@(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 2) 'file non tracciato: .bin invariato'
+    $managedOutput=@(Set-SBManagedContent $tracked 'regola' 'gitdirty' @{} $false $gitBackup 3>&1)
+    Assert ($managedOutput -contains 'conflict' -and @($managedOutput|Where-Object {$_ -is [Management.Automation.WarningRecord]}).Count -ge 1) 'blocco gestito su file tracciato sporco: conflitto con avviso'
+    $pruneRoot=Join-Path $root 'prune-brain';$pruneBackups=Join-Path $pruneRoot '.runtime/hosts/h1/backups';[IO.Directory]::CreateDirectory($pruneBackups)|Out-Null
+    $pruneFile=Join-Path $gitRepo 'prune.md';Put $pruneFile "uno`n";Git $gitRepo @('add','prune.md')|Out-Null;Git $gitRepo @('commit','-q','-m','prune')|Out-Null
+    $oldBin=Join-Path $pruneBackups 'old.bin';[IO.File]::WriteAllText($oldBin,'vecchio');[IO.File]::WriteAllText($oldBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash='x';deployedHash='y';backup=$oldBin}))
+    $proposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
+    Assert (@($proposal.candidates|Where-Object {$_.path -like '*backups/*.bin'}).Count -eq 1 -and $proposal.applied -eq $false -and (Test-Path $oldBin)) 'proposta di potatura dei .bin ora tracciati, senza eseguirla'
     $state=@{}
     Assert ((Set-SBManagedContent $path 'regola' 'test' $state $true $backup) -eq 'pending') 'Check rileva blocco mancante'
     Assert ((Get-SBFileHash $path) -eq $hash -and $state.Count -eq 0) 'Check senza scritture o adozione'

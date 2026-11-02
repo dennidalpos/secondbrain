@@ -47,6 +47,6 @@ if(!$metadata -or !$metadata.path -or !$metadata.backup -or !$metadata.previousH
 if((Get-SBFileHash $metadata.backup) -ne $metadata.previousHash){throw 'Backup alterato: ripristino rifiutato'}
 $backupRoot=$config.backupRoot
 Assert-SBPlainPath $metadata.backup
-    Write-SBFile $metadata.path ([IO.File]::ReadAllBytes($metadata.backup)) $metadata.deployedHash $backupRoot|Out-Null
+    Write-SBFile $metadata.path ([IO.File]::ReadAllBytes($metadata.backup)) $metadata.deployedHash $backupRoot -BackupDirty | Out-Null
     'Ripristinato: '+$metadata.path+'. Eseguire secondbrain.ps1 -Check per riconciliare lo stato.'
 }finally{Exit-SBOperation $lock}

@@ -5,6 +5,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:checks=0
 function Assert-Tracker($Condition,[string]$Message){if(!$Condition){throw 'FAIL TRACKER: '+$Message};$script:checks++;'PASS TRACKER: '+$Message}
 function Reject-Tracker([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert-Tracker $caught $Message}

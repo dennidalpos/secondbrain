@@ -16,7 +16,7 @@ Leggi questa pagina prima di lanciare gli script. SecondBrain non installa softw
 | `prompts.ps1`, `secondbrain.ps1 -Check`, `ide-map.ps1`, `restore-managed.ps1 -List` | No | No | È già sola lettura |
 | `secondbrain.ps1 -Discover` | No | Rapporto di discovery per host | È già sola lettura sui tuoi file |
 | `secondbrain.ps1 -Setup` / `-Activate` senza `-Apply` | No | Proposta e selezione in `.runtime/hosts/<id>/` | Sì |
-| `secondbrain.ps1 -Setup -Apply` | Variabile utente `SECONDBRAIN_HOME` (non con `-NoRegisterEnvironment`) | `workstation.json`, dossier **nuovi**, `para-index.json`, `PARA.md` | Dopo `-Yes`: anteprima senza `-Apply` |
+| `secondbrain.ps1 -Setup -Apply` | Variabile utente `SECONDBRAIN_HOME` (solo con `-RegisterEnvironment` o risposta `SI`; mai con `-NoRegisterEnvironment`) | `workstation.json`, dossier **nuovi**, `para-index.json`, `PARA.md` | Dopo `-Yes`: anteprima senza `-Apply` |
 | `secondbrain.ps1 -Sync` | Blocco `repository` in `AGENTS.md` dei repository gestiti; blocco `global` in `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md` | Indici dei dossier, `state.json`, `inventory.json`, `ide-map.json`, `istruzioni-globali.md` | No: usa `-Check` |
 | `secondbrain.ps1 -Setup -Unbind …` | No | Solo `workstation.json` | Sì, senza `-Apply` |
 | `mcp-server.ps1 -Pair` | No | No | È l'anteprima |
@@ -45,18 +45,21 @@ Non vengono mai scritti: il codice dei repository (solo `AGENTS.md`), gli IDE «
 
 ## Dove sono i backup
 
-Ogni file esistente sostituito da `-Sync`, `approve-revision.ps1`, `mcp-server.ps1 -Pair -Apply`, `rollback-repo.ps1` e `restore-managed.ps1` viene prima copiato così:
+Ogni file esistente **fuori da Git** (dossier, file degli IDE, configurazione MCP, `AGENTS.md` non tracciato) sostituito da `-Sync`, `approve-revision.ps1`, `mcp-server.ps1 -Pair -Apply`, `rollback-repo.ps1` e `restore-managed.ps1` viene prima copiato così:
 
 | Percorso | Contenuto |
 |---|---|
 | `.runtime/hosts/<id>/backups/<guid>.bin` | Copia esatta del file com'era prima |
 | `.runtime/hosts/<id>/backups/<guid>.bin.json` | Metadati: `path` originale, `previousHash`, `deployedHash`, `backup` |
 | `.runtime/hosts/<id>/backups/<guid>.stage` | Record della scrittura (`writing`, `completed`, `interrupted`) |
+| `.runtime/hosts/<id>/backups/<guid>.git.json` | Solo per file tracciati da Git e puliti: `path`, `previousHash`, `deployedHash`, `gitCommit`, `gitBlob` (nessuna copia `.bin`) |
 | `.runtime/backup/mcp-pairing/` | Come sopra, per i file MCP |
 | `.runtime/hosts/<id>/backups/para-<guid>/manifest.json` | Transazioni sui dossier |
 | `.runtime/hosts/<id>/backups/rollback-<guid>/` | Dossier salvato da `rollback-repo.ps1 -Force` senza checkout |
 
 `<id>` è l'identificativo della postazione (`ws-` più 16 cifre esadecimali). `.runtime/` è escluso da Git: i backup restano solo sul tuo PC e non vengono mai pubblicati. Non c'è cancellazione automatica; la pulizia è esplicita (`cleanup.ps1`, vedi [recovery](recovery.md)). Se un file non esisteva, la scrittura lo crea e non c'è nulla da salvare.
+
+**Git salva i file tracciati.** SecondBrain non sostituisce Git: se il file è tracciato e senza modifiche, la scrittura non crea `.bin` e registra commit e blob (`.git.json`); recuperi il contenuto precedente con `git show <gitCommit>:<percorso>` o `git checkout`. Se il file tracciato ha modifiche non committate, la scrittura **si ferma** con un messaggio: committa o metti da parte (`git stash`) le modifiche e ripeti (in `-Sync` il blocco risulta `conflict` con lo stesso avviso). I file rigenerati da SecondBrain stesso (`build-prompts.ps1`, `approve-revision.ps1`, `restore-managed.ps1`, `rollback-repo.ps1`) mantengono il `.bin` anche se sporchi. I `.bin` già esistenti di file oggi tracciati e puliti compaiono come proposta in `cleanup.ps1 -ProposeRuntime`; non vengono rimossi.
 
 `backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip. Esempi: `backup.ps1` (archivio di `01-projects`, `02-areas`, `03-resources`, `04-archives`, `PARA.md`, `para-index.json` e `.runtime/hosts`), `backup.ps1 -OutputPath D:/Backups/SecondBrain/backup.zip` per un percorso scelto, `backup.ps1 -Verify` (ultimo archivio in `.runtime/backups/`) e `backup.ps1 -Verify -BackupPath <zip>` per uno specifico.
 

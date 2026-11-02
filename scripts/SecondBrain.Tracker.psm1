@@ -593,4 +593,20 @@ function Update-SBTrackerTask {
     Set-SBTrackerTaskStatus @PSBoundParameters
 }
 
-Export-ModuleMember -Function *-SBTracker*,Get-SBCuratedReferenceIssues
+Export-ModuleMember -Function @(
+    'Test-SBTrackerPolicy',
+    'Test-SBTrackerData',
+    'Get-SBTrackerRelatedData',
+    'Resolve-SBTracker',
+    'New-SBTrackerTask',
+    'Read-SBTrackerReview',
+    'ConvertTo-SBTracker',
+    'Convert-SBTrackerLocation',
+    'Get-SBCuratedReferenceIssues',
+    'Get-SBTrackerAuthorityIssues',
+    'Resolve-SBTrackerBackupRoot',
+    'Set-SBTrackerTaskStatus',
+    'New-SBTrackerTaskEntry',
+    'Invoke-SBTrackerRenumber',
+    'Update-SBTrackerTask'
+)

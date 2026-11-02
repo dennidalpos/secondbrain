@@ -43,13 +43,13 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 ```
 
-`SECONDBRAIN_HOME` è una variabile utente impostata da `-Setup -Apply` (non con `-NoRegisterEnvironment`): indica il clone ai tuoi agent. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [IDE](adapters.md).
+`SECONDBRAIN_HOME` è una variabile utente che indica il clone ai tuoi agent. `-Setup -Apply` la scrive **solo dopo una conferma esplicita**: `-RegisterEnvironment`, oppure la risposta `SI` alla domanda posta da `-Setup -Interactive`; senza conferma (o con `-NoRegisterEnvironment`) il percorso vale solo per il processo e il risultato lo dice (`environment`). `-Activate -Apply` la registra salvo `-NoRegisterEnvironment`. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [IDE](adapters.md).
 
 ### Primo avvio con un agent
 
 Apri il checkout SecondBrain nell'IDE e scrivi `sb attiva`. Se l'IDE non carica AGENTS.md, usa il prompt completo di [Avvio da un nuovo PC](#avvio-da-un-nuovo-pc). SYS03 guida discovery, selezione e attivazione tramite `scripts/secondbrain.ps1 -Setup` (utilizzabile anche senza agent: `-Setup -Interactive`): i repository scoperti non vengono gestiti finché non li selezioni.
 
-Il clone corrente viene registrato nella variabile utente `SECONDBRAIN_HOME`. Configurazione, inventario host, backup e output restano sotto `.runtime` nel clone e sono esclusi da Git. Ogni PC mantiene la propria mappa; dossier e identità sono condivisi tramite il Git privato di SecondBrain.
+Il clone corrente può essere registrato nella variabile utente `SECONDBRAIN_HOME` (solo con conferma, vedi sopra). Configurazione, inventario host, backup e output restano sotto `.runtime` nel clone e sono esclusi da Git. Ogni PC mantiene la propria mappa; dossier e identità sono condivisi tramite il Git privato di SecondBrain.
 
 ### File e percorsi
 
@@ -88,7 +88,9 @@ Opzioni di `-Setup`:
 | `-Ides` / `-AllIdes` | IDE da associare (id o nome). |
 | `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. |
 | `-Yes` | Conferma non interattiva: registra utente, host e data nella selezione. Va usata solo dopo la conferma dell'utente. |
-| `-Apply` | Applica; senza, resta l'anteprima. Registra `SECONDBRAIN_HOME` (salvo `-NoRegisterEnvironment`). |
+| `-Apply` | Applica; senza, resta l'anteprima. Non scrive `SECONDBRAIN_HOME` da solo. |
+| `-RegisterEnvironment` | Conferma esplicita: scrive la variabile utente `SECONDBRAIN_HOME`. In `-Interactive` la conferma è la risposta `SI`. |
+| `-NoRegisterEnvironment` | Esclude la variabile utente (anche in `-Activate -Apply`); incompatibile con `-RegisterEnvironment`. |
 | `-AndSync` | Dopo l'applicazione esegue `-Sync` invece di `-Check`. |
 
 In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, REP07).
@@ -101,6 +103,14 @@ Le nuove Aree hanno tracker vuoto solo quando non esiste una fonte locale; altri
 
 `sb controlla` e `sb allinea` corrispondono al workflow SYS04. -Sync aggiorna soltanto le associazioni approvate, mai altri checkout trovati. `Invoke-SBPortableSync` distingue l'allineamento dei file su disco (`filesAligned`, hash conformi delle istruzioni, TOC e cataloghi) dall'osservazione live dei 15 minuti (`liveLoadingVerified`), mantenendo `aligned` per la conformità complessiva. Account manuali, caricamento, conflitti e compattazione pendente impediscono una dichiarazione complessiva di allineamento. Le operazioni usano ConfigPath se esplicito, altrimenti la configurazione locale della postazione. SECONDBRAIN_HOME è registrata nell'ambiente utente; un IDE già aperto può avere un ambiente di processo precedente e deve leggere il valore utente aggiornato.
 
+## Casi limite di installazione
+
+| Caso | Comportamento |
+|---|---|
+| `SECONDBRAIN_HOME` assente | Gli script di `scripts/` funzionano dal clone (lo risolvono dalla propria posizione). L'hook pre-push, invece, si ferma con istruzioni; `SECONDBRAIN_SKIP_PRE_PUSH=1` consente un push una tantum. |
+| Clone spostato | La variabile utente resta sul vecchio percorso: l'hook segnala che manca `scripts/publication.ps1`. Rilancia `-Setup ... -RegisterEnvironment` dal nuovo clone e riapri gli IDE. |
+| Postazione non attivata | Prima dell'attivazione `-Check` esce con 2 (non 1); `-Setup` o `-Activate` portano la postazione allo stato noto. |
+| Percorsi con spazi | Supportati da `-Setup`, dagli script e dall'hook (percorsi sempre tra virgolette); coperti dalle suite portabili. |
 ## Dati e output
 
 Conoscenza e memorie personali viaggiano nel clone Git privato. Account, percorsi host, prove grezze e dati riservati sono esclusi da Git sotto .runtime. Non acquisire credenziali; eventuali originali riservati in backup non sono contenuti pubblicabili. Prima di un push di SecondBrain verificare la destinazione privata e i file indicizzati.
@@ -123,7 +133,7 @@ Ciclo di vita: `knowledge.ps1 -SetLifecycle greenfield|none` fissa o rimuove il 
 
 publication.ps1 esamina working tree, indice e blob storici con regole locali; i rapporti non contengono i valori trovati. Codici: 0 pronto entro la copertura, 1 rilievi/revisioni, 2 incompleto o errore. I binari richiedono ispezione specifica e non sono certificati dal controllo testuale. Le eccezioni ammesse sono vincolate a fingerprint e motivazione nel runtime.
 
-L'installazione opzionale dell'hook Git pre-push (`scripts/publication.ps1 -InstallHook -Apply`) collega la verifica REP05 all'operazione `git push`, bloccando tempestivamente tentativi di invio di credenziali, percorsi host o residui operativi. L'hook è scritto in shell POSIX portabile, non contiene percorsi personali o credenziali cablate, e supporta bypass autorizzato via `SECONDBRAIN_SKIP_PRE_PUSH=1`. Può essere verificato con `-HookStatus` e rimosso con `-UninstallHook -Apply`.
+L'installazione opzionale dell'hook Git pre-push (`scripts/publication.ps1 -InstallHook -Apply`) collega la verifica REP05 all'operazione `git push`, bloccando tempestivamente tentativi di invio di credenziali, percorsi host o residui operativi. L'hook è scritto in shell POSIX portabile, non contiene percorsi personali o credenziali cablate, ed è **fail-closed**: se `pwsh` manca, `SECONDBRAIN_HOME` non è impostata o punta a un percorso senza `scripts/publication.ps1` (clone spostato, variabile obsoleta) il push si ferma con istruzioni; fuori da un repository Git esce con 0. Il bypass una tantum e consapevole è `SECONDBRAIN_SKIP_PRE_PUSH=1 git push`. Può essere verificato con `-HookStatus` e rimosso con `-UninstallHook -Apply`.
 
 REP06 prepara README e guide Markdown, senza GitHub Pages implicito. REP07 richiede app reale, dati sintetici, versione e scenario. New-SBCaptureRecord registra PNG e provenienza; il manifest deve essere revisionato prima di Export-SBPublicCapture. Solo le copie pubbliche selezionate entrano in docs/assets. Non viene inventata una UI se la cattura non è disponibile. Pubblicazione, riscrittura di storia e rotazione di credenziali richiedono operazioni specifiche.
 

@@ -40,3 +40,4 @@ Lotti applicati con motivazione, metriche prima e dopo (AUD02) se disponibili, v
 - DEV08: Rivedi leggibilità, coerenza e manutenibilità del codice senza modificarlo.
 - DEV03: Esegui un refactoring preservando contratti e comportamento.
 - PRG06: Pianifica un refactoring architetturale a fasi con verifiche e rollback.
+- DEV11: Mantieni il repository: duplicati, export, codice morto e leggibilità.

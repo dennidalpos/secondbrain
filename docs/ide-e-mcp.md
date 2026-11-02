@@ -43,6 +43,22 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 
 Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file.
 
+## Senza MCP
+
+MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dalla riga di comando: un test confronta i due percorsi sugli stessi input per tutti gli 8 strumenti (la CLI aggiunge solo l'intestazione `CATALOGO PROMPT` in `-Show`).
+
+| Strumento MCP | Comando CLI | Comando `sb` nell'IDE |
+|---|---|---|
+| `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` | — |
+| `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` (`-All` per la vista globale) | — |
+| `get_task` | `knowledge.ps1 -Task <id o #seq>` | — |
+| `search_knowledge` | `knowledge.ps1 -Search <testo> [-Mode Relevance]` | — |
+| `get_prompt_home` | `prompts.ps1` | `sb prompt` |
+| `list_prompts` | `prompts.ps1 -List -Compact` | `sb prompt tutti` |
+| `get_prompt` | `prompts.ps1 -Show -Prompt <CHIAVE>` | `sb prompt mostra CHIAVE` |
+| `check_publication` | `publication.ps1 -RepositoryPath <repo>` | `sb prompt REP05` |
+
+Dal checkout di un repository gestito i comandi `knowledge.ps1` risolvono da soli il dossier; altrove indica `-Repository` o `-CheckoutPath`. `sb controlla` e `sb allinea` corrispondono a `secondbrain.ps1 -Check` e `-Sync`.
 ## Controlla
 
 ```powershell

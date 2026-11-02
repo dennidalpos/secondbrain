@@ -279,4 +279,16 @@ function Get-SBParaRuntimePaths($Config) {
     foreach($registration in @(Get-SBTrackerManifestRegistrations $Config)){$registration.path}
 }
 
-Export-ModuleMember -Function *-SBPara*
+Export-ModuleMember -Function @(
+    'Resolve-SBParaPath',
+    'Get-SBParaEntities',
+    'Get-SBParaIndex',
+    'Update-SBParaIndex',
+    'Invoke-SBParaTransaction',
+    'Restore-SBParaTransaction',
+    'New-SBParaMetadata',
+    'Convert-SBParaReferences',
+    'Get-SBParaReferenceOperations',
+    'Remove-SBParaEmptyTree',
+    'Get-SBParaRuntimePaths'
+)

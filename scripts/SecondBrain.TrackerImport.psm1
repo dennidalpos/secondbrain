@@ -425,4 +425,15 @@ function Get-SBTrackerImportIssues($Config) {
     }
 }
 
-Export-ModuleMember -Function *-SBTracker*
+Export-ModuleMember -Function @(
+    'Get-SBTrackerImportPayloads',
+    'Get-SBTrackerImportPath',
+    'Get-SBTrackerImportPaths',
+    'Get-SBTrackerManifestRegistrations',
+    'Get-SBTrackerRelocationData',
+    'Get-SBTrackerRelocationOperations',
+    'Read-SBTrackerManifest',
+    'Invoke-SBTrackerImport',
+    'Restore-SBTrackerImport',
+    'Get-SBTrackerImportIssues'
+)

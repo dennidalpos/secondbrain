@@ -478,4 +478,19 @@ function Invoke-SBDossierCompaction {
     if($Apply){[void](Assert-SBCentralDataPath $root $BackupRoot);Invoke-SBParaTransaction $ops $BackupRoot $root|Out-Null}
     @{repository=$record.identity;applied=[bool]$Apply;archives=$archives;operations=$ops.Count;originalsPreserved=$true;manifest=$manifestPath}
 }
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Get-SBDossierTOC',
+    'Get-SBDossierHistoryIndex',
+    'Get-SBTaskProjection',
+    'Split-SBTieredMarkdown',
+    'Get-SBStartupContext',
+    'Format-SBStartupReport',
+    'Get-SBGlobalTasks',
+    'Resolve-SBWorkingDossier',
+    'Find-SBKnowledge',
+    'Get-SBRepositoryLifecycle',
+    'Set-SBRepositoryLifecycle',
+    'Get-SBTaskDetail',
+    'Get-SBSection',
+    'Invoke-SBDossierCompaction'
+)

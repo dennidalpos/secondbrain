@@ -15,7 +15,7 @@ if($ProposalPath){
         $source=Join-Path $ProposalPath $name
         $target=Join-Path $brain ('direttive/'+$name)
         if(!(Test-Path -LiteralPath $source -PathType Leaf)){throw 'Testo della proposta mancante: '+$name}
-        Write-SBFile $target ([IO.File]::ReadAllBytes($source)) (Get-SBFileHash $target) $config.backupRoot|Out-Null
+        Write-SBFile $target ([IO.File]::ReadAllBytes($source)) (Get-SBFileHash $target) $config.backupRoot -BackupDirty | Out-Null
     }
 }
 $files = @{}
@@ -32,6 +32,6 @@ if($ProposalPath){
     $approval.proposal=@{path=[IO.Path]::GetRelativePath($brain,[IO.Path]::GetFullPath($ProposalPath)).Replace('\','/');readmeHash=Get-SBFileHash $readme}
 }
 $path = Join-Path $brain 'direttive/approved.json'
-Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $approval))) (Get-SBFileHash $path) $config.backupRoot | Out-Null
+Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $approval))) (Get-SBFileHash $path) $config.backupRoot -BackupDirty | Out-Null
 'Revisione approvata registrata; usare -Sync per distribuirla.'
 }finally{Exit-SBOperation $lock}

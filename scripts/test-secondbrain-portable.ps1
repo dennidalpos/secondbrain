@@ -1,8 +1,18 @@
 #requires -Version 7.5
 $ErrorActionPreference='Stop'
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $checks=0
 function Assert-Portable($Value,[string]$Message){if(!$Value){throw 'FAIL PORTABLE: '+$Message};$script:checks++;'PASS PORTABLE: '+$Message}
 function Reject-Portable([scriptblock]$Action,[string]$Message){$failed=$false;try{& $Action|Out-Null}catch{$failed=$true};Assert-Portable $failed $Message}
@@ -481,6 +491,31 @@ try{
     try { Uninstall-SBPublicationHook -RepositoryPath $other -Apply | Out-Null } catch { $foreignRefused = $true }
     Assert-Portable ($foreignRefused -and (Test-Path -LiteralPath $hookStatus.hookPath) -and ([IO.File]::ReadAllText($hookStatus.hookPath) -match 'hook dell utente')) 'disinstallazione rifiuta un pre-push non creato da SecondBrain e lo conserva'
     Remove-Item -LiteralPath $hookStatus.hookPath -Force
+    # L'hook generato è fail-closed: senza SecondBrain valido il push si ferma con istruzioni.
+    $shCommand=Get-Command sh -CommandType Application -ErrorAction SilentlyContinue|Select-Object -First 1
+    if(!$shCommand){$gitCommand=(Get-Command git -CommandType Application|Select-Object -First 1).Source;$shCandidate=Join-Path (Split-Path (Split-Path $gitCommand)) 'usr/bin/sh.exe';if(Test-Path -LiteralPath $shCandidate){$shCommand=@{Source=$shCandidate}}}
+    if($shCommand){
+        Install-SBPublicationHook -RepositoryPath $other -Apply|Out-Null
+        $hookFile=(Get-SBPublicationHookStatus -RepositoryPath $other).hookPath
+        $savedHome=$env:SECONDBRAIN_HOME;$savedSkip=$env:SECONDBRAIN_SKIP_PRE_PUSH
+        Push-Location $other
+        try {
+            $env:SECONDBRAIN_SKIP_PRE_PUSH=$null
+            $env:SECONDBRAIN_HOME=$null
+            $hookNoHome=(& $shCommand.Source $hookFile 2>&1|Out-String);$hookNoHomeExit=$LASTEXITCODE
+            Assert-Portable ($hookNoHomeExit -eq 1 -and $hookNoHome -match 'SECONDBRAIN_HOME non e impostata' -and $hookNoHome -match 'SECONDBRAIN_SKIP_PRE_PUSH=1') 'hook senza SECONDBRAIN_HOME blocca il push con istruzioni'
+            $env:SECONDBRAIN_HOME=Join-Path $repos 'clone-spostato con spazi'
+            $hookBadHome=(& $shCommand.Source $hookFile 2>&1|Out-String);$hookBadHomeExit=$LASTEXITCODE
+            Assert-Portable ($hookBadHomeExit -eq 1 -and $hookBadHome -match 'senza scripts/publication.ps1') 'hook con SECONDBRAIN_HOME errato (clone spostato, percorso con spazi) blocca il push'
+            $env:SECONDBRAIN_SKIP_PRE_PUSH='1'
+            & $shCommand.Source $hookFile *> $null
+            Assert-Portable ($LASTEXITCODE -eq 0) 'hook con SECONDBRAIN_SKIP_PRE_PUSH=1 consente il push una tantum'
+        } finally {
+            Pop-Location
+            $env:SECONDBRAIN_HOME=$savedHome;$env:SECONDBRAIN_SKIP_PRE_PUSH=$savedSkip
+            Remove-Item -LiteralPath $hookFile -Force
+        }
+    } else { Write-Warning 'sh non trovato: prove dell''esecuzione dell''hook saltate' }
 
     # Fase 4: Server MCP stdio locale in sola lettura
     $mcpInit = @{ jsonrpc = '2.0'; id = 101; method = 'initialize'; params = @{} } | ConvertTo-Json -Compress
@@ -920,6 +955,37 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((Invoke-SBPortableSync $isoCfg -Check).scope.coverage -eq 'workstation') 'Check senza filtro resta a livello di postazione'
     Reject-Portable {Invoke-SBPortableSync $isoCfg -Check -Repository 'gitlab.example/team/inesistente'} 'Check filtrato su repository non gestito rifiutato'
 
+    # Senza server MCP: la CLI restituisce gli stessi contenuti degli 8 strumenti MCP sugli stessi input (parità CLI-MCP).
+    function ConvertTo-ParityText([string]$Text) { ($Text -replace "`r`n","`n").Trim() }
+    function ConvertTo-ParityJson([string]$Text) { ConvertTo-SBJson ($Text | ConvertFrom-Json -AsHashtable) }
+    function Invoke-ParityCli([string]$Script,[string[]]$CliArguments) { (& pwsh -NoProfile -File (Join-Path $brain ('scripts/'+$Script)) @CliArguments 2>$null | Out-String) }
+    $realBrain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+    Push-Location $other
+    try{
+        $parityConfig=@('-ConfigPath',$isoActivation.configuration)
+        $cliStartup=Invoke-ParityCli 'knowledge.ps1' (@('-Startup','-Budget','20000')+$parityConfig)
+        Assert-Portable ((ConvertTo-ParityJson $cliStartup) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_startup_context' @{checkoutPath=$other}))) 'parità CLI-MCP: get_startup_context'
+        $cliReady=Invoke-ParityCli 'knowledge.ps1' (@('-Tasks','-ReadyOnly')+$parityConfig)
+        Assert-Portable ((ConvertTo-ParityJson $cliReady) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{checkoutPath=$other}))) 'parità CLI-MCP: get_ready_tasks'
+        $cliTask=Invoke-ParityCli 'knowledge.ps1' (@('-Task','ISO-TWO')+$parityConfig)
+        Assert-Portable ((ConvertTo-ParityJson $cliTask) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_task' @{task='ISO-TWO';checkoutPath=$other}))) 'parità CLI-MCP: get_task'
+        $cliSearch=Invoke-ParityCli 'knowledge.ps1' (@('-Search','Task','-Repository',$twoBinding.identity,'-Budget','0')+$parityConfig)
+        Assert-Portable ((ConvertTo-ParityJson $cliSearch) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'search_knowledge' @{query='Task';repository=$twoBinding.identity}))) 'parità CLI-MCP: search_knowledge'
+        $cliPublication=Invoke-ParityCli 'publication.ps1' @('-RepositoryPath',$other)
+        $mcpPublication=Invoke-SBMcpToolCall $brain 'check_publication' @{repositoryPath=$other}|ConvertFrom-Json
+        $cliPublicationDoc=$cliPublication|ConvertFrom-Json
+        Assert-Portable ($cliPublicationDoc.ready -eq $mcpPublication.ready -and $cliPublicationDoc.complete -eq $mcpPublication.complete -and @($cliPublicationDoc.findings).Count -eq @($mcpPublication.findings).Count) 'parità CLI-MCP: check_publication'
+    }finally{Pop-Location}
+    # Strumenti sui prompt: il catalogo è quello del repository SecondBrain; la CLI aggiunge solo l'intestazione del prompt.
+    $promptsCli=Join-Path $realBrain 'scripts/prompts.ps1'
+    $cliList=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -List -Compact 2>$null|Out-String)
+    Assert-Portable ($cliList -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'list_prompts' @{compact=$true})))) 'parità CLI-MCP: list_prompts'
+    $cliHome=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli 2>$null|Out-String)
+    Assert-Portable ($cliHome -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{})))) 'parità CLI-MCP: get_prompt_home'
+    $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt DEV10 2>$null|Out-String)
+    $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='DEV10'}))
+    Assert-Portable ($cliShow.StartsWith('CATALOGO PROMPT') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
+
     # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS14.
     $twoDossier=Join-Path $brain $twoBinding.dossier
     $greenKinds={param($check) @($check.issues|Where-Object kind -eq 'greenfield-violation')}
@@ -985,6 +1051,12 @@ public static bool Set(string name,bool enabled){
     Assert-Portable (@($setupCfg.bindings|Where-Object {$_.path -in @((Join-Path $setupRepos 'alpha'),(Join-Path $setupRepos 'beta'))}).Count -eq 2) '-Setup -Apply registra i binding selezionati'
     Assert-Portable ($setupCfg.selectionReceipt.confirmation -match '\(-Yes\)') 'ricevuta di selezione conserva la conferma'
     Assert-Portable ([Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -NoRegisterEnvironment non cambia l ambiente utente'
+    # Senza conferma esplicita (-RegisterEnvironment) la variabile utente non si scrive nemmeno quando manca anche -NoRegisterEnvironment.
+    $noConfirmRun=Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha,beta','-Yes','-Apply')
+    Assert-Portable ($noConfirmRun.exit -eq 0 -and $noConfirmRun.text -match 'non registrata' -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -Apply senza conferma non scrive la variabile utente'
+    Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha','-Yes','-Apply','-RegisterEnvironment','-NoRegisterEnvironment')).exit -eq 2) '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'
+    $activateOptOut=Invoke-FixtureCli 'secondbrain.ps1' @('-Activate','-SelectionPath',$setupSelection,'-Apply','-NoRegisterEnvironment')
+    Assert-Portable ($activateOptOut.exit -eq 0 -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Activate -Apply -NoRegisterEnvironment rispetta l opt-out'
     $discoverDefault=Invoke-FixtureCli 'secondbrain.ps1' @('-Discover','-Roots',$setupRepos)
     Assert-Portable ($discoverDefault.exit -eq 0 -and (Test-Path -LiteralPath $setupReport)) '-Discover senza -ReportPath scrive il report per host'
 

@@ -2,6 +2,7 @@
 param([ValidateSet('All','Removal','Markdown','Provenance','Recovery')][string]$Case='All')
 $ErrorActionPreference='Stop'
 foreach($module in @('Core','Access','Para','Tracker','TrackerImport')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:checks=0
 function Assert-Next($Condition,[string]$Message){if(!$Condition){throw ('FAIL AUDIT2: '+$Message)};$script:checks++;'PASS AUDIT2: '+$Message}
 function Reject-Next([scriptblock]$Action,[string]$Message){$rejected=$false;try{& $Action|Out-Null}catch{$rejected=$true};Assert-Next $rejected $Message}

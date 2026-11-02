@@ -6,6 +6,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 
 function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(Get-SBHostId)) {
     $root=Get-SBLocalRoot $BrainRoot $WorkstationId
@@ -198,7 +201,7 @@ function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
 }
 function Invoke-SBSetup {
     param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
-          [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$NoRegisterEnvironment,[switch]$AndSync,[string]$SessionId)
+          [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$RegisterEnvironment,[switch]$NoRegisterEnvironment,[switch]$AndSync,[string]$SessionId)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain;$hostId=Get-SBHostId
     # Da -File un elenco arriva come stringa unica separata da virgole.
     $Select=@($Select|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
@@ -321,8 +324,13 @@ function Invoke-SBSetup {
     $doApply=[bool]$Apply
     if(!$doApply -and $prompting){$doApply=(([string](Read-Host 'Digita APPLICA per attivare ora (invio = solo anteprima)')).Trim() -ceq 'APPLICA')}
     if(!$doApply){$result.activation=$preview;return $result}
-    $applied=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId -Apply -RegisterEnvironment:(!$NoRegisterEnvironment)
+    # La variabile utente SECONDBRAIN_HOME si scrive solo con conferma esplicita (-RegisterEnvironment o risposta SI); -NoRegisterEnvironment la esclude.
+    if($RegisterEnvironment -and $NoRegisterEnvironment){throw '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'}
+    $doRegister=[bool]$RegisterEnvironment
+    if(!$doRegister -and !$NoRegisterEnvironment -and $prompting){$doRegister=(([string](Read-Host 'Registrare SECONDBRAIN_HOME come variabile utente? Digita SI per confermare (invio = no)')).Trim() -ceq 'SI')}
+    $applied=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId -Apply -RegisterEnvironment:$doRegister
     $env:SECONDBRAIN_HOME=$brain
+    $result.environment=if($doRegister){'registrata (variabile utente SECONDBRAIN_HOME)'}else{'non registrata: il percorso vale solo per questo processo. Per registrarla ripeti con -RegisterEnvironment, oppure imposta SECONDBRAIN_HOME a mano'}
     $result.stage='applied';$result.applied=$true;$result.activation=$applied
     try{
         $config=Read-SBConfiguration $configPath
@@ -616,4 +624,16 @@ function Invoke-SBPortableSync {
         @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-imports','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}
     }finally{Exit-SBOperation $lock}
 }
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'New-SBPortableConfiguration',
+    'Get-SBPortableGlobal',
+    'Invoke-SBHostActivation',
+    'Get-SBSetupPaths',
+    'Assert-SBIDEInstructionsPath',
+    'Invoke-SBSetup',
+    'Get-SBIDEContextState',
+    'Get-SBSetupStatus',
+    'Invoke-SBSetupUnbind',
+    'Invoke-SBSetupOutput',
+    'Invoke-SBPortableSync'
+)

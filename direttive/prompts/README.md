@@ -134,6 +134,12 @@ DEV10 | Ottimizza il codice sull’intero perimetro con misure prima e dopo.
   • Serve: baseline e profilo delle prestazioni (AUD05), suite di test verde
   • Esempio: sb prompt DEV10: ottimizza I/O e allocazioni dei moduli di scansione
 
+DEV11 | Mantieni il repository: duplicati, export, codice morto e leggibilità.
+  • ID: pmt-be2533c9
+  • Scope: repo/area | Modalità: write
+  • Serve: suite di test e build verdi come baseline, storico delle modifiche recenti
+  • Esempio: sb prompt DEV11: manutenzione dei moduli dopo molte modifiche
+
 
 TEST E VERIFICA
 TST01 | Aggiungi test unitari e di integrazione sui rischi rilevanti.

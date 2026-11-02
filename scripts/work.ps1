@@ -5,6 +5,7 @@ param([Parameter(Mandatory)][string]$Repository,[string]$Project='root',[string]
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 $config=Read-SBConfiguration $ConfigPath
 $plan=Get-SBWorkEnvironment $config.brainRoot $config.workstationId $Repository $Project $Runtime
 if(!$Run){ConvertTo-SBJson $plan;exit 0}

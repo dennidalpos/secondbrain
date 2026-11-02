@@ -16,7 +16,7 @@ flowchart LR
 | Comando | Fuori dalla cartella SecondBrain |
 |---|---|
 | `-Check`, `prompts.ps1` | Niente |
-| `-Setup -Interactive` | La variabile utente `SECONDBRAIN_HOME` |
+| `-Setup -Interactive` | La variabile utente `SECONDBRAIN_HOME`, solo se rispondi `SI` |
 | `-Sync` | Un testo delimitato in `AGENTS.md` dei progetti e nei file di regole degli agenti |
 | `-Pair -Apply` | Il file di configurazione MCP dell'agente scelto |
 

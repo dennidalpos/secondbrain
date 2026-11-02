@@ -2,6 +2,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 
 function Get-SBSourceChild([string]$Root,[string]$Relative) {
     if(!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:'){throw 'Percorso fonte fuori perimetro'}
@@ -309,4 +310,15 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
     Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))) $hash $Config.backupRoot|Out-Null
     @{sourceId=$SourceId;versionId=$versionId;status=$result.status}
 }
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Get-SBSourceChild',
+    'Read-SBSourceRegistry',
+    'Test-SBPublicAddress',
+    'Assert-SBSourceUri',
+    'Get-SBSourceContent',
+    'Invoke-SBSourceProbe',
+    'Save-SBSourceReport',
+    'Get-SBSourceCatalog',
+    'Get-SBSourceChecks',
+    'Invoke-SBSourceCollect'
+)

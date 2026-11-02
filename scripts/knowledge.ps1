@@ -24,6 +24,7 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
     $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask -and !$SetLifecycle)

@@ -265,6 +265,20 @@ if [ -n "$SECONDBRAIN_SKIP_PRE_PUSH" ] && [ "$SECONDBRAIN_SKIP_PRE_PUSH" = "1" ]
     exit 0
 fi
 
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+    exit 0
+fi
+
+# Fail-closed: senza SecondBrain il push non e verificato, quindi si ferma con istruzioni.
+fail_closed() {
+    echo "[SecondBrain pre-push] ERRORE: $1" >&2
+    echo "[SecondBrain pre-push] Push annullato: la verifica REP05 non puo essere eseguita." >&2
+    echo "[SecondBrain pre-push] Per ripristinarla: imposta SECONDBRAIN_HOME sul clone di SecondBrain (pwsh -NoProfile -File <SecondBrain>/scripts/secondbrain.ps1 -Setup ... -RegisterEnvironment) e riapri il terminale." >&2
+    echo "[SecondBrain pre-push] Solo per un push una tantum e consapevole: SECONDBRAIN_SKIP_PRE_PUSH=1 git push ..." >&2
+    exit 1
+}
+
 PWSH_CMD=""
 if command -v pwsh >/dev/null 2>&1; then
     PWSH_CMD="pwsh"
@@ -273,13 +287,7 @@ elif command -v powershell >/dev/null 2>&1; then
 fi
 
 if [ -z "$PWSH_CMD" ]; then
-    echo "[SecondBrain pre-push] AVVISO: PowerShell non trovato nel PATH. Push consentito senza verifica REP05." >&2
-    exit 0
-fi
-
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
-if [ -z "$REPO_ROOT" ]; then
-    exit 0
+    fail_closed "PowerShell (pwsh) non trovato nel PATH."
 fi
 
 SB_ROOT="${SECONDBRAIN_HOME}"
@@ -287,9 +295,12 @@ if [ -z "$SB_ROOT" ] && [ -f "$REPO_ROOT/scripts/publication.ps1" ]; then
     SB_ROOT="$REPO_ROOT"
 fi
 
-if [ -z "$SB_ROOT" ] || [ ! -f "$SB_ROOT/scripts/publication.ps1" ]; then
-    echo "[SecondBrain pre-push] AVVISO: SECONDBRAIN_HOME non configurato e scripts/publication.ps1 non trovato. Push consentito." >&2
-    exit 0
+if [ -z "$SB_ROOT" ]; then
+    fail_closed "SECONDBRAIN_HOME non e impostata."
+fi
+
+if [ ! -f "$SB_ROOT/scripts/publication.ps1" ]; then
+    fail_closed "SECONDBRAIN_HOME punta a un percorso senza scripts/publication.ps1 (clone spostato o variabile obsoleta)."
 fi
 
 "$PWSH_CMD" -NoProfile -ExecutionPolicy Bypass -File "$SB_ROOT/scripts/publication.ps1" -RepositoryPath "$REPO_ROOT"
@@ -438,4 +449,15 @@ function Get-SBPublicationHookStatus {
     }
 }
 
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Test-SBPublicationText',
+    'Resolve-SBPublicationPolicyPath',
+    'Get-SBPublicationBaselinePath',
+    'Read-SBPublicationBaseline',
+    'Test-SBPublication',
+    'New-SBCaptureRecord',
+    'Export-SBPublicCapture',
+    'Install-SBPublicationHook',
+    'Uninstall-SBPublicationHook',
+    'Get-SBPublicationHookStatus'
+)

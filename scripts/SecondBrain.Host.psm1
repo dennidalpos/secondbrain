@@ -146,9 +146,10 @@ function Get-SBIDEAssets {
         @{id='manual-'+(Get-SBTextHash $name).Substring(0,8);name=$name;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@();installationEvidence=$evidence;profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';environmentFingerprint=(Get-SBIDEContext $name).fingerprint;selected=$false}
     }
 }
-function ConvertTo-SBComparablePath([string]$Path) {
+function ConvertTo-SBHostComparablePath([string]$Path) {
+    # Come ConvertTo-SBComparablePath di Core (unica forma di confronto), ma tollerante: percorso vuoto o non valido non interrompe la ricognizione.
     if(!$Path){return ''}
-    try{[IO.Path]::GetFullPath($Path).TrimEnd('\','/')}catch{$Path.TrimEnd('\','/')}
+    try{ConvertTo-SBComparablePath $Path}catch{$Path.TrimEnd('\','/').ToLowerInvariant()}
 }
 function Get-SBSharedPolicy([string]$BrainRoot) {
     $policy=@{allowedOwners=@();excludedDirectories=@();forbiddenRepositories=@()}
@@ -164,19 +165,19 @@ function Get-SBForbiddenRepositories([string]$BrainRoot,$HostConfig) {
     @($list+@((Get-SBSharedPolicy $BrainRoot).forbiddenRepositories))
 }
 function Test-SBForbiddenRepository($List,[string]$Path,[string]$Identity='') {
-    $comparable=ConvertTo-SBComparablePath $Path
+    $comparable=ConvertTo-SBHostComparablePath $Path
     foreach($f in @($List)){
-        if($f.ContainsKey('path') -and $f.path -and $comparable -and $comparable -ieq (ConvertTo-SBComparablePath $f.path)){return $true}
+        if($f.ContainsKey('path') -and $f.path -and $comparable -and $comparable -ieq (ConvertTo-SBHostComparablePath $f.path)){return $true}
         if($f.ContainsKey('identity') -and $f.identity -and $Identity -and $f.identity -ieq $Identity){return $true}
     }
     $false
 }
 function Test-SBSystemAccessPath([string]$Path) {
     # Cartelle di sistema o di altri profili: un accesso negato li e atteso e non rende incompleta la ricognizione.
-    $full=ConvertTo-SBComparablePath $Path
+    $full=ConvertTo-SBHostComparablePath $Path
     if(!$full){return $false}
     foreach($base in @($env:SystemRoot,$env:ProgramFiles,${env:ProgramFiles(x86)},$env:ProgramData)){
-        if($base){$prefix=ConvertTo-SBComparablePath $base;if($full -ieq $prefix -or $full.StartsWith($prefix+'\',[StringComparison]::OrdinalIgnoreCase)){return $true}}
+        if($base){$prefix=ConvertTo-SBHostComparablePath $base;if($full -ieq $prefix -or $full.StartsWith($prefix+'\',[StringComparison]::OrdinalIgnoreCase)){return $true}}
     }
     if($full -match '^[A-Za-z]:\\(?:\$Recycle\.Bin|System Volume Information|Recovery|Config\.Msi|Documents and Settings)(?:\\|$)'){return $true}
     if($full -match '^[A-Za-z]:\\Users\\(?<profile>[^\\]+)(?:\\|$)'){return $Matches.profile -ine $env:USERNAME}
@@ -281,4 +282,16 @@ function Get-SBWorkEnvironment {
     $map=@{SECONDBRAIN_WORK_ROOT=$root;TEMP=(Join-Path $root 'temp');TMP=(Join-Path $root 'temp');TMPDIR=(Join-Path $root 'temp');XDG_CACHE_HOME=(Join-Path $root 'cache');npm_config_cache=(Join-Path $root 'cache/npm');NUGET_PACKAGES=(Join-Path $root 'cache/nuget');DOTNET_CLI_HOME=(Join-Path $root 'cache/dotnet');GRADLE_USER_HOME=(Join-Path $root 'cache/gradle');CARGO_TARGET_DIR=(Join-Path $root 'build/cargo');PIP_CACHE_DIR=(Join-Path $root 'cache/pip');PYTHONPYCACHEPREFIX=(Join-Path $root 'cache/python')}
     @{root=$root;location=$location;advice=$advice;environment=$map;buildRoot=(Join-Path $root 'build');status='configuration-only';exceptions=@('Tool-specific intermediate/output configuration must be verified in the product repository; environment alone does not redirect every build output.')}
 }
-Export-ModuleMember -Function *-SB*
+Export-ModuleMember -Function @(
+    'Get-SBHostId',
+    'Get-SBHostConfigPath',
+    'Get-SBCheckoutAsset',
+    'Get-SBIDEContext',
+    'Get-SBIDEAssets',
+    'Get-SBSharedPolicy',
+    'Get-SBForbiddenRepositories',
+    'Test-SBForbiddenRepository',
+    'Test-SBSystemAccessPath',
+    'Invoke-SBHostDiscovery',
+    'Get-SBWorkEnvironment'
+)

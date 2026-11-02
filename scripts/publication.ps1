@@ -37,6 +37,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 try{
     if($InstallHook){

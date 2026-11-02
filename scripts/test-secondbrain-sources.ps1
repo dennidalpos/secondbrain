@@ -5,6 +5,7 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1') -Force
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $passed=0
 function Assert-Source($Value,[string]$Message){if(!$Value){throw "FAIL SOURCE: $Message"};$script:passed++;"PASS SOURCE: $Message"}
 function Throws-Source([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert-Source $caught $Message}
