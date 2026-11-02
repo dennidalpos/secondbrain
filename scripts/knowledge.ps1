@@ -85,6 +85,9 @@ try{
         if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
         $repoId=if($Repository){$Repository}else{$working}
         $result=if($NewTask){
+            # Con pwsh -File gli elenchi arrivano come stringa unica: ';' separa i criteri e le dipendenze.
+            $DependsOn=@($DependsOn|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
+            $Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repoId -WorkingRepository $working -Title $NewTask -Id $TaskId -Description $Description -Priority $Priority -Execution $Execution -DependsOn $DependsOn -Acceptance $Acceptance -ProvenanceReference $Provenance -ProvenancePointer $ProvenancePointer -BackupRoot $config.backupRoot
         }else{
             Invoke-SBTrackerRenumber -BrainRoot $brain -Identity $repoId -WorkingRepository $working -BackupRoot $config.backupRoot -Apply:$Apply

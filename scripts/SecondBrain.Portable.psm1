@@ -10,6 +10,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 
+# Destinazione di SECONDBRAIN_HOME: 'User' in produzione; le prove la portano a 'Process' per non toccare l'ambiente dell'utente.
+$script:SBEnvironmentScope='User'
+
 function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(Get-SBHostId)) {
     $root=Get-SBLocalRoot $BrainRoot $WorkstationId
     @{schemaVersion=1;mode='portable';workstationId=$WorkstationId;runtimeRoot=$root;backupRoot=(Join-Path $root 'backups');repositoryRoot=[IO.Path]::GetFullPath($BrainRoot);
@@ -130,7 +133,7 @@ function Invoke-SBHostActivation {
         $lock=Enter-SBOperation $lockConfig $SessionId
         try{
             Invoke-SBParaTransaction $operations $configuration.backupRoot $BrainRoot|Out-Null
-            if($RegisterEnvironment){[Environment]::SetEnvironmentVariable('SECONDBRAIN_HOME',[IO.Path]::GetFullPath($BrainRoot),'User')}
+            if($RegisterEnvironment){[Environment]::SetEnvironmentVariable('SECONDBRAIN_HOME',[IO.Path]::GetFullPath($BrainRoot),$script:SBEnvironmentScope)}
             Update-SBParaIndex (Read-SBConfiguration $configPath)|Out-Null
         }finally{Exit-SBOperation $lock}
     }

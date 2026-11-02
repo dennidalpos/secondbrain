@@ -93,6 +93,23 @@ try{
     $beforeEnvironment=[Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User')
     $activation=Invoke-SBHostActivation $brain $selection -Apply
     Assert-Portable ($activation.applied -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $beforeEnvironment) 'attivazione fixture non cambia ambiente utente'
+    # Ramo positivo di -RegisterEnvironment: la scrittura va nel solo processo di prova e il valore utente resta intatto.
+    $portableModule=Get-Module SecondBrain.Portable
+    $savedProcessHome=[Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','Process')
+    # Come a riga 899: la seconda attivazione in-process confligge con il registro postazioni scritto dalla prima; lo si sposta e lo si ripristina.
+    $stationRegistry=Join-Path $brain '.runtime/access/workstations.json';$stationRegistryText=if(Test-Path -LiteralPath $stationRegistry){[IO.File]::ReadAllText($stationRegistry)}else{$null}
+    try{
+        & $portableModule {$script:SBEnvironmentScope='Process'}
+        [Environment]::SetEnvironmentVariable('SECONDBRAIN_HOME',$null,'Process')
+        Remove-Item -LiteralPath $stationRegistry -Force -ErrorAction SilentlyContinue
+        $registered=Invoke-SBHostActivation $brain $selection -Apply -RegisterEnvironment
+        Assert-Portable ($registered.applied -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','Process') -eq [IO.Path]::GetFullPath($brain)) '-RegisterEnvironment scrive SECONDBRAIN_HOME nel solo ambito isolato'
+        Assert-Portable ([Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $beforeEnvironment) '-RegisterEnvironment isolato non altera la variabile utente'
+    }finally{
+        & $portableModule {$script:SBEnvironmentScope='User'}
+        [Environment]::SetEnvironmentVariable('SECONDBRAIN_HOME',$savedProcessHome,'Process')
+        if($null -ne $stationRegistryText){[IO.File]::WriteAllText($stationRegistry,$stationRegistryText,[Text.UTF8Encoding]::new($false))}else{Remove-Item -LiteralPath $stationRegistry -Force -ErrorAction SilentlyContinue}
+    }
     $cfg=Read-SBJson $activation.configuration $null
     Assert-Portable ($cfg.bindings.Count -eq 1 -and !$cfg.ContainsKey('monitorEnabled')) 'solo asset selezionato e nessun monitor'
     Assert-Portable (!(Test-Path -LiteralPath (Join-Path $other 'AGENTS.md'))) 'repository non selezionato intatto'
@@ -507,6 +524,18 @@ try{
             $env:SECONDBRAIN_HOME=Join-Path $repos 'clone-spostato con spazi'
             $hookBadHome=(& $shCommand.Source $hookFile 2>&1|Out-String);$hookBadHomeExit=$LASTEXITCODE
             Assert-Portable ($hookBadHomeExit -eq 1 -and $hookBadHome -match 'senza scripts/publication.ps1') 'hook con SECONDBRAIN_HOME errato (clone spostato, percorso con spazi) blocca il push'
+            # Ramo pwsh assente: PATH ridotto alle cartelle di sh e git.
+            $savedPath=$env:PATH
+            try {
+                $gitDir=Split-Path (Get-Command git -CommandType Application|Select-Object -First 1).Source
+                $env:PATH=((@((Split-Path $shCommand.Source),$gitDir)|Select-Object -Unique) -join [IO.Path]::PathSeparator)
+                if(Get-Command pwsh,powershell -CommandType Application -ErrorAction SilentlyContinue){
+                    Write-Warning 'pwsh o powershell raggiungibili dalle cartelle di sh e git: prova del ramo pwsh assente saltata'
+                } else {
+                    $hookNoPwsh=(& $shCommand.Source $hookFile 2>&1|Out-String);$hookNoPwshExit=$LASTEXITCODE
+                    Assert-Portable ($hookNoPwshExit -eq 1 -and $hookNoPwsh -match 'PowerShell \(pwsh\) non trovato' -and $hookNoPwsh -match 'Push annullato' -and $hookNoPwsh -match 'SECONDBRAIN_SKIP_PRE_PUSH=1') 'hook senza pwsh nel PATH blocca il push con istruzioni'
+                }
+            } finally { $env:PATH=$savedPath }
             $env:SECONDBRAIN_SKIP_PRE_PUSH='1'
             & $shCommand.Source $hookFile *> $null
             Assert-Portable ($LASTEXITCODE -eq 0) 'hook con SECONDBRAIN_SKIP_PRE_PUSH=1 consente il push una tantum'
@@ -931,6 +960,14 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($LASTEXITCODE -eq 0 -and (@((Read-SBJson (Join-Path (Join-Path $brain $twoBinding.dossier) 'tracker.json') $null).tasks)[0].status -eq 'in_progress')) 'scrittura sul tracker del repository in lavoro consentita'
         $startupCli=(& pwsh -NoProfile -File $knowledgeCli -Startup -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
         Assert-Portable ($startupCli.repository -eq $twoBinding.identity) 'knowledge -Startup senza dossier risolve il checkout corrente'
+        # pwsh -File passa gli elenchi come stringa unica: ';' separa criteri e dipendenze.
+        $twoDossierDir=Join-Path $brain $twoBinding.dossier;$twoTrackerPath=Join-Path $twoDossierDir 'tracker.json'
+        Put-Portable (Join-Path $twoDossierDir 'history/cli-source.md') "fonte`n"
+        & pwsh -NoProfile -File $knowledgeCli -RenumberTasks -Apply -ConfigPath $isoActivation.configuration *> $null
+        Assert-Portable ($LASTEXITCODE -eq 0) 'knowledge -RenumberTasks -Apply numera il tracker della fixture'
+        & pwsh -NoProfile -File $knowledgeCli -NewTask 'Task da CLI' -Acceptance 'primo criterio; secondo criterio' -DependsOn 'ISO-TWO' -Provenance 'history/cli-source.md' -ConfigPath $isoActivation.configuration *> $null
+        $cliCreated=@((Read-SBJson $twoTrackerPath $null).tasks|Where-Object {$_.title -like '*Task da CLI'})
+        Assert-Portable ($LASTEXITCODE -eq 0 -and $cliCreated.Count -eq 1 -and @($cliCreated[0].acceptance).Count -eq 2 -and $cliCreated[0].acceptance[1] -eq 'secondo criterio' -and @($cliCreated[0].dependencies).Count -eq 1) 'knowledge -NewTask con pwsh -File separa i criteri con ;'
     }finally{Pop-Location}
     Push-Location $fixture
     try{
@@ -1340,7 +1377,7 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
             'restore-managed.ps1'=@('-MetadataPath',$missingJson);'import-tracker.ps1'=@('-Apply','-Repository','github.com/acme/repo','-SourcePath',$missingJson)
             'rollback-repo.ps1'=@('-RepositoryIdentity','github.com/acme/repo','-Apply');'para.ps1'=@('-BuildIndex')
             'assets.ps1'=@('-RepositoryPath',$brain,'-ManifestPath',$missingJson,'-Export','-Name','n','-Apply');'access.ps1'=@('-Reconcile')
-            'mcp-server.ps1'=@('-Pair','-Target','codex','-Apply')
+            'mcp-server.ps1'=@('-Pair','-Target','codex','-Apply');'backup.ps1'=@()
         }
         foreach($writerName in $writerCalls.Keys){
             $writerResult=Invoke-FixtureCli $writerName $writerCalls[$writerName]
@@ -1352,6 +1389,11 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
         Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue
         if(!$simHolder.HasExited){Stop-Process -Id $simHolder.Id -Force};$simHolder.WaitForExit(10000)|Out-Null
     }
+    # A lock libero il backup serializzato riesce e il suo archivio si verifica.
+    $backupZip=Join-Path $hostRoot 'backups/serializzato.zip'
+    $backupFree=Invoke-FixtureCli 'backup.ps1' @('-OutputPath',$backupZip)
+    $backupVerify=Invoke-FixtureCli 'backup.ps1' @('-Verify','-BackupPath',$backupZip)
+    Assert-Portable ($backupFree.exit -eq 0 -and $backupFree.text -match 'BACKUP SUCCESS' -and $backupVerify.exit -eq 0 -and $backupVerify.text -match 'VERIFY SUCCESS') 'backup a lock libero riesce e l archivio si verifica'
     $mixedDrive=$brain.Substring(0,1);$mixedTail=$brain.Substring(2);$otherDrive=if($mixedDrive -ieq 'Z'){'Y'}else{'Z'}
     Assert-Portable ((Test-SBSamePath ('\\127.0.0.1\'+$mixedDrive+'$'+$mixedTail) $brain) -and (Test-SBSamePath ('\\'+$env:COMPUTERNAME+'\'+$mixedDrive.ToLowerInvariant()+'$'+$mixedTail) $brain) -and (Test-SBSamePath ('\\'+$env:COMPUTERNAME+'.corp.local\'+$mixedDrive+'$'+$mixedTail) $brain)) 'alias amministrativi locali: indirizzo di loopback, nome macchina e FQDN equivalgono al drive'
     Assert-Portable (!(Test-SBSamePath ('\\localhost\'+$otherDrive+'$'+$mixedTail) $brain) -and !(Test-SBSamePath ('\\localhost\dati'+$mixedTail) $brain)) 'alias amministrativi: drive diverso o condivisione non amministrativa non equivalgono'

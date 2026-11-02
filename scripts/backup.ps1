@@ -13,6 +13,8 @@ param(
     [string]$ConfigPath,
     [Parameter(ParameterSetName='Backup')]
     [string]$OutputPath,
+    [Parameter(ParameterSetName='Backup')]
+    [string]$SessionId,
     [Parameter(Mandatory,ParameterSetName='Verify')]
     [switch]$Verify,
     [Parameter(ParameterSetName='Verify')]
@@ -29,6 +31,8 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
 $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 
@@ -126,6 +130,11 @@ if (!$OutputPath) {
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 [System.IO.Directory]::CreateDirectory((Split-Path $resolvedOutput)) | Out-Null
 
+# Il backup legge i dati che i writer modificano: entra nella coda FIFO e prende il lock di scrittura (exit 3 se occupato oltre l'attesa).
+# A postazione non attivata il lock usa la cartella di coordinamento predefinita del cervello.
+$lockConfig = if ($config) { $config } else { @{ brainRoot = $brain; coordinationRoot = (Join-Path $brain '.runtime/access'); workstationId = 'non-attivata'; sessionTimeoutMinutes = 30; lockWaitMs = 60000 } }
+$lock = Enter-SBOperation $lockConfig $SessionId -LockOnly
+try {
 $includeTargets = @(
     @{ type = 'dir';  path = '01-projects' },
     @{ type = 'dir';  path = '02-areas' },
@@ -229,4 +238,5 @@ $zipSize = (Get-Item -LiteralPath $resolvedOutput).Length
 
 Write-Output "BACKUP SUCCESS: Creato archivio in $resolvedOutput"
 Write-Output "File inclusi: $($fileList.Count) | Dimensione: $zipSize bytes | SHA-256: $zipHash"
+} finally { Exit-SBOperation $lock }
 exit 0

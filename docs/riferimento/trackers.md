@@ -98,7 +98,8 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks
 pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks -Apply
 
 # Nuovo task: seq = lastSeq + 1, ID predefinito TASK-NNN, provenienza relativa al dossier con hash calcolato.
-# Da una sessione PowerShell: con pwsh -File gli elenchi (-Acceptance, -DependsOn) non arrivano come array.
+# Con pwsh -File gli elenchi (-Acceptance, -DependsOn) arrivano come stringa unica: separali con ';' ("criterio 1; criterio 2").
+# Da una sessione PowerShell si possono passare anche come array ('criterio 1','criterio 2').
 & ./scripts/knowledge.ps1 -NewTask 'Titolo' -Acceptance 'criterio 1','criterio 2' -Provenance 'history/<lotto>/report.md' [-TaskId <id>] [-DependsOn <id>,<repo>#<id>] [-Priority P1] [-Execution user_required] [-Description '...']
 ```
 

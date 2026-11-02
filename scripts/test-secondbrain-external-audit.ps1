@@ -2,8 +2,8 @@
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ExternalAudit.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
-$script:auditChecks=0
-function Assert-Audit($Condition,[string]$Message){if(!$Condition){throw 'FAIL AUDIT: '+$Message};$script:auditChecks++;'PASS AUDIT: '+$Message}
+. (Join-Path $PSScriptRoot 'test-helpers.ps1')
+$script:auditLabel='AUDIT';$script:auditChecks=0
 function Response-Audit($Body,[int]$Code=200,$Headers=@{}){@{statusCode=$Code;headers=$Headers;body=$Body;bodySha256=Get-SBTextHash (ConvertTo-SBJson $Body);errorKind=$null}}
 function Resource-Audit([scriptblock]$Request,[int]$MaxPages=1000){Get-SBAuditResource 'https://api.github.com/repos/test/repo/issues?per_page=100' 'issues' $true @{halted=$false;reason=$null} $Request $MaxPages}
 

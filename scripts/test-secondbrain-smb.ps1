@@ -88,6 +88,19 @@ $h.Dispose()
 $line="$Id;$enter;$leave;$([int]([DateTime]::UtcNow-$t0).TotalMilliseconds)`n"
 for($i=0;$i -lt 50;$i++){try{[IO.File]::AppendAllText($Log,$line);break}catch{Start-Sleep -Milliseconds 50}}
 '@
+Set-Content -LiteralPath (Join-Path $tools 'fifo-writer.ps1') -Encoding utf8 -Value @'
+param($Scripts,$Root,$Log,$Id,$Stop)
+Import-Module (Join-Path $Scripts 'SecondBrain.Core.psm1') -Force
+Import-Module (Join-Path $Scripts 'SecondBrain.Access.psm1') -Force
+$h=Open-SBWriterLock @{coordinationRoot=$Root;workstationId='smb-fifo'} (Join-Path $Root 'writer.lock') 90000
+$enter=[DateTime]::UtcNow.Ticks
+$end=[DateTime]::UtcNow.AddSeconds(90)
+while($Stop -and ![IO.File]::Exists($Stop) -and [DateTime]::UtcNow -lt $end){Start-Sleep -Milliseconds 100}
+$leave=[DateTime]::UtcNow.Ticks
+$h.Dispose()
+$line="$Id;$enter;$leave`n"
+for($i=0;$i -lt 50;$i++){try{[IO.File]::AppendAllText($Log,$line);break}catch{Start-Sleep -Milliseconds 50}}
+'@
 Set-Content -LiteralPath (Join-Path $tools 'probe.ps1') -Encoding utf8 -Value "'probe-ok'"
 
 function Start-Child([string]$Script, [string[]]$Arguments, [string[]]$Pre = @()) {
@@ -167,6 +180,32 @@ $overlap = $false
 for ($k = 1; $k -lt $intervals.Count; $k++) { if ($intervals[$k].enter -lt $intervals[$k - 1].leave) { $overlap = $true } }
 Add-Result "scritture concorrenti ($Writers processi, alias diversi): tutte completate" ($intervals.Count -eq $Writers) "$($intervals.Count)/$Writers"
 Add-Result 'scritture concorrenti: mutua esclusione (nessuna sovrapposizione)' (!$overlap -and $intervals.Count -gt 1) (($intervals | ForEach-Object { "$($_.id) attesa $($_.waitedMs) ms" }) -join '; ')
+
+# 3b. Coda FIFO (Open-SBWriterLock): il primo writer tiene il lock, gli altri si accodano uno alla volta (ordine di arrivo noto) e devono entrare nello stesso ordine.
+$fifoRoot = Get-UncPath $Aliases[0] 'fifo-coord'
+New-Item -ItemType Directory -Force -Path $fifoRoot | Out-Null
+$fifoLog = Join-Path $localFixture 'fifo.log'; $fifoStop = Join-Path $localFixture 'fifo.stop'
+$fifoProcs = [Collections.Generic.List[object]]::new()
+$fifoReady = $true
+for ($n = 0; $n -lt $Writers -and $fifoReady; $n++) {
+    $alias = $Aliases[$n % $Aliases.Count]
+    $fifoProcs.Add((Start-Child 'fifo-writer.ps1' @((Join-Path $brain 'scripts'), (Get-UncPath $alias 'fifo-coord'), $fifoLog, "w$n", $fifoStop)))
+    # Il successivo parte solo quando il precedente e visibile: w0 ha il lock (writer.lock creato), gli altri hanno un ticket in coda.
+    $fifoReady = if ($n -eq 0) { Wait-File (Join-Path $fifoRoot 'writer.lock') 60 } else {
+        $queued = 0
+        for ($t = 0; $t -lt 240 -and $queued -lt $n; $t++) { $queued = @(Get-ChildItem -LiteralPath (Join-Path $fifoRoot 'queue') -Filter '*.lease' -File -ErrorAction SilentlyContinue).Count; if ($queued -lt $n) { Start-Sleep -Milliseconds 250 } }
+        $queued -ge $n
+    }
+}
+[IO.File]::WriteAllText($fifoStop, 'stop')
+foreach ($p in $fifoProcs) { if (!$p.WaitForExit(180000)) { $p.Kill() } }
+$fifoLines = if ([IO.File]::Exists($fifoLog)) { @([IO.File]::ReadAllLines($fifoLog) | Where-Object { $_ }) } else { @() }
+$fifoOrder = @($fifoLines | ForEach-Object { $f = $_ -split ';'; [pscustomobject]@{ id = $f[0]; enter = [long]$f[1]; leave = [long]$f[2] } } | Sort-Object enter)
+$expectedOrder = (0..($Writers - 1) | ForEach-Object { "w$_" }) -join ','
+$fifoOverlap = $false
+for ($k = 1; $k -lt $fifoOrder.Count; $k++) { if ($fifoOrder[$k].enter -lt $fifoOrder[$k - 1].leave) { $fifoOverlap = $true } }
+$actualOrder = ($fifoOrder | ForEach-Object id) -join ','
+Add-Result "coda FIFO su share ($Writers writer, alias diversi): ingresso in ordine di arrivo" ($fifoReady -and $actualOrder -eq $expectedOrder -and !$fifoOverlap) "atteso $expectedOrder, osservato $actualOrder"
 
 # 4. ExecutionPolicy: esito osservato per alias (informativo, dipende da zona e criterio).
 Copy-Item -LiteralPath (Join-Path $tools 'probe.ps1') -Destination (Get-UncPath $Aliases[0] 'probe.ps1') -Force

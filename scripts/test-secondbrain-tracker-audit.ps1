@@ -7,8 +7,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
-$script:checks=0
-function Assert-Audit($Condition,[string]$Message){if(!$Condition){throw 'FAIL TRACKER AUDIT: '+$Message};$script:checks++;'PASS TRACKER AUDIT: '+$Message}
+$script:auditLabel='TRACKER AUDIT';$script:auditChecks=0
 function Reject-Audit([scriptblock]$Action,[string]$Message,[string]$Pattern=''){$caught=$false;try{& $Action|Out-Null}catch{if($Pattern -and $_.Exception.Message -notmatch $Pattern){throw};$caught=$true};Assert-Audit $caught $Message}
 function Put-Audit([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function New-AuditFixture([string]$Name){
@@ -217,7 +216,7 @@ try {
         Assert-Audit (@(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'Check coerente dopo recupero transazionale'
     }
     $success=$true
-    'SUCCESS TRACKER AUDIT: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion
+    'SUCCESS TRACKER AUDIT: '+$script:auditChecks+' verifiche; runtime='+$PSVersionTable.PSVersion
 } finally {
     if($success){
         $full=[IO.Path]::GetFullPath($root);$boundary=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar

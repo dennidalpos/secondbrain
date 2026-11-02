@@ -71,15 +71,16 @@ Il percorso del manifest riportato è già riscritto sull'alias del PC corrente.
 Sempre in `test-secondbrain-portable.ps1`: un clone del cervello in un percorso più profondo e con spazi, checkout con gli stessi remoti in una radice diversa e profilo utente deviato (`USERPROFILE`, `APPDATA`, `LOCALAPPDATA`). Il test verifica che `-Setup` sul secondo percorso crei binding propri con le stesse identità, riusi i dossier esistenti senza duplicarli, sia idempotente, non modifichi la configurazione del primo clone né `SECONDBRAIN_HOME`, e che `-Setup -Status` e `-Check` operino sulla sola configurazione locale. Resta non coperto, e quindi `SB-PORTABLE-SECONDHOST-20261029` non può dirsi chiuso: `MachineName` e SID reali di un altro PC (l'id di postazione deriva da entrambi), variabili utente persistenti, drive e permessi diversi, IDE e account realmente installati.
 
 ### Prova su SMB di loopback
-`scripts/test-secondbrain-smb.ps1` raggiunge la share amministrativa dell'unità del clone (`\\<alias>\D$`) con `localhost`, `127.0.0.1` e nome macchina (e FQDN se diverso dal nome): le richieste passano dallo stack SMB, ma client e server sono lo stesso PC. Non crea share né utenti; con `-ShareRoot` e `-ShareLocalPath` si indica una share creata a mano. Esito del 2026-11-01 (11 controlli vincolanti su 11, esito `partial`):
+`scripts/test-secondbrain-smb.ps1` raggiunge la share amministrativa dell'unità del clone (`\\<alias>\D$`) con `localhost`, `127.0.0.1` e nome macchina (e FQDN se diverso dal nome): le richieste passano dallo stack SMB, ma client e server sono lo stesso PC. Non crea share né utenti; con `-ShareRoot` e `-ShareLocalPath` si indica una share creata a mano. Esito del 2026-11-02 (12 controlli vincolanti su 12, esito `partial`):
 
 - scrittura e lettura di 1 MiB con hash corretto su ogni alias;
 - `FileShare.None` tenuto via un alias respinge l'apertura via tutti gli altri alias e dal percorso locale (HRESULT 32); il lock si rilascia alla chiusura e alla terminazione forzata del titolare;
 - 4 processi su alias diversi con `Open-SBLockFile`: tutti completati, nessuna sovrapposizione;
+- coda FIFO (`Open-SBWriterLock`) con coordinamento sulla share: 4 writer su alias diversi, accodati uno alla volta, entrano nell'ordine di arrivo e senza sovrapposizioni;
 - ExecutionPolicy (Default, RemoteSigned, Bypass): lo script su UNC si esegue con tutti gli alias, con la policy locale `RemoteSigned`;
 - una negazione ACL ereditabile vale anche via UNC.
 
-Non coperti: secondo PC, utente diverso, NAS/Samba, FQDN diverso dal nome breve (il PC non è in dominio). Lo scenario con il cervello su share resta quindi non dichiarato supportato per più PC. La fixture e `report.json` restano sotto `.runtime/tests/smb-<data>`.
+Non coperti: secondo PC, utente diverso, NAS/Samba, FQDN diverso dal nome breve (il PC non è in dominio). L'ordine FIFO su SMB reale non è provato: i ticket sono ordinati dall'orologio UTC di ogni PC, quindi con orologi sfasati tra postazioni l'ordine di arrivo può risultare diverso (nel loopback l'orologio è unico). Lo scenario con il cervello su share resta quindi non dichiarato supportato per più PC. La fixture e `report.json` restano sotto `.runtime/tests/smb-<data>`.
 
 ### Prova su una vera share
 
