@@ -102,6 +102,59 @@ function Split-SBTieredMarkdown([string]$Text) {
     }
     @{essential=$essential.ToString();history=$history.ToString();historyTitles=$titles}
 }
+# Vista per agenti di memory.md (memory.agent.md): file derivato, mai modificato a mano. Una voce per riga, `- [T#id] data · scope · testo`,
+# con T = D decisione, G gotcha, A architettura, C vincolo. Contiene le sole parti essenziali; le voci in forma libera (storiche) sono classificate
+# dal titolo di sezione o dal prefisso (Decisione:/Gotcha:) con data `s.d.`. L'intestazione riporta l'hash della fonte: allineamento verificato da -Check.
+function Get-SBAgentViewScope([string]$Heading) {
+    $slug=([regex]::Replace($Heading.ToLowerInvariant(),'[^a-z0-9]+','-')).Trim('-')
+    if(!$slug){return 'generale'}
+    if($slug.Length -gt 30){$slug=$slug.Substring(0,30).Trim('-')}
+    $slug
+}
+function Get-SBAgentViewType([string]$Heading,[string]$Text) {
+    if($Text -match '^(?i)decisione\s*:'){return 'D'}
+    if($Text -match '^(?i)gotcha\s*:'){return 'G'}
+    if($Heading -match '(?i)decision'){return 'D'}
+    if($Heading -match '(?i)lesson|gotcha'){return 'G'}
+    if($Heading -match '(?i)vincol|constraint|identit|font[ei]'){return 'C'}
+    'A'
+}
+function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
+    $normalized=$MemoryText.Replace("`r`n","`n")
+    $sourceHash=Get-SBTextHash $normalized
+    $essential=(Split-SBTieredMarkdown $normalized).essential
+    $entries=[Collections.Generic.List[object]]::new();$seen=@{};$heading='';$fence=$false
+    $schema='^\[(?<t>[DGAC])\]\s+(?<d>\d{4}-\d{2}-\d{2}|s\.d\.)\s+·\s+(?<s>[^·]+?)\s+·\s+(?<x>.+)$'
+    $add={
+        param([string]$Raw)
+        $text=([regex]::Replace(($Raw -replace '\*\*',''),'\s+',' ')).Trim()
+        if(!$text -or $text -match '^Originale conservato:'){return}
+        if($text -match $schema){$type=$Matches.t;$date=$Matches.d;$scope=$Matches.s.Trim();$body=$Matches.x.Trim()}
+        else{$type=Get-SBAgentViewType $heading $text;$date='';$scope='';$body=$text}
+        $id=(Get-SBTextHash $body).Substring(0,6).ToLowerInvariant()
+        if($seen.ContainsKey($id)){return}
+        $seen[$id]=$true
+        $entries.Add(@{type=$type;id=$id;date=$date;scope=$scope;text=$body})
+    }
+    $pending=$null
+    foreach($line in ($essential -split "`n")){
+        if($line -match '^\s*(```|~~~)'){$fence=!$fence;continue}
+        if($fence){continue}
+        if($line -match '^#{1,6}\s+(?<h>.+?)\s*$'){if($null -ne $pending){& $add $pending;$pending=$null};$heading=$Matches.h;continue}
+        if($line -match '^[-*]\s+(?<x>.*)$'){if($null -ne $pending){& $add $pending};$pending=$Matches.x;continue}
+        if(!$line.Trim()){if($null -ne $pending){& $add $pending;$pending=$null};continue}
+        if($null -ne $pending){$pending+=' '+$line.Trim()}else{$pending=$line.Trim()}
+    }
+    if($null -ne $pending){& $add $pending}
+    $out=[Collections.Generic.List[string]]::new()
+    $out.Add('<!-- sb:agent-view v1 source='+$sourceHash+' -->')
+    $out.Add('# Memoria (vista per agenti)')
+    $out.Add('')
+    $out.Add('Derivata da memory.md, non modificare. Voce: `[T#id] [data · scope ·] testo`; T = D decisione, G gotcha, A architettura, C vincolo.')
+    $out.Add('')
+    foreach($entry in $entries){$out.Add('- ['+$entry.type+'#'+$entry.id+'] '+$(if($entry.date){$entry.date+' · '+$entry.scope+' · '}else{''})+$entry.text)}
+    ($out -join "`n")+"`n"
+}
 function Format-SBSlimTasks($Projection) {
     # Una riga per task pronto: ID, priorita, stato, titolo. Descrizione, criteri ed evidenze restano a get_task / knowledge.ps1 -Task.
     $rows=@()
@@ -140,7 +193,14 @@ function Get-SBStartupContext {
         $omitted+=@{part='storico del dossier (history/, knowledge/, topics/)';characters=0;sections=@();how='history/index.md e indice del dossier; knowledge.ps1 -Section <titolo> per una sezione intera, -Search per cercare anche in archivio tracker e rapporti (-Offset/-Limit)'}
         $levelLines=@('# Livelli non caricati','','Profilo Slim: sono caricate le sole parti essenziali. Nulla è stato eliminato; richiedi il resto quando serve.','')
         foreach($item in $omitted){$levelLines+=('- '+$item.part+$(if($item.characters){' — '+$item.characters+' caratteri'}else{''})+$(if(@($item.sections).Count){' ('+(@($item.sections) -join '; ')+')'}else{''})+': '+$item.how)}
-        $parts=@{index=$toc;context=$contextTiers.essential;memory=$memoryTiers.essential;tasks=(Format-SBSlimTasks $projection);levels=(($levelLines -join "`n")+"`n")}
+        # Memoria: la vista per agenti, se allineata alla fonte (stesso hash), sostituisce le parti essenziali di memory.md.
+        $memorySlim=$memoryTiers.essential
+        $viewPath=Join-Path $Dossier 'memory.agent.md'
+        if([IO.File]::Exists($viewPath)){
+            $viewExpected=ConvertTo-SBAgentMemoryView $memoryText
+            if((Get-SBFileHash $viewPath) -eq (Get-SBTextHash $viewExpected)){$memorySlim=$viewExpected}
+        }
+        $parts=@{index=$toc;context=$contextTiers.essential;memory=$memorySlim;tasks=(Format-SBSlimTasks $projection);levels=(($levelLines -join "`n")+"`n")}
     }
     $characters=($parts.Values|Measure-Object -Property Length -Sum).Sum
     @{repository=$record.identity;profile=$Profile;budget=$Budget;characters=$characters;withinBudget=($Budget -le 0 -or $characters -le $Budget);needsCompaction=($Budget -gt 0 -and $characters -gt $Budget);
@@ -237,6 +297,13 @@ function Split-SBSearchUnits([string[]]$Lines,[bool]$Markdown) {
     if($current.lines.Count){$units.Add($current)}
     $units
 }
+function Get-SBSearchDefaultLimit { 20 }
+function Get-SBSearchDefaultBudget { 10000 }
+function Limit-SBSearchLine([string]$Text,[int]$Max=600) {
+    # Riga lunga troncata con marcatore (la riga intera si legge con -Section o aprendo il file).
+    if($Text.Length -le $Max){return $Text}
+    $Text.Substring(0,$Max)+' [...+'+($Text.Length-$Max)+' car]'
+}
 function Find-SBKnowledge {
     [CmdletBinding()]
     param(
@@ -244,12 +311,16 @@ function Find-SBKnowledge {
         [Parameter(Mandatory)][string]$Search,
         [string]$Dossier='',
         [string]$Repository='',
-        [int]$Budget=0,
+        # -1 = valore predefinito (Get-SBSearchDefaultLimit / Get-SBSearchDefaultBudget); 0 = nessun tetto esplicito.
+        [ValidateRange(-1,[int]::MaxValue)][int]$Budget=-1,
         $Entities=@(),
         [ValidateSet('Literal','Relevance')][string]$Mode='Literal',
         [ValidateRange(0,[int]::MaxValue)][int]$Offset=0,
-        [ValidateRange(0,[int]::MaxValue)][int]$Limit=0
+        [ValidateRange(-1,[int]::MaxValue)][int]$Limit=-1,
+        [switch]$IncludeOriginals
     )
+    if($Budget -lt 0){$Budget=Get-SBSearchDefaultBudget}
+    if($Limit -lt 0){$Limit=Get-SBSearchDefaultLimit}
     $root=[IO.Path]::GetFullPath($BrainRoot)
     $targetDirs=@()
     if($Dossier){
@@ -267,7 +338,7 @@ function Find-SBKnowledge {
     $candidates=[Collections.Generic.List[object]]::new()
     $totalChars=0
     if([string]::IsNullOrWhiteSpace($Search)){
-        return @{search=$Search;query=$Search;mode=$Mode;budget=$Budget;offset=$Offset;limit=$Limit;hasMore=$false;characters=0;withinBudget=$true;totalMatches=0;count=0;extracts=@();matches=@()}
+        return @{search=$Search;query=$Search;mode=$Mode;budget=$Budget;offset=$Offset;limit=$Limit;hasMore=$false;nextOffset=$null;characters=0;withinBudget=$true;totalMatches=0;count=0;extracts=@()}
     }
     $tokens=@();$rankUnits=[Collections.Generic.List[object]]::new()
     if($Mode -eq 'Relevance'){$tokens=@(Get-SBSearchTokens $Search)}
@@ -278,8 +349,9 @@ function Find-SBKnowledge {
             $candidate=Join-Path $dir $name
             if(Test-Path -LiteralPath $candidate -PathType Leaf){$filesToSearch.Add($candidate)}
         }
+        # Gli originali compattati sono copie quasi identiche dei file correnti: cercati solo con -IncludeOriginals.
         $compactionDir=Join-Path $dir 'history/compaction'
-        if(Test-Path -LiteralPath $compactionDir -PathType Container){
+        if($IncludeOriginals -and (Test-Path -LiteralPath $compactionDir -PathType Container)){
             foreach($item in (Get-ChildItem -LiteralPath $compactionDir -File -Recurse|Sort-Object FullName)){
                 if($item.Extension -in @('.md','.json','.txt')){$filesToSearch.Add($item.FullName)}
             }
@@ -306,7 +378,7 @@ function Find-SBKnowledge {
             foreach($line in $lines){
                 $lineNum++
                 if($line.Contains($Search,[StringComparison]::OrdinalIgnoreCase)){
-                    $trimmed=$line.Trim()
+                    $trimmed=Limit-SBSearchLine $line.Trim()
                     $candidates.Add(@{extract=@{path=$relPath;line=$lineNum;sha256=$hash;text=$trimmed};size=($relPath.Length + $trimmed.Length + $hash.Length + 20)})
                 }
             }
@@ -335,7 +407,7 @@ function Find-SBKnowledge {
                 $lineNum++
                 $lower=$line.ToLowerInvariant()
                 if(!@($tokens|Where-Object {$lower.Contains($_)}).Count){continue}
-                $trimmed=$line.Trim()
+                $trimmed=Limit-SBSearchLine $line.Trim()
                 $candidates.Add(@{extract=@{path=$unit.path;line=$lineNum;sha256=$unit.sha256;text=$trimmed;score=$entry.score;section=[string]$unit.title};size=($unit.path.Length + $trimmed.Length + $unit.sha256.Length + 20)})
             }
         }
@@ -344,13 +416,14 @@ function Find-SBKnowledge {
     $totalMatches=$candidates.Count
     $page=@($candidates|Select-Object -Skip $Offset)
     if($Limit -gt 0){$page=@($page|Select-Object -First $Limit)}
+    # Il tetto di caratteri taglia la pagina al primo riscontro che lo supera (almeno uno e sempre incluso): la pagina resta contigua e nextOffset riprende da li.
     foreach($candidate in $page){
-        if($Budget -le 0 -or $totalChars + $candidate.size -le $Budget){
-            $extracts.Add($candidate.extract)
-            $totalChars += $candidate.size
-        }
+        if($Budget -gt 0 -and $extracts.Count -gt 0 -and $totalChars + $candidate.size -gt $Budget){break}
+        $extracts.Add($candidate.extract)
+        $totalChars += $candidate.size
     }
     $withinBudget=($page.Count -eq $extracts.Count)
+    $hasMore=(($Offset + $extracts.Count) -lt $totalMatches)
     @{
         search=$Search
         query=$Search
@@ -362,11 +435,11 @@ function Find-SBKnowledge {
         withinBudget=$withinBudget
         offset=$Offset
         limit=$Limit
-        hasMore=(($Offset + $page.Count) -lt $totalMatches)
+        hasMore=$hasMore
+        nextOffset=$(if($hasMore){$Offset + $extracts.Count}else{$null})
         totalMatches=$totalMatches
         count=$extracts.Count
         extracts=@($extracts)
-        matches=@($extracts)
     }
 }
 # Ciclo di vita del repository nel repository.json del dossier: assente (normale) oppure greenfield (blocco di versioni, changelog, migrazioni, alias e deprecations).
@@ -479,6 +552,11 @@ function Invoke-SBDossierCompaction {
         if($existing -eq 'absent'){$ops+=@{path=$archive;expected='absent';bytes=[IO.File]::ReadAllBytes($source)}}elseif($existing -ne $hash){throw 'Originale archiviato divergente'}
         $text=$text.TrimEnd()+"`n`nOriginale conservato: ["+$name+']('+$archiveRelative+"). Le autorizzazioni storiche non sono autorizzazioni correnti.`n"
         $ops+=@{path=$source;expected=$hash;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
+        if($name -eq 'memory.md'){
+            # La vista per agenti segue la nuova memoria nella stessa transazione.
+            $viewPath=Join-Path $dir 'memory.agent.md'
+            $ops+=@{path=$viewPath;expected=(Get-SBFileHash $viewPath);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBAgentMemoryView $text))}
+        }
         $archives+=@{source=$name;sha256=$hash;archive=$archiveRelative}
     }
     $tracker=Resolve-SBTracker -BrainRoot $root -Identity $record.identity -DossierPath $dir -CheckoutPath $CheckoutPath -AllowedOwners @()
@@ -502,6 +580,7 @@ Export-ModuleMember -Function @(
     'Get-SBDossierHistoryIndex',
     'Get-SBTaskProjection',
     'Split-SBTieredMarkdown',
+    'ConvertTo-SBAgentMemoryView',
     'Get-SBStartupContext',
     'Get-SBSlimStartupBudget',
     'Get-SBCompactionAdvice',
@@ -509,6 +588,8 @@ Export-ModuleMember -Function @(
     'Get-SBGlobalTasks',
     'Resolve-SBWorkingDossier',
     'Find-SBKnowledge',
+    'Get-SBSearchDefaultLimit',
+    'Get-SBSearchDefaultBudget',
     'Get-SBRepositoryLifecycle',
     'Set-SBRepositoryLifecycle',
     'Get-SBTaskDetail',

@@ -68,7 +68,7 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Report
 
 # Contesto completo (senza tetto) o ricerca mirata nei livelli non caricati
 pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Profile Full
-pwsh -NoProfile -File scripts/knowledge.ps1 -Search "termine"
+pwsh -NoProfile -File scripts/knowledge.ps1 -Search "termine"   # dossier in lavoro, 20 riscontri / 10.000 caratteri; -AllDossiers, -IncludeOriginals, -Limit 0 -Budget 0
 pwsh -NoProfile -File scripts/knowledge.ps1 -Search "più termini della richiesta" -Mode Relevance -Limit 10 -Offset 0
 
 # Recupero a strati: task integro (anche archiviato) o sezione intera
@@ -81,6 +81,10 @@ Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `fu
 **Caricamento a strati**: il profilo snello applica la Progressive Summarization (metodo di Tiago Forte, autore di PARA): ogni livello è un riassunto più breve dell'originale, e i livelli più profondi si leggono solo su richiesta. Qui il riassunto è sempre una scelta di sezioni, mai una riscrittura che perde informazioni: gli originali restano per hash.
 
 **Decisioni in `memory.md`**: ogni scelta durevole va in una riga `Decisione: … — Motivo: …`, senza file dedicati (ADR leggera). Il motivo permette di riesaminarla senza rileggere la cronaca.
+
+**Voci tipizzate (formato consigliato per le nuove voci)**: una riga per voce, `- [D|G|A|C] AAAA-MM-GG · scope · testo`, con D decisione, G gotcha, A architettura, C vincolo; per le decisioni il testo resta `Decisione: … — Motivo: …`. Le voci in forma libera già presenti restano valide e non vanno riscritte: la vista le classifica dal titolo di sezione o dal prefisso (`Decisione:`, `Gotcha:`).
+
+**Vista per agenti `memory.agent.md`**: file derivato da `memory.md` (non modificare), generato da `secondbrain.ps1 -Sync` e dalla compattazione; `-Check` segnala `agent-view-pending` se manca o è obsoleto. Contiene le sole parti essenziali, una voce per riga con tipo e id stabile (`[D#a1b2c3] …`), senza grassetti, righe vuote né note di archivio, con l'hash della fonte in intestazione. Il profilo snello la carica al posto delle parti essenziali di `memory.md` solo se l'hash coincide; altrimenti ricade su `memory.md`. Dà struttura uniforme, non una riduzione di dimensione: la riduzione viene dalla compattazione (SYS05). Il formato è Markdown puro, leggibile allo stesso modo da Claude, Codex e Antigravity.
 
 **Livelli in `memory.md` e `context.md`**: una sezione `##` è storica, e quindi non caricata nel profilo snello, se il titolo finisce con `(storico)` oppure se la prima riga sotto il titolo è `<!-- sb:tier=history -->`. Le decisioni durevoli e i gotcha restano nelle sezioni essenziali; la cronaca di sessioni e lotti va in quelle storiche. Un file senza marcatori si carica per intero. Per riorganizzare un dossier senza perdere nulla usa la compattazione conservativa (SYS05, `knowledge.ps1 -Compact -CandidatePath`): il candidato è revisionato, l'anteprima precede `-Apply` e gli originali restano per hash in `history/compaction/`.
 

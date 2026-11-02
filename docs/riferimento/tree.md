@@ -50,6 +50,7 @@ Solo la struttura con i `.gitkeep` e i README sono versionati; il contenuto rest
 | `repository.json` | Identità del repository (`github.com/…` o `local:…`), alias e dichiarazione del tracker (`location=dossier`, `path=tracker.json`, `schemaVersion=1`). |
 | `context.md` | Stato corrente, vincoli, problemi aperti e prossimo passo, in sintesi. |
 | `memory.md` | Decisioni durevoli e gotcha, in sintesi. |
+| `memory.agent.md` | Vista derivata di `memory.md` per gli agenti (generata da Sync, non modificare). |
 | `tracker.json` | Tracker autorevole dei task (schema v1): stato, priorità, dipendenze, criteri di accettazione, evidenze. |
 | `index.md`, `history/index.md` | Indici generati da `-Sync`: non modificare a mano. |
 | `authoritative-sources.json` | Applicabilità del registro fonti al prodotto (se presente). |

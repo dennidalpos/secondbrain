@@ -19,6 +19,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Task')][Parameter(ParameterSetName='Section')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
     [Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
+    [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@())
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
@@ -31,8 +32,10 @@ try{
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
-    # Il tetto vale solo per il primo caricamento (Slim: 20.000). Full e ricerca non hanno tetto (0) salvo -Budget esplicito; -Compact usa startupBudget o 50.000.
-    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search -or $Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
+    # Il tetto di avvio vale solo per il primo caricamento (Slim: 20.000); Full non ha tetto (0) salvo -Budget esplicito; -Compact usa startupBudget o 50.000.
+    # La ricerca ha un tetto predefinito (-1: 20 riscontri e 10.000 caratteri); -Limit 0 / -Budget 0 espliciti lo tolgono.
+    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
+    $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
     # Perimetro cooperativo: repository esplicito o, in sua assenza, quello del checkout in lavoro (directory corrente).
     $resolveWorking={
         if($Repository){return $Repository}
@@ -61,7 +64,12 @@ try{
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
         $result=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $Dossier -CandidatePath $CandidatePath -BackupRoot $config.backupRoot -Apply:$Apply -CheckoutPath $CheckoutPath -Budget $effectiveBudget}
-    elseif($Search){$result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $Repository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $Limit}
+    elseif($Search){
+        # Ambito predefinito: dossier del repository in lavoro (se risolvibile); -AllDossiers per tutte le aree attive.
+        $searchRepository=$Repository
+        if(!$Dossier -and !$Repository -and !$AllDossiers){try{$searchRepository=& $resolveWorking}catch{$searchRepository=''}}
+        $result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $searchRepository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $effectiveLimit -IncludeOriginals:$IncludeOriginals
+    }
     elseif($Task -or $Section){
         # Strati di approfondimento: dettaglio integro di un task (anche archiviato) o sezione intera per titolo, dal dossier del repository in lavoro.
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
@@ -102,7 +110,8 @@ try{
         $result=@(Get-SBGlobalTasks -BrainRoot $brain -All -ReadyOnly:$ReadyOnly)
     }
     else{$result=@(Get-SBGlobalTasks -BrainRoot $brain -Repository (& $resolveWorking) -ReadyOnly:$ReadyOnly)}
-    ConvertTo-SBJson $result
+    # Ricerca ed elenchi task in JSON compatto (nessuna indentazione): meno caratteri nel contesto dell'agente.
+    if($Search -or $All){(ConvertTo-SBStableValue $result|ConvertTo-Json -Depth 40 -Compress)}else{ConvertTo-SBJson $result}
     if($Startup -and !$result.withinBudget){exit 1}
 }catch{
     if(Test-SBBusyError $_){Write-Output $_.Exception.Message;exit 3}

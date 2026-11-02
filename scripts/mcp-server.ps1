@@ -82,6 +82,10 @@ if ($Pair) {
         Write-Host "Config file: $($item.ConfigFile)"
         Write-Host "`n--- Configurazione $($item.ConfigFormat.ToUpper()) da inserire ---"
         Write-Host $item.Snippet
+        if ($item.PSObject.Properties['PermissionsSnippet'] -and $item.PermissionsSnippet) {
+            Write-Host "`n--- Permessi opzionali (settings.json di Claude Code): evitano i popup per i soli strumenti di lettura ---"
+            Write-Host $item.PermissionsSnippet
+        }
         if ($item.CliCommand) {
             Write-Host "`n--- Comando CLI equivalente ---"
             Write-Host $item.CliCommand

@@ -173,17 +173,32 @@ try{
     Assert-Portable ($slimStartup.profile -eq 'Slim' -and $slimStartup.parts.memory.Contains('ESSENZIALE-MEMORIA') -and $slimStartup.parts.context.Contains('ESSENZIALE-CONTESTO') -and !$slimStartup.parts.memory.Contains('STORICO-MARCATO') -and !$slimStartup.parts.memory.Contains('cronaca di lotto')) 'profilo Slim carica le sezioni essenziali e salta quelle storiche'
     $uncapped=Get-SBStartupContext $brain $dossier $repo -Profile Full -Budget 0
     Assert-Portable ($uncapped.withinBudget -and !$uncapped.needsCompaction -and $uncapped.parts.memory.Contains($historyBulk)) 'Budget 0 = nessun tetto: Full carica tutto senza segnalare compattazione'
-    $manyMatches=Find-SBKnowledge -BrainRoot $brain -Search 'cronaca di lotto' -Dossier $dossier -Budget 0
+    $manyMatches=Find-SBKnowledge -BrainRoot $brain -Search 'cronaca di lotto' -Dossier $dossier -Budget 0 -Limit 0
     Assert-Portable ($manyMatches.count -eq $manyMatches.totalMatches -and $manyMatches.withinBudget -and $manyMatches.count -ge 1) 'ricerca senza tetto restituisce tutti i riscontri pertinenti'
     Assert-Portable ($slimStartup.characters -lt $fullStartup.characters -and $slimStartup.withinBudget -and $fullStartup.characters -gt 20000) 'profilo Slim rientra in 20.000 caratteri mentre Full no'
     Assert-Portable ($slimStartup.parts.levels -match 'Cronaca lotti' -and $slimStartup.parts.levels -match 'Altro storico' -and $slimStartup.parts.levels -match 'knowledge\.ps1' -and @($slimStartup.omittedParts|Where-Object {$_.part -like 'memory*'}).Count -eq 1) 'indice dei livelli elenca le sezioni non caricate e come richiederle'
     Assert-Portable ($slimStartup.parts.tasks -notmatch 'acceptance' -and $slimStartup.parts.tasks -notmatch '\{') 'task di avvio snelli in forma testuale breve'
     Put-Portable (Join-Path $dossier 'memory.md') $baseMemory;Put-Portable (Join-Path $dossier 'context.md') $baseContext
+    # La vista agente generata da Sync (se presente) cambia la forma di memory: qui si verifica il solo comportamento dei livelli.
+    Remove-Item -LiteralPath (Join-Path $dossier 'memory.agent.md') -Force -ErrorAction SilentlyContinue
     $plainSlim=Get-SBStartupContext $brain $dossier $repo -Profile Slim
     $plainFull=Get-SBStartupContext $brain $dossier $repo -Profile Full
     Assert-Portable ($plainSlim.parts.memory -eq $plainFull.parts.memory -and $plainSlim.parts.context -eq $plainFull.parts.context) 'dossier senza marcatori di livello: Slim carica per intero come Full'
     $tiered=Split-SBTieredMarkdown ("# T`n`npre`n`n## A`n`na`n`n## B (Storico)`n`nb`n`n## C`n`n<!-- sb:tier=history -->`nc`n")
     Assert-Portable ($tiered.essential.Contains('pre') -and $tiered.essential.Contains('## A') -and !$tiered.essential.Contains('## B') -and !$tiered.essential.Contains('## C') -and $tiered.history.Contains('b') -and @($tiered.historyTitles).Count -eq 2) 'Split-SBTieredMarkdown separa preambolo, essenziale e storico'
+    # Vista per agenti: voci tipizzate con id stabile, schema esplicito rispettato, voci libere classificate dal titolo, storico e footer esclusi, deduplica.
+    $viewSource="# Memoria`n`n## Decisioni`n`n- **Scelta uno**: motivo`n- **Scelta uno**: motivo`n- Decisione: usare X — Motivo: Y`n`n## Gotcha`n`n- [G] 2026-11-02 · mcp · Gotcha: attenzione`n  continua qui`n`n## Altro (storico)`n`n- voce storica`n`nOriginale conservato: [memory.md](history/x). Le autorizzazioni storiche non sono autorizzazioni correnti.`n"
+    $view=ConvertTo-SBAgentMemoryView $viewSource
+    $viewLines=@($view -split "`n"|Where-Object {$_ -match '^- \['})
+    Assert-Portable ($view.StartsWith('<!-- sb:agent-view v1 source='+(Get-SBTextHash $viewSource)+' -->') -and $viewLines.Count -eq 3) 'vista agente: intestazione con hash della fonte, voci deduplicate'
+    Assert-Portable ($viewLines[0] -match '^- \[D#[0-9a-f]{6}\] Scelta uno: motivo$' -and $viewLines[1] -match '^- \[D#[0-9a-f]{6}\] Decisione: usare X' -and $viewLines[2] -match '^- \[G#[0-9a-f]{6}\] 2026-11-02 · mcp · Gotcha: attenzione continua qui$') 'vista agente: tipo da titolo o prefisso, schema esplicito e righe di continuazione unite'
+    Assert-Portable ($view -notmatch 'voce storica' -and $view -notmatch 'Originale conservato' -and $view -notmatch '\*\*' -and $view -ceq (ConvertTo-SBAgentMemoryView ($viewSource -replace "`n","`r`n"))) 'vista agente: storico e footer esclusi, deterministica con CRLF'
+    $viewDossierMemory=Read-SBText (Join-Path $dossier 'memory.md');$viewPath=Join-Path $dossier 'memory.agent.md'
+    Put-Portable $viewPath (ConvertTo-SBAgentMemoryView $viewDossierMemory)
+    Assert-Portable ((Get-SBStartupContext $brain $dossier $repo -Profile Slim).parts.memory -ceq (ConvertTo-SBAgentMemoryView $viewDossierMemory)) 'Slim usa la vista agente se allineata alla fonte'
+    Put-Portable $viewPath ((ConvertTo-SBAgentMemoryView $viewDossierMemory)+"manomessa`n")
+    Assert-Portable ((Get-SBStartupContext $brain $dossier $repo -Profile Slim).parts.memory -ceq $plainSlim.parts.memory) 'Slim ricade su memory.md se la vista non e allineata'
+    Remove-Item -LiteralPath $viewPath -Force
     $report=Format-SBStartupReport $slimStartup @{'Direttive di prova'='123 caratteri'}
     Assert-Portable ($report -match 'RAPPORTO CONTESTO DI AVVIO' -and $report -match 'Profilo: Slim' -and $report -match 'Direttive di prova' -and $report -match 'caratteri/4') 'rapporto di avvio con parti, stima token e direttive'
     $oldContext=Read-SBText (Join-Path $dossier 'context.md');$oldMemory=Read-SBText (Join-Path $dossier 'memory.md')
@@ -211,8 +226,15 @@ try{
     $searchResults=Find-SBKnowledge -BrainRoot $brain -Search 'autorizzazioni' -Dossier $dossier
     Assert-Portable ($searchResults.count -gt 0 -and $searchResults.withinBudget) 'ricerca trasversale restituisce riscontri entro budget'
     Assert-Portable ($searchResults.extracts[0].path -and $searchResults.extracts[0].line -gt 0 -and $searchResults.extracts[0].sha256.Length -eq 64) 'estratto di ricerca contiene percorso, riga e sha256'
-    $archiveMatches=Find-SBKnowledge -BrainRoot $brain -Search 'archive' -Dossier $dossier
-    Assert-Portable ($archiveMatches.count -gt 0 -and @($archiveMatches.extracts|Where-Object {$_.path -match 'history/compaction'}).Count -gt 0) 'ricerca esplora history/compaction'
+    $archiveMatches=Find-SBKnowledge -BrainRoot $brain -Search 'archive' -Dossier $dossier -IncludeOriginals
+    Assert-Portable ($archiveMatches.count -gt 0 -and @($archiveMatches.extracts|Where-Object {$_.path -match 'history/compaction'}).Count -gt 0) 'ricerca con -IncludeOriginals esplora history/compaction'
+    Assert-Portable (@((Find-SBKnowledge -BrainRoot $brain -Search 'archive' -Dossier $dossier).extracts|Where-Object {$_.path -match 'history/compaction'}).Count -eq 0) 'ricerca predefinita esclude gli originali compattati'
+    # Tetto predefinito: limite di riscontri, pagina contigua con nextOffset, righe lunghe troncate, nessun campo matches duplicato.
+    $defaultCap=Find-SBKnowledge -BrainRoot $brain -Search 'e' -Dossier $dossier
+    $unlimitedCap=Find-SBKnowledge -BrainRoot $brain -Search 'e' -Dossier $dossier -Limit 0 -Budget 0
+    Assert-Portable ($defaultCap.limit -eq (Get-SBSearchDefaultLimit) -and $defaultCap.budget -eq (Get-SBSearchDefaultBudget) -and $defaultCap.count -le 20 -and !$defaultCap.ContainsKey('matches')) 'ricerca: tetto predefinito di riscontri e caratteri, senza duplicati'
+    Assert-Portable ($unlimitedCap.limit -eq 0 -and $unlimitedCap.count -eq $unlimitedCap.totalMatches -and (!$defaultCap.hasMore -or $defaultCap.nextOffset -eq $defaultCap.count)) 'ricerca: -Limit 0 -Budget 0 senza tetto; nextOffset riprende dalla pagina'
+    Assert-Portable (@($unlimitedCap.extracts|Where-Object {$_.text.Length -gt 700}).Count -eq 0) 'ricerca: righe oltre 600 caratteri troncate con marcatore'
     $cappedSearch=Find-SBKnowledge -BrainRoot $brain -Search 'autorizzazioni' -Dossier $dossier -Budget 50
     Assert-Portable (!$cappedSearch.withinBudget -and $cappedSearch.extracts.Count -lt $searchResults.totalMatches) 'budget limitato segnalato da withinBudget'
     # Ricerca per pertinenza: termini multipli, sezioni ordinate per copertura, titolo e frase; estratti con percorso, riga e sha256 invariati.
@@ -605,6 +627,8 @@ try{
     Assert-Portable ($pairingsAll.Count -eq 6) 'pairing all restituisce 6 IDE supportati'
     $claudePair = @($pairingsAll | Where-Object Target -eq 'claude')[0]
     Assert-Portable ($claudePair.ConfigFormat -eq 'json' -and $claudePair.Snippet -match '"mcpServers"') 'pairing Claude produce JSON con mcpServers'
+    $claudeAllow=@((ConvertFrom-Json $claudePair.PermissionsSnippet).permissions.allow)
+    Assert-Portable ($claudeAllow.Count -eq @(Get-SBMcpReadOnlyToolNames).Count -and $claudeAllow -contains 'mcp__secondbrain__search_knowledge' -and $claudeAllow -notcontains 'mcp__secondbrain__check_publication') 'pairing Claude: permessi solo per gli strumenti di lettura, check_publication esclusa'
     $vscodePair = @($pairingsAll | Where-Object Target -eq 'vscode')[0]
     Assert-Portable ($vscodePair.ConfigFormat -eq 'json' -and $vscodePair.Snippet -match '"mcp\.servers"') 'pairing VS Code produce JSON con mcp.servers'
 
@@ -1013,8 +1037,11 @@ public static bool Set(string name,bool enabled){
     Reject-Portable {Set-SBTrackerTaskStatus -BrainRoot $brain -Path (Join-Path (Join-Path $brain $localBinding.dossier) 'tracker.json') -TaskId 'ISO-LOCAL' -Status 'done' -WorkingRepository $twoBinding.identity -BackupRoot $isoCfg.backupRoot} 'Set-SBTrackerTaskStatus rifiuta un repository diverso da quello in lavoro'
     $mcpScoped=Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{checkoutPath=$other}|ConvertFrom-Json
     Assert-Portable (@($mcpScoped).Count -ge 1 -and !@($mcpScoped|Where-Object {$_.repository -ne $twoBinding.identity}).Count) 'MCP get_ready_tasks risolve il checkout senza elencare altri repository'
-    $mcpAll=Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{all=$true}|ConvertFrom-Json
-    Assert-Portable (@($mcpAll|Where-Object {$_.scope -eq 'global'}).Count -ge 2) 'MCP get_ready_tasks vista globale solo con all=true'
+    $mcpAllPage=Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{all=$true}|ConvertFrom-Json
+    $mcpAll=@($mcpAllPage.tasks)
+    Assert-Portable (@($mcpAll|Where-Object {$_.scope -eq 'global'}).Count -ge 2 -and $mcpAllPage.total -ge $mcpAllPage.count) 'MCP get_ready_tasks vista globale solo con all=true'
+    $mcpAllOne=Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{all=$true;limit=1}|ConvertFrom-Json
+    Assert-Portable ($mcpAllOne.count -eq 1 -and $mcpAllOne.hasMore -and $mcpAllOne.nextOffset -eq 1 -and $mcpAllOne.total -eq $mcpAllPage.total) 'MCP get_ready_tasks all=true paginato con nextOffset'
     Reject-Portable {Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{all=$true;repository=$twoBinding.identity}} 'MCP all e repository incompatibili'
     $mcpStartup=Invoke-SBMcpToolCall $brain 'get_startup_context' @{checkoutPath=$other}|ConvertFrom-Json
     Assert-Portable ($mcpStartup.repository -eq $twoBinding.identity) 'MCP get_startup_context segue il checkout e non il dossier del cervello'
@@ -1042,12 +1069,14 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ((ConvertTo-ParityJson $cliReady) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{checkoutPath=$other}))) 'parità CLI-MCP: get_ready_tasks'
         $cliTask=Invoke-ParityCli 'knowledge.ps1' (@('-Task','ISO-TWO')+$parityConfig)
         Assert-Portable ((ConvertTo-ParityJson $cliTask) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_task' @{task='ISO-TWO';checkoutPath=$other}))) 'parità CLI-MCP: get_task'
-        $cliSearch=Invoke-ParityCli 'knowledge.ps1' (@('-Search','Task','-Repository',$twoBinding.identity,'-Budget','0')+$parityConfig)
+        $cliSearch=Invoke-ParityCli 'knowledge.ps1' (@('-Search','Task','-Repository',$twoBinding.identity)+$parityConfig)
         Assert-Portable ((ConvertTo-ParityJson $cliSearch) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'search_knowledge' @{query='Task';repository=$twoBinding.identity}))) 'parità CLI-MCP: search_knowledge'
         $cliPublication=Invoke-ParityCli 'publication.ps1' @('-RepositoryPath',$other)
         $mcpPublication=Invoke-SBMcpToolCall $brain 'check_publication' @{repositoryPath=$other}|ConvertFrom-Json
         $cliPublicationDoc=$cliPublication|ConvertFrom-Json
-        Assert-Portable ($cliPublicationDoc.ready -eq $mcpPublication.ready -and $cliPublicationDoc.complete -eq $mcpPublication.complete -and @($cliPublicationDoc.findings).Count -eq @($mcpPublication.findings).Count) 'parità CLI-MCP: check_publication'
+        Assert-Portable ($cliPublicationDoc.ready -eq $mcpPublication.ready -and $cliPublicationDoc.complete -eq $mcpPublication.complete -and @($cliPublicationDoc.findings).Count -eq $mcpPublication.findingsTotal) 'parità CLI-MCP: check_publication (riepilogo MCP con findingsTotal)'
+        $mcpPublicationFull=Invoke-SBMcpToolCall $brain 'check_publication' @{repositoryPath=$other;detail=$true}|ConvertFrom-Json
+        Assert-Portable (@($cliPublicationDoc.findings).Count -eq @($mcpPublicationFull.findings).Count) 'MCP check_publication detail=true: rapporto integro'
     }finally{Pop-Location}
     # Strumenti sui prompt: il catalogo è quello del repository SecondBrain; la CLI aggiunge solo l'intestazione del prompt.
     $promptsCli=Join-Path $realBrain 'scripts/prompts.ps1'

@@ -549,6 +549,15 @@ function Invoke-SBPortableSync {
                     if($Check){$issues+=@{kind='history-index-pending';repository=$binding.identity}}
                     else{Write-SBFile $historyPath ([Text.Encoding]::UTF8.GetBytes($historyIndex)) (Get-SBFileHash $historyPath) $Config.backupRoot|Out-Null}
                 }
+                # Vista per agenti di memory.md (file derivato): generata da Sync, verificata da Check come l'indice.
+                $memorySource=Join-Path $dir 'memory.md'
+                if([IO.File]::Exists($memorySource)){
+                    $agentView=ConvertTo-SBAgentMemoryView (Read-SBText $memorySource);$viewFile=Join-Path $dir 'memory.agent.md'
+                    if((Get-SBFileHash $viewFile) -ne (Get-SBTextHash $agentView)){
+                        if($Check){$issues+=@{kind='agent-view-pending';repository=$binding.identity}}
+                        else{Write-SBFile $viewFile ([Text.Encoding]::UTF8.GetBytes($agentView)) (Get-SBFileHash $viewFile) $Config.backupRoot|Out-Null;$changes+='agent-view:'+$binding.identity}
+                    }
+                }
                 # Il tetto vale solo per il primo caricamento (profilo Slim, 20.000 caratteri), come in knowledge.ps1 -Startup.
                 $budget = Get-SBSlimStartupBudget
                 $startup=Get-SBStartupContext -BrainRoot $Config.brainRoot -Dossier $dir -CheckoutPath $binding.path -Entities $entities -Budget $budget -Profile Slim
@@ -622,7 +631,7 @@ function Invoke-SBPortableSync {
         }
         foreach($drift in @(Get-SBWorkflowDrift $Config.brainRoot)){$issues+=@{kind='prompt-index-drift';path=$drift.path}}
         }
-        $fileIssueKinds=@('directive-pending','directive-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
+        $fileIssueKinds=@('directive-pending','directive-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','agent-view-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.

@@ -40,6 +40,8 @@ function Get-SBMcpToolDefinitions {
                     checkoutPath = @{ type = 'string'; description = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)' }
                     all = @{ type = 'boolean'; description = 'Se true, vista globale di tutti i repository, in sola lettura (opt-in esplicito)' }
                     includeAcceptance = @{ type = 'boolean'; description = 'Se true, include i criteri di accettazione dei task' }
+                    offset = @{ type = 'integer'; description = 'Solo con all=true: task da saltare (paginazione)' }
+                    limit = @{ type = 'integer'; description = 'Solo con all=true: task per pagina (default 50; 0 = tutti)' }
                 }
             }
         },
@@ -59,18 +61,20 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'search_knowledge'
-            description = 'Esegue una ricerca trasversale nei file di conoscenza (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti in history/, history/compaction/). Con offset e limit pagina i riscontri (hasMore indica se ce ne sono altri). Nessun tetto per impostazione predefinita: restituisce tutti i riscontri pertinenti; budget è un limite facoltativo. mode=literal (predefinito) cerca la sottostringa esatta; mode=relevance cerca più termini e ordina sezioni e blocchi per pertinenza (copertura dei termini, titolo, frase esatta), con score e section in ogni estratto.'
+            description = 'Cerca nei file di conoscenza del dossier del repository in lavoro (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti). Predefiniti: 20 riscontri e 10000 caratteri; se hasMore=true richiamare con offset=nextOffset. limit=0 o budget=0 tolgono il tetto (sconsigliato). allDossiers=true cerca in tutte le aree; includeOriginals=true include gli originali compattati. mode=literal (predefinito): sottostringa esatta; mode=relevance: più termini ordinati per pertinenza, con score e section.'
             inputSchema = @{
                 type = 'object'
                 required = @('query')
                 properties = @{
                     query = @{ type = 'string'; description = 'Termine o frase da cercare nei dossier' }
-                    budget = @{ type = 'integer'; description = 'Limite facoltativo di caratteri (default: nessun tetto)' }
+                    budget = @{ type = 'integer'; description = 'Tetto di caratteri (default 10000; 0 = nessun tetto)' }
+                    allDossiers = @{ type = 'boolean'; description = 'Se true, cerca in tutte le aree attive invece che nel repository in lavoro' }
+                    includeOriginals = @{ type = 'boolean'; description = 'Se true, include gli originali compattati (history/compaction)' }
                     dossier = @{ type = 'string'; description = 'Percorso relativo di un dossier specifico (opzionale)' }
                     repository = @{ type = 'string'; description = 'Identificatore del repository per selezionare il dossier' }
                     mode = @{ type = 'string'; enum = @('literal', 'relevance'); description = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza' }
                     offset = @{ type = 'integer'; description = 'Numero di riscontri da saltare (paginazione, default 0)' }
-                    limit = @{ type = 'integer'; description = 'Numero massimo di riscontri restituiti (default: tutti)' }
+                    limit = @{ type = 'integer'; description = 'Numero massimo di riscontri (default 20; 0 = tutti)' }
                 }
             }
         },
@@ -107,12 +111,13 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'check_publication'
-            description = 'Esegue una verifica di sola lettura della pubblicabilità (REP05) del working tree, indice e storia del repository specificato.'
+            description = 'Esegue una verifica di sola lettura della pubblicabilità del working tree, indice e storia del repository specificato. Restituisce un riepilogo (conteggi per regola e primi 20 riscontri); detail=true il rapporto integro.'
             inputSchema = @{
                 type = 'object'
                 required = @('repositoryPath')
                 properties = @{
                     repositoryPath = @{ type = 'string'; description = 'Percorso della radice o checkout del repository Git da verificare' }
+                    detail = @{ type = 'boolean'; description = 'Se true, rapporto integro (tutti i riscontri e i riferimenti esclusi)' }
                 }
             }
         }
@@ -157,9 +162,18 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         { $_ -in @('get_ready_tasks', 'secondbrain_ready_tasks') } {
             $all = $Arguments.ContainsKey('all') -and [bool]$Arguments.all
             if ($all -and $Arguments.ContainsKey('repository') -and $Arguments.repository) { throw 'Parametri incompatibili: all e repository' }
-            $tasks = if ($all) { @(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly) }
-                     else { @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository (Resolve-SBMcpRepository $BrainRoot $Arguments) -ReadyOnly) }
-            return ConvertTo-SBMcpJson $tasks
+            if (!$all) {
+                return ConvertTo-SBMcpJson @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository (Resolve-SBMcpRepository $BrainRoot $Arguments) -ReadyOnly)
+            }
+            # Vista globale paginata (predefinito 50 task per pagina): dimensione limitata, nextOffset per la pagina successiva.
+            $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
+            $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { 50 }
+            if ($offset -lt 0 -or $limit -lt 0) { throw 'offset e limit devono essere interi non negativi' }
+            $tasks = @(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly)
+            $page = @($tasks | Select-Object -Skip $offset)
+            if ($limit -gt 0) { $page = @($page | Select-Object -First $limit) }
+            $hasMore = ($offset + $page.Count) -lt $tasks.Count
+            return ConvertTo-SBMcpJson @{ total = $tasks.Count; offset = $offset; limit = $limit; count = $page.Count; hasMore = $hasMore; nextOffset = $(if ($hasMore) { $offset + $page.Count } else { $null }); tasks = $page }
         }
         { $_ -in @('get_task', 'secondbrain_get_task') } {
             if (!$Arguments.ContainsKey('task') -or !"$($Arguments.task)") {
@@ -174,19 +188,26 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
                 throw 'Il parametro query è obbligatorio per search_knowledge'
             }
             $query = [string]$Arguments.query
-            $budget = if ($Arguments.ContainsKey('budget') -and $Arguments.budget) { [int]$Arguments.budget } else { 0 }
+            # -1 = tetto predefinito (20 riscontri, 10.000 caratteri); 0 esplicito = nessun tetto.
+            $budget = if ($Arguments.ContainsKey('budget') -and $null -ne $Arguments.budget) { [int]$Arguments.budget } else { -1 }
             $dossier = if ($Arguments.ContainsKey('dossier')) { [string]$Arguments.dossier } else { $null }
             $repo = if ($Arguments.ContainsKey('repository')) { [string]$Arguments.repository } else { $null }
+            $allDossiers = $Arguments.ContainsKey('allDossiers') -and [bool]$Arguments.allDossiers
+            $includeOriginals = $Arguments.ContainsKey('includeOriginals') -and [bool]$Arguments.includeOriginals
+            # Ambito predefinito: repository del checkout in lavoro (se risolvibile), altrimenti tutte le aree ma con il tetto predefinito.
+            if (!$dossier -and !$repo -and !$allDossiers) {
+                try { $repo = Resolve-SBMcpRepository $BrainRoot $Arguments } catch { $repo = $null }
+            }
             
             $mode = if ($Arguments.ContainsKey('mode') -and $Arguments.mode) { [string]$Arguments.mode } else { 'literal' }
             if ($mode -notin @('literal', 'relevance')) { throw 'Modalità non valida: usare literal o relevance' }
             $mode = if ($mode -eq 'relevance') { 'Relevance' } else { 'Literal' }
 
             $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
-            $limit = if ($Arguments.ContainsKey('limit') -and $Arguments.limit) { [int]$Arguments.limit } else { 0 }
-            if ($offset -lt 0 -or $limit -lt 0) { throw 'offset e limit devono essere interi non negativi' }
+            $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { -1 }
+            if ($offset -lt 0 -or $limit -lt -1 -or $budget -lt -1) { throw 'offset, limit e budget devono essere interi non negativi' }
 
-            $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode -Offset $offset -Limit $limit
+            $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode -Offset $offset -Limit $limit -IncludeOriginals:$includeOriginals
             return ConvertTo-SBMcpJson $res
         }
         { $_ -in @('list_prompts', 'secondbrain_list_prompts') } {
@@ -216,7 +237,17 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             }
             $repoPath = [string]$Arguments.repositoryPath
             $report = Test-SBPublication -RepositoryPath $repoPath -BrainRoot $BrainRoot -PolicyPath (Resolve-SBPublicationPolicyPath $BrainRoot $null)
-            return ConvertTo-SBMcpJson $report
+            if ($Arguments.ContainsKey('detail') -and [bool]$Arguments.detail) { return ConvertTo-SBMcpJson $report }
+            # Riepilogo: conteggi per regola e primi 20 riscontri; excludedRefs ridotto a conteggio. detail=true restituisce il rapporto integro.
+            $allFindings = @($report.findings)
+            $summary = @{}
+            foreach ($key in $report.Keys) { $summary[$key] = $report[$key] }
+            $summary.findings = @($allFindings | Select-Object -First 20)
+            $summary.findingsTotal = $allFindings.Count
+            $summary.findingsByRule = @($allFindings | Group-Object { [string]$_.rule } | Sort-Object Count -Descending | ForEach-Object { @{ rule = $_.Name; count = $_.Count } })
+            $summary.findingsTruncated = ($allFindings.Count -gt 20)
+            if ($report.ContainsKey('excludedRefs')) { $summary.excludedRefsCount = @($report.excludedRefs).Count; $summary.Remove('excludedRefs') }
+            return ConvertTo-SBMcpJson $summary
         }
         default {
             throw "Strumento sconosciuto: $ToolName"
@@ -472,6 +503,10 @@ function Start-SBMcpServer {
     }
 }
 
+function Get-SBMcpReadOnlyToolNames {
+    # Strumenti di sola lettura che non scrivono nel cervello ne altrove: candidati all'approvazione automatica. check_publication esclusa (analizza un percorso scelto dal chiamante).
+    @('get_startup_context', 'get_ready_tasks', 'get_task', 'search_knowledge', 'list_prompts', 'get_prompt', 'get_prompt_home')
+}
 function Get-SBMcpPairing {
     [CmdletBinding()]
     param(
@@ -546,6 +581,8 @@ function Get-SBMcpPairing {
                     }
                 }
                 $json = ConvertTo-Json -InputObject $snippetObj -Depth 10
+                # Claude Code: regole di permesso (settings.json) solo per gli strumenti di lettura, da incollare dopo approvazione dell'utente.
+                $permissionsJson = ConvertTo-Json -InputObject ([ordered]@{ permissions = [ordered]@{ allow = @(Get-SBMcpReadOnlyToolNames | ForEach-Object { "mcp__secondbrain__$_" }) } }) -Depth 10
 
                 $results += [PSCustomObject]@{
                     Target = 'claude'
@@ -554,6 +591,7 @@ function Get-SBMcpPairing {
                     ConfigFormat = 'json'
                     Toml = $null
                     Snippet = $json
+                    PermissionsSnippet = $permissionsJson
                     CliCommand = $cliCommand
                     ServerDefinition = @{
                         command = 'pwsh'
@@ -917,6 +955,7 @@ Export-ModuleMember -Function @(
     'Invoke-SBMcpMessage',
     'Start-SBMcpServer',
     'Get-SBMcpPairing',
+    'Get-SBMcpReadOnlyToolNames',
     'Set-SBMcpConfiguration',
     'New-SBMcpPackage'
 )
