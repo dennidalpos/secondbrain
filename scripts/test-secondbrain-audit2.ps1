@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([ValidateSet('All','Removal','Markdown','Provenance','Recovery')][string]$Case='All')
+param([ValidateSet('All','Removal','Markdown','Provenance','Recovery','ParaCli')][string]$Case='All')
 $ErrorActionPreference='Stop'
 foreach($module in @('Core','Access','Para','Tracker','TrackerImport')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
@@ -166,6 +166,27 @@ try {
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $paraManifest -ConfigPath $f.config.configPath -Apply|Out-Null
         Assert-Next ($LASTEXITCODE -eq 0 -and !(Test-Path -LiteralPath $markerReal)) 'recupero: recover.ps1 -ConfigPath risolve transazione pendente e rimuove marker'
         Put-Audit $marker '{"manifest":"fixture-only"}'
+    }
+    if($Case -in @('All','ParaCli')){
+        $f=New-AuditFixture 'para-cli';$para=Join-Path $f.brain 'scripts/para.ps1';$common=@('-ConfigPath',$f.config.configPath,'-BackupRoot',$f.config.backupRoot)
+        & pwsh -NoProfile -File $para @common -NewResource -Id res-guida -Title 'Guida' -Objective 'Raccolta di prova'|Out-Null
+        Assert-Next ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath (Join-Path $f.brain '03-resources/res-guida/brief.md')) -and (Read-SBJson (Join-Path $f.brain '03-resources/res-guida/para.json') $null).kind -eq 'resource') 'para CLI: -NewResource crea para.json e brief.md'
+        & pwsh -NoProfile -File $para @common -NewResource -Id res-guida -Title 'Guida' -Objective 'Doppione' *> $null
+        Assert-Next ($LASTEXITCODE -ne 0) 'para CLI: -NewResource rifiuta identificatore duplicato'
+        & pwsh -NoProfile -File $para @common -Archive -EntityId res-guida *> $null
+        Assert-Next ($LASTEXITCODE -ne 0 -and (Test-Path -LiteralPath (Join-Path $f.brain '03-resources/res-guida'))) 'para CLI: archiviazione rifiutata finche lo stato non e ritirato'
+        & pwsh -NoProfile -File $para @common -SetStatus -EntityId res-guida -Status completed *> $null
+        Assert-Next ($LASTEXITCODE -ne 0) 'para CLI: -SetStatus rifiuta stato non ammesso per la categoria'
+        & pwsh -NoProfile -File $para @common -SetStatus -EntityId res-guida -Status retired|Out-Null
+        Assert-Next ($LASTEXITCODE -eq 0 -and (Read-SBJson (Join-Path $f.brain '03-resources/res-guida/para.json') $null).status -eq 'retired') 'para CLI: -SetStatus imposta retired'
+        & pwsh -NoProfile -File $para @common -Archive -EntityId res-guida|Out-Null
+        Assert-Next ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath (Join-Path $f.brain '04-archives/resources/res-guida/brief.md'))) 'para CLI: archiviazione dopo retired'
+        & pwsh -NoProfile -File $para @common -SetStatus -EntityId res-guida -Status active *> $null
+        Assert-Next ($LASTEXITCODE -ne 0) 'para CLI: -SetStatus rifiuta entita archiviata'
+        & pwsh -NoProfile -File $para @common -Restore -EntityId res-guida|Out-Null
+        Assert-Next ($LASTEXITCODE -eq 0 -and (Read-SBJson (Join-Path $f.brain '03-resources/res-guida/para.json') $null).status -eq 'active') 'para CLI: ripristino riporta la risorsa attiva'
+        & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Check|Out-Null
+        Assert-Next ($LASTEXITCODE -eq 0) 'para CLI: Check coerente dopo il ciclo'
     }
     'SUCCESS AUDIT2: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion
 } finally {

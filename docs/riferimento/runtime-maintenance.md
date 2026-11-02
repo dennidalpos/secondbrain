@@ -1,6 +1,6 @@
 # Manutenzione di `.runtime` e contesto iniziale
 
-`.runtime/` contiene tutto ciò che SecondBrain produce sul tuo PC: configurazione della postazione, backup, fixture dei test, rapporti. È escluso da Git e cresce nel tempo: nel clone del maintainer ha raggiunto circa 2,8 GB. Nulla viene cancellato in automatico; la pulizia è sempre una tua richiesta esplicita. Prima di toccare qualcosa leggi anche [sicurezza e backup](safety-backups.md) e la [mappa completa](tree.md).
+`.runtime/` contiene tutto ciò che SecondBrain produce sul tuo PC: configurazione della postazione, backup, fixture dei test, rapporti. È escluso da Git e cresce nel tempo: nel clone del maintainer ha superato 11 GB (novembre 2026), per lo più cartelle di lavoro degli agent e fixture dei test. Nulla viene cancellato in automatico; la pulizia è sempre una tua richiesta esplicita. Prima di toccare qualcosa leggi anche [sicurezza e backup](safety-backups.md) e la [mappa completa](tree.md).
 
 ## Cosa contiene, per categoria
 
@@ -10,13 +10,24 @@
 |---|---|---|---|
 | `protected` | `hosts/<id>/` (configurazione, `state.json`, `inventory.json`), `access/` (sessioni e lock), `backups/` della postazione corrente | **No** | Non si rigenera: è la configurazione e la prova di cosa è gestito |
 | `regenerable` | `tests/` (fixture delle suite), `mcp-handshake/`, `hosts/<id>/sources/python` | Sì | `tests/`: rieseguendo le suite `test-secondbrain*.ps1`; handshake: rieseguendo il test; `sources/python`: lo ricrea `sources.ps1` |
-| `evidence` | `cleanup/` (registro delle pulizie), `captures/` (originali degli screenshot), `publication/` (policy e baseline REP05), `directives-activation/` | Con cautela | Non si rigenerano identiche: servono come prova o provenienza |
+| `evidence` | `cleanup/` (registro delle pulizie), `trace/` (turni di fine prompt, solo metadati), `captures/` (originali degli screenshot), `publication/` (policy e baseline REP05), `directives-activation/` | Con cautela | Non si rigenerano identiche: servono come prova o provenienza |
 | `backup` | `backups/` e `workstations/<id di origine>/` (host precedenti), `backup/mcp-pairing/` | Con cautela, solo con manifest | Sono i recuperi dei file che SecondBrain ha sostituito |
-| `working` | `perf/`, `operations/`, `candidates/`, cartelle di lavoro degli agent | Dopo verifica | Lavoro temporaneo: controlla riferimenti e proprietà |
+| `working` | `operations/`, `q201/`, `t<numero>/`, `lotto-*`, `classify-*`, `compaction*/`, file sciolti e ogni cartella creata da un agent senza prefisso | Dopo verifica | Lavoro temporaneo: controlla riferimenti e proprietà; nessun codice le legge |
 
 Dentro `hosts/<id>/`: `workstation.json`, `state.json`, `inventory.json`, `ide-map.json`, `istruzioni-globali.md` non si cancellano; `backups/` contiene gli originali (`<guid>.bin` e `.bin.json`) e i record `.stage`; `sources/` contiene l'ambiente Python (rigenerabile) e i rapporti.
 
 Cause tipiche di crescita: le suite conservano la fixture di ogni esecuzione (`tests/`, anche decine di migliaia di file), ogni scrittura gestita aggiunge un backup, gli zip di `backup.ps1` pesano centinaia di MB.
+
+## Vedere `.runtime` a colpo d'occhio
+
+`cleanup.ps1 -RuntimeReport` stampa un indice Markdown in sola lettura: una riga per voce, ordinata per categoria (`protected`, `evidence`, `backup`, `working`, `regenerable`) e poi per dimensione, con ultima scrittura, riferimenti, chi la scrive e come si recupera; per le voci oltre 50 MB aggiunge le sottocartelle più grandi. Con `-ReportPath .runtime/INDEX.md` lo rigenera come vista derivata (scrittura atomica, ignorata da Git, nessun dato proprio); un altro `.md` sotto `.runtime` si crea solo se non esiste. Non rimuove né sposta nulla.
+
+```powershell
+pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport
+pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport -ReportPath .runtime/INDEX.md
+```
+
+**Nomi delle nuove cartelle degli agent**: `<categoria>-<yyyyMMdd>-<slug>` con categoria `work` (lavoro temporaneo), `evidence` (prove), `report` (rapporti), `fixture` o `tmp`. Il prefisso ordina le cartelle in Esplora risorse e il report le classifica senza ambiguità; l'indice segnala i nomi conformi. Le cartelle esistenti non vengono rinominate né spostate.
 
 ## Routine di manutenzione (una volta al mese)
 

@@ -1,13 +1,13 @@
 {
-  "approvedAt": "2026-11-01T19:23:02.2053786+01:00",
-  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-01): direttive 1.1 (ADR leggere, CHANGELOG, REP02)",
+  "approvedAt": "2026-11-02T12:42:59.7961958+01:00",
+  "authorization": "Approvazione esplicita dell'utente in chat (2026-11-02): direttive 1.2 (regole PARA MEM05, nomi in .runtime, avviso di compattazione)",
   "files": {
-    "direttive/AGENTS.global_ide.md": "3F9E3C0B305FE5BCF931B2543DC73B78A945A8025DCA84975472AEE4E6CB3ED9",
-    "direttive/workstation.template.md": "1088CFF25F78FEEEEA2984B3F7E7E1C96F95B0E8D4BE38C98CBECA862B1B6FCB"
+    "direttive/AGENTS.global_ide.md": "F107E3F32CD220344B204204FD44B77D925DB0940B7444B5FB232AC3AE1CA50B",
+    "direttive/workstation.template.md": "76849FA23502B49226BFF2DCF0DF2ED7AE6DA870B18E38FD59F7A710A0DA17A1"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-01-adr",
-    "readmeHash": "6C6094F8D925474084B1854951F01BC3E5C3DA330655A10AD666165EE156701E"
+    "path": "direttive/proposals/2026-11-02-para-runtime-trace",
+    "readmeHash": "12E7807EB908B5815A6900E1C804299B0B2A363B41E8F040B0530F7A9876B163"
   },
   "schemaVersion": 1
 }

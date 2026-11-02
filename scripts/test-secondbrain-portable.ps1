@@ -889,6 +889,18 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((@($runtimeReport.entries|Where-Object name -eq 'hosts')[0]).protected -and (@($runtimeReport.entries|Where-Object name -eq 'access')[0]).protected -and 'hosts' -notin @($runtimeReport.reviewable)) 'ListRuntime protegge configurazione e accesso'
     $junctionEntry=@($runtimeReport.entries|Where-Object name -eq 'collegamento')[0]
     Assert-Portable ($junctionEntry.kind -eq 'reparse-point' -and $junctionEntry.protected -and $junctionEntry.bytes -eq 0 -and 'collegamento' -notin @($runtimeReport.reviewable)) 'ListRuntime non segue i reparse point'
+    $indexRun=Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport')
+    $indexFile=Join-Path $brain '.runtime/INDEX.md'
+    Assert-Portable ($indexRun.exit -eq 0 -and $indexRun.text -match 'Indice di \.runtime' -and $indexRun.text -match 'vecchia-prova' -and !(Test-Path -LiteralPath $indexFile)) 'cleanup -RuntimeReport stampa l indice senza scrivere file'
+    $indexSave=Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ReportPath',$indexFile)
+    $indexFirst=Get-SBFileHash $indexFile
+    $indexAgain=Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ReportPath',$indexFile)
+    Assert-Portable ($indexSave.exit -eq 0 -and $indexAgain.exit -eq 0 -and (Test-Path -LiteralPath $indexFile) -and (Read-SBText $indexFile) -match 'vecchia-prova' -and (Test-Path -LiteralPath $oldRuntimeFile) -and (Test-Path -LiteralPath (Join-Path $junctionTarget 'fuori.txt'))) 'cleanup -RuntimeReport -ReportPath rigenera INDEX.md senza rimuovere nulla'
+    $otherReport=Join-Path $brain '.runtime/rapporto-prova.md'
+    [void](Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ReportPath',$otherReport))
+    Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ReportPath',$otherReport)).exit -ne 0 -and (Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ReportPath',(Join-Path $fixture 'fuori.md'))).exit -ne 0 -and (Invoke-FixtureCli 'cleanup.ps1' @('-RuntimeReport','-ListRuntime')).exit -ne 0) 'RuntimeReport: altro file mai sovrascritto, fuori .runtime e opzioni incompatibili rifiutati'
+    Remove-Item -LiteralPath $indexFile,$otherReport -Force
+    $runtimeBefore=@(Get-ChildItem -LiteralPath (Join-Path $brain '.runtime') -Recurse -Force -File).Count
     $runtimeApply=Invoke-FixtureCli 'cleanup.ps1' @('-ListRuntime','-Apply')
     Assert-Portable ($runtimeApply.exit -ne 0 -and (Test-Path -LiteralPath $oldRuntimeFile) -and (Test-Path -LiteralPath (Join-Path $junctionTarget 'fuori.txt')) -and @(Get-ChildItem -LiteralPath (Join-Path $brain '.runtime') -Recurse -Force -File).Count -eq $runtimeBefore) 'ListRuntime non e combinabile con Apply e non rimuove nulla'
     Assert-Portable ($oldEntry.category -eq 'working' -and $oldEntry.recovery -and (@($runtimeReport.entries|Where-Object name -eq 'hosts')[0]).category -eq 'protected' -and $runtimeReport.byCategory.ContainsKey('protected')) 'ListRuntime classifica le voci per categoria e dichiara come recuperarle'

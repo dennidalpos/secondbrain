@@ -1,6 +1,6 @@
 # SecondBrain
 
-![Versione 1.1.0](https://img.shields.io/badge/versione-1.1.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
+![Versione 1.2.0](https://img.shields.io/badge/versione-1.2.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
 
 **Dà ai tuoi agenti di sviluppo una memoria e le stesse regole su tutti i progetti.**
 
@@ -9,7 +9,7 @@ Ogni agente riparte da quello che sa già: contesto, decisioni e task. I tuoi da
 ```mermaid
 flowchart LR
     T["Tu"] --> A["Agente<br/>Claude, Codex, Antigravity"]
-    A <--> S["SecondBrain<br/>memoria, regole, 81 prompt"]
+    A <--> S["SecondBrain<br/>memoria, regole, 82 prompt"]
     A --> P["I tuoi progetti"]
 ```
 
@@ -33,7 +33,7 @@ Poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvi
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 81 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
+| 82 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 

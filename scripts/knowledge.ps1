@@ -32,7 +32,7 @@ try{
     if($readOnly){Write-SBReadWarnings $lock $config}
     # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
     # Il tetto vale solo per il primo caricamento (Slim: 20.000). Full e ricerca non hanno tetto (0) salvo -Budget esplicito; -Compact usa startupBudget o 50.000.
-    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ 20000 } elseif($Search -or $Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
+    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search -or $Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
     # Perimetro cooperativo: repository esplicito o, in sua assenza, quello del checkout in lavoro (directory corrente).
     $resolveWorking={
         if($Repository){return $Repository}

@@ -1931,6 +1931,32 @@
     },
     {
       "aliases": [],
+      "category": "memoria",
+      "code": "MEM05",
+      "example": "sb prompt MEM05: archivia la risorsa conclusa res-guida",
+      "file": "MEM05.md",
+      "id": "pmt-4e1b7c52",
+      "mode": "write",
+      "next": [
+        "pmt-821f7dec",
+        "pmt-76604e4a"
+      ],
+      "references": [
+        "https://learn.microsoft.com/en-us/powershell/scripting/overview"
+      ],
+      "related": [
+        "pmt-821f7dec",
+        "pmt-77d7bf7a",
+        "pmt-76604e4a"
+      ],
+      "requires": "obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain",
+      "scope": "central",
+      "status": "active",
+      "summary": "Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.",
+      "target": "central"
+    },
+    {
+      "aliases": [],
       "category": "sistema",
       "code": "SYS01",
       "example": "sb prompt SYS01: mappa lo stato di allineamento delle direttive negli ide",

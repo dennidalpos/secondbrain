@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 84 schede del catalogo (COM01–GOV02, di cui 81 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 85 schede del catalogo (COM01–GOV02, di cui 82 attive e 3 ritirate) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 
@@ -81,7 +81,9 @@ Tutti gli output operativi gestiti stanno qui, isolati per host. Il clone può s
 | `mcp-handshake/` | `test-secondbrain-mcp-handshake.ps1` | Rapporti dell'handshake MCP con gli IDE. | Sì |
 | `tests/` | Suite `test-secondbrain*.ps1` | Fixture conservate di ogni esecuzione (portable, workflows, tracker, sorgenti…). | **Sì**, tutte: le suite le ricreano. Tenere le ultime se serve ripetere un fallimento |
 | `cleanup/` | Pulizie richieste | Registro delle rimozioni eseguite (percorso, file, byte). | Con cautela (è la prova di cosa è stato tolto) |
-| `perf/`, `operations/`, `candidates/`, `portable-implementation/`, file sciolti | Lavoro di agent e misure | Cartelle di lavoro temporanee degli agent: copie `source/`, build, `node_modules`, log, evidenze, bundle Git. Nessuno script le legge. | Sì, con una verifica: riferimenti nei dossier, collegamenti (junction) verso repository reali, bundle Git usati come punti di ripristino |
+| `operations/`, `q201/`, `t<numero>/`, `lotto-*`, `classify-*`, `compaction*/`, file sciolti | Lavoro di agent e misure | Cartelle di lavoro temporanee degli agent: copie `source/`, build, `node_modules`, log, evidenze, bundle Git. Nessuno script le legge. Le nuove usano `<categoria>-<yyyyMMdd>-<slug>` (`work`, `evidence`, `report`, `fixture`, `tmp`). | Sì, con una verifica: riferimenti nei dossier, collegamenti (junction) e proprietà; `cleanup.ps1 -RuntimeReport` ne mostra dimensione ed età |
+| `trace/<id>/<data>.jsonl` | `trace.ps1 -Event stop` (hook Stop) | Una riga di soli metadati per turno (ora, sessione, repository): serve a contare i turni dall'ultima compattazione. Nessun testo di prompt. | Con cautela: è una prova d'uso; si ruota per file, mai in automatico |
+| `INDEX.md` | `cleanup.ps1 -RuntimeReport -ReportPath` | Vista derivata dell'intero `.runtime`. | **Sì** (si rigenera) |
 
 ### Prima di cancellare a mano
 
@@ -135,6 +137,15 @@ $cfg = '.runtime/hosts/<id>/workstation.json'
 
 `-ProjectId` e `-Repository` sono alternativi. Il compositore include brief del Progetto e percorsi verificati; non incorpora il contenuto dei dossier. Per checkout ambigui usare `-CheckoutPath` oppure `-CheckoutMapPath` (JSON identità GitHub → checkout presente nell'inventario locale). `-OutputPath` crea solo un nuovo `.txt`, senza sovrascrivere. Nessun task o servizio AI viene avviato.
 
+### Creare una Risorsa e cambiare stato
+
+```powershell
+./scripts/para.ps1 -NewResource -Id guida-api -Title 'Guida API' -Objective 'Raccolta di riferimento' -ConfigPath $cfg
+./scripts/para.ps1 -SetStatus -EntityId guida-api -Status retired -ConfigPath $cfg
+```
+
+`-NewResource` crea `03-resources/<id>/` con `para.json` e `brief.md`. `-SetStatus` cambia solo `status` in `para.json` dentro una transazione con backup: Progetto `active|completed|cancelled`, Area e Risorsa `active|retired`; un'entità archiviata va prima ripristinata. Solo ciò che è `completed`, `cancelled` o `retired` diventa candidato all'archiviazione. Le stesse regole sono nel prompt `MEM05` (`sb prompt MEM05`).
+
 ### Archiviare e riattivare
 
 `para.ps1 -SuggestArchive -ConfigPath $cfg` propone entità in stato concluso/ritirato. Non sposta dati. Per un'Area verifica anche l'assenza di Progetti attivi collegati; l'assenza di checkout non prova il ritiro.
@@ -148,7 +159,7 @@ Solo su richiesta esplicita:
   -BackupRoot 'C:/SecondBrainBackup/para'
 ```
 
-Restore riporta lo stato ad `active`. Gli spostamenti aggiornano i riferimenti gestiti e conservano gli snapshot byte per byte; eseguire poi Sync per aggiornare anche i blocchi dei checkout. Una Sync non riscrive i dossier archiviati. Manifest e recupero sono descritti nella [guida dedicata](recovery.md).
+Restore riporta lo stato ad `active`: un'Area torna con il suo identificatore, non con il nome di cartella di origine. Gli spostamenti aggiornano i riferimenti gestiti e conservano gli snapshot byte per byte; eseguire poi Sync per aggiornare anche i blocchi dei checkout. Una Sync non riscrive i dossier archiviati. Manifest e recupero sono descritti nella [guida dedicata](recovery.md).
 
 I manifest tracker registrati sono aggiornati nella stessa transazione, con identita e hash dei payload preservati. Sono ammessi gli stati `completed` e `rolled_back`; una importazione tracker pendente impedisce lo spostamento prima di qualsiasi scrittura. Anche il recupero transazionale comprende i manifest nei backupRoot delle postazioni registrate, dopo la validazione dei percorsi. Dettagli nella [guida tracker](trackers.md#spostamenti-para).
 

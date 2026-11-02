@@ -295,10 +295,50 @@ function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
     $key=$Name.ToLowerInvariant()
     if($IsProtected){return @{category='protected';recovery='non rimuovere: configurazione, accessi o stato attivo'}}
     if($key -eq 'tests'){return @{category='regenerable';recovery='si ricrea rieseguendo le suite test-secondbrain*.ps1'}}
+    if($key -eq 'index.md'){return @{category='regenerable';recovery='vista derivata: si rigenera con cleanup.ps1 -RuntimeReport'}}
     if($key -eq 'mcp-handshake'){return @{category='regenerable';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'}}
-    if($key -in @('cleanup','captures','publication','directives-activation')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
+    if($key -in @('cleanup','captures','publication','directives-activation','trace')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
+    # Convenzione <categoria>-<yyyyMMdd>-<slug> per le cartelle create dagli agenti: il prefisso dichiara la natura del lavoro.
+    if($key -match '^(evidence|report)-'){return @{category='evidence';recovery='prova o rapporto: non si rigenera identico'}}
+    if($key -match '^(work|fixture|tmp)-'){return @{category='working';recovery='lavoro temporaneo dichiarato dal prefisso: verificare riferimenti e proprietà prima di valutarlo'}}
     if($key -in @('backups','backup','workstations')){return @{category='backup';recovery='recupero di file gestiti: rimuovere solo con manifest revisionato (cleanup.ps1)'}}
     @{category='working';recovery='lavoro temporaneo: verificare riferimenti e proprietà prima di valutarlo'}
+}
+# Indice leggibile di .runtime (sola lettura): voci di primo livello ordinate per categoria, poi per dimensione, con chi le scrive e come si ricreano.
+function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
+    $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
+    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
+    $writers=@{access='access.ps1 / Enter-SBOperation';hosts='secondbrain.ps1 -Setup/-Activate/-Sync, backup';backups='host legacy (registro accessi)';workstations='host legacy (registro accessi)';tests='test-secondbrain*.ps1';'mcp-handshake'='test-secondbrain-mcp-handshake.ps1';cleanup='cleanup.ps1';publication='publication.ps1';captures='assets.ps1 / REP07';'directives-activation'='agente (SYS03)';backup='mcp-server.ps1 -Pair';'mcp-package'='mcp-server.ps1 -Package';trace='trace.ps1';'state.json'='secondbrain.ps1';'para-transaction.json'='para.ps1';'index.md'='cleanup.ps1 -RuntimeReport'}
+    $order=@{protected=0;evidence=1;backup=2;working=3;regenerable=4}
+    $format={param([long]$Bytes) if($Bytes -ge 1GB){('{0:N1} GB' -f ($Bytes/1GB))}elseif($Bytes -ge 1MB){('{0:N1} MB' -f ($Bytes/1MB))}else{('{0:N0} KB' -f ($Bytes/1KB))}}
+    $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
+    $rows=@();$details=@()
+    foreach($entry in @($report.entries|Sort-Object @{Expression={$order[$_.category]}},@{Expression={$_.bytes};Descending=$true},name)){
+        $key=$entry.name.ToLowerInvariant()
+        $owner=if($writers.ContainsKey($key)){$writers[$key]}else{'agente o attività manuale (nessun codice)'}
+        $conventional=$entry.name -match '^(work|evidence|fixture|tmp|report)-\d{8}-[a-z0-9][a-z0-9-]*$'
+        $name=$entry.name+$(if($entry.kind -eq 'directory'){'/'}else{''})
+        $rows+='| `'+$name+'` | '+$entry.category+' | '+(& $format $entry.bytes)+' | '+$entry.files+' | '+$entry.newestWriteUtc.Substring(0,10)+' | '+$entry.references.mentions+' | '+$owner+$(if($conventional){' (nome conforme)'}else{''})+' | '+$entry.recovery+' |'
+        if($entry.kind -eq 'directory' -and $entry.bytes -ge 50MB){
+            $children=@()
+            foreach($child in Get-ChildItem -LiteralPath (Join-Path $runtime $entry.name) -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}){
+                $size=0L;$count=0
+                if($child.PSIsContainer){foreach($f in ([IO.DirectoryInfo]::new($child.FullName)).EnumerateFiles('*',$options)){$size+=$f.Length;$count++}}else{$size=$child.Length;$count=1}
+                $children+=@{name=$child.Name;bytes=$size;files=$count}
+            }
+            $details+=''
+            $details+='### `'+$entry.name+'/`'
+            $details+=''
+            foreach($child in @($children|Sort-Object @{Expression={$_.bytes};Descending=$true}|Select-Object -First 5)){$details+='- `'+$child.name+'`: '+(& $format $child.bytes)+', '+$child.files+' file'}
+        }
+    }
+    $lines=@('# Indice di .runtime','','Vista generata da `cleanup.ps1 -RuntimeReport`: non è una fonte, si rigenera quando serve e non autorizza cancellazioni.','',
+        ('Totale: '+(& $format $report.totalBytes)+' in '+@($report.entries).Count+' voci. Ordine: categoria (protected, evidence, backup, working, regenerable), poi dimensione. Soglia di età: '+$OlderThanDays+' giorni.'),'',
+        '| Voce | Categoria | Dimensione | File | Ultima scrittura | Rif. | Chi la scrive | Recupero |','|---|---|---:|---:|---|---:|---|---|')
+    $lines+=$rows
+    $lines+=@('','Per le nuove cartelle degli agenti usare `<categoria>-<yyyyMMdd>-<slug>` con categoria `work`, `evidence`, `fixture`, `tmp` o `report`. Le cartelle esistenti non vengono spostate né rinominate.')
+    if($details.Count){$lines+=@('','## Dettaglio delle voci grandi')+$details}
+    @{markdown=($lines -join "`n")+"`n";entries=$report.entries;totalBytes=$report.totalBytes;byCategory=$report.byCategory}
 }
 # Proposta di pulizia di .runtime (sola lettura): NON è un manifest eseguibile. Elenca cartelle candidate con dimensioni, età, riferimenti e come si ricreano.
 function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90,[int]$KeepFixtures=5) {
@@ -761,6 +801,7 @@ Export-ModuleMember -Function @(
     'Write-SBFile',
     'Get-SBStageRetention',
     'Get-SBRuntimeRetention',
+    'Get-SBRuntimeIndex',
     'Get-SBRuntimeCleanupProposal',
     'Get-SBRegenerableRuntimeTargets',
     'Remove-SBRuntimeTree',

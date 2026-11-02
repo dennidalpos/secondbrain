@@ -13,13 +13,15 @@ Con -ListRuntime (sola lettura) mostra le voci di primo livello sotto .runtime c
 testuali e protezione (configurazione, registro postazioni, accesso), categoria (protected, evidence, backup, regenerable, working) e come si ricrea; non seleziona ne elimina nulla.
 Con -ProposeRuntime (sola lettura) produce una proposta di pulizia: cartelle candidate con dimensione, eta, riferimenti e recupero (fixture di test oltre le ultime -KeepFixtures, rapporti handshake vecchi, ambiente Python delle fonti, zip di backup oltre i due piu recenti, lavoro di agent senza riferimenti).
 Non e un manifest eseguibile e non rimuove nulla. Con -ProposalPath salva la proposta (nuovo file sotto .runtime, mai sovrascritto).
+Con -RuntimeReport (sola lettura) produce l'indice leggibile di .runtime in Markdown: voci ordinate per categoria e dimensione, chi le scrive, riferimenti e recupero.
+Con -ReportPath lo salva in un nuovo file .md sotto .runtime (mai sovrascritto) oppure rigenera .runtime/INDEX.md, vista derivata senza dati propri. Non rimuove nulla.
 Con -Regenerable mostra (senza -Apply) o rimuove (con -Apply e -Authorization che cita la richiesta esplicita dell utente) le sole cartelle rigenerabili di .runtime:
 fixture di test oltre le ultime -KeepFixtures e ambiente Python delle fonti (hosts/<id>/sources/python). Perimetro fisso, nessuna selezione per nome; salta cartelle
 scritte negli ultimi -MinAgeMinutes minuti, che contengono percorsi di configurazione o reparse point; rifiuta con transazione pendente o sessioni di accesso attive; non segue
 junction/symlink; nessun backup (si ricreano con le suite o con sources.ps1) ma un registro in .runtime/cleanup con elenco, dimensioni, esito e come ricrearle.
 #>
 [CmdletBinding()]
-param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$Regenerable,[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
+param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
@@ -29,7 +31,7 @@ $config=Read-SBConfiguration $ConfigPath
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {
     if($Regenerable){
-        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime){throw 'Regenerable non e combinabile con ManifestPath, ListStageRecords, ListRuntime o ProposeRuntime'}
+        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw 'Regenerable non e combinabile con ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime o RuntimeReport'}
         $protectedRoots=@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)
         $plan=Get-SBRegenerableRuntimeTargets $config.brainRoot $protectedRoots $KeepFixtures $MinAgeMinutes
         $summary=@{applied=$false;scope='runtime-regenerable-only';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;targets=@($plan.targets);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
@@ -59,13 +61,32 @@ try {
         ConvertTo-SBJson $summary
         exit $(if($failures.Count){1}else{0})
     }
-    if($ListStageRecords -or $ListRuntime -or $ProposeRuntime){
-        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime)|Where-Object {$_}).Count -gt 1){throw 'ListStageRecords, ListRuntime e ProposeRuntime non sono combinabili'}
+    if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){
+        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw 'ListStageRecords, ListRuntime, ProposeRuntime e RuntimeReport non sono combinabili'}
         if($Apply -or $ManifestPath){throw 'ListStageRecords e ListRuntime sono in sola lettura: non combinabili con Apply o ManifestPath'}
         # Tutti i backupRoot noti: quello corrente e quelli delle postazioni registrate sotto .runtime.
         $stageRoots=@($config.backupRoot)
         $registry=Read-SBJson (Join-Path $config.coordinationRoot 'workstations.json') @{}
         foreach($station in $registry.Values){if($station -is [Collections.IDictionary] -and $station.ContainsKey('backupRoot') -and $station.backupRoot){try{$stageRoots+=Assert-SBCentralDataPath $config.brainRoot $station.backupRoot}catch{}}}
+        if($RuntimeReport){
+            $index=Get-SBRuntimeIndex $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
+            if($ReportPath){
+                $target=Assert-SBCentralDataPath $config.brainRoot $ReportPath
+                if([IO.Path]::GetExtension($target) -ne '.md'){throw 'Il rapporto si salva in un file .md'}
+                $bytes=[Text.UTF8Encoding]::new($false).GetBytes($index.markdown)
+                [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
+                if($target -ieq [IO.Path]::GetFullPath((Join-Path $config.brainRoot '.runtime/INDEX.md'))){
+                    # Vista derivata: si rigenera in modo atomico, senza lasciare un file parziale.
+                    $temp=$target+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+                    try{[IO.File]::WriteAllBytes($temp,$bytes);[IO.File]::Move($temp,$target,$true)}finally{if([IO.File]::Exists($temp)){[IO.File]::Delete($temp)}}
+                }else{
+                    $stream=[IO.FileStream]::new($target,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+                    try{$stream.Write($bytes);$stream.Flush($true)}finally{$stream.Dispose()}
+                }
+            }
+            $index.markdown
+            exit 0
+        }
         if($ProposeRuntime){
             $proposal=Get-SBRuntimeCleanupProposal $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays $KeepFixtures
             $json=ConvertTo-SBJson $proposal
@@ -80,8 +101,8 @@ try {
             exit 0
         }
         if($ListRuntime){
-            $runtimeReport=Get-SBRuntimeRetention $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
-            ConvertTo-SBJson @{applied=$false;scope='runtime-retention-preview';olderThanDays=$runtimeReport.olderThanDays;totalBytes=$runtimeReport.totalBytes;reviewable=$runtimeReport.reviewable;byCategory=$runtimeReport.byCategory;entries=$runtimeReport.entries;note='Sola lettura: nessuna voce e candidata alla rimozione automatica; la pulizia richiede un manifest revisionato di file con hash, riferimenti verificati e richiesta esplicita.'}
+            $retentionReport=Get-SBRuntimeRetention $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
+            ConvertTo-SBJson @{applied=$false;scope='runtime-retention-preview';olderThanDays=$retentionReport.olderThanDays;totalBytes=$retentionReport.totalBytes;reviewable=$retentionReport.reviewable;byCategory=$retentionReport.byCategory;entries=$retentionReport.entries;note='Sola lettura: nessuna voce e candidata alla rimozione automatica; la pulizia richiede un manifest revisionato di file con hash, riferimenti verificati e richiesta esplicita.'}
             exit 0
         }
         $report=Get-SBStageRetention $stageRoots $OlderThanDays

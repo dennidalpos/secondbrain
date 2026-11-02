@@ -32,8 +32,8 @@ function New-SBPortableRepositoryBody($Revision=$null) {
     @($stamp+@('SecondBrain: integrazione opzionale della conoscenza e delle direttive comuni.',
       'Risolvi SECONDBRAIN_HOME dallʼambiente utente della postazione; nessun percorso personale è conservato in questo repository.',
       'Se il clone privato non è disponibile, prosegui con le istruzioni tecniche locali e segnala lʼintegrazione non configurata; non creare memorie o stub sostitutivi.',
-      'Dal clone SecondBrain usa scripts/prompts.ps1 -Context -RepositoryPath <checkout-corrente> per risolvere il dossier e il suo index.md.',
-      'Carica indice, contesto sintetico, memoria essenziale e proiezione task pertinente; approfondimenti e storico soltanto quando servono.',
+      'Dal clone SecondBrain usa scripts/prompts.ps1 -Context -RepositoryPath <checkout-corrente> per risolvere i percorsi del dossier e il suo index.md.',
+      'Carica il contesto iniziale con scripts/knowledge.ps1 -Startup (o lo strumento MCP get_startup_context): indice, contesto sintetico, memoria essenziale e proiezione task pertinente; approfondimenti e storico soltanto quando servono.',
       'Memorie private, tracker interni, backup e output operativi risiedono in SecondBrain. Conserva qui codice, guide e asset pubblicabili.',
       'Le direttive non autorizzano commit, push, cancellazioni di artefatti o task applicativi impliciti.')) -join "`n"
 }
@@ -511,6 +511,7 @@ function Invoke-SBPortableSync {
             $scoped=@($Config.bindings|Where-Object {$_.identity -ceq $Repository})
             if($scoped.Count -ne 1){throw 'Repository non gestito su questa postazione: '+$Repository}
         }
+        $compactionAdvice=@()
         $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=1;managed=@{};dossierMap=@{}}
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
@@ -549,9 +550,14 @@ function Invoke-SBPortableSync {
                     else{Write-SBFile $historyPath ([Text.Encoding]::UTF8.GetBytes($historyIndex)) (Get-SBFileHash $historyPath) $Config.backupRoot|Out-Null}
                 }
                 # Il tetto vale solo per il primo caricamento (profilo Slim, 20.000 caratteri), come in knowledge.ps1 -Startup.
-                $budget = 20000
+                $budget = Get-SBSlimStartupBudget
                 $startup=Get-SBStartupContext -BrainRoot $Config.brainRoot -Dossier $dir -CheckoutPath $binding.path -Entities $entities -Budget $budget -Profile Slim
                 if(!$startup.withinBudget){$issues+=@{kind='compaction-required';repository=$binding.identity;characters=$startup.characters;budget=$budget}}
+                else{
+                    # Soglia soft (vicino al tetto o molti turni dall'ultima compattazione): solo avviso, non rende il controllo non allineato.
+                    $advice=Get-SBCompactionAdvice $startup $Config.brainRoot $dir
+                    if($advice.level -eq 'soft'){$compactionAdvice+=@{kind='compaction-advised';repository=$binding.identity;characters=$advice.characters;budget=$advice.budget;percent=$advice.percent;turnsSinceCompaction=$advice.turnsSinceCompaction;reason='Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'}}
+                }
                 if($global){
                     $agents=Join-Path $binding.path 'AGENTS.md';$key=[IO.Path]::GetFullPath($agents)+'|repository'
                     if(!$state.managed.ContainsKey($key) -and $binding.managedHash -ne 'absent'){$state.managed[$key]=$binding.managedHash}
@@ -620,7 +626,7 @@ function Invoke-SBPortableSync {
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.
-        $warnings=@()
+        $warnings=@($compactionAdvice)
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason='Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}
         if($pendingTransaction){$warnings+=@{kind='pending-transaction';reason=(Format-SBPendingTransaction $pendingTransaction)}}

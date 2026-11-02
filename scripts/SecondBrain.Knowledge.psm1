@@ -3,11 +3,12 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
 
 function Get-SBDossierTOC([string]$Dossier) {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw 'repository.json assente'}
-    $lines=@('# Indice del dossier','','Repository: `'+$record.identity+'`','','## Avvio selettivo','',
+    $lines=@('# Indice del dossier','',('Repository: `'+$record.identity+'`'),'','## Avvio selettivo','',
         '- [Contesto corrente](context.md): stato, vincoli e prossimo passo.',
         '- [Memoria essenziale](memory.md): decisioni durevoli e gotcha.',
         '- [Metadati e fonte task](repository.json): risolvere il tracker; leggere solo la proiezione pertinente.',
@@ -144,6 +145,23 @@ function Get-SBStartupContext {
     $characters=($parts.Values|Measure-Object -Property Length -Sum).Sum
     @{repository=$record.identity;profile=$Profile;budget=$Budget;characters=$characters;withinBudget=($Budget -le 0 -or $characters -le $Budget);needsCompaction=($Budget -gt 0 -and $characters -gt $Budget);
       parts=$parts;loadedParts=@($parts.Keys|Sort-Object);omittedParts=@($omitted);taskSource=$tracker.path;originalsTruncated=$false;unit='characters-not-tokens'}
+}
+# Tetto del primo caricamento (profilo Slim): fonte unica per knowledge.ps1 -Startup e per secondbrain.ps1 -Check.
+function Get-SBSlimStartupBudget { 20000 }
+# Avviso di compattazione (sola lettura): hard se il pacchetto Slim supera il tetto, soft se e vicino al tetto o se i turni tracciati
+# dall'ultima compattazione sono molti. Non compatta mai: l'applicazione resta su richiesta (SYS05).
+function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[int]$SoftPercent=80,[int]$SoftTurns=50,[int]$SoftTurnsPercent=60) {
+    $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*$Startup.characters/$Startup.budget)}else{0}
+    $last=[DateTimeOffset]::MinValue
+    $manifests=Join-Path $Dossier 'history/compaction'
+    if(Test-Path -LiteralPath $manifests -PathType Container){
+        foreach($file in Get-ChildItem -LiteralPath $manifests -File -Filter '*.json' -Force){if([DateTimeOffset]$file.LastWriteTimeUtc -gt $last){$last=[DateTimeOffset]$file.LastWriteTimeUtc}}
+    }
+    $turns=Get-SBTraceTurns $BrainRoot $Startup.repository $last
+    $level='none'
+    if($Startup.budget -gt 0 -and $Startup.characters -gt $Startup.budget){$level='hard'}
+    elseif($Startup.budget -gt 0 -and ($percent -ge $SoftPercent -or ($turns -ge $SoftTurns -and $percent -ge $SoftTurnsPercent))){$level='soft'}
+    @{level=$level;characters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
 }
 # Rapporto di sola lettura: caratteri per parte, stima token (caratteri/4, non esatta), parti omesse e peso delle direttive caricate.
 function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
@@ -484,6 +502,8 @@ Export-ModuleMember -Function @(
     'Get-SBTaskProjection',
     'Split-SBTieredMarkdown',
     'Get-SBStartupContext',
+    'Get-SBSlimStartupBudget',
+    'Get-SBCompactionAdvice',
     'Format-SBStartupReport',
     'Get-SBGlobalTasks',
     'Resolve-SBWorkingDossier',

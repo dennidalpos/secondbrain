@@ -432,6 +432,12 @@ MEM04 | Elenca e descrivi le attività del tracker e i problemi che risolvono.
   • Serve: tracker del dossier di repository
   • Esempio: sb prompt MEM04: elenca attivita e problemi del tracker
 
+MEM05 | Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.
+  • ID: pmt-4e1b7c52
+  • Scope: central | Modalità: write
+  • Serve: obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain
+  • Esempio: sb prompt MEM05: archivia la risorsa conclusa res-guida
+
 SYS06 | Leggi memoria attiva, contesto e tracker del repository corrente.
   • ID: pmt-821f7dec
   • Scope: repo | Modalità: read

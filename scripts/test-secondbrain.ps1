@@ -105,6 +105,16 @@ try {
     $proposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
     $binCandidates=@($proposal.candidates|Where-Object {$_.path -like '*backups/*.bin'})
     Assert ($binCandidates.Count -eq 1 -and $binCandidates[0].files -eq 1 -and $proposal.applied -eq $false -and (Test-Path $oldBin) -and (Test-Path $lostBin)) 'proposta di potatura dei soli .bin con blob in Git, senza eseguirla (il .bin senza blob e escluso)'
+    foreach($runtimeCase in @('work-20261102-prova','evidence-20261102-prova','report-20261102-prova','t77')){$caseDir=Join-Path $pruneRoot (Join-Path '.runtime' $runtimeCase);[IO.Directory]::CreateDirectory($caseDir)|Out-Null;[IO.File]::WriteAllText((Join-Path $caseDir 'x.txt'),'x')}
+    [IO.Directory]::CreateDirectory((Join-Path $pruneRoot '.runtime/trace/h1'))|Out-Null;[IO.File]::WriteAllText((Join-Path $pruneRoot '.runtime/trace/h1/2026-11-02.jsonl'),'{}')
+    $runtimeBefore=@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object)
+    $runtimeIndex=Get-SBRuntimeIndex $pruneRoot @() 90
+    $categoryOf=@{};foreach($entry in $runtimeIndex.entries){$categoryOf[$entry.name]=$entry.category}
+    Assert ($categoryOf['work-20261102-prova'] -eq 'working' -and $categoryOf['evidence-20261102-prova'] -eq 'evidence' -and $categoryOf['report-20261102-prova'] -eq 'evidence' -and $categoryOf['trace'] -eq 'evidence' -and $categoryOf['t77'] -eq 'working') 'indice .runtime: i prefissi della convenzione e trace sono classificati'
+    $indexRows=@($runtimeIndex.markdown -split "`n"|Where-Object {$_ -match '^\| `'})
+    $categoryRank=@{protected=0;evidence=1;backup=2;working=3;regenerable=4};$ranks=@($indexRows|ForEach-Object {$categoryRank[(($_ -split '\|')[2]).Trim()]})
+    Assert ($indexRows.Count -eq @($runtimeIndex.entries).Count -and (@($ranks|Sort-Object) -join ',') -eq ($ranks -join ',') -and $runtimeIndex.markdown -match 'nome conforme') 'indice .runtime: righe ordinate per categoria e nomi conformi segnalati'
+    Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($runtimeBefore -join '|')) 'indice .runtime: sola lettura, nessun file creato o rimosso'
     $state=@{}
     Assert ((Set-SBManagedContent $path 'regola' 'test' $state $true $backup) -eq 'pending') 'Check rileva blocco mancante'
     Assert ((Get-SBFileHash $path) -eq $hash -and $state.Count -eq 0) 'Check senza scritture o adozione'
@@ -160,6 +170,9 @@ try {
     }
     Invoke-SubSuite 'Audit2: rimozione protetta, Markdown, provenienza e recupero' {
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-audit2.ps1')
+    }
+    Invoke-SubSuite 'Traccia di fine turno: evento, hook Stop e avviso di compattazione' {
+        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-trace.ps1')
     }
     Invoke-SubSuite 'Audit esterno: paginazione, copertura, errori e protezione dei contenuti' {
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-external-audit.ps1')

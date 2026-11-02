@@ -76,7 +76,7 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'list_prompts'
-            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (81 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
+            description = 'Elenca il catalogo dei prompt e workflow ingegneristici (82 workflow attivi) nelle 13 aree tematiche. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
             inputSchema = @{
                 type = 'object'
                 properties = @{
@@ -138,7 +138,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if ($startupProfile -notin @('slim', 'full')) { throw 'Profilo non valido: usare slim o full' }
             $startupProfile = if ($startupProfile -eq 'full') { 'Full' } else { 'Slim' }
             # Tetto solo per il primo caricamento (slim); full non ha tetto salvo budget esplicito.
-            $budgetDefault = if ($startupProfile -eq 'Slim') { 20000 } else { 0 }
+            $budgetDefault = if ($startupProfile -eq 'Slim') { Get-SBSlimStartupBudget } else { 0 }
             $budget = if ($Arguments.ContainsKey('budget') -and $Arguments.budget) { [int]$Arguments.budget } else { $budgetDefault }
             $readyOnly = if ($Arguments.ContainsKey('readyOnly')) { [bool]$Arguments.readyOnly } else { $false }
             $dossier = if ($Arguments.ContainsKey('dossier')) { [string]$Arguments.dossier } else { $null }

@@ -4,6 +4,19 @@ Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazi
 
 ## [Non rilasciato]
 
+## [1.2.0] - 2026-11-02
+
+### Aggiunto
+
+- `MEM05`: regola unica per creare, aggiornare, archiviare e ripristinare progetti, aree e risorse del PARA; `para.ps1 -NewResource` e `-SetStatus`.
+- `cleanup.ps1 -RuntimeReport`: indice leggibile di `.runtime` (opzionale `.runtime/INDEX.md`) e convenzione `<categoria>-<yyyyMMdd>-<slug>` per le nuove cartelle degli agent.
+- `trace.ps1`: traccia di fine turno (hook Stop di Claude Code, solo metadati) e avviso `compaction-advised` in `secondbrain.ps1 -Check`.
+
+### Modificato
+
+- Direttive comuni 1.2: rimando a MEM05, nomi in `.runtime`, proposta di SYS05 alla chiusura del task; il contesto iniziale si carica con `knowledge.ps1 -Startup`, non con `prompts.ps1 -Context`.
+- Il tetto di 20.000 caratteri del primo caricamento ha una fonte unica (`Get-SBSlimStartupBudget`).
+
 ## [1.1.0] - 2026-11-01
 
 ### Modificato

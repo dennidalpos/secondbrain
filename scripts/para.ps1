@@ -7,14 +7,17 @@ param(
     [Parameter(Mandatory,ParameterSetName='Index')][switch]$BuildIndex,
     [Parameter(Mandatory,ParameterSetName='Suggest')][switch]$SuggestArchive,
     [Parameter(Mandatory,ParameterSetName='New')][switch]$NewProject,
-    [Parameter(Mandatory,ParameterSetName='New')][ValidatePattern('^[a-z][a-z0-9-]{0,95}$')][string]$Id,
-    [Parameter(Mandatory,ParameterSetName='New')][string]$Title,
+    [Parameter(Mandatory,ParameterSetName='Resource')][switch]$NewResource,
+    [Parameter(Mandatory,ParameterSetName='Status')][switch]$SetStatus,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][ValidatePattern('^[a-z][a-z0-9-]{0,95}$')][string]$Id,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][string]$Title,
     [Parameter(Mandatory,ParameterSetName='New')][string[]]$Areas,
-    [Parameter(Mandatory,ParameterSetName='New')][string]$Objective,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][string]$Objective,
     [Parameter(Mandatory,ParameterSetName='New')][string[]]$Acceptance,
+    [Parameter(Mandatory,ParameterSetName='Status')][ValidateSet('active','completed','cancelled','retired')][string]$Status,
     [Parameter(Mandatory,ParameterSetName='Archive')][switch]$Archive,
     [Parameter(Mandatory,ParameterSetName='Restore')][switch]$Restore,
-    [Parameter(Mandatory,ParameterSetName='Archive')][Parameter(Mandatory,ParameterSetName='Restore')][string]$EntityId
+    [Parameter(Mandatory,ParameterSetName='Archive')][Parameter(Mandatory,ParameterSetName='Restore')][Parameter(Mandatory,ParameterSetName='Status')][string]$EntityId
 )
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
@@ -27,7 +30,7 @@ $config=Read-SBConfiguration $ConfigPath
 if(!$BackupRoot){$BackupRoot=$config.backupRoot}
 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$BackupRoot=Assert-SBCentralDataPath $config.brainRoot $BackupRoot}
 if((Read-SBJson (Join-Path $config.brainRoot 'config/shared.json') @{}).schemaVersion -ne 1){throw 'Policy condivisa non valida: config/shared.json'}
-$writing=$BuildIndex -or $NewProject -or $Archive -or $Restore
+$writing=$BuildIndex -or $NewProject -or $NewResource -or $SetStatus -or $Archive -or $Restore
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$writing)
 try {
     $index=Get-SBParaIndex $config.brainRoot $config.allowedOwners
@@ -41,6 +44,25 @@ try {
         $brief="# $Title`n`n## Obiettivo`n`n$Objective`n`n## Criteri di completamento`n`n"+(($Acceptance|ForEach-Object {'- '+$_}) -join "`n")+"`n"
         $ops=@(@{path=(Join-Path $dir 'para.json');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta))},@{path=(Join-Path $dir 'brief.md');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($brief)})
         Invoke-SBParaTransaction $ops $BackupRoot $config.brainRoot
+    }elseif($NewResource){
+        if(!$Title.Trim() -or $Title -match '[\r\n]' -or !$Objective.Trim()){throw 'Titolo e obiettivo richiesti'}
+        if(@($index.entities|Where-Object id -eq $Id).Count){throw 'Identificatore gia presente'}
+        $dir=Resolve-SBParaPath $config.brainRoot ('03-resources/'+$Id)
+        if(Test-Path -LiteralPath $dir){throw 'Cartella risorsa gia presente'}
+        $meta=New-SBParaMetadata $Id 'resource' $Title
+        $brief="# $Title`n`n## Obiettivo`n`n$Objective`n"
+        $ops=@(@{path=(Join-Path $dir 'para.json');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta))},@{path=(Join-Path $dir 'brief.md');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($brief)})
+        Invoke-SBParaTransaction $ops $BackupRoot $config.brainRoot
+    }elseif($SetStatus){
+        $matches=@($index.entities|Where-Object id -eq $EntityId)
+        if($matches.Count -ne 1){throw 'Entita PARA inesistente'};$item=$matches[0]
+        if($item.archived){throw 'Entita archiviata: ripristinarla prima di cambiarne lo stato'}
+        $allowed=@{project=@('active','completed','cancelled');area=@('active','retired');resource=@('active','retired')}[$item.kind]
+        if($Status -notin $allowed){throw "Stato non valido per $($item.kind): ammessi $($allowed -join ', ')"}
+        if($item.status -eq $Status){throw 'Stato gia impostato'}
+        $metaPath=Join-Path (Resolve-SBParaPath $config.brainRoot $item.path) 'para.json'
+        $m=Read-SBJson $metaPath $null;$m.status=$Status
+        Invoke-SBParaTransaction @(,@{path=$metaPath;expected=(Get-SBFileHash $metaPath);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $m))}) $BackupRoot $config.brainRoot
     }elseif($Archive -or $Restore){
         $matches=@($index.entities|Where-Object id -eq $EntityId)
         if($matches.Count -ne 1){throw 'Entita PARA inesistente'};$item=$matches[0]
