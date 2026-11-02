@@ -58,8 +58,10 @@ param(
     [Parameter(ParameterSetName='Check')][Parameter(ParameterSetName='Sync')][string]$Repository,
     [string]$ConfigPath,[string]$ObservationPath,
     [string]$SessionId,
-    [ValidateRange(0,600)][int]$WaitSeconds
+    [ValidateRange(0,600)][int]$WaitSeconds,
+    [ValidateSet('en','it')][string]$Language
 )
+if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference = 'Stop'
 # Attesa massima del lock di scrittura (predefinita 60 s, o lockWaitSeconds in config/shared.json); exit 3 solo a timeout.
 if ($PSBoundParameters.ContainsKey('WaitSeconds')) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS = [string]$WaitSeconds }

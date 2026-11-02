@@ -24,6 +24,7 @@ param(
     [int]$Writers = 4,
     [int]$HoldMs = 400
 )
+$env:SECONDBRAIN_LANG='it'
 $ErrorActionPreference = 'Stop'
 $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $failures = [Collections.Generic.List[string]]::new()

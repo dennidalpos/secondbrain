@@ -2,6 +2,11 @@
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'trace.settings.json' = @{ it = 'settings.json non e JSON valido: nessuna modifica'; en = 'settings.json is not valid JSON: no change made' }
+    'trace.settings.object' = @{ it = 'settings.json non e un oggetto JSON: nessuna modifica'; en = 'settings.json is not a JSON object: no change made' }
+}
 
 # Traccia di fine turno: metadati senza testo di prompt in .runtime/trace/<host>/<yyyy-MM-dd>.jsonl, una riga per evento.
 # Serve solo a contare i turni dall'ultima compattazione; non e una fonte di conoscenza e non autorizza nulla.
@@ -69,9 +74,9 @@ function Get-SBTraceHookState([string]$BrainRoot,[string]$SettingsPath=(Get-SBTr
     $settings=@{}
     if(Test-Path -LiteralPath $SettingsPath -PathType Leaf){
         $text=Read-SBText $SettingsPath
-        if($text.Trim()){try{$settings=$text|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{throw 'settings.json non e JSON valido: nessuna modifica'}}
+        if($text.Trim()){try{$settings=$text|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{throw (New-SBError 'trace.settings.json')}}
     }
-    if($settings -isnot [Collections.IDictionary]){throw 'settings.json non e un oggetto JSON: nessuna modifica'}
+    if($settings -isnot [Collections.IDictionary]){throw (New-SBError 'trace.settings.object')}
     $installed=$false
     if($settings.ContainsKey('hooks') -and $settings.hooks -is [Collections.IDictionary] -and $settings.hooks.ContainsKey('Stop')){
         foreach($group in @($settings.hooks.Stop)){

@@ -1,6 +1,26 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'publication.hook.checkout' = @{ it = 'Checkout Git richiesto per installare lʼhook pre-push'; en = 'Git checkout required to install the pre-push hook' }
+    'publication.checkout' = @{ it = 'Checkout Git richiesto'; en = 'Git checkout required' }
+    'publication.policy' = @{ it = 'Policy pubblicazione non valida'; en = 'Invalid publication policy' }
+    'publication.inventory' = @{ it = 'Inventario Git non leggibile'; en = 'Git inventory not readable' }
+    'publication.index' = @{ it = 'Indice Git non leggibile'; en = 'Git index not readable' }
+    'publication.capture.metadata' = @{ it = 'Metadati di acquisizione incompleti'; en = 'Incomplete capture metadata' }
+    'publication.capture.png' = @{ it = 'Acquisizione PNG richiesta'; en = 'PNG capture required' }
+    'publication.capture.review' = @{ it = 'Acquisizione reale e privacy richiedono revisione esplicita'; en = 'Real capture and privacy require explicit review' }
+    'publication.asset.name' = @{ it = 'Nome asset PNG non valido'; en = 'Invalid PNG asset name' }
+    'publication.asset.root' = @{ it = 'Radice checkout Git richiesta per esportare asset'; en = 'Git checkout root required to export assets' }
+    'publication.asset.repository' = @{ it = 'Repository dellʼasset divergente'; en = 'Asset repository mismatch' }
+    'publication.capture.changed' = @{ it = 'Cattura modificata dopo la revisione'; en = 'Capture changed after review' }
+    'publication.png.truncated' = @{ it = 'PNG troncato'; en = 'Truncated PNG' }
+    'publication.png.chunk' = @{ it = 'Chunk PNG non valido'; en = 'Invalid PNG chunk' }
+    'publication.png.structure' = @{ it = 'Struttura PNG non valida'; en = 'Invalid PNG structure' }
+    'publication.hook.custom' = @{ it = 'Hook pre-push personalizzato preesistente trovato in {0}. Usare -Force per sovrascrivere.'; en = 'Existing custom pre-push hook found in {0}. Use -Force to overwrite.' }
+    'publication.hook.foreign' = @{ it = 'Hook pre-push non creato da SecondBrain, rimozione rifiutata: {0}'; en = 'Pre-push hook not created by SecondBrain, removal refused: {0}' }
+}
 
 $script:SBPublicationRuleCache=$null
 function Get-SBPublicationRules {
@@ -56,8 +76,8 @@ function Read-SBPublicationBaseline([string]$BrainRoot,[string]$RepositoryRoot) 
 }
 function Test-SBPublication {
     param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[int]$MaxHistoryBlobs=10000,[int]$MaxTextBytes=2097152,[switch]$Initial)
-    $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw 'Checkout Git richiesto'};$root=$repo.output
-    $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw 'Policy pubblicazione non valida'};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
+    $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw (New-SBError 'publication.checkout')};$root=$repo.output
+    $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
     $findings=@();$incomplete=@();$checked=0
     
     # Un baseline per repository (nome dal percorso normalizzato): -Initial su un repository non altera gli altri.
@@ -77,14 +97,14 @@ function Test-SBPublication {
         $targetFiles = @($rawList | Where-Object { $_ -and $_.Trim() } | ForEach-Object { $_.Trim() } | Sort-Object -Unique)
     } else {
         $files=Invoke-SBGit $root @('ls-files','-z','--cached','--others','--exclude-standard') -PreserveOutput
-        if($files.code -ne 0){throw 'Inventario Git non leggibile'}
+        if($files.code -ne 0){throw (New-SBError 'publication.inventory')}
         $targetFiles = @($files.output -split "`0"|Where-Object {$_}|Sort-Object -Unique)
     }
 
     # Oid dell indice in un solo processo, poi tipo/dimensione in batch: niente rev-parse/cat-file -s per file.
     $indexMap=@{}
     $indexList=Invoke-SBGit $root @('ls-files','-s','-z') 120000 -PreserveOutput
-    if($indexList.code -ne 0){throw 'Indice Git non leggibile'}
+    if($indexList.code -ne 0){throw (New-SBError 'publication.index')}
     foreach($entry in $indexList.output -split "`0"){if($entry -match '^\d+ ([a-f0-9]{40,64}) 0\t(.+)$'){$indexMap[$Matches[2]]=$Matches[1]}}
     $indexInfo=Get-SBGitObjectInfo $root @($targetFiles|Where-Object {$indexMap.ContainsKey($_)}|ForEach-Object {$indexMap[$_]}|Sort-Object -Unique)
     # Contenuto dei blob d indice in un solo processo, entro un budget di memoria; oltre il budget resta la lettura per file.
@@ -215,9 +235,9 @@ function Test-SBPublication {
 function New-SBCaptureRecord {
     param([string]$BrainRoot,[string]$SourcePath,[string]$Repository,[string]$Application,[string]$Version,[string]$Commit,[string]$Scenario,[string]$CaptureTool,[string]$Reproduction,[bool]$Dirty=$false)
     $source=Assert-SBCentralDataPath $BrainRoot $SourcePath
-    foreach($value in @($Repository,$Application,$Version,$Commit,$Scenario,$CaptureTool,$Reproduction)){if(!$value){throw 'Metadati di acquisizione incompleti'}}
+    foreach($value in @($Repository,$Application,$Version,$Commit,$Scenario,$CaptureTool,$Reproduction)){if(!$value){throw (New-SBError 'publication.capture.metadata')}}
     $bytes=[IO.File]::ReadAllBytes($source)
-    if($bytes.Length -lt 24 -or [BitConverter]::ToString($bytes[0..7]) -ne '89-50-4E-47-0D-0A-1A-0A'){throw 'Acquisizione PNG richiesta'}
+    if($bytes.Length -lt 24 -or [BitConverter]::ToString($bytes[0..7]) -ne '89-50-4E-47-0D-0A-1A-0A'){throw (New-SBError 'publication.capture.png')}
     function Read-BigEndian([int]$Offset){$part=[byte[]]$bytes[$Offset..($Offset+3)];[array]::Reverse($part);[BitConverter]::ToUInt32($part,0)}
     @{schemaVersion=1;repository=$Repository;source=$source;sha256=(Get-SBFileHash $source);application=$Application;version=$Version;commit=$Commit;dirty=$Dirty;scenario=$Scenario;
       captureTool=$CaptureTool;reproduction=$Reproduction;dataKind='synthetic';width=(Read-BigEndian 16);height=(Read-BigEndian 20);realCaptureReviewed=$false;privacyReviewed=$false;reviewNote='';published=$false}
@@ -225,14 +245,14 @@ function New-SBCaptureRecord {
 function Export-SBPublicCapture {
     param([string]$BrainRoot,[string]$ManifestPath,[string]$RepositoryPath,[string]$Name,[string]$BackupRoot,[switch]$Apply,$Bindings=@())
     $manifest=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $ManifestPath) $null
-    if(!$manifest -or $manifest.schemaVersion -ne 1 -or $manifest.dataKind -ne 'synthetic' -or !$manifest.realCaptureReviewed -or !$manifest.privacyReviewed -or !$manifest.reviewNote){throw 'Acquisizione reale e privacy richiedono revisione esplicita'}
-    if($Name -notmatch '^[a-z0-9][a-z0-9-]{0,79}\.png$'){throw 'Nome asset PNG non valido'}
+    if(!$manifest -or $manifest.schemaVersion -ne 1 -or $manifest.dataKind -ne 'synthetic' -or !$manifest.realCaptureReviewed -or !$manifest.privacyReviewed -or !$manifest.reviewNote){throw (New-SBError 'publication.capture.review')}
+    if($Name -notmatch '^[a-z0-9][a-z0-9-]{0,79}\.png$'){throw (New-SBError 'publication.asset.name')}
     $checkout=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel')
-    if($checkout.code -ne 0 -or [IO.Path]::GetFullPath($checkout.output) -ne [IO.Path]::GetFullPath($RepositoryPath)){throw 'Radice checkout Git richiesta per esportare asset'}
+    if($checkout.code -ne 0 -or [IO.Path]::GetFullPath($checkout.output) -ne [IO.Path]::GetFullPath($RepositoryPath)){throw (New-SBError 'publication.asset.root')}
     $resolved=Resolve-SBBoundIdentity $RepositoryPath $Bindings
-    if($resolved -cne $manifest.repository){throw 'Repository dellʼasset divergente'}
+    if($resolved -cne $manifest.repository){throw (New-SBError 'publication.asset.repository')}
     [void](Assert-SBCentralDataPath $BrainRoot $manifest.source)
-    if((Get-SBFileHash $manifest.source) -ne $manifest.sha256){throw 'Cattura modificata dopo la revisione'}
+    if((Get-SBFileHash $manifest.source) -ne $manifest.sha256){throw (New-SBError 'publication.capture.changed')}
     $destination=Join-Path $RepositoryPath ('docs/assets/'+$Name)
     # PNG ancillary chunks may contain paths or private metadata: publish only IHDR/PLTE/IDAT/IEND and transparency/color chunks.
     $sourceBytes=[IO.File]::ReadAllBytes($manifest.source);$stream=[IO.MemoryStream]::new()
@@ -240,9 +260,9 @@ function Export-SBPublicCapture {
     try{
         $stream.Write($sourceBytes,0,8);$offset=8
         while($offset -lt $sourceBytes.Length){
-            if($offset+12 -gt $sourceBytes.Length){throw 'PNG troncato'}
+            if($offset+12 -gt $sourceBytes.Length){throw (New-SBError 'publication.png.truncated')}
             $lengthBytes=[byte[]]$sourceBytes[$offset..($offset+3)];[array]::Reverse($lengthBytes);$length=[BitConverter]::ToUInt32($lengthBytes,0)
-            if([long]$offset+12+$length -gt $sourceBytes.Length){throw 'Chunk PNG non valido'}
+            if([long]$offset+12+$length -gt $sourceBytes.Length){throw (New-SBError 'publication.png.chunk')}
             $kind=[Text.Encoding]::ASCII.GetString($sourceBytes,$offset+4,4)
             $chunkKinds+=$kind
             if($kind -in @('IHDR','PLTE','IDAT','IEND','tRNS','sRGB','gAMA','cHRM')){$stream.Write($sourceBytes,$offset,[int]($length+12))}
@@ -250,7 +270,7 @@ function Export-SBPublicCapture {
         }
         $output=$stream.ToArray()
     }finally{$stream.Dispose()}
-    if($chunkKinds[0] -ne 'IHDR' -or $chunkKinds[-1] -ne 'IEND' -or 'IDAT' -notin $chunkKinds -or @($chunkKinds|Where-Object {$_ -eq 'IHDR'}).Count -ne 1){throw 'Struttura PNG non valida'}
+    if($chunkKinds[0] -ne 'IHDR' -or $chunkKinds[-1] -ne 'IEND' -or 'IDAT' -notin $chunkKinds -or @($chunkKinds|Where-Object {$_ -eq 'IHDR'}).Count -ne 1){throw (New-SBError 'publication.png.structure')}
     if($Apply){[void](Assert-SBCentralDataPath $BrainRoot $BackupRoot);Write-SBFile $destination $output (Get-SBFileHash $destination) $BackupRoot|Out-Null}
     @{applied=[bool]$Apply;destination=$destination;sourceSha256=$manifest.sha256;publicSha256=(Get-SBHash $output);metadataRemoved=$true;originalRetained=$true}
 }
@@ -325,7 +345,7 @@ function Install-SBPublicationHook {
         [switch]$Force
     )
     $repo = Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel')
-    if ($repo.code -ne 0) { throw 'Checkout Git richiesto per installare lʼhook pre-push' }
+    if ($repo.code -ne 0) { throw (New-SBError 'publication.hook.checkout') }
     $root = [IO.Path]::GetFullPath($repo.output)
     
     $gitDirRes = Invoke-SBGit $root @('rev-parse','--git-path','hooks')
@@ -342,7 +362,7 @@ function Install-SBPublicationHook {
     if ($alreadyExists -and !$Force) {
         $existing = [IO.File]::ReadAllText($hookFile)
         if ($existing -notmatch 'SecondBrain pre-push hook') {
-            throw "Hook pre-push personalizzato preesistente trovato in $hookFile. Usare -Force per sovrascrivere."
+            throw (New-SBError 'publication.hook.custom' @($hookFile))
         }
     }
     
@@ -378,7 +398,7 @@ function Uninstall-SBPublicationHook {
         [switch]$Apply
     )
     $repo = Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel')
-    if ($repo.code -ne 0) { throw 'Checkout Git richiesto' }
+    if ($repo.code -ne 0) { throw (New-SBError 'publication.checkout') }
     $root = [IO.Path]::GetFullPath($repo.output)
     
     $gitDirRes = Invoke-SBGit $root @('rev-parse','--git-path','hooks')
@@ -409,7 +429,7 @@ function Uninstall-SBPublicationHook {
     
     # Un pre-push non creato da SecondBrain e dell'utente: non si cancella.
     if ((Get-Content -LiteralPath $hookFile -Raw) -notmatch 'SecondBrain pre-push hook') {
-        throw "Hook pre-push non creato da SecondBrain, rimozione rifiutata: $hookFile"
+        throw (New-SBError 'publication.hook.foreign' @($hookFile))
     }
     Remove-Item -LiteralPath $hookFile -Force
     return @{
@@ -423,7 +443,7 @@ function Get-SBPublicationHookStatus {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$RepositoryPath)
     $repo = Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel')
-    if ($repo.code -ne 0) { throw 'Checkout Git richiesto' }
+    if ($repo.code -ne 0) { throw (New-SBError 'publication.checkout') }
     $root = [IO.Path]::GetFullPath($repo.output)
     
     $gitDirRes = Invoke-SBGit $root @('rev-parse','--git-path','hooks')

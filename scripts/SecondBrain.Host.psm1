@@ -1,6 +1,23 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'host.git.checkout' = @{ it = 'Checkout Git non leggibile'; en = 'Git checkout not readable' }
+    'host.git.metadata' = @{ it = 'Metadati Git non leggibili'; en = 'Git metadata not readable' }
+    'host.git.origin' = @{ it = 'Origin non leggibile'; en = 'Origin not readable' }
+    'host.discovery.checkpoint' = @{ it = 'Checkpoint discovery di altra postazione o clone'; en = 'Discovery checkpoint of another workstation or clone' }
+    'host.discovery.root' = @{ it = 'Radice discovery assente: {0}'; en = 'Discovery root missing: {0}' }
+    'host.work.segment' = @{ it = 'Progetto/runtime non valido'; en = 'Invalid project/runtime' }
+    'host.work.localroot' = @{ it = 'SECONDBRAIN_WORK_LOCAL_ROOT deve essere un percorso locale assoluto'; en = 'SECONDBRAIN_WORK_LOCAL_ROOT must be an absolute local path' }
+}
+
+# The workstation configuration may carry "language" (it|en); it ranks below -Language and SECONDBRAIN_LANG.
+Set-SBUiLanguageProvider {
+    $brain = Split-Path -Parent $PSScriptRoot
+    $config = Read-SBJson (Get-SBHostConfigPath $brain) $null
+    if ($config -is [hashtable] -and $config.ContainsKey('language')) { $config.language } else { $null }
+}
 
 function Get-SBHostId {
     $identity=[Environment]::MachineName+'|'+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
@@ -11,14 +28,14 @@ function Get-SBHostConfigPath([string]$BrainRoot) {
 }
 function Get-SBCheckoutAsset([string]$Path,$Bindings=@()) {
     $root=Invoke-SBGit $Path @('rev-parse','--show-toplevel')
-    if($root.code -ne 0){throw 'Checkout Git non leggibile'}
+    if($root.code -ne 0){throw (New-SBError 'host.git.checkout')}
     $full=[IO.Path]::GetFullPath($root.output)
     $common=Invoke-SBGit $full @('rev-parse','--path-format=absolute','--git-common-dir')
     $gitDir=Invoke-SBGit $full @('rev-parse','--absolute-git-dir')
     $super=Invoke-SBGit $full @('rev-parse','--show-superproject-working-tree')
-    if($common.code -ne 0 -or $gitDir.code -ne 0){throw 'Metadati Git non leggibili'}
+    if($common.code -ne 0 -or $gitDir.code -ne 0){throw (New-SBError 'host.git.metadata')}
     $origin=Invoke-SBGit $full @('config','--get','remote.origin.url')
-    if($origin.code -notin @(0,1)){throw 'Origin non leggibile'}
+    if($origin.code -notin @(0,1)){throw (New-SBError 'host.git.origin')}
     $remoteIdentity=if($origin.code -eq 0){ConvertTo-SBRepositoryIdentity $origin.output}else{$null}
     $binding=@($Bindings|Where-Object {$null -ne $_ -and [IO.Path]::GetFullPath($_.path) -eq $full})
     $identity=if($binding.Count -eq 1 -and $binding[0].remoteIdentity -ceq $remoteIdentity){$binding[0].identity}else{$remoteIdentity}
@@ -189,11 +206,11 @@ function Invoke-SBHostDiscovery {
     if(!$Roots.Count){$Roots=@([IO.DriveInfo]::GetDrives()|Where-Object {$_.IsReady -and $_.DriveType -eq 'Fixed'}|ForEach-Object {$_.RootDirectory.FullName})}
     if($ResumePath){
         [void](Assert-SBCentralDataPath $brain $ResumePath);$resume=Read-SBJson $ResumePath $null
-        if(!$resume -or $resume.schemaVersion -ne 1 -or !(Test-SBSamePath $resume.brainRoot $brain) -or $resume.hostId -ne (Get-SBHostId)){throw 'Checkpoint discovery di altra postazione o clone'}
+        if(!$resume -or $resume.schemaVersion -ne 1 -or !(Test-SBSamePath $resume.brainRoot $brain) -or $resume.hostId -ne (Get-SBHostId)){throw (New-SBError 'host.discovery.checkpoint')}
         $Roots=@($resume.roots);foreach($path in $resume.pending){$queue.Enqueue($path)};foreach($path in $resume.visited){$visited[$path]=$true}
         $repositories=@($resume.repositories);$issues=@($resume.issues);$excluded=@($resume.excluded)
         if($resume.ContainsKey('warnings')){$warnings=@($resume.warnings)}
-    }else{foreach($root in $Roots){$full=[IO.Path]::GetFullPath($root);if(!(Test-Path -LiteralPath $full -PathType Container)){throw 'Radice discovery assente: '+$full};$queue.Enqueue($full)}}
+    }else{foreach($root in $Roots){$full=[IO.Path]::GetFullPath($root);if(!(Test-Path -LiteralPath $full -PathType Container)){throw (New-SBError 'host.discovery.root' @($full))};$queue.Enqueue($full)}}
     $count=0;$paused=$false;$hardExcludedNames=@('Windows','Program Files','Program Files (x86)','AppData','node_modules','.venv');$excludedNames=@($hardExcludedNames+@('bin','obj'))
     $configPath=Get-SBHostConfigPath $brain
     $hostCfg=if(Test-Path -LiteralPath $configPath){Read-SBJson $configPath @{}}else{@{}}
@@ -266,13 +283,13 @@ function Invoke-SBHostDiscovery {
 }
 function Get-SBWorkEnvironment {
     param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default')
-    foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw 'Progetto/runtime non valido'}}
+    foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw (New-SBError 'host.work.segment')}}
     $relative='repositories/'+(Get-SBTextHash $Repository).Substring(0,24).ToLowerInvariant()+'/'+$Project+'/'+$Runtime
     $location='brain-runtime';$advice=@()
     $override=$env:SECONDBRAIN_WORK_LOCAL_ROOT
     if($override){
         # Cervello su share: TEMP, cache e build dell'host possono stare su un disco locale (eccezione dichiarata, non il comportamento predefinito).
-        if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw 'SECONDBRAIN_WORK_LOCAL_ROOT deve essere un percorso locale assoluto'}
+        if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw (New-SBError 'host.work.localroot')}
         $hostRoot=Join-Path ([IO.Path]::GetFullPath($override)) (Split-Path (Get-SBLocalRoot $BrainRoot $HostId) -Leaf)
         $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $relative));$location='local-override'
     }else{

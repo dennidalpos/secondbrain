@@ -1,6 +1,29 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'access.station.inactive' = @{ it = 'Postazione non attivata: eseguire la procedura di attivazione (SYS03, scripts/secondbrain.ps1 -Setup)'; en = 'Workstation not activated: run the activation procedure (SYS03, scripts/secondbrain.ps1 -Setup)' }
+    'access.config.missing' = @{ it = 'Configurazione non trovata: {0}'; en = 'Configuration not found: {0}' }
+    'access.config.chain' = @{ it = 'Catena di configurazioni migrate non valida'; en = 'Invalid chain of migrated configurations' }
+    'access.config.incomplete' = @{ it = 'Configurazione portabile incompleta: {0}'; en = 'Incomplete portable configuration: {0}' }
+    'access.binding.invalid' = @{ it = 'Associazione repository non valida'; en = 'Invalid repository binding' }
+    'access.shared.incomplete' = @{ it = 'config/shared.json assente o incompleto (allowedOwners e excludedDirectories richiesti): ripristinare la policy condivisa'; en = 'config/shared.json missing or incomplete (allowedOwners and excludedDirectories required): restore the shared policy' }
+    'access.shared.owner' = @{ it = 'Owner GitHub non valido in config/shared.json'; en = 'Invalid GitHub owner in config/shared.json' }
+    'access.shared.lockwait' = @{ it = 'lockWaitSeconds in config/shared.json deve essere un intero tra 0 e 600'; en = 'lockWaitSeconds in config/shared.json must be an integer between 0 and 600' }
+    'access.config.required' = @{ it = 'Configurazione della postazione richiesta: attivare la postazione con secondbrain.ps1 -Setup (SYS03)'; en = 'Workstation configuration required: activate the workstation with secondbrain.ps1 -Setup (SYS03)' }
+    'access.session.invalid' = @{ it = 'SessionId non valido'; en = 'Invalid SessionId' }
+    'access.queue.timeout' = @{ it = 'Coda di scrittura SecondBrain non disponibile entro il tempo di attesa'; en = 'SecondBrain write queue not available within the wait time' }
+    'access.session.missing' = @{ it = 'Sessione assente o non verificabile'; en = 'Session missing or not verifiable' }
+    'access.session.missing.write' = @{ it = 'Sessione di scrittura assente o non verificabile'; en = 'Write session missing or not verifiable' }
+    'access.session.foreign' = @{ it = 'La sessione appartiene a un altro utente o postazione'; en = 'The session belongs to another user or workstation' }
+    'access.station.identity' = @{ it = 'workstationId gia registrato con un altra identita: usare un nuovo id'; en = 'workstationId already registered with another identity: use a new id' }
+    'access.station.roots' = @{ it = 'runtimeRoot e backupRoot devono essere distinti per postazione'; en = 'runtimeRoot and backupRoot must be distinct per workstation' }
+    'access.station.moved' = @{ it = 'workstationId ''{0}'' gia registrato con percorsi diversi (registrato: {1}; corrente: {2}). Verificare lo spostamento e riconciliare con scripts/access.ps1 -Reconcile.'; en = 'workstationId ''{0}'' already registered with different paths (registered: {1}; current: {2}). Check the move and reconcile with scripts/access.ps1 -Reconcile.' }
+    'access.busy' = @{ it = 'SecondBrain occupato o coordinamento non disponibile dopo {0} s. Titolare: {1}'; en = 'SecondBrain busy or coordination unavailable after {0} s. Owner: {1}' }
+    'access.pending.who' = @{ it = ' avviata da {0}@{1} il {2}'; en = ' started by {0}@{1} on {2}' }
+    'access.pending' = @{ it = 'Transazione PARA incompleta{0} (manifest: {1}). Recuperare con scripts/recover.ps1 -ManifestPath <manifest> da qualunque postazione che raggiunga il manifest; non rimuovere il marker a mano.'; en = 'Incomplete PARA transaction{0} (manifest: {1}). Recover with scripts/recover.ps1 -ManifestPath <manifest> from any workstation that reaches the manifest; do not remove the marker by hand.' }
+}
 
 function Get-SBPendingTransaction([string]$BrainRoot) {
     # Riepilogo del marker di una transazione interrotta: chi, quando, manifest e se e raggiungibile da questa postazione.
@@ -12,8 +35,8 @@ function Get-SBPendingTransaction([string]$BrainRoot) {
     @{marker=$marker;manifest=$manifest;computer=$(if($pending.ContainsKey('computer')){[string]$pending.computer}else{''});user=$(if($pending.ContainsKey('user')){[string]$pending.user}else{''});startedAt=$(if($pending.ContainsKey('startedAt')){[string]$pending.startedAt}else{''});reachable=($manifest -and (Test-Path -LiteralPath $manifest))}
 }
 function Format-SBPendingTransaction($Pending) {
-    $who=if($Pending.user -or $Pending.computer){" avviata da $($Pending.user)@$($Pending.computer) il $($Pending.startedAt)"}else{''}
-    "Transazione PARA incompleta$who (manifest: $($Pending.manifest)). Recuperare con scripts/recover.ps1 -ManifestPath <manifest> da qualunque postazione che raggiunga il manifest; non rimuovere il marker a mano."
+    $who=if($Pending.user -or $Pending.computer){Get-SBMessage 'access.pending.who' @($Pending.user,$Pending.computer,$Pending.startedAt)}else{''}
+    (Get-SBMessage 'access.pending' @($who,$Pending.manifest))
 }
 function Get-SBLockWaitMs($Config,[int]$WaitMs=-1) {
     # Attesa predefinita del writer su cervello condiviso: parametro esplicito, poi SECONDBRAIN_LOCK_WAIT_SECONDS, poi policy condivisa, poi 60 s.
@@ -27,29 +50,29 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
     if(!$ConfigPath){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
         $ConfigPath=Get-SBHostConfigPath $brain
-        if(!(Test-Path -LiteralPath $ConfigPath)){throw 'Postazione non attivata: eseguire la procedura di attivazione (SYS03, scripts/secondbrain.ps1 -Setup)'}
-    }elseif(!(Test-Path -LiteralPath $ConfigPath -PathType Leaf)){throw "Configurazione non trovata: $ConfigPath"}
+        if(!(Test-Path -LiteralPath $ConfigPath)){throw (New-SBError 'access.station.inactive')}
+    }elseif(!(Test-Path -LiteralPath $ConfigPath -PathType Leaf)){throw (New-SBError 'access.config.missing' @($ConfigPath))}
     $local = Read-SBJson ([IO.Path]::GetFullPath($ConfigPath)) $null
-    if($MigrationDepth -gt 3){throw 'Catena di configurazioni migrate non valida'}
+    if($MigrationDepth -gt 3){throw (New-SBError 'access.config.chain')}
     if($local -and $local.ContainsKey('migratedTo')){
         $target=Assert-SBCentralDataPath $brain $local.migratedTo
         return Read-SBConfiguration $target -AllowPendingTransaction:$AllowPendingTransaction -MigrationDepth ($MigrationDepth+1) -ReadOnly:$ReadOnly
     }
     $shared = Read-SBJson (Join-Path $brain 'config/shared.json') $null
     if($local -and $local.schemaVersion -eq 1 -and $local.mode -eq 'portable'){
-        foreach($key in @('workstationId','runtimeRoot','backupRoot','bindings','ides')){if(!$local.ContainsKey($key)){throw 'Configurazione portabile incompleta: '+$key}}
-        if($local.workstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw 'WorkstationId non valido'}
+        foreach($key in @('workstationId','runtimeRoot','backupRoot','bindings','ides')){if(!$local.ContainsKey($key)){throw (New-SBError 'access.config.incomplete' @($key))}}
+        if($local.workstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw (New-SBError 'core.workstation.invalid')}
         [void](Assert-SBCentralDataPath $brain $ConfigPath)
         foreach($key in @('runtimeRoot','backupRoot')){
             $value=[string]$local[$key];if(![IO.Path]::IsPathFullyQualified($value)){$value=Join-Path $brain $value}
             $local[$key]=Assert-SBCentralDataPath $brain $value
         }
-        foreach($binding in $local.bindings){if(!(Test-SBRepositoryIdentity $binding.identity) -or ![IO.Path]::IsPathFullyQualified($binding.path)){throw 'Associazione repository non valida'}}
+        foreach($binding in $local.bindings){if(!(Test-SBRepositoryIdentity $binding.identity) -or ![IO.Path]::IsPathFullyQualified($binding.path)){throw (New-SBError 'access.binding.invalid')}}
         # La policy condivisa (config/shared.json) e l'unica fonte di owner ammessi e cartelle escluse anche in modalita portabile.
         # Fail-closed: senza policy valida non si assume "tutti gli owner ammessi".
-        if(!($shared -is [Collections.IDictionary]) -or !$shared.ContainsKey('allowedOwners') -or !$shared.ContainsKey('excludedDirectories')){throw 'config/shared.json assente o incompleto (allowedOwners e excludedDirectories richiesti): ripristinare la policy condivisa'}
+        if(!($shared -is [Collections.IDictionary]) -or !$shared.ContainsKey('allowedOwners') -or !$shared.ContainsKey('excludedDirectories')){throw (New-SBError 'access.shared.incomplete')}
         $owners=@($shared.allowedOwners)
-        foreach($owner in $owners){if($owner -notmatch '^[a-zA-Z0-9][a-zA-Z0-9-]*$'){throw 'Owner GitHub non valido in config/shared.json'}}
+        foreach($owner in $owners){if($owner -notmatch '^[a-zA-Z0-9][a-zA-Z0-9-]*$'){throw (New-SBError 'access.shared.owner')}}
         $excludedDirs=@($shared.excludedDirectories)
         $local.brainRoot=$brain;$local.configPath=[IO.Path]::GetFullPath($ConfigPath);$local.repositoryRoot=$brain;$local.allowedOwners=$owners;$local.excludedDirectories=$excludedDirs;$local.sessionTimeoutMinutes=30
         $local.coordinationRoot=Join-Path $brain '.runtime/access'
@@ -57,7 +80,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         $local.lockWaitMs=60000
         if($shared.ContainsKey('lockWaitSeconds')){
             $wait=$shared.lockWaitSeconds
-            if(($wait -isnot [int] -and $wait -isnot [long]) -or $wait -lt 0 -or $wait -gt 600){throw 'lockWaitSeconds in config/shared.json deve essere un intero tra 0 e 600'}
+            if(($wait -isnot [int] -and $wait -isnot [long]) -or $wait -lt 0 -or $wait -gt 600){throw (New-SBError 'access.shared.lockwait')}
             $local.lockWaitMs=[int]$wait*1000
         }
         $pending=Get-SBPendingTransaction $brain
@@ -68,7 +91,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         }
         return $local
     }
-    throw 'Configurazione della postazione richiesta: attivare la postazione con secondbrain.ps1 -Setup (SYS03)'
+    throw (New-SBError 'access.config.required')
 }
 
 function Write-SBAccessMetadata([string]$Path, $Value) {
@@ -87,7 +110,7 @@ function Write-SBAccessMetadata([string]$Path, $Value) {
 }
 
 function Test-SBSessionId([string]$SessionId) {
-    if ($SessionId -notmatch '^[a-f0-9]{32}$') { throw 'SessionId non valido' }
+    if ($SessionId -notmatch '^[a-f0-9]{32}$') { throw (New-SBError 'access.session.invalid') }
 }
 
 function Open-SBLockFile([string]$Path, [IO.FileMode]$Mode, [IO.FileAccess]$Access, [IO.FileShare]$Share, [int]$WaitMs = 1000, [scriptblock]$OnWait) {
@@ -153,7 +176,7 @@ function Enter-SBQueue($Config, [int]$WaitMs, [scriptblock]$OnWait) {
                 Remove-SBQueueTicketFiles $root $other
             }
             if (!$ahead) { return $ticket }
-            if ([DateTimeOffset]::UtcNow -ge $deadline) { throw [IO.IOException]::new('Coda di scrittura SecondBrain non disponibile entro il tempo di attesa', [int]-2147024864) }
+            if ([DateTimeOffset]::UtcNow -ge $deadline) { throw (New-SBError 'access.queue.timeout' @() ([IO.IOException]) -2147024864) }
             if ($OnWait -and !$notified) { $notified = $true; & $OnWait }
             Start-Sleep -Milliseconds $delay
             $delay = [Math]::Min(500, [int]($delay * 1.5))
@@ -277,9 +300,9 @@ function Assert-SBSession($Config, [string]$SessionId, [switch]$AllowRead) {
     Test-SBSessionId $SessionId
     $entry = @(Get-SBAccessStatus $Config | Where-Object sessionId -eq $SessionId)
     $modes = if ($AllowRead) { @('Read','Write') } else { @('Write') }
-    if ($entry.Count -ne 1 -or $entry[0].status -ne 'active' -or $entry[0].mode -notin $modes) { throw $(if ($AllowRead) { 'Sessione assente o non verificabile' } else { 'Sessione di scrittura assente o non verificabile' }) }
+    if ($entry.Count -ne 1 -or $entry[0].status -ne 'active' -or $entry[0].mode -notin $modes) { throw (New-SBError $(if ($AllowRead) { 'access.session.missing' } else { 'access.session.missing.write' })) }
     $user = [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    if ($entry[0].computer -ne [Environment]::MachineName -or $entry[0].user -ne $user -or $entry[0].workstationId -ne $Config.workstationId) { throw 'La sessione appartiene a un altro utente o postazione' }
+    if ($entry[0].computer -ne [Environment]::MachineName -or $entry[0].user -ne $user -or $entry[0].workstationId -ne $Config.workstationId) { throw (New-SBError 'access.session.foreign') }
     $entry[0]
 }
 
@@ -329,15 +352,15 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             $known = $null
             if ($registry.ContainsKey($Config.workstationId)) {
                 $known = $registry[$Config.workstationId]
-                if ($known.identity -cne $identity) { throw 'workstationId gia registrato con un altra identita: usare un nuovo id' }
+                if ($known.identity -cne $identity) { throw (New-SBError 'access.station.identity') }
             }
             foreach ($key in $registry.Keys) {
-                if ($key -ne $Config.workstationId -and ($registry[$key].runtimeRoot -ieq $Config.runtimeRoot -or $registry[$key].backupRoot -ieq $Config.backupRoot)) { throw 'runtimeRoot e backupRoot devono essere distinti per postazione' }
+                if ($key -ne $Config.workstationId -and ($registry[$key].runtimeRoot -ieq $Config.runtimeRoot -or $registry[$key].backupRoot -ieq $Config.backupRoot)) { throw (New-SBError 'access.station.roots') }
             }
             # Stessa identita con percorsi diversi (cartella spostata, alias UNC, baseline condivisa per errore): serve conferma esplicita.
             # Alias dello stesso percorso (maiuscole, drive mappato, UNC con FQDN) non sono uno spostamento.
             $moved = $known -and !((Test-SBSamePath $known.runtimeRoot $station.runtimeRoot) -and (Test-SBSamePath $known.backupRoot $station.backupRoot) -and (Test-SBSamePath $known.repositoryRoot $station.repositoryRoot))
-            if ($moved -and !$ReconcileWorkstation) { throw "workstationId '$($Config.workstationId)' gia registrato con percorsi diversi (registrato: $($known.repositoryRoot); corrente: $($station.repositoryRoot)). Verificare lo spostamento e riconciliare con scripts/access.ps1 -Reconcile." }
+            if ($moved -and !$ReconcileWorkstation) { throw (New-SBError 'access.station.moved' @($Config.workstationId,$known.repositoryRoot,$station.repositoryRoot)) }
             if (!$known -or $moved) { $registry[$Config.workstationId]=$station; Write-SBAccessMetadata $registryPath $registry }
             # La closure non vede le funzioni private del modulo: si cattura il comando prima di GetNewClosure().
             $assertSession=${function:Assert-SBSession}
@@ -355,7 +378,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
         $base = $_.Exception.GetBaseException()
         if ($base -is [IO.IOException] -and ($base.HResult -band 0xffff) -in @(32, 33)) {
             $description = Get-SBOperationOwnerText $Config
-            throw [IO.IOException]::new("SecondBrain occupato o coordinamento non disponibile dopo $([int]($waitTotal / 1000)) s. Titolare: $description",$_.Exception)
+            throw (New-SBError 'access.busy' @([int]($waitTotal / 1000),$description) ([IO.IOException]) 0 $_.Exception)
         }
         throw
     }

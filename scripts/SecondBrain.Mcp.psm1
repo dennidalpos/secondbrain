@@ -7,6 +7,24 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'mcp.repository.unresolved' = @{ it = 'Repository in lavoro non risolvibile: indicare repository o checkoutPath (oppure all=true per la vista globale in sola lettura)'; en = 'Working repository not resolvable: give repository or checkoutPath (or all=true for the read-only global view)' }
+    'mcp.profile.invalid' = @{ it = 'Profilo non valido: usare slim o full'; en = 'Invalid profile: use slim or full' }
+    'mcp.params.conflict' = @{ it = 'Parametri incompatibili: all e repository'; en = 'Incompatible parameters: all and repository' }
+    'mcp.paging.invalid' = @{ it = 'offset e limit devono essere interi non negativi'; en = 'offset and limit must be non-negative integers' }
+    'mcp.task.required' = @{ it = 'Il parametro task è obbligatorio per get_task'; en = 'The task parameter is required for get_task' }
+    'mcp.query.required' = @{ it = 'Il parametro query è obbligatorio per search_knowledge'; en = 'The query parameter is required for search_knowledge' }
+    'mcp.mode.invalid' = @{ it = 'Modalità non valida: usare literal o relevance'; en = 'Invalid mode: use literal or relevance' }
+    'mcp.search.invalid' = @{ it = 'offset, limit e budget devono essere interi non negativi'; en = 'offset, limit and budget must be non-negative integers' }
+    'mcp.pack.invalid' = @{ it = 'Pacchetto non valido: core, maintenance o all'; en = 'Invalid pack: core, maintenance or all' }
+    'mcp.prompt.required' = @{ it = 'Il parametro prompt è obbligatorio per get_prompt'; en = 'The prompt parameter is required for get_prompt' }
+    'mcp.path.required' = @{ it = 'Il parametro repositoryPath è obbligatorio per check_publication'; en = 'The repositoryPath parameter is required for check_publication' }
+    'mcp.tool.unknown' = @{ it = 'Strumento sconosciuto: {0}'; en = 'Unknown tool: {0}' }
+    'mcp.resource.notfound' = @{ it = 'Risorsa non trovata: {0}'; en = 'Resource not found: {0}' }
+    'mcp.pair.json' = @{ it = 'Configurazione MCP non è JSON rigoroso (errori o commenti), nessuna modifica: {0}. Inserisci a mano il frammento mostrato da mcp-server.ps1 -Pair.'; en = 'MCP configuration is not strict JSON (errors or comments), no change made: {0}. Add by hand the fragment shown by mcp-server.ps1 -Pair.' }
+    'mcp.pair.root' = @{ it = 'Configurazione MCP con radice non oggetto, nessuna modifica: {0}'; en = 'MCP configuration with a non-object root, no change made: {0}' }
+}
 
 function ConvertTo-SBMcpJson($Value) {
     if ($null -eq $Value) { return $null }
@@ -133,7 +151,7 @@ function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     $bindings = @()
     try { $bindings = @((Read-SBConfiguration -ReadOnly).bindings) } catch { }
     $resolved = Resolve-SBWorkingRepository $checkout $bindings
-    if (!$resolved) { throw 'Repository in lavoro non risolvibile: indicare repository o checkoutPath (oppure all=true per la vista globale in sola lettura)' }
+    if (!$resolved) { throw (New-SBError 'mcp.repository.unresolved') }
     $resolved
 }
 
@@ -143,7 +161,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
     switch ($ToolName) {
         { $_ -in @('get_startup_context', 'secondbrain_startup_context') } {
             $startupProfile = if ($Arguments.ContainsKey('profile') -and $Arguments.profile) { [string]$Arguments.profile } else { 'slim' }
-            if ($startupProfile -notin @('slim', 'full')) { throw 'Profilo non valido: usare slim o full' }
+            if ($startupProfile -notin @('slim', 'full')) { throw (New-SBError 'mcp.profile.invalid') }
             $startupProfile = if ($startupProfile -eq 'full') { 'Full' } else { 'Slim' }
             # Tetto solo per il primo caricamento (slim); full non ha tetto salvo budget esplicito.
             $budgetDefault = if ($startupProfile -eq 'Slim') { Get-SBSlimStartupBudget } else { 0 }
@@ -163,14 +181,14 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         }
         { $_ -in @('get_ready_tasks', 'secondbrain_ready_tasks') } {
             $all = $Arguments.ContainsKey('all') -and [bool]$Arguments.all
-            if ($all -and $Arguments.ContainsKey('repository') -and $Arguments.repository) { throw 'Parametri incompatibili: all e repository' }
+            if ($all -and $Arguments.ContainsKey('repository') -and $Arguments.repository) { throw (New-SBError 'mcp.params.conflict') }
             if (!$all) {
                 return ConvertTo-SBMcpJson @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository (Resolve-SBMcpRepository $BrainRoot $Arguments) -ReadyOnly)
             }
             # Vista globale paginata (predefinito 50 task per pagina): dimensione limitata, nextOffset per la pagina successiva.
             $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
             $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { 50 }
-            if ($offset -lt 0 -or $limit -lt 0) { throw 'offset e limit devono essere interi non negativi' }
+            if ($offset -lt 0 -or $limit -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
             $tasks = @(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly)
             $page = @($tasks | Select-Object -Skip $offset)
             if ($limit -gt 0) { $page = @($page | Select-Object -First $limit) }
@@ -179,7 +197,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         }
         { $_ -in @('get_task', 'secondbrain_get_task') } {
             if (!$Arguments.ContainsKey('task') -or !"$($Arguments.task)") {
-                throw 'Il parametro task è obbligatorio per get_task'
+                throw (New-SBError 'mcp.task.required')
             }
             $dossier = if ($Arguments.ContainsKey('dossier') -and $Arguments.dossier) { [string]$Arguments.dossier } else { Resolve-SBWorkingDossier $BrainRoot (Resolve-SBMcpRepository $BrainRoot $Arguments) }
             $dossierPath = if ([IO.Path]::IsPathRooted($dossier)) { $dossier } else { Join-Path $BrainRoot $dossier }
@@ -187,7 +205,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         }
         { $_ -in @('search_knowledge', 'secondbrain_search') } {
             if (!$Arguments.ContainsKey('query') -or !$Arguments.query) {
-                throw 'Il parametro query è obbligatorio per search_knowledge'
+                throw (New-SBError 'mcp.query.required')
             }
             $query = [string]$Arguments.query
             # -1 = tetto predefinito (20 riscontri, 10.000 caratteri); 0 esplicito = nessun tetto.
@@ -202,12 +220,12 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             }
             
             $mode = if ($Arguments.ContainsKey('mode') -and $Arguments.mode) { [string]$Arguments.mode } else { 'literal' }
-            if ($mode -notin @('literal', 'relevance')) { throw 'Modalità non valida: usare literal o relevance' }
+            if ($mode -notin @('literal', 'relevance')) { throw (New-SBError 'mcp.mode.invalid') }
             $mode = if ($mode -eq 'relevance') { 'Relevance' } else { 'Literal' }
 
             $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
             $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { -1 }
-            if ($offset -lt 0 -or $limit -lt -1 -or $budget -lt -1) { throw 'offset, limit e budget devono essere interi non negativi' }
+            if ($offset -lt 0 -or $limit -lt -1 -or $budget -lt -1) { throw (New-SBError 'mcp.search.invalid') }
 
             $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode -Offset $offset -Limit $limit -IncludeOriginals:$includeOriginals
             return ConvertTo-SBMcpJson $res
@@ -217,7 +235,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $category = if ($Arguments.ContainsKey('category')) { [string]$Arguments.category } else { $null }
             $compact = $Arguments.ContainsKey('compact') -and [bool]$Arguments.compact
             $pack = if ($Arguments.ContainsKey('pack')) { [string]$Arguments.pack } else { 'core' }
-            if ($pack -notin @('core', 'maintenance', 'all')) { throw 'Pacchetto non valido: core, maintenance o all' }
+            if ($pack -notin @('core', 'maintenance', 'all')) { throw (New-SBError 'mcp.pack.invalid') }
             return Format-SBWorkflowList $catalog $category -Compact:$compact -Pack $pack
         }
         { $_ -in @('get_prompt_home', 'secondbrain_prompt_home') } {
@@ -226,7 +244,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         }
         { $_ -in @('get_prompt', 'secondbrain_get_prompt') } {
             if (!$Arguments.ContainsKey('prompt') -or !$Arguments.prompt) {
-                throw 'Il parametro prompt è obbligatorio per get_prompt'
+                throw (New-SBError 'mcp.prompt.required')
             }
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $resolution = Resolve-SBWorkflowPrompt $catalog ([string]$Arguments.prompt)
@@ -236,7 +254,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         }
         { $_ -in @('check_publication', 'secondbrain_check_publication') } {
             if (!$Arguments.ContainsKey('repositoryPath') -or !$Arguments.repositoryPath) {
-                throw 'Il parametro repositoryPath è obbligatorio per check_publication'
+                throw (New-SBError 'mcp.path.required')
             }
             $repoPath = [string]$Arguments.repositoryPath
             $report = Test-SBPublication -RepositoryPath $repoPath -BrainRoot $BrainRoot -PolicyPath (Resolve-SBPublicationPolicyPath $BrainRoot $null)
@@ -253,7 +271,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             return ConvertTo-SBMcpJson $summary
         }
         default {
-            throw "Strumento sconosciuto: $ToolName"
+            throw (New-SBError 'mcp.tool.unknown' @($ToolName))
         }
     }
 }
@@ -449,7 +467,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                         }
                     }
                 } else {
-                    throw "Risorsa non trovata: $uri"
+                    throw (New-SBError 'mcp.resource.notfound' @($uri))
                 }
             }
             default {
@@ -787,8 +805,8 @@ function Set-SBMcpConfiguration {
                 if ($raw -and $raw.Trim()) {
                     # File dell'utente non leggibile come JSON (commenti, errori): nessuna scrittura, per non perdere le sue impostazioni.
                     # JSON rigoroso: ConvertFrom-Json accetta i commenti (JSONC, tipico di settings.json) ma poi li perderebbe nella riscrittura.
-                    try { [Text.Json.JsonDocument]::Parse($raw).Dispose(); $parsed = ConvertFrom-Json -InputObject $raw -AsHashtable } catch { throw "Configurazione MCP non è JSON rigoroso (errori o commenti), nessuna modifica: $targetFile. Inserisci a mano il frammento mostrato da mcp-server.ps1 -Pair." }
-                    if ($parsed -isnot [System.Collections.IDictionary]) { throw "Configurazione MCP con radice non oggetto, nessuna modifica: $targetFile" }
+                    try { [Text.Json.JsonDocument]::Parse($raw).Dispose(); $parsed = ConvertFrom-Json -InputObject $raw -AsHashtable } catch { throw (New-SBError 'mcp.pair.json' @($targetFile)) }
+                    if ($parsed -isnot [System.Collections.IDictionary]) { throw (New-SBError 'mcp.pair.root' @($targetFile)) }
                     $data = $parsed
                 }
             }

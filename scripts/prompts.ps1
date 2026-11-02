@@ -32,8 +32,10 @@ param(
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$ProjectId,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$CheckoutPath,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$CheckoutMapPath,
-    [string]$ConfigPath,[string]$SessionId
+    [string]$ConfigPath,[string]$SessionId,
+    [ValidateSet('en','it')][string]$Language
 )
+if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')

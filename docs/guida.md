@@ -60,6 +60,7 @@ Dal checkout di un repository gestito `knowledge.ps1` trova da solo il dossier; 
 | Variabile | Uso |
 |---|---|
 | `SECONDBRAIN_HOME` | Variabile utente col percorso del clone. `-Setup -Apply` la scrive solo con `-RegisterEnvironment` (o risposta `SI` in `-Interactive`); `-NoRegisterEnvironment` la esclude, anche da `-Activate -Apply`. Gli IDE aperti vanno riavviati. |
+| `SECONDBRAIN_LANG` | Lingua dei messaggi (`it` o `en`). Ordine: `-Language` (su `knowledge.ps1`, `prompts.ps1`, `secondbrain.ps1`, `trace.ps1`), questa variabile, la chiave `language` in `workstation.json`, la lingua del sistema, `en`. I messaggi dei moduli già convertiti seguono la lingua; gli altri restano in italiano. |
 | `SECONDBRAIN_SKIP_PRE_PUSH=1` | Salta l'hook pre-push per un solo push consapevole. |
 | `SECONDBRAIN_LOCK_WAIT_SECONDS` | Attesa del lock di scrittura (predefinita 60); equivale a `-WaitSeconds`. |
 

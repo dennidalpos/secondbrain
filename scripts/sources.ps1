@@ -59,7 +59,7 @@ try {
     ConvertTo-SBJson @{schemaVersion=1;sources=$registry.sources.Count;issues=$issues}
     if($issues.Count){exit 1};exit 0
 } catch {
-    $busy=$_.Exception -is [IO.IOException] -and $_.Exception.Message -match 'SecondBrain occupato'
+    $busy=$_.Exception -is [IO.IOException] -and $_.Exception.Data['code'] -ceq 'access.busy'
     Write-Error $_ -ErrorAction Continue
     if($busy){exit 3};exit 2
 } finally {Exit-SBOperation $lock}

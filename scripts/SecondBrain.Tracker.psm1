@@ -3,6 +3,59 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'tracker.seq.duplicate' = @{ it = 'Numero progressivo duplicato nel tracker {0}: {1}'; en = 'Duplicate sequence number in tracker {0}: {1}' }
+    'tracker.title.prefix' = @{ it = 'Titolo senza prefisso #{0}: {1}'; en = 'Title without prefix #{0}: {1}' }
+    'tracker.lastseq.type' = @{ it = 'extensions.lastSeq deve essere un intero'; en = 'extensions.lastSeq must be an integer' }
+    'tracker.seq.beyond' = @{ it = 'Numero progressivo {0} oltre extensions.lastSeq ({1})'; en = 'Sequence number {0} beyond extensions.lastSeq ({1})' }
+    'tracker.schema.invalid' = @{ it = 'Tracker non conforme allo schema v1'; en = 'Tracker does not conform to schema v1' }
+    'tracker.identity.diverged' = @{ it = 'Identita tracker divergente'; en = 'Tracker identity mismatch' }
+    'tracker.date.invalid' = @{ it = 'Data tracker non valida'; en = 'Invalid tracker date' }
+    'tracker.related.schema' = @{ it = 'Tracker correlato non conforme allo schema v1: {0}'; en = 'Related tracker does not conform to schema v1: {0}' }
+    'tracker.identity.unmanaged' = @{ it = 'Tracker di identita non gestita'; en = 'Tracker of an unmanaged identity' }
+    'tracker.id.duplicate' = @{ it = 'ID tracker duplicato: {0}'; en = 'Duplicate tracker ID: {0}' }
+    'tracker.dependency.unmanaged' = @{ it = 'Dipendenza da identita non gestita: {0}'; en = 'Dependency on an unmanaged identity: {0}' }
+    'tracker.dependency.missing' = @{ it = 'Dipendenza tracker inesistente o non verificabile: {0}'; en = 'Tracker dependency missing or not verifiable: {0}' }
+    'tracker.dependency.cycle' = @{ it = 'Ciclo nelle dipendenze tracker: {0}'; en = 'Cycle in tracker dependencies: {0}' }
+    'tracker.related.declaration' = @{ it = 'Dichiarazione tracker correlato non valida: {0}'; en = 'Invalid related tracker declaration: {0}' }
+    'tracker.related.missing' = @{ it = 'Tracker correlato dichiarato assente: {0}'; en = 'Declared related tracker missing: {0}' }
+    'tracker.related.identity' = @{ it = 'Identita tracker correlato divergente'; en = 'Related tracker identity mismatch' }
+    'tracker.identity.area' = @{ it = 'Identita tracker non associata a una sola Area: {0}'; en = 'Tracker identity not bound to exactly one Area: {0}' }
+    'tracker.dossier.identity' = @{ it = 'Identita del dossier tracker divergente'; en = 'Tracker dossier identity mismatch' }
+    'tracker.declaration.invalid' = @{ it = 'Dichiarazione tracker non valida: {0}'; en = 'Invalid tracker declaration: {0}' }
+    'tracker.declared.missing' = @{ it = 'Tracker dichiarato assente: {0}'; en = 'Declared tracker missing: {0}' }
+    'tracker.policy.unapproved' = @{ it = 'Contratto tracker non approvato: {0}'; en = 'Tracker contract not approved: {0}' }
+    'tracker.review.source' = @{ it = 'Review tracker di altra identita o sorgente divergente'; en = 'Tracker review of another identity or diverging source' }
+    'tracker.review.tasks' = @{ it = 'Review tracker senza elenco task'; en = 'Tracker review without task list' }
+    'tracker.review.id' = @{ it = 'ID review tracker mancante o duplicato'; en = 'Tracker review ID missing or duplicate' }
+    'tracker.review.field' = @{ it = 'Campo review tracker non riconosciuto: {0}'; en = 'Unrecognized tracker review field: {0}' }
+    'tracker.review.reason' = @{ it = 'Motivazione review tracker obbligatoria'; en = 'Tracker review reason is required' }
+    'tracker.review.status' = @{ it = 'Stato review tracker non valido'; en = 'Invalid tracker review status' }
+    'tracker.review.dependencies' = @{ it = 'Dipendenze review tracker non valide'; en = 'Invalid tracker review dependencies' }
+    'tracker.review.prerequisites' = @{ it = 'Prerequisiti review tracker non validi'; en = 'Invalid tracker review prerequisites' }
+    'tracker.original.object' = @{ it = 'Il tracker JSON originale deve essere un oggetto'; en = 'The original JSON tracker must be an object' }
+    'tracker.collection.invalid' = @{ it = 'Collezione tracker non valida: {0}'; en = 'Invalid tracker collection: {0}' }
+    'tracker.markdown.format' = @{ it = 'Formato Markdown non riconosciuto alla riga {0}: conversione esplicita richiesta'; en = 'Unrecognized Markdown format at line {0}: explicit conversion required' }
+    'tracker.original.format' = @{ it = 'Formato tracker originale non supportato'; en = 'Unsupported original tracker format' }
+    'tracker.id.collision' = @{ it = 'Collisione ID: risoluzione esplicita richiesta per {0}'; en = 'ID collision: explicit resolution required for {0}' }
+    'tracker.review.unknown' = @{ it = 'Task review tracker inesistente: {0}'; en = 'Tracker review task does not exist: {0}' }
+    'tracker.review.reconcile' = @{ it = 'Review tracker richiede riconciliazione esplicita delle dipendenze: {0}'; en = 'Tracker review requires explicit dependency reconciliation: {0}' }
+    'tracker.host.backuproot' = @{ it = 'Configurazione host senza backupRoot: {0}'; en = 'Host configuration without backupRoot: {0}' }
+    'tracker.write.foreign' = @{ it = 'Scrittura rifiutata: il tracker di ''{0}'' non appartiene al repository in lavoro ''{1}'''; en = 'Write refused: the tracker of ''{0}'' does not belong to the working repository ''{1}''' }
+    'tracker.file.missing' = @{ it = 'File tracker inesistente: {0}'; en = 'Tracker file does not exist: {0}' }
+    'tracker.identity.required' = @{ it = 'Identity o Path obbligatorio'; en = 'Identity or Path is required' }
+    'tracker.dossier.declaration' = @{ it = 'Dossier senza dichiarazione tracker: {0}'; en = 'Dossier without tracker declaration: {0}' }
+    'tracker.schema.version' = @{ it = 'Schema tracker non supportato (atteso v1)'; en = 'Unsupported tracker schema (expected v1)' }
+    'tracker.status.invalid' = @{ it = 'Stato non valido: {0}. Valori ammessi: todo, in_progress, blocked, done, cancelled, unknown'; en = 'Invalid status: {0}. Allowed values: todo, in_progress, blocked, done, cancelled, unknown' }
+    'tracker.task.notfound' = @{ it = 'Task non trovato nel tracker: {0}'; en = 'Task not found in tracker: {0}' }
+    'tracker.unnumbered' = @{ it = 'Tracker non numerato ({0} task senza seq): eseguire prima knowledge.ps1 -RenumberTasks'; en = 'Unnumbered tracker ({0} tasks without seq): run knowledge.ps1 -RenumberTasks first' }
+    'tracker.acceptance.required' = @{ it = 'Almeno un criterio di accettazione obbligatorio'; en = 'At least one acceptance criterion is required' }
+    'tracker.task.exists' = @{ it = 'ID task gia presente: {0}'; en = 'Task ID already present: {0}' }
+    'tracker.provenance.missing' = @{ it = 'Provenienza inesistente: {0}'; en = 'Provenance does not exist: {0}' }
+    'tracker.archive.identity' = @{ it = 'Archivio tracker di identita divergente'; en = 'Tracker archive of a diverging identity' }
+    'tracker.numbering.partial' = @{ it = 'Numerazione parziale ({0} su {1}): riconciliazione esplicita richiesta'; en = 'Partial numbering ({0} of {1}): explicit reconciliation required' }
+}
 
 function Test-SBTrackerPolicy([string]$BrainRoot) {
     (Test-SBApproval $BrainRoot) -and (Read-SBText (Join-Path $BrainRoot 'direttive/workstation.template.md')).Contains('<!-- secondbrain:tracker-contract:1 -->')
@@ -24,34 +77,34 @@ function Assert-SBTrackerSequence($Document) {
     foreach($task in $Document.tasks){
         if($task -isnot [Collections.IDictionary] -or !$task.ContainsKey('seq')){continue}
         $seq=[int]$task.seq
-        if($seen.ContainsKey($seq)){throw "Numero progressivo duplicato nel tracker $($Document.repository): $seq"}
+        if($seen.ContainsKey($seq)){throw (New-SBError 'tracker.seq.duplicate' @($Document.repository,$seq))}
         $seen[$seq]=$true
-        if(!([string]$task.title).StartsWith('#'+$seq.ToString('000')+$script:SBTrackerSeqSeparator)){throw "Titolo senza prefisso #$($seq.ToString('000')): $($task.id)"}
+        if(!([string]$task.title).StartsWith('#'+$seq.ToString('000')+$script:SBTrackerSeqSeparator)){throw (New-SBError 'tracker.title.prefix' @($seq.ToString('000'),$task.id))}
     }
     if($Document.extensions -is [Collections.IDictionary] -and $Document.extensions.ContainsKey('lastSeq')){
         $last=$Document.extensions.lastSeq
-        if($last -isnot [int] -and $last -isnot [long]){throw 'extensions.lastSeq deve essere un intero'}
-        foreach($seq in $seen.Keys){if($seq -gt $last){throw "Numero progressivo $seq oltre extensions.lastSeq ($last)"}}
+        if($last -isnot [int] -and $last -isnot [long]){throw (New-SBError 'tracker.lastseq.type')}
+        foreach($seq in $seen.Keys){if($seq -gt $last){throw (New-SBError 'tracker.seq.beyond' @($seq,$last))}}
     }
 }
 
 function Test-SBTrackerData($Data, [string]$Identity, [string[]]$ManagedIdentities, [string]$SchemaPath, $RelatedTrackers=@{}) {
     $json=ConvertTo-SBJson $Data
-    if (!(Test-Json -Json $json -SchemaFile $SchemaPath -ErrorAction SilentlyContinue)) { throw 'Tracker non conforme allo schema v1' }
-    if ($Data.repository -cne $Identity) { throw 'Identita tracker divergente' }
+    if (!(Test-Json -Json $json -SchemaFile $SchemaPath -ErrorAction SilentlyContinue)) { throw (New-SBError 'tracker.schema.invalid') }
+    if ($Data.repository -cne $Identity) { throw (New-SBError 'tracker.identity.diverged') }
     $date=[DateTimeOffset]::MinValue
-    if (![DateTimeOffset]::TryParse($Data.updatedAt,[ref]$date)) { throw 'Data tracker non valida' }
+    if (![DateTimeOffset]::TryParse($Data.updatedAt,[ref]$date)) { throw (New-SBError 'tracker.date.invalid') }
     $nodes=@{}
     foreach($document in @($Data)+@($RelatedTrackers.Values)) {
         if(!(Test-Json -Json (ConvertTo-SBJson $document) -SchemaFile $SchemaPath -ErrorAction SilentlyContinue)){
             $identityLabel=if($document.ContainsKey('repository')){$document.repository}else{'identita assente'}
-            throw ('Tracker correlato non conforme allo schema v1: '+$identityLabel)
+            throw (New-SBError 'tracker.related.schema' @($identityLabel))
         }
-        if ($document.repository -notin $ManagedIdentities) { throw 'Tracker di identita non gestita' }
+        if ($document.repository -notin $ManagedIdentities) { throw (New-SBError 'tracker.identity.unmanaged') }
         Assert-SBTrackerSequence $document
         foreach($task in $document.tasks) {
             $key=$document.repository+'#'+$task.id
-            if ($nodes.ContainsKey($key)) { throw 'ID tracker duplicato: '+$key }
+            if ($nodes.ContainsKey($key)) { throw (New-SBError 'tracker.id.duplicate' @($key)) }
             $nodes[$key]=@{task=$task;repository=$document.repository}
         }
     }
@@ -60,15 +113,15 @@ function Test-SBTrackerData($Data, [string]$Identity, [string[]]$ManagedIdentiti
         $edges[$key]=@()
         foreach($dependency in $nodes[$key].task.dependencies) {
             $repository=if($dependency.ContainsKey('repository')){$dependency.repository}else{$nodes[$key].repository}
-            if ($repository -notin $ManagedIdentities) { throw 'Dipendenza da identita non gestita: '+$repository }
+            if ($repository -notin $ManagedIdentities) { throw (New-SBError 'tracker.dependency.unmanaged' @($repository)) }
             $target=$repository+'#'+$dependency.id
-            if (!$nodes.ContainsKey($target)) { throw 'Dipendenza tracker inesistente o non verificabile: '+$target }
+            if (!$nodes.ContainsKey($target)) { throw (New-SBError 'tracker.dependency.missing' @($target)) }
             $edges[$key]+=$target
         }
     }
     $visited=@{};$active=@{}
     function Visit-SBTrackerNode([string]$Key) {
-        if($active.ContainsKey($Key)){throw 'Ciclo nelle dipendenze tracker: '+$Key}
+        if($active.ContainsKey($Key)){throw (New-SBError 'tracker.dependency.cycle' @($Key))}
         if($visited.ContainsKey($Key)){return}
         $active[$Key]=$true
         foreach($target in $edges[$Key]){Visit-SBTrackerNode $target}
@@ -87,11 +140,11 @@ function Get-SBTrackerRelatedData([string]$BrainRoot,[string]$Identity,$Entities
         if(!$record.ContainsKey('tracker')){continue}
         $declaration=$record.tracker
         if($record.identity -cne $other.repository -or $declaration -isnot [Collections.IDictionary] -or $declaration.Count -ne 3 -or
-           $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw 'Dichiarazione tracker correlato non valida: '+$other.repository}
+           $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw (New-SBError 'tracker.related.declaration' @($other.repository))}
         $path=Resolve-SBParaPath $otherDir 'tracker.json'
-        if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'Tracker correlato dichiarato assente: '+$other.repository}
+        if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw (New-SBError 'tracker.related.missing' @($other.repository))}
         $data=Read-SBJson $path $null
-        if($data.repository -cne $other.repository){throw 'Identita tracker correlato divergente'}
+        if($data.repository -cne $other.repository){throw (New-SBError 'tracker.related.identity')}
         $related[$other.repository]=$data
     }
     $related
@@ -104,17 +157,17 @@ function Resolve-SBTracker {
     if(!$areas.Count -and $DossierPath -and (Test-SBRepositoryIdentity $Identity $AllowedOwners)){
         $areas=@(@{path=$DossierPath;repository=$Identity})
     }
-    if($areas.Count -ne 1){throw 'Identita tracker non associata a una sola Area: '+$Identity}
+    if($areas.Count -ne 1){throw (New-SBError 'tracker.identity.area' @($Identity))}
     $area=$areas[0];$dir=Resolve-SBParaPath $BrainRoot $area.path
     $metadata=Read-SBJson (Join-Path $dir 'repository.json') @{}
-    if($metadata.ContainsKey('identity') -and $metadata.identity -ne $Identity){throw 'Identita del dossier tracker divergente'}
+    if($metadata.ContainsKey('identity') -and $metadata.identity -ne $Identity){throw (New-SBError 'tracker.dossier.identity')}
     if($metadata.ContainsKey('tracker')) {
         $declaration=$metadata.tracker
         if($declaration -isnot [Collections.IDictionary] -or $declaration.Count -ne 3 -or
-           $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw 'Dichiarazione tracker non valida: '+$Identity}
+           $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw (New-SBError 'tracker.declaration.invalid' @($Identity))}
         $path=Resolve-SBParaPath $dir $declaration.path
-        if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'Tracker dichiarato assente: '+$path}
-        if(!(Test-SBTrackerPolicy $BrainRoot)){throw 'Contratto tracker non approvato: '+$Identity}
+        if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw (New-SBError 'tracker.declared.missing' @($path))}
+        if(!(Test-SBTrackerPolicy $BrainRoot)){throw (New-SBError 'tracker.policy.unapproved' @($Identity))}
         $data=Read-SBJson $path $null
         $related=Get-SBTrackerRelatedData $BrainRoot $Identity $Entities
         [void](Test-SBTrackerData $data $Identity @($Entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') $related)
@@ -168,17 +221,17 @@ function New-SBTrackerTask($Value,[string]$Identity,[string]$Collection,[string]
 function Read-SBTrackerReview([string]$Path,[string]$Identity,[string]$SourceHash) {
     Assert-SBPlainPath ([IO.Path]::GetFullPath($Path))
     $review=Read-SBJson $Path $null
-    if(!$review -or $review.schemaVersion -ne 1 -or $review.repository -cne $Identity -or $review.sourceSha256 -cne $SourceHash){throw 'Review tracker di altra identita o sorgente divergente'}
-    if($review.tasks -isnot [array]){throw 'Review tracker senza elenco task'}
+    if(!$review -or $review.schemaVersion -ne 1 -or $review.repository -cne $Identity -or $review.sourceSha256 -cne $SourceHash){throw (New-SBError 'tracker.review.source')}
+    if($review.tasks -isnot [array]){throw (New-SBError 'tracker.review.tasks')}
     $ids=@{}
     foreach($item in $review.tasks){
-        if($item -isnot [Collections.IDictionary] -or !$item.ContainsKey('id') -or !$item.id -or $ids.ContainsKey($item.id)){throw 'ID review tracker mancante o duplicato'}
+        if($item -isnot [Collections.IDictionary] -or !$item.ContainsKey('id') -or !$item.id -or $ids.ContainsKey($item.id)){throw (New-SBError 'tracker.review.id')}
         $ids[$item.id]=$true
-        foreach($key in $item.Keys){if($key -notin @('id','status','dependencies','prerequisites','reason')){throw 'Campo review tracker non riconosciuto: '+$key}}
-        if(!$item.ContainsKey('reason') -or $item.reason -isnot [string] -or !$item.reason.Trim()){throw 'Motivazione review tracker obbligatoria'}
-        if(!$item.ContainsKey('status') -or $item.status -notin @('todo','in_progress','blocked','done','cancelled')){throw 'Stato review tracker non valido'}
-        if($item.ContainsKey('dependencies') -and $item.dependencies -isnot [array]){throw 'Dipendenze review tracker non valide'}
-        if($item.ContainsKey('prerequisites') -and ($item.prerequisites -isnot [array] -or @($item.prerequisites|Where-Object {$_ -isnot [string] -or !$_.Trim()}).Count)){throw 'Prerequisiti review tracker non validi'}
+        foreach($key in $item.Keys){if($key -notin @('id','status','dependencies','prerequisites','reason')){throw (New-SBError 'tracker.review.field' @($key))}}
+        if(!$item.ContainsKey('reason') -or $item.reason -isnot [string] -or !$item.reason.Trim()){throw (New-SBError 'tracker.review.reason')}
+        if(!$item.ContainsKey('status') -or $item.status -notin @('todo','in_progress','blocked','done','cancelled')){throw (New-SBError 'tracker.review.status')}
+        if($item.ContainsKey('dependencies') -and $item.dependencies -isnot [array]){throw (New-SBError 'tracker.review.dependencies')}
+        if($item.ContainsKey('prerequisites') -and ($item.prerequisites -isnot [array] -or @($item.prerequisites|Where-Object {$_ -isnot [string] -or !$_.Trim()}).Count)){throw (New-SBError 'tracker.review.prerequisites')}
     }
     $review
 }
@@ -190,10 +243,10 @@ function ConvertTo-SBTracker {
     $tasks=[Collections.Generic.List[object]]::new();$history=@();$originalData=$null
     if([IO.Path]::GetExtension($SourcePath) -eq '.json'){
         $originalData=Read-SBJson $SourcePath $null
-        if($originalData -isnot [Collections.IDictionary]){throw 'Il tracker JSON originale deve essere un oggetto'}
+        if($originalData -isnot [Collections.IDictionary]){throw (New-SBError 'tracker.original.object')}
         foreach($collection in @('tasks','todos','current_tasks','next_tasks','remainingTasks','residuals','todo_autonomous','todo_user_required')){
             if(!$originalData.ContainsKey($collection)){continue}
-            if($originalData[$collection] -isnot [array]){throw 'Collezione tracker non valida: '+$collection}
+            if($originalData[$collection] -isnot [array]){throw (New-SBError 'tracker.collection.invalid' @($collection))}
             $i=0
             foreach($value in $originalData[$collection]){$tasks.Add((New-SBTrackerTask $value $Identity $collection $Reference $hash ('/'+$collection+'/'+$i) $Commit));$i++}
         }
@@ -227,7 +280,7 @@ function ConvertTo-SBTracker {
             $header=$inOpen -and ($row -match '^\|\s*ID\s*\|[^|]*\|[^|]*\|[^|]*\|\s*$' -or $row -match '^\|(?:\s*:?-+:?\s*\|)+\s*$')
             $checkbox=$row -match '^\s*(?:[-*+]|\d+[.)])\s+\[[^\]]*\]'
             if(!$recognized -and (($table -and !$header) -or $checkbox)){
-                throw ('Formato Markdown non riconosciuto alla riga '+$line+': conversione esplicita richiesta')
+                throw (New-SBError 'tracker.markdown.format' @($line))
             }
         }
         if($HistoryPath){
@@ -244,8 +297,8 @@ function ConvertTo-SBTracker {
                 }
             }
         }
-    } else {throw 'Formato tracker originale non supportato'}
-    $ids=@{};foreach($task in $tasks){if($ids.ContainsKey($task.id)){throw 'Collisione ID: risoluzione esplicita richiesta per '+$task.id};$ids[$task.id]=$true}
+    } else {throw (New-SBError 'tracker.original.format')}
+    $ids=@{};foreach($task in $tasks){if($ids.ContainsKey($task.id)){throw (New-SBError 'tracker.id.collision' @($task.id))};$ids[$task.id]=$true}
     foreach($task in $tasks){
         $raw=$task.extensions.original
         if($raw -isnot [Collections.IDictionary]){continue}
@@ -267,9 +320,9 @@ function ConvertTo-SBTracker {
         $review=Read-SBTrackerReview $ReviewPath $Identity $hash
         foreach($item in $review.tasks){
             $matches=@($tasks|Where-Object id -CEQ $item.id)
-            if($matches.Count -ne 1){throw 'Task review tracker inesistente: '+$item.id}
+            if($matches.Count -ne 1){throw (New-SBError 'tracker.review.unknown' @($item.id))}
             $task=$matches[0]
-            if($task.extensions.ContainsKey('unresolvedDependencies') -and !$item.ContainsKey('dependencies')){throw 'Review tracker richiede riconciliazione esplicita delle dipendenze: '+$item.id}
+            if($task.extensions.ContainsKey('unresolvedDependencies') -and !$item.ContainsKey('dependencies')){throw (New-SBError 'tracker.review.reconcile' @($item.id))}
             $task.status=$item.status
             if($item.ContainsKey('dependencies')){$task.dependencies=$item.dependencies}
             if($item.ContainsKey('prerequisites')){$task.extensions.prerequisites=$item.prerequisites}
@@ -362,14 +415,14 @@ function Resolve-SBTrackerBackupRoot([string]$BrainRoot) {
     if(!(Test-Path -LiteralPath $configPath -PathType Leaf)){return $fallback}
     $local=Read-SBJson $configPath $null
     if($local -is [Collections.IDictionary] -and $local.ContainsKey('migratedTo')){$local=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $local.migratedTo) $null}
-    if($local -isnot [Collections.IDictionary] -or !$local.ContainsKey('backupRoot') -or !$local.backupRoot){throw "Configurazione host senza backupRoot: $configPath"}
+    if($local -isnot [Collections.IDictionary] -or !$local.ContainsKey('backupRoot') -or !$local.backupRoot){throw (New-SBError 'tracker.host.backuproot' @($configPath))}
     $value=[string]$local.backupRoot
     if(![IO.Path]::IsPathFullyQualified($value)){$value=Join-Path $BrainRoot $value}
     Assert-SBCentralDataPath $BrainRoot $value
 }
 # Risolve il tracker su cui scrivere (per Path o per identita dichiarata nel dossier) e applica il perimetro cooperativo.
 function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[string]$Path,[string]$WorkingRepository) {
-    if($WorkingRepository -and $Identity -and $Identity -cne $WorkingRepository){throw "Scrittura rifiutata: il tracker di '$Identity' non appartiene al repository in lavoro '$WorkingRepository'"}
+    if($WorkingRepository -and $Identity -and $Identity -cne $WorkingRepository){throw (New-SBError 'tracker.write.foreign' @($Identity,$WorkingRepository))}
     if(!$BrainRoot){
         if($Path){
             $p=[IO.Path]::GetFullPath($Path)
@@ -386,26 +439,26 @@ function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[stri
     if($Path){
         $trackerPath=[IO.Path]::GetFullPath($Path)
         Assert-SBPlainPath $trackerPath
-        if(!(Test-Path -LiteralPath $trackerPath -PathType Leaf)){throw "File tracker inesistente: $trackerPath"}
+        if(!(Test-Path -LiteralPath $trackerPath -PathType Leaf)){throw (New-SBError 'tracker.file.missing' @($trackerPath))}
         $data=Read-SBJson $trackerPath $null
         if(!$Identity){$Identity=[string]$data.repository}
-        if($WorkingRepository -and $Identity -cne $WorkingRepository){throw "Scrittura rifiutata: il tracker di '$Identity' non appartiene al repository in lavoro '$WorkingRepository'"}
+        if($WorkingRepository -and $Identity -cne $WorkingRepository){throw (New-SBError 'tracker.write.foreign' @($Identity,$WorkingRepository))}
     }else{
-        if(!$Identity){throw 'Identity o Path obbligatorio'}
-        if(!(Test-SBTrackerPolicy $BrainRoot)){throw "Contratto tracker non approvato: $Identity"}
+        if(!$Identity){throw (New-SBError 'tracker.identity.required')}
+        if(!(Test-SBTrackerPolicy $BrainRoot)){throw (New-SBError 'tracker.policy.unapproved' @($Identity))}
         $entities=@(Get-SBParaEntities $BrainRoot @())
         $areas=@($entities|Where-Object {$_.kind -eq 'area' -and $_.repository -eq $Identity})
-        if($areas.Count -ne 1){throw "Identita tracker non associata a una sola Area: $Identity"}
+        if($areas.Count -ne 1){throw (New-SBError 'tracker.identity.area' @($Identity))}
         $dir=Resolve-SBParaPath $BrainRoot $areas[0].path
         $metadata=Read-SBJson (Join-Path $dir 'repository.json') @{}
-        if(!$metadata.ContainsKey('tracker')){throw "Dossier senza dichiarazione tracker: $Identity"}
+        if(!$metadata.ContainsKey('tracker')){throw (New-SBError 'tracker.dossier.declaration' @($Identity))}
         $declaration=$metadata.tracker
-        if($declaration -isnot [Collections.IDictionary] -or $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw "Dichiarazione tracker non valida: $Identity"}
+        if($declaration -isnot [Collections.IDictionary] -or $declaration.location -ne 'dossier' -or $declaration.path -cne 'tracker.json' -or $declaration.schemaVersion -ne 1){throw (New-SBError 'tracker.declaration.invalid' @($Identity))}
         $trackerPath=Resolve-SBParaPath $dir $declaration.path
-        if(!(Test-Path -LiteralPath $trackerPath -PathType Leaf)){throw "Tracker dichiarato assente: $trackerPath"}
+        if(!(Test-Path -LiteralPath $trackerPath -PathType Leaf)){throw (New-SBError 'tracker.declared.missing' @($trackerPath))}
         $data=Read-SBJson $trackerPath $null
     }
-    if($data.schemaVersion -ne 1){throw 'Schema tracker non supportato (atteso v1)'}
+    if($data.schemaVersion -ne 1){throw (New-SBError 'tracker.schema.version')}
     $next=ConvertTo-SBJson $data|ConvertFrom-Json -AsHashtable -DateKind String
     @{brainRoot=$BrainRoot;identity=$Identity;path=$trackerPath;hash=(Get-SBFileHash $trackerPath);data=$next}
 }
@@ -444,11 +497,11 @@ function Set-SBTrackerTaskStatus {
     )
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     if($Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){
-        throw "Stato non valido: $Status. Valori ammessi: todo, in_progress, blocked, done, cancelled, unknown"
+        throw (New-SBError 'tracker.status.invalid' @($Status))
     }
     $next=$target.data
     $matching=@($next.tasks|Where-Object {$_.id -eq $TaskId})
-    if($matching.Count -ne 1){throw "Task non trovato nel tracker: $TaskId"}
+    if($matching.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($TaskId))}
     $targetTask=$matching[0]
     $targetTask.status=$Status
     if($PSBoundParameters.ContainsKey('StateReason')){
@@ -489,15 +542,15 @@ function New-SBTrackerTaskEntry {
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     $next=$target.data
     $unnumbered=@($next.tasks|Where-Object {!$_.ContainsKey('seq')})
-    if($unnumbered.Count){throw "Tracker non numerato ($($unnumbered.Count) task senza seq): eseguire prima knowledge.ps1 -RenumberTasks"}
-    if(!@($Acceptance|Where-Object {$_ -and $_.Trim()}).Count){throw 'Almeno un criterio di accettazione obbligatorio'}
+    if($unnumbered.Count){throw (New-SBError 'tracker.unnumbered' @($unnumbered.Count))}
+    if(!@($Acceptance|Where-Object {$_ -and $_.Trim()}).Count){throw (New-SBError 'tracker.acceptance.required')}
     $seq=(Get-SBTrackerLastSeq $next)+1
     if(!$Id){$Id='TASK-'+$seq.ToString('000')}
-    if(@($next.tasks|Where-Object {$_.id -ceq $Id}).Count){throw "ID task gia presente: $Id"}
+    if(@($next.tasks|Where-Object {$_.id -ceq $Id}).Count){throw (New-SBError 'tracker.task.exists' @($Id))}
     # La provenienza e un file reale: riferimento relativo al dossier (o assoluto), hash calcolato qui.
     $dossierDir=Split-Path $target.path
     $sourcePath=if([IO.Path]::IsPathFullyQualified($ProvenanceReference)){$ProvenanceReference}else{Join-Path $dossierDir (($ProvenanceReference -split '#',2)[0])}
-    if(!(Test-Path -LiteralPath $sourcePath -PathType Leaf)){throw "Provenienza inesistente: $ProvenanceReference"}
+    if(!(Test-Path -LiteralPath $sourcePath -PathType Leaf)){throw (New-SBError 'tracker.provenance.missing' @($ProvenanceReference))}
     Assert-SBPlainPath $sourcePath
     $dependencies=@($DependsOn|Where-Object {$_}|ForEach-Object {
         $parts=$_ -split '#',2
@@ -539,14 +592,14 @@ function Invoke-SBTrackerRenumber {
         Assert-SBPlainPath $ArchivePath
         $archiveHash=Get-SBFileHash $ArchivePath
         $archive=ConvertTo-SBJson (Read-SBJson $ArchivePath $null)|ConvertFrom-Json -AsHashtable -DateKind String
-        if($archive -isnot [Collections.IDictionary] -or $archive.repository -cne $target.identity){throw 'Archivio tracker di identita divergente'}
+        if($archive -isnot [Collections.IDictionary] -or $archive.repository -cne $target.identity){throw (New-SBError 'tracker.archive.identity')}
     }
     $items=@()
     if($archive){foreach($t in $archive.tasks){$items+=,@{task=$t;source='archive'}}}
     foreach($t in $next.tasks){$items+=,@{task=$t;source='tracker'}}
     $numbered=@($items|Where-Object {$_.task.ContainsKey('seq')})
     if($items.Count -and $numbered.Count -eq $items.Count){return @{applied=$false;changed=$false;reason='Tracker gia numerato';count=$items.Count;lastSeq=(Get-SBTrackerLastSeq $next)}}
-    if($numbered.Count){throw "Numerazione parziale ($($numbered.Count) su $($items.Count)): riconciliazione esplicita richiesta"}
+    if($numbered.Count){throw (New-SBError 'tracker.numbering.partial' @($numbered.Count,$items.Count))}
     $current='00000000';$index=0
     foreach($item in $items){
         $match=[regex]::Match([string]$item.task.id,'(?<!\d)(20\d{6})(?!\d)')

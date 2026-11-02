@@ -1,4 +1,5 @@
 # Scenari di policy: repository vietati, identita cervello, configurazione e Git; invocato da test-secondbrain.ps1 con fixture isolate.
+$env:SECONDBRAIN_LANG='it'
 if(!(Get-Command Assert -ErrorAction SilentlyContinue)){throw 'Eseguire scripts/test-secondbrain.ps1'}
 $policyRoot=Join-Path $root 'policy projects with spaces'
 $owned=Join-Path $policyRoot 'owned'

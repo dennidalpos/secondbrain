@@ -20,7 +20,9 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
     [Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
     [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,
-    [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@())
+    [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@(),
+    [ValidateSet('en','it')][string]$Language)
+if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')

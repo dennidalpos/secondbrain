@@ -4,10 +4,34 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'knowledge.record.missing' = @{ it = 'repository.json assente'; en = 'repository.json missing' }
+    'knowledge.dossier.invalid' = @{ it = 'Dossier non valido'; en = 'Invalid dossier' }
+    'knowledge.repository.required' = @{ it = 'Repository non specificato: indicare il repository in lavoro oppure -All per la vista globale in sola lettura'; en = 'Repository not specified: give the working repository or -All for the read-only global view' }
+    'knowledge.dossier.none' = @{ it = 'Nessun dossier attivo per il repository: {0}'; en = 'No active dossier for repository: {0}' }
+    'knowledge.dossier.ambiguous' = @{ it = 'Dossier non risolto in modo univoco per il repository: {0}'; en = 'Dossier not uniquely resolved for repository: {0}' }
+    'knowledge.lifecycle.invalid' = @{ it = 'lifecycle non valido in repository.json: ammesso soltanto greenfield'; en = 'Invalid lifecycle in repository.json: only greenfield is allowed' }
+    'knowledge.tracker.unavailable' = @{ it = 'Tracker non disponibile per il dossier'; en = 'Tracker not available for the dossier' }
+    'knowledge.task.ambiguous' = @{ it = 'Piu task corrispondono a: {0}'; en = 'Several tasks match: {0}' }
+    'knowledge.task.notfound' = @{ it = 'Task non trovato: {0}'; en = 'Task not found: {0}' }
+    'knowledge.source.invalid' = @{ it = 'Fonte non valida: usare context, memory, history oppure history/<cartella>'; en = 'Invalid source: use context, memory, history or history/<folder>' }
+    'knowledge.section.notfound' = @{ it = 'Sezione non trovata: {0}'; en = 'Section not found: {0}' }
+    'knowledge.dossier.unspecified' = @{ it = 'Dossier non indicato: eseguire dal checkout del repository o passare -Dossier (assoluto o relativo alla radice SecondBrain)'; en = 'Dossier not specified: run from the repository checkout or pass -Dossier (absolute or relative to the SecondBrain root)' }
+    'knowledge.dossier.archived' = @{ it = 'Dossier archiviato: compattazione non autorizzata implicitamente'; en = 'Archived dossier: compaction is not implicitly authorized' }
+    'knowledge.candidate.review' = @{ it = 'Candidato richiede revisione esplicita dellʼagente e motivazione'; en = 'Candidate requires explicit agent review and a reason' }
+    'knowledge.candidate.repository' = @{ it = 'Candidato di un altro repository'; en = 'Candidate belongs to another repository' }
+    'knowledge.source.changed' = @{ it = 'Fonte modificata dopo la preparazione: {0}'; en = 'Source changed after preparation: {0}' }
+    'knowledge.summary.missing' = @{ it = 'Sintesi assente: {0}'; en = 'Summary missing: {0}' }
+    'knowledge.section.essential' = @{ it = 'Sezione essenziale assente: {0}'; en = 'Essential section missing: {0}' }
+    'knowledge.original.diverged' = @{ it = 'Originale archiviato divergente'; en = 'Archived original diverges' }
+    'knowledge.candidate.tasks' = @{ it = 'Il candidato omette task aperti: rigenerare la proiezione'; en = 'The candidate omits open tasks: regenerate the projection' }
+    'knowledge.budget.exceeded' = @{ it = 'Budget superato: approfondire la sintesi, senza troncare informazioni'; en = 'Budget exceeded: refine the summary without truncating information' }
+}
 
 function Get-SBDossierTOC([string]$Dossier) {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
-    if(!$record){throw 'repository.json assente'}
+    if(!$record){throw (New-SBError 'knowledge.record.missing')}
     $lines=@('# Indice del dossier','',('Repository: `'+$record.identity+'`'),'','## Avvio selettivo','',
         '- [Contesto corrente](context.md): stato, vincoli e prossimo passo.',
         '- [Memoria essenziale](memory.md): decisioni durevoli e gotcha.',
@@ -171,7 +195,7 @@ function Format-SBSlimTasks($Projection) {
 function Get-SBStartupContext {
     param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full')
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
-    if(!$record){throw 'Dossier non valido'}
+    if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
     $slim=($Profile -eq 'Slim')
     $toc=Get-SBDossierTOC $Dossier
     $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $Dossier -AllowedOwners @() -Entities $Entities
@@ -241,10 +265,10 @@ function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
 }
 function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$All,[switch]$ReadyOnly) {
     # Perimetro cooperativo: senza repository esplicito la vista globale richiede -All (sola lettura, ogni voce etichettata scope=global).
-    if(!$Repository -and !$All){throw 'Repository non specificato: indicare il repository in lavoro oppure -All per la vista globale in sola lettura'}
+    if(!$Repository -and !$All){throw (New-SBError 'knowledge.repository.required')}
     $entities=@(Get-SBParaEntities $BrainRoot @())
     $areas=@($entities|Where-Object {$_.kind -eq 'area' -and !$_.archived -and (!$Repository -or $_.repository -eq $Repository)})
-    if($Repository -and !$areas.Count){throw "Nessun dossier attivo per il repository: $Repository"}
+    if($Repository -and !$areas.Count){throw (New-SBError 'knowledge.dossier.none' @($Repository))}
     $scope=if($Repository){'repository'}else{'global'}
     foreach($area in $areas){
         $dossier=Resolve-SBParaPath $BrainRoot $area.path
@@ -265,7 +289,7 @@ function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$Al
 function Resolve-SBWorkingDossier([string]$BrainRoot,[string]$Repository) {
     # Dossier (percorso relativo al cervello) dell'unico Area attiva del repository.
     $found=@(Get-SBParaEntities $BrainRoot @()|Where-Object {$_.kind -eq 'area' -and !$_.archived -and $_.repository -ceq $Repository})
-    if($found.Count -ne 1){throw "Dossier non risolto in modo univoco per il repository: $Repository"}
+    if($found.Count -ne 1){throw (New-SBError 'knowledge.dossier.ambiguous' @($Repository))}
     $found[0].path
 }
 function Get-SBSearchTokens([string]$Query) {
@@ -446,14 +470,14 @@ function Find-SBKnowledge {
 function Get-SBRepositoryLifecycle([string]$Dossier) {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record -or !$record.ContainsKey('lifecycle')){return ''}
-    if([string]$record.lifecycle -cne 'greenfield'){throw 'lifecycle non valido in repository.json: ammesso soltanto greenfield'}
+    if([string]$record.lifecycle -cne 'greenfield'){throw (New-SBError 'knowledge.lifecycle.invalid')}
     'greenfield'
 }
 function Set-SBRepositoryLifecycle {
     param([Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][ValidateSet('greenfield','none')][string]$Lifecycle,[Parameter(Mandatory)][string]$BackupRoot)
     $path=Join-Path $Dossier 'repository.json'
     $record=Read-SBJson $path $null
-    if(!$record){throw 'repository.json assente'}
+    if(!$record){throw (New-SBError 'knowledge.record.missing')}
     $before=$(if($record.ContainsKey('lifecycle')){[string]$record.lifecycle}else{''})
     if($Lifecycle -eq 'greenfield'){$record.lifecycle='greenfield'}else{[void]$record.Remove('lifecycle')}
     $changed=($before -ne $(if($Lifecycle -eq 'greenfield'){'greenfield'}else{''}))
@@ -464,9 +488,9 @@ function Get-SBTaskDetail {
     # Dettaglio integro di un task per id o seq (anche "#203"), dal tracker attivo o dall'archivio del dossier.
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Task,[string]$CheckoutPath)
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
-    if(!$record){throw 'Dossier non valido'}
+    if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
     $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $Dossier -AllowedOwners @()
-    if(!$tracker.ContainsKey('data') -or !$tracker.data){throw 'Tracker non disponibile per il dossier'}
+    if(!$tracker.ContainsKey('data') -or !$tracker.data){throw (New-SBError 'knowledge.tracker.unavailable')}
     $key=$Task.Trim();$seq=0
     $bySeq=($key -match '^#?\d+$') -and [int]::TryParse($key.TrimStart('#'),[ref]$seq)
     $sources=@(@{name='tracker';tasks=@($tracker.data.tasks);path=[string]$tracker.path})
@@ -475,10 +499,10 @@ function Get-SBTaskDetail {
     if($archive -and $archive.ContainsKey('tasks')){$sources+=@{name='archive';tasks=@($archive.tasks);path=$archivePath}}
     foreach($source in $sources){
         $found=@($source.tasks|Where-Object {if($bySeq){$_.ContainsKey('seq') -and [int]$_.seq -eq $seq}else{[string]$_.id -ieq $key}})
-        if($found.Count -gt 1){throw "Piu task corrispondono a: $Task"}
+        if($found.Count -gt 1){throw (New-SBError 'knowledge.task.ambiguous' @($Task))}
         if($found.Count){return @{repository=$record.identity;source=$source.name;path=[IO.Path]::GetRelativePath([IO.Path]::GetFullPath($BrainRoot),$source.path).Replace('\','/');task=$found[0]}}
     }
-    throw "Task non trovato: $Task"
+    throw (New-SBError 'knowledge.task.notfound' @($Task))
 }
 function Get-SBMarkdownSections([string[]]$Lines) {
     # Sezioni di un Markdown: intestazione di qualunque livello fino alla successiva dello stesso livello o superiore (sottosezioni incluse); i blocchi di codice non contano.
@@ -498,10 +522,10 @@ function Get-SBSection {
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Title,[string]$Source='')
     $root=[IO.Path]::GetFullPath($BrainRoot)
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
-    if(!$record){throw 'Dossier non valido'}
+    if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
     $files=@()
     $wanted=$Source.Trim().Trim('/').ToLowerInvariant()
-    if($wanted -and $wanted -notmatch '^(context|memory|history(/[^/\\]+)?)$'){throw 'Fonte non valida: usare context, memory, history oppure history/<cartella>'}
+    if($wanted -and $wanted -notmatch '^(context|memory|history(/[^/\\]+)?)$'){throw (New-SBError 'knowledge.source.invalid')}
     if(!$wanted -or $wanted -eq 'context'){$files+=Join-Path $Dossier 'context.md'}
     if(!$wanted -or $wanted -eq 'memory'){$files+=Join-Path $Dossier 'memory.md'}
     if(!$wanted -or $wanted -eq 'history'){
@@ -520,7 +544,7 @@ function Get-SBSection {
         }
     }
     $hits=if($exact.Count){$exact}else{$partial}
-    if(!$hits.Count){throw "Sezione non trovata: $Title"}
+    if(!$hits.Count){throw (New-SBError 'knowledge.section.notfound' @($Title))}
     $found=@($hits|ForEach-Object {
         $text=(($_.lines[($_.line-1)..($_.endLine-1)]) -join "`n").TrimEnd()
         @{path=$_.path;sha256=$_.sha256;title=$_.title;level=$_.level;line=$_.line;endLine=$_.endLine;characters=$text.Length;text=$text}
@@ -529,27 +553,27 @@ function Get-SBSection {
 }
 function Invoke-SBDossierCompaction {
     param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=50000)
-    if([string]::IsNullOrWhiteSpace($Dossier)){throw 'Dossier non indicato: eseguire dal checkout del repository o passare -Dossier (assoluto o relativo alla radice SecondBrain)'}
+    if([string]::IsNullOrWhiteSpace($Dossier)){throw (New-SBError 'knowledge.dossier.unspecified')}
     $root=[IO.Path]::GetFullPath($BrainRoot);$dir=[IO.Path]::GetFullPath($Dossier)
     [void](Assert-SBPlainPath $dir)
     $relative=[IO.Path]::GetRelativePath($root,$dir).Replace('\','/');[void](Resolve-SBParaPath $root $relative)
-    if($relative.StartsWith('04-archives/',[StringComparison]::Ordinal)){throw 'Dossier archiviato: compattazione non autorizzata implicitamente'}
+    if($relative.StartsWith('04-archives/',[StringComparison]::Ordinal)){throw (New-SBError 'knowledge.dossier.archived')}
     $candidate=Read-SBJson (Assert-SBCentralDataPath $root $CandidatePath) $null
-    if(!$candidate -or $candidate.schemaVersion -ne 1 -or $candidate.reviewed -ne $true -or !$candidate.reviewNote){throw 'Candidato richiede revisione esplicita dellʼagente e motivazione'}
+    if(!$candidate -or $candidate.schemaVersion -ne 1 -or $candidate.reviewed -ne $true -or !$candidate.reviewNote){throw (New-SBError 'knowledge.candidate.review')}
     $record=Read-SBJson (Join-Path $dir 'repository.json') $null
-    if($candidate.repository -cne $record.identity){throw 'Candidato di un altro repository'}
+    if($candidate.repository -cne $record.identity){throw (New-SBError 'knowledge.candidate.repository')}
     $ops=@();$archives=@()
     $attributesPath=Join-Path $dir 'history/compaction/.gitattributes'
     if((Get-SBFileHash $attributesPath) -eq 'absent'){$ops+=@{path=$attributesPath;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes("* -text -whitespace`n")}}
     foreach($name in @('context.md','memory.md')){
         $source=Join-Path $dir $name;$hash=Get-SBFileHash $source
-        if(!$candidate.sources.ContainsKey($name) -or $candidate.sources[$name] -ne $hash){throw 'Fonte modificata dopo la preparazione: '+$name}
-        if(!$candidate.summaries.ContainsKey($name) -or !$candidate.summaries[$name].Trim()){throw 'Sintesi assente: '+$name}
+        if(!$candidate.sources.ContainsKey($name) -or $candidate.sources[$name] -ne $hash){throw (New-SBError 'knowledge.source.changed' @($name))}
+        if(!$candidate.summaries.ContainsKey($name) -or !$candidate.summaries[$name].Trim()){throw (New-SBError 'knowledge.summary.missing' @($name))}
         $text=[string]$candidate.summaries[$name]
-        if($name -eq 'context.md'){foreach($heading in @('Stato corrente','Vincoli','Problemi aperti','Prossimo passo')){if($text -notmatch ('(?m)^## '+[regex]::Escape($heading)+'\s*$')){throw 'Sezione essenziale assente: '+$heading}}}
+        if($name -eq 'context.md'){foreach($heading in @('Stato corrente','Vincoli','Problemi aperti','Prossimo passo')){if($text -notmatch ('(?m)^## '+[regex]::Escape($heading)+'\s*$')){throw (New-SBError 'knowledge.section.essential' @($heading))}}}
         $archiveRelative='history/compaction/'+$hash.ToLowerInvariant()+'/'+$name
         $archive=Join-Path $dir $archiveRelative;$existing=Get-SBFileHash $archive
-        if($existing -eq 'absent'){$ops+=@{path=$archive;expected='absent';bytes=[IO.File]::ReadAllBytes($source)}}elseif($existing -ne $hash){throw 'Originale archiviato divergente'}
+        if($existing -eq 'absent'){$ops+=@{path=$archive;expected='absent';bytes=[IO.File]::ReadAllBytes($source)}}elseif($existing -ne $hash){throw (New-SBError 'knowledge.original.diverged')}
         $text=$text.TrimEnd()+"`n`nOriginale conservato: ["+$name+']('+$archiveRelative+"). Le autorizzazioni storiche non sono autorizzazioni correnti.`n"
         $ops+=@{path=$source;expected=$hash;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
         if($name -eq 'memory.md'){
@@ -561,13 +585,13 @@ function Invoke-SBDossierCompaction {
     }
     $tracker=Resolve-SBTracker -BrainRoot $root -Identity $record.identity -DossierPath $dir -CheckoutPath $CheckoutPath -AllowedOwners @()
     $openIds=@($tracker.data.tasks|Where-Object status -notin @('done','cancelled')|ForEach-Object id)
-    if(@($openIds|Where-Object {$_ -notin $candidate.openTaskIds}).Count){throw 'Il candidato omette task aperti: rigenerare la proiezione'}
+    if(@($openIds|Where-Object {$_ -notin $candidate.openTaskIds}).Count){throw (New-SBError 'knowledge.candidate.tasks')}
     $toc=Get-SBDossierTOC $dir;$index=Join-Path $dir 'index.md'
     $ops+=@{path=$index;expected=(Get-SBFileHash $index);bytes=[Text.Encoding]::UTF8.GetBytes($toc)}
     # Il budget misura le sole parti caricate all'avvio (profilo Slim): le sezioni (storico) restano nel file ma non contano.
     $total=($ops|Where-Object {[IO.Path]::GetFileName($_.path) -in @('context.md','memory.md') -and $_.path -notmatch '[\\/]history[\\/]'}|ForEach-Object {(Split-SBTieredMarkdown ([Text.Encoding]::UTF8.GetString($_.bytes))).essential.Length}|Measure-Object -Sum).Sum
     $projection=ConvertTo-SBJson @(Get-SBTaskProjection $tracker.data)
-    if($total+$toc.Length+$projection.Length -gt $Budget){throw 'Budget superato: approfondire la sintesi, senza troncare informazioni'}
+    if($total+$toc.Length+$projection.Length -gt $Budget){throw (New-SBError 'knowledge.budget.exceeded')}
     $manifest=@{schemaVersion=1;repository=$record.identity;archives=$archives;reviewNote=$candidate.reviewNote;openTaskIds=$openIds;candidateSha256=(Get-SBFileHash $CandidatePath)}
     $manifestPath=Join-Path $dir ('history/compaction/'+(Get-SBFileHash $CandidatePath).ToLowerInvariant()+'.json')
     $manifestText=ConvertTo-SBJson $manifest

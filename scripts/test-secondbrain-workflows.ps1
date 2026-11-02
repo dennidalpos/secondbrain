@@ -6,6 +6,7 @@ try {
     }
 } catch { }
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
@@ -472,6 +473,35 @@ try {
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
     Assert-Workflow ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
     Assert-Workflow (@(Get-SBWorkflowDrift ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')))).Count -eq 0) 'catalogo reale allineato'
+    # Lingua dei messaggi: ordine override, SECONDBRAIN_LANG, cultura; il codice stabile non cambia con la lingua.
+    $savedLang=$env:SECONDBRAIN_LANG
+    try {
+        $env:SECONDBRAIN_LANG='en';Set-SBUiLanguage ''
+        Assert-Workflow ((Get-SBUiLanguage) -ceq 'en' -and (Get-SBMessage 'core.block.duplicate' @('x')) -ceq 'Duplicate block: x') 'lingua en da SECONDBRAIN_LANG'
+        $env:SECONDBRAIN_LANG='it'
+        Assert-Workflow ((Get-SBUiLanguage) -ceq 'it' -and (Get-SBMessage 'core.block.duplicate' @('x')) -ceq 'Blocco duplicato: x') 'lingua it da SECONDBRAIN_LANG'
+        Set-SBUiLanguage 'en'
+        Assert-Workflow ((Get-SBUiLanguage) -ceq 'en') 'override esplicito prevale sulla variabile'
+        Reject-Workflow { Set-SBUiLanguage 'fr' } 'lingua non supportata rifiutata'
+        Set-SBUiLanguage ''
+        Assert-Workflow ((Get-SBMessage 'chiave.inesistente') -ceq 'chiave.inesistente') 'chiave sconosciuta restituisce la chiave'
+        $codes=@{}
+        foreach($lang in 'it','en'){
+            $env:SECONDBRAIN_LANG=$lang
+            try { Read-SBConfiguration (Join-Path $temp 'config-inesistente.json') | Out-Null } catch { $codes[$lang]=@{code=$_.Exception.Data['code'];text=$_.Exception.Message} }
+        }
+        Assert-Workflow ($codes.it.code -ceq 'access.config.missing' -and $codes.en.code -ceq 'access.config.missing') 'stesso codice stabile in it e en'
+        Assert-Workflow ($codes.it.text -like 'Configurazione non trovata:*' -and $codes.en.text -like 'Configuration not found:*') 'testo localizzato per lingua'
+        $messageGaps=@()
+        foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter 'SecondBrain.*.psm1'|Where-Object Name -ne 'SecondBrain.Messages.psm1'){Import-Module $file.FullName -Force}
+        foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter 'SecondBrain.*.psm1'){
+            foreach($m in [regex]::Matches((Read-SBText $file.FullName),"New-SBError '([a-z0-9.]+)'|Get-SBMessage '([a-z0-9.]+)'")){
+                $key=if($m.Groups[1].Success){$m.Groups[1].Value}else{$m.Groups[2].Value}
+                if((Get-SBMessage $key @() 'en') -ceq $key -or (Get-SBMessage $key @() 'it') -ceq $key){$messageGaps+=$key}
+            }
+        }
+        Assert-Workflow (!$messageGaps.Count) ('ogni chiave usata ha testo it e en'+$(if($messageGaps.Count){': '+(($messageGaps|Select-Object -Unique) -join ', ')}))
+    } finally { $env:SECONDBRAIN_LANG=$savedLang; Set-SBUiLanguage '' }
     'SUCCESS WORKFLOWS: '+$script:workflowChecks+' verifiche; nessuna valutazione di comportamento LLM implicita.'
 } finally {
     $resolvedTemp=[IO.Path]::GetFullPath($temp)

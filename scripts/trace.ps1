@@ -22,8 +22,10 @@ param(
     [Parameter(ParameterSetName='Install')][Parameter(ParameterSetName='Uninstall')][switch]$Apply,
     [Parameter(ParameterSetName='Install')][Parameter(ParameterSetName='Uninstall')][Parameter(ParameterSetName='Status')][string]$SettingsPath,
     [Parameter(ParameterSetName='Install')][Parameter(ParameterSetName='Uninstall')][string]$ConfigPath,
-    [Parameter(ParameterSetName='Install')][Parameter(ParameterSetName='Uninstall')][string]$SessionId
+    [Parameter(ParameterSetName='Install')][Parameter(ParameterSetName='Uninstall')][string]$SessionId,
+    [ValidateSet('en','it')][string]$Language
 )
+if($Language){$env:SECONDBRAIN_LANG=$Language}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if($PSCmdlet.ParameterSetName -eq 'Event'){
     # Fail-open: qualsiasi errore e ignorato, il turno non viene mai bloccato.

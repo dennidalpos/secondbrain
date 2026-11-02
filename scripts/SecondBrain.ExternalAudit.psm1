@@ -1,9 +1,16 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'audit.identity' = @{ it = 'Identita audit non ammessa; questo adattatore usa soltanto GitHub'; en = 'Audit identity not allowed; this adapter only uses GitHub' }
+    'audit.api.item' = @{ it = 'Elemento API non valido'; en = 'Invalid API item' }
+    'audit.scope' = @{ it = 'Perimetro audit vuoto o duplicato'; en = 'Audit scope empty or duplicated' }
+    'audit.pr.number' = @{ it = 'Numero PR non valido'; en = 'Invalid PR number' }
+}
 
 function Assert-SBAuditIdentity([string]$Identity,[string[]]$AllowedOwners) {
-    if($Identity -cnotmatch '^github\.com/([a-z0-9][a-z0-9-]*)/([a-z0-9_.-]+)$' -or ($AllowedOwners.Count -and $Matches[1] -notin $AllowedOwners) -or $Matches[2] -in @('.','..')){throw 'Identita audit non ammessa; questo adattatore usa soltanto GitHub'}
+    if($Identity -cnotmatch '^github\.com/([a-z0-9][a-z0-9-]*)/([a-z0-9_.-]+)$' -or ($AllowedOwners.Count -and $Matches[1] -notin $AllowedOwners) -or $Matches[2] -in @('.','..')){throw (New-SBError 'audit.identity')}
 }
 
 function Invoke-SBAuditRequest([string]$Url) {
@@ -29,7 +36,7 @@ function Invoke-SBAuditRequest([string]$Url) {
 }
 
 function Get-SBAuditItem($Item,[string]$Kind) {
-    if($Item -isnot [System.Collections.IDictionary]){throw 'Elemento API non valido'}
+    if($Item -isnot [System.Collections.IDictionary]){throw (New-SBError 'audit.api.item')}
     $result=@{kind=$Kind}
     foreach($key in @('id','number','state','created_at','updated_at','submitted_at','sha','name','full_name')){
         if($Item.Contains($key)){$result[$key]=$Item[$key]}
@@ -101,7 +108,7 @@ function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Conte
 
 function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[scriptblock]$Request=${function:Invoke-SBAuditRequest}) {
     foreach($identity in $Identities){Assert-SBAuditIdentity $identity $AllowedOwners}
-    if(!$Identities.Count -or @($Identities|Sort-Object -Unique).Count -ne $Identities.Count){throw 'Perimetro audit vuoto o duplicato'}
+    if(!$Identities.Count -or @($Identities|Sort-Object -Unique).Count -ne $Identities.Count){throw (New-SBError 'audit.scope')}
     $audit=@{schemaVersion=1;kind='github-readonly-audit';startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;apiVersion='2022-11-28';remoteMutation=$false;repositories=@();complete=$false;limits=@('Snapshot non atomico fra richieste; nessuna prova di assenza da errori HTTP.','Wiki abilitate: contenuto non acquisito; fork elencati senza scansione dei loro contenuti.','Nessuna scansione di cloni, cache, allegati, Actions o copie esterne. Corpi e titoli conservati solo come hash e lunghezze.')}
     $context=@{halted=$false;reason=$null}
     foreach($identity in $Identities){
@@ -124,7 +131,7 @@ function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[sc
         }
         $reviews=@{url=$base+'/pulls/{number}/reviews';startedAt=[DateTimeOffset]::UtcNow.ToString('o');status='accessible';complete=$repo.resources.pullRequests.complete;count=$null;observedCount=0;requests=@();items=@()}
         foreach($pull in $repo.resources.pullRequests.items){
-            if(!$pull.ContainsKey('number') -or [string]$pull.number -notmatch '^[1-9][0-9]*$'){throw 'Numero PR non valido'}
+            if(!$pull.ContainsKey('number') -or [string]$pull.number -notmatch '^[1-9][0-9]*$'){throw (New-SBError 'audit.pr.number')}
             $review=(Get-SBAuditResource ($base+'/pulls/'+$pull.number+'/reviews?per_page=100') 'reviews' $true $context $Request).resource
             $review.pullRequestNumber=$pull.number;$reviews.requests+=@($review);$reviews.items+=@($review.items)
             if(!$review.complete){$reviews.complete=$false}

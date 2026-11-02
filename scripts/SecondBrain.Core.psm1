@@ -1,6 +1,7 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 try {
     if ([Console]::OutputEncoding.CodePage -ne 65001) {
         [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
@@ -19,7 +20,7 @@ function Get-SBTextHash([string]$Text) { Get-SBHash ([Text.Encoding]::UTF8.GetBy
 # Versione del prodotto: unica fonte è il file VERSION nella radice del clone.
 function Get-SBVersion {
     $path=Join-Path $PSScriptRoot '../VERSION'
-    if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw 'File VERSION mancante'}
+    if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw (New-SBError 'core.version.missing')}
     (Get-Content -LiteralPath $path -Raw).Trim()
 }
 
@@ -99,7 +100,7 @@ function Assert-SBPlainPath([string]$Path, [hashtable]$VerifiedAncestors) {
         if (!$first -and $null -ne $VerifiedAncestors -and $VerifiedAncestors.ContainsKey($current)) { break }
         if (Test-Path -LiteralPath $current) {
             if ((Get-Item -LiteralPath $current -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) {
-                throw "Reparse point non scrivibile: $current"
+                throw (New-SBError 'core.reparse.unwritable' @($current))
             }
         }
         if (!$first -and $null -ne $ancestors) { $ancestors.Add($current) }
@@ -147,12 +148,12 @@ function Write-SBFile {
     param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty)
     Assert-SBWriteGuard
     Assert-SBPlainPath $Path
-    if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw "Modifica concorrente: $Path" }
+    if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
     if ((Get-SBHash $Bytes) -eq $ExpectedHash) { return $false }
     # Git salva i file tracciati: pulito = niente .bin (commit e blob registrati); sporco = rifiuto, salvo -BackupDirty (file rigenerati: resta il .bin).
     $git = Get-SBGitFileState $Path
     if ($null -ne $git -and $git.dirty -and !$BackupDirty) {
-        throw "File tracciato con modifiche non committate: $Path. Committa o metti da parte (git stash) le modifiche al file, poi ripeti l'operazione."
+        throw (New-SBError 'core.tracked.dirty' @($Path))
     }
     $gitOnly = ($null -ne $git -and !$git.dirty)
     $script:SBWriteGeneration++
@@ -168,8 +169,8 @@ function Write-SBFile {
     try {
         $stream = [IO.FileStream]::new($temp, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
         try { $stream.Write($Bytes); $stream.Flush($true) } finally { $stream.Dispose() }
-        if ((Get-SBFileHash $temp) -ne (Get-SBHash $Bytes)) { throw 'Readback staging fallito' }
-        if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw "Modifica concorrente: $Path" }
+        if ((Get-SBFileHash $temp) -ne (Get-SBHash $Bytes)) { throw (New-SBError 'core.readback.staging') }
+        if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
         Assert-SBWriteGuard
         if ($ExpectedHash -ne 'absent') {
             [IO.Directory]::CreateDirectory($BackupRoot) | Out-Null
@@ -183,12 +184,12 @@ function Write-SBFile {
                 $backup = $null
                 $record = @{ schemaVersion = 1; path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; gitCommit = $git.commit; gitBlob = $git.blob }
                 [IO.File]::WriteAllText((Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.git.json')), (ConvertTo-SBJson $record), [Text.UTF8Encoding]::new($false))
-                if ($actual -ne $ExpectedHash) { throw "Gara di scrittura rilevata; copia concorrente conservata: $localBackup" }
+                if ($actual -ne $ExpectedHash) { throw (New-SBError 'core.race.kept' @($localBackup)) }
                 [IO.File]::Delete($localBackup)
             } else {
                 [IO.File]::Copy($localBackup, $backup)
                 $actual = Get-SBFileHash $backup
-                if ($actual -ne (Get-SBFileHash $localBackup)) { throw "Backup non verificato; recupero locale: $localBackup" }
+                if ($actual -ne (Get-SBFileHash $localBackup)) { throw (New-SBError 'core.backup.unverified' @($localBackup)) }
                 $metadata = @{ path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; backup = $backup }
                 [IO.File]::WriteAllText($backup + '.json', (ConvertTo-SBJson $metadata), [Text.UTF8Encoding]::new($false))
                 [IO.File]::Delete($localBackup)
@@ -196,23 +197,23 @@ function Write-SBFile {
             if ($actual -ne $ExpectedHash) {
                 # Non tentare un rollback con Copy(overwrite): un editor esterno
                 # potrebbe avere cambiato ancora il file dopo il controllo hash.
-                throw "Gara di scrittura rilevata; copia concorrente conservata: $backup"
+                throw (New-SBError 'core.race.kept' @($backup))
             }
         } else { [IO.File]::Move($temp, $Path) }
-        if ((Get-SBFileHash $Path) -ne (Get-SBHash $Bytes)) { throw "Readback destinazione fallito: $Path" }
+        if ((Get-SBFileHash $Path) -ne (Get-SBHash $Bytes)) { throw (New-SBError 'core.readback.destination' @($Path)) }
         $completed=$true
         return $true
     } finally {
         $stageRecord.status=if($completed){'completed'}else{'interrupted'}
         if([IO.File]::Exists($temp)){
-            if($completed){[IO.File]::Delete($temp)}else{Write-Warning ('Staging transazionale conservato: '+$temp)}
+            if($completed){[IO.File]::Delete($temp)}else{Write-Warning (Get-SBMessage 'core.staging.kept' @($temp))}
         }
         [IO.File]::WriteAllText($stageRecordPath,(ConvertTo-SBJson $stageRecord),[Text.UTF8Encoding]::new($false))
     }
 }
 function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
     # Sola lettura: elenca i record .stage completati piu vecchi della soglia in uno o piu backupRoot (anche nelle sottocartelle). Backup .bin/.bin.json, staging interrotti e record illeggibili non sono mai candidati.
-    if($OlderThanDays -lt 1){throw 'OlderThanDays deve essere almeno 1'}
+    if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
     $cutoff=[DateTimeOffset]::UtcNow.AddDays(-$OlderThanDays)
     $candidates=@();$retained=@{recent=0;notCompleted=0;unreadable=0};$seenRecords=@{}
     foreach($root in @($BackupRoot|Where-Object {$_}|Sort-Object -Unique)){
@@ -232,7 +233,7 @@ function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
 function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
     # Sola lettura: inventario delle voci di primo livello sotto .runtime con eta (ultima scrittura), dimensione, riferimenti testuali e protezione.
     # Non elenca file da rimuovere e non segue reparse point: la rimozione resta possibile solo con un manifest revisionato (cleanup.ps1 -ManifestPath).
-    if($OlderThanDays -lt 1){throw 'OlderThanDays deve essere almeno 1'}
+    if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     if(!(Test-Path -LiteralPath $runtime -PathType Container)){return @{olderThanDays=$OlderThanDays;entries=@();reviewable=@();totalBytes=0L}}
     $cutoff=[DateTime]::UtcNow.AddDays(-$OlderThanDays)
@@ -444,9 +445,9 @@ function Remove-SBRuntimeTree([string]$Path,[string]$BrainRoot) {
     # Rimuove una cartella sotto .runtime senza seguire junction/symlink (si scollegano soltanto) e togliendo l'attributo di sola lettura (oggetti Git).
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $full=[IO.Path]::GetFullPath($Path).TrimEnd('\','/')
-    if(!$full.StartsWith($runtime+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Percorso fuori da .runtime'}
+    if(!$full.StartsWith($runtime+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'core.runtime.outside')}
     $root=Get-Item -LiteralPath $full -Force
-    if($root.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse point non rimovibile con questo passo'}
+    if($root.Attributes -band [IO.FileAttributes]::ReparsePoint){throw (New-SBError 'core.runtime.reparse')}
     $stack=[Collections.Generic.Stack[string]]::new();$stack.Push($full)
     while($stack.Count){
         $directory=[IO.DirectoryInfo]::new($stack.Pop())
@@ -496,7 +497,7 @@ function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutM
         foreach ($line in $stdout.GetAwaiter().GetResult() -split "`n") {
             if ($line -match '^([a-f0-9]{40,64}) (blob|tree|commit|tag) (\d+)\s*$') { $info[$Matches[1]] = @{ type = $Matches[2]; size = [long]$Matches[3] } }
         }
-        if ($process.ExitCode -ne 0) { throw ('Git cat-file --batch-check non riuscito: ' + $stderr.GetAwaiter().GetResult().Trim()) }
+        if ($process.ExitCode -ne 0) { throw (New-SBError 'core.git.batchcheck' @($stderr.GetAwaiter().GetResult().Trim())) }
     } finally { $process.Dispose() }
     $info
 }
@@ -551,9 +552,9 @@ public sealed class SBGitBatchReader {
         foreach ($entry in $Entries) {
             if ($entry.Skip) { [pscustomobject]@{ Entry = $entry; Bytes = $null; Missing = $false }; continue }
             $header = $reader.ReadLine()
-            if ($null -eq $header) { throw 'Git cat-file --batch: flusso interrotto' }
+            if ($null -eq $header) { throw (New-SBError 'core.git.stream') }
             if ($header -match '^[a-f0-9]{40,64} missing$') { [pscustomobject]@{ Entry = $entry; Bytes = $null; Missing = $true }; continue }
-            if ($header -notmatch '^([a-f0-9]{40,64}) \S+ (\d+)$' -or $Matches[1] -ne $entry.Oid) { throw "Git cat-file --batch: intestazione inattesa: $header" }
+            if ($header -notmatch '^([a-f0-9]{40,64}) \S+ (\d+)$' -or $Matches[1] -ne $entry.Oid) { throw (New-SBError 'core.git.header' @($header)) }
             $bytes = $reader.ReadBytes([long]$Matches[2]); $null = $reader.ReadBytes(1)
             [pscustomobject]@{ Entry = $entry; Bytes = $bytes; Missing = $false }
         }
@@ -616,8 +617,8 @@ function Resolve-SBBoundIdentity([string]$Checkout,$Bindings=@()) {
     if($origin.code -notin @(0,1)){return $null}
     $remote=if($origin.code -eq 0){ConvertTo-SBRepositoryIdentity $origin.output}else{$null}
     $matches=@($Bindings|Where-Object {$null -ne $_ -and [IO.Path]::GetFullPath($_.path) -eq $root})
-    if($matches.Count -gt 1){throw 'Associazione checkout ambigua'}
-    if($matches.Count -eq 1){if($matches[0].remoteIdentity -cne $remote){throw 'Origin cambiato: riconciliazione esplicita richiesta'};return $matches[0].identity}
+    if($matches.Count -gt 1){throw (New-SBError 'core.checkout.ambiguous')}
+    if($matches.Count -eq 1){if($matches[0].remoteIdentity -cne $remote){throw (New-SBError 'core.origin.changed')};return $matches[0].identity}
     $remote
 }
 function Resolve-SBWorkingRepository([string]$Path='',$Bindings=@()) {
@@ -635,13 +636,13 @@ function Test-SBCheckoutScope($Config,[string]$Checkout) {
     $full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)
 }
 function Get-SBLocalRoot([string]$BrainRoot,[string]$WorkstationId='default') {
-    if($WorkstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw 'WorkstationId non valido'}
+    if($WorkstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw (New-SBError 'core.workstation.invalid')}
     [IO.Path]::GetFullPath((Join-Path $BrainRoot ('.runtime/hosts/'+$WorkstationId)))
 }
 function Assert-SBCentralDataPath([string]$BrainRoot,[string]$Path) {
     $boundary=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     $full=[IO.Path]::GetFullPath($Path)
-    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Output operativo fuori da SecondBrain/.runtime: '+$full}
+    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'core.output.outside' @($full))}
     Assert-SBPlainPath $full
     $full
 }
@@ -666,9 +667,9 @@ function Test-SBIDEObservation($Ide,[string]$ExpectedHash,$Observations,[string]
 function Get-SBManagedContent([string]$Text, [string]$Id) {
     $pattern = '(?s)<!-- secondbrain:'+[regex]::Escape($Id)+':begin -->.*?<!-- secondbrain:'+[regex]::Escape($Id)+':end -->'
     $matches = [regex]::Matches($Text,$pattern)
-    if ($matches.Count -gt 1) { throw "Blocco duplicato: $Id" }
+    if ($matches.Count -gt 1) { throw (New-SBError 'core.block.duplicate' @($Id)) }
     if ($matches.Count -eq 1) { return $matches[0].Value }
-    if ($Text.Contains("<!-- secondbrain:${Id}:")) { throw "Blocco incompleto: $Id" }
+    if ($Text.Contains("<!-- secondbrain:${Id}:")) { throw (New-SBError 'core.block.incomplete' @($Id)) }
     return $null
 }
 function Set-SBManagedContent {
@@ -693,7 +694,7 @@ function Set-SBManagedContent {
     } elseif ($text.Length) { $text+"`n`n"+$wanted+"`n" } else { $wanted+"`n" }
     try { Write-SBFile $Path ([Text.Encoding]::UTF8.GetBytes($updated)) $beforeHash $BackupRoot | Out-Null }
     catch {
-        if ($_.Exception.Message -like 'File tracciato con modifiche non committate*') { Write-Warning $_.Exception.Message; return 'conflict' }
+        if (Test-SBError $_ 'core.tracked.dirty') { Write-Warning $_.Exception.Message; return 'conflict' }
         throw
     }
     $State[$key] = Get-SBTextHash $wanted
@@ -751,9 +752,9 @@ function Remove-SBFile([string]$Path, [string]$AllowedRoot, [string]$ExpectedHas
     Assert-SBWriteGuard
     $full=[IO.Path]::GetFullPath($Path)
     $boundary=[IO.Path]::GetFullPath($AllowedRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Rimozione fuori perimetro: '+$full}
+    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'core.remove.outside' @($full))}
     Assert-SBPlainPath $full
-    if((Get-SBFileHash $full) -ne $ExpectedHash -or $ExpectedHash -eq 'absent'){throw 'File cambiato prima della rimozione: '+$full}
+    if((Get-SBFileHash $full) -ne $ExpectedHash -or $ExpectedHash -eq 'absent'){throw (New-SBError 'core.remove.changed' @($full))}
     $script:SBWriteGeneration++
     Assert-SBPlainPath $BackupRoot
     Initialize-SBFileRemoval
@@ -761,11 +762,11 @@ function Remove-SBFile([string]$Path, [string]$AllowedRoot, [string]$ExpectedHas
     try {
         $copy=[IO.MemoryStream]::new()
         try{$stream.CopyTo($copy);$bytes=$copy.ToArray()}finally{$copy.Dispose()}
-        if((Get-SBHash $bytes) -ne $ExpectedHash){throw 'Modifica concorrente prima della rimozione'}
+        if((Get-SBHash $bytes) -ne $ExpectedHash){throw (New-SBError 'core.remove.concurrent')}
         [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
         $backup=Join-Path $BackupRoot ([guid]::NewGuid().ToString('N')+'.bin')
         [IO.File]::WriteAllBytes($backup,$bytes)
-        if((Get-SBFileHash $backup) -ne $ExpectedHash){throw 'Backup rimozione non verificato'}
+        if((Get-SBFileHash $backup) -ne $ExpectedHash){throw (New-SBError 'core.remove.backup')}
         $metadata=@{path=$full;previousHash=$ExpectedHash;deployedHash='absent';backup=$backup;reason='authorized-cleanup'}
         [IO.File]::WriteAllText($backup+'.json',(ConvertTo-SBJson $metadata),[Text.UTF8Encoding]::new($false))
         Assert-SBWriteGuard
