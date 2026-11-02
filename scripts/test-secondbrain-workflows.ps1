@@ -82,6 +82,25 @@ try {
     }
     $stepText=(@(Get-SBWorkflowFirstSteps|ForEach-Object command|Where-Object {$_}) -join "`n")
     Assert-Workflow (@(Test-CommandLines $stepText).Count -eq 0 -and @(Get-SBWorkflowFirstSteps).Count -ge 5) 'primi passi: script e parametri esistono'
+    $flow=@(Get-SBWorkflowProductFlow)
+    $flowScripts=(@($flow|ForEach-Object script|Where-Object {$_ -ne '—'}) + @($commands|ForEach-Object {'pwsh -NoProfile -File '+$_.script})) -join "`n"
+    Assert-Workflow ($flow.Count -ge 8 -and @(Test-CommandLines $flowScripts).Count -eq 0 -and @($commands|Where-Object {!$_.script}).Count -eq 0) 'flusso per prodotto e registro: ogni comando da script usa script e parametri reali'
+    $flowGuide=Read-SBText (Join-Path $repoRoot 'docs/flusso-prodotto.md')
+    Assert-Workflow (@($flow|Where-Object {($_.chat -ne '—' -and !$flowGuide.Contains($_.chat)) -or ($_.script -ne '—' -and !$flowGuide.Contains($_.script))}).Count -eq 0 -and @($guides|Where-Object path -eq 'docs/flusso-prodotto.md').Count -eq 1 -and $readmeRoot.Contains('docs/flusso-prodotto.md')) 'guida flusso per prodotto: stessi passi del menu, registrata e linkata'
+    Assert-Workflow ($homeText -notmatch 'DOVE SEI' -and $homeText -match 'Da script' -and $homeText -match 'sb activate') 'schermata iniziale senza percorso: generica, con colonna da script e alias inglesi'
+    $stateNone=[ordered]@{activated=$false;hostId='ws-test';repositories=0;ides=0;repository=$null}
+    $stateIdle=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=$null}
+    $stateManaged=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=[ordered]@{path='C:\work\prod';identity='github.com/x/prod';managed=$true}}
+    $stateUnmanaged=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=[ordered]@{path='C:\work\other';identity='github.com/x/other';managed=$false}}
+    $stateNoGit=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=[ordered]@{path='C:\work\plain';identity=$null;managed=$false}}
+    $homeNone=Format-SBWorkflowHome $brain $catalog $stateNone
+    $homeIdle=Format-SBWorkflowHome $brain $catalog $stateIdle
+    $homeManaged=Format-SBWorkflowHome $brain $catalog $stateManaged
+    Assert-Workflow ($homeNone -match 'non attivata' -and $homeNone -cmatch 'PRIMI PASSI' -and $homeNone -cnotmatch 'FLUSSO PER PRODOTTO' -and $homeNone -match 'PROSSIMO PASSO\r?\n- Postazione non attivata') 'menu contestuale: postazione non attivata propone sb attiva e i primi passi'
+    Assert-Workflow ($homeIdle -match 'attivata \(ws-test\), 3 repository gestiti, 2 integrazioni IDE' -and $homeIdle -cmatch 'FLUSSO PER PRODOTTO' -and $homeIdle -cnotmatch 'PRIMI PASSI' -and $homeIdle -match 'repositoryPath') 'menu contestuale: postazione attivata senza repository mostra il flusso e chiede il percorso'
+    Assert-Workflow ($homeManaged -match 'github\.com/x/prod \(gestito\)' -and $homeManaged -match 'sb prompt MEM06' -and (Format-SBWorkflowHome $brain $catalog $stateUnmanaged) -match '\(non gestito\)[\s\S]*sb attiva. per aggiungerlo' -and (Format-SBWorkflowHome $brain $catalog $stateNoGit) -match 'non è un checkout Git') 'menu contestuale: repository gestito, non gestito e senza Git'
+    $stateReal=Get-SBWorkflowState $brain $env:TEMP
+    Assert-Workflow ($stateReal.repository -and $null -eq $stateReal.repository.identity -and !$stateReal.repository.managed -and $stateReal.Keys -contains 'activated') 'stato reale: cartella senza Git non ha identità né gestione'
     $startSection=([regex]::Match($readmeRoot,'(?s)## Inizia\b.*?(?=\n## )')).Value
     Assert-Workflow ($startSection.Contains('docs/sicurezza.md') -and $startSection -match '-Setup' -and $startSection -match '-Pair' -and $startSection -match '-Sync') 'README: sezione Inizia con avviso, MCP e direttive'
     Assert-Workflow (@(Test-CommandLines $startSection).Count -eq 0 -and @(Test-CommandLines (Read-SBText (Join-Path $repoRoot 'docs/inizia.md'))).Count -eq 0) 'README e setup: comandi con script e parametri esistenti'

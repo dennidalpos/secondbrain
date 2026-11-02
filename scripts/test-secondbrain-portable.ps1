@@ -1084,6 +1084,8 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($cliList -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'list_prompts' @{compact=$true})))) 'parità CLI-MCP: list_prompts'
     $cliHome=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli 2>$null|Out-String)
     Assert-Portable ($cliHome -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{})))) 'parità CLI-MCP: get_prompt_home'
+    $cliHomeHere=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -RepositoryPath $realBrain 2>$null|Out-String)
+    Assert-Portable ($cliHomeHere -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{repositoryPath=$realBrain}))) -and $cliHomeHere -cmatch 'DOVE SEI' -and $cliHomeHere -cmatch 'PROSSIMO PASSO') 'parità CLI-MCP: get_prompt_home con repositoryPath (stato e prossimo passo)'
     $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 2>$null|Out-String)
     $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06'}))
     Assert-Portable ($cliShow.StartsWith('PROMPT CATALOG') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'

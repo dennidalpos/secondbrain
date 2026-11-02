@@ -75,6 +75,8 @@ MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dall
 | `list_prompts` | `prompts.ps1 -List -Compact` | `sb prompt list` |
 | `get_prompt` | `prompts.ps1 -Show -Prompt <CHIAVE>` | `sb prompt mostra CHIAVE` |
 | `check_publication` | `publication.ps1 -RepositoryPath <repo>` | `sb prompt SEC07` |
+| — (nessuno strumento MCP: il tracker si scrive solo da CLI) | `knowledge.ps1 -UpdateTaskId <id> -Status done`, `knowledge.ps1 -NewTask <titolo>` | `sb prompt MEM03` |
+| — (compattazione) | `knowledge.ps1 -Compact -CandidatePath <file>` | `sb compatta` |
 
 Dal checkout di un repository gestito i comandi `knowledge.ps1` risolvono da soli il dossier; altrove indica `-Repository` o `-CheckoutPath`. `sb controlla` e `sb allinea` corrispondono a `secondbrain.ps1 -Check` e `-Sync`.
 ## Controlla

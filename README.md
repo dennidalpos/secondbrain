@@ -76,6 +76,7 @@ Dettagli, diagnosi e limiti: [agenti e MCP](docs/ide-e-mcp.md).
 | [Guida unica](docs/guida.md) | Tutto in una pagina: installazione, IDE e CLI, variabili, concorrenza, casi limite |
 | [Inizia](docs/inizia.md) | Installare e attivare |
 | [Uso quotidiano](docs/uso-quotidiano.md) | Lavorare ogni giorno |
+| [Flusso per prodotto](docs/flusso-prodotto.md) | I passi in ordine, in chat e da script |
 | [Prompt](docs/prompt.md) | Usare e modificare i prompt |
 | [Agenti e MCP](docs/ide-e-mcp.md) | Collegare gli strumenti |
 | [Sicurezza](docs/sicurezza.md) | Backup, ripristino, disinstallazione |

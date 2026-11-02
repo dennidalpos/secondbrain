@@ -29,10 +29,14 @@ Senza `-Apply` il collegamento mostra solo l'anteprima. Nell'agente scrivi:
 | `sb prompt` | `scripts/prompts.ps1` (guide e comandi) |
 | `sb prompt list` / `sb prompt tutti` | `prompts.ps1 -List -Compact` (pacchetto core) |
 | `sb prompt maintenance` | `prompts.ps1 -List -Compact -Pack maintenance` |
+| `sb prompt ambito test` | `prompts.ps1 -List -Category test` |
 | `sb prompt mostra DEV03` | `prompts.ps1 -Show -Prompt DEV03` |
 | `sb prompt DEV03: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto in CO-STAR) |
 | `sb controlla` / `sb allinea` | `secondbrain.ps1 -Check` / `-Sync` |
 | `sb attiva` | `secondbrain.ps1 -Setup` |
+| `sb compatta` | `knowledge.ps1 -Compact -CandidatePath <file>` (anteprima; `-Apply` per scrivere) |
+
+I passi in ordine per ogni repository, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
 
 Le impostazioni dell'account Claude non hanno un file: incolla `.runtime/hosts/<id>/istruzioni-globali.md`. Un file aggiornato non prova il caricamento: apri una sessione nuova e scrivi `sb prompt`; `scripts/ide-map.ps1 -Verify` riepiloga lo stato.
 
@@ -46,6 +50,7 @@ MCP è facoltativo: gli stessi contenuti arrivano dalla CLI (un test confronta i
 | Task pronti / un task | `knowledge.ps1 -Tasks -ReadyOnly` / `knowledge.ps1 -Task <id o #seq>` |
 | Cerca negli appunti | `knowledge.ps1 -Search <testo> [-Mode Relevance]` |
 | Prompt | `prompts.ps1 -List -Compact`, `prompts.ps1 -Show -Prompt <CHIAVE>` |
+| Chiudere o creare un task | `knowledge.ps1 -UpdateTaskId <id> -Status done` / `knowledge.ps1 -NewTask <titolo> ...` |
 | Prima del push | `scripts/publication.ps1 -RepositoryPath <repo>` |
 
 Dal checkout di un repository gestito `knowledge.ps1` trova da solo il dossier; altrove usa `-Repository` o `-CheckoutPath`. La vista di tutti i repository esiste solo con `-All` ed è in sola lettura.

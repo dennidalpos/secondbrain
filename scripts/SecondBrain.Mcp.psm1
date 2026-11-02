@@ -92,10 +92,12 @@ function Get-SBMcpToolDefinitions {
         },
         @{
             name = 'get_prompt_home'
-            description = 'Schermata iniziale di `sb prompt`: link al file Markdown del catalogo completo e tabella dei comandi sb con descrizione.'
+            description = 'Schermata iniziale di `sb prompt`: link al catalogo completo, tabella dei comandi sb (chat) con l''equivalente da script. Con repositoryPath (checkout corrente) aggiunge stato, prossimo passo e flusso per prodotto.'
             inputSchema = @{
                 type = 'object'
-                properties = @{}
+                properties = @{
+                    repositoryPath = @{ type = 'string'; description = 'Percorso del checkout corrente; facoltativo' }
+                }
             }
         },
         @{
@@ -219,7 +221,8 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             return Format-SBWorkflowList $catalog $category -Compact:$compact -Pack $pack
         }
         { $_ -in @('get_prompt_home', 'secondbrain_prompt_home') } {
-            return Format-SBWorkflowHome $BrainRoot (Read-SBWorkflowCatalog $BrainRoot)
+            $homeState = if ($Arguments.ContainsKey('repositoryPath') -and $Arguments.repositoryPath) { Get-SBWorkflowState $BrainRoot ([string]$Arguments.repositoryPath) } else { $null }
+            return Format-SBWorkflowHome $BrainRoot (Read-SBWorkflowCatalog $BrainRoot) $homeState
         }
         { $_ -in @('get_prompt', 'secondbrain_get_prompt') } {
             if (!$Arguments.ContainsKey('prompt') -or !$Arguments.prompt) {

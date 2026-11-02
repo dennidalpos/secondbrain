@@ -318,16 +318,16 @@ function Format-SBWorkflowList($Catalog, [string]$Category, [switch]$Compact, [V
 # Registro dei comandi `sb`: unica fonte per la schermata iniziale; un test lo confronta con la direttiva di postazione.
 function Get-SBWorkflowCommands {
     @(
-        @{command='sb prompt';does='Questa schermata: link al catalogo completo e comandi disponibili.';mode='lettura'},
-        @{command='sb prompt list';does='Elenco compatto dei prompt generici, una riga ciascuno, per area (sb prompt tutti è un alias).';mode='lettura'},
-        @{command='sb prompt maintenance';does='Elenco compatto dei prompt di manutenzione di SecondBrain (memoria, dossier, postazione, backup), separati dal set generico.';mode='lettura'},
-        @{command='sb prompt ambito AREA';does='Prompt di un''area con ID, scope e requisiti (id, prefisso o nome: test, TST, sistema); cerca anche nella manutenzione.';mode='lettura'},
-        @{command='sb prompt mostra CHIAVE';does='Scheda completa di un prompt; CHIAVE è ID (pmt-…), codice o alias.';mode='lettura'},
-        @{command='sb prompt CHIAVE: obiettivo';does='Compone il prompt con il contesto del repository e lo esegue nei permessi della sessione.';mode='secondo la scheda'},
-        @{command='sb attiva';does='SYS03: discovery in lettura, mappa di repository e IDE, attivazione dopo conferma.';mode='scrittura'},
-        @{command='sb controlla';does='SYS04: verifica l''allineamento degli asset gestiti senza correggere.';mode='verifica'},
-        @{command='sb allinea';does='Applica i testi approvati agli asset gestiti e propone i nuovi, preservando i conflitti.';mode='scrittura'},
-        @{command='sb compatta';does='SYS05: compatta il dossier indicato preservando originali, fatti e TOC.';mode='scrittura'}
+        @{command='sb prompt';does='Questa schermata: link al catalogo completo e comandi disponibili.';mode='lettura';script='scripts/prompts.ps1'},
+        @{command='sb prompt list';does='Elenco compatto dei prompt generici, una riga ciascuno, per area (sb prompt tutti è un alias).';mode='lettura';script='scripts/prompts.ps1 -List -Compact'},
+        @{command='sb prompt maintenance';does='Elenco compatto dei prompt di manutenzione di SecondBrain (memoria, dossier, postazione, backup), separati dal set generico.';mode='lettura';script='scripts/prompts.ps1 -List -Compact -Pack maintenance'},
+        @{command='sb prompt ambito AREA';does='Prompt di un''area con ID, scope e requisiti (id, prefisso o nome: test, TST, sistema); cerca anche nella manutenzione.';mode='lettura';script='scripts/prompts.ps1 -List -Category AREA'},
+        @{command='sb prompt mostra CHIAVE';does='Scheda completa di un prompt; CHIAVE è ID (pmt-…), codice o alias.';mode='lettura';script='scripts/prompts.ps1 -Show -Prompt CODICE'},
+        @{command='sb prompt CHIAVE: obiettivo';does='Compone il prompt con il contesto del repository e lo esegue nei permessi della sessione.';mode='secondo la scheda';script='scripts/prompts.ps1 -Compose -Prompt CODICE -Objective TESTO'},
+        @{command='sb attiva';does='SYS03: discovery in lettura, mappa di repository e IDE, attivazione dopo conferma. Alias: sb activate.';mode='scrittura';script='scripts/secondbrain.ps1 -Setup -Interactive'},
+        @{command='sb controlla';does='SYS04: verifica l''allineamento degli asset gestiti senza correggere. Alias: sb check.';mode='verifica';script='scripts/secondbrain.ps1 -Check'},
+        @{command='sb allinea';does='Applica i testi approvati agli asset gestiti e propone i nuovi, preservando i conflitti. Alias: sb sync.';mode='scrittura';script='scripts/secondbrain.ps1 -Sync'},
+        @{command='sb compatta';does='SYS05: compatta il dossier indicato preservando originali, fatti e TOC (anteprima, poi -Apply). Alias: sb compact.';mode='scrittura';script='scripts/knowledge.ps1 -Compact -CandidatePath FILE'}
     )
 }
 
@@ -337,6 +337,7 @@ function Get-SBWorkflowGuides {
         @{title='Cosa modifica SecondBrain e dove sono i backup';path='docs/sicurezza.md';for='Da leggere per primo: file toccati, backup, ripristino, disinstallazione.'},
         @{title='Inizia';path='docs/inizia.md';for='Installare e attivare, passo per passo.'},
         @{title='Uso quotidiano';path='docs/uso-quotidiano.md';for='Comandi in chat, PARA, task, controllo prima di pubblicare.'},
+        @{title='Flusso per prodotto';path='docs/flusso-prodotto.md';for='Passi in ordine per ogni repository, in chat e da script.'},
         @{title='Prompt';path='docs/prompt.md';for='CO-STAR, catalogo e personalizzazione.'},
         @{title='Agenti e MCP';path='docs/ide-e-mcp.md';for='Collegare Claude, ChatGPT Codex e Antigravity per Windows.'},
         @{title='Modifica dei prompt';path='docs/riferimento/customizing-prompts-and-directives.md#modifica-dei-prompt';for='Aggiungere, modificare o ritirare un prompt (anche con sb prompt SYS11).'},
@@ -359,26 +360,88 @@ function Get-SBWorkflowFirstSteps {
     )
 }
 
-function Format-SBWorkflowHome([string]$BrainRoot, $Catalog) {
+# Flusso sequenziale per prodotto: la stessa sequenza in chat e da script. I comandi pwsh sono reali e verificati da un test.
+function Get-SBWorkflowProductFlow {
+    @(
+        @{step='Attiva il repository (una volta per postazione).';chat='sb attiva';script='pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive'},
+        @{step='Distribuisci direttive e dossier.';chat='sb allinea';script='pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync'},
+        @{step='Collega e verifica l''IDE.';chat='sb prompt SYS01';script='pwsh -NoProfile -File scripts/ide-map.ps1 -Verify'},
+        @{step='Carica il contesto iniziale (profilo snello).';chat='sb prompt MEM06';script='pwsh -NoProfile -File scripts/knowledge.ps1 -Startup'},
+        @{step='Scegli il prossimo task pronto.';chat='sb prompt REP01';script='pwsh -NoProfile -File scripts/knowledge.ps1 -Tasks -ReadyOnly'},
+        @{step='Lavora nel repository (lo fa l''agente, nei permessi della sessione).';chat='—';script='—'},
+        @{step='Prima del push: verifica di pubblicabilità.';chat='sb prompt SEC07';script='pwsh -NoProfile -File scripts/publication.ps1 -RepositoryPath .'},
+        @{step='Chiudi il task: stato nel tracker, memoria e contesto, poi Sync e Check.';chat='sb prompt MEM03';script='pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTaskId ID -Status done'},
+        @{step='Se Check chiede la compattazione: anteprima e poi applica.';chat='sb compatta';script='pwsh -NoProfile -File scripts/knowledge.ps1 -Compact -CandidatePath FILE'}
+    )
+}
+
+# Stato leggero e di sola lettura per la schermata iniziale: nessun lock, nessuna discovery, nessuna scrittura.
+function Get-SBWorkflowState([string]$BrainRoot, [string]$RepositoryPath) {
+    $brain=[IO.Path]::GetFullPath($BrainRoot)
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+    $configPath=Get-SBHostConfigPath $brain
+    $state=[ordered]@{activated=$false;hostId=(Get-SBHostId);repositories=0;ides=0;repository=$null}
+    $bindings=@()
+    if(Test-Path -LiteralPath $configPath -PathType Leaf){
+        $config=Read-SBJson $configPath @{}
+        $bindings=if($config.ContainsKey('bindings')){@($config.bindings|Where-Object {$null -ne $_})}else{@()}
+        $state.activated=$true
+        $state.repositories=$bindings.Count
+        $state.ides=if($config.ContainsKey('ides')){@($config.ides).Count}else{0}
+    }
+    if($RepositoryPath){
+        $full=[IO.Path]::GetFullPath($RepositoryPath);Assert-SBPlainPath $full
+        $identity=$null
+        if(Test-Path -LiteralPath $full -PathType Container){$identity=try{Resolve-SBWorkingRepository $full $bindings}catch{$null}}
+        $state.repository=[ordered]@{path=$full;identity=$identity;managed=[bool]($identity -and @($bindings|Where-Object {$_.identity -ceq $identity}).Count -gt 0)}
+    }
+    $state
+}
+
+function Get-SBWorkflowNextStep($State) {
+    if(!$State.activated){return 'Postazione non attivata: `sb attiva` (da script: `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive`).'}
+    if(!$State.repository){return 'Postazione attivata. Indica il checkout corrente (`-RepositoryPath` o `repositoryPath`) per vedere lo stato del repository; intanto `sb controlla`.'}
+    if(!$State.repository.identity){return 'La cartella non è un checkout Git con origin riconoscibile: apri il repository oppure indica un altro percorso.'}
+    if(!$State.repository.managed){return 'Repository non gestito da questa postazione: `sb attiva` per aggiungerlo (anteprima, poi conferma).'}
+    'Carica il contesto con `sb prompt MEM06`, poi scegli il task con `sb prompt REP01`; a lavoro finito `sb prompt MEM03`.'
+}
+
+function Format-SBWorkflowHome([string]$BrainRoot, $Catalog, $State=$null) {
     $index=Resolve-SBParaPath $BrainRoot 'direttive/prompts/README.md'
     $active=@($Catalog.prompts|Where-Object {!($_.ContainsKey('status') -and $_.status -eq 'deprecated')})
     $core=@($active|Where-Object pack -eq 'core')
     $coreAreas=@($core|ForEach-Object category|Select-Object -Unique).Count
     $maintenance=@($active|Where-Object pack -eq 'maintenance').Count
     $root=([IO.Path]::GetFullPath($BrainRoot) -replace '\\','/').TrimEnd('/')
-    $lines=@('SECONDBRAIN — PROMPT E COMANDI','',
-        ('Catalogo completo ('+$core.Count+' prompt in '+$coreAreas+' aree, file Markdown): '+($index -replace '\\','/')),
+    $lines=@('SECONDBRAIN — PROMPT E COMANDI','')
+    if($State){
+        $lines+='DOVE SEI'
+        $lines+=$(if($State.activated){'- Postazione: attivata ('+$State.hostId+'), '+$State.repositories+' repository gestiti, '+$State.ides+' integrazioni IDE.'}else{'- Postazione: non attivata ('+$State.hostId+').'})
+        if($State.repository){$lines+=('- Repository: '+$(if($State.repository.identity){$State.repository.identity+$(if($State.repository.managed){' (gestito)'}else{' (non gestito)'})}else{'nessuna identità riconosciuta'})+' — '+($State.repository.path -replace '\\','/'))}
+        $lines+=@('','PROSSIMO PASSO',('- '+(Get-SBWorkflowNextStep $State)),'')
+    }
+    $lines+=@(('Catalogo completo ('+$core.Count+' prompt in '+$coreAreas+' aree, file Markdown): '+($index -replace '\\','/')),
         ('Manutenzione di SecondBrain: '+$maintenance+' prompt separati, con `sb prompt maintenance`.'),
         (Get-SBWorkflowLegend),
         'Percorso relativo alla radice SecondBrain: direttive/prompts/README.md','',
-        '| Comando | Cosa fa | Modalità |','|---|---|---|')
-    foreach($command in Get-SBWorkflowCommands){$lines+=('| `'+$command.command+'` | '+$command.does+' | '+$command.mode+' |')}
-    $lines+=@('','PRIMI PASSI (dalla radice del clone, in quest''ordine)','')
-    $number=0
-    foreach($item in Get-SBWorkflowFirstSteps){
-        $number++
-        $lines+=($number.ToString()+'. '+$item.step)
-        if($item.command){$lines+=('   `'+$item.command+'`')}
+        'Due modi di usare SecondBrain: in chat (comando `sb`, negli IDE e agent supportati) o da script (stesso risultato, comando PowerShell).','',
+        '| Comando in chat | Cosa fa | Modalità | Da script |','|---|---|---|---|')
+    foreach($command in Get-SBWorkflowCommands){$lines+=('| `'+$command.command+'` | '+$command.does+' | '+$command.mode+' | `'+$command.script+'` |')}
+    if($State -and $State.activated){
+        $lines+=@('','FLUSSO PER PRODOTTO (in quest''ordine, per ogni repository)','','| # | Passo | In chat | Da script |','|---|---|---|---|')
+        $number=0
+        foreach($item in Get-SBWorkflowProductFlow){
+            $number++
+            $lines+=('| '+$number+' | '+$item.step+' | '+$(if($item.chat -eq '—'){'—'}else{'`'+$item.chat+'`'})+' | '+$(if($item.script -eq '—'){'—'}else{'`'+$item.script+'`'})+' |')
+        }
+    }else{
+        $lines+=@('','PRIMI PASSI (dalla radice del clone, in quest''ordine)','')
+        $number=0
+        foreach($item in Get-SBWorkflowFirstSteps){
+            $number++
+            $lines+=($number.ToString()+'. '+$item.step)
+            if($item.command){$lines+=('   `'+$item.command+'`')}
+        }
     }
     $lines+=@('','GUIDE','','| Guida | Quando serve |','|---|---|')
     foreach($guide in Get-SBWorkflowGuides){$lines+=('| ['+$guide.title+']('+$root+'/'+$guide.path+') | '+$guide.for+' |')}
@@ -588,6 +651,8 @@ Export-ModuleMember -Function @(
     'Get-SBWorkflowCommands',
     'Get-SBWorkflowGuides',
     'Get-SBWorkflowFirstSteps',
+    'Get-SBWorkflowProductFlow',
+    'Get-SBWorkflowState',
     'Format-SBWorkflowHome',
     'New-SBWorkflowIndex',
     'Get-SBWorkflowDrift',

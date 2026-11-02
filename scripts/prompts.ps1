@@ -27,7 +27,7 @@ param(
     [Parameter(ParameterSetName='List')][ValidateSet('core','maintenance','all')][string]$Pack='core',
     [Parameter(ParameterSetName='Compose')][string]$Objective,
     [Parameter(ParameterSetName='Compose')][string]$OutputPath,
-    [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
+    [Parameter(ParameterSetName='Home')][Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$Repository,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$ProjectId,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$CheckoutPath,
@@ -50,7 +50,8 @@ try {
     }
     if($ConfigPath){$config=Read-SBConfiguration $ConfigPath -ReadOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly;Write-SBReadWarnings $lock $config}
     if($PSCmdlet.ParameterSetName -eq 'Home'){
-        Format-SBWorkflowHome $brain $catalog
+        $homeState=if($RepositoryPath){Get-SBWorkflowState $brain $RepositoryPath}else{$null}
+        Format-SBWorkflowHome $brain $catalog $homeState
     } elseif($PSCmdlet.ParameterSetName -eq 'List'){
         Format-SBWorkflowList $catalog $Category -Compact:$Compact -Pack $Pack
     } elseif($Show){

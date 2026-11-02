@@ -25,6 +25,8 @@ flowchart LR
 | `sb attiva` | Aggiunge progetti o agenti |
 | `sb compatta` | Accorcia gli appunti di un progetto, conservando gli originali |
 
+I passi in ordine, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
+
 ## Dove stanno le cose: PARA
 
 Quattro cartelle, un solo criterio: quanto è attivo un'informazione.
