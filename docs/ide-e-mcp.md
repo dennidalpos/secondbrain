@@ -43,6 +43,24 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 
 Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file.
 
+## Con o senza MCP
+
+| | Con MCP | Senza MCP (riga di comando) |
+|---|---|---|
+| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Sola lettura per costruzione. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
+| **Contro** | Le definizioni dei tool occupano circa 6.000 caratteri (~1.500 token) a ogni sessione. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. Alcune risposte non hanno tetto: `knowledge.ps1 -Tasks -All` è molto lungo. |
+
+Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
+
+### Se MCP non funziona
+
+1. **Il collegamento è corretto?** `scripts/mcp-server.ps1 -Pair -Target <agente>` mostra l'anteprima di percorso e configurazione.
+2. **Il server risponde?** `scripts/test-secondbrain-mcp-handshake.ps1` simula l'avvio e le chiamate. Se passa, il problema sta nell'agente o nella sua configurazione.
+3. **L'agente lo vede?** In Claude Code apri `/mcp`; in Codex usa `codex mcp list`. Riavvia l'agente dopo ogni modifica.
+4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente, solo per gli strumenti di lettura.
+
+Limite: la verifica nelle interfacce grafiche degli IDE non è ancora provata dal vivo.
+
 ## Senza MCP
 
 MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dalla riga di comando: un test confronta i due percorsi sugli stessi input per tutti gli 8 strumenti (la CLI aggiunge solo l'intestazione `CATALOGO PROMPT` in `-Show`).
