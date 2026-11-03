@@ -2085,6 +2085,44 @@
     },
     {
       "aliases": [],
+      "category": "repository",
+      "code": "REP13",
+      "example": "make this repository discoverable and apply standard security",
+      "file": "REP13.md",
+      "i18n": {
+        "it": {
+          "example": "rendi trovabile questo repository e applica la sicurezza standard",
+          "requires": "`gh` con diritti di amministratore ed esito di SEC07",
+          "summary": "Allinea pagina GitHub, file della community e sicurezza, dopo conferma."
+        }
+      },
+      "id": "pmt-3e2e75f6",
+      "mode": "write",
+      "next": [
+        "pmt-058c474f",
+        "pmt-3e3728b6"
+      ],
+      "pack": "core",
+      "references": [
+        "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics",
+        "https://docs.github.com/en/code-security/getting-started/securing-your-repository",
+        "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions",
+        "https://cli.github.com/manual/gh_repo_edit"
+      ],
+      "related": [
+        "pmt-058c474f",
+        "pmt-c356eede",
+        "pmt-fe68329a",
+        "pmt-07430e8c"
+      ],
+      "requires": "`gh` authenticated with admin rights and a SEC07 result",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Align the GitHub page, community files and security, after confirmation.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
       "category": "sicurezza",
       "code": "SEC01",
       "example": "review the pull request for data leaks",
