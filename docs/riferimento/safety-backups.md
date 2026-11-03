@@ -35,11 +35,12 @@ File MCP scritti da `-Pair -Apply` (solo per i target scelti; con `-Target all` 
 | `codex` | `~/.codex/config.toml` |
 | `claude` | `claude_desktop_config.json` in `%APPDATA%\Claude` (o `$CLAUDE_CONFIG_DIR`); se la cartella non esiste, `~/.claude.json` |
 | `cursor` | `~/.cursor/mcp.json` |
-| `vscode` | `%APPDATA%\Code\User\settings.json` |
-| `antigravity` | `~/.gemini/antigravity/mcp_config.json` |
+| `vscode` | `%APPDATA%\Code\User\mcp.json` (con `-WorkspacePath`: `.vscode/mcp.json` del progetto) |
+| `claude-code` | `.mcp.json` nella cartella di `-WorkspacePath` (obbligatorio; non incluso in `-Target all`) |
+| `antigravity` | `~/.gemini/config/mcp_config.json` se esiste (Antigravity 2.0), altrimenti `~/.gemini/antigravity/mcp_config.json` |
 | `windsurf` | `~/.codeium/windsurf/mcp_config.json` |
 
-Il file e la cartella vengono creati anche se l'IDE non è installato. Le altre voci del file restano; se il file non è JSON rigoroso (errori o commenti, come in un `settings.json` di VS Code con JSONC) o la radice non è un oggetto, **l'operazione si ferma e non scrive**. Il JSON viene riscritto con la formattazione standard: commenti e ordine delle chiavi non si conservano, per questo il backup è importante. Nel TOML di Codex viene sostituita l'intera sezione `[mcp_servers.secondbrain]`.
+Il file e la cartella vengono creati anche se l'IDE non è installato. Le altre voci del file restano; se il file non è JSON rigoroso (errori o commenti, come in un `mcp.json` di VS Code con JSONC) o la radice non è un oggetto, **l'operazione si ferma e non scrive**. Il JSON viene riscritto con la formattazione standard: commenti e ordine delle chiavi non si conservano, per questo il backup è importante. Nel TOML di Codex viene sostituita l'intera sezione `[mcp_servers.secondbrain]`.
 
 Non vengono mai scritti: il codice dei repository (solo `AGENTS.md`), gli IDE «manuali» (VS Code + Continue, Android Studio, impostazioni account web), credenziali e archivi di autenticazione.
 

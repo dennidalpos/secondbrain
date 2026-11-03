@@ -36,3 +36,4 @@ Rapporto locale, selezione, asset gestiti e passi manuali o impedimenti. Nessun 
 
 - SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
+- SYS15: Installa il server MCP SecondBrain negli IDE e verifica l'handshake.

@@ -20,9 +20,12 @@ Add-SBMessages @{
     'mcp.pack.invalid' = @{ it = 'Pacchetto non valido: core, maintenance o all'; en = 'Invalid pack: core, maintenance or all' }
     'mcp.prompt.required' = @{ it = 'Il parametro prompt è obbligatorio per get_prompt'; en = 'The prompt parameter is required for get_prompt' }
     'mcp.path.required' = @{ it = 'Il parametro repositoryPath è obbligatorio per check_publication'; en = 'The repositoryPath parameter is required for check_publication' }
+    'mcp.tool.deprecated' = @{ it = 'Alias deprecato {0}: usare {1}. Lʼalias sarà rimosso in una versione futura.'; en = 'Deprecated alias {0}: use {1}. The alias will be removed in a future version.' }
+    'mcp.language.invalid' = @{ it = 'Lingua non valida: usare en o it'; en = 'Invalid language: use en or it' }
     'mcp.tool.unknown' = @{ it = 'Strumento sconosciuto: {0}'; en = 'Unknown tool: {0}' }
     'mcp.resource.notfound' = @{ it = 'Risorsa non trovata: {0}'; en = 'Resource not found: {0}' }
     'mcp.pair.json' = @{ it = 'Configurazione MCP non è JSON rigoroso (errori o commenti), nessuna modifica: {0}. Inserisci a mano il frammento mostrato da mcp-server.ps1 -Pair.'; en = 'MCP configuration is not strict JSON (errors or comments), no change made: {0}. Add by hand the fragment shown by mcp-server.ps1 -Pair.' }
+    'mcp.pair.workspace' = @{ it = 'Il target {0} richiede -WorkspacePath (cartella del progetto): nessuna scrittura.'; en = 'Target {0} requires -WorkspacePath (project folder): nothing written.' }
     'mcp.pair.root' = @{ it = 'Configurazione MCP con radice non oggetto, nessuna modifica: {0}'; en = 'MCP configuration with a non-object root, no change made: {0}' }
 }
 
@@ -105,6 +108,7 @@ function Get-SBMcpToolDefinitions {
                     category = @{ type = 'string'; description = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole; cerca in tutti i pacchetti' }
                     pack = @{ type = 'string'; enum = @('core', 'maintenance', 'all'); description = 'Pacchetto da elencare (predefinito core)' }
                     compact = @{ type = 'boolean'; description = 'Se true, una riga per prompt invece della scheda sintetica' }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
                 }
             }
         },
@@ -115,17 +119,19 @@ function Get-SBMcpToolDefinitions {
                 type = 'object'
                 properties = @{
                     repositoryPath = @{ type = 'string'; description = 'Percorso del checkout corrente; facoltativo' }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
                 }
             }
         },
         @{
             name = 'get_prompt'
-            description = 'Restituisce la scheda completa di un prompt o workflow ingegneristico (es. SYS03, REP05, DEV01).'
+            description = 'Restituisce la scheda completa di un prompt o workflow ingegneristico (es. SYS03, SEC07, DEV01).'
             inputSchema = @{
                 type = 'object'
                 required = @('prompt')
                 properties = @{
                     prompt = @{ type = 'string'; description = 'Codice (SYS03, COM01...), ID immutabile (pmt-...) o alias del prompt' }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
                 }
             }
         },
@@ -155,11 +161,40 @@ function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     $resolved
 }
 
+# Alias storici (prefisso secondbrain_) ancora accettati in tools/call ma ritirati da tools/list: deprecati.
+function Get-SBMcpDeprecatedToolAliases {
+    [ordered]@{
+        secondbrain_startup_context = 'get_startup_context'
+        secondbrain_ready_tasks = 'get_ready_tasks'
+        secondbrain_get_task = 'get_task'
+        secondbrain_search = 'search_knowledge'
+        secondbrain_list_prompts = 'list_prompts'
+        secondbrain_prompt_home = 'get_prompt_home'
+        secondbrain_get_prompt = 'get_prompt'
+        secondbrain_check_publication = 'check_publication'
+    }
+}
+
+function Get-SBMcpDeprecationNotice([string]$ToolName) {
+    $aliases = Get-SBMcpDeprecatedToolAliases
+    if ($aliases.Contains($ToolName)) { return (Get-SBMessage 'mcp.tool.deprecated' @($ToolName, $aliases[$ToolName])) }
+    $null
+}
+
 function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments) {
     if (!$Arguments) { $Arguments = @{} }
-    
+    $legacyAliases = Get-SBMcpDeprecatedToolAliases
+    if ($legacyAliases.Contains($ToolName)) { $ToolName = $legacyAliases[$ToolName] }
+
+    # La lingua dei prompt (en o it) vale solo per gli strumenti sui prompt e per la durata della chiamata.
+    $previousLanguage = Get-SBWorkflowLanguageOverride
+    if ($ToolName -in @('list_prompts', 'get_prompt_home', 'get_prompt') -and $Arguments.ContainsKey('language') -and $Arguments.language) {
+        if ([string]$Arguments.language -notin @('en', 'it')) { throw (New-SBError 'mcp.language.invalid') }
+        Set-SBWorkflowLanguage ([string]$Arguments.language)
+    }
+    try {
     switch ($ToolName) {
-        { $_ -in @('get_startup_context', 'secondbrain_startup_context') } {
+        'get_startup_context' {
             $startupProfile = if ($Arguments.ContainsKey('profile') -and $Arguments.profile) { [string]$Arguments.profile } else { 'slim' }
             if ($startupProfile -notin @('slim', 'full')) { throw (New-SBError 'mcp.profile.invalid') }
             $startupProfile = if ($startupProfile -eq 'full') { 'Full' } else { 'Slim' }
@@ -179,7 +214,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $ctx = Get-SBStartupContext -BrainRoot $BrainRoot -Dossier $dossierPath -Budget $budget -ReadyOnly:$readyOnly -Profile $startupProfile
             return ConvertTo-SBMcpJson $ctx
         }
-        { $_ -in @('get_ready_tasks', 'secondbrain_ready_tasks') } {
+        'get_ready_tasks' {
             $all = $Arguments.ContainsKey('all') -and [bool]$Arguments.all
             if ($all -and $Arguments.ContainsKey('repository') -and $Arguments.repository) { throw (New-SBError 'mcp.params.conflict') }
             if (!$all) {
@@ -191,7 +226,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if ($offset -lt 0 -or $limit -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
             return ConvertTo-SBMcpJson (Get-SBGlobalTaskPage -BrainRoot $BrainRoot -Offset $offset -Limit $limit -ReadyOnly)
         }
-        { $_ -in @('get_task', 'secondbrain_get_task') } {
+        'get_task' {
             if (!$Arguments.ContainsKey('task') -or !"$($Arguments.task)") {
                 throw (New-SBError 'mcp.task.required')
             }
@@ -199,7 +234,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $dossierPath = if ([IO.Path]::IsPathRooted($dossier)) { $dossier } else { Join-Path $BrainRoot $dossier }
             return ConvertTo-SBMcpJson (Get-SBTaskDetail -BrainRoot $BrainRoot -Dossier $dossierPath -Task ([string]$Arguments.task))
         }
-        { $_ -in @('search_knowledge', 'secondbrain_search') } {
+        'search_knowledge' {
             if (!$Arguments.ContainsKey('query') -or !$Arguments.query) {
                 throw (New-SBError 'mcp.query.required')
             }
@@ -226,7 +261,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $res = Find-SBKnowledge -BrainRoot $BrainRoot -Search $query -Dossier $dossier -Repository $repo -Budget $budget -Mode $mode -Offset $offset -Limit $limit -IncludeOriginals:$includeOriginals
             return ConvertTo-SBMcpJson $res
         }
-        { $_ -in @('list_prompts', 'secondbrain_list_prompts') } {
+        'list_prompts' {
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $category = if ($Arguments.ContainsKey('category')) { [string]$Arguments.category } else { $null }
             $compact = $Arguments.ContainsKey('compact') -and [bool]$Arguments.compact
@@ -234,11 +269,11 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if ($pack -notin @('core', 'maintenance', 'all')) { throw (New-SBError 'mcp.pack.invalid') }
             return Format-SBWorkflowList $catalog $category -Compact:$compact -Pack $pack
         }
-        { $_ -in @('get_prompt_home', 'secondbrain_prompt_home') } {
+        'get_prompt_home' {
             $homeState = if ($Arguments.ContainsKey('repositoryPath') -and $Arguments.repositoryPath) { Get-SBWorkflowState $BrainRoot ([string]$Arguments.repositoryPath) } else { $null }
             return Format-SBWorkflowHome $BrainRoot (Read-SBWorkflowCatalog $BrainRoot) $homeState
         }
-        { $_ -in @('get_prompt', 'secondbrain_get_prompt') } {
+        'get_prompt' {
             if (!$Arguments.ContainsKey('prompt') -or !$Arguments.prompt) {
                 throw (New-SBError 'mcp.prompt.required')
             }
@@ -248,7 +283,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $card = (Format-SBWorkflowCard $resolution.prompt $body) + "`n" + $body
             return $(if ($resolution.warning) { "Avviso: $($resolution.warning)`n`n$card" } else { $card })
         }
-        { $_ -in @('check_publication', 'secondbrain_check_publication') } {
+        'check_publication' {
             if (!$Arguments.ContainsKey('repositoryPath') -or !$Arguments.repositoryPath) {
                 throw (New-SBError 'mcp.path.required')
             }
@@ -269,6 +304,9 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
         default {
             throw (New-SBError 'mcp.tool.unknown' @($ToolName))
         }
+    }
+    } finally {
+        Set-SBWorkflowLanguage $previousLanguage
     }
 }
 
@@ -352,16 +390,14 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 
                 try {
                     $output = Invoke-SBMcpToolCall -BrainRoot $BrainRoot -ToolName $toolName -Arguments $args
+                    $contentBlocks = @(@{ type = 'text'; text = $output })
+                    $notice = Get-SBMcpDeprecationNotice $toolName
+                    if ($notice) { $contentBlocks += @{ type = 'text'; text = "Avviso: $notice" } }
                     return ConvertTo-SBMcpJson @{
                         jsonrpc = '2.0'
                         id = $id
                         result = @{
-                            content = @(
-                                @{
-                                    type = 'text'
-                                    text = $output
-                                }
-                            )
+                            content = $contentBlocks
                             isError = $false
                         }
                     }
@@ -543,7 +579,8 @@ function Get-SBMcpPairing {
     [CmdletBinding()]
     param(
         [string]$BrainRoot,
-        [Parameter()][ValidateSet('codex', 'claude', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
+        [Parameter()][ValidateSet('codex', 'claude', 'claude-code', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
+        [string]$WorkspacePath,
         [string]$ClaudeCodeConfigFile
     )
     if (!$BrainRoot) {
@@ -552,6 +589,7 @@ function Get-SBMcpPairing {
     $BrainRoot = [IO.Path]::GetFullPath($BrainRoot)
     $serverScript = Join-Path $BrainRoot 'scripts/mcp-server.ps1'
     $serverScriptNormalized = $serverScript.Replace('\', '/')
+    $workspaceRoot = if ($WorkspacePath) { [IO.Path]::GetFullPath($WorkspacePath) } else { $null }
     $escapedScript = $serverScript.Replace('\', '\\')
 
     [string[]]$targetsToProcess = if ($Target.ToLowerInvariant() -eq 'all') {
@@ -640,7 +678,7 @@ function Get-SBMcpPairing {
                 }
             }
             'cursor' {
-                $cursorRoot = Join-Path $env:USERPROFILE '.cursor'
+                $cursorRoot = if ($workspaceRoot) { Join-Path $workspaceRoot '.cursor' } else { Join-Path $env:USERPROFILE '.cursor' }
                 $configFile = Join-Path $cursorRoot 'mcp.json'
 
                 $snippetObj = [ordered]@{
@@ -669,12 +707,13 @@ function Get-SBMcpPairing {
                 }
             }
             'vscode' {
-                $vscodeRoot = Join-Path $env:APPDATA 'Code/User'
-                $configFile = Join-Path $vscodeRoot 'settings.json'
+                # VS Code legge i server MCP da mcp.json (chiave servers, type obbligatorio): nel profilo utente o, con -WorkspacePath, in .vscode/ del progetto.
+                $configFile = if ($workspaceRoot) { Join-Path $workspaceRoot '.vscode/mcp.json' } else { Join-Path $env:APPDATA 'Code/User/mcp.json' }
 
                 $snippetObj = [ordered]@{
-                    "mcp.servers" = [ordered]@{
+                    servers = [ordered]@{
                         secondbrain = [ordered]@{
+                            type = 'stdio'
                             command = 'pwsh'
                             args = @('-NoProfile', '-File', $serverScriptNormalized)
                         }
@@ -697,9 +736,48 @@ function Get-SBMcpPairing {
                     Configured = (Test-Path -LiteralPath $configFile -PathType Leaf) -and ((Get-Content -LiteralPath $configFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
                 }
             }
+            'claude-code' {
+                # Claude Code: ambito project = .mcp.json nella radice del progetto (chiave mcpServers); l'ambito user vive in ~/.claude.json, gestito dalla CLI.
+                $configFile = if ($workspaceRoot) { Join-Path $workspaceRoot '.mcp.json' } else { '<progetto>/.mcp.json' }
+                $claudeRootCode = [Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User')
+                if (!$claudeRootCode) { $claudeRootCode = $env:CLAUDE_CONFIG_DIR }
+                $userFile = if ($ClaudeCodeConfigFile) { $ClaudeCodeConfigFile } elseif ($claudeRootCode) { Join-Path $claudeRootCode '.claude.json' } else { Join-Path $env:USERPROFILE '.claude.json' }
+
+                $snippetObj = [ordered]@{
+                    mcpServers = [ordered]@{
+                        secondbrain = [ordered]@{
+                            command = 'pwsh'
+                            args = @('-NoProfile', '-File', $serverScriptNormalized)
+                        }
+                    }
+                }
+                $json = ConvertTo-Json -InputObject $snippetObj -Depth 10
+                $projectConfigured = $workspaceRoot -and (Test-Path -LiteralPath $configFile -PathType Leaf) -and ((Get-Content -LiteralPath $configFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
+
+                $results += [PSCustomObject]@{
+                    Target = 'claude-code'
+                    Name = 'Claude Code'
+                    ConfigFile = $configFile
+                    ConfigFormat = 'json'
+                    Toml = $null
+                    Snippet = $json
+                    CliCommand = "claude mcp add --transport stdio --scope project secondbrain -- pwsh -NoProfile -File `"$serverScript`""
+                    CliCommandUser = "claude mcp add --transport stdio --scope user secondbrain -- pwsh -NoProfile -File `"$serverScript`""
+                    ServerDefinition = @{
+                        command = 'pwsh'
+                        args = @('-NoProfile', '-File', $serverScriptNormalized)
+                    }
+                    Configured = [bool]$projectConfigured -or (Test-SBClaudeCodeRegistration $userFile)
+                    ProjectConfigured = [bool]$projectConfigured
+                    UserConfigFile = $userFile
+                    UserConfigured = Test-SBClaudeCodeRegistration $userFile
+                }
+            }
             'antigravity' {
-                $agRoot = Join-Path $env:USERPROFILE '.gemini/antigravity'
-                $configFile = Join-Path $agRoot 'mcp_config.json'
+                # Antigravity 2.0 condivide la configurazione in ~/.gemini/config/mcp_config.json; le versioni precedenti usano ~/.gemini/antigravity/mcp_config.json. Vale il file nuovo se esiste.
+                $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'
+                $agLegacy = Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json'
+                $configFile = if (Test-Path -LiteralPath $agShared -PathType Leaf) { $agShared } else { $agLegacy }
 
                 $snippetObj = [ordered]@{
                     mcpServers = [ordered]@{
@@ -768,7 +846,8 @@ function Set-SBMcpConfiguration {
     [CmdletBinding()]
     param(
         [string]$BrainRoot,
-        [Parameter()][ValidateSet('codex', 'claude', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
+        [Parameter()][ValidateSet('codex', 'claude', 'claude-code', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
+        [string]$WorkspacePath,
         [string]$ConfigFile,
         [string]$BackupRoot
     )
@@ -787,7 +866,8 @@ function Set-SBMcpConfiguration {
 
     [object[]]$applied = @()
     foreach ($t in $targetsToProcess) {
-        $pairing = Get-SBMcpPairing -BrainRoot $BrainRoot -Target $t
+        if ($t -eq 'claude-code' -and !$WorkspacePath -and !$ConfigFile) { throw (New-SBError 'mcp.pair.workspace' @($t)) }
+        $pairing = Get-SBMcpPairing -BrainRoot $BrainRoot -Target $t -WorkspacePath $WorkspacePath
         $targetFile = if ($ConfigFile -and $targetsToProcess.Length -eq 1) { $ConfigFile } else { $pairing.ConfigFile }
         $parent = Split-Path -Parent $targetFile
         if ($parent -and !(Test-Path -LiteralPath $parent)) {
@@ -816,7 +896,7 @@ function Set-SBMcpConfiguration {
                 $newContent = $sectionBody + "`n"
             }
         } else {
-            $keyName = if ($t -eq 'vscode') { 'mcp.servers' } else { 'mcpServers' }
+            $keyName = if ($t -eq 'vscode') { 'servers' } else { 'mcpServers' }
             $data = @{}
             if ($existing) {
                 $raw = Get-Content -LiteralPath $targetFile -Raw -Encoding utf8
@@ -834,6 +914,9 @@ function Set-SBMcpConfiguration {
             $data[$keyName]['secondbrain'] = [ordered]@{
                 command = 'pwsh'
                 args = @('-NoProfile', '-File', $pairing.ServerDefinition.args[2])
+            }
+            if ($t -eq 'vscode') {
+                $data[$keyName]['secondbrain'] = [ordered]@{ type = 'stdio'; command = 'pwsh'; args = @('-NoProfile', '-File', $pairing.ServerDefinition.args[2]) }
             }
             $newContent = (ConvertTo-Json -InputObject $data -Depth 20) + "`n"
         }
@@ -896,7 +979,7 @@ function New-SBMcpPackage {
             [IO.File]::WriteAllText($snippetToml, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
             $createdFiles += $snippetToml
         } elseif ($p.Target -eq 'vscode') {
-            $settingsJson = Join-Path $targetDir 'settings.json'
+            $settingsJson = Join-Path $targetDir 'mcp.json'
             [IO.File]::WriteAllText($settingsJson, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
             $createdFiles += $settingsJson
         } elseif ($p.Target -eq 'claude') {
@@ -966,7 +1049,8 @@ function New-SBMcpPackage {
         '| **OpenAI Codex** | `codex/snippet.toml` | `%USERPROFILE%\.codex\config.toml` |',
         '| **Claude Desktop** | `claude/claude_desktop_config.json` | `%APPDATA%\Claude\claude_desktop_config.json` |',
         '| **Cursor IDE** | `cursor/mcp.json` | `%USERPROFILE%\.cursor\mcp.json` |',
-        '| **VS Code** | `vscode/settings.json` | `%APPDATA%\Code\User\settings.json` |',
+        '| **VS Code** | `vscode/mcp.json` | `%APPDATA%\Code\User\mcp.json` (oppure `.vscode/mcp.json` del progetto) |',
+        '| **Claude Code** | (nessun file) | `claude mcp add --transport stdio --scope user secondbrain -- pwsh -NoProfile -File <radice>/scripts/mcp-server.ps1`, oppure `.mcp.json` del progetto con `-Pair -Target claude-code -WorkspacePath <progetto> -Apply` |',
         '| **Google Antigravity** | `antigravity/mcp_config.json` | `%USERPROFILE%\.gemini\antigravity\mcp_config.json` |',
         '| **Windsurf** | `windsurf/mcp_config.json` | `%USERPROFILE%\.codeium\windsurf\mcp_config.json` |',
         '',
@@ -991,6 +1075,8 @@ function New-SBMcpPackage {
 
 Export-ModuleMember -Function @(
     'Invoke-SBMcpToolCall',
+    'Get-SBMcpDeprecatedToolAliases',
+    'Get-SBMcpDeprecationNotice',
     'Invoke-SBMcpMessage',
     'Start-SBMcpServer',
     'Get-SBMcpPairing',

@@ -16,7 +16,7 @@
 
 Dentro `hosts/<id>/`: `workstation.json`, `state.json`, `inventory.json`, `ide-map.json`, `istruzioni-globali.md` non si cancellano; `backups/` contiene gli originali (`<guid>.bin` e `.bin.json`) e i record `.stage`; `sources/` contiene l'ambiente Python (rigenerabile) e i rapporti.
 
-Cause tipiche di crescita: le suite conservano la fixture di ogni esecuzione (`tests/`, anche decine di migliaia di file), ogni scrittura gestita aggiunge un backup, gli zip di `backup.ps1` pesano centinaia di MB.
+Cause tipiche di crescita: le sub-suite lanciate da sole e le esecuzioni rosse conservano la fixture (`tests/`, anche decine di migliaia di file; a esito verde `test-secondbrain.ps1` rimuove la propria), ogni scrittura gestita aggiunge un backup, gli zip di `backup.ps1` pesano centinaia di MB.
 
 ## Vedere `.runtime` a colpo d'occhio
 

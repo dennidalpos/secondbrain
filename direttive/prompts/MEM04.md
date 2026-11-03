@@ -30,5 +30,5 @@ Prospetto chiaro e ordinato per priorità delle attività, con indicazione immed
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
 - MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
-- REP08: Inspect the repo and find leftover tasks against the real code.
-- REP01: Complete the next ready task of the open repository.
+- REP08: Ispeziona il repo e trova i task residui rispetto al codice reale.
+- REP01: Completa il prossimo task pronto del repository aperto.

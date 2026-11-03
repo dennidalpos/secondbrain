@@ -4,7 +4,7 @@ Per il rapporto per categoria, la proposta di pulizia di `.runtime` e la routine
 
 ## Conservazione ordinaria
 
-Backup, rapporti, fixture, build, cache e catture restano sotto `.runtime` nel clone SecondBrain, anche dopo esito positivo. Non esiste retention distruttiva automatica. Dati storici conservati altrove non vengono spostati o cancellati implicitamente.
+Backup, rapporti, build, cache e catture restano sotto `.runtime` nel clone SecondBrain, anche dopo esito positivo. Fa eccezione la sola fixture di `test-secondbrain.ps1` (`.runtime/tests/run-<id>`): è rimossa a esito verde e conservata a esito rosso (`-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano sempre); le sub-suite lanciate da sole conservano la propria. Non esiste altra retention distruttiva automatica. Dati storici conservati altrove non vengono spostati o cancellati implicitamente.
 
 Gli unici file adiacenti alla destinazione sono lo staging tecnico e l'eventuale recupero di una transazione atomica. Il writer ne registra percorso e stato; lo staging viene rimosso alla conclusione, mentre un'interruzione conserva le prove necessarie.
 

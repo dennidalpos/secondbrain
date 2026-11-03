@@ -12,7 +12,7 @@ Mappa di ogni cartella del clone, di chi la scrive e di cosa si può cancellare 
 | **Con cautela** | Contiene prove, copie di recupero o stato referenziato: rimuovere solo dopo aver verificato i riferimenti e, per i backup, con `scripts/cleanup.ps1` e un manifest. |
 | **No** | È codice, contratto, dossier o stato attivo: la rimozione rompe la postazione o fa perdere conoscenza. |
 
-Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, fixture e catture restano finché qualcuno non le toglie con richiesta, perimetro e verifica (vedi [recupero](recovery.md)).
+Regola generale: nulla viene cancellato dagli strumenti, salvo la fixture di `test-secondbrain.ps1` a esito verde. Backup, build, cache, altre fixture e catture restano finché qualcuno non le toglie con richiesta, perimetro e verifica (vedi [recupero](recovery.md)).
 
 ## Radice del clone
 
@@ -25,9 +25,9 @@ Regola generale: nulla viene cancellato dagli strumenti. Backup, build, cache, f
 | `scripts/` | Moduli `SecondBrain.*.psm1`, comandi `*.ps1`, test `test-secondbrain*.ps1`, fixture dei prompt, sorgenti e lock Python per le fonti. | Sì | No |
 | `config/` | Schemi JSON (tracker, catalogo prompt, fonti, applicabilità), `shared.json` (policy condivisa) ed esempio di configurazione postazione. | Sì | No |
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
-| `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), template del repository, `approved.json` con hash e autorizzazione. | Sì | No |
+| `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), [`AGENTS.repo.template.md`](../../direttive/AGENTS.repo.template.md) (modello da compilare a mano per le istruzioni specifiche di un prodotto; il blocco gestito `secondbrain:repository` è generato da `New-SBPortableRepositoryBody` in `SecondBrain.Portable.psm1`, non dal modello), `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 77 schede del catalogo (62 core e 15 di manutenzione) più metadati; l'indice si genera con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 78 schede del catalogo (62 core e 16 di manutenzione), con le traduzioni in `it/` e `en/`, più metadati; gli indici (uno per lingua e pacchetto) si generano con `build-prompts.ps1`. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |
 

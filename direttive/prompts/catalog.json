@@ -2,58 +2,128 @@
   "catalogVersion": 1,
   "categories": [
     {
+      "i18n": {
+        "it": {
+          "title": "Comprensione e ricerca"
+        }
+      },
       "id": "comprensione",
       "title": "Understanding and research"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Requisiti e progettazione"
+        }
+      },
       "id": "progettazione",
       "title": "Requirements and design"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Sviluppo e modernizzazione"
+        }
+      },
       "id": "sviluppo",
       "title": "Development and modernization"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Test e verifica"
+        }
+      },
       "id": "test",
       "title": "Testing and verification"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Revisione e sicurezza"
+        }
+      },
       "id": "sicurezza",
       "title": "Review and security"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Audit e metriche"
+        }
+      },
       "id": "audit",
       "title": "Audit and metrics"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Interfaccia ed esperienza utente"
+        }
+      },
       "id": "interfaccia",
       "title": "Interface and user experience"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Dati e integrazioni"
+        }
+      },
       "id": "dati",
       "title": "Data and integrations"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Rilascio e operatività"
+        }
+      },
       "id": "operativita",
       "title": "Release and operations"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Documentazione"
+        }
+      },
       "id": "documentazione",
       "title": "Documentation"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Igiene del repository"
+        }
+      },
       "id": "repository",
       "title": "Repository hygiene"
     },
     {
+      "i18n": {
+        "it": {
+          "title": "Governance, licenze e conformità"
+        }
+      },
       "id": "governance",
       "title": "Governance, licensing and compliance"
     },
     {
+      "i18n": {
+        "en": {
+          "title": "Memory and continuity"
+        }
+      },
       "id": "memoria",
       "title": "Memoria e continuità"
     },
     {
+      "i18n": {
+        "en": {
+          "title": "Central system and maintenance"
+        }
+      },
       "id": "sistema",
       "title": "Sistema e manutenzione centrale"
     }
@@ -147,6 +217,13 @@
       "code": "AUD01",
       "example": "full audit of the repository before the release",
       "file": "AUD01.md",
+      "i18n": {
+        "it": {
+          "example": "audit completo del repository prima del rilascio",
+          "requires": "accesso in lettura a repository, documentazione e strumenti di misura",
+          "summary": "Esegui un audit completo del repository con un unico rapporto, anche esportato."
+        }
+      },
       "id": "pmt-ccbf18b8",
       "mode": "read",
       "next": [
@@ -179,6 +256,13 @@
       "code": "AUD02",
       "example": "metrics and hotspots of the repository",
       "file": "AUD02.md",
+      "i18n": {
+        "it": {
+          "example": "metriche e hotspot del repository",
+          "requires": "accesso in lettura a repository, cronologia Git e strumenti di misura",
+          "summary": "Misura il repository con metriche riproducibili e individua gli hotspot."
+        }
+      },
       "id": "pmt-4a9a4b4f",
       "mode": "read",
       "next": [
@@ -205,6 +289,13 @@
       "code": "AUD03",
       "example": "audit of architecture and technical debt of the repository",
       "file": "AUD03.md",
+      "i18n": {
+        "it": {
+          "example": "audit di architettura e debito tecnico del repository",
+          "requires": "accesso in lettura a codice, backlog e documentazione di architettura",
+          "summary": "Verifica architettura e debito tecnico non ancora tracciati."
+        }
+      },
       "id": "pmt-c692cc23",
       "mode": "read",
       "next": [
@@ -233,6 +324,13 @@
       "code": "AUD04",
       "example": "dependency audit before the upgrade",
       "file": "AUD04.md",
+      "i18n": {
+        "it": {
+          "example": "audit delle dipendenze prima dell'aggiornamento",
+          "requires": "manifest, lock file e accesso ai registri dei pacchetti o agli avvisi",
+          "summary": "Verifica le dipendenze: obsolete, vulnerabili, inutilizzate e licenze."
+        }
+      },
       "id": "pmt-7dc63766",
       "mode": "read",
       "next": [
@@ -263,6 +361,13 @@
       "code": "AUD05",
       "example": "find the critical paths for time and memory",
       "file": "AUD05.md",
+      "i18n": {
+        "it": {
+          "example": "trova i percorsi critici per tempo e memoria",
+          "requires": "scenario di carico rappresentativo e strumenti di profilazione o misura",
+          "summary": "Verifica le prestazioni e trova i percorsi critici senza modificare il codice."
+        }
+      },
       "id": "pmt-4efbc54f",
       "mode": "read",
       "next": [
@@ -289,6 +394,13 @@
       "code": "COM01",
       "example": "explore the structure and main modules",
       "file": "COM01.md",
+      "i18n": {
+        "it": {
+          "example": "esplora la struttura e i moduli principali",
+          "requires": "accesso in lettura al repository e una shell",
+          "summary": "Esplora il repository e individua componenti principali e comandi."
+        }
+      },
       "id": "pmt-a709a792",
       "mode": "read",
       "next": [
@@ -315,6 +427,13 @@
       "code": "COM02",
       "example": "trace the authentication and session flow",
       "file": "COM02.md",
+      "i18n": {
+        "it": {
+          "example": "segui il flusso di autenticazione e sessione",
+          "requires": "punto di ingresso o scenario da seguire",
+          "summary": "Segui un flusso e le sue dipendenze attraverso il codice."
+        }
+      },
       "id": "pmt-e0fd59da",
       "mode": "read",
       "next": [
@@ -341,6 +460,13 @@
       "code": "COM03",
       "example": "find the official documentation for the runtime version in use",
       "file": "COM03.md",
+      "i18n": {
+        "it": {
+          "example": "trova la documentazione ufficiale per la versione di runtime in uso",
+          "requires": "problema tecnico o libreria con la sua versione",
+          "summary": "Trova le fonti ufficiali adatte al problema tecnico."
+        }
+      },
       "id": "pmt-25c97d58",
       "mode": "read",
       "next": [
@@ -365,6 +491,13 @@
       "code": "COM04",
       "example": "assess the impact of isolating runtime logs",
       "file": "COM04.md",
+      "i18n": {
+        "it": {
+          "example": "valuta l'impatto dell'isolamento dei log di runtime",
+          "requires": "modifica proposta o difetto da correggere",
+          "summary": "Valuta impatto, rischi e dipendenze di una modifica."
+        }
+      },
       "id": "pmt-179b9acc",
       "mode": "read",
       "next": [
@@ -393,6 +526,13 @@
       "code": "COM05",
       "example": "find the root cause of yesterday's errors in the logs",
       "file": "COM05.md",
+      "i18n": {
+        "it": {
+          "example": "trova la causa radice degli errori di ieri nei log",
+          "requires": "log, errori o sintomi, finestra temporale e accesso in lettura",
+          "summary": "Analizza log e incidenti per trovare la causa radice, senza toccare il codice."
+        }
+      },
       "id": "pmt-1839927a",
       "mode": "read",
       "next": [
@@ -421,6 +561,13 @@
       "code": "DAT01",
       "example": "migrate the schema with an atomic rollback script",
       "file": "DAT01.md",
+      "i18n": {
+        "it": {
+          "example": "migra lo schema con uno script di rollback atomico",
+          "requires": "schema di origine, schema di destinazione e dati sintetici",
+          "summary": "Migra schema e dati con confronto verificabile e recupero."
+        }
+      },
       "id": "pmt-32e3cf59",
       "mode": "write",
       "next": [
@@ -447,6 +594,13 @@
       "code": "DAT02",
       "example": "import the catalog from CSV to JSON preserving the originals",
       "file": "DAT02.md",
+      "i18n": {
+        "it": {
+          "example": "importa il catalogo da CSV a JSON preservando gli originali",
+          "requires": "file di origine, modello di destinazione e regole di validazione",
+          "summary": "Costruisci importazioni e trasformazioni che preservano gli originali."
+        }
+      },
       "id": "pmt-3ddd1df9",
       "mode": "write",
       "next": [
@@ -473,6 +627,13 @@
       "code": "DAT03",
       "example": "implement a REST client with exponential backoff and retry",
       "file": "DAT03.md",
+      "i18n": {
+        "it": {
+          "example": "implementa un client REST con backoff esponenziale e nuovi tentativi",
+          "requires": "documentazione dell'API, credenziali di prova e schema",
+          "summary": "Integra servizi API con gestione degli errori e nuovi tentativi delle richieste."
+        }
+      },
       "id": "pmt-6b7b0e8d",
       "mode": "write",
       "next": [
@@ -499,6 +660,13 @@
       "code": "DEV01",
       "example": "implement the export command with hash validation",
       "file": "DEV01.md",
+      "i18n": {
+        "it": {
+          "example": "implementa il comando di esportazione con validazione dell'hash",
+          "requires": "requisiti o criteri di accettazione verificati",
+          "summary": "Implementa una funzionalità con i controlli pertinenti."
+        }
+      },
       "id": "pmt-83df1685",
       "mode": "write",
       "next": [
@@ -527,6 +695,13 @@
       "code": "DEV02",
       "example": "fix the parsing error for paths containing spaces",
       "file": "DEV02.md",
+      "i18n": {
+        "it": {
+          "example": "correggi l'errore di parsing per i percorsi contenenti spazi",
+          "requires": "segnalazione o comportamento atteso e osservato",
+          "summary": "Riproduci un difetto e correggine la causa."
+        }
+      },
       "id": "pmt-25ac264e",
       "mode": "write",
       "next": [
@@ -555,6 +730,13 @@
       "code": "DEV03",
       "example": "extract transaction handling into its own module",
       "file": "DEV03.md",
+      "i18n": {
+        "it": {
+          "example": "estrai la gestione delle transazioni in un modulo dedicato",
+          "requires": "codice da migliorare, test esistenti e perimetro dell'intervento",
+          "summary": "Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico."
+        }
+      },
       "id": "pmt-2b07a693",
       "mode": "write",
       "next": [
@@ -584,6 +766,13 @@
       "code": "DEV04",
       "example": "update the JSON serialization package",
       "file": "DEV04.md",
+      "i18n": {
+        "it": {
+          "example": "aggiorna il pacchetto di serializzazione JSON",
+          "requires": "manifest delle dipendenze e lock file",
+          "summary": "Aggiorna le dipendenze verificando compatibilità e regressioni."
+        }
+      },
       "id": "pmt-e2405036",
       "mode": "write",
       "next": [
@@ -612,6 +801,13 @@
       "code": "DEV05",
       "example": "migrate the scripts from the old runtime version to the current one",
       "file": "DEV05.md",
+      "i18n": {
+        "it": {
+          "example": "migra gli script dalla vecchia versione del runtime a quella corrente",
+          "requires": "versioni di origine e di destinazione con note di rilascio",
+          "summary": "Migra codice o un framework verso un obiettivo definito."
+        }
+      },
       "id": "pmt-22863973",
       "mode": "write",
       "next": [
@@ -638,6 +834,13 @@
       "code": "DEV06",
       "example": "configure the linter and run static analysis",
       "file": "DEV06.md",
+      "i18n": {
+        "it": {
+          "example": "configura il linter ed esegui l'analisi statica",
+          "requires": "configurazione del linter e perimetro dell'analisi",
+          "summary": "Configura ed esegui linter, formattatori e analisi statica."
+        }
+      },
       "id": "pmt-f3082c1b",
       "mode": "write",
       "next": [
@@ -664,6 +867,13 @@
       "code": "DEV07",
       "example": "triage and reproduce the path parsing issue",
       "file": "DEV07.md",
+      "i18n": {
+        "it": {
+          "example": "fai il triage e riproduci la segnalazione sul parsing dei percorsi",
+          "requires": "testo della segnalazione, ambiente e accesso in lettura al codice",
+          "summary": "Fai il triage di una segnalazione e riproducila, senza modificare il codice."
+        }
+      },
       "id": "pmt-9bd26aad",
       "mode": "read",
       "next": [
@@ -693,6 +903,13 @@
       "code": "DEV08",
       "example": "review readability and maintainability of the sync module",
       "file": "DEV08.md",
+      "i18n": {
+        "it": {
+          "example": "rivedi leggibilità e manutenibilità del modulo di sincronizzazione",
+          "requires": "codice da rivedere, convenzioni del repository e test esistenti",
+          "summary": "Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice."
+        }
+      },
       "id": "pmt-b16674bd",
       "mode": "read",
       "next": [
@@ -724,6 +941,13 @@
       "code": "DOC01",
       "example": "update the guides and add Mermaid flow diagrams",
       "file": "DOC01.md",
+      "i18n": {
+        "it": {
+          "example": "aggiorna le guide e aggiungi diagrammi di flusso Mermaid",
+          "requires": "funzionalità implementate, comandi verificati e screenshot approvati",
+          "summary": "Scrivi guide e README coerenti con il prodotto reale."
+        }
+      },
       "id": "pmt-07430e8c",
       "mode": "write",
       "next": [
@@ -753,6 +977,13 @@
       "code": "DOC02",
       "example": "document the parameters and response schemas of the endpoints",
       "file": "DOC02.md",
+      "i18n": {
+        "it": {
+          "example": "documenta i parametri e gli schemi di risposta degli endpoint",
+          "requires": "codice sorgente dei contratti e degli endpoint",
+          "summary": "Documenta API e contratti a partire dall'implementazione."
+        }
+      },
       "id": "pmt-6e82e3a9",
       "mode": "write",
       "next": [
@@ -781,6 +1012,13 @@
       "code": "DOC03",
       "example": "capture authentic screenshots from the real interface",
       "file": "DOC03.md",
+      "i18n": {
+        "it": {
+          "example": "cattura screenshot autentici dall'interfaccia reale",
+          "requires": "interfaccia funzionante con dati sintetici",
+          "summary": "Cattura screenshot reali e prepara asset pubblici."
+        }
+      },
       "id": "pmt-75786fd6",
       "mode": "write",
       "next": [
@@ -809,6 +1047,13 @@
       "code": "GOV01",
       "example": "check the MIT license and that the SPDX headers match",
       "file": "GOV01.md",
+      "i18n": {
+        "it": {
+          "example": "verifica la licenza MIT e che le intestazioni SPDX corrispondano",
+          "requires": "albero dei sorgenti e file di licenza",
+          "summary": "Verifica le licenze open source, la conformità dei file e le intestazioni SPDX."
+        }
+      },
       "id": "pmt-313da996",
       "mode": "verify",
       "next": [
@@ -838,6 +1083,13 @@
       "code": "GOV02",
       "example": "scan third-party dependencies and compile CREDITS.md",
       "file": "GOV02.md",
+      "i18n": {
+        "it": {
+          "example": "analizza le dipendenze di terze parti e compila CREDITS.md",
+          "requires": "lock file delle dipendenze e licenze di terze parti",
+          "summary": "Analizza le dipendenze di terze parti e compila il registro CREDITS."
+        }
+      },
       "id": "pmt-adb9bfc0",
       "mode": "write",
       "next": [
@@ -864,6 +1116,13 @@
       "code": "INT01",
       "example": "assess the usability of the setup wizard",
       "file": "INT01.md",
+      "i18n": {
+        "it": {
+          "example": "valuta l'usabilità della procedura guidata di configurazione",
+          "requires": "applicazione eseguibile e flussi da esaminare",
+          "summary": "Valuta usabilità, coerenza e stati dei flussi utente."
+        }
+      },
       "id": "pmt-33216f62",
       "mode": "read",
       "next": [
@@ -890,6 +1149,13 @@
       "code": "INT02",
       "example": "build the synchronization screen",
       "file": "INT02.md",
+      "i18n": {
+        "it": {
+          "example": "realizza la schermata di sincronizzazione",
+          "requires": "linee guida o mockup e componenti esistenti",
+          "summary": "Implementa un'interfaccia seguendo requisiti e riferimenti."
+        }
+      },
       "id": "pmt-db55c30d",
       "mode": "write",
       "next": [
@@ -916,6 +1182,13 @@
       "code": "INT03",
       "example": "verify ARIA conformance and accessibility",
       "file": "INT03.md",
+      "i18n": {
+        "it": {
+          "example": "verifica la conformità ARIA e l'accessibilità",
+          "requires": "interfaccia funzionante e standard di riferimento",
+          "summary": "Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive."
+        }
+      },
       "id": "pmt-2ea0c993",
       "mode": "verify",
       "next": [
@@ -942,6 +1215,13 @@
       "code": "INT04",
       "example": "verify the strings, formats and translations of the CLI",
       "file": "INT04.md",
+      "i18n": {
+        "it": {
+          "example": "verifica stringhe, formati e traduzioni della CLI",
+          "requires": "interfaccia o messaggi con lingue e formati supportati",
+          "summary": "Verifica l'internazionalizzazione di stringhe, formati e traduzioni."
+        }
+      },
       "id": "pmt-805ca095",
       "mode": "verify",
       "next": [
@@ -970,6 +1250,13 @@
       "code": "MEM01",
       "example": "sb prompt MEM01: allinea context.md e memory.md dopo completamento task",
       "file": "MEM01.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM01: align context.md and memory.md after completing a task",
+          "requires": "recent decisions or changes not yet recorded",
+          "summary": "Align local instructions, context, memory and tracker."
+        }
+      },
       "id": "pmt-f02db9d0",
       "mode": "write",
       "next": [
@@ -1000,6 +1287,13 @@
       "code": "MEM02",
       "example": "sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier",
       "file": "MEM02.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM02: migrate scattered todos into the dossier's central tracker",
+          "requires": "historical documentation or external issues to migrate",
+          "summary": "Migrate design and tasks into the SecondBrain dossier."
+        }
+      },
       "id": "pmt-64dfa49f",
       "mode": "write",
       "next": [
@@ -1027,6 +1321,13 @@
       "code": "MEM03",
       "example": "sb prompt MEM03: chiudi la sessione e chiedi commit e push",
       "file": "MEM03.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM03: close the session and ask for commit and push",
+          "requires": "state of the work done, defined next tasks and delivery destination",
+          "summary": "Close the session: memories, tracker, handoff and commit and push request."
+        }
+      },
       "id": "pmt-76604e4a",
       "mode": "write",
       "next": [
@@ -1056,6 +1357,13 @@
       "code": "MEM04",
       "example": "sb prompt MEM04: elenca attivita e problemi del tracker",
       "file": "MEM04.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM04: list the tracker tasks and problems",
+          "requires": "repository dossier tracker",
+          "summary": "List and describe the tracker tasks and the problems they solve."
+        }
+      },
       "id": "pmt-23c3d2be",
       "mode": "read",
       "next": [
@@ -1085,6 +1393,13 @@
       "code": "MEM05",
       "example": "sb prompt MEM05: archivia la risorsa conclusa res-guida",
       "file": "MEM05.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM05: archive the finished resource res-guida",
+          "requires": "goal of the PARA entity and a write session on the SecondBrain clone",
+          "summary": "Create, update and archive projects, areas and resources of the central PARA."
+        }
+      },
       "id": "pmt-4e1b7c52",
       "mode": "write",
       "next": [
@@ -1114,6 +1429,13 @@
       "code": "MEM06",
       "example": "sb prompt MEM06: carica contesto e memoria del repository nel budget",
       "file": "MEM06.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt MEM06: load the repository context and memory within budget",
+          "requires": "checkout of the open repository",
+          "summary": "Read active memory, context and tracker of the current repository."
+        }
+      },
       "id": "pmt-821f7dec",
       "mode": "read",
       "next": [
@@ -1143,6 +1465,13 @@
       "code": "OPS01",
       "example": "build a deterministic zip archive and compute its SHA-256",
       "file": "OPS01.md",
+      "i18n": {
+        "it": {
+          "example": "costruisci un archivio zip deterministico e calcola il suo SHA-256",
+          "requires": "istruzioni di build e requisiti del pacchetto",
+          "summary": "Prepara e verifica pacchetti e artefatti distribuibili."
+        }
+      },
       "id": "pmt-a5c78cc6",
       "mode": "write",
       "next": [
@@ -1170,6 +1499,13 @@
       "code": "OPS02",
       "example": "configure a multi-stage Dockerfile for a reproducible build",
       "file": "OPS02.md",
+      "i18n": {
+        "it": {
+          "example": "configura un Dockerfile multi-stage per una build riproducibile",
+          "requires": "requisiti di distribuzione e ambiente di destinazione",
+          "summary": "Configura pipeline, container e infrastruttura come codice."
+        }
+      },
       "id": "pmt-ce00f261",
       "mode": "write",
       "next": [
@@ -1198,6 +1534,13 @@
       "code": "OPS03",
       "example": "add structured JSON logging",
       "file": "OPS03.md",
+      "i18n": {
+        "it": {
+          "example": "aggiungi il logging JSON strutturato",
+          "requires": "scenario da monitorare e standard di logging",
+          "summary": "Aggiungi log, metriche e diagnostica utili al problema."
+        }
+      },
       "id": "pmt-c2785b9c",
       "mode": "write",
       "next": [
@@ -1225,6 +1568,13 @@
       "code": "OPS04",
       "example": "compile the v1.1 release notes from commits and issues",
       "file": "OPS04.md",
+      "i18n": {
+        "it": {
+          "example": "compila le note di rilascio della v1.1 da commit e segnalazioni",
+          "requires": "commit, segnalazioni o task completati dal rilascio precedente",
+          "summary": "Prepara note di rilascio e controlli di consegna."
+        }
+      },
       "id": "pmt-0618969e",
       "mode": "write",
       "next": [
@@ -1252,6 +1602,13 @@
       "code": "OPS05",
       "example": "prepare the commits and the pull request description",
       "file": "OPS05.md",
+      "i18n": {
+        "it": {
+          "example": "prepara i commit e la descrizione della pull request",
+          "requires": "modifiche locali da consegnare e richiesta esplicita di commit o PR",
+          "summary": "Prepara commit e pull request con perimetro, messaggio e controlli verificati."
+        }
+      },
       "id": "pmt-3e3728b6",
       "mode": "write",
       "next": [
@@ -1281,6 +1638,13 @@
       "code": "OPS06",
       "example": "prepare the hotfix and rollback for release 2.3.1",
       "file": "OPS06.md",
+      "i18n": {
+        "it": {
+          "example": "prepara l'hotfix e il rollback per il rilascio 2.3.1",
+          "requires": "rilascio difettoso, versione precedente nota e criteri per tornare indietro",
+          "summary": "Prepara hotfix e rollback di un rilascio con verifica e comunicazione."
+        }
+      },
       "id": "pmt-b377d5f0",
       "mode": "write",
       "next": [
@@ -1310,6 +1674,13 @@
       "code": "PRG01",
       "example": "define acceptance criteria for full-text search",
       "file": "PRG01.md",
+      "i18n": {
+        "it": {
+          "example": "definisci i criteri di accettazione per la ricerca full-text",
+          "requires": "richiesta dell'utente e documentazione esistente",
+          "summary": "Trasforma una richiesta in requisiti e criteri di accettazione."
+        }
+      },
       "id": "pmt-98071f85",
       "mode": "read",
       "next": [
@@ -1336,6 +1707,13 @@
       "code": "PRG02",
       "example": "compare SQLite and JSON for local persistence",
       "file": "PRG02.md",
+      "i18n": {
+        "it": {
+          "example": "confronta SQLite e JSON per la persistenza locale",
+          "requires": "alternative da valutare e vincoli del progetto",
+          "summary": "Confronta le opzioni architetturali e motiva una decisione."
+        }
+      },
       "id": "pmt-3e0ad55e",
       "mode": "read",
       "next": [
@@ -1364,6 +1742,13 @@
       "code": "PRG03",
       "example": "design the JSON schema and API contracts for the task list",
       "file": "PRG03.md",
+      "i18n": {
+        "it": {
+          "example": "progetta lo schema JSON e i contratti API per l'elenco dei task",
+          "requires": "requisiti o schema attuale con la sua versione",
+          "summary": "Progetta contratti API, modelli di dati e compatibilità."
+        }
+      },
       "id": "pmt-83764c0d",
       "mode": "read",
       "next": [
@@ -1390,6 +1775,13 @@
       "code": "PRG04",
       "example": "plan the migration in three atomic releases",
       "file": "PRG04.md",
+      "i18n": {
+        "it": {
+          "example": "pianifica la migrazione in tre rilasci atomici",
+          "requires": "requisiti concordati e perimetro del lavoro",
+          "summary": "Prepara un piano a fasi con dipendenze e controlli."
+        }
+      },
       "id": "pmt-8541aed1",
       "mode": "read",
       "next": [
@@ -1419,6 +1811,13 @@
       "code": "PRG05",
       "example": "define the scaffolding of the new module",
       "file": "PRG05.md",
+      "i18n": {
+        "it": {
+          "example": "definisci l'impalcatura del nuovo modulo",
+          "requires": "perimetro architetturale concordato e dipendenze",
+          "summary": "Crea l'impalcatura di nuovi moduli con struttura, configurazione e test."
+        }
+      },
       "id": "pmt-884419a5",
       "mode": "write",
       "next": [
@@ -1447,6 +1846,13 @@
       "code": "PRG06",
       "example": "plan the refactoring of the synchronization module",
       "file": "PRG06.md",
+      "i18n": {
+        "it": {
+          "example": "pianifica il refactoring del modulo di sincronizzazione",
+          "requires": "modulo da riorganizzare, test esistenti e invarianti da preservare",
+          "summary": "Pianifica un refactoring architetturale a fasi con controlli e rollback."
+        }
+      },
       "id": "pmt-3731bb7d",
       "mode": "read",
       "next": [
@@ -1476,6 +1882,13 @@
       "code": "REP01",
       "example": "run the next priority task that can be done autonomously",
       "file": "REP01.md",
+      "i18n": {
+        "it": {
+          "example": "esegui il prossimo task prioritario che si può fare in autonomia",
+          "requires": "task pianificato e criteri di accettazione",
+          "summary": "Completa il prossimo task pronto del repository aperto."
+        }
+      },
       "id": "pmt-4cc383ba",
       "mode": "write",
       "next": [
@@ -1505,6 +1918,13 @@
       "destructive": true,
       "example": "remove temporary files and orphaned build caches",
       "file": "REP04.md",
+      "i18n": {
+        "it": {
+          "example": "rimuovi i file temporanei e le cache di build orfane",
+          "requires": "prova dell'assenza di riferimenti e test verdi",
+          "summary": "Rimuovi residui e codice inutilizzato dopo la verifica."
+        }
+      },
       "id": "pmt-40772e6e",
       "mode": "write",
       "next": [
@@ -1531,6 +1951,13 @@
       "code": "REP08",
       "example": "inspect the repo and detect leftover tasks",
       "file": "REP08.md",
+      "i18n": {
+        "it": {
+          "example": "ispeziona il repo e rileva i task residui",
+          "requires": "working tree, cronologia recente ed eventuale backlog o note",
+          "summary": "Ispeziona il repo e trova i task residui rispetto al codice reale."
+        }
+      },
       "id": "pmt-cc2c5f5a",
       "mode": "read",
       "next": [
@@ -1557,6 +1984,13 @@
       "code": "REP10",
       "example": "align gitignore and gitkeep before publishing",
       "file": "REP10.md",
+      "i18n": {
+        "it": {
+          "example": "allinea gitignore e gitkeep prima di pubblicare",
+          "requires": "stato Git, regole di esclusione e cartelle da preservare nel repository",
+          "summary": "Allinea .gitignore e .gitkeep alla struttura e ai file reali."
+        }
+      },
       "id": "pmt-f1df8757",
       "mode": "write",
       "next": [
@@ -1585,6 +2019,13 @@
       "code": "SEC01",
       "example": "review the pull request for data leaks",
       "file": "SEC01.md",
+      "i18n": {
+        "it": {
+          "example": "rivedi la pull request alla ricerca di fughe di dati",
+          "requires": "diff, commit o file da analizzare",
+          "summary": "Rivedi modifiche o codice con rilievi concreti e riferimenti."
+        }
+      },
       "id": "pmt-27896824",
       "mode": "read",
       "next": [
@@ -1613,6 +2054,13 @@
       "code": "SEC02",
       "example": "threat model of the stdio and local file system flows",
       "file": "SEC02.md",
+      "i18n": {
+        "it": {
+          "example": "modello delle minacce dei flussi stdio e del file system locale",
+          "requires": "architettura e flussi di dati verso l'esterno",
+          "summary": "Analizza minacce, confini di fiducia e scenari di abuso."
+        }
+      },
       "id": "pmt-deb7d01a",
       "mode": "read",
       "next": [
@@ -1639,6 +2087,13 @@
       "code": "SEC03",
       "example": "fix path traversal in path resolution",
       "file": "SEC03.md",
+      "i18n": {
+        "it": {
+          "example": "correggi il path traversal nella risoluzione dei percorsi",
+          "requires": "vulnerabilità confermata e contesto del codice",
+          "summary": "Correggi le vulnerabilità e rafforza le difese interessate."
+        }
+      },
       "id": "pmt-b4cb6659",
       "mode": "write",
       "next": [
@@ -1667,6 +2122,13 @@
       "code": "SEC04",
       "example": "run a credentials security audit",
       "file": "SEC04.md",
+      "i18n": {
+        "it": {
+          "example": "esegui un audit di sicurezza delle credenziali",
+          "requires": "working tree e strumenti di scansione",
+          "summary": "Trova le credenziali esposte e verifica la validazione degli input."
+        }
+      },
       "id": "pmt-73fb4547",
       "mode": "verify",
       "next": [
@@ -1697,6 +2159,13 @@
       "code": "SEC05",
       "example": "check for personal data and GDPR privacy compliance",
       "file": "SEC05.md",
+      "i18n": {
+        "it": {
+          "example": "verifica i dati personali e la conformità privacy GDPR",
+          "requires": "mappatura dei dati e policy di conformità",
+          "summary": "Verifica l'isolamento dei dati personali e la conformità a GDPR e policy."
+        }
+      },
       "id": "pmt-24189cb6",
       "mode": "verify",
       "next": [
@@ -1726,6 +2195,13 @@
       "code": "SEC06",
       "example": "harden the GitHub Actions workflows and containers",
       "file": "SEC06.md",
+      "i18n": {
+        "it": {
+          "example": "rafforza i workflow GitHub Actions e i container",
+          "requires": "configurazione, workflow CI, container e impostazioni del repository",
+          "summary": "Rafforza configurazione del repository, CI, container e accessi."
+        }
+      },
       "id": "pmt-c356eede",
       "mode": "write",
       "next": [
@@ -1756,6 +2232,13 @@
       "code": "SEC07",
       "example": "check that it is safe to publish before the push",
       "file": "SEC07.md",
+      "i18n": {
+        "it": {
+          "example": "verifica che sia sicuro pubblicare prima del push",
+          "requires": "commit, indice, working tree e cronologia da pubblicare; destinazione",
+          "summary": "Controlla diff, repository e cronologia per dati sensibili prima di pubblicare."
+        }
+      },
       "id": "pmt-058c474f",
       "mode": "verify",
       "next": [
@@ -1789,6 +2272,13 @@
       "code": "SEC08",
       "example": "check which runs, caches and links are still accessible",
       "file": "SEC08.md",
+      "i18n": {
+        "it": {
+          "example": "verifica quali run, cache e link sono ancora accessibili",
+          "requires": "accesso in sola lettura al remoto GitHub e impronte o pattern da cercare",
+          "summary": "Verifica se dati sensibili sono ancora raggiungibili sul remoto GitHub."
+        }
+      },
       "id": "pmt-55186b10",
       "mode": "verify",
       "next": [
@@ -1818,6 +2308,13 @@
       "destructive": true,
       "example": "wipe the remote history, runs and caches after the exposure",
       "file": "SEC09.md",
+      "i18n": {
+        "it": {
+          "example": "cancella cronologia, run e cache del remoto dopo l'esposizione",
+          "requires": "richiesta esplicita, backup verificato e accesso amministrativo al remoto",
+          "summary": "Cancella cronologia e artefatti del remoto GitHub dopo un'esposizione di dati."
+        }
+      },
       "id": "pmt-7fc91f08",
       "mode": "write",
       "next": [
@@ -1849,6 +2346,13 @@
       "code": "SYS01",
       "example": "sb prompt SYS01: registra un ide con due account o due radici",
       "file": "SYS01.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS01: register an ide with two accounts or two roots",
+          "requires": "IDE installations and local authorizations; to register accounts also an activated workstation and consent",
+          "summary": "Check the IDEs; map, register accounts or realign on request."
+        }
+      },
       "id": "pmt-26817a61",
       "mode": "verify",
       "next": [
@@ -1866,7 +2370,8 @@
         "pmt-f02db9d0",
         "pmt-5b593404",
         "pmt-5f9f93e0",
-        "pmt-677a10ab"
+        "pmt-677a10ab",
+        "pmt-2d3c1d51"
       ],
       "requires": "installazioni IDE e autorizzazioni locali; per registrare account anche postazione attivata e consenso",
       "scope": "central",
@@ -1880,6 +2385,13 @@
       "code": "SYS02",
       "example": "sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti",
       "file": "SYS02.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS02: check regulatory updates in the sources registry",
+          "requires": "PARA resource-authoritative-sources registry",
+          "summary": "Check authoritative sources; acquire or update on request."
+        }
+      },
       "id": "pmt-5b593404",
       "mode": "verify",
       "next": [
@@ -1907,6 +2419,13 @@
       "code": "SYS03",
       "example": "sb prompt SYS03: attiva secondbrain selezionando repository e ide locali",
       "file": "SYS03.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS03: activate secondbrain selecting local repositories and ides",
+          "requires": "SecondBrain volume and user consent on the assets",
+          "summary": "Activate SecondBrain after discovery and asset selection."
+        }
+      },
       "id": "pmt-5f9f93e0",
       "mode": "write",
       "next": [
@@ -1919,7 +2438,8 @@
       ],
       "related": [
         "pmt-26817a61",
-        "pmt-677a10ab"
+        "pmt-677a10ab",
+        "pmt-2d3c1d51"
       ],
       "requires": "volume SecondBrain e consenso utente sugli asset",
       "scope": "central",
@@ -1933,6 +2453,13 @@
       "code": "SYS04",
       "example": "sb prompt SYS04: verifica allineamento direttive nei repository gestiti",
       "file": "SYS04.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS04: check directive alignment in the managed repositories",
+          "requires": "workstation configuration and approved directives",
+          "summary": "Check or align the workstation's already managed assets."
+        }
+      },
       "id": "pmt-677a10ab",
       "mode": "verify",
       "next": [
@@ -1962,6 +2489,13 @@
       "code": "SYS05",
       "example": "sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc",
       "file": "SYS05.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS05: compact the dossier history preserving facts and toc",
+          "requires": "dossier to compact and verifiable history",
+          "summary": "Compact the dossier preserving originals, facts and TOC."
+        }
+      },
       "id": "pmt-77d7bf7a",
       "mode": "write",
       "next": [
@@ -1990,6 +2524,13 @@
       "code": "SYS09",
       "example": "sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256",
       "file": "SYS09.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS09: run a deterministic backup and validate the sha-256 manifest",
+          "requires": "active configuration and backup runtime root",
+          "summary": "Run the deterministic compressed backup and verify the SHA-256 digests."
+        }
+      },
       "id": "pmt-e498353a",
       "mode": "write",
       "next": [
@@ -2018,6 +2559,13 @@
       "destructive": true,
       "example": "sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati",
       "file": "SYS10.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS10: roll back the decommissioned repository and clean up the data",
+          "requires": "repository dossier, target checkout and user consent",
+          "summary": "Roll back and decommission a repository, returning its data for privacy."
+        }
+      },
       "id": "pmt-b98acaaa",
       "mode": "write",
       "next": [
@@ -2047,6 +2595,13 @@
       "code": "SYS11",
       "example": "sb prompt SYS11: aggiungi un prompt al catalogo nell'area test",
       "file": "SYS11.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS11: add a prompt to the catalog in the test area",
+          "requires": "valid catalog, target area and a write session",
+          "summary": "Add, change or remove a prompt of the centralized catalog."
+        }
+      },
       "id": "pmt-364616bb",
       "mode": "write",
       "next": [
@@ -2076,6 +2631,13 @@
       "code": "SYS13",
       "example": "sb prompt SYS13: fissa o rimuovi il blocco greenfield su questo repository",
       "file": "SYS13.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS13: set or remove the greenfield lock on this repository",
+          "requires": "managed repository, active dossier and user confirmation",
+          "summary": "Set or remove the greenfield lock (versions, changelog, migrations, aliases)."
+        }
+      },
       "id": "pmt-29b3278f",
       "mode": "write",
       "next": [
@@ -2099,10 +2661,52 @@
     },
     {
       "aliases": [],
+      "category": "sistema",
+      "code": "SYS15",
+      "example": "sb prompt SYS15: installa il server mcp in vscode e claude code",
+      "file": "SYS15.md",
+      "i18n": {
+        "en": {
+          "example": "sb prompt SYS15: install the mcp server in vscode and claude code",
+          "requires": "SecondBrain root, target IDEs and confirmation before writing",
+          "summary": "Install the SecondBrain MCP server in the IDEs and verify the handshake."
+        }
+      },
+      "id": "pmt-2d3c1d51",
+      "mode": "write",
+      "next": [
+        "pmt-26817a61",
+        "pmt-677a10ab"
+      ],
+      "pack": "maintenance",
+      "references": [
+        "https://code.claude.com/docs/en/mcp",
+        "https://code.visualstudio.com/docs/agents/reference/mcp-configuration"
+      ],
+      "related": [
+        "pmt-5f9f93e0",
+        "pmt-26817a61",
+        "pmt-677a10ab"
+      ],
+      "requires": "radice SecondBrain, IDE di destinazione e conferma prima di scrivere",
+      "scope": "central",
+      "status": "active",
+      "summary": "Installa il server MCP SecondBrain negli IDE e verifica l'handshake.",
+      "target": "central"
+    },
+    {
+      "aliases": [],
       "category": "test",
       "code": "TST01",
       "example": "add boundary tests for the budget calculation",
       "file": "TST01.md",
+      "i18n": {
+        "it": {
+          "example": "aggiungi test dei casi limite per il calcolo del budget",
+          "requires": "infrastruttura di test e comportamento da verificare",
+          "summary": "Aggiungi test unitari e di integrazione per i rischi pertinenti."
+        }
+      },
       "id": "pmt-08bff671",
       "mode": "write",
       "next": [
@@ -2129,6 +2733,13 @@
       "code": "TST02",
       "example": "create an end-to-end test for the backup and restore cycle",
       "file": "TST02.md",
+      "i18n": {
+        "it": {
+          "example": "crea un test end-to-end per il ciclo di backup e ripristino",
+          "requires": "ambiente di test e flussi utente concordati",
+          "summary": "Copri i percorsi utente con test end-to-end."
+        }
+      },
       "id": "pmt-286c3225",
       "mode": "write",
       "next": [
@@ -2155,6 +2766,13 @@
       "code": "TST03",
       "example": "fix the instability in the async tests of the suite",
       "file": "TST03.md",
+      "i18n": {
+        "it": {
+          "example": "correggi l'instabilità dei test asincroni della suite",
+          "requires": "log dei fallimenti intermittenti e suite di test",
+          "summary": "Trova e correggi i test instabili o non deterministici."
+        }
+      },
       "id": "pmt-91021b67",
       "mode": "write",
       "next": [
@@ -2181,6 +2799,13 @@
       "code": "TST04",
       "example": "fix the GitHub Actions runner failure on Windows",
       "file": "TST04.md",
+      "i18n": {
+        "it": {
+          "example": "correggi il fallimento del runner GitHub Actions su Windows",
+          "requires": "log della CI e configurazione della pipeline",
+          "summary": "Diagnostica e correggi i fallimenti di build e test in CI."
+        }
+      },
       "id": "pmt-bd98736f",
       "mode": "write",
       "next": [
@@ -2209,6 +2834,13 @@
       "code": "TST05",
       "example": "verify that the output conforms to the specifications",
       "file": "TST05.md",
+      "i18n": {
+        "it": {
+          "example": "verifica che l'output sia conforme alle specifiche",
+          "requires": "criteri di accettazione e un ambiente funzionante",
+          "summary": "Verifica il comportamento reale rispetto ai requisiti."
+        }
+      },
       "id": "pmt-ef96dea5",
       "mode": "verify",
       "next": [
@@ -2235,6 +2867,13 @@
       "code": "TST06",
       "example": "reduce host discovery time and memory use",
       "file": "TST06.md",
+      "i18n": {
+        "it": {
+          "example": "riduci i tempi di discovery degli host e l'uso di memoria",
+          "requires": "flusso, carico rappresentativo, ambiente, metrica e soglia",
+          "summary": "Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli."
+        }
+      },
       "id": "pmt-9de57e24",
       "mode": "write",
       "next": [
@@ -2264,6 +2903,13 @@
       "code": "TST07",
       "example": "create isolated on-disk fixtures and validate the automatic cleanup",
       "file": "TST07.md",
+      "i18n": {
+        "it": {
+          "example": "crea fixture isolate su disco e convalida la pulizia automatica",
+          "requires": "framework di test, script di test e una radice di fixture isolata assegnata",
+          "summary": "Prepara un'infrastruttura di test con fixture isolate e pulizia sicura."
+        }
+      },
       "id": "pmt-37c695fe",
       "mode": "write",
       "next": [

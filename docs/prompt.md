@@ -1,6 +1,6 @@
 # Prompt
 
-62 prompt generici in 12 aree, più 15 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+62 prompt generici in 12 aree, più 16 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list
@@ -9,7 +9,7 @@ sb prompt mostra DEV01
 sb prompt DEV01: aggiungi l'esportazione in PDF
 ```
 
-Elenco completo: [catalogo](../direttive/prompts/README.md).
+Elenco completo: [catalogo generico](../direttive/prompts/README.it.md) ([English](../direttive/prompts/README.md)) e [prompt di manutenzione](../direttive/prompts/README.maintenance.it.md) ([English](../direttive/prompts/README.maintenance.md)); da chat `sb prompt maintenance`.
 
 ## Come è fatto: CO-STAR
 
@@ -35,7 +35,7 @@ flowchart LR
 
 Vale per i prompt composti (`sb prompt CODICE: obiettivo`). `sb prompt mostra` fa vedere la scheda sorgente, con le sue sezioni.
 
-La lingua segue il pacchetto: per i prompt core la scheda, il testo composto e l'elenco del catalogo sono in inglese e la chiusura è neutra (criteri verificati, documentazione aggiornata, residui dichiarati, nessun riferimento a SecondBrain); per i prompt maintenance restano in italiano e la chiusura aggiorna tracker, `memory.md` e `context.md` del dossier. La struttura della scheda è la stessa in entrambi.
+Ogni scheda esiste in italiano e in inglese. La lingua di visualizzazione segue `-Language` (`prompts.ps1`), `SECONDBRAIN_LANG` o la lingua del sistema; il tool MCP accetta `language` (`en|it`) su `list_prompts`, `get_prompt_home` e `get_prompt`. Le schede core nascono in inglese (traduzione in `direttive/prompts/it/`), quelle maintenance in italiano (traduzione in `direttive/prompts/en/`); titolo, intestazione e prompt vicini ripetono i valori `i18n` del catalogo. La chiusura dei prompt core è neutra (criteri verificati, documentazione aggiornata, residui dichiarati, nessun riferimento a SecondBrain); quella dei prompt maintenance aggiorna tracker, `memory.md` e `context.md` del dossier. Gli indici sono generati per lingua e pacchetto con `scripts/build-prompts.ps1`.
 
 ## Le aree
 
@@ -56,7 +56,7 @@ Pacchetto core (generico, schede in inglese, valido per qualunque repository):
 | REP | Igiene del repository |
 | GOV | Licenze e conformità |
 
-Pacchetto maintenance (`sb prompt maintenance`, schede in italiano): MEM (memoria e continuità) e SYS (sistema e manutenzione centrale), per gestire SecondBrain stesso.
+Pacchetto maintenance (`sb prompt maintenance`): MEM (memoria e continuità) e SYS (sistema e manutenzione centrale), per gestire SecondBrain stesso.
 
 ## Le icone
 

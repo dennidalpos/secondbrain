@@ -246,7 +246,7 @@ try {
     Put-Tracker (Join-Path $brain 'para-index.json') (Get-SBParaIndex $brain @('test')).json
     Put-Tracker (Join-Path $checkout 'AGENTS.md') '# Repo'
     $composed=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -Repository $identity -Prompt REP01 -Objective 'fixture') -join "`n"
-    Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.Contains((Join-Path $dir 'tracker.json')) -and $composed.Contains('source: dossier')) 'compositore usa resolver dichiarato'
+    Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.Contains((Join-Path $dir 'tracker.json')) -and ($composed -match '(source|fonte): dossier')) 'compositore usa resolver dichiarato'
     $composed=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -ProjectId test-project -Prompt REP01 -Objective 'fixture') -join "`n"
     Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.Contains('Tracker: '+(Join-Path $dir 'tracker.json'))) 'compositore Progetto usa fonte dichiarata'
 

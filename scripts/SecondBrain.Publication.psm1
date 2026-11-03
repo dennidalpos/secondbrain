@@ -278,7 +278,7 @@ function Export-SBPublicCapture {
 function Get-SBPublicationHookContent {
     @'
 #!/bin/sh
-# SecondBrain pre-push hook (REP05 publication guard)
+# SecondBrain pre-push hook (SEC07 publication guard)
 # Checks working tree, index and history for secrets, host paths and unreviewed assets before push.
 
 if [ -n "$SECONDBRAIN_SKIP_PRE_PUSH" ] && [ "$SECONDBRAIN_SKIP_PRE_PUSH" = "1" ]; then
@@ -293,7 +293,7 @@ fi
 # Fail-closed: senza SecondBrain il push non e verificato, quindi si ferma con istruzioni.
 fail_closed() {
     echo "[SecondBrain pre-push] ERRORE: $1" >&2
-    echo "[SecondBrain pre-push] Push annullato: la verifica REP05 non puo essere eseguita." >&2
+    echo "[SecondBrain pre-push] Push annullato: la verifica SEC07 non puo essere eseguita." >&2
     echo "[SecondBrain pre-push] Per ripristinarla: imposta SECONDBRAIN_HOME sul clone di SecondBrain (pwsh -NoProfile -File <SecondBrain>/scripts/secondbrain.ps1 -Setup ... -RegisterEnvironment) e riapri il terminale." >&2
     echo "[SecondBrain pre-push] Solo per un push una tantum e consapevole: SECONDBRAIN_SKIP_PRE_PUSH=1 git push ..." >&2
     exit 1
@@ -327,7 +327,7 @@ fi
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
-    echo "[SecondBrain pre-push] ERRORE: La verifica di pubblicabilita (REP05) ha rilevato criticita bloccanti (codice $EXIT_CODE)." >&2
+    echo "[SecondBrain pre-push] ERRORE: La verifica di pubblicabilita (SEC07) ha rilevato criticita bloccanti (codice $EXIT_CODE)." >&2
     echo "[SecondBrain pre-push] Push annullato per impedire la diffusione di credenziali, percorsi host o dati non verificati." >&2
     exit 1
 fi

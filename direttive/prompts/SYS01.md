@@ -41,3 +41,4 @@ Esiti per IDE, prove e passaggi manuali; per la registrazione, integrazioni regi
 - SYS02: Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.
 - SYS03: Attiva SecondBrain dopo discovery e selezione degli asset.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.
+- SYS15: Installa il server MCP SecondBrain negli IDE e verifica l'handshake.

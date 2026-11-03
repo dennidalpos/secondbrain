@@ -117,7 +117,7 @@ Conoscenza e memorie personali viaggiano nel clone Git privato. Account, percors
 
 work.ps1 restituisce un piano di ambiente isolato per repository/progetto/runtime; con -Run richiede eseguibile, argomenti e working directory approvata. Non usa una shell e non modifica impostazioni globali. TEMP/TMP e cache riconosciute sono reindirizzate; gli output intermedi specifici del tool richiedono configurazione e prova nel prodotto. Per esempio .NET/MSBuild, Gradle e bundler non condividono un unico flag di output. Non dichiarare output centralizzati sulla sola base delle variabili. Tutte le eccezioni rimangono esplicite.
 
-Fixture e artefatti sono conservati anche dopo esito positivo. REP04 e cleanup.ps1 richiedono richiesta esplicita e manifest per pulire dati portabili. Non riutilizzare residui di operazioni precedenti senza verificarli. Solo staging transazionale adiacente alla destinazione è eliminato alla conclusione della transazione; un errore preserva le prove di recupero.
+Gli artefatti sono conservati anche dopo esito positivo; la fixture di `test-secondbrain.ps1` (`tests/run-<id>`) è rimossa a esito verde e conservata a esito rosso, le sub-suite lanciate da sole conservano la propria. REP04 e cleanup.ps1 richiedono richiesta esplicita e manifest per pulire dati portabili. Non riutilizzare residui di operazioni precedenti senza verificarli. Solo staging transazionale adiacente alla destinazione è eliminato alla conclusione della transazione; un errore preserva le prove di recupero.
 
 ## TOC e compattazione
 

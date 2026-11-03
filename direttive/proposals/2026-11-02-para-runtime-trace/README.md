@@ -1,6 +1,6 @@
 # Proposta: regole PARA, nomi in `.runtime` e avviso di compattazione
 
-Stato: **proposta, in attesa di approvazione esplicita dell'utente come revisione 1.2** (`VERSION` 1.2.0).
+Stato: **approvata dall'utente il 2026-11-02 come revisione 1.2** (`VERSION` 1.2.0); lo stato «in attesa» era rimasto non aggiornato (corretto in #264). Il testo fu poi ridotto dalla proposta `2026-11-02-direttive-snelle` (stessa etichetta 1.2, nessun cambio di `VERSION`).
 
 ## Problema ed evidenze
 

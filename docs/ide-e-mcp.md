@@ -16,6 +16,8 @@ flowchart LR
 | Claude per Windows | `~/.claude/CLAUDE.md` | `-Target claude` |
 | ChatGPT Codex per Windows | `~/.codex/AGENTS.md` | `-Target codex` |
 | Antigravity per Windows | `~/.gemini/GEMINI.md` | `-Target antigravity` |
+| Claude Code | `~/.claude/CLAUDE.md` | `-Target claude-code -WorkspacePath <progetto>` (oppure `claude mcp add --scope user`) |
+| VS Code | (nessun file di regole) | `-Target vscode` (profilo) o `-Target vscode -WorkspacePath <progetto>` |
 
 Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
 
@@ -27,6 +29,8 @@ Con più account o più radici di configurazione dello stesso strumento, registr
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
 ```
+
+Per installare il server in più IDE, con anteprima e verifica guidate, usa `sb prompt SYS15`.
 
 Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente. Poi riavvia l'agente.
 

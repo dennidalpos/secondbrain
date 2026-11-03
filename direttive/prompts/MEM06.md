@@ -36,4 +36,4 @@ Quadro sintetico dello stato del repository, attività aperte pertinenti, vincol
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
 - MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
-- REP08: Inspect the repo and find leftover tasks against the real code.
+- REP08: Ispeziona il repo e trova i task residui rispetto al codice reale.

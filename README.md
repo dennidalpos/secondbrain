@@ -33,7 +33,7 @@ Poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvi
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 62 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio |
+| 62 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio; in italiano e in inglese (più 16 di manutenzione: `sb prompt maintenance`) |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 

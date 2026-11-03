@@ -429,10 +429,10 @@ try{
     Git-Portable $refsRepo @('checkout','-q','-f',$refsMain)|Out-Null
     Git-Portable $refsRepo @('branch','-q','-D','tool-turn')|Out-Null
     $refsPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $refsRepo
-    Assert-Portable (!@($refsPub.findings|Where-Object {$_.surface -eq 'history'}).Count -and @($refsPub.excludedRefs) -contains 'refs/codex/turn-diffs/x') 'storia REP05: i riferimenti locali di strumenti non producono rilievi e sono dichiarati in excludedRefs'
+    Assert-Portable (!@($refsPub.findings|Where-Object {$_.surface -eq 'history'}).Count -and @($refsPub.excludedRefs) -contains 'refs/codex/turn-diffs/x') 'storia SEC07: i riferimenti locali di strumenti non producono rilievi e sono dichiarati in excludedRefs'
     Git-Portable $refsRepo @('update-ref','refs/heads/pubblicabile','refs/codex/turn-diffs/x')|Out-Null
     $refsBranchPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $refsRepo
-    Assert-Portable (@($refsBranchPub.findings|Where-Object {$_.surface -eq 'history' -and $_.path -ceq 'tool-secret.txt'}).Count -ge 1) 'storia REP05: lo stesso contenuto su un ramo pubblicabile produce il rilievo'
+    Assert-Portable (@($refsBranchPub.findings|Where-Object {$_.surface -eq 'history' -and $_.path -ceq 'tool-secret.txt'}).Count -ge 1) 'storia SEC07: lo stesso contenuto su un ramo pubblicabile produce il rilievo'
     $basePub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial
     $repoBaseline=Get-SBPublicationBaselinePath $brain (Invoke-SBGit $repo @('rev-parse','--show-toplevel')).output
     Assert-Portable (Test-Path -LiteralPath $repoBaseline -PathType Leaf) 'Test-SBPublication genera baseline autorizzata con -Initial, specifica per repository'
@@ -580,6 +580,12 @@ try{
     $mcpTools = @{ jsonrpc = '2.0'; id = 103; method = 'tools/list'; params = @{} } | ConvertTo-Json -Compress
     $mcpToolsRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpTools | ConvertFrom-Json
     Assert-Portable ($mcpToolsRes.result.tools.Count -ge 8) 'server MCP espone almeno 8 strumenti conformi'
+    Assert-Portable (!@($mcpToolsRes.result.tools | Where-Object { $_.name -like 'secondbrain_*' }).Count) 'tools/list non espone gli alias deprecati secondbrain_*'
+    $mcpAliasCall = @{ jsonrpc = '2.0'; id = 1030; method = 'tools/call'; params = @{ name = 'secondbrain_get_prompt'; arguments = @{ prompt = 'SYS03' } } } | ConvertTo-Json -Compress
+    $mcpAliasRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpAliasCall | ConvertFrom-Json
+    Assert-Portable (!$mcpAliasRes.result.isError -and $mcpAliasRes.result.content[0].text -match '# SYS03' -and $mcpAliasRes.result.content.Count -eq 2 -and $mcpAliasRes.result.content[1].text -match 'secondbrain_get_prompt' -and $mcpAliasRes.result.content[1].text -match 'get_prompt') 'alias deprecato secondbrain_get_prompt: risposta invariata con avviso verso get_prompt'
+    $mcpCanonicalCall = @{ jsonrpc = '2.0'; id = 1031; method = 'tools/call'; params = @{ name = 'get_prompt'; arguments = @{ prompt = 'SYS03' } } } | ConvertTo-Json -Compress
+    Assert-Portable (@((Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCanonicalCall | ConvertFrom-Json).result.content).Count -eq 1) 'strumento canonico senza avviso di deprecazione'
     
     $mcpPromptCall = @{ jsonrpc = '2.0'; id = 104; method = 'tools/call'; params = @{ name = 'get_prompt'; arguments = @{ prompt = 'SYS03' } } } | ConvertTo-Json -Compress
     $mcpPromptRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpPromptCall | ConvertFrom-Json
@@ -601,10 +607,19 @@ try{
     Assert-Portable (!$mcpListRes.result.isError -and $mcpListRes.result.content[0].text -match 'SYS03') 'strumento list_prompts filtra per categoria'
     $mcpCompact = @{ jsonrpc = '2.0'; id = 1051; method = 'tools/call'; params = @{ name = 'list_prompts'; arguments = @{ category = 'SYS'; compact = $true } } } | ConvertTo-Json -Compress -Depth 5
     $mcpCompactRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCompact | ConvertFrom-Json
-    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^\S+ SYS\d{2} \| ').Count -eq 9 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
+    Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^\S+ SYS\d{2} \| ').Count -eq 10 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
     $mcpHome = @{ jsonrpc = '2.0'; id = 1052; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{} } } | ConvertTo-Json -Compress
     $mcpHomeRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHome | ConvertFrom-Json
-    Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
+    Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.it\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
+    $mcpHomeEn = @{ jsonrpc = '2.0'; id = 1053; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{ language = 'en' } } } | ConvertTo-Json -Compress -Depth 5
+    $mcpHomeEnRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHomeEn | ConvertFrom-Json
+    Assert-Portable (!$mcpHomeEnRes.result.isError -and $mcpHomeEnRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeEnRes.result.content[0].text -match 'PROMPTS AND COMMANDS') 'get_prompt_home con language=en risponde in inglese'
+    $mcpCardEn = @{ jsonrpc = '2.0'; id = 1054; method = 'tools/call'; params = @{ name = 'get_prompt'; arguments = @{ prompt = 'MEM01'; language = 'en' } } } | ConvertTo-Json -Compress -Depth 5
+    $mcpCardEnRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpCardEn | ConvertFrom-Json
+    Assert-Portable (!$mcpCardEnRes.result.isError -and $mcpCardEnRes.result.content[0].text -match 'Align local instructions' -and $mcpCardEnRes.result.content[0].text -notmatch 'Allinea istruzioni') 'get_prompt con language=en restituisce la scheda tradotta'
+    $mcpBadLang = @{ jsonrpc = '2.0'; id = 1055; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{ language = 'fr' } } } | ConvertTo-Json -Compress -Depth 5
+    $mcpBadLangRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpBadLang | ConvertFrom-Json
+    Assert-Portable ($mcpBadLangRes.result.isError) 'language non supportata rifiutata'
 
     $mcpNotify = @{ jsonrpc = '2.0'; method = 'notifications/initialized'; params = @{} } | ConvertTo-Json -Compress
     $mcpNotifyRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpNotify
@@ -615,10 +630,10 @@ try{
     Assert-Portable ($mcpMutateRes.error.code -eq -32601) 'richiesta sconosciuta o di mutazione respinta con errore -32601'
 
     # Handshake stdio reale: il comando registrato per l IDE viene avviato come processo e interrogato su tutti gli strumenti (cervello fixture).
-    $handshakeOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/test-secondbrain-mcp-handshake.ps1') -BrainRoot $brain -Target 'codex,vscode' -PublicationPath $other -ReportPath (Join-Path $brain '.runtime/mcp-handshake/fixture.json') 2>&1|Out-String)
-    Assert-Portable ($LASTEXITCODE -eq 0 -and $handshakeOut -match 'SUCCESS MCP-HANDSHAKE: 2 IDE' -and $handshakeOut -notmatch 'FAIL MCP') 'handshake stdio MCP: initialize, tools/list (8) e tools/call di ogni strumento per le configurazioni IDE'
+    $handshakeOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/test-secondbrain-mcp-handshake.ps1') -BrainRoot $brain -Target 'codex,vscode,claude-code' -PublicationPath $other -ReportPath (Join-Path $brain '.runtime/mcp-handshake/fixture.json') 2>&1|Out-String)
+    Assert-Portable ($LASTEXITCODE -eq 0 -and $handshakeOut -match 'SUCCESS MCP-HANDSHAKE: 3 IDE' -and $handshakeOut -notmatch 'FAIL MCP') 'handshake stdio MCP: initialize, tools/list (8) e tools/call di ogni strumento per le configurazioni IDE'
     $handshakeReport=Read-SBJson (Join-Path $brain '.runtime/mcp-handshake/fixture.json') $null
-    Assert-Portable ($handshakeReport.guiVerified -eq $false -and @($handshakeReport.skippedTools).Count -eq 0 -and @($handshakeReport.ides).Count -eq 2) 'rapporto handshake dichiara la prova visiva GUI non verificata e nessuno strumento saltato'
+    Assert-Portable ($handshakeReport.guiVerified -eq $false -and @($handshakeReport.skippedTools).Count -eq 0 -and @($handshakeReport.ides).Count -eq 3) 'rapporto handshake dichiara la prova visiva GUI non verificata e nessuno strumento saltato'
 
     # Accoppiamento Codex MCP e rilevamento Host
     $pairing = Get-SBMcpPairing -BrainRoot $brain -Target codex
@@ -630,7 +645,43 @@ try{
     $claudeAllow=@((ConvertFrom-Json $claudePair.PermissionsSnippet).permissions.allow)
     Assert-Portable ($claudeAllow.Count -eq @(Get-SBMcpReadOnlyToolNames).Count -and $claudeAllow -contains 'mcp__secondbrain__search_knowledge' -and $claudeAllow -notcontains 'mcp__secondbrain__check_publication') 'pairing Claude: permessi solo per gli strumenti di lettura, check_publication esclusa'
     $vscodePair = @($pairingsAll | Where-Object Target -eq 'vscode')[0]
-    Assert-Portable ($vscodePair.ConfigFormat -eq 'json' -and $vscodePair.Snippet -match '"mcp\.servers"') 'pairing VS Code produce JSON con mcp.servers'
+    Assert-Portable ($vscodePair.ConfigFormat -eq 'json' -and $vscodePair.Snippet -match '"servers"' -and $vscodePair.Snippet -match '"type": "stdio"' -and $vscodePair.Snippet -notmatch 'mcp\.servers' -and $vscodePair.ConfigFile -like '*Code*User*mcp.json') 'pairing VS Code: mcp.json del profilo con chiave servers e type stdio'
+    $workspaceDir = Join-Path $fixture 'mcp-workspace'
+    [IO.Directory]::CreateDirectory($workspaceDir) | Out-Null
+    $codeWs = Get-SBMcpPairing -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -ClaudeCodeConfigFile (Join-Path $workspaceDir 'assente.claude.json')
+    Assert-Portable ($codeWs.Target -eq 'claude-code' -and $codeWs.ConfigFile -eq (Join-Path $workspaceDir '.mcp.json') -and $codeWs.Snippet -match '"mcpServers"' -and $codeWs.CliCommand -match 'claude mcp add --transport stdio --scope project secondbrain' -and $codeWs.CliCommandUser -match '--scope user' -and !$codeWs.Configured) 'pairing Claude Code: .mcp.json di progetto, comandi CLI per ambito e stato non configurato'
+    Assert-Portable (@($pairingsAll | Where-Object Target -eq 'claude-code').Count -eq 0) 'pairing all non include i target di progetto'
+    $vscodeWs = Get-SBMcpPairing -BrainRoot $brain -Target vscode -WorkspacePath $workspaceDir
+    $cursorWs = Get-SBMcpPairing -BrainRoot $brain -Target cursor -WorkspacePath $workspaceDir
+    Assert-Portable ($vscodeWs.ConfigFile -eq (Join-Path $workspaceDir '.vscode/mcp.json') -and $cursorWs.ConfigFile -eq (Join-Path $workspaceDir '.cursor/mcp.json')) 'pairing con WorkspacePath: .vscode/mcp.json e .cursor/mcp.json'
+    $wsBackups = Join-Path $workspaceDir 'backups'
+    $codeRefused = $false
+    try { Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -BackupRoot $wsBackups | Out-Null } catch { $codeRefused = $true }
+    Assert-Portable ($codeRefused -and !(Test-Path -LiteralPath (Join-Path $workspaceDir '.mcp.json'))) 'Set-SBMcpConfiguration claude-code senza WorkspacePath rifiutato senza scrivere'
+    $codeApplied = Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -BackupRoot $wsBackups
+    $codeDoc = Read-SBJson (Join-Path $workspaceDir '.mcp.json') @{}
+    Assert-Portable ($codeApplied.Action -eq 'created' -and $codeDoc.mcpServers.secondbrain.command -eq 'pwsh') 'Set-SBMcpConfiguration claude-code crea .mcp.json di progetto'
+    $vscodeApplied = Set-SBMcpConfiguration -BrainRoot $brain -Target vscode -WorkspacePath $workspaceDir -BackupRoot $wsBackups
+    $vscodeDoc = Read-SBJson (Join-Path $workspaceDir '.vscode/mcp.json') @{}
+    Assert-Portable ($vscodeApplied.Action -eq 'created' -and $vscodeDoc.servers.secondbrain.type -eq 'stdio' -and $vscodeDoc.servers.secondbrain.command -eq 'pwsh' -and !$vscodeDoc.ContainsKey('mcpServers')) 'Set-SBMcpConfiguration vscode scrive servers con type stdio'
+    $vscodeAgain = Set-SBMcpConfiguration -BrainRoot $brain -Target vscode -WorkspacePath $workspaceDir -BackupRoot $wsBackups
+    Assert-Portable ($vscodeAgain.Action -eq 'unchanged') 'Set-SBMcpConfiguration vscode e idempotente'
+    $codeAfter = Get-SBMcpPairing -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -ClaudeCodeConfigFile (Join-Path $workspaceDir 'assente.claude.json')
+    Assert-Portable ($codeAfter.ProjectConfigured -and $codeAfter.Configured) 'pairing Claude Code rileva .mcp.json configurato'
+    $serverPairOut = (& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -Pair -Target claude-code -Apply 2>&1 | Out-String)
+    Assert-Portable ($LASTEXITCODE -ne 0 -and $serverPairOut -match 'WorkspacePath') 'mcp-server -Pair -Apply claude-code senza WorkspacePath e rifiutato'
+    $profileBackup = $env:USERPROFILE
+    $agProfile = Join-Path $fixture 'ag-profile'
+    try {
+        $env:USERPROFILE = $agProfile
+        $agLegacyPair = Get-SBMcpPairing -BrainRoot $brain -Target antigravity
+        [IO.Directory]::CreateDirectory((Join-Path $agProfile '.gemini/config')) | Out-Null
+        Put-Portable (Join-Path $agProfile '.gemini/config/mcp_config.json') '{}'
+        $agSharedPair = Get-SBMcpPairing -BrainRoot $brain -Target antigravity
+        Assert-Portable ($agLegacyPair.ConfigFile -eq (Join-Path $agProfile '.gemini/antigravity/mcp_config.json') -and $agSharedPair.ConfigFile -eq (Join-Path $agProfile '.gemini/config/mcp_config.json')) 'pairing Antigravity: file condiviso 2.0 se esiste, altrimenti ~/.gemini/antigravity'
+    } finally { $env:USERPROFILE = $profileBackup }
+    $ideAssets = @(Get-SBIDEAssets)
+    Assert-Portable (@($ideAssets | Where-Object { $_.name -in @('Claude Code', 'VS Code', 'Antigravity', 'Codex') -and !$_.mcpConfigPath }).Count -eq 0) 'mappa IDE: percorso e stato mcpConfigured per Claude Code, VS Code, Antigravity e Codex'
 
     # Pacchetto distribuibile MCP
     $testPkgDir = Join-Path $fixture 'mcp-test-pkg'
@@ -839,7 +890,7 @@ public static bool Set(string name,bool enabled){
     $realBrain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     Assert-Portable ($null -eq (Assert-SBPlainPath $realBrain)) 'Assert-SBPlainPath accetta la radice del cervello'
     Reject-Portable {Assert-SBPlainPath $identityLink} 'Assert-SBPlainPath rifiuta un reparse point dentro i dati'
-    # Cache degli antenati (ciclo REP05): stesso esito della verifica senza cache, nessun avvelenamento dopo un rifiuto, foglia sempre controllata.
+    # Cache degli antenati (ciclo SEC07): stesso esito della verifica senza cache, nessun avvelenamento dopo un rifiuto, foglia sempre controllata.
     $plainCache=@{};$plainSibling=Join-Path (Split-Path $identityLink) 'plain-sibling.txt'
     Assert-Portable ($null -eq (Assert-SBPlainPath $realBrain $plainCache)) 'Assert-SBPlainPath con cache accetta la radice del cervello'
     Assert-Portable ($null -eq (Assert-SBPlainPath $plainSibling $plainCache) -and $plainCache.ContainsKey((Split-Path $identityLink))) 'Assert-SBPlainPath con cache registra gli antenati verificati'
@@ -1111,7 +1162,10 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($cliHomeHere -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{repositoryPath=$realBrain}))) -and $cliHomeHere -cmatch 'DOVE SEI' -and $cliHomeHere -cmatch 'PROSSIMO PASSO') 'parità CLI-MCP: get_prompt_home con repositoryPath (stato e prossimo passo)'
     $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 2>$null|Out-String)
     $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06'}))
-    Assert-Portable ($cliShow.StartsWith('PROMPT CATALOG') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
+    Assert-Portable ($cliShow.StartsWith('CATALOGO PROMPT') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
+    $cliShowEn=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 -Language en 2>$null|Out-String)
+    $mcpShowEn=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06';language='en'}))
+    Assert-Portable ($cliShowEn.StartsWith('PROMPT CATALOG') -and $cliShowEn.EndsWith($mcpShowEn) -and $cliShowEn -ne $cliShow) 'parità CLI-MCP: get_prompt con language=en'
 
     # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS13.
     $twoDossier=Join-Path $brain $twoBinding.dossier

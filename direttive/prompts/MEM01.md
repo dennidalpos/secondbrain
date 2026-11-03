@@ -38,5 +38,5 @@ Informazioni riconciliate, evidenze e discrepanze residue senza dichiarare verif
 
 - MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
 - MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
-- DOC01: Write guides and READMEs consistent with the real product.
+- DOC01: Scrivi guide e README coerenti con il prodotto reale.
 - SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.

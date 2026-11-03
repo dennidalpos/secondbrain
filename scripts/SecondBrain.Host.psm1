@@ -117,6 +117,21 @@ function Get-SBIDEAssets {
                 }
             }
         }
+        # Altri IDE: la registrazione del server MCP è un file JSON noto; si legge soltanto la presenza della chiave secondbrain (nessuna credenziale).
+        $mcpFile = switch ($definition.name) {
+            'Claude Code' { $claudeHome = Get-SBIDERoot 'CLAUDE_CONFIG_DIR' $env:USERPROFILE; Join-Path $claudeHome.path '.claude.json' }
+            'Antigravity' { $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'; if (Test-Path -LiteralPath $agShared -PathType Leaf) { $agShared } else { Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json' } }
+            'VS Code' { Join-Path $env:APPDATA 'Code/User/mcp.json' }
+            'Cursor' { Join-Path $env:USERPROFILE '.cursor/mcp.json' }
+            'Windsurf' { Join-Path $env:USERPROFILE '.codeium/windsurf/mcp_config.json' }
+            default { $null }
+        }
+        if ($mcpFile) {
+            $mcpConfigPath = $mcpFile
+            if (Test-Path -LiteralPath $mcpFile -PathType Leaf) {
+                $mcpConfigured = [bool]((Get-Content -LiteralPath $mcpFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
+            }
+        }
         if ($definition.name -eq 'Android Studio') {
             $googleConfig = Join-Path $env:APPDATA 'Google'
             if (Test-Path -LiteralPath $googleConfig) {

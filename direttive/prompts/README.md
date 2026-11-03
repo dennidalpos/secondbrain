@@ -4,9 +4,9 @@ Index generated from catalog.json and the Markdown cards with scripts/build-prom
 
 In the chat: `sb prompt`, `sb prompt list`, `sb prompt maintenance`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: description`. Every prompt has an immutable ID (`pmt-` and 8 hex digits) and one or more aliases (code included): ID and aliases resolve to the same prompt.
 
-This index lists the generic prompts (core package). The SecondBrain maintenance prompts (memory, dossier, workstation) are kept separate: `sb prompt maintenance`.
+This index lists the generic prompts (core package). The SecondBrain maintenance prompts (memory, dossier, workstation) are kept separate: `sb prompt maintenance`; they are listed in the index [README.maintenance.md](README.maintenance.md).
 
-The CLI composes text; the task is carried out by the agent within the permissions and mode of the session. [How to use and edit the prompts](../../docs/prompt.md).
+The CLI composes text; the task is carried out by the agent within the permissions and mode of the session. [How to use and edit the prompts](../../docs/prompt.md). Language: [English](README.md) · [Italiano](README.it.md).
 
 ```text
 Prompt catalog

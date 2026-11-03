@@ -44,5 +44,5 @@ Handoff nel dossier, memorie e tracker aggiornati, stato dei controlli, esito di
 ## Prompt vicini
 
 - MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- PRG04: Prepare a phased plan with dependencies and checks.
+- PRG04: Prepara un piano a fasi con dipendenze e controlli.
 - SYS04: Controlla o allinea gli asset già gestiti della postazione.

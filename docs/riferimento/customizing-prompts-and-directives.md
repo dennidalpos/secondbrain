@@ -28,7 +28,7 @@ Le direttive comuni (`direttive/AGENTS.global_ide.md`) e l'integrazione di posta
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 85 schede operative (COM01–GOV02, di cui 82 attive e 3 ritirate con sostituto) in 13 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
+I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 78 schede operative attive (62 del pacchetto `core`, 16 del pacchetto `maintenance`) in 14 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
 
 Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta, evitando sovraccarichi di contesto nel prompt dell'agente. La build valida tutte le schede prima di generare l'indice. Una riga logica dell'elenco è lunga al massimo 88 caratteri; finestre molto strette possono applicare il wrapping dell'IDE.
 
@@ -121,7 +121,7 @@ SecondBrain supporta un modello ibrido che distingue tra **file di configurazion
 
 ### Google Antigravity & Gemini
 - **File di Progetto**: `AGENTS.md` e regole `.gemini/antigravity`.
-- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con gli 82 workflow attivi del catalogo (COM01–GOV02).
+- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con i 78 workflow attivi del catalogo.
 
 ---
 
@@ -136,9 +136,9 @@ flowchart LR
     C --> D["4. Distribuzione Atomica<br/>(secondbrain.ps1 -Sync)"]
 ```
 
-Le regole comuni attive sono [AGENTS.global_ide.md](../../direttive/AGENTS.global_ide.md) e [workstation.template.md](../../direttive/workstation.template.md); [approved.json](../../direttive/approved.json) registra hash e autorizzazione e la [proposta iniziale](../../direttive/proposals/2026-11-01-v1.0/README.md) contiene il testo approvato. Le proposte approvate restano immutabili: non modificare hash o blocchi generati per eludere il processo. Dopo la distribuzione si esegue anche [SYS01](adapters.md).
+Le regole comuni attive sono [AGENTS.global_ide.md](../../direttive/AGENTS.global_ide.md) e [workstation.template.md](../../direttive/workstation.template.md); [approved.json](../../direttive/approved.json) registra hash e autorizzazione e la [proposta della revisione corrente 1.2](../../direttive/proposals/2026-11-02-direttive-snelle/README.md) contiene il testo approvato; le proposte precedenti restano come storico. Le proposte approvate restano immutabili: non modificare hash o blocchi generati per eludere il processo. Dopo la distribuzione si esegue anche [SYS01](adapters.md).
 
-Gli AGENTS applicativi distinguono revisione comune applicata e revisione specifica del progetto. Una marcatura allineata non prova il caricamento in sessione né la validità tecnica di tutti i contenuti applicativi: il caricamento va verificato in nuove sessioni, separatamente dall'allineamento dei file.
+Gli AGENTS applicativi distinguono revisione comune applicata e revisione specifica del progetto; per la parte specifica si parte dal modello [AGENTS.repo.template.md](../../direttive/AGENTS.repo.template.md), mentre il blocco comune gestito è generato da `New-SBPortableRepositoryBody` (`scripts/SecondBrain.Portable.psm1`). Una marcatura allineata non prova il caricamento in sessione né la validità tecnica di tutti i contenuti applicativi: il caricamento va verificato in nuove sessioni, separatamente dall'allineamento dei file.
 
 ### 1. Creazione della Proposta
 Redigi i file proposti sotto `direttive/proposals/<data>-<nome-proposta>/`:
@@ -309,7 +309,7 @@ I workflow di repository e di sistema (REP01, REP04 e SYS01–SYS02) incorporano
 
 ## 10. Manutenzione centrale e prodotti
 
-SecondBrain mantiene direttive, prompt, blocchi AGENTS gestiti e riferimenti. I task prodotto restano ai rispettivi agenti, anche se registrati qui come autonomous. REP01 seleziona solo attività del repository aperto; REP02-MEM01 coprono documentazione, memoria, pulizia e tracker; MEM02 l'importazione nel dossier; SYS01-SYS02 richiedono SecondBrain come repository operativo.
+SecondBrain mantiene direttive, prompt, blocchi AGENTS gestiti e riferimenti. I task prodotto restano ai rispettivi agenti, anche se registrati qui come autonomous. REP01 seleziona solo attività del repository aperto; DOC01 (alias REP02) e MEM01 coprono documentazione, memoria, pulizia e tracker; MEM02 l'importazione nel dossier; SYS01-SYS02 richiedono SecondBrain come repository operativo.
 
 L'agente del prodotto confronta codice e stato Git con dossier corrente, fonte tracker e schede di applicabilità. Consultare un riferimento non autorizza automaticamente esecuzione o modifica delle prescrizioni comuni.
 

@@ -30,7 +30,7 @@ Il server MCP di SecondBrain è un servizio conforme allo standard di settore **
 | `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance`, `offset`, `limit` *(solo con `all=true`: 50 task per pagina, `nextOffset` per la successiva)* | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, è in sola lettura, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
 | `get_task` | `read` | `task` *(obbligatorio: ID o `#seq`)*, `repository`, `checkoutPath`, `dossier` | Restituisce il record integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) dal tracker o da `history/tracker-archive.json`. Alias `secondbrain_get_task`. |
 | `search_knowledge` | `read` | `query` *(obbligatorio)*, `budget`, `limit`, `offset`, `dossier`, `repository`, `allDossiers`, `includeOriginals`, `mode` *(`literal` predefinito, `relevance` per termini multipli ordinati per pertinenza)* | Ricerca deterministica nei file di conoscenza del dossier in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio tracker, rapporti). Tetto predefinito: 20 riscontri e 10.000 caratteri; con `hasMore=true` si richiama con `offset=nextOffset`. `limit=0` e `budget=0` tolgono il tetto; `allDossiers=true` cerca in tutte le aree; `includeOriginals=true` include `history/compaction/`. |
-| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `pack` *(opzionale: `core`, `maintenance`, `all`)* | Elenca il catalogo dei 62 workflow generici (pacchetto core; `pack` = `maintenance` per i 15 di manutenzione SecondBrain). Con `compact` una riga per prompt (codice, modalità, sommario). |
+| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `pack` *(opzionale: `core`, `maintenance`, `all`)* | Elenca il catalogo dei 62 workflow generici (pacchetto core; `pack` = `maintenance` per i 16 di manutenzione SecondBrain). Con `compact` una riga per prompt (codice, modalità, sommario). |
 | `get_prompt` | `read` | `prompt` *(obbligatorio: ID `pmt-…`, codice come `TST04` o alias)* | Restituisce il testo integrale della scheda ingegneristica con scopo, attività, verifiche e consegna. |
 | `get_prompt_home` | `read` | *(nessuno)* | Schermata iniziale di `sb prompt`: percorso del file Markdown del catalogo completo e tabella dei comandi `sb` con descrizione. |
 | `check_publication` | `verify` | `repositoryPath` *(obbligatorio)*, `detail` | Esegue la verifica di pubblicabilità (SEC07) del working tree, indice e storia del repository specificato prima di push o rilascio. Risposta in riepilogo (conteggi per regola, primi 20 riscontri, `findingsTotal`); `detail=true` il rapporto integro. |
@@ -58,11 +58,17 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target all
 # Oppure per un singolo IDE specifico
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude-code -WorkspacePath C:/Progetti/mio-progetto
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target cursor
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target vscode
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target antigravity
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target windsurf
+
+# Target di progetto: -WorkspacePath scrive nella cartella del progetto (vscode: .vscode/mcp.json, cursor: .cursor/mcp.json, claude-code: .mcp.json)
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target vscode -WorkspacePath C:/Progetti/mio-progetto
 ```
+
+`-Target all` copre i sei target a livello utente; `claude-code` va indicato esplicitamente e richiede `-WorkspacePath` per `-Apply` (senza, rifiuta e non scrive). Da chat: `sb prompt SYS15`.
 
 ### B. Applicazione automatica sicura (`-Apply`)
 Per applicare automaticamente la configurazione al file di configurazione dell'IDE:
@@ -108,7 +114,7 @@ mcp-package/
 ├── cursor/
 │   └── mcp.json                   # Configurazione JSON per Cursor
 ├── vscode/
-│   └── settings.json              # Frammento settings.json con mcp.servers
+│   └── mcp.json                   # Frammento mcp.json con servers (type stdio)
 ├── antigravity/
 │   └── mcp_config.json            # Configurazione JSON per Google Antigravity
 └── windsurf/
@@ -161,6 +167,8 @@ Aggiungi o integra la voce `secondbrain` sotto `mcpServers`:
 
 **Claude Code** registra il server altrove: in `.claude.json` (profilo utente, o la cartella `CLAUDE_CONFIG_DIR` se impostata), con `claude mcp add secondbrain -- pwsh -NoProfile -File "<percorso>/scripts/mcp-server.ps1"`. `-Pair -Target claude` mostra lo stato dei due file separatamente (`Desktop: CONFIGURATO | Code: DA CONFIGURARE`); `-Apply` scrive solo `claude_desktop_config.json`, la registrazione di Claude Code resta un comando da eseguire a mano e `.claude.json` viene soltanto letto.
 
+Per il solo Claude Code: `-Pair -Target claude-code -WorkspacePath <progetto> -Apply` scrive `.mcp.json` nella cartella del progetto (chiave `mcpServers`; Claude Code chiede l'approvazione alla prima sessione). L'ambito utente resta alla CLI: `claude mcp add --transport stdio --scope user secondbrain -- pwsh -NoProfile -File "<percorso>/scripts/mcp-server.ps1"`, che scrive `~/.claude.json` (SecondBrain non lo modifica).
+
 ---
 
 ### C. Cursor IDE
@@ -191,13 +199,14 @@ Oppure incolla nel file `mcp.json`:
 ---
 
 ### D. Visual Studio Code
-- Percorso file: `%APPDATA%\Code\User\settings.json` (o `.vscode/settings.json` nel workspace)
+- Percorso file: `%APPDATA%\Code\User\mcp.json` (profilo utente) oppure `.vscode/mcp.json` nel progetto (`-WorkspacePath`)
 
-Aggiungi la configurazione sotto la chiave `"mcp.servers"`:
+Aggiungi la configurazione sotto la chiave `"servers"`, con `"type": "stdio"` ([formato ufficiale](https://code.visualstudio.com/docs/agents/reference/mcp-configuration)); `mcp.servers` in `settings.json` non è più il formato:
 ```json
 {
-  "mcp.servers": {
+  "servers": {
     "secondbrain": {
+      "type": "stdio",
       "command": "pwsh",
       "args": [
         "-NoProfile",
@@ -212,7 +221,7 @@ Aggiungi la configurazione sotto la chiave `"mcp.servers"`:
 ---
 
 ### E. Google Antigravity
-- Percorso file: `%USERPROFILE%\.gemini\antigravity\mcp_config.json`
+- Percorso file: `%USERPROFILE%\.gemini\config\mcp_config.json` (Antigravity 2.0, condiviso tra IDE e CLI) se esiste, altrimenti `%USERPROFILE%\.gemini\antigravity\mcp_config.json` (versioni precedenti). `-Pair` sceglie il file da solo; verifica quale esiste sulla tua postazione.
 
 Inserisci o integra la sezione `mcpServers`:
 ```json
