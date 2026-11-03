@@ -31,6 +31,16 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'backup.archive.missing' = @{ it = 'Archivio di backup non trovato per la verifica: ''{0}'''; en = 'Backup archive not found for verification: ''{0}''' }
+    'backup.archive.corrupt' = @{ it = 'Archivio corrotto o non conforme: ''manifest.json'' assente in {0}'; en = 'Corrupt or non-conforming archive: ''manifest.json'' missing in {0}' }
+    'backup.manifest.invalid' = @{ it = 'Manifest non valido o schema non supportato in {0}'; en = 'Invalid manifest or unsupported schema in {0}' }
+    'backup.file.missing' = @{ it = 'File dichiarato nel manifest mancante nell''archivio: {0}'; en = 'File declared in the manifest is missing from the archive: {0}' }
+    'backup.integrity.hash' = @{ it = 'Integrità crittografica compromessa per ''{0}'': atteso {1}, calcolato {2}'; en = 'Cryptographic integrity compromised for ''{0}'': expected {1}, computed {2}' }
+    'backup.size.diverged' = @{ it = 'Dimensione divergente per ''{0}'': atteso {1}, trovato {2}'; en = 'Size diverges for ''{0}'': expected {1}, found {2}' }
+    'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}.'; en = 'No file found to include in the backup in {0}.' }
+}
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
@@ -59,7 +69,7 @@ if ($Verify) {
         }
     }
     if (!$targetZip -or !(Test-Path -LiteralPath $targetZip -PathType Leaf)) {
-        throw "Archivio di backup non trovato per la verifica: '$targetZip'"
+        throw (New-SBError 'backup.archive.missing' @($targetZip))
     }
     $targetZip = [IO.Path]::GetFullPath($targetZip)
     Write-Output "Verifica archivio: $targetZip"
@@ -68,7 +78,7 @@ if ($Verify) {
     try {
         $manifestEntry = $zip.GetEntry('manifest.json')
         if (!$manifestEntry) {
-            throw "Archivio corrotto o non conforme: 'manifest.json' assente in $targetZip"
+            throw (New-SBError 'backup.archive.corrupt' @($targetZip))
         }
         $manifestText = $null
         $stream = $manifestEntry.Open()
@@ -79,7 +89,7 @@ if ($Verify) {
 
         $manifest = ConvertFrom-Json -InputObject $manifestText -AsHashtable
         if (!$manifest -or $manifest.schemaVersion -ne 1) {
-            throw "Manifest non valido o schema non supportato in $targetZip"
+            throw (New-SBError 'backup.manifest.invalid' @($targetZip))
         }
 
         $verifiedCount = 0
@@ -89,7 +99,7 @@ if ($Verify) {
                 $expected = $manifest.files[$rel]
                 $entry = $zip.GetEntry($rel)
                 if (!$entry) {
-                    throw "File dichiarato nel manifest mancante nell'archivio: $rel"
+                    throw (New-SBError 'backup.file.missing' @($rel))
                 }
                 $entryStream = $entry.Open()
                 $hash = $null
@@ -99,10 +109,10 @@ if ($Verify) {
                 } finally { $entryStream.Dispose() }
 
                 if ($hash -ne $expected.sha256) {
-                    throw "Integrità crittografica compromessa per '$rel': atteso $($expected.sha256), calcolato $hash"
+                    throw (New-SBError 'backup.integrity.hash' @($rel, $expected.sha256, $hash))
                 }
                 if ($entry.Length -ne $expected.size) {
-                    throw "Dimensione divergente per '$rel': atteso $($expected.size), trovato $($entry.Length)"
+                    throw (New-SBError 'backup.size.diverged' @($rel, $expected.size, $entry.Length))
                 }
                 $verifiedCount++
             }
@@ -178,7 +188,7 @@ foreach ($target in $includeTargets) {
 }
 
 if ($fileList.Count -eq 0) {
-    throw "Nessun file trovato da includere nel backup in $brain."
+    throw (New-SBError 'backup.files.none' @($brain))
 }
 
 # Calcolo hash per il manifest

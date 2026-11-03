@@ -3,30 +3,75 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'sources.path.outside' = @{ it = 'Percorso fonte fuori perimetro'; en = 'Source path outside scope' }
+    'sources.index.invalid' = @{ it = 'Indice PARA assente o non valido'; en = 'PARA index missing or invalid' }
+    'sources.resource.unresolved' = @{ it = 'Risorsa resource-authoritative-sources non risolvibile'; en = 'Resource resource-authoritative-sources cannot be resolved' }
+    'sources.resource.metadata' = @{ it = 'Metadati della risorsa fonti divergenti'; en = 'Source resource metadata diverge' }
+    'sources.domains.invalid' = @{ it = 'Ambiti del registro non validi'; en = 'Invalid registry domains' }
+    'sources.card.invalid' = @{ it = 'Scheda fonte non valida: {0}'; en = 'Invalid source card: {0}' }
+    'sources.id.diverged' = @{ it = 'Identificatore fonte duplicato o divergente'; en = 'Duplicate or diverging source identifier' }
+    'sources.domain.unknown' = @{ it = 'Ambito sconosciuto: {0}'; en = 'Unknown domain: {0}' }
+    'sources.endpoint.duplicate' = @{ it = 'Endpoint duplicato'; en = 'Duplicate endpoint' }
+    'sources.endpoint.canonical' = @{ it = 'Occorre un solo endpoint canonico'; en = 'Exactly one canonical endpoint is required' }
+    'sources.linked.unresolved' = @{ it = 'Fonte collegata non risolvibile'; en = 'Linked source cannot be resolved' }
+    'sources.endpoint.https' = @{ it = 'Endpoint HTTPS non ammesso'; en = 'HTTPS endpoint not allowed' }
+    'sources.address.nonpublic' = @{ it = 'Indirizzo di rete non pubblico'; en = 'Non-public network address' }
+    'sources.dns.nonpublic' = @{ it = 'Risoluzione DNS non pubblica'; en = 'Non-public DNS resolution' }
+    'sources.payload.empty' = @{ it = 'Payload vuoto o oltre limite'; en = 'Empty payload or over the limit' }
+    'sources.format.pdf' = @{ it = 'Formato PDF non valido'; en = 'Invalid PDF format' }
+    'sources.format.docx' = @{ it = 'Formato DOCX non valido'; en = 'Invalid DOCX format' }
+    'sources.content.unverifiable' = @{ it = 'Contenuto atteso non verificabile'; en = 'Expected content cannot be verified' }
+    'sources.original.name' = @{ it = 'Nome originale non valido'; en = 'Invalid original name' }
+    'sources.version.duplicate' = @{ it = 'Versione duplicata'; en = 'Duplicate version' }
+    'sources.manifest.invalid' = @{ it = 'Manifest versione non valido: {0}'; en = 'Invalid version manifest: {0}' }
+    'sources.version.noprimaries' = @{ it = 'Versione senza originali'; en = 'Version without originals' }
+    'sources.original.invalid' = @{ it = 'Originale versione non valido o duplicato'; en = 'Invalid or duplicate version original' }
+    'sources.original.hash' = @{ it = 'Hash originale divergente: {0}'; en = 'Original hash diverges: {0}' }
+    'sources.fingerprint.diverged' = @{ it = 'Fingerprint versione divergente'; en = 'Version fingerprint diverges' }
+    'sources.transcript.hash' = @{ it = 'Hash trascrizione divergente'; en = 'Transcript hash diverges' }
+    'sources.transcript.altHash' = @{ it = 'Hash trascrizione alternativa divergente'; en = 'Alternative transcript hash diverges' }
+    'sources.transcript.revision' = @{ it = 'Revisione della trascrizione non verificabile'; en = 'Transcript revision cannot be verified' }
+    'sources.version.unverified' = @{ it = 'Versione accettata non verificata'; en = 'Accepted version not verified' }
+    'sources.applicability.invalid' = @{ it = 'Scheda di applicabilita non valida'; en = 'Invalid applicability card' }
+    'sources.applicability.identity' = @{ it = 'Identita scheda fonti divergente'; en = 'Source card identity diverges' }
+    'sources.product.duplicate' = @{ it = 'Fonte duplicata nella scheda del prodotto'; en = 'Duplicate source in the product card' }
+    'sources.product.unresolved' = @{ it = 'Fonte del prodotto non risolvibile'; en = 'Product source cannot be resolved' }
+    'sources.product.version' = @{ it = 'Versione del prodotto non risolvibile'; en = 'Product version cannot be resolved' }
+    'sources.resource.archived' = @{ it = 'Risorsa archiviata: acquisizione non consentita'; en = 'Archived resource: acquisition not allowed' }
+    'sources.unregistered' = @{ it = 'Fonte non registrata'; en = 'Source not registered' }
+    'sources.reference.only' = @{ it = 'Fonte utilizzabile solo come riferimento'; en = 'Source usable as reference only' }
+    'sources.endpoint.none' = @{ it = 'Nessun endpoint acquisibile'; en = 'No acquirable endpoint' }
+    'sources.original.modified' = @{ it = 'Originale esistente modificato: acquisizione invariata non verificabile'; en = 'Existing original modified: unchanged acquisition cannot be verified' }
+    'sources.transcript.modified' = @{ it = 'Trascrizione esistente modificata'; en = 'Existing transcript modified' }
+    'sources.version.incomplete' = @{ it = 'Versione incompleta gia presente: preservata per revisione'; en = 'Incomplete version already present: preserved for review' }
+    'sources.converter.unavailable' = @{ it = 'Rapporto convertitore non disponibile'; en = 'Converter report unavailable' }
+}
 
 function Get-SBSourceChild([string]$Root,[string]$Relative) {
-    if(!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:'){throw 'Percorso fonte fuori perimetro'}
+    if(!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:'){throw (New-SBError 'sources.path.outside')}
     $base=[IO.Path]::GetFullPath($Root).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     $full=[IO.Path]::GetFullPath((Join-Path $Root $Relative))
-    if(!$full.StartsWith($base,[StringComparison]::OrdinalIgnoreCase)){throw 'Percorso fonte fuori perimetro'}
+    if(!$full.StartsWith($base,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'sources.path.outside')}
     Assert-SBPlainPath $full
     $full
 }
 function Resolve-SBSourceRegistry([string]$BrainRoot) {
     $index=Read-SBJson (Join-Path $BrainRoot 'para-index.json') $null
-    if(!$index -or $index.schemaVersion -ne 1){throw 'Indice PARA assente o non valido'}
+    if(!$index -or $index.schemaVersion -ne 1){throw (New-SBError 'sources.index.invalid')}
     $items=@($index.entities|Where-Object id -eq 'resource-authoritative-sources')
-    if($items.Count -ne 1 -or $items[0].kind -ne 'resource'){throw 'Risorsa resource-authoritative-sources non risolvibile'}
+    if($items.Count -ne 1 -or $items[0].kind -ne 'resource'){throw (New-SBError 'sources.resource.unresolved')}
     $root=Get-SBSourceChild $BrainRoot $items[0].path
     $meta=Read-SBJson (Join-Path $root 'para.json') $null
-    if(!$meta -or $meta.id -ne $items[0].id -or $meta.kind -ne 'resource' -or $meta.schemaVersion -ne 1){throw 'Metadati della risorsa fonti divergenti'}
+    if(!$meta -or $meta.id -ne $items[0].id -or $meta.kind -ne 'resource' -or $meta.schemaVersion -ne 1){throw (New-SBError 'sources.resource.metadata')}
     @{root=$root;archived=([bool]$items[0].archived -or $items[0].path.StartsWith('04-archives/',[StringComparison]::Ordinal) -or $meta.status -ne 'active');relativePath=$items[0].path}
 }
 function Read-SBSourceRegistry([string]$BrainRoot) {
     $resolved=Resolve-SBSourceRegistry $BrainRoot
     $schema=Join-Path $BrainRoot 'config/source.schema.json'
     $domains=Read-SBJson (Join-Path $resolved.root 'domains.json') $null
-    if(!$domains -or $domains.schemaVersion -ne 1 -or !$domains.domains.Count){throw 'Ambiti del registro non validi'}
+    if(!$domains -or $domains.schemaVersion -ne 1 -or !$domains.domains.Count){throw (New-SBError 'sources.domains.invalid')}
     $sources=@();$seen=@{}
     $entries=Join-Path $resolved.root 'entries'
     if(Test-Path -LiteralPath $entries){
@@ -34,24 +79,24 @@ function Read-SBSourceRegistry([string]$BrainRoot) {
             Assert-SBPlainPath $dir.FullName
             $path=Join-Path $dir.FullName 'metadata.json'
             $text=Read-SBText $path
-            if(!(Test-Json -Json $text -SchemaFile $schema -ErrorAction SilentlyContinue)){throw "Scheda fonte non valida: $($dir.Name)"}
+            if(!(Test-Json -Json $text -SchemaFile $schema -ErrorAction SilentlyContinue)){throw (New-SBError 'sources.card.invalid' @($dir.Name))}
             $source=$text|ConvertFrom-Json -AsHashtable -DateKind String
-            if($source.id -cne $dir.Name -or $seen.ContainsKey($source.id)){throw 'Identificatore fonte duplicato o divergente'}
+            if($source.id -cne $dir.Name -or $seen.ContainsKey($source.id)){throw (New-SBError 'sources.id.diverged')}
             $seen[$source.id]=$true
-            foreach($domain in $source.domains){if($domain -notin @($domains.domains.id)){throw "Ambito sconosciuto: $domain"}}
+            foreach($domain in $source.domains){if($domain -notin @($domains.domains.id)){throw (New-SBError 'sources.domain.unknown' @($domain))}}
             $endpointIds=@{}
             foreach($endpoint in $source.endpoints){
-                if($endpointIds.ContainsKey($endpoint.id)){throw 'Endpoint duplicato'}
+                if($endpointIds.ContainsKey($endpoint.id)){throw (New-SBError 'sources.endpoint.duplicate')}
                 $endpointIds[$endpoint.id]=$true
                 Assert-SBSourceUri $endpoint.url $endpoint.allowedHosts -SkipDns
             }
-            if($source.endpoints.Count -and @($source.endpoints|Where-Object role -eq 'canonical').Count -ne 1){throw 'Occorre un solo endpoint canonico'}
+            if($source.endpoints.Count -and @($source.endpoints|Where-Object role -eq 'canonical').Count -ne 1){throw (New-SBError 'sources.endpoint.canonical')}
             $source['_path']=$path;$source['_hash']=Get-SBFileHash $path
             $source['_root']=$dir.FullName
             $sources+=,$source
         }
     }
-    foreach($source in $sources){foreach($related in $source.relatedSources){if(!$seen.ContainsKey($related.id)){throw 'Fonte collegata non risolvibile'}}}
+    foreach($source in $sources){foreach($related in $source.relatedSources){if(!$seen.ContainsKey($related.id)){throw (New-SBError 'sources.linked.unresolved')}}}
     @{root=$resolved.root;relativePath=$resolved.relativePath;archived=$resolved.archived;domains=$domains;sources=$sources;brainRoot=$BrainRoot}
 }
 function Test-SBPublicAddress([Net.IPAddress]$Address) {
@@ -65,13 +110,13 @@ function Test-SBPublicAddress([Net.IPAddress]$Address) {
 }
 function Assert-SBSourceUri([string]$Url,[string[]]$AllowedHosts,[switch]$SkipDns) {
     $uri=$null
-    if(![Uri]::TryCreate($Url,[UriKind]::Absolute,[ref]$uri) -or $uri.Scheme -ne 'https' -or !$uri.IsDefaultPort -or $uri.UserInfo -or $uri.Fragment -or $uri.Host -notin $AllowedHosts -or $uri.Query -match '(?i)(?:[?&])(?:token|password|secret|api_?key)='){throw 'Endpoint HTTPS non ammesso'}
+    if(![Uri]::TryCreate($Url,[UriKind]::Absolute,[ref]$uri) -or $uri.Scheme -ne 'https' -or !$uri.IsDefaultPort -or $uri.UserInfo -or $uri.Fragment -or $uri.Host -notin $AllowedHosts -or $uri.Query -match '(?i)(?:[?&])(?:token|password|secret|api_?key)='){throw (New-SBError 'sources.endpoint.https')}
     $ip=$null
     if([Net.IPAddress]::TryParse($uri.DnsSafeHost,[ref]$ip)){
-        if(!(Test-SBPublicAddress $ip)){throw 'Indirizzo di rete non pubblico'}
+        if(!(Test-SBPublicAddress $ip)){throw (New-SBError 'sources.address.nonpublic')}
     } elseif(!$SkipDns){
         $addresses=@([Net.Dns]::GetHostAddresses($uri.DnsSafeHost))
-        if(!$addresses.Count -or @($addresses|Where-Object {!(Test-SBPublicAddress $_)}).Count){throw 'Risoluzione DNS non pubblica'}
+        if(!$addresses.Count -or @($addresses|Where-Object {!(Test-SBPublicAddress $_)}).Count){throw (New-SBError 'sources.dns.nonpublic')}
     }
 }
 function Get-SBSourceContent([hashtable]$Endpoint,[scriptblock]$Transport) {
@@ -115,14 +160,14 @@ function Get-SBSourceContent([hashtable]$Endpoint,[scriptblock]$Transport) {
             }
         } finally {$cancel.Dispose();$client.Dispose()}
     }
-    if(!$result -or !$result.bytes -or $result.bytes.Length -gt 50MB){throw 'Payload vuoto o oltre limite'}
+    if(!$result -or !$result.bytes -or $result.bytes.Length -gt 50MB){throw (New-SBError 'sources.payload.empty')}
     Assert-SBSourceUri $result.finalUrl $Endpoint.allowedHosts -SkipDns:([bool]$Transport)
     $text=[Text.Encoding]::UTF8.GetString($result.bytes)
-    if($Endpoint.format -eq 'pdf' -and !$text.StartsWith('%PDF-',[StringComparison]::Ordinal)){throw 'Formato PDF non valido'}
-    if($Endpoint.format -eq 'docx' -and !($result.bytes[0] -eq 80 -and $result.bytes[1] -eq 75)){throw 'Formato DOCX non valido'}
+    if($Endpoint.format -eq 'pdf' -and !$text.StartsWith('%PDF-',[StringComparison]::Ordinal)){throw (New-SBError 'sources.format.pdf')}
+    if($Endpoint.format -eq 'docx' -and !($result.bytes[0] -eq 80 -and $result.bytes[1] -eq 75)){throw (New-SBError 'sources.format.docx')}
     if($Endpoint.format -in @('html','text','json','csv')){
         if($text -match '(?i)<title>\s*(?:just a moment|access denied|captcha|javascript is disabled)' -or $text -match '(?i)verify that you.re not a robot'){throw 'access-challenge'}
-        if($Endpoint.expectedText -and $text -notmatch $Endpoint.expectedText){throw 'Contenuto atteso non verificabile'}
+        if($Endpoint.expectedText -and $text -notmatch $Endpoint.expectedText){throw (New-SBError 'sources.content.unverifiable')}
         if($Endpoint.format -eq 'json'){$null=$text|ConvertFrom-Json -AsHashtable -DateKind String}
     }
     $result['sha256']=Get-SBHash $result.bytes
@@ -139,7 +184,7 @@ function Get-SBSourceFingerprint($Artifacts) {
 }
 function Get-SBSourceOriginalName($Endpoint) {
     $name=if($Endpoint.ContainsKey('fileName')){$Endpoint.fileName}else{$Endpoint.id+'.'+$(if($Endpoint.format -eq 'text'){'txt'}else{$Endpoint.format})}
-    if($name -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$'){throw 'Nome originale non valido'}
+    if($name -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$'){throw (New-SBError 'sources.original.name')}
     $name
 }
 function Invoke-SBSourceProbe($Registry,[scriptblock]$Transport) {
@@ -190,27 +235,27 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
     foreach($source in $Registry.sources){
         $versionIds=@{}
         foreach($version in $source.versions){
-            if($versionIds.ContainsKey($version.id)){throw 'Versione duplicata'};$versionIds[$version.id]=$true
+            if($versionIds.ContainsKey($version.id)){throw (New-SBError 'sources.version.duplicate')};$versionIds[$version.id]=$true
             $root=Get-SBSourceChild $source._root ('versions/'+$version.id)
             $manifest=Read-SBJson (Join-Path $root 'manifest.json') $null
-            if(!$manifest -or $manifest.schemaVersion -ne 1 -or $manifest.sourceId -cne $source.id -or $manifest.versionId -cne $version.id){throw "Manifest versione non valido: $($source.id)"}
-            if(!$manifest.artifacts.Count){throw 'Versione senza originali'}
+            if(!$manifest -or $manifest.schemaVersion -ne 1 -or $manifest.sourceId -cne $source.id -or $manifest.versionId -cne $version.id){throw (New-SBError 'sources.manifest.invalid' @($source.id))}
+            if(!$manifest.artifacts.Count){throw (New-SBError 'sources.version.noprimaries')}
             $artifactIds=@{}
             foreach($artifact in $manifest.artifacts){
-                if($artifactIds.ContainsKey($artifact.endpointId) -or $artifact.path -notmatch '^originals/[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$' -or $artifact.sha256 -notmatch '^[A-F0-9]{64}$' -or $artifact.contentHash -notmatch '^[A-F0-9]{64}$'){throw 'Originale versione non valido o duplicato'}
+                if($artifactIds.ContainsKey($artifact.endpointId) -or $artifact.path -notmatch '^originals/[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$' -or $artifact.sha256 -notmatch '^[A-F0-9]{64}$' -or $artifact.contentHash -notmatch '^[A-F0-9]{64}$'){throw (New-SBError 'sources.original.invalid')}
                 $artifactIds[$artifact.endpointId]=$true
-                if((Get-SBFileHash (Get-SBSourceChild $root $artifact.path)) -cne $artifact.sha256){throw "Hash originale divergente: $($source.id)"}
+                if((Get-SBFileHash (Get-SBSourceChild $root $artifact.path)) -cne $artifact.sha256){throw (New-SBError 'sources.original.hash' @($source.id))}
             }
-            if((Get-SBSourceFingerprint $manifest.artifacts) -cne $manifest.fingerprint){throw 'Fingerprint versione divergente'}
-            if($manifest.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $root $manifest.transcription.path)) -cne $manifest.transcription.sha256){throw 'Hash trascrizione divergente'}
-            if($manifest.ContainsKey('alternatives')){foreach($alternative in $manifest.alternatives){if((Get-SBFileHash (Get-SBSourceChild $root $alternative.path)) -cne $alternative.sha256){throw 'Hash trascrizione alternativa divergente'}}}
+            if((Get-SBSourceFingerprint $manifest.artifacts) -cne $manifest.fingerprint){throw (New-SBError 'sources.fingerprint.diverged')}
+            if($manifest.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $root $manifest.transcription.path)) -cne $manifest.transcription.sha256){throw (New-SBError 'sources.transcript.hash')}
+            if($manifest.ContainsKey('alternatives')){foreach($alternative in $manifest.alternatives){if((Get-SBFileHash (Get-SBSourceChild $root $alternative.path)) -cne $alternative.sha256){throw (New-SBError 'sources.transcript.altHash')}}}
             if($version.reviewStatus -eq 'verified'){
                 $review=Read-SBJson (Join-Path $root 'review.json') $null
-                if(!$review -or !$review.reviewer -or !$review.reviewedAt -or $review.fingerprint -cne $manifest.fingerprint -or $review.transcriptSha256 -cne $manifest.transcription.sha256 -or !$review.structure -or !$review.numbersAndTables -or !$review.citedPassages -or $manifest.transcription.status -ne 'extracted'){throw 'Revisione della trascrizione non verificabile'}
+                if(!$review -or !$review.reviewer -or !$review.reviewedAt -or $review.fingerprint -cne $manifest.fingerprint -or $review.transcriptSha256 -cne $manifest.transcription.sha256 -or !$review.structure -or !$review.numbersAndTables -or !$review.citedPassages -or $manifest.transcription.status -ne 'extracted'){throw (New-SBError 'sources.transcript.revision')}
             }
             elseif($version.id -cne $source.acceptedVersion){$issues.Add(@{kind='candidate-pending';sourceId=$source.id;versionId=$version.id})}
         }
-        if($source.acceptedVersion -and (!$versionIds.ContainsKey($source.acceptedVersion) -or @($source.versions|Where-Object { $_.id -ceq $source.acceptedVersion -and $_.reviewStatus -eq 'verified'}).Count -ne 1)){throw 'Versione accettata non verificata'}
+        if($source.acceptedVersion -and (!$versionIds.ContainsKey($source.acceptedVersion) -or @($source.versions|Where-Object { $_.id -ceq $source.acceptedVersion -and $_.reviewStatus -eq 'verified'}).Count -ne 1)){throw (New-SBError 'sources.version.unverified')}
         if($source.rights.status -ne 'reference-only' -and !$source.acceptedVersion){$issues.Add(@{kind='review-pending';sourceId=$source.id})}
         $checks=@(if($latest){$latest.sources|Where-Object sourceId -eq $source.id})
         if($source.endpoints.Count -and (!$checks.Count -or $checks[0].configurationHash -cne $source._hash -or [DateTimeOffset]::Parse($latest.checkedAt) -lt [DateTimeOffset]::UtcNow.AddDays(-14))){$issues.Add(@{kind='verification-stale';sourceId=$source.id})}
@@ -227,15 +272,15 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
             if(!(Test-Path -LiteralPath (Join-Path $root 'repository.json'))){continue}
             $path=Join-Path $root 'authoritative-sources.json';$map=Read-SBJson $path $null
             if(!$map){$issues.Add(@{kind='mapping-missing';areaId=$entity.id});continue}
-            if(!(Test-Json -Json (Read-SBText $path) -SchemaFile (Join-Path $Registry.brainRoot 'config/source-applicability.schema.json') -ErrorAction SilentlyContinue) -or $map.areaId -cne $entity.id){throw 'Scheda di applicabilita non valida'}
+            if(!(Test-Json -Json (Read-SBText $path) -SchemaFile (Join-Path $Registry.brainRoot 'config/source-applicability.schema.json') -ErrorAction SilentlyContinue) -or $map.areaId -cne $entity.id){throw (New-SBError 'sources.applicability.invalid')}
             $repo=Read-SBJson (Join-Path $root 'repository.json') $null
-            if($map.repository -cne $repo.identity){throw 'Identita scheda fonti divergente'}
+            if($map.repository -cne $repo.identity){throw (New-SBError 'sources.applicability.identity')}
             $ids=@{}
             foreach($ref in $map.sources){
-                if($ids.ContainsKey($ref.sourceId)){throw 'Fonte duplicata nella scheda del prodotto'};$ids[$ref.sourceId]=$true
+                if($ids.ContainsKey($ref.sourceId)){throw (New-SBError 'sources.product.duplicate')};$ids[$ref.sourceId]=$true
                 $target=@($Registry.sources|Where-Object id -ceq $ref.sourceId)
-                if($target.Count -ne 1){throw 'Fonte del prodotto non risolvibile'}
-                if($ref.versionId -and @($target[0].versions|Where-Object id -ceq $ref.versionId).Count -ne 1){throw 'Versione del prodotto non risolvibile'}
+                if($target.Count -ne 1){throw (New-SBError 'sources.product.unresolved')}
+                if($ref.versionId -and @($target[0].versions|Where-Object id -ceq $ref.versionId).Count -ne 1){throw (New-SBError 'sources.product.version')}
                 if($ref.applicability -eq 'unassessed'){$issues.Add(@{kind='applicability-unassessed';areaId=$entity.id;sourceId=$ref.sourceId})}
             }
         }
@@ -243,31 +288,31 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
     @($issues.ToArray())
 }
 function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$PythonPath,[scriptblock]$Transport) {
-    if($Registry.archived){throw 'Risorsa archiviata: acquisizione non consentita'}
+    if($Registry.archived){throw (New-SBError 'sources.resource.archived')}
     $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
-    if($sources.Count -ne 1){throw 'Fonte non registrata'}
+    if($sources.Count -ne 1){throw (New-SBError 'sources.unregistered')}
     $source=$sources[0]
-    if($source.rights.status -ne 'public-reusable'){throw 'Fonte utilizzabile solo come riferimento'}
+    if($source.rights.status -ne 'public-reusable'){throw (New-SBError 'sources.reference.only')}
     $downloads=@();$artifacts=@()
     foreach($endpoint in $source.endpoints){
         $download=Get-SBSourceContent $endpoint $Transport
         $downloads+=@{endpoint=$endpoint;download=$download}
         $artifacts+=@{endpointId=$endpoint.id;path='originals/'+(Get-SBSourceOriginalName $endpoint);sha256=$download.sha256;contentHash=$download.contentHash;url=$download.finalUrl;contentType=$download.contentType}
     }
-    if(!$artifacts.Count){throw 'Nessun endpoint acquisibile'}
+    if(!$artifacts.Count){throw (New-SBError 'sources.endpoint.none')}
     $fingerprint=Get-SBSourceFingerprint $artifacts
     foreach($version in $source.versions){
         $existing=Read-SBJson (Get-SBSourceChild $source._root ('versions/'+$version.id+'/manifest.json')) $null
         if($existing -and $existing.fingerprint -ceq $fingerprint){
             $versionRoot=Get-SBSourceChild $source._root ('versions/'+$version.id)
-            foreach($artifact in $existing.artifacts){if((Get-SBFileHash (Get-SBSourceChild $versionRoot $artifact.path)) -cne $artifact.sha256){throw 'Originale esistente modificato: acquisizione invariata non verificabile'}}
-            if($existing.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $versionRoot $existing.transcription.path)) -cne $existing.transcription.sha256){throw 'Trascrizione esistente modificata'}
+            foreach($artifact in $existing.artifacts){if((Get-SBFileHash (Get-SBSourceChild $versionRoot $artifact.path)) -cne $artifact.sha256){throw (New-SBError 'sources.original.modified')}}
+            if($existing.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $versionRoot $existing.transcription.path)) -cne $existing.transcription.sha256){throw (New-SBError 'sources.transcript.modified')}
             return @{sourceId=$SourceId;versionId=$version.id;status='unchanged'}
         }
     }
     $versionId=[DateTimeOffset]::UtcNow.ToString('yyyyMMdd')+'-'+$fingerprint.Substring(0,16).ToLowerInvariant()
     $versionRoot=Get-SBSourceChild $source._root ('versions/'+$versionId)
-    if(Test-Path -LiteralPath $versionRoot){throw 'Versione incompleta gia presente: preservata per revisione'}
+    if(Test-Path -LiteralPath $versionRoot){throw (New-SBError 'sources.version.incomplete')}
     foreach($item in $downloads){
         $artifact=@($artifacts|Where-Object endpointId -eq $item.endpoint.id)[0]
         Write-SBFile (Get-SBSourceChild $versionRoot $artifact.path) $item.download.bytes 'absent' $Config.backupRoot|Out-Null
@@ -294,7 +339,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
             else{$null=$out.GetAwaiter().GetResult();$null=$err.GetAwaiter().GetResult()}
         }finally{$process.Dispose()}
         if(Test-Path -LiteralPath $diagnostics){$result=Read-SBJson $diagnostics $null}
-        if(!$result){throw 'Rapporto convertitore non disponibile'}
+        if(!$result){throw (New-SBError 'sources.converter.unavailable')}
     }
     if(Test-Path -LiteralPath $transcript){
         $previousHash=Get-SBFileHash $transcript

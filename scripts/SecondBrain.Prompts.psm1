@@ -4,53 +4,99 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'prompts.catalog.invalid' = @{ it = 'Catalogo prompt non valido'; en = 'Invalid prompt catalog' }
+    'prompts.category.invalid' = @{ it = 'Categoria duplicata o non valida'; en = 'Duplicate or invalid category' }
+    'prompts.name.conflict' = @{ it = 'Identificatore prompt duplicato o in conflitto: {0}'; en = 'Duplicate or conflicting prompt identifier: {0}' }
+    'prompts.id.duplicate' = @{ it = 'ID prompt duplicato: {0}'; en = 'Duplicate prompt ID: {0}' }
+    'prompts.category.unknown' = @{ it = 'Categoria inesistente: {0}'; en = 'Unknown category: {0}' }
+    'prompts.card.invalid' = @{ it = 'Scheda o descrizione non valida: {0}'; en = 'Invalid card or description: {0}' }
+    'prompts.alias.dangling' = @{ it = 'Alias ritirato verso un ID inesistente: {0}'; en = 'Retired alias pointing to a nonexistent ID: {0}' }
+    'prompts.related.invalid' = @{ it = 'Prompt vicino non valido: {0}'; en = 'Invalid related prompt: {0}' }
+    'prompts.next.invalid' = @{ it = 'Prompt successivo non valido: {0} -> {1}'; en = 'Invalid next prompt: {0} -> {1}' }
+    'prompts.replacement.invalid' = @{ it = 'Sostituto non valido: {0}'; en = 'Invalid replacement: {0}' }
+    'prompts.retired.noreplacement' = @{ it = 'Prompt ritirato senza sostituto: {0}'; en = 'Retired prompt without a replacement: {0}' }
+    'prompts.category.empty' = @{ it = 'Categoria senza prompt: {0}'; en = 'Category without prompts: {0}' }
+    'prompts.prefix.multicategory' = @{ it = 'Prefisso su più categorie: {0}'; en = 'Prefix on more than one category: {0}' }
+    'prompts.category.multiprefix' = @{ it = 'Categoria con più prefissi: {0}'; en = 'Category with more than one prefix: {0}' }
+    'prompts.category.multipack' = @{ it = 'Categoria con più pacchetti: {0}'; en = 'Category with more than one pack: {0}' }
+    'prompts.code.unavailable' = @{ it = 'Codice non disponibile nel catalogo: {0}'; en = 'Code not available in the catalog: {0}' }
+    'prompts.card.header' = @{ it = 'Intestazione scheda divergente: {0}'; en = 'Card header diverges: {0}' }
+    'prompts.card.standardheader' = @{ it = 'Intestazione standardizzata mancante: {0}'; en = 'Standardized header missing: {0}' }
+    'prompts.section.missing' = @{ it = 'Sezione assente o duplicata: {0} in {1}'; en = 'Section missing or duplicated: {0} in {1}' }
+    'prompts.section.empty' = @{ it = 'Sezione vuota: {0} in {1}'; en = 'Empty section: {0} in {1}' }
+    'prompts.section.duplicate' = @{ it = 'Sezione duplicata: {0} in {1}'; en = 'Duplicate section: {0} in {1}' }
+    'prompts.section.nodecisions' = @{ it = 'Sezione {0} vuota o senza elenco di decisioni: {1}'; en = 'Section {0} empty or without a list of decisions: {1}' }
+    'prompts.placeholder.unresolved' = @{ it = 'Segnaposto irrisolto: {0}'; en = 'Unresolved placeholder: {0}' }
+    'prompts.related.placeholder' = @{ it = 'Prompt vicini con testo segnaposto: {0}'; en = 'Related prompts with placeholder text: {0}' }
+    'prompts.related.undocumented' = @{ it = 'Prompt vicino non documentato: {0}'; en = 'Related prompt not documented: {0}' }
+    'prompts.card.catalogheader' = @{ it = 'Intestazione scheda diversa dal catalogo: {0}'; en = 'Card header differs from the catalog: {0}' }
+    'prompts.card.catalogtitle' = @{ it = 'Titolo scheda diverso dal catalogo: {0}'; en = 'Card title differs from the catalog: {0}' }
+    'prompts.related.catalog' = @{ it = 'Prompt vicini diversi dal catalogo: {0}'; en = 'Related prompts differ from the catalog: {0}' }
+    'prompts.scope.unknown' = @{ it = 'Ambito inesistente. Disponibili: {0}'; en = 'Unknown scope. Available: {0}' }
+    'prompts.checkout.notgit' = @{ it = 'Directory non appartenente a un checkout Git'; en = 'Directory does not belong to a Git checkout' }
+    'prompts.origin.missing' = @{ it = 'Identità origin assente o owner escluso'; en = 'Origin identity missing or owner excluded' }
+    'prompts.para.metadata' = @{ it = 'Indice PARA divergente dai metadati: {0}'; en = 'PARA index diverges from the metadata: {0}' }
+    'prompts.para.invalid' = @{ it = 'Indice PARA assente o non valido'; en = 'PARA index missing or invalid' }
+    'prompts.checkoutmap.invalid' = @{ it = 'Mappa checkout non valida'; en = 'Invalid checkout map' }
+    'prompts.project.unavailable' = @{ it = 'Progetto non disponibile'; en = 'Project not available' }
+    'prompts.dossier.unbound' = @{ it = 'Repository non associato a un dossier ammesso'; en = 'Repository not bound to an allowed dossier' }
+    'prompts.dossier.archived' = @{ it = 'Dossier archiviato o ritirato: nessuna riattivazione implicita'; en = 'Archived or retired dossier: no implicit reactivation' }
+    'prompts.inventory.invalid' = @{ it = 'Inventario checkout assente o non valido'; en = 'Checkout inventory missing or invalid' }
+    'prompts.checkout.ambiguous' = @{ it = 'Checkout assente o ambiguo: indicare CheckoutPath o CheckoutMapPath'; en = 'Checkout missing or ambiguous: give CheckoutPath or CheckoutMapPath' }
+    'prompts.checkout.identity' = @{ it = 'Checkout e identità del dossier divergenti'; en = 'Checkout and dossier identity diverge' }
+    'prompts.reference.missing' = @{ it = 'Riferimento locale mancante: {0}'; en = 'Local reference missing: {0}' }
+    'prompts.tracker.diverged' = @{ it = 'Tracker del Progetto mancante o divergente'; en = 'Project tracker missing or diverging' }
+    'prompts.central.noswitch' = @{ it = 'Prompt centrale: aprire SecondBrain; nessun cambio implicito di repository. In alternativa, da SecondBrain: secondbrain.ps1 -Sync -Repository {0}'; en = 'Central prompt: open SecondBrain; no implicit repository switch. Alternatively, from SecondBrain: secondbrain.ps1 -Sync -Repository {0}' }
+}
 
 function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
     $root=Resolve-SBParaPath $BrainRoot 'direttive/prompts'
     $path=Join-Path $root 'catalog.json'; Assert-SBPlainPath $path
     $json=Read-SBText $path
     $schema=Resolve-SBParaPath $BrainRoot 'config/prompt-catalog.schema.json'
-    if(!(Test-Json -Json $json -SchemaFile $schema -ErrorAction Stop)){throw 'Catalogo prompt non valido'}
+    if(!(Test-Json -Json $json -SchemaFile $schema -ErrorAction Stop)){throw (New-SBError 'prompts.catalog.invalid')}
     $catalog=ConvertFrom-Json -InputObject $json -AsHashtable
     $categories=@{}; $names=@{}; $ids=@{}
     foreach($category in $catalog.categories){
-        if($categories.ContainsKey($category.id) -or $category.title -match '[\p{Cc}\p{Cf}]'){throw 'Categoria duplicata o non valida'}
+        if($categories.ContainsKey($category.id) -or $category.title -match '[\p{Cc}\p{Cf}]'){throw (New-SBError 'prompts.category.invalid')}
         $categories[$category.id]=$true
     }
     # Un solo spazio di nomi per ID, codici, alias e alias ritirati: ogni chiave risolve a un solo prompt.
-    $claim={param([string]$name,[string]$owner) if($names.ContainsKey($name)){throw 'Identificatore prompt duplicato o in conflitto: '+$name}; $names[$name]=$owner}
+    $claim={param([string]$name,[string]$owner) if($names.ContainsKey($name)){throw (New-SBError 'prompts.name.conflict' @($name))}; $names[$name]=$owner}
     foreach($prompt in $catalog.prompts){
-        if($ids.ContainsKey($prompt.id)){throw 'ID prompt duplicato: '+$prompt.id}
-        if(!$categories.ContainsKey($prompt.category)){throw 'Categoria inesistente: '+$prompt.category}
-        if($prompt.file -cne ($prompt.code+'.md') -or $prompt.summary -match '[\p{Cc}\p{Cf}]' -or ($prompt.code+' | '+$prompt.summary).Length -gt 88){throw 'Scheda o descrizione non valida: '+$prompt.code}
+        if($ids.ContainsKey($prompt.id)){throw (New-SBError 'prompts.id.duplicate' @($prompt.id))}
+        if(!$categories.ContainsKey($prompt.category)){throw (New-SBError 'prompts.category.unknown' @($prompt.category))}
+        if($prompt.file -cne ($prompt.code+'.md') -or $prompt.summary -match '[\p{Cc}\p{Cf}]' -or ($prompt.code+' | '+$prompt.summary).Length -gt 88){throw (New-SBError 'prompts.card.invalid' @($prompt.code))}
         $ids[$prompt.id]=$prompt
         & $claim $prompt.id $prompt.id; & $claim $prompt.code $prompt.id
         foreach($alias in $prompt.aliases){& $claim $alias $prompt.id}
     }
     foreach($deprecation in $(if($catalog.ContainsKey('deprecations')){$catalog.deprecations}else{@()})){
-        if(!$ids.ContainsKey($deprecation.supersededBy)){throw 'Alias ritirato verso un ID inesistente: '+$deprecation.alias}
+        if(!$ids.ContainsKey($deprecation.supersededBy)){throw (New-SBError 'prompts.alias.dangling' @($deprecation.alias))}
         & $claim $deprecation.alias $deprecation.supersededBy
     }
     foreach($prompt in $catalog.prompts){
-        foreach($related in $prompt.related){if(!$ids.ContainsKey($related) -or $related -eq $prompt.id){throw 'Prompt vicino non valido: '+$related}}
+        foreach($related in $prompt.related){if(!$ids.ContainsKey($related) -or $related -eq $prompt.id){throw (New-SBError 'prompts.related.invalid' @($related))}}
         # Candidati del prompt successivo: esistenti e diversi dal prompt; i ritirati restano ammessi (il ritiro morbido non obbliga a riscrivere) ma la composizione non li propone.
-        if($prompt.ContainsKey('next')){foreach($candidate in $prompt.next){if(!$ids.ContainsKey($candidate) -or $candidate -eq $prompt.id){throw 'Prompt successivo non valido: '+$prompt.code+' -> '+$candidate}}}
-        if($prompt.ContainsKey('supersededBy') -and (!$ids.ContainsKey($prompt.supersededBy) -or $prompt.supersededBy -eq $prompt.id)){throw 'Sostituto non valido: '+$prompt.code}
-        if($prompt.status -eq 'deprecated' -and !$prompt.ContainsKey('supersededBy')){throw 'Prompt ritirato senza sostituto: '+$prompt.code}
+        if($prompt.ContainsKey('next')){foreach($candidate in $prompt.next){if(!$ids.ContainsKey($candidate) -or $candidate -eq $prompt.id){throw (New-SBError 'prompts.next.invalid' @($prompt.code, $candidate))}}}
+        if($prompt.ContainsKey('supersededBy') -and (!$ids.ContainsKey($prompt.supersededBy) -or $prompt.supersededBy -eq $prompt.id)){throw (New-SBError 'prompts.replacement.invalid' @($prompt.code))}
+        if($prompt.status -eq 'deprecated' -and !$prompt.ContainsKey('supersededBy')){throw (New-SBError 'prompts.retired.noreplacement' @($prompt.code))}
         if($ValidateBodies){[void](Read-SBWorkflowPrompt $BrainRoot $prompt $catalog)}
     }
-    foreach($category in $catalog.categories){if(!@($catalog.prompts|Where-Object category -eq $category.id).Count){throw 'Categoria senza prompt: '+$category.id}}
+    foreach($category in $catalog.categories){if(!@($catalog.prompts|Where-Object category -eq $category.id).Count){throw (New-SBError 'prompts.category.empty' @($category.id))}}
     # Una categoria ha un solo prefisso e un solo pacchetto; un prefisso appartiene a una sola categoria.
     $prefixOwner=@{}
     foreach($prompt in $catalog.prompts){
         $prefix=Get-SBWorkflowPrefix $prompt
-        if($prefixOwner.ContainsKey($prefix) -and $prefixOwner[$prefix] -cne $prompt.category){throw 'Prefisso su più categorie: '+$prefix}
+        if($prefixOwner.ContainsKey($prefix) -and $prefixOwner[$prefix] -cne $prompt.category){throw (New-SBError 'prompts.prefix.multicategory' @($prefix))}
         $prefixOwner[$prefix]=$prompt.category
     }
     foreach($category in $catalog.categories){
         $members=@($catalog.prompts|Where-Object category -eq $category.id)
-        if(@($members|ForEach-Object {Get-SBWorkflowPrefix $_}|Select-Object -Unique).Count -ne 1){throw 'Categoria con più prefissi: '+$category.id}
-        if(@($members|ForEach-Object pack|Select-Object -Unique).Count -ne 1){throw 'Categoria con più pacchetti: '+$category.id}
+        if(@($members|ForEach-Object {Get-SBWorkflowPrefix $_}|Select-Object -Unique).Count -ne 1){throw (New-SBError 'prompts.category.multiprefix' @($category.id))}
+        if(@($members|ForEach-Object pack|Select-Object -Unique).Count -ne 1){throw (New-SBError 'prompts.category.multipack' @($category.id))}
     }
     $catalog
 }
@@ -63,7 +109,7 @@ function Resolve-SBWorkflowPrompt($Catalog, [string]$Key) {
         $target=@($Catalog.prompts|Where-Object id -ceq $retired[0].supersededBy)
         if($target.Count -eq 1){return @{prompt=$target[0];via='deprecated-alias';warning='Alias ritirato '+$Key+': usare '+$target[0].code}}
     }
-    throw 'Codice non disponibile nel catalogo: '+$Key
+    throw (New-SBError 'prompts.code.unavailable' @($Key))
 }
 
 function New-SBWorkflowPromptId($Catalog) {
@@ -209,38 +255,38 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog) {
     $L=Get-SBWorkflowLabels $Prompt
     $path=Resolve-SBParaPath $BrainRoot ('direttive/prompts/'+$Prompt.file)
     $body=(Read-SBText $path).Replace("`r`n","`n")
-    if(!$body.StartsWith('# '+$Prompt.code+' — ',[StringComparison]::Ordinal)){throw 'Intestazione scheda divergente: '+$Prompt.code}
+    if(!$body.StartsWith('# '+$Prompt.code+' — ',[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.header' @($Prompt.code))}
     $headerPattern='(?m)^> \*\*Scope\*\*:.*?\*\*'+[regex]::Escape($L.mode)+'\*\*:.*?\*\*'+[regex]::Escape($L.requires)+'\*\*:.*?\*\*'+[regex]::Escape($L.example)+'\*\*:'
-    if($body -notmatch $headerPattern){throw 'Intestazione standardizzata mancante: '+$Prompt.code}
+    if($body -notmatch $headerPattern){throw (New-SBError 'prompts.card.standardheader' @($Prompt.code))}
     foreach($section in @($L.purpose,$L.when,$L.input,$L.activities,$L.checks,$L.delivery,$L.related)){
         $pattern='(?m)^## '+[regex]::Escape($section)+'\n'
-        if([regex]::Matches($body,$pattern).Count -ne 1){throw 'Sezione assente o duplicata: '+$section+' in '+$Prompt.code}
+        if([regex]::Matches($body,$pattern).Count -ne 1){throw (New-SBError 'prompts.section.missing' @($section, $Prompt.code))}
         $content=([regex]::Split($body,$pattern)[1] -split '(?m)^## ',2)[0]
-        if(!$content.Trim()){throw 'Sezione vuota: '+$section+' in '+$Prompt.code}
+        if(!$content.Trim()){throw (New-SBError 'prompts.section.empty' @($section, $Prompt.code))}
     }
     # Sezione opzionale per i prompt che chiedono scelte: se presente e unica, non vuota. La regola di interazione (Function Calling / Tool Use) è nel compositore, una volta sola.
     $decisionPattern='(?m)^## '+[regex]::Escape($L.decisions)+'\n'
     $decisionCount=[regex]::Matches($body,$decisionPattern).Count
-    if($decisionCount -gt 1){throw 'Sezione duplicata: '+$L.decisions+' in '+$Prompt.code}
+    if($decisionCount -gt 1){throw (New-SBError 'prompts.section.duplicate' @($L.decisions, $Prompt.code))}
     if($decisionCount -eq 1){
         $decisions=([regex]::Split($body,$decisionPattern)[1] -split '(?m)^## ',2)[0]
-        if(!$decisions.Trim() -or $decisions -notmatch '(?m)^- '){throw 'Sezione '+$L.decisions+' vuota o senza elenco di decisioni: '+$Prompt.code}
+        if(!$decisions.Trim() -or $decisions -notmatch '(?m)^- '){throw (New-SBError 'prompts.section.nodecisions' @($L.decisions, $Prompt.code))}
     }
-    if($body -match '\{\{|\$\{input:'){throw 'Segnaposto irrisolto: '+$Prompt.code}
-    if($body -match 'consultare la scheda soltanto quando pertinente'){throw 'Prompt vicini con testo segnaposto: '+$Prompt.code}
+    if($body -match '\{\{|\$\{input:'){throw (New-SBError 'prompts.placeholder.unresolved' @($Prompt.code))}
+    if($body -match 'consultare la scheda soltanto quando pertinente'){throw (New-SBError 'prompts.related.placeholder' @($Prompt.code))}
     foreach($related in $Prompt.related){
         $target=@($Catalog.prompts|Where-Object id -ceq $related)
-        if($target.Count -ne 1 -or $body -notmatch ('\b'+[regex]::Escape($target[0].code)+'\b')){throw 'Prompt vicino non documentato: '+$related}
+        if($target.Count -ne 1 -or $body -notmatch ('\b'+[regex]::Escape($target[0].code)+'\b')){throw (New-SBError 'prompts.related.undocumented' @($related))}
     }
     # Titolo e intestazione ripetono i valori del catalogo, che resta la fonte mostrata da elenco e composizione.
     $expectedHeader='> **Scope**: '+$Prompt.scope+' | **'+$L.mode+'**: '+$L.modes[$Prompt.mode]+' | **'+$L.requires+'**: '+$Prompt.requires+' | **'+$L.example+'**: `'+$Prompt.example+'`'
-    if(!($body -split "`n")[2].Equals($expectedHeader,[StringComparison]::Ordinal)){throw 'Intestazione scheda diversa dal catalogo: '+$Prompt.code}
-    if(!($body -split "`n")[0].Equals('# '+$Prompt.code+' — '+$Prompt.summary.TrimEnd('.'),[StringComparison]::Ordinal)){throw 'Titolo scheda diverso dal catalogo: '+$Prompt.code}
+    if(!($body -split "`n")[2].Equals($expectedHeader,[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.catalogheader' @($Prompt.code))}
+    if(!($body -split "`n")[0].Equals('# '+$Prompt.code+' — '+$Prompt.summary.TrimEnd('.'),[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.catalogtitle' @($Prompt.code))}
     # Ogni voce di «Prompt vicini» cita un prompt correlato con il suo sommario e nessun altro.
     $neighbors=@([regex]::Matches((([regex]::Split($body,'(?m)^## '+[regex]::Escape($L.related)+'\n')[1] -split '(?m)^## ',2)[0]),'(?m)^- ([A-Z]{3}\d{2}): (.+)$'))
     $expectedNeighbors=@($Prompt.related|ForEach-Object {$id=$_;$t=@($Catalog.prompts|Where-Object id -ceq $id)[0];$t.code+': '+$t.summary})
     $actualNeighbors=@($neighbors|ForEach-Object {$_.Groups[1].Value+': '+$_.Groups[2].Value})
-    if(@($actualNeighbors|Sort-Object).Count -ne @($expectedNeighbors|Sort-Object).Count -or @(Compare-Object @($actualNeighbors|Sort-Object) @($expectedNeighbors|Sort-Object) -CaseSensitive).Count){throw 'Prompt vicini diversi dal catalogo: '+$Prompt.code}
+    if(@($actualNeighbors|Sort-Object).Count -ne @($expectedNeighbors|Sort-Object).Count -or @(Compare-Object @($actualNeighbors|Sort-Object) @($expectedNeighbors|Sort-Object) -CaseSensitive).Count){throw (New-SBError 'prompts.related.catalog' @($Prompt.code))}
     $body.TrimEnd()+"`n"
 }
 
@@ -288,7 +334,7 @@ function Format-SBWorkflowList($Catalog, [string]$Category, [switch]$Compact, [V
     $byCategory=$Category -and @($Catalog.categories|Where-Object id -ieq $Category).Count -gt 0
     $byPrefix=$Category -and !$byCategory -and @($Catalog.prompts|Where-Object {(Get-SBWorkflowPrefix $_) -ieq $Category}).Count -gt 0
     if($Category -and !$byCategory -and !$byPrefix){
-        throw 'Ambito inesistente. Disponibili: '+((@($Catalog.categories|ForEach-Object {$_.id+' ('+((@($Catalog.prompts|Where-Object category -eq $_.id|ForEach-Object {Get-SBWorkflowPrefix $_})|Sort-Object -Unique) -join '/')+')'})) -join ', ')
+        throw (New-SBError 'prompts.scope.unknown' @(((@($Catalog.categories|ForEach-Object {$_.id+' ('+((@($Catalog.prompts|Where-Object category -eq $_.id|ForEach-Object {Get-SBWorkflowPrefix $_})|Sort-Object -Unique) -join '/')+')'})) -join ', ')))
     }
     # Intestazione e legenda seguono il pacchetto richiesto; ogni voce usa il testo del proprio pacchetto.
     $listPack=if($Pack -eq 'maintenance'){'maintenance'}else{'core'}
@@ -466,7 +512,7 @@ function Get-SBWorkflowDrift([string]$BrainRoot) {
 function Get-SBWorkflowCheckout([string]$Path, [string[]]$AllowedOwners, $Bindings=@()) {
     $full=[IO.Path]::GetFullPath($Path); Assert-SBPlainPath $full
     $git=Invoke-SBGit $full @('rev-parse','--show-toplevel')
-    if($git.code -ne 0){throw 'Directory non appartenente a un checkout Git'}
+    if($git.code -ne 0){throw (New-SBError 'prompts.checkout.notgit')}
     $root=[IO.Path]::GetFullPath($git.output); Assert-SBPlainPath $root
     $origin=Invoke-SBGit $root @('config','--get','remote.origin.url')
     $identity=if($origin.code -eq 0){ConvertTo-SBRepositoryIdentity $origin.output}else{$null}
@@ -478,13 +524,13 @@ function Get-SBWorkflowCheckout([string]$Path, [string[]]$AllowedOwners, $Bindin
         $binding=@($local.bindings|Where-Object path -eq $root)
         if($binding.Count -eq 1){$identity=$binding[0].identity}
     }
-    if(!(Test-SBRepositoryIdentity $identity $AllowedOwners)){throw 'Identità origin assente o owner escluso'}
+    if(!(Test-SBRepositoryIdentity $identity $AllowedOwners)){throw (New-SBError 'prompts.origin.missing')}
     @{path=$root;identity=$identity}
 }
 
 function Assert-SBWorkflowIndexEntry($Index,$Entity) {
     $indexed=@($Index.entities|Where-Object id -eq $Entity.id)
-    if($indexed.Count -ne 1 -or $indexed[0].path -cne $Entity.path -or $indexed[0].kind -cne $Entity.kind -or $indexed[0].archived -ne $Entity.archived -or $indexed[0].status -cne $Entity.status){throw 'Indice PARA divergente dai metadati: '+$Entity.id}
+    if($indexed.Count -ne 1 -or $indexed[0].path -cne $Entity.path -or $indexed[0].kind -cne $Entity.kind -or $indexed[0].archived -ne $Entity.archived -or $indexed[0].status -cne $Entity.status){throw (New-SBError 'prompts.para.metadata' @($Entity.id))}
 }
 
 function Get-SBWorkflowContext {
@@ -493,13 +539,13 @@ function Get-SBWorkflowContext {
     $bindings=if($Config.ContainsKey('bindings')){$Config.bindings}else{@()}
     $entities=@(Get-SBParaEntities $brain $Config.allowedOwners)
     $index=Read-SBJson (Join-Path $brain 'para-index.json') $null
-    if(!$index -or $index.schemaVersion -ne 1){throw 'Indice PARA assente o non valido'}
+    if(!$index -or $index.schemaVersion -ne 1){throw (New-SBError 'prompts.para.invalid')}
     $map=@{}
-    if($CheckoutMapPath){Assert-SBPlainPath ([IO.Path]::GetFullPath($CheckoutMapPath));$map=Read-SBJson $CheckoutMapPath $null;if($map -isnot [Collections.IDictionary]){throw 'Mappa checkout non valida'}}
+    if($CheckoutMapPath){Assert-SBPlainPath ([IO.Path]::GetFullPath($CheckoutMapPath));$map=Read-SBJson $CheckoutMapPath $null;if($map -isnot [Collections.IDictionary]){throw (New-SBError 'prompts.checkoutmap.invalid')}}
     $project=$null; $current=$null
     if($ProjectId){
         $matches=@($entities|Where-Object {$_.id -eq $ProjectId -and $_.kind -eq 'project' -and !$_.archived})
-        if($matches.Count -ne 1){throw 'Progetto non disponibile'}
+        if($matches.Count -ne 1){throw (New-SBError 'prompts.project.unavailable')}
         $project=$matches[0];Assert-SBWorkflowIndexEntry $index $project
         $areas=@($entities|Where-Object {$_.id -in $project.metadata.areas -and $_.kind -eq 'area'})
     }else{
@@ -508,27 +554,27 @@ function Get-SBWorkflowContext {
             $Repository=$current.identity
         }
         $areas=@($entities|Where-Object {$_.repository -eq $Repository -and $_.kind -eq 'area'})
-        if($areas.Count -ne 1){throw 'Repository non associato a un dossier ammesso'}
+        if($areas.Count -ne 1){throw (New-SBError 'prompts.dossier.unbound')}
     }
     $result=@()
     foreach($area in $areas){
-        if($area.archived -or $area.status -ne 'active'){throw 'Dossier archiviato o ritirato: nessuna riattivazione implicita'}
+        if($area.archived -or $area.status -ne 'active'){throw (New-SBError 'prompts.dossier.archived')}
         Assert-SBWorkflowIndexEntry $index $area
         $selection=if($map.ContainsKey($area.repository)){[string]$map[$area.repository]}elseif($CheckoutPath -and !$ProjectId){$CheckoutPath}elseif($current){$current.path}else{''}
         if(!$selection){
             $inventory=if($Config.ContainsKey('mode') -and $Config.mode -eq 'portable'){@{schemaVersion=1;repositories=@($Config.bindings|ForEach-Object {@{identities=@($_.identity);path=$_.path;status='active';workstationId=$Config.workstationId}})}}else{Read-SBJson (Join-Path $brain 'inventory.json') $null}
-            if(!$inventory -or $inventory.schemaVersion -ne 1){throw 'Inventario checkout assente o non valido'}
+            if(!$inventory -or $inventory.schemaVersion -ne 1){throw (New-SBError 'prompts.inventory.invalid')}
             $choices=@($inventory.repositories|Where-Object {$_.identities.Count -and $_.identities[0] -eq $area.repository -and $_.status -eq 'active' -and $_.workstationId -eq $Config.workstationId}|Select-Object -ExpandProperty path -Unique)
             if($area.repository -eq (Get-SBBrainIdentity $brain)){$choices=@($brain)}
             if($CheckoutPath -and $ProjectId -and $CheckoutPath -in $choices){$choices=@($CheckoutPath)}
-            if($choices.Count -ne 1){throw 'Checkout assente o ambiguo: indicare CheckoutPath o CheckoutMapPath'}
+            if($choices.Count -ne 1){throw (New-SBError 'prompts.checkout.ambiguous')}
             $selection=$choices[0]
         }
         $checkout=Get-SBWorkflowCheckout $selection $Config.allowedOwners $bindings
-        if($checkout.identity -cne $area.repository){throw 'Checkout e identità del dossier divergenti'}
+        if($checkout.identity -cne $area.repository){throw (New-SBError 'prompts.checkout.identity')}
         $dir=Resolve-SBParaPath $brain $area.path
         $record=@{index=(Join-Path $dir 'index.md');identity=$area.repository;checkout=$checkout.path;areaId=$area.id;dossier=$dir;agents=(Join-Path $checkout.path 'AGENTS.md');context=(Join-Path $dir 'context.md');memory=(Join-Path $dir 'memory.md')}
-        foreach($field in @('agents','context','memory')){Assert-SBPlainPath $record[$field];if(!(Test-Path -LiteralPath $record[$field] -PathType Leaf)){throw 'Riferimento locale mancante: '+$record[$field]}}
+        foreach($field in @('agents','context','memory')){Assert-SBPlainPath $record[$field];if(!(Test-Path -LiteralPath $record[$field] -PathType Leaf)){throw (New-SBError 'prompts.reference.missing' @($record[$field]))}}
         $tracker=Resolve-SBTracker -BrainRoot $brain -Identity $area.repository -CheckoutPath $checkout.path -AllowedOwners $Config.allowedOwners -Entities $entities
         $record.tracker=$tracker.path; $record.trackerSource=$tracker.source
         $record.lifecycle=Get-SBRepositoryLifecycle $dir
@@ -538,7 +584,7 @@ function Get-SBWorkflowContext {
             foreach($reference in $project.metadata.trackers|Where-Object area -eq $area.id){
                 $linked=if($reference.ContainsKey('repository') -and $reference.repository){Join-Path $checkout.path $reference.path}else{Resolve-SBParaPath $dir $reference.path}
                 Assert-SBPlainPath $linked
-                if(!(Test-Path -LiteralPath $linked -PathType Leaf) -or ($tracker.declared -and [IO.Path]::GetFullPath($linked) -ne [IO.Path]::GetFullPath($tracker.path))){throw 'Tracker del Progetto mancante o divergente'}
+                if(!(Test-Path -LiteralPath $linked -PathType Leaf) -or ($tracker.declared -and [IO.Path]::GetFullPath($linked) -ne [IO.Path]::GetFullPath($tracker.path))){throw (New-SBError 'prompts.tracker.diverged')}
             }
         }
         $result+=$record
@@ -591,7 +637,10 @@ function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Contex
 
 # Il prompt finale segue CO-STAR: Context, Objective, Style, Tone, Audience, Response. Le schede restano la sorgente.
 function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,[string]$Objective) {
-    if($Prompt.target -eq 'central' -and (@($Context.repositories).Count -ne 1 -or [IO.Path]::GetFullPath($Context.repositories[0].checkout) -ne [IO.Path]::GetFullPath($BrainRoot))){throw 'Prompt centrale: aprire SecondBrain; nessun cambio implicito di repository'}
+    if($Prompt.target -eq 'central' -and (@($Context.repositories).Count -ne 1 -or [IO.Path]::GetFullPath($Context.repositories[0].checkout) -ne [IO.Path]::GetFullPath($BrainRoot))){
+        $suggested=if(@($Context.repositories).Count -eq 1 -and $Context.repositories[0].identity){[string]$Context.repositories[0].identity}else{'<identity>'}
+        throw (New-SBError 'prompts.central.noswitch' @($suggested))
+    }
     $body=Read-SBWorkflowPrompt $BrainRoot $Prompt $Catalog
     $L=Get-SBWorkflowLabels $Prompt
     $sections=Get-SBWorkflowSections $body

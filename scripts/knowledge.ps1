@@ -18,7 +18,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='Section')][string]$Section,[Parameter(ParameterSetName='Section')][string]$Source,
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Task')][Parameter(ParameterSetName='Section')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
-    [Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
+    [Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
     [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@(),
     [ValidateSet('en','it')][string]$Language)
@@ -28,6 +28,13 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'knowledgecli.repository.all' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout, indicare -Repository o -CheckoutPath (-All per la vista globale dei task, sola lettura)'; en = 'Working repository not resolvable: run from the checkout, give -Repository or -CheckoutPath (-All for the read-only global task view)' }
+    'knowledgecli.lifecycle.working' = @{ it = 'Il ciclo di vita si modifica soltanto per il repository in lavoro'; en = 'The lifecycle can be changed only for the working repository' }
+    'knowledgecli.repository.checkout' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'; en = 'Working repository not resolvable: run from the checkout or give -CheckoutPath' }
+    'knowledgecli.params.incompatible' = @{ it = 'Parametri incompatibili: -All e -Repository'; en = 'Incompatible parameters: -All and -Repository' }
+}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
     $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask -and !$SetLifecycle)
@@ -42,7 +49,7 @@ try{
     $resolveWorking={
         if($Repository){return $Repository}
         $resolved=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
-        if(!$resolved){throw 'Repository in lavoro non risolvibile: eseguire dal checkout, indicare -Repository o -CheckoutPath (-All per la vista globale dei task, sola lettura)'}
+        if(!$resolved){throw (New-SBError 'knowledgecli.repository.all')}
         $resolved
     }
     if($Startup){
@@ -81,21 +88,21 @@ try{
     elseif($UpdateTaskId){
         # Le scritture restano nel repository in lavoro: un -Repository diverso dal checkout corrente e rifiutato.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
-        if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
+        if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
         $result=Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $repoId -WorkingRepository $working -TaskId $UpdateTaskId -Status $Status -StateReason $StateReason -BackupRoot $config.backupRoot
     }
     elseif($SetLifecycle){
         # Blocco greenfield: come per i task, si modifica soltanto il repository in lavoro.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
-        if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
-        if($Repository -and $Repository -cne $working){throw 'Il ciclo di vita si modifica soltanto per il repository in lavoro'}
+        if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
+        if($Repository -and $Repository -cne $working){throw (New-SBError 'knowledgecli.lifecycle.working')}
         $result=Set-SBRepositoryLifecycle -Dossier (Join-Path $brain (Resolve-SBWorkingDossier $brain $working)) -Lifecycle $SetLifecycle -BackupRoot $config.backupRoot
     }
     elseif($NewTask -or $RenumberTasks){
         # Creazione e numerazione restano nel repository in lavoro, come gli aggiornamenti di stato.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
-        if(!$working){throw 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'}
+        if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
         $result=if($NewTask){
             # Con pwsh -File gli elenchi arrivano come stringa unica: ';' separa i criteri e le dipendenze.
@@ -108,8 +115,10 @@ try{
         $result.Remove('data')
     }
     elseif($All){
-        if($Repository){throw 'Parametri incompatibili: -All e -Repository'}
-        $result=@(Get-SBGlobalTasks -BrainRoot $brain -All -ReadyOnly:$ReadyOnly)
+        if($Repository){throw (New-SBError 'knowledgecli.params.incompatible')}
+        # Vista globale paginata come in MCP (50 voci per pagina, -Limit 0 = tutte): oggetto con total, nextOffset e tasks.
+        $pageLimit=if($PSBoundParameters.ContainsKey('Limit')){$Limit}else{50}
+        $result=Get-SBGlobalTaskPage -BrainRoot $brain -Offset $Offset -Limit $pageLimit -ReadyOnly:$ReadyOnly
     }
     else{$result=@(Get-SBGlobalTasks -BrainRoot $brain -Repository (& $resolveWorking) -ReadyOnly:$ReadyOnly)}
     # Ricerca ed elenchi task in JSON compatto (nessuna indentazione): meno caratteri nel contesto dell'agente.

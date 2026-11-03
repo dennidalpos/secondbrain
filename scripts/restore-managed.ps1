@@ -21,6 +21,11 @@ param(
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'restore.metadata.invalid' = @{ it = 'Metadati di ripristino non validi'; en = 'Invalid restore metadata' }
+    'restore.backup.altered' = @{ it = 'Backup alterato: ripristino rifiutato'; en = 'Backup altered: restore refused' }
+}
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if($List){
@@ -43,8 +48,8 @@ $config=Read-SBConfiguration $ConfigPath
 $lock=Enter-SBOperation $config $SessionId
 try {
 $metadata=Read-SBJson $MetadataPath $null
-if(!$metadata -or !$metadata.path -or !$metadata.backup -or !$metadata.previousHash -or !$metadata.deployedHash){throw 'Metadati di ripristino non validi'}
-if((Get-SBFileHash $metadata.backup) -ne $metadata.previousHash){throw 'Backup alterato: ripristino rifiutato'}
+if(!$metadata -or !$metadata.path -or !$metadata.backup -or !$metadata.previousHash -or !$metadata.deployedHash){throw (New-SBError 'restore.metadata.invalid')}
+if((Get-SBFileHash $metadata.backup) -ne $metadata.previousHash){throw (New-SBError 'restore.backup.altered')}
 $backupRoot=$config.backupRoot
 Assert-SBPlainPath $metadata.backup
     Write-SBFile $metadata.path ([IO.File]::ReadAllBytes($metadata.backup)) $metadata.deployedHash $backupRoot -BackupDirty | Out-Null

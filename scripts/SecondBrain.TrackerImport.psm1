@@ -4,6 +4,62 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'trackerimport.registry.invalid' = @{ it = 'Registro tracker non valido'; en = 'Invalid tracker registry' }
+    'trackerimport.registry.identity' = @{ it = 'Identita registro tracker divergente'; en = 'Tracker registry identity diverges' }
+    'trackerimport.registry.binding' = @{ it = 'Associazione registro e manifest tracker divergente'; en = 'Tracker registry and manifest binding diverge' }
+    'trackerimport.move.pending' = @{ it = 'Spostamento PARA impedito da migrazione tracker pendente: {0}; fase={1}'; en = 'PARA move blocked by a pending tracker migration: {0}; phase={1}' }
+    'trackerimport.source.changed' = @{ it = 'Sorgente modificata dopo la preparazione: {0}'; en = 'Source modified after preparation: {0}' }
+    'trackerimport.manifest.outside' = @{ it = 'Manifest tracker fuori backupRoot'; en = 'Tracker manifest outside backupRoot' }
+    'trackerimport.manifest.invalid' = @{ it = 'Manifest tracker non valido o di altro archivio'; en = 'Tracker manifest invalid or of another archive' }
+    'trackerimport.manifest.identity' = @{ it = 'Identita manifest non ammessa'; en = 'Manifest identity not allowed' }
+    'trackerimport.manifest.dossier' = @{ it = 'Associazione manifest e dossier divergente'; en = 'Manifest and dossier binding diverge' }
+    'trackerimport.candidate.outside' = @{ it = 'Candidato fuori manifest'; en = 'Candidate outside the manifest' }
+    'trackerimport.source.scope' = @{ it = 'Sorgente manifest fuori perimetro'; en = 'Manifest source outside scope' }
+    'trackerimport.checkout.diverged' = @{ it = 'Checkout sorgente manifest divergente'; en = 'Manifest source checkout diverges' }
+    'trackerimport.phase.invalid' = @{ it = 'Fase migrazione tracker non valida'; en = 'Invalid tracker migration phase' }
+    'trackerimport.payload.outside' = @{ it = 'Payload tracker fuori manifest'; en = 'Tracker payload outside the manifest' }
+    'trackerimport.archive.source' = @{ it = 'Archivio sorgente fuori dossier'; en = 'Source archive outside the dossier' }
+    'trackerimport.archive.dependencies' = @{ it = 'Archivio dipendenze fuori dossier'; en = 'Dependencies archive outside the dossier' }
+    'trackerimport.history.outside' = @{ it = 'Storico sorgente fuori archivio'; en = 'Source history outside the archive' }
+    'trackerimport.archive.review' = @{ it = 'Archivio review fuori dossier'; en = 'Review archive outside the dossier' }
+    'trackerimport.operation.outside' = @{ it = 'Operazione manifest fuori perimetro tracker'; en = 'Manifest operation outside the tracker scope' }
+    'trackerimport.area.ambiguous' = @{ it = 'Area tracker attiva non univoca'; en = 'Active tracker Area is not unique' }
+    'trackerimport.import.registered' = @{ it = 'Importazione tracker gia registrata: riprendere il manifest {0}'; en = 'Tracker import already registered: resume the manifest {0}' }
+    'trackerimport.source.notundeclared' = @{ it = 'La sorgente non e il tracker non dichiarato da importare'; en = 'The source is not the undeclared tracker to import' }
+    'trackerimport.checkout.identity' = @{ it = 'Identita checkout sorgente divergente'; en = 'Source checkout identity diverges' }
+    'trackerimport.original.missing' = @{ it = 'Tracker originale assente'; en = 'Original tracker missing' }
+    'trackerimport.dependencies.outside' = @{ it = 'Storico dipendenze fuori archivio'; en = 'Dependencies history outside the archive' }
+    'trackerimport.dependencies.missing' = @{ it = 'Storico dipendenze assente'; en = 'Dependencies history missing' }
+    'trackerimport.target.existing' = @{ it = 'Tracker destinazione gia presente senza manifest'; en = 'Target tracker already present without a manifest' }
+    'trackerimport.dossier.moved' = @{ it = 'Dossier spostato o target manifest divergente: revisione richiesta'; en = 'Dossier moved or manifest target diverges: review required' }
+    'trackerimport.operation.archive' = @{ it = 'Operazione migrazione fuori archivio'; en = 'Migration operation outside the archive' }
+    'trackerimport.resume.diverged' = @{ it = 'Piano di ripresa divergente: {0}'; en = 'Resume plan diverges: {0}' }
+    'trackerimport.remove.sourcechanged' = @{ it = 'Sorgente modificata prima della rimozione: {0}'; en = 'Source modified before removal: {0}' }
+    'trackerimport.remove.hash' = @{ it = 'Hash di rimozione diverso dalla fonte convertita: {0}'; en = 'Removal hash differs from the converted source: {0}' }
+    'trackerimport.concurrent' = @{ it = 'Modifica concorrente durante migrazione: {0}'; en = 'Concurrent modification during migration: {0}' }
+    'trackerimport.original.reappeared' = @{ it = 'Originale ricomparso dopo migrazione'; en = 'Original reappeared after migration' }
+    'trackerimport.manifest.restored' = @{ it = 'Manifest ripristinato: preparare una nuova migrazione'; en = 'Manifest restored: prepare a new migration' }
+    'trackerimport.backup.unverified' = @{ it = 'Backup tracker non verificato'; en = 'Tracker backup not verified' }
+    'trackerimport.candidate.aftercopy' = @{ it = 'Candidato tracker modificato dopo copia'; en = 'Tracker candidate modified after copy' }
+    'trackerimport.compare.failed' = @{ it = 'Confronto dati originali fallito'; en = 'Original data comparison failed' }
+    'trackerimport.copy.notidentical' = @{ it = 'Copia storica non identica'; en = 'Historical copy not identical' }
+    'trackerimport.activation.approval' = @{ it = 'Attivazione sospesa: approvazione esplicita del testo comune tracker richiesta'; en = 'Activation suspended: explicit approval of the common tracker text required' }
+    'trackerimport.activation.review' = @{ it = 'Attivazione sospesa: record da revisionare {0}'; en = 'Activation suspended: records to review {0}' }
+    'trackerimport.candidate.afterverify' = @{ it = 'Candidato tracker modificato dopo verifica'; en = 'Tracker candidate modified after verification' }
+    'trackerimport.dossier.identity' = @{ it = 'Identita dossier cambiata'; en = 'Dossier identity changed' }
+    'trackerimport.operation.diverged' = @{ it = 'Operazione migrazione divergente: {0}'; en = 'Migration operation diverges: {0}' }
+    'trackerimport.restore.outside' = @{ it = 'Ripristino fuori archivio'; en = 'Restore outside the archive' }
+    'trackerimport.restore.refused' = @{ it = 'Ripristino rifiutato: modifiche successive {0}'; en = 'Restore refused: later changes {0}' }
+    'trackerimport.restore.payload' = @{ it = 'Payload ripristino fuori manifest'; en = 'Restore payload outside the manifest' }
+    'trackerimport.restore.unverified' = @{ it = 'Payload ripristino non verificato'; en = 'Restore payload not verified' }
+    'trackerimport.migration.identity' = @{ it = 'Identita registro migrazione divergente'; en = 'Migration registry identity diverges' }
+    'trackerimport.backup.diverged' = @{ it = 'Backup originale divergente'; en = 'Original backup diverges' }
+    'trackerimport.archive.diverged' = @{ it = 'Archivio originale divergente'; en = 'Original archive diverges' }
+    'trackerimport.candidate.diverged' = @{ it = 'Candidato divergente'; en = 'Candidate diverges' }
+    'trackerimport.removal.diverged' = @{ it = 'Fonte autorevole o rimozione originale divergente'; en = 'Authoritative source or original removal diverges' }
+}
 
 function Get-SBTrackerImportPayloads($Manifest) {
     @($Manifest.source,$Manifest.historySource) | Where-Object {$_}
@@ -41,18 +97,18 @@ function Get-SBTrackerManifestRegistrations($Config) {
         foreach($entry in Get-ChildItem -LiteralPath $root -File -Filter '*.json'){
             Assert-SBPlainPath $entry.FullName
             $registration=Read-SBJson $entry.FullName $null
-            if(!$registration -or $registration.schemaVersion -ne 1 -or !(Test-SBRepositoryIdentity $registration.identity $Config.allowedOwners)){throw 'Registro tracker non valido'}
-            if($entry.FullName -notin @(Get-SBTrackerImportPaths $stationConfig $registration.identity)){throw 'Identita registro tracker divergente'}
+            if(!$registration -or $registration.schemaVersion -ne 1 -or !(Test-SBRepositoryIdentity $registration.identity $Config.allowedOwners)){throw (New-SBError 'trackerimport.registry.invalid')}
+            if($entry.FullName -notin @(Get-SBTrackerImportPaths $stationConfig $registration.identity)){throw (New-SBError 'trackerimport.registry.identity')}
             $path=[IO.Path]::GetFullPath($registration.manifest);Assert-SBPlainPath $path
             $boundary=$stationConfig.backupRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-            if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Manifest tracker fuori backupRoot'}
+            if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.manifest.outside')}
             $manifestBytes=[IO.File]::ReadAllBytes($path)
             $manifestHash=Get-SBHash $manifestBytes
             $m=([Text.UTF8Encoding]::new($false,$true)).GetString($manifestBytes).TrimStart([char]0xFEFF)|ConvertFrom-Json -AsHashtable -DateKind String
             # This check also works during PARA recovery, when neither dossier location is complete.
             if(!$m -or $m.schemaVersion -ne 1 -or $m.kind -notin $script:SBTrackerImportKinds -or $m.identity -cne $registration.identity -or
                $m.brainRoot -ne $Config.brainRoot -or $m.id -notmatch '^[a-f0-9]{32}$' -or
-               $path -ne (Join-Path $stationConfig.backupRoot ('tracker-'+$m.id+'/manifest.json'))){throw 'Associazione registro e manifest tracker divergente'}
+               $path -ne (Join-Path $stationConfig.backupRoot ('tracker-'+$m.id+'/manifest.json'))){throw (New-SBError 'trackerimport.registry.binding')}
             @{path=$path;config=$stationConfig;manifest=$m;hash=$manifestHash}
         }
         }
@@ -80,7 +136,7 @@ function Get-SBTrackerRelocationOperations($Config,[hashtable]$Mapping,[hashtabl
         $next=Convert-SBParaReferences $m $Mapping $Config.brainRoot
         if((ConvertTo-SBJson $next) -ceq (ConvertTo-SBJson $m)){continue}
         [void](Read-SBTrackerManifest $registration.config $registration.path)
-        if($m.phase -notin @('completed','rolled_back')){throw 'Spostamento PARA impedito da migrazione tracker pendente: '+$m.identity+'; fase='+$m.phase}
+        if($m.phase -notin @('completed','rolled_back')){throw (New-SBError 'trackerimport.move.pending' @($m.identity, $m.phase))}
         if($TrackerChanges.ContainsKey($m.target)){
             $change=$TrackerChanges[$m.target]
             foreach($operation in $next.operations){
@@ -100,36 +156,36 @@ function Assert-SBTrackerImportSources($Manifest,[switch]$AllowRemoved) {
             $removal=@($Manifest.operations|Where-Object { $_.path -eq $payload.path -and $_.previousHash -eq $payload.sha256 -and $_.deployedHash -eq 'absent' })
             if($removal.Count -eq 1){continue}
         }
-        throw 'Sorgente modificata dopo la preparazione: '+$payload.path
+        throw (New-SBError 'trackerimport.source.changed' @($payload.path))
     }
 }
 
 function Read-SBTrackerManifest($Config,[string]$Path) {
     $boundary=[IO.Path]::GetFullPath($Config.backupRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     $full=[IO.Path]::GetFullPath($Path);Assert-SBPlainPath $full
-    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Manifest tracker fuori backupRoot'}
+    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.manifest.outside')}
     $m=Read-SBJson $full $null
-    if(!$m -or $m.schemaVersion -ne 1 -or $m.kind -notin $script:SBTrackerImportKinds -or $m.brainRoot -ne $Config.brainRoot){throw 'Manifest tracker non valido o di altro archivio'}
-    if($m.id -notmatch '^[a-f0-9]{32}$' -or !(Test-SBRepositoryIdentity $m.identity $Config.allowedOwners)){throw 'Identita manifest non ammessa'}
+    if(!$m -or $m.schemaVersion -ne 1 -or $m.kind -notin $script:SBTrackerImportKinds -or $m.brainRoot -ne $Config.brainRoot){throw (New-SBError 'trackerimport.manifest.invalid')}
+    if($m.id -notmatch '^[a-f0-9]{32}$' -or !(Test-SBRepositoryIdentity $m.identity $Config.allowedOwners)){throw (New-SBError 'trackerimport.manifest.identity')}
     $dir=Resolve-SBParaPath $Config.brainRoot $m.dossier
     $record=Read-SBJson (Join-Path $dir 'repository.json') @{}
-    if(!$record.ContainsKey('identity') -or $record.identity -ne $m.identity -or $m.target -ne (Join-Path $dir 'tracker.json')){throw 'Associazione manifest e dossier divergente'}
-    if($m.candidate -ne (Join-Path (Split-Path $full) 'candidate.json')){throw 'Candidato fuori manifest'}
+    if(!$record.ContainsKey('identity') -or $record.identity -ne $m.identity -or $m.target -ne (Join-Path $dir 'tracker.json')){throw (New-SBError 'trackerimport.manifest.dossier')}
+    if($m.candidate -ne (Join-Path (Split-Path $full) 'candidate.json')){throw (New-SBError 'trackerimport.candidate.outside')}
     if($m.source.path -ne (Join-Path $dir 'tracker.md')){
-        if(!(Test-SBCheckoutScope $Config (Split-Path $m.source.path))){throw 'Sorgente manifest fuori perimetro'}
+        if(!(Test-SBCheckoutScope $Config (Split-Path $m.source.path))){throw (New-SBError 'trackerimport.source.scope')}
         $bindings=if($Config.ContainsKey('bindings')){$Config.bindings}else{@()}
-        if((Resolve-SBBoundIdentity (Split-Path $m.source.path) $bindings) -cne $m.identity){throw 'Checkout sorgente manifest divergente'}
+        if((Resolve-SBBoundIdentity (Split-Path $m.source.path) $bindings) -cne $m.identity){throw (New-SBError 'trackerimport.checkout.diverged')}
     }
-    if($m.phase -notin @('pending','prepared','copied','verified','references_updated','originals_removed','completed','rolled_back')){throw 'Fase migrazione tracker non valida'}
+    if($m.phase -notin @('pending','prepared','copied','verified','references_updated','originals_removed','completed','rolled_back')){throw (New-SBError 'trackerimport.phase.invalid')}
     foreach($payload in @(Get-SBTrackerImportPayloads $m)){
         $payloadPath=[IO.Path]::GetFullPath($payload.backup)
-        if(!$payloadPath.StartsWith((Split-Path $full)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Payload tracker fuori manifest'}
+        if(!$payloadPath.StartsWith((Split-Path $full)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.payload.outside')}
         Assert-SBPlainPath $payloadPath
     }
-    if($m.source.archive -notin @(Get-SBTrackerImportArchives $dir $m.id (Split-Path $m.source.path -Leaf))){throw 'Archivio sorgente fuori dossier'}
-    if($m.historySource -and $m.historySource.archive -notin @(Get-SBTrackerImportArchives $dir $m.id 'dependency-history.md')){throw 'Archivio dipendenze fuori dossier'}
-    if($m.historySource -and !([IO.Path]::GetFullPath($m.historySource.path)).StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Storico sorgente fuori archivio'}
-    if($m.ContainsKey('reviewSource') -and $m.reviewSource -and $m.reviewSource.archive -notin @(Get-SBTrackerImportArchives $dir $m.id 'review.json')){throw 'Archivio review fuori dossier'}
+    if($m.source.archive -notin @(Get-SBTrackerImportArchives $dir $m.id (Split-Path $m.source.path -Leaf))){throw (New-SBError 'trackerimport.archive.source')}
+    if($m.historySource -and $m.historySource.archive -notin @(Get-SBTrackerImportArchives $dir $m.id 'dependency-history.md')){throw (New-SBError 'trackerimport.archive.dependencies')}
+    if($m.historySource -and !([IO.Path]::GetFullPath($m.historySource.path)).StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.history.outside')}
+    if($m.ContainsKey('reviewSource') -and $m.reviewSource -and $m.reviewSource.archive -notin @(Get-SBTrackerImportArchives $dir $m.id 'review.json')){throw (New-SBError 'trackerimport.archive.review')}
     foreach($path in @($m.source.path,$m.source.archive,$m.target,$m.candidate)){Assert-SBPlainPath $path}
     foreach($operation in $m.operations){
         $relative=[IO.Path]::GetRelativePath($Config.brainRoot,$operation.path).Replace('\','/')
@@ -140,7 +196,7 @@ function Read-SBTrackerManifest($Config,[string]$Path) {
         $dossierBoundary=$dir.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
         $inDossier=([IO.Path]::GetFullPath($operation.path)).StartsWith($dossierBoundary,[StringComparison]::OrdinalIgnoreCase) -and $dossierRelative -notmatch '(?:^|/)(?:history|snapshots)/' -and [IO.Path]::GetExtension($operation.path) -eq '.md'
         $curated=$inDossier -or $relative -match '^(?:README\.md|docs/(?!.*(?:^|/)(?:history|snapshots)/).+\.md|02-areas/products/SecondBrain/(?:context|memory|brief)\.md|(?:01-projects|04-archives/projects)/[^/]+/para\.json)$'
-        if($operation.path -notin $explicit -and !$curated){throw 'Operazione manifest fuori perimetro tracker'}
+        if($operation.path -notin $explicit -and !$curated){throw (New-SBError 'trackerimport.operation.outside')}
         Assert-SBPlainPath $operation.path
     }
     $m
@@ -208,7 +264,7 @@ function Invoke-SBTrackerImport {
     if($ManifestPath){$m=Read-SBTrackerManifest $Config $ManifestPath;$Identity=$m.identity}
     $completed=$ManifestPath -and $m.phase -eq 'completed'
     $areas=@($entities|Where-Object {$_.kind -eq 'area' -and $_.repository -eq $Identity -and ($completed -or (!$_.archived -and $_.status -eq 'active'))})
-    if($areas.Count -ne 1){throw 'Area tracker attiva non univoca'}
+    if($areas.Count -ne 1){throw (New-SBError 'trackerimport.area.ambiguous')}
     $area=$areas[0];$dir=Resolve-SBParaPath $Config.brainRoot $area.path
     $registryPath=Get-SBTrackerImportPath $Config $Identity
     if(!$ManifestPath){
@@ -216,15 +272,15 @@ function Invoke-SBTrackerImport {
             if(!(Test-Path -LiteralPath $priorPath)){continue}
             $registration=Read-SBJson $priorPath $null
             $prior=Read-SBTrackerManifest $Config $registration.manifest
-            if($prior.phase -ne 'rolled_back'){throw 'Importazione tracker gia registrata: riprendere il manifest '+$registration.manifest}
+            if($prior.phase -ne 'rolled_back'){throw (New-SBError 'trackerimport.import.registered' @($registration.manifest))}
         }
         $SourcePath=[IO.Path]::GetFullPath($SourcePath);Assert-SBPlainPath $SourcePath
         $checkout=Split-Path $SourcePath
         $source=Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $Identity -CheckoutPath $checkout -AllowedOwners $Config.allowedOwners -Entities $entities
-        if(!$source.path -or [IO.Path]::GetFullPath($source.path) -ne $SourcePath -or $source.declared){throw 'La sorgente non e il tracker non dichiarato da importare'}
+        if(!$source.path -or [IO.Path]::GetFullPath($source.path) -ne $SourcePath -or $source.declared){throw (New-SBError 'trackerimport.source.notundeclared')}
         if($source.source -eq 'repository_undeclared'){
             $bindings=if($Config.ContainsKey('bindings')){$Config.bindings}else{@()}
-            if((Resolve-SBBoundIdentity $checkout $bindings) -cne $Identity){throw 'Identita checkout sorgente divergente'}
+            if((Resolve-SBBoundIdentity $checkout $bindings) -cne $Identity){throw (New-SBError 'trackerimport.checkout.identity')}
         }
         $id=[guid]::NewGuid().ToString('N');$journal=Join-Path $Config.backupRoot ('tracker-'+$id)
         $ManifestPath=Join-Path $journal 'manifest.json'
@@ -232,11 +288,11 @@ function Invoke-SBTrackerImport {
         $m=@{schemaVersion=1;kind='tracker-import';id=$id;identity=$Identity;brainRoot=$Config.brainRoot;dossier=$area.path;phase='pending';lastError=$null;
             source=@{path=$SourcePath;sha256=Get-SBFileHash $SourcePath;backup=(Join-Path $journal 'source.bin');archive=(Join-Path $archive ([IO.Path]::GetFileName($SourcePath)))};
             historySource=$null;candidate=(Join-Path $journal 'candidate.json');candidateHash=$null;target=(Join-Path $dir 'tracker.json');operations=@();review=@();createdAt=[DateTimeOffset]::UtcNow.ToString('o')}
-        if($m.source.sha256 -eq 'absent'){throw 'Tracker originale assente'}
+        if($m.source.sha256 -eq 'absent'){throw (New-SBError 'trackerimport.original.missing')}
         if($HistoryPath){
             $HistoryPath=[IO.Path]::GetFullPath($HistoryPath);Assert-SBPlainPath $HistoryPath
-            if(!$HistoryPath.StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Storico dipendenze fuori archivio'}
-            if(!(Test-Path -LiteralPath $HistoryPath -PathType Leaf)){throw 'Storico dipendenze assente'}
+            if(!$HistoryPath.StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.dependencies.outside')}
+            if(!(Test-Path -LiteralPath $HistoryPath -PathType Leaf)){throw (New-SBError 'trackerimport.dependencies.missing')}
             $m.historySource=@{path=$HistoryPath;sha256=Get-SBFileHash $HistoryPath;backup=(Join-Path $journal 'history.bin');archive=(Join-Path $archive 'dependency-history.md')}
         }
         if($ReviewPath){
@@ -244,11 +300,11 @@ function Invoke-SBTrackerImport {
             [void](Read-SBTrackerReview $ReviewPath $Identity $m.source.sha256)
             $m.reviewSource=@{path=$ReviewPath;sha256=Get-SBFileHash $ReviewPath;backup=(Join-Path $journal 'review.bin');archive=(Join-Path $archive 'review.json')}
         }
-        if(Test-Path -LiteralPath $m.target){throw 'Tracker destinazione gia presente senza manifest'}
+        if(Test-Path -LiteralPath $m.target){throw (New-SBError 'trackerimport.target.existing')}
     }
     # Tutti i percorsi riscritti restano nel checkout di SecondBrain o nel backupRoot.
     $expectedTarget=Resolve-SBParaPath $dir 'tracker.json'
-    if($m.dossier -ne $area.path -or $m.target -ne $expectedTarget){throw 'Dossier spostato o target manifest divergente: revisione richiesta'}
+    if($m.dossier -ne $area.path -or $m.target -ne $expectedTarget){throw (New-SBError 'trackerimport.dossier.moved')}
     $manifestHash=Get-SBFileHash $ManifestPath
     $save={
         $m.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
@@ -259,39 +315,39 @@ function Invoke-SBTrackerImport {
     # Registra prima l'operazione, cosi anche una scrittura interrotta resta recuperabile.
     $write={param([string]$Path,[byte[]]$Bytes,[switch]$Remove)
         $full=[IO.Path]::GetFullPath($Path)
-        if($full -ne $m.source.path -and !$full.StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Operazione migrazione fuori archivio'}
+        if($full -ne $m.source.path -and !$full.StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.operation.archive')}
         Assert-SBPlainPath $full
         $op=@($m.operations|Where-Object path -eq $full)
         $deployed=if($Remove){'absent'}else{Get-SBHash $Bytes}
         if($op.Count){
-            if($op.Count -ne 1 -or $op[0].deployedHash -ne $deployed){throw 'Piano di ripresa divergente: '+$full}
+            if($op.Count -ne 1 -or $op[0].deployedHash -ne $deployed){throw (New-SBError 'trackerimport.resume.diverged' @($full))}
             $op=$op[0]
         }else{
             $previous=Get-SBFileHash $full
-            if($Remove -and $previous -ne $m.source.sha256){throw 'Sorgente modificata prima della rimozione: '+$full}
+            if($Remove -and $previous -ne $m.source.sha256){throw (New-SBError 'trackerimport.remove.sourcechanged' @($full))}
             $operationPayload=Join-Path (Split-Path $ManifestPath) ('operation-'+$m.operations.Count+'.bin')
             if($previous -ne 'absent'){[void](Write-SBFile $operationPayload ([IO.File]::ReadAllBytes($full)) 'absent' $Config.backupRoot)}
             $op=@{path=$full;previousHash=$previous;deployedHash=$deployed;backup=$operationPayload}
             $m.operations+=,$op;. $save
         }
-        if($Remove -and $op.previousHash -ne $m.source.sha256){throw 'Hash di rimozione diverso dalla fonte convertita: '+$full}
+        if($Remove -and $op.previousHash -ne $m.source.sha256){throw (New-SBError 'trackerimport.remove.hash' @($full))}
         $current=Get-SBFileHash $full
         if($current -eq $deployed){return}
-        if($current -ne $op.previousHash){throw 'Modifica concorrente durante migrazione: '+$full}
+        if($current -ne $op.previousHash){throw (New-SBError 'trackerimport.concurrent' @($full))}
         if($Remove){[void](Remove-SBFile $full (Split-Path $full) $current $Config.backupRoot)}
         else{[void](Write-SBFile $full $Bytes $current $Config.backupRoot)}
     }
     try {
         if($m.phase -eq 'completed'){
             [void](Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $Identity -CheckoutPath (Split-Path $m.source.path) -AllowedOwners $Config.allowedOwners)
-            if(Test-Path -LiteralPath $m.source.path){throw 'Originale ricomparso dopo migrazione'}
+            if(Test-Path -LiteralPath $m.source.path){throw (New-SBError 'trackerimport.original.reappeared')}
             if($m.lastError){$m.lastError=$null;. $save}
             return $ManifestPath
         }
         $m.lastError=$null
         . $save
         [void](Write-SBFile $registryPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson @{schemaVersion=1;identity=$Identity;manifest=$ManifestPath}))) (Get-SBFileHash $registryPath) $Config.backupRoot)
-        if($m.phase -eq 'rolled_back'){throw 'Manifest ripristinato: preparare una nuova migrazione'}
+        if($m.phase -eq 'rolled_back'){throw (New-SBError 'trackerimport.manifest.restored')}
         if($m.phase -in @('pending','prepared','copied','verified','references_updated')){
             Assert-SBTrackerImportSources $m -AllowRemoved:($m.phase -eq 'references_updated')
         }
@@ -299,16 +355,16 @@ function Invoke-SBTrackerImport {
             if($AfterPhase){& $AfterPhase 'pending'}
             foreach($payload in @(Get-SBTrackerImportPayloads $m)){
                 if((Get-SBFileHash $payload.backup) -eq 'absent'){[void](Write-SBFile $payload.backup ([IO.File]::ReadAllBytes($payload.path)) 'absent' $Config.backupRoot)}
-                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw 'Backup tracker non verificato'}
+                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw (New-SBError 'trackerimport.backup.unverified')}
             }
             . $phase 'prepared'
         }
         if($m.phase -eq 'prepared'){
             . $write (Join-Path (Split-Path $m.source.archive) '.gitattributes') ([Text.Encoding]::UTF8.GetBytes("* -text`n"))
             foreach($payload in @(Get-SBTrackerImportPayloads $m)){
-                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw 'Backup tracker non verificato'}
+                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw (New-SBError 'trackerimport.backup.unverified')}
                 . $write $payload.archive ([IO.File]::ReadAllBytes($payload.backup))
-                if((Get-SBFileHash $payload.archive) -ne $payload.sha256){throw 'Copia storica non identica'}
+                if((Get-SBFileHash $payload.archive) -ne $payload.sha256){throw (New-SBError 'trackerimport.copy.notidentical')}
             }
             $commit=(Invoke-SBGit (Split-Path $m.source.path) @('rev-parse','HEAD')).output
             $arguments=@{SourcePath=$m.source.archive;Identity=$Identity;Reference=[IO.Path]::GetRelativePath($Config.brainRoot,$m.source.archive).Replace('\','/');Commit=$commit}
@@ -330,30 +386,30 @@ function Invoke-SBTrackerImport {
         }
         if($m.phase -eq 'copied'){
             Assert-SBTrackerImportSources $m
-            if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw 'Candidato tracker modificato dopo copia'}
+            if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.aftercopy')}
             $data=Read-SBJson $m.candidate $null
             [void](Test-SBTrackerData $data $Identity @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $Config.brainRoot $Identity $entities))
             $original=if([IO.Path]::GetExtension($m.source.path) -eq '.json'){Read-SBJson $m.source.backup $null}else{@{markdown=Read-SBText $m.source.backup}}
-            if((ConvertTo-SBJson $data.extensions.original) -cne (ConvertTo-SBJson $original)){throw 'Confronto dati originali fallito'}
-            foreach($payload in @(Get-SBTrackerImportPayloads $m)){if((Get-SBFileHash $payload.archive) -ne $payload.sha256){throw 'Copia storica non identica'}}
+            if((ConvertTo-SBJson $data.extensions.original) -cne (ConvertTo-SBJson $original)){throw (New-SBError 'trackerimport.compare.failed')}
+            foreach($payload in @(Get-SBTrackerImportPayloads $m)){if((Get-SBFileHash $payload.archive) -ne $payload.sha256){throw (New-SBError 'trackerimport.copy.notidentical')}}
             $m.review=@($data.tasks|Where-Object status -eq 'unknown'|ForEach-Object id)
             Assert-SBTrackerImportSources $m
             . $phase 'verified'
         }
         if($m.phase -in @('verified','references_updated')){
-            if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw 'Candidato tracker modificato dopo verifica'}
+            if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.afterverify')}
             $entities=@(Get-SBParaEntities $Config.brainRoot $Config.allowedOwners)
             [void](Test-SBTrackerData (Read-SBJson $m.candidate $null) $Identity @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $Config.brainRoot $Identity $entities))
         }
         if(!$Activate){return $ManifestPath}
-        if(!(Test-SBTrackerPolicy $Config.brainRoot)){throw 'Attivazione sospesa: approvazione esplicita del testo comune tracker richiesta'}
-        if($m.review.Count){throw 'Attivazione sospesa: record da revisionare '+($m.review -join ', ')}
-        if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw 'Candidato tracker modificato dopo verifica'}
+        if(!(Test-SBTrackerPolicy $Config.brainRoot)){throw (New-SBError 'trackerimport.activation.approval')}
+        if($m.review.Count){throw (New-SBError 'trackerimport.activation.review' @($m.review -join ', '))}
+        if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.afterverify')}
         if($m.phase -eq 'verified'){
             Assert-SBTrackerImportSources $m
             . $write $m.target ([IO.File]::ReadAllBytes($m.candidate))
             $metaPath=Join-Path $dir 'repository.json';$meta=Read-SBJson $metaPath $null
-            if($meta.identity -ne $Identity){throw 'Identita dossier cambiata'}
+            if($meta.identity -ne $Identity){throw (New-SBError 'trackerimport.dossier.identity')}
             $meta.tracker=@{location='dossier';path='tracker.json';schemaVersion=1}
             . $write $metaPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta)))
             foreach($change in @(Get-SBTrackerReferenceChanges $Config $area $m.source.path $m.target)){. $write $change.path $change.bytes}
@@ -366,7 +422,7 @@ function Invoke-SBTrackerImport {
         }
         if($m.phase -eq 'originals_removed'){
             [void](Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $Identity -CheckoutPath (Split-Path $m.source.path) -AllowedOwners $Config.allowedOwners)
-            foreach($op in $m.operations){if((Get-SBFileHash $op.path) -ne $op.deployedHash){throw 'Operazione migrazione divergente: '+$op.path}}
+            foreach($op in $m.operations){if((Get-SBFileHash $op.path) -ne $op.deployedHash){throw (New-SBError 'trackerimport.operation.diverged' @($op.path))}}
             . $phase 'completed'
         }
         $ManifestPath
@@ -378,13 +434,13 @@ function Restore-SBTrackerImport($Config,[string]$ManifestPath) {
     if($m.phase -eq 'rolled_back'){return}
     foreach($op in $m.operations){
         $boundary=$Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-        if($op.path -ne $m.source.path -and !([IO.Path]::GetFullPath($op.path)).StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Ripristino fuori archivio'}
+        if($op.path -ne $m.source.path -and !([IO.Path]::GetFullPath($op.path)).StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.restore.outside')}
         Assert-SBPlainPath $op.path
-        if((Get-SBFileHash $op.path) -notin @($op.previousHash,$op.deployedHash)){throw 'Ripristino rifiutato: modifiche successive '+$op.path}
+        if((Get-SBFileHash $op.path) -notin @($op.previousHash,$op.deployedHash)){throw (New-SBError 'trackerimport.restore.refused' @($op.path))}
         if($op.previousHash -ne 'absent'){
-            if(!([IO.Path]::GetFullPath($op.backup)).StartsWith((Split-Path $ManifestPath)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Payload ripristino fuori manifest'}
+            if(!([IO.Path]::GetFullPath($op.backup)).StartsWith((Split-Path $ManifestPath)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.restore.payload')}
             Assert-SBPlainPath $op.backup
-            if((Get-SBFileHash $op.backup) -ne $op.previousHash){throw 'Payload ripristino non verificato'}
+            if((Get-SBFileHash $op.backup) -ne $op.previousHash){throw (New-SBError 'trackerimport.restore.unverified')}
         }
     }
     for($i=$m.operations.Count-1;$i -ge 0;$i--){
@@ -408,18 +464,18 @@ function Get-SBTrackerImportIssues($Config) {
         try{
             $registration=Read-SBJson $entry.FullName $null
             $m=Read-SBTrackerManifest $Config $registration.manifest
-            if($registration.identity -ne $m.identity){throw 'Identita registro migrazione divergente'}
+            if($registration.identity -ne $m.identity){throw (New-SBError 'trackerimport.migration.identity')}
             if($m.phase -eq 'rolled_back'){continue}
             foreach($payload in @(Get-SBTrackerImportPayloads $m)){
-                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw 'Backup originale divergente'}
-                if($m.phase -notin @('pending','prepared') -and (Get-SBFileHash $payload.archive) -ne $payload.sha256){throw 'Archivio originale divergente'}
+                if((Get-SBFileHash $payload.backup) -ne $payload.sha256){throw (New-SBError 'trackerimport.backup.diverged')}
+                if($m.phase -notin @('pending','prepared') -and (Get-SBFileHash $payload.archive) -ne $payload.sha256){throw (New-SBError 'trackerimport.archive.diverged')}
             }
-            if($m.candidateHash -and (Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw 'Candidato divergente'}
+            if($m.candidateHash -and (Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.diverged')}
             if($m.phase -ne 'completed'){
                 'Migrazione tracker incompleta: '+$m.identity+'; fase='+$m.phase+'; manifest='+$registration.manifest+$(if($m.lastError){'; '+$m.lastError})
             }else{
                 $metadata=Read-SBJson (Join-Path $Config.brainRoot ($m.dossier+'/repository.json')) @{}
-                if(!$metadata.ContainsKey('tracker') -or !(Test-Path -LiteralPath $m.target -PathType Leaf) -or (Test-Path -LiteralPath $m.source.path)){throw 'Fonte autorevole o rimozione originale divergente'}
+                if(!$metadata.ContainsKey('tracker') -or !(Test-Path -LiteralPath $m.target -PathType Leaf) -or (Test-Path -LiteralPath $m.source.path)){throw (New-SBError 'trackerimport.removal.diverged')}
             }
         }catch{'Stato migrazione tracker non valido: '+$entry.FullName+'; '+$_.Exception.Message}
     }

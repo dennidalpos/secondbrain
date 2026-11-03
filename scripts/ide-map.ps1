@@ -15,6 +15,13 @@ param([switch]$Verify,[string]$ConfigPath,[string]$SessionId,[string]$Observatio
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'idemap.map.invalid' = @{ it = 'Mappa IDE non valida o di un''altra postazione: {0}'; en = 'IDE map invalid or of another workstation: {0}' }
+    'idemap.observations.invalid' = @{ it = 'Osservazioni IDE non valide'; en = 'Invalid IDE observations' }
+    'idemap.entry.invalid' = @{ it = 'Voce della mappa non valida: {0}'; en = 'Invalid map entry: {0}' }
+    'idemap.path.absolute' = @{ it = 'Percorso assoluto richiesto per {0}'; en = 'Absolute path required for {0}' }
+}
 $config=Read-SBConfiguration $ConfigPath -ReadOnly
 $lock=Enter-SBOperation $config $SessionId -ReadOnly
 try {
@@ -27,13 +34,13 @@ try {
     $expectedRevision=if($expected -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
     $wanted="<!-- secondbrain:global:begin -->`n"+$expected+"`n<!-- secondbrain:global:end -->"
     $map=Read-SBJson $mapPath $null
-    if(!$map -or $map.schemaVersion -ne 1 -or $map.workstationId -ne $config.workstationId -or $map.ides -isnot [array]){throw 'Mappa IDE non valida o di un''altra postazione: '+$mapPath}
+    if(!$map -or $map.schemaVersion -ne 1 -or $map.workstationId -ne $config.workstationId -or $map.ides -isnot [array]){throw (New-SBError 'idemap.map.invalid' @($mapPath))}
     $pending=0
     $observations=@()
-    if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw 'Osservazioni IDE non valide'};$observations=@($receipt.observations)}
+    if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw (New-SBError 'idemap.observations.invalid')};$observations=@($receipt.observations)}
     "Revisione attesa: $expectedRevision; schema mappa $($map.schemaVersion)"
     foreach($ide in $map.ides){
-        if(!$ide.name -or $ide.mode -notin @('file','manual')){throw 'Voce della mappa non valida: '+(ConvertTo-SBJson $ide)}
+        if(!$ide.name -or $ide.mode -notin @('file','manual')){throw (New-SBError 'idemap.entry.invalid' @(((ConvertTo-SBJson $ide))))}
         if($ide.ContainsKey('selected') -and !$ide.selected){continue}
         if($ide.mode -eq 'manual'){
             $valid=Test-SBIDEObservation $ide (Get-SBTextHash $expected) $observations $config.brainRoot $config.workstationId
@@ -48,7 +55,7 @@ try {
             $line
             continue
         }
-        if(![IO.Path]::IsPathFullyQualified([string]$ide.instructions)){throw "Percorso assoluto richiesto per $($ide.name)"}
+        if(![IO.Path]::IsPathFullyQualified([string]$ide.instructions)){throw (New-SBError 'idemap.path.absolute' @($ide.name))}
         if(!(Test-Path -LiteralPath $ide.instructions -PathType Leaf)){$pending++;"$($ide.name): file assente $($ide.instructions)";continue}
         $text=(Read-SBText $ide.instructions) -replace "`r`n","`n"
         $block=Get-SBManagedContent $text 'global'

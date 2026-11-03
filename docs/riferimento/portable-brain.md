@@ -86,7 +86,7 @@ Opzioni di `-Setup`:
 | `-Roots` | Radici da analizzare (senza: volumi fissi). `-MaxDirectories` limita la visita. |
 | `-Select` | Repository per id, nome o percorso (più valori separati da virgola). `-All` seleziona tutti. |
 | `-Ides` / `-AllIdes` | IDE da associare (id o nome). |
-| `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. |
+| `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. Non serve per un blocco identico al testo approvato (stessi marcatori e hash di origine): `-Setup` lo riconosce e lo registra come approvato. Un blocco diverso resta bloccato. |
 | `-Yes` | Conferma non interattiva: registra utente, host e data nella selezione. Va usata solo dopo la conferma dell'utente. |
 | `-Apply` | Applica; senza, resta l'anteprima. Non scrive `SECONDBRAIN_HOME` da solo. |
 | `-RegisterEnvironment` | Conferma esplicita: scrive la variabile utente `SECONDBRAIN_HOME`. In `-Interactive` la conferma è la risposta `SI`. |

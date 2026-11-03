@@ -9,6 +9,67 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'portable.directives.unapproved' = @{ it = 'Direttive non ancora approvate: distribuzione sospesa'; en = 'Directives not yet approved: distribution suspended' }
+    'portable.directives.nonportable' = @{ it = 'Direttive globali non portabili'; en = 'Global directives are not portable' }
+    'portable.selection.unconfirmed' = @{ it = 'Selezione richiede confirmed=true e riferimento alla conferma effettiva dellʼutente'; en = 'Selection requires confirmed=true and a reference to the user''s actual confirmation' }
+    'portable.discovery.modified' = @{ it = 'Rapporto discovery modificato'; en = 'Discovery report modified' }
+    'portable.discovery.foreign' = @{ it = 'Discovery di altro host o clone'; en = 'Discovery from another host or clone' }
+    'portable.repository.notinreport' = @{ it = 'Repository selezionato non presente nel rapporto'; en = 'Selected repository not present in the report' }
+    'portable.repository.forbidden' = @{ it = 'Repository vietato dalle policy di postazione: {0} ({1})'; en = 'Repository forbidden by workstation policy: {0} ({1})' }
+    'portable.checkout.changed' = @{ it = 'Checkout cambiato dopo la discovery: {0}'; en = 'Checkout changed after discovery: {0}' }
+    'portable.repository.noremote' = @{ it = 'Repo senza remoto: usare identita locale oppure associare esplicitamente un dossier esistente'; en = 'Repository without a remote: use a local identity or explicitly bind an existing dossier' }
+    'portable.identity.invalid' = @{ it = 'Identita non valida'; en = 'Invalid identity' }
+    'portable.identity.reconcile' = @{ it = 'Cambio di identita richiede riconciliazione esplicita degli alias'; en = 'Identity change requires explicit alias reconciliation' }
+    'portable.dossier.ambiguous' = @{ it = 'Dossier ambiguo, archiviato o ritirato'; en = 'Dossier ambiguous, archived or retired' }
+    'portable.alias.dossier' = @{ it = 'Associazione alias richiede dossier esistente e revisione esplicita'; en = 'Alias binding requires an existing dossier and explicit review' }
+    'portable.origin.bound' = @{ it = 'Origin gia associato a un altro dossier'; en = 'Origin already bound to another dossier' }
+    'portable.destination.uncensused' = @{ it = 'Destinazione non censita gia presente'; en = 'Uncensused destination already present' }
+    'portable.block.review' = @{ it = 'Blocco esistente richiede revisione nella selezione'; en = 'Existing block requires review in the selection' }
+    'portable.ide.notinreport' = @{ it = 'IDE selezionato non presente nel rapporto'; en = 'Selected IDE not present in the report' }
+    'portable.ide.changed' = @{ it = 'Istruzioni IDE cambiate dopo la discovery'; en = 'IDE instructions changed after discovery' }
+    'portable.path.filetype' = @{ it = 'Percorso istruzioni alternativo ammesso solo per IDE di tipo file: {0}'; en = 'Alternative instructions path allowed only for file-type IDEs: {0}' }
+    'portable.ide.duplicate' = @{ it = 'Integrazione IDE duplicata nella selezione (stesso profilo, alias, ambiente e percorso): {0}'; en = 'Duplicate IDE integration in the selection (same profile, alias, environment and path): {0}' }
+    'portable.checkout.unmanaged' = @{ it = 'Checkout da disassociare non gestito'; en = 'Checkout to unbind is not managed' }
+    'portable.ide.unmanaged' = @{ it = 'Integrazione IDE da disassociare non gestita'; en = 'IDE integration to unbind is not managed' }
+    'portable.choice.invalid' = @{ it = 'Scelta non valida: {0}'; en = 'Invalid choice: {0}' }
+    'portable.path.unsupported' = @{ it = 'Percorso istruzioni alternativo non supportato per {0}'; en = 'Alternative instructions path not supported for {0}' }
+    'portable.path.notabsolute' = @{ it = 'Percorso istruzioni alternativo non assoluto'; en = 'Alternative instructions path is not absolute' }
+    'portable.path.filename' = @{ it = 'Il file delle istruzioni di {0} deve chiamarsi {1}'; en = 'The instructions file of {0} must be named {1}' }
+    'portable.path.outsideprofile' = @{ it = 'Percorso istruzioni alternativo fuori dal profilo utente'; en = 'Alternative instructions path outside the user profile' }
+    'portable.path.credentials' = @{ it = 'Percorso istruzioni alternativo in una cartella di credenziali'; en = 'Alternative instructions path in a credentials folder' }
+    'portable.preflight.failed' = @{ it = 'Preflight non superato: {0}'; en = 'Preflight failed: {0}' }
+    'portable.selection.missing' = @{ it = 'Selezione assente: indicare -Select, -All, -Ides, -AllIdes, -IdeAccount oppure -Interactive'; en = 'No selection: give -Select, -All, -Ides, -AllIdes, -IdeAccount or -Interactive' }
+    'portable.repository.ambiguous' = @{ it = 'Repository non selezionabile o ambiguo: {0} ({1} corrispondenze)'; en = 'Repository not selectable or ambiguous: {0} ({1} matches)' }
+    'portable.ideaccount.invalid' = @{ it = 'IdeAccount non valido (atteso id-o-nome|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): {0}'; en = 'Invalid IdeAccount (expected id-or-name|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): {0}' }
+    'portable.ide.ambiguous' = @{ it = 'IDE non selezionabile o ambiguo: {0} ({1} corrispondenze)'; en = 'IDE not selectable or ambiguous: {0} ({1} matches)' }
+    'portable.ideaccount.field' = @{ it = 'Campo IdeAccount non valido (atteso chiave=valore): {0}'; en = 'Invalid IdeAccount field (expected key=value): {0}' }
+    'portable.ideaccount.repeated' = @{ it = 'Campo IdeAccount non valido o ripetuto: {0}'; en = 'Invalid or repeated IdeAccount field: {0}' }
+    'portable.path.filetype.alt' = @{ it = 'Percorso alternativo ammesso solo per IDE di tipo file: {0}'; en = 'Alternative path allowed only for file-type IDEs: {0}' }
+    'portable.observed.manual' = @{ it = 'Revisione e hash osservati si registrano solo per le superfici manuali: {0}'; en = 'Observed revision and hash are recorded only for manual surfaces: {0}' }
+    'portable.observed.pair' = @{ it = 'revision (es. 1.0) e hash SHA-256 vanno indicati insieme: {0}'; en = 'revision (e.g. 1.0) and SHA-256 hash must be given together: {0}' }
+    'portable.selection.empty' = @{ it = 'Nessun repository o IDE selezionato'; en = 'No repository or IDE selected' }
+    'portable.block.present' = @{ it = 'Blocco gestito gia presente in {0}: rivederlo e usare -ApproveExistingBlocks'; en = 'Managed block already present in {0}: review it and use -ApproveExistingBlocks' }
+    'portable.block.unapproved' = @{ it = 'Blocco gestito non approvato: {0}'; en = 'Managed block not approved: {0}' }
+    'portable.environment.alternatives' = @{ it = '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'; en = '-RegisterEnvironment and -NoRegisterEnvironment are alternatives' }
+    'portable.workstation.inactive' = @{ it = 'Postazione non attivata: usare secondbrain.ps1 -Setup'; en = 'Workstation not activated: use secondbrain.ps1 -Setup' }
+    'portable.unbind.target' = @{ it = 'Indicare almeno un repository (percorso o identita) o una integrazione IDE (id o nome) da disassociare'; en = 'Give at least one repository (path or identity) or IDE integration (id or name) to unbind' }
+    'portable.unbind.ambiguous' = @{ it = 'Repository o integrazione IDE non gestiti o ambigui: {0} ({1} repository, {2} IDE)'; en = 'Repository or IDE integration not managed or ambiguous: {0} ({1} repositories, {2} IDEs)' }
+    'portable.output.single' = @{ it = 'Indicare un solo repository (percorso o identita) per -Output'; en = 'Give exactly one repository (path or identity) for -Output' }
+    'portable.output.status' = @{ it = 'OutputStatus deve essere verified, exception-accepted o unverified'; en = 'OutputStatus must be verified, exception-accepted or unverified' }
+    'portable.output.evidence' = @{ it = 'verified richiede -Evidence (file di prova sotto .runtime)'; en = 'verified requires -Evidence (evidence file under .runtime)' }
+    'portable.output.verified.exception' = @{ it = 'verified non accetta -Exception'; en = 'verified does not accept -Exception' }
+    'portable.evidence.missing' = @{ it = 'Prova non trovata: {0}'; en = 'Evidence not found: {0}' }
+    'portable.output.reason' = @{ it = 'exception-accepted richiede un motivo non vuoto in -Exception'; en = 'exception-accepted requires a non-empty reason in -Exception' }
+    'portable.output.exception.evidence' = @{ it = 'exception-accepted non accetta -Evidence'; en = 'exception-accepted does not accept -Evidence' }
+    'portable.output.unverified' = @{ it = 'unverified non accetta -Evidence ne -Exception'; en = 'unverified accepts neither -Evidence nor -Exception' }
+    'portable.repository.unmanaged' = @{ it = 'Repository non gestito o ambiguo: {0} ({1} corrispondenze)'; en = 'Repository not managed or ambiguous: {0} ({1} matches)' }
+    'portable.repository.notonhost' = @{ it = 'Repository non gestito su questa postazione: {0}'; en = 'Repository not managed on this workstation: {0}' }
+    'portable.observations.invalid' = @{ it = 'Osservazioni IDE non valide'; en = 'Invalid IDE observations' }
+    'portable.identity.rebind' = @{ it = 'Identita/percorso cambiati; nuova riconciliazione richiesta'; en = 'Identity/path changed; new reconciliation required' }
+    'portable.dossier.identity' = @{ it = 'Identita dossier divergente'; en = 'Dossier identity diverges' }
+}
 
 # Destinazione di SECONDBRAIN_HOME: 'User' in produzione; le prove la portano a 'Process' per non toccare l'ambiente dell'utente.
 $script:SBEnvironmentScope='User'
@@ -20,11 +81,11 @@ function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(
 }
 function Get-SBPortableGlobal([string]$BrainRoot) {
     $revision=Get-SBApprovedDirectiveRevision $BrainRoot
-    if(!$revision -or [version]$revision.version -lt [version]'1.0'){throw 'Direttive non ancora approvate: distribuzione sospesa'}
+    if(!$revision -or [version]$revision.version -lt [version]'1.0'){throw (New-SBError 'portable.directives.unapproved')}
     $common=Read-SBText (Join-Path $BrainRoot 'direttive/AGENTS.global_ide.md')
     $integration=Read-SBText (Join-Path $BrainRoot 'direttive/workstation.template.md')
     $text=$common.Trim()+"`n`n"+$integration.Trim()+"`n"
-    if($text -match '(?i)[A-Z]:[\\/]|/(?:Users|home)/|\{\{'){throw 'Direttive globali non portabili'}
+    if($text -match '(?i)[A-Z]:[\\/]|/(?:Users|home)/|\{\{'){throw (New-SBError 'portable.directives.nonportable')}
     $text
 }
 function New-SBPortableRepositoryBody($Revision=$null) {
@@ -40,11 +101,11 @@ function New-SBPortableRepositoryBody($Revision=$null) {
 function Invoke-SBHostActivation {
     param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment)
     $selection=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $SelectionPath) $null
-    if(!$selection -or $selection.schemaVersion -ne 1 -or $selection.confirmed -ne $true -or !$selection.confirmation){throw 'Selezione richiede confirmed=true e riferimento alla conferma effettiva dellʼutente'}
+    if(!$selection -or $selection.schemaVersion -ne 1 -or $selection.confirmed -ne $true -or !$selection.confirmation){throw (New-SBError 'portable.selection.unconfirmed')}
     $reportPath=Assert-SBCentralDataPath $BrainRoot $selection.reportPath
-    if((Get-SBFileHash $reportPath) -ne $selection.reportSha256){throw 'Rapporto discovery modificato'}
+    if((Get-SBFileHash $reportPath) -ne $selection.reportSha256){throw (New-SBError 'portable.discovery.modified')}
     $report=Read-SBJson $reportPath $null
-    if($report.hostId -ne (Get-SBHostId) -or !(Test-SBSamePath $report.brainRoot $BrainRoot)){throw 'Discovery di altro host o clone'}
+    if($report.hostId -ne (Get-SBHostId) -or !(Test-SBSamePath $report.brainRoot $BrainRoot)){throw (New-SBError 'portable.discovery.foreign')}
     $configPath=Get-SBHostConfigPath $BrainRoot
     $configurationHash=Get-SBFileHash $configPath
     $configuration=Read-SBJson $configPath (New-SBPortableConfiguration $BrainRoot)
@@ -54,21 +115,21 @@ function Invoke-SBHostActivation {
     $forbiddenList=@(Get-SBForbiddenRepositories $BrainRoot $configuration)
     foreach($choice in $selection.repositories){
         $assets=@($report.repositories|Where-Object {$_.id -eq $choice.id -and $_.kind -ne 'bare'})
-        if($assets.Count -ne 1){throw 'Repository selezionato non presente nel rapporto'};$asset=$assets[0]
-        if(Test-SBForbiddenRepository $forbiddenList $asset.path ([string]$asset.identity)){throw "Repository vietato dalle policy di postazione: $($asset.identity) ($($asset.path))"}
+        if($assets.Count -ne 1){throw (New-SBError 'portable.repository.notinreport')};$asset=$assets[0]
+        if(Test-SBForbiddenRepository $forbiddenList $asset.path ([string]$asset.identity)){throw (New-SBError 'portable.repository.forbidden' @($asset.identity, $asset.path))}
         $current=Get-SBCheckoutAsset $asset.path $configuration.bindings
-        if($current.fingerprint -ne $asset.fingerprint -or $current.agentsHash -ne $asset.agentsHash){throw 'Checkout cambiato dopo la discovery: '+$asset.path}
+        if($current.fingerprint -ne $asset.fingerprint -or $current.agentsHash -ne $asset.agentsHash){throw (New-SBError 'portable.checkout.changed' @($asset.path))}
         $identity=if($choice.ContainsKey('associateIdentity')){$choice.associateIdentity}elseif($asset.identity){$asset.identity}elseif($choice.ContainsKey('identity')){$choice.identity}else{'local:'+(Get-SBTextHash ('local|'+$report.hostId+'|'+$asset.commonGitDir.ToLowerInvariant())).Substring(0,32).ToLowerInvariant()}
-        if(!$asset.identity -and !$choice.ContainsKey('associateIdentity') -and $identity -notmatch '^local:[a-f0-9]{32}$'){throw 'Repo senza remoto: usare identita locale oppure associare esplicitamente un dossier esistente'}
-        if(!(Test-SBRepositoryIdentity $identity)){throw 'Identita non valida'}
-        if($asset.identity -and $choice.ContainsKey('identity') -and $choice.identity -cne $asset.identity){throw 'Cambio di identita richiede riconciliazione esplicita degli alias'}
+        if(!$asset.identity -and !$choice.ContainsKey('associateIdentity') -and $identity -notmatch '^local:[a-f0-9]{32}$'){throw (New-SBError 'portable.repository.noremote')}
+        if(!(Test-SBRepositoryIdentity $identity)){throw (New-SBError 'portable.identity.invalid')}
+        if($asset.identity -and $choice.ContainsKey('identity') -and $choice.identity -cne $asset.identity){throw (New-SBError 'portable.identity.reconcile')}
         $existing=@($entities|Where-Object {$_.kind -eq 'area' -and $_.repository -ceq $identity})
-        if($existing.Count -gt 1 -or ($existing.Count -and ($existing[0].archived -or $existing[0].status -ne 'active'))){throw 'Dossier ambiguo, archiviato o ritirato'}
+        if($existing.Count -gt 1 -or ($existing.Count -and ($existing[0].archived -or $existing[0].status -ne 'active'))){throw (New-SBError 'portable.dossier.ambiguous')}
         $dossierRelative=if($existing.Count){$existing[0].path}else{'02-areas/products/'+($asset.name -replace '[^A-Za-z0-9_.-]','-')+'--'+(Get-SBTextHash $identity).Substring(0,8).ToLowerInvariant()}
         $dossier=Resolve-SBParaPath $BrainRoot $dossierRelative
         if($choice.ContainsKey('associateIdentity')){
-            if(!$existing.Count -or !$choice.ContainsKey('aliasesReviewed') -or !$choice.aliasesReviewed){throw 'Associazione alias richiede dossier esistente e revisione esplicita'}
-            if(@($entities|Where-Object {$_.repository -ceq $current.remoteIdentity -and $_.repository -cne $identity}).Count){throw 'Origin gia associato a un altro dossier'}
+            if(!$existing.Count -or !$choice.ContainsKey('aliasesReviewed') -or !$choice.aliasesReviewed){throw (New-SBError 'portable.alias.dossier')}
+            if(@($entities|Where-Object {$_.repository -ceq $current.remoteIdentity -and $_.repository -cne $identity}).Count){throw (New-SBError 'portable.origin.bound')}
             if($current.remoteIdentity){
                 $metadataPath=Join-Path $dossier 'repository.json';$metadata=Read-SBJson $metadataPath $null
                 $aliases=if($metadata.ContainsKey('aliases')){@($metadata.aliases)}else{@()}
@@ -85,12 +146,12 @@ function Invoke-SBHostActivation {
               'context.md'=("# Contesto`n`n## Stato corrente`n`nRepository selezionato; architettura e comandi da verificare dallʼagente del prodotto.`n`n## Vincoli`n`nNessun task applicativo eseguito dal bootstrap.`n`n## Problemi aperti`n`nQualificare fonti informative e configurazione degli output.`n`n## Prossimo passo`n`nEsaminare codice e documenti del repository.`n");
               'memory.md'="# Memoria essenziale`n`nNessuna decisione tecnica ancora qualificata.`n"}
             if(!$requiresImport){$seed['tracker.json']=ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@();history=@();extensions=@{}}}
-            foreach($name in $seed.Keys){$path=Join-Path $dossier $name;if(Test-Path -LiteralPath $path){throw 'Destinazione non censita gia presente'};$operations+=@{path=$path;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($seed[$name])}}
+            foreach($name in $seed.Keys){$path=Join-Path $dossier $name;if(Test-Path -LiteralPath $path){throw (New-SBError 'portable.destination.uncensused')};$operations+=@{path=$path;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($seed[$name])}}
         }
         $managedHash='absent'
         $existingBlock=if($asset.agentsHash -ne 'absent'){Get-SBManagedContent ((Read-SBText (Join-Path $asset.path 'AGENTS.md')) -replace "`r`n","`n") 'repository'}else{$null}
         if($null -ne $existingBlock){
-            if(!$choice.ContainsKey('approveExistingBlock') -or !$choice.approveExistingBlock){throw 'Blocco esistente richiede revisione nella selezione'}
+            if(!$choice.ContainsKey('approveExistingBlock') -or !$choice.approveExistingBlock){throw (New-SBError 'portable.block.review')}
             $managedHash=Get-SBTextHash $existingBlock
         }
         $newBindings+=@{path=$asset.path;identity=$identity;remoteIdentity=$current.remoteIdentity;fingerprint=$current.fingerprint;dossier=$dossierRelative;managedHash=$managedHash;status=$(if($requiresImport){'tracker-import-required'}else{'managed'});outputStatus='unverified'}
@@ -98,13 +159,13 @@ function Invoke-SBHostActivation {
     }
     $selectedIDEs=@()
     foreach($choice in $selection.ides){
-        $assets=@($report.ides|Where-Object id -eq $choice.id);if($assets.Count -ne 1){throw 'IDE selezionato non presente nel rapporto'}
+        $assets=@($report.ides|Where-Object id -eq $choice.id);if($assets.Count -ne 1){throw (New-SBError 'portable.ide.notinreport')}
         $ide=@{}+$assets[0]
-        if($ide.mode -eq 'file' -and (Get-SBFileHash $ide.instructions) -ne $ide.sha256){throw 'Istruzioni IDE cambiate dopo la discovery'}
+        if($ide.mode -eq 'file' -and (Get-SBFileHash $ide.instructions) -ne $ide.sha256){throw (New-SBError 'portable.ide.changed')}
         foreach($key in @('accountAlias','profile','environment','accountObservation','observedRevision','observedHash')){if($choice.ContainsKey($key)){$ide[$key]=$choice[$key]}}
         # Radice di configurazione alternativa (es. altro CLAUDE_CONFIG_DIR): solo IDE di tipo file; la voce ha percorso, hash e fingerprint propri.
         if($choice.ContainsKey('instructionsPath') -and $choice.instructionsPath){
-            if($ide.mode -ne 'file'){throw 'Percorso istruzioni alternativo ammesso solo per IDE di tipo file: '+$ide.name}
+            if($ide.mode -ne 'file'){throw (New-SBError 'portable.path.filetype' @($ide.name))}
             $custom=Assert-SBIDEInstructionsPath $ide.name ([string]$choice.instructionsPath)
             if($custom -ine [IO.Path]::GetFullPath($ide.instructions)){
                 $ide.instructions=$custom;$ide.sha256=Get-SBFileHash $custom;$ide.customInstructionsPath=$true
@@ -114,15 +175,15 @@ function Invoke-SBHostActivation {
         $ide.assetId=$ide.id
         $customKey=if($ide.ContainsKey('customInstructionsPath') -and $ide.customInstructionsPath){'|'+([string]$ide.instructions).ToLowerInvariant()}else{''}
         $ide.id=$ide.assetId+'-'+(Get-SBTextHash ($ide.profile+'|'+$ide.accountAlias+'|'+$(if($ide.ContainsKey('environment')){$ide.environment}else{''})+$customKey)).Substring(0,12).ToLowerInvariant()
-        if($ide.id -in @($selectedIDEs|ForEach-Object {$_.id})){throw 'Integrazione IDE duplicata nella selezione (stesso profilo, alias, ambiente e percorso): '+$ide.name}
+        if($ide.id -in @($selectedIDEs|ForEach-Object {$_.id})){throw (New-SBError 'portable.ide.duplicate' @($ide.name))}
         $ide.selected=$true;$selectedIDEs+=$ide
     }
     $retirePaths=if($selection.ContainsKey('retireCheckoutPaths')){@($selection.retireCheckoutPaths)}else{@()}
-    foreach($retired in $retirePaths){if(!@($configuration.bindings|Where-Object path -eq $retired).Count){throw 'Checkout da disassociare non gestito'}}
+    foreach($retired in $retirePaths){if(!@($configuration.bindings|Where-Object path -eq $retired).Count){throw (New-SBError 'portable.checkout.unmanaged')}}
     $newPaths=@($newBindings|ForEach-Object {$_.path})
     $configuration.bindings=@(@($configuration.bindings|Where-Object {$_.path -notin $newPaths -and $_.path -notin $retirePaths})+$newBindings)
     $retireIDEIds=if($selection.ContainsKey('retireIDEIds')){@($selection.retireIDEIds)}else{@()}
-    foreach($id in $retireIDEIds){if(!@($configuration.ides|Where-Object id -eq $id).Count){throw 'Integrazione IDE da disassociare non gestita'}}
+    foreach($id in $retireIDEIds){if(!@($configuration.ides|Where-Object id -eq $id).Count){throw (New-SBError 'portable.ide.unmanaged')}}
     $newIdeIds=@($selectedIDEs|ForEach-Object {$_.id})
     $configuration.ides=@(@($configuration.ides|Where-Object {$_.id -notin $newIdeIds -and $_.id -notin $retireIDEIds})+$selectedIDEs)
     $configuration.selectionReceipt=@{sha256=(Get-SBFileHash $SelectionPath);confirmation=$selection.confirmation;reportSha256=$selection.reportSha256}
@@ -185,7 +246,7 @@ function Read-SBSetupNumbers([string]$Prompt,[int]$Count) {
     if($answer -ieq 'tutti'){return @(1..$Count)}
     $indexes=@()
     foreach($part in @($answer -split '[,\s]+'|Where-Object {$_})){
-        if($part -notmatch '^\d+$' -or [int]$part -lt 1 -or [int]$part -gt $Count){throw "Scelta non valida: $part"}
+        if($part -notmatch '^\d+$' -or [int]$part -lt 1 -or [int]$part -gt $Count){throw (New-SBError 'portable.choice.invalid' @($part))}
         $indexes+=[int]$part
     }
     @($indexes|Sort-Object -Unique)
@@ -193,13 +254,13 @@ function Read-SBSetupNumbers([string]$Prompt,[int]$Count) {
 function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
     # Percorso istruzioni alternativo (altra radice di configurazione) per un IDE di tipo file: assoluto, nome file atteso, sotto il profilo utente, fuori da cartelle di credenziali.
     $expected=switch -Regex ($Name){'^Claude Code'{'CLAUDE.md'}'^Codex'{'AGENTS.md'}'^Antigravity'{'GEMINI.md'}default{''}}
-    if(!$expected){throw "Percorso istruzioni alternativo non supportato per $Name"}
-    if(!$Path -or ![IO.Path]::IsPathFullyQualified($Path)){throw 'Percorso istruzioni alternativo non assoluto'}
+    if(!$expected){throw (New-SBError 'portable.path.unsupported' @($Name))}
+    if(!$Path -or ![IO.Path]::IsPathFullyQualified($Path)){throw (New-SBError 'portable.path.notabsolute')}
     $full=[IO.Path]::GetFullPath($Path)
-    if([IO.Path]::GetFileName($full) -cne $expected){throw "Il file delle istruzioni di $Name deve chiamarsi $expected"}
+    if([IO.Path]::GetFileName($full) -cne $expected){throw (New-SBError 'portable.path.filename' @($Name, $expected))}
     $profileRoot=[IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-    if(!$full.StartsWith($profileRoot,[StringComparison]::OrdinalIgnoreCase)){throw 'Percorso istruzioni alternativo fuori dal profilo utente'}
-    if(@($full.Substring($profileRoot.Length) -split '[\\/]'|Where-Object {$_ -match '(?i)^(\.ssh|\.gnupg|\.aws|\.azure|credentials?|auth|tokens?|secrets?)$'}).Count){throw 'Percorso istruzioni alternativo in una cartella di credenziali'}
+    if(!$full.StartsWith($profileRoot,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'portable.path.outsideprofile')}
+    if(@($full.Substring($profileRoot.Length) -split '[\\/]'|Where-Object {$_ -match '(?i)^(\.ssh|\.gnupg|\.aws|\.azure|credentials?|auth|tokens?|secrets?)$'}).Count){throw (New-SBError 'portable.path.credentials')}
     $full
 }
 function Invoke-SBSetup {
@@ -212,9 +273,9 @@ function Invoke-SBSetup {
     $result=[ordered]@{stage='preflight';hostId=$hostId;confirmed=$false;applied=$false}
     $preflight=@(Test-SBSetupPreflight $brain);$result.preflight=$preflight
     $failed=@($preflight|Where-Object {$_.blocking -and !$_.ok})
-    if($failed.Count){throw 'Preflight non superato: '+(($failed|ForEach-Object {$_.name+' ('+$_.detail+')'}) -join '; ')}
+    if($failed.Count){throw (New-SBError 'portable.preflight.failed' @((($failed|ForEach-Object {$_.name+' ('+$_.detail+')'}) -join '; ')))}
     $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
-    if($needSelection -and !$Interactive -and [Console]::IsInputRedirected){throw 'Selezione assente: indicare -Select, -All, -Ides, -AllIdes, -IdeAccount oppure -Interactive'}
+    if($needSelection -and !$Interactive -and [Console]::IsInputRedirected){throw (New-SBError 'portable.selection.missing')}
     $prompting=($Interactive -or $needSelection)
     if($prompting -and !$Roots.Count){
         $answer=([string](Read-Host 'Radici da analizzare separate da ; (invio = tutti i volumi fissi)')).Trim()
@@ -239,7 +300,7 @@ function Invoke-SBSetup {
         foreach($token in $Select){
             $full=try{[IO.Path]::GetFullPath($token)}catch{''}
             $found=@($repos|Where-Object {$_.id -ceq $token -or $_.name -ieq $token -or ($full -and $_.path -ieq $full)})
-            if($found.Count -ne 1){throw "Repository non selezionabile o ambiguo: $token ($($found.Count) corrispondenze)"}
+            if($found.Count -ne 1){throw (New-SBError 'portable.repository.ambiguous' @($token, $found.Count))}
             $chosen+=$found[0]
         }
     }
@@ -254,7 +315,7 @@ function Invoke-SBSetup {
     elseif($Ides.Count){
         foreach($token in $Ides){
             $found=@($ideReport|Where-Object {$_.id -ceq $token -or $_.name -ieq $token})
-            if($found.Count -ne 1){throw "IDE non selezionabile o ambiguo: $token ($($found.Count) corrispondenze)"}
+            if($found.Count -ne 1){throw (New-SBError 'portable.ide.ambiguous' @($token, $found.Count))}
             $chosenIdes+=$found[0]
         }
     }
@@ -268,42 +329,48 @@ function Invoke-SBSetup {
     $accountEntries=@();$plainIdes=$chosenIdes
     foreach($spec in @($IdeAccount|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})){
         $parts=@($spec -split '\|'|ForEach-Object {$_.Trim()})
-        if($parts.Count -lt 2 -or !$parts[0] -or !$parts[1] -or $parts[1].Contains('=')){throw "IdeAccount non valido (atteso id-o-nome|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): $spec"}
+        if($parts.Count -lt 2 -or !$parts[0] -or !$parts[1] -or $parts[1].Contains('=')){throw (New-SBError 'portable.ideaccount.invalid' @($spec))}
         $found=@($ideReport|Where-Object {$_.id -ceq $parts[0] -or $_.name -ieq $parts[0]})
-        if($found.Count -ne 1){throw "IDE non selezionabile o ambiguo: $($parts[0]) ($($found.Count) corrispondenze)"}
+        if($found.Count -ne 1){throw (New-SBError 'portable.ide.ambiguous' @($parts[0], $found.Count))}
         $entry=@{id=$found[0].id;accountAlias=$parts[1]};$fields=@{}
         foreach($token in @($parts|Select-Object -Skip 2)){
             $eq=$token.IndexOf('=')
-            if($eq -lt 1){throw "Campo IdeAccount non valido (atteso chiave=valore): $token"}
+            if($eq -lt 1){throw (New-SBError 'portable.ideaccount.field' @($token))}
             $key=$token.Substring(0,$eq).ToLowerInvariant();$value=$token.Substring($eq+1).Trim()
-            if($key -notin @('profile','environment','path','revision','hash') -or !$value -or $fields.ContainsKey($key)){throw "Campo IdeAccount non valido o ripetuto: $key"}
+            if($key -notin @('profile','environment','path','revision','hash') -or !$value -or $fields.ContainsKey($key)){throw (New-SBError 'portable.ideaccount.repeated' @($key))}
             $fields[$key]=$value
         }
         if($fields.ContainsKey('profile')){$entry.profile=$fields.profile}
         if($fields.ContainsKey('environment')){$entry.environment=$fields.environment}
         if($fields.ContainsKey('path')){
-            if($found[0].mode -ne 'file'){throw "Percorso alternativo ammesso solo per IDE di tipo file: $($found[0].name)"}
+            if($found[0].mode -ne 'file'){throw (New-SBError 'portable.path.filetype.alt' @($found[0].name))}
             $entry.instructionsPath=Assert-SBIDEInstructionsPath $found[0].name $fields.path
         }
         if($fields.ContainsKey('revision') -or $fields.ContainsKey('hash')){
-            if($found[0].mode -ne 'manual'){throw "Revisione e hash osservati si registrano solo per le superfici manuali: $($found[0].name)"}
-            if(!$fields.ContainsKey('revision') -or !$fields.ContainsKey('hash') -or $fields.revision -notmatch '^\d+(\.\d+)+$' -or $fields.hash -notmatch '^[0-9A-Fa-f]{64}$'){throw "revision (es. 1.0) e hash SHA-256 vanno indicati insieme: $spec"}
+            if($found[0].mode -ne 'manual'){throw (New-SBError 'portable.observed.manual' @($found[0].name))}
+            if(!$fields.ContainsKey('revision') -or !$fields.ContainsKey('hash') -or $fields.revision -notmatch '^\d+(\.\d+)+$' -or $fields.hash -notmatch '^[0-9A-Fa-f]{64}$'){throw (New-SBError 'portable.observed.pair' @($spec))}
             $entry.observedRevision=$fields.revision;$entry.observedHash=$fields.hash.ToUpperInvariant()
             $entry.accountObservation='Testo account dichiarato dall utente come osservato nelle impostazioni; il caricamento in una chat resta non verificato.'
         }
         $accountEntries+=$entry
         if($found[0].id -notin @($chosenIdes|ForEach-Object {$_.id})){$chosenIdes+=$found[0]}
     }
-    if(!$chosen.Count -and !$chosenIdes.Count){throw 'Nessun repository o IDE selezionato'}
-    # Blocchi gestiti gia presenti: richiedono revisione esplicita.
+    if(!$chosen.Count -and !$chosenIdes.Count){throw (New-SBError 'portable.selection.empty')}
+    # Un IDE con alias dichiarato è una sola integrazione: la voce senza alias per lo stesso IDE (selezione per nome) non si aggiunge.
+    $accountIdeIds=@($accountEntries|ForEach-Object {$_.id})
+    $plainIdes=@($plainIdes|Where-Object {$_.id -notin $accountIdeIds})
+    # Blocchi gestiti gia presenti: richiedono revisione esplicita, salvo il blocco identico a quello che Sync scriverebbe con la revisione approvata (stessi marcatori e hash di origine).
     $approvals=@{}
+    $approvedRevision=Get-SBApprovedDirectiveRevision $brain
+    $approvedBlock=if($approvedRevision){"<!-- secondbrain:repository:begin -->`n"+(New-SBPortableRepositoryBody $approvedRevision).Trim()+"`n<!-- secondbrain:repository:end -->"}else{$null}
     foreach($asset in $chosen){
-        $hasBlock=($asset.agentsHash -ne 'absent' -and $null -ne (Get-SBManagedContent ((Read-SBText (Join-Path $asset.path 'AGENTS.md')) -replace "`r`n","`n") 'repository'))
-        if(!$hasBlock){continue}
+        $existingBlock=if($asset.agentsHash -ne 'absent'){Get-SBManagedContent ((Read-SBText (Join-Path $asset.path 'AGENTS.md')) -replace "`r`n","`n") 'repository'}else{$null}
+        if($null -eq $existingBlock){continue}
+        if($approvedBlock -and $existingBlock -ceq $approvedBlock){$approvals[$asset.id]=$true;continue}
         if($ApproveExistingBlocks){$approvals[$asset.id]=$true}
         elseif($prompting){$approvals[$asset.id]=(([string](Read-Host ('AGENTS.md di '+$asset.name+' contiene gia un blocco gestito: approvare la revisione? (si/no)'))).Trim() -ieq 'si')}
-        else{throw 'Blocco gestito gia presente in '+$asset.path+': rivederlo e usare -ApproveExistingBlocks'}
-        if(!$approvals[$asset.id]){throw 'Blocco gestito non approvato: '+$asset.path}
+        else{throw (New-SBError 'portable.block.present' @($asset.path))}
+        if(!$approvals[$asset.id]){throw (New-SBError 'portable.block.unapproved' @($asset.path))}
     }
     $result.selected=[ordered]@{repositories=@($chosen|ForEach-Object {$_.name});ides=@($chosenIdes|ForEach-Object {$_.name})}
     # Conferma effettiva dell'utente.
@@ -328,7 +395,7 @@ function Invoke-SBSetup {
     if(!$doApply -and $prompting){$doApply=(([string](Read-Host 'Digita APPLICA per attivare ora (invio = solo anteprima)')).Trim() -ceq 'APPLICA')}
     if(!$doApply){$result.activation=$preview;return $result}
     # La variabile utente SECONDBRAIN_HOME si scrive solo con conferma esplicita (-RegisterEnvironment o risposta SI); -NoRegisterEnvironment la esclude.
-    if($RegisterEnvironment -and $NoRegisterEnvironment){throw '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'}
+    if($RegisterEnvironment -and $NoRegisterEnvironment){throw (New-SBError 'portable.environment.alternatives')}
     $doRegister=[bool]$RegisterEnvironment
     if(!$doRegister -and !$NoRegisterEnvironment -and $prompting){$doRegister=(([string](Read-Host 'Registrare SECONDBRAIN_HOME come variabile utente? Digita SI per confermare (invio = no)')).Trim() -ceq 'SI')}
     $applied=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId -Apply -RegisterEnvironment:$doRegister
@@ -366,7 +433,7 @@ function Get-SBIDEContextState($Ide,$State) {
 function Get-SBSetupStatus([string]$BrainRoot) {
     # Sola lettura: nessun lock, nessuna discovery, nessuna scrittura.
     $brain=[IO.Path]::GetFullPath($BrainRoot);$configPath=Get-SBHostConfigPath $brain
-    if(!(Test-Path -LiteralPath $configPath -PathType Leaf)){throw 'Postazione non attivata: usare secondbrain.ps1 -Setup'}
+    if(!(Test-Path -LiteralPath $configPath -PathType Leaf)){throw (New-SBError 'portable.workstation.inactive')}
     $config=Read-SBJson $configPath @{}
     $value={param($item,[string]$key) if($item.ContainsKey($key)){$item[$key]}else{$null}}
     $bindings=if($config.ContainsKey('bindings')){@($config.bindings)}else{@()}
@@ -383,7 +450,7 @@ function Invoke-SBSetupUnbind {
     param([string]$BrainRoot,[string[]]$Targets=@(),[switch]$Interactive,[switch]$Yes,[switch]$Apply,[string]$SessionId)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain
     $Targets=@($Targets|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
-    if(!$Targets.Count){throw 'Indicare almeno un repository (percorso o identita) o una integrazione IDE (id o nome) da disassociare'}
+    if(!$Targets.Count){throw (New-SBError 'portable.unbind.target')}
     $status=Get-SBSetupStatus $brain
     $retire=@();$retireIdes=@()
     foreach($token in $Targets){
@@ -391,7 +458,7 @@ function Invoke-SBSetupUnbind {
         $found=@($status.bindings|Where-Object {($full -and $_.path -ieq $full) -or $_.identity -ieq $token})
         $ideFound=@($status.ides|Where-Object {$_.id -ieq $token})
         if(!$ideFound.Count){$ideFound=@($status.ides|Where-Object {$_.name -ieq $token})}
-        if($found.Count+$ideFound.Count -ne 1){throw "Repository o integrazione IDE non gestiti o ambigui: $token ($($found.Count) repository, $($ideFound.Count) IDE)"}
+        if($found.Count+$ideFound.Count -ne 1){throw (New-SBError 'portable.unbind.ambiguous' @($token, $found.Count, $ideFound.Count))}
         if($found.Count){$retire+=[string]$found[0].path}else{$retireIdes+=[string]$ideFound[0].id}
     }
     $retire=@($retire|Select-Object -Unique);$retireIdes=@($retireIdes|Select-Object -Unique)
@@ -425,28 +492,28 @@ function Invoke-SBSetupOutput {
     # Registra outputStatus/outputEvidence/outputException di un binding dopo la prova dell agent prodotto: proposta, conferma, anteprima, -Apply.
     param([string]$BrainRoot,[string]$Target,[string]$OutputStatus,[string]$Evidence,[string]$Exception,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[string]$SessionId)
     $brain=[IO.Path]::GetFullPath($BrainRoot)
-    if(!$Target -or $Target.Contains(',')){throw 'Indicare un solo repository (percorso o identita) per -Output'}
-    if($OutputStatus -cnotin @('verified','exception-accepted','unverified')){throw 'OutputStatus deve essere verified, exception-accepted o unverified'}
+    if(!$Target -or $Target.Contains(',')){throw (New-SBError 'portable.output.single')}
+    if($OutputStatus -cnotin @('verified','exception-accepted','unverified')){throw (New-SBError 'portable.output.status')}
     $Exception=([string]$Exception).Trim()
     $evidencePath=$null;$evidenceHash=$null
     switch($OutputStatus){
         'verified'{
-            if(!$Evidence){throw 'verified richiede -Evidence (file di prova sotto .runtime)'}
-            if($Exception){throw 'verified non accetta -Exception'}
+            if(!$Evidence){throw (New-SBError 'portable.output.evidence')}
+            if($Exception){throw (New-SBError 'portable.output.verified.exception')}
             $evidencePath=Assert-SBCentralDataPath $brain $Evidence
-            if(!(Test-Path -LiteralPath $evidencePath -PathType Leaf)){throw 'Prova non trovata: '+$evidencePath}
+            if(!(Test-Path -LiteralPath $evidencePath -PathType Leaf)){throw (New-SBError 'portable.evidence.missing' @($evidencePath))}
             $evidenceHash=Get-SBFileHash $evidencePath
         }
         'exception-accepted'{
-            if(!$Exception){throw 'exception-accepted richiede un motivo non vuoto in -Exception'}
-            if($Evidence){throw 'exception-accepted non accetta -Evidence'}
+            if(!$Exception){throw (New-SBError 'portable.output.reason')}
+            if($Evidence){throw (New-SBError 'portable.output.exception.evidence')}
         }
-        'unverified'{if($Evidence -or $Exception){throw 'unverified non accetta -Evidence ne -Exception'}}
+        'unverified'{if($Evidence -or $Exception){throw (New-SBError 'portable.output.unverified')}}
     }
     $status=Get-SBSetupStatus $brain
     $full=try{[IO.Path]::GetFullPath($Target)}catch{''}
     $found=@($status.bindings|Where-Object {($full -and $_.path -ieq $full) -or $_.identity -ieq $Target})
-    if($found.Count -ne 1){throw "Repository non gestito o ambiguo: $Target ($($found.Count) corrispondenze)"}
+    if($found.Count -ne 1){throw (New-SBError 'portable.repository.unmanaged' @($Target, $found.Count))}
     $bindingPath=[string]$found[0].path
     $configPath=Get-SBHostConfigPath $brain
     $configurationHash=Get-SBFileHash $configPath
@@ -509,13 +576,13 @@ function Invoke-SBPortableSync {
         $scoped=@($Config.bindings)
         if($Repository){
             $scoped=@($Config.bindings|Where-Object {$_.identity -ceq $Repository})
-            if($scoped.Count -ne 1){throw 'Repository non gestito su questa postazione: '+$Repository}
+            if($scoped.Count -ne 1){throw (New-SBError 'portable.repository.notonhost' @($Repository))}
         }
         $compactionAdvice=@()
         $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=1;managed=@{};dossierMap=@{}}
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
-        if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $Config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw 'Osservazioni IDE non valide'};$observations=@($receipt.observations)}
+        if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $Config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw (New-SBError 'portable.observations.invalid')};$observations=@($receipt.observations)}
         $global=$null
         try{$global=Get-SBPortableGlobal $Config.brainRoot}catch{$issues+=@{kind='unapproved-portable-directives';reason=$_.Exception.Message}}
         $forbiddenList=@(Get-SBForbiddenRepositories $Config.brainRoot $Config)
@@ -527,10 +594,10 @@ function Invoke-SBPortableSync {
                 }
                 if($binding.status -ne 'managed'){$issues+=@{kind='tracker-import-required';repository=$binding.identity};continue}
                 $current=Get-SBCheckoutAsset $binding.path $Config.bindings
-                if($current.fingerprint -ne $binding.fingerprint -or $current.remoteIdentity -cne $binding.remoteIdentity){throw 'Identita/percorso cambiati; nuova riconciliazione richiesta'}
+                if($current.fingerprint -ne $binding.fingerprint -or $current.remoteIdentity -cne $binding.remoteIdentity){throw (New-SBError 'portable.identity.rebind')}
                 $dir=Resolve-SBParaPath $Config.brainRoot $binding.dossier
                 $record=Read-SBJson (Join-Path $dir 'repository.json') $null
-                if(!$record -or $record.identity -cne $binding.identity){throw 'Identita dossier divergente'}
+                if(!$record -or $record.identity -cne $binding.identity){throw (New-SBError 'portable.dossier.identity')}
                 if((Get-SBRepositoryLifecycle $dir) -eq 'greenfield'){foreach($reason in @(Get-SBGreenfieldViolations $Config $binding $dir)){$issues+=@{kind='greenfield-violation';repository=$binding.identity;reason=$reason}}}
                 $outputVerified=$false
                 if($binding.ContainsKey('outputStatus') -and $binding.outputStatus -eq 'exception-accepted' -and $binding.ContainsKey('outputException') -and $binding.outputException){$outputVerified=$true}

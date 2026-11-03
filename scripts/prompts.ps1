@@ -40,6 +40,13 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'promptscli.workstation.inactive' = @{ it = 'Postazione non attivata: usare sb attiva (SYS03)'; en = 'Workstation not activated: use sb attiva (SYS03)' }
+    'promptscli.context.incompatible' = @{ it = 'Selezioni di contesto incompatibili'; en = 'Incompatible context selections' }
+    'promptscli.goal.empty' = @{ it = 'Obiettivo vuoto'; en = 'Empty goal' }
+    'promptscli.output.txt' = @{ it = 'Output TXT nuovo richiesto'; en = 'New TXT output required' }
+}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $lock=$null
 try {
@@ -72,9 +79,9 @@ try {
             'Bootstrap: usa il checkout SecondBrain corrente, senza percorsi preimpostati.'
             exit 0
         }
-        if(!$ConfigPath){throw 'Postazione non attivata: usare sb attiva (SYS03)'}
-        if(($Repository -and $RepositoryPath) -or ($ProjectId -and ($Repository -or $RepositoryPath)) -or ($CheckoutPath -and $RepositoryPath)){throw 'Selezioni di contesto incompatibili'}
-        if($PSBoundParameters.ContainsKey('Objective') -and !$Objective.Trim()){throw 'Obiettivo vuoto'}
+        if(!$ConfigPath){throw (New-SBError 'promptscli.workstation.inactive')}
+        if(($Repository -and $RepositoryPath) -or ($ProjectId -and ($Repository -or $RepositoryPath)) -or ($CheckoutPath -and $RepositoryPath)){throw (New-SBError 'promptscli.context.incompatible')}
+        if($PSBoundParameters.ContainsKey('Objective') -and !$Objective.Trim()){throw (New-SBError 'promptscli.goal.empty')}
         $resolved=Get-SBWorkflowContext -Config $config -RepositoryPath $RepositoryPath -Repository $Repository -ProjectId $ProjectId -CheckoutPath $CheckoutPath -CheckoutMapPath $CheckoutMapPath
         if($Context){ConvertTo-SBJson $resolved}
         else {
@@ -85,7 +92,7 @@ try {
             if($OutputPath){
                 $full=[IO.Path]::GetFullPath($OutputPath);Assert-SBPlainPath $full
                 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$full=Assert-SBCentralDataPath $brain $full}
-                if([IO.Path]::GetExtension($full) -ne '.txt'){throw 'Output TXT nuovo richiesto'}
+                if([IO.Path]::GetExtension($full) -ne '.txt'){throw (New-SBError 'promptscli.output.txt')}
                 $stream=[IO.FileStream]::new($full,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
                 try{$stream.Write([Text.Encoding]::UTF8.GetBytes($body));$stream.Flush($true)}finally{$stream.Dispose()}
                 'Creato: '+$full

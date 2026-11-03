@@ -30,6 +30,12 @@ param(
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'access.session.foreign' = @{ it = 'Sessione non appartenente alla postazione corrente'; en = 'Session does not belong to the current workstation' }
+    'access.coordinator.exited' = @{ it = 'Processo di coordinamento terminato prima della registrazione'; en = 'Coordination process exited before registration' }
+    'access.open.timeout' = @{ it = 'Timeout apertura sessione'; en = 'Timeout opening the session' }
+}
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if ($WaitSeconds -ge 0) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS=[string]$WaitSeconds }
@@ -55,7 +61,7 @@ if ($Queue) {
 if ($End -or $Renew) {
     Test-SBSessionId $SessionId
     $metadata=Read-SBJson (Join-Path $sessions ($SessionId+'.json')) $null
-    if (!$metadata -or $metadata.computer -ne [Environment]::MachineName -or $metadata.user -ne [Security.Principal.WindowsIdentity]::GetCurrent().Name -or $metadata.workstationId -ne $config.workstationId) { throw 'Sessione non appartenente alla postazione corrente' }
+    if (!$metadata -or $metadata.computer -ne [Environment]::MachineName -or $metadata.user -ne [Security.Principal.WindowsIdentity]::GetCurrent().Name -or $metadata.workstationId -ne $config.workstationId) { throw (New-SBError 'access.session.foreign') }
     $signal=Join-Path $sessions ($SessionId+$(if($End){'.stop'}else{'.renew'}))
     Write-SBAccessMetadata $signal @{at=[DateTimeOffset]::UtcNow.ToString('o')}
     if ($End) {
@@ -79,10 +85,10 @@ if ($Start) {
         for($i=0;$i -lt $openPolls;$i++) {
             $entry=Read-SBJson (Join-Path $sessions ($SessionId+'.json')) $null
             if($entry){if($entry.status -ne 'active'){if($entry.ContainsKey('busy') -and $entry.busy){[Console]::Error.WriteLine($entry.error);exit 3};throw $entry.error};ConvertTo-SBJson $entry;exit 0}
-            if($process.HasExited){throw 'Processo di coordinamento terminato prima della registrazione'}
+            if($process.HasExited){throw (New-SBError 'access.coordinator.exited')}
             Start-Sleep -Milliseconds 100
         }
-        $process.Kill();throw 'Timeout apertura sessione'
+        $process.Kill();throw (New-SBError 'access.open.timeout')
     } finally {$process.Dispose()}
 }
 Test-SBSessionId $SessionId

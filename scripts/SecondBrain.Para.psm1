@@ -1,12 +1,49 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'para.path.unconfined' = @{ it = 'Percorso PARA non relativo o non confinato'; en = 'PARA path is not relative or not confined' }
+    'para.path.outside' = @{ it = 'Percorso fuori radice PARA'; en = 'Path outside the PARA root' }
+    'para.reparse.knowledge' = @{ it = 'Reparse point nella conoscenza PARA'; en = 'Reparse point in PARA knowledge' }
+    'para.metadata.missing' = @{ it = 'Metadato PARA mancante: {0}'; en = 'Missing PARA metadata: {0}' }
+    'para.metadata.invalid' = @{ it = 'Metadati PARA non validi'; en = 'Invalid PARA metadata' }
+    'para.status.invalid' = @{ it = 'Stato PARA non valido'; en = 'Invalid PARA status' }
+    'para.id.duplicate' = @{ it = 'Identificatore PARA duplicato: {0}'; en = 'Duplicate PARA identifier: {0}' }
+    'para.category.diverged' = @{ it = 'Categoria e percorso PARA divergenti'; en = 'PARA category and path diverge' }
+    'para.brief.missing' = @{ it = 'Brief mancante: {0}'; en = 'Missing brief: {0}' }
+    'para.project.field' = @{ it = 'Campo progetto non valido: {0}'; en = 'Invalid project field: {0}' }
+    'para.project.noarea' = @{ it = 'Progetto senza Area'; en = 'Project without Area' }
+    'para.tracker.reference' = @{ it = 'Riferimento tracker non valido'; en = 'Invalid tracker reference' }
+    'para.tracker.repopath' = @{ it = 'Percorso tracker repository mancante'; en = 'Repository tracker path missing' }
+    'para.area.identity' = @{ it = 'Identita Area non ammessa'; en = 'Area identity not allowed' }
+    'para.area.repoduplicate' = @{ it = 'Repository associato a piu Aree'; en = 'Repository bound to more than one Area' }
+    'para.area.incomplete' = @{ it = 'Dossier Area incompleto: {0}/{1}'; en = 'Incomplete Area dossier: {0}/{1}' }
+    'para.area.linkmissing' = @{ it = 'Area collegata inesistente: {0}'; en = 'Linked Area does not exist: {0}' }
+    'para.tracker.unlinked' = @{ it = 'Tracker non collegato alle Aree del progetto'; en = 'Tracker not linked to the project Areas' }
+    'para.tracker.localmissing' = @{ it = 'Tracker locale inesistente'; en = 'Local tracker does not exist' }
+    'para.index.stale' = @{ it = 'Indice PARA da aggiornare'; en = 'PARA index needs updating' }
+    'para.transaction.outside' = @{ it = 'Operazione transazionale fuori perimetro'; en = 'Transactional operation outside scope' }
+    'para.transaction.duplicate' = @{ it = 'Destinazione duplicata nella transazione'; en = 'Duplicate destination in the transaction' }
+    'para.transaction.changed' = @{ it = 'Contenuto cambiato: {0}'; en = 'Content changed: {0}' }
+    'para.transaction.backup' = @{ it = 'Backup transazionale non verificato'; en = 'Transactional backup not verified' }
+    'para.transaction.incomplete' = @{ it = 'Transazione PARA incompleta: ripristinare prima il manifest pendente'; en = 'Incomplete PARA transaction: restore the pending manifest first' }
+    'para.transaction.marker' = @{ it = 'Indicatore transazione modificato'; en = 'Transaction marker modified' }
+    'para.transaction.interrupted' = @{ it = 'Transazione interrotta; ripristino con manifest {0}. {1}'; en = 'Transaction interrupted; restore with manifest {0}. {1}' }
+    'para.manifest.outside' = @{ it = 'Manifest fuori radice backup autorizzata'; en = 'Manifest outside the authorized backup root' }
+    'para.manifest.foreign' = @{ it = 'Manifest di altra installazione o non valido'; en = 'Manifest of another installation or invalid' }
+    'para.recovery.outside' = @{ it = 'Record di recupero fuori perimetro'; en = 'Recovery record outside scope' }
+    'para.restore.refused' = @{ it = 'Ripristino rifiutato: file modificato {0}'; en = 'Restore refused: file modified {0}' }
+    'para.backup.altered' = @{ it = 'Backup alterato'; en = 'Backup altered' }
+    'para.payload.outside' = @{ it = 'Payload fuori registro di recupero'; en = 'Payload outside the recovery registry' }
+    'para.recovery.pending' = @{ it = 'Altro recupero pendente'; en = 'Another recovery is pending' }
+}
 
 function Resolve-SBParaPath([string]$Root,[string]$Relative) {
-    if (!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:') { throw 'Percorso PARA non relativo o non confinato' }
+    if (!$Relative -or [IO.Path]::IsPathRooted($Relative) -or $Relative -match '(^|[\\/])\.\.([\\/]|$)|:') { throw (New-SBError 'para.path.unconfined') }
     $boundary=[IO.Path]::GetFullPath($Root).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     $full=[IO.Path]::GetFullPath((Join-Path $Root $Relative))
-    if (!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)) { throw 'Percorso fuori radice PARA' }
+    if (!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)) { throw (New-SBError 'para.path.outside') }
     Assert-SBPlainPath $full
     $full
 }
@@ -33,53 +70,53 @@ function Read-SBParaEntitiesFromDisk([string]$BrainRoot,[string[]]$AllowedOwners
         while($queue.Count){
             $dir=$queue.Dequeue();Assert-SBPlainPath $dir
             foreach($child in Get-ChildItem -LiteralPath $dir -Directory -Force){
-                if($child.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Reparse point nella conoscenza PARA'}
+                if($child.Attributes -band [IO.FileAttributes]::ReparsePoint){throw (New-SBError 'para.reparse.knowledge')}
                 if($child.Name -ne 'snapshots'){$queue.Enqueue($child.FullName)}
             }
             $metadata=Join-Path $dir 'para.json'
             if(!(Test-Path -LiteralPath $metadata)){continue}
             Assert-SBPlainPath $metadata
             $m=Read-SBJson $metadata $null
-            foreach($field in @('schemaVersion','id','kind','title','status')){if(!$m.ContainsKey($field)){throw "Metadato PARA mancante: $field"}}
-            if($m.schemaVersion -ne 1 -or $m.id -notmatch '^[a-z][a-z0-9-]{0,95}$' -or $m.kind -notin @('project','area','resource') -or !$m.title.Trim() -or $m.title -match '[\r\n]'){throw 'Metadati PARA non validi'}
+            foreach($field in @('schemaVersion','id','kind','title','status')){if(!$m.ContainsKey($field)){throw (New-SBError 'para.metadata.missing' @($field))}}
+            if($m.schemaVersion -ne 1 -or $m.id -notmatch '^[a-z][a-z0-9-]{0,95}$' -or $m.kind -notin @('project','area','resource') -or !$m.title.Trim() -or $m.title -match '[\r\n]'){throw (New-SBError 'para.metadata.invalid')}
             $statuses=@{project=@('active','completed','cancelled');area=@('active','retired');resource=@('active','retired')}
-            if($m.status -notin $statuses[$m.kind]){throw 'Stato PARA non valido'}
-            if($ids.ContainsKey($m.id)){throw "Identificatore PARA duplicato: $($m.id)"};$ids[$m.id]=$true
+            if($m.status -notin $statuses[$m.kind]){throw (New-SBError 'para.status.invalid')}
+            if($ids.ContainsKey($m.id)){throw (New-SBError 'para.id.duplicate' @($m.id))};$ids[$m.id]=$true
             $relative=[IO.Path]::GetRelativePath($BrainRoot,$dir).Replace('\','/')
             $expected=@{project='01-projects/';area='02-areas/';resource='03-resources/'}[$m.kind]
             $archive=@{project='projects';area='areas';resource='resources'}[$m.kind]
             $archived=$relative.StartsWith('04-archives/',[StringComparison]::Ordinal)
-            if(!$relative.StartsWith($expected,[StringComparison]::Ordinal) -and !$relative.StartsWith("04-archives/$archive/",[StringComparison]::Ordinal)){throw 'Categoria e percorso PARA divergenti'}
-            if(!(Test-Path -LiteralPath (Join-Path $dir 'brief.md') -PathType Leaf)){throw "Brief mancante: $relative"}
+            if(!$relative.StartsWith($expected,[StringComparison]::Ordinal) -and !$relative.StartsWith("04-archives/$archive/",[StringComparison]::Ordinal)){throw (New-SBError 'para.category.diverged')}
+            if(!(Test-Path -LiteralPath (Join-Path $dir 'brief.md') -PathType Leaf)){throw (New-SBError 'para.brief.missing' @($relative))}
             Assert-SBPlainPath (Join-Path $dir 'brief.md')
             if($m.kind -eq 'project'){
-                foreach($field in @('areas','trackers')){if(!$m.ContainsKey($field) -or $m[$field] -isnot [array]){throw "Campo progetto non valido: $field"}}
-                if(!$m.areas.Count){throw 'Progetto senza Area'}
+                foreach($field in @('areas','trackers')){if(!$m.ContainsKey($field) -or $m[$field] -isnot [array]){throw (New-SBError 'para.project.field' @($field))}}
+                if(!$m.areas.Count){throw (New-SBError 'para.project.noarea')}
                 foreach($tracker in $m.trackers){
-                    if(!$tracker.ContainsKey('area') -or !$tracker.ContainsKey('path')){throw 'Riferimento tracker non valido'}
+                    if(!$tracker.ContainsKey('area') -or !$tracker.ContainsKey('path')){throw (New-SBError 'para.tracker.reference')}
                     if($tracker.ContainsKey('repository') -and $tracker.repository){
-                        if(!$tracker.path){throw 'Percorso tracker repository mancante'}
+                        if(!$tracker.path){throw (New-SBError 'para.tracker.repopath')}
                     }else{[void](Resolve-SBParaPath $dir $tracker.path)}
                 }
             }
             $repo=Read-SBJson (Join-Path $dir 'repository.json') $null
             if($m.kind -eq 'area'){
-                if(!$repo -or !(Test-SBRepositoryIdentity $repo.identity $AllowedOwners)){throw 'Identita Area non ammessa'}
-                if($repositories.ContainsKey($repo.identity)){throw 'Repository associato a piu Aree'};$repositories[$repo.identity]=$true
-                foreach($file in @('context.md','memory.md')){if(!(Test-Path -LiteralPath (Join-Path $dir $file) -PathType Leaf)){throw "Dossier Area incompleto: $relative/$file"}}
+                if(!$repo -or !(Test-SBRepositoryIdentity $repo.identity $AllowedOwners)){throw (New-SBError 'para.area.identity')}
+                if($repositories.ContainsKey($repo.identity)){throw (New-SBError 'para.area.repoduplicate')};$repositories[$repo.identity]=$true
+                foreach($file in @('context.md','memory.md')){if(!(Test-Path -LiteralPath (Join-Path $dir $file) -PathType Leaf)){throw (New-SBError 'para.area.incomplete' @($relative, $file))}}
             }
             $items.Add(@{id=$m.id;kind=$m.kind;title=$m.title;status=$m.status;path=$relative;archived=$archived;metadata=$m;repository=$(if($repo){$repo.identity}else{''})})
         }
     }
     foreach($item in $items|Where-Object kind -eq 'project'){
         foreach($area in $item.metadata.areas){
-            if(!@($items|Where-Object { $_.id -eq $area -and $_.kind -eq 'area' }).Count){throw "Area collegata inesistente: $area"}
+            if(!@($items|Where-Object { $_.id -eq $area -and $_.kind -eq 'area' }).Count){throw (New-SBError 'para.area.linkmissing' @($area))}
         }
         foreach($tracker in $item.metadata.trackers){
             $area=@($items|Where-Object {$_.id -eq $tracker.area -and $_.kind -eq 'area'})
-            if($area.Count -ne 1 -or $tracker.area -notin $item.metadata.areas){throw 'Tracker non collegato alle Aree del progetto'}
+            if($area.Count -ne 1 -or $tracker.area -notin $item.metadata.areas){throw (New-SBError 'para.tracker.unlinked')}
             if(!$tracker.ContainsKey('repository') -or !$tracker.repository){
-                if(!(Test-Path -LiteralPath (Resolve-SBParaPath (Join-Path $BrainRoot $area[0].path) $tracker.path) -PathType Leaf)){throw 'Tracker locale inesistente'}
+                if(!(Test-Path -LiteralPath (Resolve-SBParaPath (Join-Path $BrainRoot $area[0].path) $tracker.path) -PathType Leaf)){throw (New-SBError 'para.tracker.localmissing')}
             }
         }
     }
@@ -108,7 +145,7 @@ function Update-SBParaIndex($Config,[switch]$Check) {
     foreach($pair in @(@('para-index.json','json'),@('PARA.md','markdown'))){
         $path=Join-Path $Config.brainRoot $pair[0];$text=$index[$pair[1]]
         if((Get-SBFileHash $path) -ne (Get-SBTextHash $text)){
-            if($Check){throw 'Indice PARA da aggiornare'}
+            if($Check){throw (New-SBError 'para.index.stale')}
             Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($text)) (Get-SBFileHash $path) $Config.backupRoot|Out-Null
         }
     }
@@ -129,13 +166,13 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
     $records=@();$seen=@{}
     foreach($op in $Operations){
         $path=[IO.Path]::GetFullPath($op.path);Assert-SBPlainPath $path
-        if(!$path.StartsWith($brainFull,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw 'Operazione transazionale fuori perimetro'}
-        if($seen.ContainsKey($path)){throw 'Destinazione duplicata nella transazione'};$seen[$path]=$true
-        if((Get-SBFileHash $path) -ne $op.expected){throw "Contenuto cambiato: $path"}
+        if(!$path.StartsWith($brainFull,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw (New-SBError 'para.transaction.outside')}
+        if($seen.ContainsKey($path)){throw (New-SBError 'para.transaction.duplicate')};$seen[$path]=$true
+        if((Get-SBFileHash $path) -ne $op.expected){throw (New-SBError 'para.transaction.changed' @($path))}
         $payload=Join-Path $journalRoot ($records.Count.ToString()+'.bin')
         if($op.expected -ne 'absent'){
             [IO.File]::Copy($path,$payload)
-            if((Get-SBFileHash $payload) -ne $op.expected){throw 'Backup transazionale non verificato'}
+            if((Get-SBFileHash $payload) -ne $op.expected){throw (New-SBError 'para.transaction.backup')}
         }
         $records+=@{path=$path;previousHash=$op.expected;backup=$payload;deployedHash=$(if($null -eq $op.bytes){'absent'}else{Get-SBHash $op.bytes});applied=$false}
     }
@@ -157,7 +194,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
         $pending=Read-SBJson $marker @{}
         # Il marker puo essere stato scritto da un altro host con un alias diverso dello stesso cervello.
         $pendingManifest=if($pending.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pending.manifest) ([string]$pending.brainRoot) $BrainRoot}else{[string]$pending.manifest}
-        if(!$RecoveryManifest -or $pendingManifest -ne [IO.Path]::GetFullPath($RecoveryManifest)){throw 'Transazione PARA incompleta: ripristinare prima il manifest pendente'}
+        if(!$RecoveryManifest -or $pendingManifest -ne [IO.Path]::GetFullPath($RecoveryManifest)){throw (New-SBError 'para.transaction.incomplete')}
     }
     $markerText=ConvertTo-SBJson @{manifest=$manifest;brainRoot=[IO.Path]::GetFullPath($BrainRoot);computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;processId=$PID;startedAt=[DateTimeOffset]::UtcNow.ToString('o')}
     Write-SBFile $marker ([Text.Encoding]::UTF8.GetBytes($markerText)) $markerHash $journalRoot|Out-Null
@@ -170,19 +207,19 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
             $record.applied=$true;Save-Journal
         }
         $journal.status='complete';Save-Journal
-        if((Get-SBFileHash $marker) -ne (Get-SBTextHash $markerText)){throw 'Indicatore transazione modificato'}
+        if((Get-SBFileHash $marker) -ne (Get-SBTextHash $markerText)){throw (New-SBError 'para.transaction.marker')}
         Assert-SBWriteGuard;[IO.File]::Delete($marker)
         $manifest
-    }catch{$journal.status='interrupted';Save-Journal;throw "Transazione interrotta; ripristino con manifest $manifest. $($_.Exception.Message)"}
+    }catch{$journal.status='interrupted';Save-Journal;throw (New-SBError 'para.transaction.interrupted' @($manifest, $_.Exception.Message))}
 }
 
 function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[string]$BackupRoot,[string[]]$AllowedPaths=@()) {
     Assert-SBPlainPath $ManifestPath
     $manifestFull=[IO.Path]::GetFullPath($ManifestPath)
     $backupBoundary=[IO.Path]::GetFullPath($BackupRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-    if(!$manifestFull.StartsWith($backupBoundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Manifest fuori radice backup autorizzata'}
+    if(!$manifestFull.StartsWith($backupBoundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'para.manifest.outside')}
     $journal=Read-SBJson $ManifestPath $null
-    if(!$journal -or $journal.schemaVersion -ne 1 -or !(Test-SBSamePath $journal.brainRoot $BrainRoot)){throw 'Manifest di altra installazione o non valido'}
+    if(!$journal -or $journal.schemaVersion -ne 1 -or !(Test-SBSamePath $journal.brainRoot $BrainRoot)){throw (New-SBError 'para.manifest.foreign')}
     $ops=@()
     foreach($r in $journal.records){
         # Il journal puo essere stato scritto da un altro host che raggiunge lo stesso cervello con un alias diverso.
@@ -190,13 +227,13 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
         if($r.backup){$r.backup=Convert-SBBrainAlias $r.backup $journal.brainRoot $BrainRoot}
         $path=[IO.Path]::GetFullPath($r.path)
         $boundary=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-        if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw 'Record di recupero fuori perimetro'}
+        if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw (New-SBError 'para.recovery.outside')}
         # Also covers a process killed after a file change but before journal flush.
         $current=Get-SBFileHash $r.path
         if($current -eq $r.previousHash){continue}
-        if($current -ne $r.deployedHash){throw "Ripristino rifiutato: file modificato $($r.path)"}
-        if($r.previousHash -ne 'absent' -and (Get-SBFileHash $r.backup) -ne $r.previousHash){throw 'Backup alterato'}
-        if($r.previousHash -ne 'absent' -and ![IO.Path]::GetFullPath($r.backup).StartsWith((Split-Path $manifestFull)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw 'Payload fuori registro di recupero'}
+        if($current -ne $r.deployedHash){throw (New-SBError 'para.restore.refused' @($r.path))}
+        if($r.previousHash -ne 'absent' -and (Get-SBFileHash $r.backup) -ne $r.previousHash){throw (New-SBError 'para.backup.altered')}
+        if($r.previousHash -ne 'absent' -and ![IO.Path]::GetFullPath($r.backup).StartsWith((Split-Path $manifestFull)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'para.payload.outside')}
         $ops=@(@{path=$r.path;expected=$current;bytes=$(if($r.previousHash -eq 'absent'){$null}else{[IO.File]::ReadAllBytes($r.backup)})})+$ops
     }
     if($ops.Count){Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot $AllowedPaths $ManifestPath}else{
@@ -204,7 +241,7 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
         if(Test-Path -LiteralPath $marker){
             $pendingMarker=Read-SBJson $marker @{}
             $pendingManifest=if($pendingMarker.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pendingMarker.manifest) ([string]$pendingMarker.brainRoot) $BrainRoot}else{[string]$pendingMarker.manifest}
-            if($pendingManifest -ne $manifestFull){throw 'Altro recupero pendente'}
+            if($pendingManifest -ne $manifestFull){throw (New-SBError 'para.recovery.pending')}
             Assert-SBWriteGuard;[IO.File]::Delete($marker)
         }
         'Nessun ripristino necessario'

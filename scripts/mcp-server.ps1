@@ -76,10 +76,16 @@ if ($Pair) {
     $info = Get-SBMcpPairing -BrainRoot $BrainRoot -Target $Target
     $items = if ($info -is [array]) { $info } else { @($info) }
     foreach ($item in $items) {
-        $statusStr = if ($item.Configured) { "[CONFIGURATO]" } else { "[DA CONFIGURARE]" }
-        $color = if ($item.Configured) { "Green" } else { "Yellow" }
+        $hasSplit = $item.PSObject.Properties['CodeConfigured'] -and $item.PSObject.Properties['DesktopConfigured']
+        # Claude: Desktop e Code hanno file e stato distinti (la scrittura -Apply riguarda solo claude_desktop_config.json).
+        $configured = if ($hasSplit) { [bool]$item.DesktopConfigured -and [bool]$item.CodeConfigured } else { [bool]$item.Configured }
+        $statusStr = if ($hasSplit) {
+            '[Desktop: ' + $(if ($item.DesktopConfigured) { 'CONFIGURATO' } else { 'DA CONFIGURARE' }) + ' | Code: ' + $(if ($item.CodeConfigured) { 'CONFIGURATO' } else { 'DA CONFIGURARE' }) + ']'
+        } elseif ($item.Configured) { "[CONFIGURATO]" } else { "[DA CONFIGURARE]" }
+        $color = if ($configured) { "Green" } else { "Yellow" }
         Write-Host "`n=== Accoppiamento MCP SecondBrain per $($item.Name) $statusStr ===" -ForegroundColor $color
         Write-Host "Config file: $($item.ConfigFile)"
+        if ($hasSplit) { Write-Host "Claude Code (sola lettura): $($item.CodeConfigFile)" }
         Write-Host "`n--- Configurazione $($item.ConfigFormat.ToUpper()) da inserire ---"
         Write-Host $item.Snippet
         if ($item.PSObject.Properties['PermissionsSnippet'] -and $item.PermissionsSnippet) {

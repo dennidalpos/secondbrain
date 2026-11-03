@@ -159,6 +159,8 @@ Aggiungi o integra la voce `secondbrain` sotto `mcpServers`:
 ```
 *Salva e riavvia Claude Desktop. L'icona del martello (🔨) mostrerà i tool SecondBrain attivi.*
 
+**Claude Code** registra il server altrove: in `.claude.json` (profilo utente, o la cartella `CLAUDE_CONFIG_DIR` se impostata), con `claude mcp add secondbrain -- pwsh -NoProfile -File "<percorso>/scripts/mcp-server.ps1"`. `-Pair -Target claude` mostra lo stato dei due file separatamente (`Desktop: CONFIGURATO | Code: DA CONFIGURARE`); `-Apply` scrive solo `claude_desktop_config.json`, la registrazione di Claude Code resta un comando da eseguire a mano e `.claude.json` viene soltanto letto.
+
 ---
 
 ### C. Cursor IDE

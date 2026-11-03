@@ -21,6 +21,10 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'sourcescli.resource.archived' = @{ it = 'Risorsa archiviata'; en = 'Archived resource' }
+}
 $lock=$null
 try {
     $config=Read-SBConfiguration $ConfigPath
@@ -41,7 +45,7 @@ try {
         exit 0
     }
     if($BuildIndex){
-        if($registry.archived){throw 'Risorsa archiviata'}
+        if($registry.archived){throw (New-SBError 'sourcescli.resource.archived')}
         $catalog=Get-SBSourceCatalog $registry
         foreach($view in @(@{name='catalog.json';text=$catalog.json},@{name='README.md';text=$catalog.markdown})){
             $path=Join-Path $registry.root $view.name

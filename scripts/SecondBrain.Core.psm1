@@ -478,7 +478,7 @@ function Invoke-SBGit([string]$Root, [string[]]$GitArguments, [int]$TimeoutMs = 
     $process = [Diagnostics.Process]::Start((New-SBGitStartInfo $Root $GitArguments))
     try {
         $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()
-        if (!$process.WaitForExit($TimeoutMs)) { $process.Kill($true); throw "Git timeout: $Root" }
+        if (!$process.WaitForExit($TimeoutMs)) { $process.Kill($true); throw (New-SBError 'core.git.timeout' @($Root)) }
         $output=$stdout.GetAwaiter().GetResult()
         @{ code = $process.ExitCode; output = $(if($PreserveOutput){$output}else{$output.Trim()}); error = $stderr.GetAwaiter().GetResult().Trim() }
     } finally { $process.Dispose() }
@@ -493,7 +493,7 @@ function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutM
     try {
         $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()
         $process.StandardInput.Write((($ObjectIds -join "`n") + "`n")); $process.StandardInput.Close()
-        if (!$process.WaitForExit($TimeoutMs)) { $process.Kill($true); throw "Git timeout: $Root" }
+        if (!$process.WaitForExit($TimeoutMs)) { $process.Kill($true); throw (New-SBError 'core.git.timeout' @($Root)) }
         foreach ($line in $stdout.GetAwaiter().GetResult() -split "`n") {
             if ($line -match '^([a-f0-9]{40,64}) (blob|tree|commit|tag) (\d+)\s*$') { $info[$Matches[1]] = @{ type = $Matches[2]; size = [long]$Matches[3] } }
         }
@@ -558,7 +558,7 @@ public sealed class SBGitBatchReader {
             $bytes = $reader.ReadBytes([long]$Matches[2]); $null = $reader.ReadBytes(1)
             [pscustomobject]@{ Entry = $entry; Bytes = $bytes; Missing = $false }
         }
-        if ($process) { $writer.Wait(); $process.StandardInput.Close(); if (!$process.WaitForExit($ReadTimeoutMs)) { throw "Git timeout: $Root" } }
+        if ($process) { $writer.Wait(); $process.StandardInput.Close(); if (!$process.WaitForExit($ReadTimeoutMs)) { throw (New-SBError 'core.git.timeout' @($Root)) } }
     } finally {
         if ($process) { if (!$process.HasExited) { try { $process.Kill($true) } catch {} }; $process.Dispose() }
     }

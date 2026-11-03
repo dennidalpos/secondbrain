@@ -97,6 +97,7 @@ Add-SBMessages @{
     'core.git.batchcheck'       = @{ it = 'Git cat-file --batch-check non riuscito: {0}'; en = 'Git cat-file --batch-check failed: {0}' }
     'core.git.stream'           = @{ it = 'Git cat-file --batch: flusso interrotto'; en = 'Git cat-file --batch: stream interrupted' }
     'core.git.header'           = @{ it = 'Git cat-file --batch: intestazione inattesa: {0}'; en = 'Git cat-file --batch: unexpected header: {0}' }
+    'core.git.timeout'          = @{ it = 'Git timeout: {0}'; en = 'Git timeout: {0}' }
     'core.remove.backup'        = @{ it = 'Backup rimozione non verificato'; en = 'Removal backup not verified' }
 }
 

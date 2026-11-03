@@ -651,6 +651,22 @@ try{
     Assert-Portable ($pairMeta -and $pairMeta.previousHash -and $pairMeta.deployedHash -and (Get-SBFileHash $setRes.BackupFile) -eq $pairMeta.previousHash -and ((Read-SBText $setRes.BackupFile) -notmatch 'secondbrain')) 'backup del pairing MCP con hash e metadati, contenente l originale'
     $sameRes = Set-SBMcpConfiguration -BrainRoot $brain -Target claude -ConfigFile $mockClaude -BackupRoot (Join-Path $testCfgDir 'backups')
     Assert-Portable ($sameRes.Action -eq 'unchanged' -and !$sameRes.BackupFile) 'pairing MCP ripetuto non riscrive ne crea backup'
+    # Claude Code registra il server in .claude.json (stato distinto da Claude Desktop, sola lettura).
+    $codeUser = Join-Path $testCfgDir 'code-user.claude.json'
+    Put-Portable $codeUser (ConvertTo-SBJson @{ mcpServers = @{ secondbrain = @{ command = 'pwsh' } } })
+    $codeLocal = Join-Path $testCfgDir 'code-local.claude.json'
+    Put-Portable $codeLocal (ConvertTo-SBJson @{ projects = @{ 'C:/repo' = @{ mcpServers = @{ secondbrain = @{ command = 'pwsh' } } } } })
+    $codeNone = Join-Path $testCfgDir 'code-none.claude.json'
+    Put-Portable $codeNone (ConvertTo-SBJson @{ mcpServers = @{ altro = @{ command = 'node' } } })
+    $codeBroken = Join-Path $testCfgDir 'code-broken.claude.json'
+    [IO.File]::WriteAllText($codeBroken, '{ non json')
+    $pairUser = @(Get-SBMcpPairing -BrainRoot $brain -Target claude -ClaudeCodeConfigFile $codeUser)[0]
+    $pairLocal = @(Get-SBMcpPairing -BrainRoot $brain -Target claude -ClaudeCodeConfigFile $codeLocal)[0]
+    $pairNone = @(Get-SBMcpPairing -BrainRoot $brain -Target claude -ClaudeCodeConfigFile $codeNone)[0]
+    $pairBroken = @(Get-SBMcpPairing -BrainRoot $brain -Target claude -ClaudeCodeConfigFile $codeBroken)[0]
+    $pairMissing = @(Get-SBMcpPairing -BrainRoot $brain -Target claude -ClaudeCodeConfigFile (Join-Path $testCfgDir 'assente.claude.json'))[0]
+    Assert-Portable ($pairUser.CodeConfigured -and $pairLocal.CodeConfigured -and !$pairNone.CodeConfigured -and !$pairBroken.CodeConfigured -and !$pairMissing.CodeConfigured) 'pairing Claude: stato Claude Code da .claude.json (utente, progetto, assente, illeggibile)'
+    Assert-Portable ($pairUser.CodeConfigFile -eq $codeUser -and $pairUser.DesktopConfigFile -eq $pairUser.ConfigFile -and $pairUser.DesktopConfigured -eq $pairUser.Configured) 'pairing Claude: file e stato di Desktop distinti da quelli di Code'
     $brokenCfg = Join-Path $testCfgDir 'broken.json'
     [IO.File]::WriteAllText($brokenCfg, "{ // commento dell utente`n  `"mcpServers`": {} }")
     $brokenBefore = Get-SBFileHash $brokenCfg
@@ -1000,9 +1016,14 @@ public static bool Set(string name,bool enabled){
     try{
         $cliTasks=@(& pwsh -NoProfile -File $knowledgeCli -Tasks -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
         Assert-Portable ($LASTEXITCODE -eq 0 -and $cliTasks.Count -eq 1 -and $cliTasks[0].repository -eq $twoBinding.identity) 'knowledge -Tasks risolve il repository dal checkout corrente'
-        $cliAll=@(& pwsh -NoProfile -File $knowledgeCli -Tasks -All -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
-        Assert-Portable ($LASTEXITCODE -eq 0 -and $cliAll.Count -ge 2) 'knowledge -Tasks -All espone la vista globale su richiesta'
-        & pwsh -NoProfile -File $knowledgeCli -Tasks -All -Repository $localBinding.identity -ConfigPath $isoActivation.configuration *> $null
+        $cliAllPage=(& pwsh -NoProfile -File $knowledgeCli -Tasks -All -ConfigPath $isoActivation.configuration 2>$null|Out-String|ConvertFrom-Json)
+        $cliAll=@($cliAllPage.tasks)
+        Assert-Portable ($LASTEXITCODE -eq 0 -and $cliAll.Count -ge 2 -and $cliAllPage.total -ge $cliAllPage.count -and $cliAllPage.limit -eq 50 -and $cliAllPage.offset -eq 0) 'knowledge -Tasks -All espone la vista globale paginata su richiesta'
+        $cliAllOne=(& pwsh -NoProfile -File $knowledgeCli -Tasks -All -Limit 1 -ConfigPath $isoActivation.configuration 2>$null|Out-String|ConvertFrom-Json)
+        $cliAllNext=(& pwsh -NoProfile -File $knowledgeCli -Tasks -All -Limit 1 -Offset $cliAllOne.nextOffset -ConfigPath $isoActivation.configuration 2>$null|Out-String|ConvertFrom-Json)
+        Assert-Portable ($cliAllOne.count -eq 1 -and $cliAllOne.hasMore -and $cliAllOne.nextOffset -eq 1 -and $cliAllOne.total -eq $cliAllPage.total -and $cliAllNext.offset -eq 1 -and $cliAllNext.tasks[0].id -ne $cliAllOne.tasks[0].id) 'knowledge -Tasks -All -Limit/-Offset: pagina con nextOffset'
+        $cliAllEvery=(& pwsh -NoProfile -File $knowledgeCli -Tasks -All -Limit 0 -ConfigPath $isoActivation.configuration 2>$null|Out-String|ConvertFrom-Json)
+        Assert-Portable ($cliAllEvery.count -eq $cliAllEvery.total -and !$cliAllEvery.hasMore -and $null -eq $cliAllEvery.nextOffset) 'knowledge -Tasks -All -Limit 0 restituisce tutte le voci'        & pwsh -NoProfile -File $knowledgeCli -Tasks -All -Repository $localBinding.identity -ConfigPath $isoActivation.configuration *> $null
         Assert-Portable ($LASTEXITCODE -ne 0) 'knowledge -All e -Repository incompatibili'
         & pwsh -NoProfile -File $knowledgeCli -UpdateTaskId 'ISO-LOCAL' -Status 'in_progress' -Repository $localBinding.identity -ConfigPath $isoActivation.configuration *> $null
         Assert-Portable ($LASTEXITCODE -ne 0 -and (@((Read-SBJson (Join-Path (Join-Path $brain $localBinding.dossier) 'tracker.json') $null).tasks)[0].status -eq 'todo')) 'scrittura sul tracker di un altro repository rifiutata'
@@ -1067,6 +1088,8 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ((ConvertTo-ParityJson $cliStartup) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_startup_context' @{checkoutPath=$other}))) 'parità CLI-MCP: get_startup_context'
         $cliReady=Invoke-ParityCli 'knowledge.ps1' (@('-Tasks','-ReadyOnly')+$parityConfig)
         Assert-Portable ((ConvertTo-ParityJson $cliReady) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{checkoutPath=$other}))) 'parità CLI-MCP: get_ready_tasks'
+        $cliReadyAll=Invoke-ParityCli 'knowledge.ps1' (@('-Tasks','-All','-ReadyOnly','-Limit','1')+$parityConfig)
+        Assert-Portable ((ConvertTo-ParityJson $cliReadyAll) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_ready_tasks' @{all=$true;limit=1}))) 'parità CLI-MCP: vista globale paginata (get_ready_tasks all=true)'
         $cliTask=Invoke-ParityCli 'knowledge.ps1' (@('-Task','ISO-TWO')+$parityConfig)
         Assert-Portable ((ConvertTo-ParityJson $cliTask) -ceq (ConvertTo-ParityJson (Invoke-SBMcpToolCall $brain 'get_task' @{task='ISO-TWO';checkoutPath=$other}))) 'parità CLI-MCP: get_task'
         $cliSearch=Invoke-ParityCli 'knowledge.ps1' (@('-Search','Task','-Repository',$twoBinding.identity)+$parityConfig)
@@ -1163,6 +1186,34 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($activateOptOut.exit -eq 0 -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Activate -Apply -NoRegisterEnvironment rispetta l opt-out'
     $discoverDefault=Invoke-FixtureCli 'secondbrain.ps1' @('-Discover','-Roots',$setupRepos)
     Assert-Portable ($discoverDefault.exit -eq 0 -and (Test-Path -LiteralPath $setupReport)) '-Discover senza -ReportPath scrive il report per host'
+
+    # Blocchi gestiti gia presenti: quello identico al testo approvato (marcatori e hash di origine) non richiede -ApproveExistingBlocks, uno diverso si.
+    $blockRoots=Join-Path $fixture 'setup-block-roots'
+    $approvedRevision=Get-SBApprovedDirectiveRevision $brain
+    $approvedBody=& (Get-Module SecondBrain.Portable) { param($revision) New-SBPortableRepositoryBody $revision } $approvedRevision
+    $approvedBlock="<!-- secondbrain:repository:begin -->`n"+$approvedBody.Trim()+"`n<!-- secondbrain:repository:end -->"
+    foreach($name in @('gamma','delta')){
+        $path=Join-Path $blockRoots $name;[IO.Directory]::CreateDirectory($path)|Out-Null;Git-Portable $path @('init','-q')|Out-Null
+        Git-Portable $path @('remote','add','origin',('https://gitlab.example/team/'+$name+'.git'))|Out-Null
+        $block=if($name -eq 'gamma'){$approvedBlock}else{$approvedBlock.Replace("`n<!-- secondbrain:repository:end -->","`nRiga aggiunta a mano.`n<!-- secondbrain:repository:end -->")}
+        Put-Portable (Join-Path $path 'AGENTS.md') ("# $name`n`n"+$block+"`n")
+    }
+    $blockBase=@('-Setup','-Roots',$blockRoots,'-NoRegisterEnvironment','-Yes')
+    $knownBlock=Invoke-FixtureCli 'secondbrain.ps1' ($blockBase+@('-Select','gamma'))
+    Assert-Portable ($knownBlock.exit -eq 0 -and $knownBlock.text -match '"stage": "preview"') '-Setup: blocco gestito con testo e hash approvati non richiede -ApproveExistingBlocks'
+    Assert-Portable (@((Read-SBJson $setupSelection $null).repositories|Where-Object {$_.approveExistingBlock}).Count -eq 1) '-Setup: il blocco riconosciuto e registrato come approvato nella selezione'
+    $foreignBlock=Invoke-FixtureCli 'secondbrain.ps1' ($blockBase+@('-Select','delta'))
+    Assert-Portable ($foreignBlock.exit -eq 2 -and $foreignBlock.text -match 'ApproveExistingBlocks') '-Setup: blocco gestito diverso dal testo approvato richiede -ApproveExistingBlocks'
+    Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($blockBase+@('-Select','delta','-ApproveExistingBlocks'))).exit -eq 0) '-Setup -ApproveExistingBlocks approva il blocco diverso'
+
+    # Un IDE selezionato per nome e dichiarato con alias e una sola integrazione.
+    $reportIdes=@((Read-SBJson $setupReport $null).ides)
+    if($reportIdes.Count){
+        $ideName=[string]$reportIdes[0].name
+        $aliasRun=Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha','-Ides',$ideName,'-IdeAccount',($ideName+'|alias-prova'),'-NoRegisterEnvironment','-Yes')
+        $aliasIdes=@((Read-SBJson $setupSelection $null).ides)
+        Assert-Portable ($aliasRun.exit -eq 0 -and $aliasIdes.Count -eq 1 -and $aliasIdes[0].accountAlias -ceq 'alias-prova') '-Setup: -Ides e -IdeAccount per lo stesso IDE producono una sola integrazione con alias'
+    }
 
     # -Setup -Status (sola lettura) e -Unbind (disassociazione con proposta, conferma e anteprima).
     $alphaPath=Join-Path $setupRepos 'alpha';$betaPath=Join-Path $setupRepos 'beta'

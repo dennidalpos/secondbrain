@@ -48,7 +48,7 @@ Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
 | **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Sola lettura per costruzione. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | Le definizioni dei tool occupano circa 6.000 caratteri (~1.500 token) a ogni sessione. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. Alcune risposte non hanno tetto: `knowledge.ps1 -Tasks -All` è molto lungo. |
+| **Contro** | Le definizioni dei tool occupano circa 6.000 caratteri (~1.500 token) a ogni sessione. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
 
@@ -68,7 +68,7 @@ MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dall
 | Strumento MCP | Comando CLI | Comando `sb` nell'IDE |
 |---|---|---|
 | `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` | — |
-| `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` (`-All` per la vista globale) | — |
+| `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` (`-All` per la vista globale paginata, con `-Offset` e `-Limit`; risposta `total`, `nextOffset`, `tasks`) | — |
 | `get_task` | `knowledge.ps1 -Task <id o #seq>` | — |
 | `search_knowledge` | `knowledge.ps1 -Search <testo> [-Mode Relevance]` | — |
 | `get_prompt_home` | `prompts.ps1` | `sb prompt` |

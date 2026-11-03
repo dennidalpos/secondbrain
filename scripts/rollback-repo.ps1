@@ -34,6 +34,17 @@ trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Messag
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'rollback.reparse' = @{ it = 'Reparse point nel dossier, rollback rifiutato: {0}'; en = 'Reparse point in the dossier, rollback refused: {0}' }
+    'rollback.hash.copy' = @{ it = 'Verifica hash fallita nella copia: {0}'; en = 'Hash verification failed in the copy: {0}' }
+    'rollback.identity.dossiers' = @{ it = 'Identita ambigua: {0} dossier corrispondono a ''{1}'' ({2}). Indicare l''identita completa del repository.'; en = 'Ambiguous identity: {0} dossiers match ''{1}'' ({2}). Give the full repository identity.' }
+    'rollback.identity.folders' = @{ it = 'Identita ambigua: {0} cartelle corrispondono a ''{1}'' ({2}). Indicare l''identita completa del repository.'; en = 'Ambiguous identity: {0} folders match ''{1}'' ({2}). Give the full repository identity.' }
+    'rollback.dossier.missing' = @{ it = 'Dossier non trovato per l''identita o nome: {0}'; en = 'Dossier not found for the identity or name: {0}' }
+    'rollback.self.repository' = @{ it = 'Rollback rifiutato: ''{0}'' e il repository di SecondBrain stesso.'; en = 'Rollback refused: ''{0}'' is the SecondBrain repository itself.' }
+    'rollback.checkout.missing' = @{ it = 'Checkout di destinazione non trovato per {0} (specificare -DestinationPath o usare -Force se il checkout locale e rimosso).'; en = 'Destination checkout not found for {0} (give -DestinationPath or use -Force if the local checkout is removed).' }
+    'rollback.self.checkout' = @{ it = 'Rollback rifiutato: il checkout di destinazione e SecondBrain stesso.'; en = 'Rollback refused: the destination checkout is SecondBrain itself.' }
+}
 
 function ConvertTo-RollbackPath([string]$Path) { [IO.Path]::GetFullPath($Path).TrimEnd('\','/') }
 
@@ -42,7 +53,7 @@ function Copy-RollbackTree([string]$Source,[string]$Destination) {
     $sourceRoot = ConvertTo-RollbackPath $Source
     $files = @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -Force -File)
     foreach ($item in @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -Force)) {
-        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw "Reparse point nel dossier, rollback rifiutato: $($item.FullName)" }
+        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw (New-SBError 'rollback.reparse' @($item.FullName)) }
     }
     [IO.Directory]::CreateDirectory($Destination) | Out-Null
     foreach ($file in $files) {
@@ -50,7 +61,7 @@ function Copy-RollbackTree([string]$Source,[string]$Destination) {
         $target = Join-Path $Destination $relative
         [IO.Directory]::CreateDirectory((Split-Path $target)) | Out-Null
         Copy-Item -LiteralPath $file.FullName -Destination $target -Force
-        if ((Get-SBFileHash $file.FullName) -ne (Get-SBFileHash $target)) { throw "Verifica hash fallita nella copia: $relative" }
+        if ((Get-SBFileHash $file.FullName) -ne (Get-SBFileHash $target)) { throw (New-SBError 'rollback.hash.copy' @($relative)) }
     }
     $files.Count
 }
@@ -70,7 +81,7 @@ try {
         )
     })
     if ($matchedEntities.Count -gt 1) {
-        throw "Identita ambigua: $($matchedEntities.Count) dossier corrispondono a '$RepositoryIdentity' ($(($matchedEntities | ForEach-Object path) -join ', ')). Indicare l'identita completa del repository."
+        throw (New-SBError 'rollback.identity.dossiers' @($matchedEntities.Count, $RepositoryIdentity, (($matchedEntities | ForEach-Object path) -join ', ')))
     }
 
     $dossierPath = $null
@@ -97,7 +108,7 @@ try {
             }
         }
         if ($folderMatches.Count -gt 1) {
-            throw "Identita ambigua: $($folderMatches.Count) cartelle corrispondono a '$RepositoryIdentity' ($(($folderMatches | ForEach-Object { $_.relative }) -join ', ')). Indicare l'identita completa del repository."
+            throw (New-SBError 'rollback.identity.folders' @($folderMatches.Count, $RepositoryIdentity, (($folderMatches | ForEach-Object { $_.relative }) -join ', ')))
         }
         if ($folderMatches.Count -eq 1) {
             $dossierPath = $folderMatches[0].path
@@ -107,13 +118,13 @@ try {
     }
 
     if (!$dossierPath -or !(Test-Path -LiteralPath $dossierPath)) {
-        throw "Dossier non trovato per l'identita o nome: $RepositoryIdentity"
+        throw (New-SBError 'rollback.dossier.missing' @($RepositoryIdentity))
     }
 
     # Il dossier del cervello stesso non e mai restituibile ne eliminabile.
     $brainIdentity = Get-SBBrainIdentity $brain
     if (($brainIdentity -and $resolvedIdentity -ceq $brainIdentity) -or (ConvertTo-RollbackPath $dossierPath) -ieq (ConvertTo-RollbackPath $brain)) {
-        throw "Rollback rifiutato: '$resolvedIdentity' e il repository di SecondBrain stesso."
+        throw (New-SBError 'rollback.self.repository' @($resolvedIdentity))
     }
 
     # 2. Risolvi il checkout target
@@ -124,10 +135,10 @@ try {
     }
     $hasCheckout = [bool]($checkoutPath -and (Test-Path -LiteralPath $checkoutPath))
     if (!$hasCheckout -and !$Force) {
-        throw "Checkout di destinazione non trovato per $RepositoryIdentity (specificare -DestinationPath o usare -Force se il checkout locale e rimosso)."
+        throw (New-SBError 'rollback.checkout.missing' @($RepositoryIdentity))
     }
     if ($hasCheckout -and (ConvertTo-RollbackPath $checkoutPath) -ieq (ConvertTo-RollbackPath $brain)) {
-        throw 'Rollback rifiutato: il checkout di destinazione e SecondBrain stesso.'
+        throw (New-SBError 'rollback.self.checkout')
     }
 
     Write-Host "Inizio Rollback Privacy per: $resolvedIdentity" -ForegroundColor Cyan

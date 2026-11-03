@@ -19,6 +19,10 @@ trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Messag
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'importtracker.source.diverged' = @{ it = 'Sorgente diversa dal tracker autorevole'; en = 'Source differs from the authoritative tracker' }
+}
 $config=Read-SBConfiguration $ConfigPath
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {
@@ -26,7 +30,7 @@ try {
         if($ResumeManifest -or $RollbackManifest){Read-SBTrackerManifest $config $(if($ResumeManifest){$ResumeManifest}else{$RollbackManifest})|ConvertTo-SBJson}
         else{
             $resolved=Resolve-SBTracker -BrainRoot $config.brainRoot -Identity $Repository -CheckoutPath (Split-Path ([IO.Path]::GetFullPath($SourcePath))) -AllowedOwners $config.allowedOwners
-            if(!$resolved.path -or [IO.Path]::GetFullPath($resolved.path) -ne [IO.Path]::GetFullPath($SourcePath)){throw 'Sorgente diversa dal tracker autorevole'}
+            if(!$resolved.path -or [IO.Path]::GetFullPath($resolved.path) -ne [IO.Path]::GetFullPath($SourcePath)){throw (New-SBError 'importtracker.source.diverged')}
             $data=ConvertTo-SBTracker -SourcePath $SourcePath -Identity $Repository -HistoryPath $HistoryPath -ReviewPath $ReviewPath
             $entities=@(Get-SBParaEntities $config.brainRoot $config.allowedOwners)
             [void](Test-SBTrackerData $data $Repository @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $config.brainRoot $Repository $entities))

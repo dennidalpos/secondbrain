@@ -65,7 +65,7 @@ flowchart LR
 MCP è facoltativo; gli stessi contenuti arrivano anche dalla riga di comando.
 
 - **Con MCP:** strumenti pronti per l'agente, risposte compatte, sola lettura. Costo: circa 1.500 token di definizioni a ogni sessione e un popup di consenso per strumento.
-- **Senza MCP:** nessuna configurazione e nessun costo fisso, ma l'agente deve lanciare i comandi da shell e alcune risposte (come `-Tasks -All`) non hanno tetto.
+- **Senza MCP:** nessuna configurazione e nessun costo fisso, ma l'agente deve lanciare i comandi da shell, con un permesso per comando.
 
 Dettagli, diagnosi e limiti: [agenti e MCP](docs/ide-e-mcp.md).
 

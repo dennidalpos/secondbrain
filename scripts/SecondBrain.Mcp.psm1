@@ -189,11 +189,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
             $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { 50 }
             if ($offset -lt 0 -or $limit -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
-            $tasks = @(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly)
-            $page = @($tasks | Select-Object -Skip $offset)
-            if ($limit -gt 0) { $page = @($page | Select-Object -First $limit) }
-            $hasMore = ($offset + $page.Count) -lt $tasks.Count
-            return ConvertTo-SBMcpJson @{ total = $tasks.Count; offset = $offset; limit = $limit; count = $page.Count; hasMore = $hasMore; nextOffset = $(if ($hasMore) { $offset + $page.Count } else { $null }); tasks = $page }
+            return ConvertTo-SBMcpJson (Get-SBGlobalTaskPage -BrainRoot $BrainRoot -Offset $offset -Limit $limit -ReadyOnly)
         }
         { $_ -in @('get_task', 'secondbrain_get_task') } {
             if (!$Arguments.ContainsKey('task') -or !"$($Arguments.task)") {
@@ -528,11 +524,27 @@ function Get-SBMcpReadOnlyToolNames {
     # Strumenti di sola lettura che non scrivono nel cervello ne altrove: candidati all'approvazione automatica. check_publication esclusa (analizza un percorso scelto dal chiamante).
     @('get_startup_context', 'get_ready_tasks', 'get_task', 'search_knowledge', 'list_prompts', 'get_prompt', 'get_prompt_home')
 }
+function Test-SBClaudeCodeRegistration([string]$ConfigFile) {
+    # Sola lettura di .claude.json: server a livello utente (mcpServers) o locale a un progetto (projects.<percorso>.mcpServers).
+    if (!$ConfigFile -or !(Test-Path -LiteralPath $ConfigFile -PathType Leaf)) { return $false }
+    try {
+        $document = Get-Content -LiteralPath $ConfigFile -Raw -ErrorAction Stop | ConvertFrom-Json -AsHashtable -ErrorAction Stop
+        if ($document -isnot [System.Collections.IDictionary]) { return $false }
+        if ($document.ContainsKey('mcpServers') -and $document.mcpServers -is [System.Collections.IDictionary] -and $document.mcpServers.ContainsKey('secondbrain')) { return $true }
+        if ($document.ContainsKey('projects') -and $document.projects -is [System.Collections.IDictionary]) {
+            foreach ($project in $document.projects.Values) {
+                if ($project -is [System.Collections.IDictionary] -and $project.ContainsKey('mcpServers') -and $project.mcpServers -is [System.Collections.IDictionary] -and $project.mcpServers.ContainsKey('secondbrain')) { return $true }
+            }
+        }
+    } catch { }
+    $false
+}
 function Get-SBMcpPairing {
     [CmdletBinding()]
     param(
         [string]$BrainRoot,
-        [Parameter()][ValidateSet('codex', 'claude', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all'
+        [Parameter()][ValidateSet('codex', 'claude', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
+        [string]$ClaudeCodeConfigFile
     )
     if (!$BrainRoot) {
         $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -583,6 +595,8 @@ function Get-SBMcpPairing {
                 $claudeRoot = [Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User')
                 if (!$claudeRoot) { $claudeRoot = $env:CLAUDE_CONFIG_DIR }
                 $cliCommand = "claude mcp add secondbrain -- pwsh -NoProfile -File `"$serverScript`""
+                # Claude Code registra i server in .claude.json (nella cartella CLAUDE_CONFIG_DIR se impostata, altrimenti nel profilo utente), non in claude_desktop_config.json.
+                $claudeCodeFile = if ($ClaudeCodeConfigFile) { $ClaudeCodeConfigFile } elseif ($claudeRoot) { Join-Path $claudeRoot '.claude.json' } else { Join-Path $env:USERPROFILE '.claude.json' }
                 if ($claudeRoot) {
                     $configFile = Join-Path $claudeRoot 'claude_desktop_config.json'
                 } elseif (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Claude')) {
@@ -619,6 +633,10 @@ function Get-SBMcpPairing {
                         args = @('-NoProfile', '-File', $serverScriptNormalized)
                     }
                     Configured = (Test-Path -LiteralPath $configFile -PathType Leaf) -and ((Get-Content -LiteralPath $configFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
+                    DesktopConfigFile = $configFile
+                    DesktopConfigured = (Test-Path -LiteralPath $configFile -PathType Leaf) -and ((Get-Content -LiteralPath $configFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
+                    CodeConfigFile = $claudeCodeFile
+                    CodeConfigured = Test-SBClaudeCodeRegistration $claudeCodeFile
                 }
             }
             'cursor' {

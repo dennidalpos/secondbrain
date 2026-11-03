@@ -6,6 +6,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'knowledge.paging.invalid' = @{ it = 'Offset e Limit devono essere interi non negativi'; en = 'Offset and Limit must be non-negative integers' }
     'knowledge.record.missing' = @{ it = 'repository.json assente'; en = 'repository.json missing' }
     'knowledge.dossier.invalid' = @{ it = 'Dossier non valido'; en = 'Invalid dossier' }
     'knowledge.repository.required' = @{ it = 'Repository non specificato: indicare il repository in lavoro oppure -All per la vista globale in sola lettura'; en = 'Repository not specified: give the working repository or -All for the read-only global view' }
@@ -285,6 +286,15 @@ function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$Al
             }
         }catch{@{repository=$area.repository;status='unverified';reason=$_.Exception.Message;scope=$scope}}
     }
+}
+function Get-SBGlobalTaskPage([string]$BrainRoot,[int]$Offset=0,[int]$Limit=50,[switch]$ReadyOnly) {
+    # Vista globale paginata (stessa forma per CLI e MCP): Limit 0 = tutte le voci; nextOffset per la pagina successiva.
+    if($Offset -lt 0 -or $Limit -lt 0){throw (New-SBError 'knowledge.paging.invalid')}
+    $tasks=@(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly:$ReadyOnly)
+    $page=@($tasks|Select-Object -Skip $Offset)
+    if($Limit -gt 0){$page=@($page|Select-Object -First $Limit)}
+    $hasMore=($Offset+$page.Count) -lt $tasks.Count
+    @{total=$tasks.Count;offset=$Offset;limit=$Limit;count=$page.Count;hasMore=$hasMore;nextOffset=$(if($hasMore){$Offset+$page.Count}else{$null});tasks=$page}
 }
 function Resolve-SBWorkingDossier([string]$BrainRoot,[string]$Repository) {
     # Dossier (percorso relativo al cervello) dell'unico Area attiva del repository.
@@ -610,6 +620,7 @@ Export-ModuleMember -Function @(
     'Get-SBCompactionAdvice',
     'Format-SBStartupReport',
     'Get-SBGlobalTasks',
+    'Get-SBGlobalTaskPage',
     'Resolve-SBWorkingDossier',
     'Find-SBKnowledge',
     'Get-SBSearchDefaultLimit',

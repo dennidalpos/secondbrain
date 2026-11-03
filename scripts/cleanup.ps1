@@ -25,22 +25,37 @@ param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPat
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'cleanup.regenerable.exclusive' = @{ it = 'Regenerable non e combinabile con ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime o RuntimeReport'; en = 'Regenerable cannot be combined with ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime or RuntimeReport' }
+    'cleanup.sessions.active' = @{ it = 'Sessioni di accesso attive o non verificabili: pulizia sospesa ({0})'; en = 'Access sessions active or not verifiable: cleanup suspended ({0})' }
+    'cleanup.modes.exclusive' = @{ it = 'ListStageRecords, ListRuntime, ProposeRuntime e RuntimeReport non sono combinabili'; en = 'ListStageRecords, ListRuntime, ProposeRuntime and RuntimeReport cannot be combined' }
+    'cleanup.readonly.modes' = @{ it = 'ListStageRecords e ListRuntime sono in sola lettura: non combinabili con Apply o ManifestPath'; en = 'ListStageRecords and ListRuntime are read-only: not combinable with Apply or ManifestPath' }
+    'cleanup.report.md' = @{ it = 'Il rapporto si salva in un file .md'; en = 'The report is saved to a .md file' }
+    'cleanup.proposal.json' = @{ it = 'La proposta si salva in un nuovo file .json'; en = 'The proposal is saved to a new .json file' }
+    'cleanup.manifest.required' = @{ it = 'Pulizia richiede un manifest locale esplicito; nessuna selezione per eta o nome'; en = 'Cleanup requires an explicit local manifest; no selection by age or name' }
+    'cleanup.manifest.unreviewed' = @{ it = 'Manifest non revisionato o riferimenti non verificati'; en = 'Manifest not reviewed or references not verified' }
+    'cleanup.apply.authorization' = @{ it = 'Apply richiede Authorization con riferimento alla richiesta esplicita dell utente'; en = 'Apply requires Authorization referencing the user''s explicit request' }
+    'cleanup.data.protected' = @{ it = 'Dato operativo attivo protetto'; en = 'Active operational data protected' }
+    'cleanup.manifest.content' = @{ it = 'Contenuto assente, duplicato o modificato nel manifest'; en = 'Content missing, duplicated or modified in the manifest' }
+    'cleanup.transaction.pending' = @{ it = 'Transazione pendente: pulizia sospesa'; en = 'Pending transaction: cleanup suspended' }
+}
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {
     if($Regenerable){
-        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw 'Regenerable non e combinabile con ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime o RuntimeReport'}
+        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
         $protectedRoots=@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)
         $plan=Get-SBRegenerableRuntimeTargets $config.brainRoot $protectedRoots $KeepFixtures $MinAgeMinutes
         $summary=@{applied=$false;scope='runtime-regenerable-only';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;targets=@($plan.targets);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
         if(!$Apply){$summary.note='Anteprima: nessuna cartella rimossa. Con -Apply e -Authorization si rimuovono solo i target elencati.';ConvertTo-SBJson $summary;exit 0}
-        if(!$Authorization){throw 'Apply richiede Authorization con riferimento alla richiesta esplicita dell utente'}
-        if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw 'Transazione pendente: pulizia sospesa'}
+        if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
+        if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
         # Sessioni di altri processi; il proprietario dell'operazione corrente (writer lock) non e una sessione.
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
-        if($busy.Count){throw 'Sessioni di accesso attive o non verificabili: pulizia sospesa ('+$busy.Count+')'}
+        if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
         $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
         $registryPath=Join-Path $registryDir ('regenerable-'+[DateTimeOffset]::Now.ToString('yyyyMMddTHHmmss')+'.json')
         $record=@{schemaVersion=1;executedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;scope='runtime-regenerable-only';status='started';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;items=@();skipped=@($plan.skipped);failed=@()}
@@ -62,8 +77,8 @@ try {
         exit $(if($failures.Count){1}else{0})
     }
     if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){
-        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw 'ListStageRecords, ListRuntime, ProposeRuntime e RuntimeReport non sono combinabili'}
-        if($Apply -or $ManifestPath){throw 'ListStageRecords e ListRuntime sono in sola lettura: non combinabili con Apply o ManifestPath'}
+        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw (New-SBError 'cleanup.modes.exclusive')}
+        if($Apply -or $ManifestPath){throw (New-SBError 'cleanup.readonly.modes')}
         # Tutti i backupRoot noti: quello corrente e quelli delle postazioni registrate sotto .runtime.
         $stageRoots=@($config.backupRoot)
         $registry=Read-SBJson (Join-Path $config.coordinationRoot 'workstations.json') @{}
@@ -72,7 +87,7 @@ try {
             $index=Get-SBRuntimeIndex $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
             if($ReportPath){
                 $target=Assert-SBCentralDataPath $config.brainRoot $ReportPath
-                if([IO.Path]::GetExtension($target) -ne '.md'){throw 'Il rapporto si salva in un file .md'}
+                if([IO.Path]::GetExtension($target) -ne '.md'){throw (New-SBError 'cleanup.report.md')}
                 $bytes=[Text.UTF8Encoding]::new($false).GetBytes($index.markdown)
                 [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
                 if($target -ieq [IO.Path]::GetFullPath((Join-Path $config.brainRoot '.runtime/INDEX.md'))){
@@ -92,7 +107,7 @@ try {
             $json=ConvertTo-SBJson $proposal
             if($ProposalPath){
                 $target=Assert-SBCentralDataPath $config.brainRoot $ProposalPath
-                if([IO.Path]::GetExtension($target) -ne '.json'){throw 'La proposta si salva in un nuovo file .json'}
+                if([IO.Path]::GetExtension($target) -ne '.json'){throw (New-SBError 'cleanup.proposal.json')}
                 [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
                 $stream=[IO.FileStream]::new($target,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
                 try{$stream.Write([Text.UTF8Encoding]::new($false).GetBytes($json));$stream.Flush($true)}finally{$stream.Dispose()}
@@ -109,19 +124,19 @@ try {
         ConvertTo-SBJson @{applied=$false;scope='stage-records-preview';olderThanDays=$report.olderThanDays;candidateCount=$report.candidates.Count;retained=$report.retained;files=@($report.candidates|ForEach-Object {@{path=$_.path;sha256=$_.sha256}});details=$report.candidates}
         exit 0
     }
-    if(!$ManifestPath){throw 'Pulizia richiede un manifest locale esplicito; nessuna selezione per eta o nome'}
+    if(!$ManifestPath){throw (New-SBError 'cleanup.manifest.required')}
     $manifest=Read-SBJson (Assert-SBCentralDataPath $config.brainRoot $ManifestPath) $null
-    if(!$manifest -or $manifest.schemaVersion -ne 1 -or !$manifest.reviewed -or !$manifest.referencesChecked -or !$manifest.reason){throw 'Manifest non revisionato o riferimenti non verificati'}
-    if($Apply -and !$Authorization){throw 'Apply richiede Authorization con riferimento alla richiesta esplicita dell utente'}
+    if(!$manifest -or $manifest.schemaVersion -ne 1 -or !$manifest.reviewed -or !$manifest.referencesChecked -or !$manifest.reason){throw (New-SBError 'cleanup.manifest.unreviewed')}
+    if($Apply -and !$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
     $protected=@($config.configPath,(Join-Path $config.runtimeRoot 'state.json'),(Join-Path $config.brainRoot '.runtime/para-transaction.json'))
     $files=@();$seen=@{}
     foreach($entry in $manifest.files){
         $path=Assert-SBCentralDataPath $config.brainRoot $entry.path
-        if($path -in $protected -or $path -match '[\\/]access[\\/]' -or $path -eq [IO.Path]::GetFullPath($ManifestPath)){throw 'Dato operativo attivo protetto'}
-        if($seen.ContainsKey($path) -or !(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-SBFileHash $path) -ne $entry.sha256){throw 'Contenuto assente, duplicato o modificato nel manifest'}
+        if($path -in $protected -or $path -match '[\\/]access[\\/]' -or $path -eq [IO.Path]::GetFullPath($ManifestPath)){throw (New-SBError 'cleanup.data.protected')}
+        if($seen.ContainsKey($path) -or !(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-SBFileHash $path) -ne $entry.sha256){throw (New-SBError 'cleanup.manifest.content')}
         $seen[$path]=$true;$files+=@{path=$path;sha256=$entry.sha256}
     }
-    if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw 'Transazione pendente: pulizia sospesa'}
+    if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
     $backup=Join-Path $config.backupRoot ('cleanup-'+[guid]::NewGuid().ToString('N'))
     $removed=@();$failure=$null
     if($Apply){

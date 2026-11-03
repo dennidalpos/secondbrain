@@ -4,6 +4,12 @@ param([Parameter(Mandatory)][ValidateNotNullOrEmpty()][string]$Authorization,[Pa
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'approve.proposal.text' = @{ it = 'Testo della proposta mancante: {0}'; en = 'Proposal text missing: {0}' }
+    'approve.source.missing' = @{ it = 'Sorgente mancante: {0}'; en = 'Source missing: {0}' }
+    'approve.readme.missing' = @{ it = 'README della proposta mancante'; en = 'Proposal README missing' }
+}
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
@@ -14,21 +20,21 @@ if($ProposalPath){
     foreach($name in @('AGENTS.global_ide.md','workstation.template.md')){
         $source=Join-Path $ProposalPath $name
         $target=Join-Path $brain ('direttive/'+$name)
-        if(!(Test-Path -LiteralPath $source -PathType Leaf)){throw 'Testo della proposta mancante: '+$name}
+        if(!(Test-Path -LiteralPath $source -PathType Leaf)){throw (New-SBError 'approve.proposal.text' @($name))}
         Write-SBFile $target ([IO.File]::ReadAllBytes($source)) (Get-SBFileHash $target) $config.backupRoot -BackupDirty | Out-Null
     }
 }
 $files = @{}
 foreach($relative in @('direttive/AGENTS.global_ide.md','direttive/workstation.template.md')) {
     $hash = Get-SBFileHash (Join-Path $brain $relative)
-    if ($hash -eq 'absent') { throw 'Sorgente mancante: '+$relative }
+    if ($hash -eq 'absent') { throw (New-SBError 'approve.source.missing' @($relative)) }
     $files[$relative] = $hash
 }
 $approval = @{ schemaVersion=1; approvedAt=[DateTimeOffset]::Now.ToString('o'); authorization=$Authorization; files=$files }
 if($ProposalPath){
     # L'hash del README lega l'approvazione al testo della proposta, non solo alla richiesta.
     $readme=Join-Path $ProposalPath 'README.md'
-    if(!(Test-Path -LiteralPath $readme -PathType Leaf)){throw 'README della proposta mancante'}
+    if(!(Test-Path -LiteralPath $readme -PathType Leaf)){throw (New-SBError 'approve.readme.missing')}
     $approval.proposal=@{path=[IO.Path]::GetRelativePath($brain,[IO.Path]::GetFullPath($ProposalPath)).Replace('\','/');readmeHash=Get-SBFileHash $readme}
 }
 $path = Join-Path $brain 'direttive/approved.json'

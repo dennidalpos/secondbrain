@@ -69,6 +69,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'cli.alternatives' = @{ it = '-Status, -Unbind e -Output sono alternativi'; en = '-Status, -Unbind and -Output are alternatives' }
+    'cli.status.readonly' = @{ it = '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano'; en = '-Status is read-only: -Apply, -Yes and -Interactive do not apply' }
+}
 
 try {
     $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -77,11 +82,11 @@ try {
         $outputOptions = @('OutputStatus', 'Evidence', 'Exception') | Where-Object { $PSBoundParameters.ContainsKey($_) }
         if ($outputOptions -and !$outputBound) { throw ('-' + ($outputOptions -join ', -') + ' richiede -Output') }
         if ($Status -or $outputBound -or $Unbind.Count -or $PSBoundParameters.ContainsKey('Unbind')) {
-            if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw '-Status, -Unbind e -Output sono alternativi' }
+            if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw (New-SBError 'cli.alternatives') }
             $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw ('-Status/-Unbind/-Output non accettano: -' + ($conflicting -join ', -')) }
             if ($Status) {
-                if ($Apply -or $Yes -or $Interactive) { throw '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano' }
+                if ($Apply -or $Yes -or $Interactive) { throw (New-SBError 'cli.status.readonly') }
                 $result = Get-SBSetupStatus $brain
             } elseif ($outputBound) {
                 $result = Invoke-SBSetupOutput -BrainRoot $brain -Target $Output -OutputStatus $OutputStatus -Evidence $Evidence -Exception $Exception -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -SessionId $SessionId

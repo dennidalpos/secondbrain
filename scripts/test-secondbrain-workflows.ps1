@@ -212,6 +212,9 @@ try {
     $composition=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'TST04')[0]) $resolved $literal
     Assert-Workflow ($composition.Contains($literal) -and !$composition.Contains('PRIVATE_DOSSIER_CONTENT') -and $composition.Contains($resolved.repositories[0].memory)) 'input letterale e riferimenti senza incorporare dossier'
     Reject-Workflow {New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'SYS01')[0]) $resolved 'verifica'} 'prompt centrale rifiutato da repo prodotto'
+    $centralRefusal=$null
+    try{New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'SYS01')[0]) $resolved 'verifica'|Out-Null}catch{$centralRefusal=$_}
+    Assert-Workflow ($centralRefusal -and (Test-SBError $centralRefusal 'prompts.central.noswitch') -and $centralRefusal.Exception.Message.Contains('-Sync -Repository '+$resolved.repositories[0].identity)) 'rifiuto del prompt centrale: codice stabile e comando -Sync -Repository con l identita del repository'
     Assert-Workflow ((Snapshot-Workflow $temp) -ceq $before) 'consultazione e composizione non modificano file o timestamp'
     Assert-Workflow (!$resolved.repositories[0].lifecycle -and !$composition.Contains('Lifecycle: greenfield')) 'greenfield: senza flag nessun avviso nella composizione'
     $recordFile=Join-Path $dir 'repository.json';$recordOriginal=Read-SBText $recordFile
@@ -501,6 +504,29 @@ try {
             }
         }
         Assert-Workflow (!$messageGaps.Count) ('ogni chiave usata ha testo it e en'+$(if($messageGaps.Count){': '+(($messageGaps|Select-Object -Unique) -join ', ')}))
+        # Ogni throw dei moduli e degli script porta una chiave: restano soltanto i codici macchina di rete (Sources) e lo script autonomo di distribuzione.
+        $literalThrows=@()
+        $scriptGaps=@()
+        foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Include '*.ps1','*.psm1' -File|Where-Object {$_.Name -notlike 'test-*' -and $_.Name -ne 'check-distribution.ps1'}){
+            $source=Read-SBText $file.FullName
+            foreach($m in [regex]::Matches($source,"throw\s+['""]([^'""]*)['""]")){
+                # Eccezioni: codici macchina di rete e launcher autonomo generato dentro un pacchetto MCP (non importa i moduli).
+                if($m.Groups[1].Value -notmatch '^(redirect-limit|http-\$code|download-too-large|access-challenge|Impossibile trovare scripts/mcp-server\.ps1 .*)$'){$literalThrows+=($file.Name+': '+$m.Groups[1].Value)}
+            }
+            if($file.Extension -eq '.ps1'){
+                foreach($m in [regex]::Matches($source,"New-SBError '([a-z0-9.]+)'")){
+                    $escaped=[regex]::Escape($m.Groups[1].Value)
+                    if($source -notmatch ("'"+$escaped+"'\s*=\s*@\{\s*it\s*=.*en\s*=")){$scriptGaps+=($file.Name+': '+$m.Groups[1].Value)}
+                }
+            }
+        }
+        Assert-Workflow (!$literalThrows.Count) ('nessun throw con testo letterale nei moduli e negli script'+$(if($literalThrows.Count){': '+(($literalThrows|Select-Object -First 5) -join '; ')}))
+        Assert-Workflow (!$scriptGaps.Count) ('ogni chiave usata dagli script ha testo it e en nello script'+$(if($scriptGaps.Count){': '+(($scriptGaps|Select-Object -Unique -First 5) -join '; ')}))
+        # Stesso codice in it e en per i moduli convertiti per ultimi; il testo cambia con la lingua.
+        $env:SECONDBRAIN_LANG='it'; $itPara=Get-SBMessage 'para.status.invalid'
+        $env:SECONDBRAIN_LANG='en'; $enPara=Get-SBMessage 'para.status.invalid'
+        Assert-Workflow ($itPara -ceq 'Stato PARA non valido' -and $enPara -ceq 'Invalid PARA status') 'catalogo messaggi: Para in it e en'
+        $env:SECONDBRAIN_LANG='it'
     } finally { $env:SECONDBRAIN_LANG=$savedLang; Set-SBUiLanguage '' }
     'SUCCESS WORKFLOWS: '+$script:workflowChecks+' verifiche; nessuna valutazione di comportamento LLM implicita.'
 } finally {
