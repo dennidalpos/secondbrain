@@ -40,6 +40,7 @@ $allowedRootFiles = @(
     'VERSION',
     'CHANGELOG.md',
     'CREDITS.md',
+    'SECURITY.md',
     '.gitattributes',
     '.gitignore'
 )
