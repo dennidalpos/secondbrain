@@ -42,6 +42,8 @@ param(
     [Parameter(ParameterSetName='Setup')][switch]$All,
     [Parameter(ParameterSetName='Setup')][string[]]$Ides=@(),
     [Parameter(ParameterSetName='Setup')][switch]$AllIdes,
+    [Parameter(ParameterSetName='Setup')][string[]]$McpTargets=@(),
+    [Parameter(ParameterSetName='Setup')][switch]$ApproveMcpReadTools,
     [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
@@ -66,6 +68,7 @@ $ErrorActionPreference = 'Stop'
 # Attesa massima del lock di scrittura (predefinita 60 s, o lockWaitSeconds in config/shared.json); exit 3 solo a timeout.
 if ($PSBoundParameters.ContainsKey('WaitSeconds')) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS = [string]$WaitSeconds }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
@@ -85,7 +88,7 @@ try {
         if ($outputOptions -and !$outputBound) { throw (New-SBError 'cli.output.required' @(($outputOptions -join ', -'))) }
         if ($Status -or $outputBound -or $Unbind.Count -or $PSBoundParameters.ContainsKey('Unbind')) {
             if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw (New-SBError 'cli.alternatives') }
-            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw (New-SBError 'cli.setup.conflict' @(($conflicting -join ', -'))) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw (New-SBError 'cli.status.readonly') }
@@ -100,9 +103,10 @@ try {
             exit 1
         }
         $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
-            -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
+            -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
         ConvertTo-SBJson $result
         # 0: anteprima valida o attivazione applicata; 1: proposta senza conferma, discovery in pausa o controllo successivo non eseguibile.
+        if($result.Contains('mcp') -and $result.mcp.Contains('complete') -and !$result.mcp.complete){exit 1}
         if ($result.stage -in @('preview', 'applied') -and !($result.Contains('check') -and $result.check.Contains('error'))) { exit 0 }
         exit 1
     }
@@ -123,6 +127,7 @@ try {
     if (!$result.aligned) { exit 1 }
     exit 0
 } catch {
+    if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 };
     $failure = $_
     $base = $failure.Exception.GetBaseException()
     if ($base -is [IO.IOException] -and ($base.HResult -band 0xffff) -in @(32, 33)) {

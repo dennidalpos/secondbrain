@@ -38,6 +38,7 @@ param(
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 try{
     if($InstallHook){
@@ -60,4 +61,4 @@ try{
     if($ReportPath){$path=Assert-SBCentralDataPath $brain $ReportPath;[IO.Directory]::CreateDirectory((Split-Path $path))|Out-Null;Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $path) (Join-Path $brain '.runtime/backups/publication')|Out-Null}
     ConvertTo-SBJson $report
     if(!$report.complete){exit 2};if(!$report.ready){exit 1}
-}catch{Write-Error $_ -ErrorAction Continue;exit 2}
+}catch{if(Test-SBWriteDeniedError $_){Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters;exit 4};Write-Error $_ -ErrorAction Continue;exit 2}

@@ -43,7 +43,7 @@ Add-SBMessages @{
     'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}.'; en = 'No file found to include in the backup in {0}.' }
 }
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
-trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
 $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 

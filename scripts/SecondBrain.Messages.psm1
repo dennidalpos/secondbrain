@@ -102,6 +102,11 @@ Add-SBMessages @{
     'core.runtime.reason.protected-path' = @{ it = 'contiene percorsi della configurazione o degli accessi'; en = 'contains configuration or access paths' }
     'core.runtime.reason.recently-written' = @{ it = 'scritta negli ultimi {0} minuti: potrebbe essere in uso'; en = 'written in the last {0} minutes: it may be in use' }
     'core.write.contended'      = @{ it = 'Scrittura contesa: il file è in uso o è stato sostituito da un altro scrittore: {0}'; en = 'Write contended: the file is in use or was replaced by another writer: {0}' }
+    'core.write.denied'         = @{ it = 'Accesso negato durante la scrittura: {0}'; en = 'Access denied while writing: {0}' }
+    'core.write.retry'          = @{ it = 'Ripeti in PowerShell 7.5+ fuori dalla sandbox: {0}'; en = 'Retry in PowerShell 7.5+ outside the sandbox: {0}' }
+    'core.retry.parameter'      = @{ it = 'Nome parametro non valido per il comando di ripetizione'; en = 'Invalid parameter name for the retry command' }
+    'core.write.finalization'   = @{ it = 'Registrazione finale non riuscita; errore originale conservato ({0}): {1}'; en = 'Final record failed; original error preserved ({0}): {1}' }
+    'trace.event.lost'          = @{ it = 'Evento Trace perso: {0}'; en = 'Trace event lost: {0}' }
     'core.tracked.dirty'        = @{ it = "File tracciato con modifiche non committate: {0}. Committa o metti da parte (git stash) le modifiche al file, poi ripeti l'operazione."; en = 'Tracked file has uncommitted changes: {0}. Commit or stash (git stash) the file changes, then retry.' }
     'core.readback.staging'     = @{ it = 'Readback staging fallito'; en = 'Staging readback failed' }
     'core.race.kept'            = @{ it = 'Gara di scrittura rilevata; copia concorrente conservata: {0}'; en = 'Write race detected; concurrent copy kept: {0}' }

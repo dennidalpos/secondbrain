@@ -151,7 +151,7 @@ function Get-SBIDEAssets {
         if($executables.Count -or $evidence.Count -or ($definition.instructions -and (Test-Path -LiteralPath $definition.instructions))){
             @{id=$definition.adapter+'-'+(Get-SBTextHash $definition.name).Substring(0,8);name=$definition.name;adapter=$definition.adapter;mode=$(if($definition.instructions){'file'}else{'manual'});
               instructions=$definition.instructions;sha256=$(if($definition.instructions){Get-SBFileHash $definition.instructions}else{'absent'});executables=$executables;installationEvidence=$evidence;
-              mcpConfigPath=$mcpConfigPath;mcpConfigured=$mcpConfigured;profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';
+              writeScope=@{status='unverified';roots=@();evidence=$null};mcpConfigPath=$mcpConfigPath;mcpConfigured=$mcpConfigured;profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';
               environmentFingerprint=$(if($context){$context.fingerprint}else{''});selected=$false}
         }
     }
@@ -179,7 +179,7 @@ function Get-SBIDEAssets {
             $claudeData = Join-Path $env:APPDATA 'Claude'
             if (Test-Path -LiteralPath $claudeData) { $evidence += "Config: $claudeData" }
         }
-        @{id='manual-'+(Get-SBTextHash $name).Substring(0,8);name=$name;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@();installationEvidence=$evidence;profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';environmentFingerprint=(Get-SBIDEContext $name).fingerprint;selected=$false}
+        @{id='manual-'+(Get-SBTextHash $name).Substring(0,8);name=$name;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@();installationEvidence=$evidence;writeScope=@{status='unverified';roots=@();evidence=$null};profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';environmentFingerprint=(Get-SBIDEContext $name).fingerprint;selected=$false}
     }
 }
 function ConvertTo-SBHostComparablePath([string]$Path) {
@@ -281,7 +281,7 @@ function Invoke-SBHostDiscovery {
                     $queue.Enqueue($entry.FullName)
                 }
                 elseif($entry.Name -match '^(?:Code(?: - Insiders)?|Cursor|Windsurf|studio64|Antigravity|Claude|Codex)\.exe$'){
-                    $portableIDEs+=@{id='executable-'+(Get-SBTextHash $entry.FullName).Substring(0,16);name=$entry.BaseName;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@($entry.FullName);profile='unverified';accountAlias='';accountStatus='unverified';loadingStatus='unverified';selected=$false}
+                    $portableIDEs+=@{id='executable-'+(Get-SBTextHash $entry.FullName).Substring(0,16);name=$entry.BaseName;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@($entry.FullName);writeScope=@{status='unverified';roots=@();evidence=$null};profile='unverified';accountAlias='';accountStatus='unverified';loadingStatus='unverified';selected=$false}
                 }
             }
         }catch{

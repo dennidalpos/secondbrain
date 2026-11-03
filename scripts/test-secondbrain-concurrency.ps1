@@ -62,6 +62,7 @@ $esitoPath=Join-Path $esitoDirectory 'esito-concurrency.json'
 $suiteWatch=[Diagnostics.Stopwatch]::StartNew();$suiteStatus='failed';$removed=$false
 try {
     [IO.Directory]::CreateDirectory($root)|Out-Null
+    . (Join-Path $PSScriptRoot 'test-write-denied.ps1')
 
     Invoke-Case 'write-file' (Join-Path $root 'write') {
         $dir=Join-Path $root 'write';$backups=Join-Path $dir 'backups';[IO.Directory]::CreateDirectory($dir)|Out-Null

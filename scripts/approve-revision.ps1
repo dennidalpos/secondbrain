@@ -11,7 +11,7 @@ Add-SBMessages @{
     'approve.readme.missing' = @{ it = 'README della proposta mancante'; en = 'Proposal README missing' }
 }
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
-trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
 $lock=Enter-SBOperation $config $SessionId
 try {

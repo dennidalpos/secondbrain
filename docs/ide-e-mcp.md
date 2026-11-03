@@ -16,7 +16,7 @@ flowchart LR
 | Claude per Windows | `~/.claude/CLAUDE.md` | `-Target claude` |
 | ChatGPT Codex per Windows | `~/.codex/AGENTS.md` | `-Target codex` |
 | Antigravity per Windows | `~/.gemini/GEMINI.md` | `-Target antigravity` |
-| Claude Code | `~/.claude/CLAUDE.md` | `-Target claude-code -WorkspacePath <progetto>` (oppure `claude mcp add --scope user`) |
+| Claude Code | `~/.claude/CLAUDE.md` | `-Target claude-code` (utente), oppure `-WorkspacePath <progetto>` |
 | VS Code | (nessun file di regole) | `-Target vscode` (profilo) o `-Target vscode -WorkspacePath <progetto>` |
 
 Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
@@ -52,7 +52,7 @@ Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
 | **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Sola lettura per costruzione. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | Le definizioni dei tool occupano circa 6.000 caratteri (~1.500 token) a ogni sessione. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
+| **Contro** | La risposta JSON-RPC compatta `tools/list` misura 7.115 caratteri in italiano e 6.577 in inglese (misurazione del 2026-11-03; il solo `result` misura 7.081/6.543). Sono caratteri, non token. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
 

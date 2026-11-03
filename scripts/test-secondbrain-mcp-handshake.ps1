@@ -68,7 +68,7 @@ Add-Request 'resources/read' @{ uri = 'secondbrain://prompts/catalog' }
 $targets = @($Target -split ',' | ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
 $validTargets = @('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')
 if (!$targets.Count -or @($targets | Where-Object { $_ -notin $validTargets }).Count) { throw ('Target non valido: usare ' + ($validTargets -join ', ') + ' (separati da virgola)') }
-$pairings = @(@(Get-SBMcpPairing -BrainRoot $BrainRoot -Target 'all') + @(Get-SBMcpPairing -BrainRoot $BrainRoot -Target 'claude-code') | Where-Object { $targets -contains 'all' -or $_.Target -in $targets })
+$pairings = @(@(Get-SBMcpPairing -BrainRoot $BrainRoot -Target 'all') | Where-Object { $targets -contains 'all' -or $_.Target -in $targets })
 $report = [ordered]@{ schemaVersion = 1; generatedAt = [DateTimeOffset]::UtcNow.ToString('o'); brainRoot = $BrainRoot; guiVerified = $false; note = 'Handshake stdio con il comando registrato per ogni IDE; la visualizzazione degli strumenti nelle GUI non e verificata.'
     skippedTools = @(@($expectedTools | Where-Object { $_ -notin $calls.Keys })); ides = @(); checks = @() }
 

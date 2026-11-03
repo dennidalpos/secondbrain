@@ -84,3 +84,7 @@ Su Windows la rimozione protetta mantiene un handle READ/DELETE che esclude scri
 La suite `audit2` copre percorsi oltre 260 caratteri con Unicode e spazi, apertura senza rimozione, contesa, interruzione e recupero transazionale, compreso il rifiuto di sovrascrivere modifiche successive. Le prove UNC usano la share amministrativa di loopback, quando accessibile, con esclusione esplicita negli altri ambienti: non qualificano SMB fra postazioni diverse né un host con `LongPathsEnabled=0`. `SECONDBRAIN_TEST_KEEP=1` conserva anche le fixture di questa suite; un'esecuzione fallita le conserva sempre.
 
 Un backup verificato non autorizza da solo la cancellazione. Il collaudo delle fixture non certifica un ripristino su un altro PC o su filesystem non verificati.
+
+### Accesso negato durante una transazione
+
+`core.write.denied` (uscita CLI 4) conserva l'eccezione originale. Se la transazione era iniziata, il manifest e il marker pendente restano disponibili: ripristinare l'accesso e seguire il recupero già previsto. Non cancellare marker o staging per sbloccare l'operazione. Un errore nella registrazione finale viene segnalato separatamente e non sostituisce l'errore primario. La scrittura può essere stata applicata prima che fallisse il salvataggio dell'esito: controllare manifest, hash e destinazione prima di ripetere un comando.

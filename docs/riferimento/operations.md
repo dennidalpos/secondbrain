@@ -75,6 +75,7 @@ Il pacchetto iniziale (profilo snello) comprende TOC, sezioni essenziali di cont
 | 1 | Disallineamenti, conflitti o verifiche mancanti |
 | 2 | Errore operativo o discovery incompleta |
 | 3 | Lock di scrittura non ottenuto entro l'attesa (`-WaitSeconds`, predefinita 60 s) |
+| 4 | Accesso negato durante una scrittura; diagnostico `core.write.denied` e comando PowerShell da ripetere fuori dalla sandbox |
 
 Il risultato JSON espone i problemi specifici. Le prove IDE sono vincolate alla sessione e all'account osservati: il confronto dei file non certifica il caricamento.
 
@@ -103,3 +104,9 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 | [Audit GitHub](external-audit.md) | Raccolta GET esplicita, paginazione, copertura e limiti esterni |
 
 Fonti operative: [script installati](../../scripts/), [regole del repository](../../AGENTS.md). Guide per iniziare: [README](../../README.md).
+
+### Scritture negate e Trace
+
+Un accesso negato è distinto da una contesa tra scrittori e dagli altri errori operativi. Le CLI interessate riportano su stderr il codice `core.write.denied` e l'invocazione PowerShell con parametri quotati. Eseguire il comando in PowerShell 7.5+ fuori dalla sandbox, rispettando le autorizzazioni già previste dal comando. Le radici scrivibili non vengono ampliate automaticamente.
+
+L'hook `trace.ps1 -Event stop` rimane fail-open: esce con 0 anche se non può registrare l'evento. In quel caso emette su stderr `trace.event.lost`; l'evento non è stato salvato. La diagnostica non contiene il testo del prompt o della trascrizione.

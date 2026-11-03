@@ -38,7 +38,7 @@ Add-SBMessages @{
     'access.open.timeout' = @{ it = 'Timeout apertura sessione'; en = 'Timeout opening the session' }
 }
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
-trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if ($WaitSeconds -ge 0) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS=[string]$WaitSeconds }
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -in @('Status','Queue'))
 $sessions=Join-Path $config.coordinationRoot 'sessions'

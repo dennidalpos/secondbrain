@@ -10,7 +10,7 @@
 
 La mappa locale è `runtimeRoot/ide-map.json`; il testo approvato generato è `runtimeRoot/istruzioni-globali.md`. Il comando confronta i blocchi dei file mappati e riporta gli stati manuali registrati. Exit 0 prova l'allineamento dei file verificati, non il caricamento nelle chat o nelle impostazioni account.
 
-La mappa è generata da `secondbrain.ps1 -Sync` e usa `schemaVersion: 2` (accettata anche la 1), `workstationId` e `ides[]`. Ogni voce ha `name` e `mode` (`file` o `manual`) e, se selezionata, `selected`; le voci file richiedono `instructions` assoluto, quelle manuali usano `accountAlias`, `profile`, `environment` e la ricevuta di osservazione. Conservare fonte e data dei riscontri manuali.
+La mappa è generata da `secondbrain.ps1 -Sync` e usa `schemaVersion: 1`, `workstationId` e `ides[]`. Ogni voce ha `name` e `mode` (`file` o `manual`) e, se selezionata, `selected`; le voci file richiedono `instructions` assoluto, quelle manuali usano `accountAlias`, `profile`, `environment` e la ricevuta di osservazione. Conservare fonte e data dei riscontri manuali.
 
 SYS01 verifica senza scrivere per impostazione predefinita. «Mappa» autorizza l'aggiornamento della mappa; «riallinea» autorizza la distribuzione del testo approvato, con backup SHA-256 e conservazione del testo personale. `ide-map.ps1` non rileva IDE e non scrive nei loro file. Non esiste uno switch di riallineamento in `ide-map.ps1`.
 
@@ -137,3 +137,9 @@ Per OpenAI Codex (CLI e Desktop), SecondBrain offre il server MCP stdio locale (
 L'inventario della postazione (`scripts/SecondBrain.Host.psm1`) rileva automaticamente la presenza di `config.toml` e lo stato configurato del server MCP.
 
 Fonti ufficiali: [Claude Code](https://code.claude.com/docs/en/memory), [account Claude](https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features), [Codex AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md), [Antigravity](https://www.antigravity.google/docs/rules/), [Continue](https://docs.continue.dev/customize/deep-dives/rules), [Android Studio](https://developer.android.com/studio/gemini/agent-files). Contratto del comando: [ide-map.ps1](../../scripts/ide-map.ps1).
+
+### Capability di scrittura osservate
+
+Ogni voce della mappa IDE generata da Sync contiene anche `writeScope`: `status` (`unverified`, `verified` o `denied`), `roots` (array delle radici) ed `evidence` (riferimento della prova). Voci precedenti o incomplete equivalgono a `{ "status": "unverified", "roots": [], "evidence": null }`. Per uno stato osservato servono radici ed evidenza; una configurazione di permessi non è una prova della sessione.
+
+Check segnala `ide-write-scope-unverified` o `ide-write-scope-denied` senza tentare scritture. Questi rilievi sono distinti dall'allineamento dei file e dal caricamento delle istruzioni. La discovery non attribuisce automaticamente una capability verificata, e i risultati su fixture non vengono trasferiti ai profili reali. La configurazione delle radici per gli IDE è un'attività successiva.

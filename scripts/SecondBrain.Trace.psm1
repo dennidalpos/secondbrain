@@ -46,7 +46,7 @@ function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$
     for($attempt=0;$attempt -lt 200 -and $null -eq $gate;$attempt++){
         try{$gate=[IO.FileStream]::new($target+'.lock',[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
         catch [IO.IOException]{Start-Sleep -Milliseconds 10}
-        catch [UnauthorizedAccessException]{Start-Sleep -Milliseconds 10}
+        catch [UnauthorizedAccessException]{throw}
     }
     try{
         $stream=[IO.FileStream]::new($target,[IO.FileMode]::Append,[IO.FileAccess]::Write,[IO.FileShare]::ReadWrite)

@@ -38,6 +38,7 @@ param(
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
@@ -102,4 +103,4 @@ try {
         }
     }
     exit 0
-} catch {Write-Error $_ -ErrorAction Continue;exit 2} finally {Exit-SBOperation $lock}
+} catch {if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; Write-Error $_ -ErrorAction Continue;exit 2} finally {Exit-SBOperation $lock}

@@ -68,7 +68,7 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target windsurf
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target vscode -WorkspacePath C:/Progetti/mio-progetto
 ```
 
-`-Target all` copre i sei target a livello utente; `claude-code` va indicato esplicitamente e richiede `-WorkspacePath` per `-Apply` (senza, rifiuta e non scrive). Da chat: `sb prompt SYS15`.
+`-Target all` comprende sette target a livello utente, incluso `claude-code`. `-Scope user|project` rende esplicito l'ambito: senza opzioni vale `user`; `-WorkspacePath` senza `-Scope` conserva l'ambito `project`. L'ambito progetto richiede una cartella ed è disponibile per Claude Code, Cursor, VS Code e Antigravity. Da chat: `sb prompt SYS15`.
 
 ### B. Applicazione automatica sicura (`-Apply`)
 Per applicare automaticamente la configurazione al file di configurazione dell'IDE:
@@ -167,7 +167,7 @@ Aggiungi o integra la voce `secondbrain` sotto `mcpServers`:
 
 **Claude Code** registra il server altrove: in `.claude.json` (profilo utente, o la cartella `CLAUDE_CONFIG_DIR` se impostata), con `claude mcp add secondbrain -- pwsh -NoProfile -File "<percorso>/scripts/mcp-server.ps1"`. `-Pair -Target claude` mostra lo stato dei due file separatamente (`Desktop: CONFIGURATO | Code: DA CONFIGURARE`); `-Apply` scrive solo `claude_desktop_config.json`, la registrazione di Claude Code resta un comando da eseguire a mano e `.claude.json` viene soltanto letto.
 
-Per il solo Claude Code: `-Pair -Target claude-code -WorkspacePath <progetto> -Apply` scrive `.mcp.json` nella cartella del progetto (chiave `mcpServers`; Claude Code chiede l'approvazione alla prima sessione). L'ambito utente resta alla CLI: `claude mcp add --transport stdio --scope user secondbrain -- pwsh -NoProfile -File "<percorso>/scripts/mcp-server.ps1"`, che scrive `~/.claude.json` (SecondBrain non lo modifica).
+Claude Code usa la CLI nativa: `-Pair -Target claude-code -Apply` registra il server in ambito utente; con `-WorkspacePath <progetto>` lo registra nel `.mcp.json` del progetto. Claude Desktop usa invece `claude_desktop_config.json`: non ripiega sul file di Claude Code.
 
 ---
 
@@ -310,3 +310,36 @@ Se l'IDE restituisce un errore relativo all'ExecutionPolicy di PowerShell:
   ```powershell
   Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
   ```
+
+## Installazione utente e consensi nominativi
+
+La registrazione di Codex e Claude Code usa rispettivamente `codex mcp add` e `claude mcp add --transport stdio --scope user` (o `project`). Una CLI assente, un errore, un timeout o una registrazione diversa da quella attesa sono esiti espliciti: non vengono sostituiti da scritture dirette. Un server omonimo con comando o argomenti diversi produce `conflict`. Il comando nativo ha un timeout di 30 secondi; il suo output non viene riversato nel rapporto.
+
+Prima di modificare un file esistente viene conservata una copia dei byte con hash e metadati in `.runtime/backup/mcp-pairing`. La CLI nativa mantiene le proprie modalità di scrittura: il backup e la verifica successiva non rendono atomica l'intera installazione. In caso di errore consultare gli esiti e il backup, senza cancellare i materiali di recupero.
+
+L'anteprima mostra registrazione, ambito e regole opzionali. `-Apply` applica la registrazione; solo `-ApproveReadTools` autorizza anche le regole nominative per i sette strumenti di lettura. `check_publication` resta soggetto a consenso.
+
+```powershell
+# Anteprima, senza scritture
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Scope user
+# Applicare soltanto dopo aver esaminato l'anteprima
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply -ApproveReadTools
+# Setup: target MCP esplicito e approvazione dei tool separata
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Progetti -Select mio-progetto -McpTargets cursor -ApproveMcpReadTools -Yes
+```
+
+L'ultimo comando prepara l'anteprima di Setup; aggiungere `-Apply` per applicare la selezione. Senza `-McpTargets` Setup non installa MCP. `-ApproveMcpReadTools` senza target è un errore.
+
+| Target | Registrazione | Regole automatiche dei tool |
+|---|---|---|
+| Codex | CLI nativa, utente | `tools.<nome>.approval_mode = "approve"`; default e `check_publication` su `prompt` |
+| Claude Code | CLI nativa, utente/progetto | `permissions.allow` nominative e `permissions.ask` per `check_publication` |
+| Cursor | JSON utente/progetto | `permissions.json`, sette voci `mcpAllowlist` `secondbrain:<nome>`; richiede una modalità che rispetti la allowlist |
+| Claude Desktop | JSON utente dedicato | Manuali |
+| VS Code | `mcp.json`, chiave `servers` | Manuali; eligibility non equivale ad approvazione |
+| Antigravity | JSON utente/progetto; legacy esistente riconosciuto | Non verificate per l'IDE; i percorsi e le regole della CLI non vengono trasferiti all'IDE |
+| Windsurf | JSON utente | Non verificate: fonte ufficiale corrente non acquisita |
+
+Le regole restrittive esistenti vengono conservate e possono continuare a richiedere consenso. Per Cursor, una allowlist che autorizza anche `check_publication` ferma l'operazione prima di scrivere: occorre una decisione esplicita sul conflitto. Nessun preset generale di approvazione viene attivato. JSON con commenti e TOML ambiguo vengono rifiutati intatti quando la modifica non può preservarli; i commenti e le sezioni TOML estranee rimangono conservati nei formati gestiti.
+
+Formati verificati sulle fonti ufficiali: [Codex MCP](https://learn.chatgpt.com/docs/extend/mcp?surface=cli), [Claude Code MCP](https://code.claude.com/docs/en/mcp), [Claude Code permissions](https://code.claude.com/docs/en/permissions), [Cursor permissions](https://prod.cursor.com/docs/reference/permissions), [VS Code approvals](https://code.visualstudio.com/docs/agents/run/approvals), [Antigravity MCP](https://antigravity.google/docs/mcp/) e [permissions](https://antigravity.google/docs/permissions/). Le fixture verificano i file generati e le invocazioni simulate; non certificano il caricamento o l'effetto sui popup in sessioni IDE reali.

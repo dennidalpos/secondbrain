@@ -34,19 +34,30 @@ if($PSCmdlet.ParameterSetName -eq 'Event'){
         $stdin=''
         if([Console]::IsInputRedirected){$stdin=[Console]::In.ReadToEnd()}
         [void](Add-SBTraceEvent $brain $Event $stdin $Ide)
-    }catch{}
+    }catch{
+        # stderr never becomes a blocking hook response; diagnostics must also be fail-open.
+        try {
+            Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+            [Console]::Error.WriteLine('[trace.event.lost] ' + (Get-SBMessage 'trace.event.lost' @($_.Exception.Message)))
+        } catch {}
+    }
     exit 0
 }
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
-trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1') -Force
 if(!$SettingsPath){$SettingsPath=Get-SBTraceSettingsPath}
 if($HookStatus){
     $state=Get-SBTraceHookState $brain $SettingsPath
     ConvertTo-SBJson @{installed=$state.installed;settingsPath=$state.settingsPath;command=$state.command}
+    exit 0
+}
+if(!$Apply){
+    $result=Set-SBTraceHook $brain (Join-Path $brain '.runtime/backup/trace') -Remove:$UninstallHook -SettingsPath $SettingsPath
+    ConvertTo-SBJson $result
     exit 0
 }
 $writing=[bool]$Apply

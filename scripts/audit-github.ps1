@@ -7,6 +7,7 @@ Audit GitHub GET esplicito, separato da Check e Sync. Vedere docs/riferimento/ex
 param([string]$ConfigPath,[string]$SessionId,[string[]]$Repository,[string]$OutputPath)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ExternalAudit.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')

@@ -639,10 +639,11 @@ try{
     $pairing = Get-SBMcpPairing -BrainRoot $brain -Target codex
     Assert-Portable ($pairing.Target -eq 'codex' -and $pairing.Toml -match 'mcp_servers\.secondbrain' -and $pairing.CliCommand -match 'codex mcp add secondbrain') 'pairing Codex produce TOML e comando CLI validi'
     $pairingsAll = Get-SBMcpPairing -BrainRoot $brain -Target all
-    Assert-Portable ($pairingsAll.Count -eq 6) 'pairing all restituisce 6 IDE supportati'
+    Assert-Portable ($pairingsAll.Count -eq 7) 'pairing all restituisce 7 IDE utente supportati'
     $claudePair = @($pairingsAll | Where-Object Target -eq 'claude')[0]
     Assert-Portable ($claudePair.ConfigFormat -eq 'json' -and $claudePair.Snippet -match '"mcpServers"') 'pairing Claude produce JSON con mcpServers'
-    $claudeAllow=@((ConvertFrom-Json $claudePair.PermissionsSnippet).permissions.allow)
+    $codePair=@($pairingsAll|Where-Object Target -eq 'claude-code')[0]
+    $claudeAllow=@((ConvertFrom-Json $codePair.PermissionsSnippet).permissions.allow)
     Assert-Portable ($claudeAllow.Count -eq @(Get-SBMcpReadOnlyToolNames).Count -and $claudeAllow -contains 'mcp__secondbrain__search_knowledge' -and $claudeAllow -notcontains 'mcp__secondbrain__check_publication') 'pairing Claude: permessi solo per gli strumenti di lettura, check_publication esclusa'
     $vscodePair = @($pairingsAll | Where-Object Target -eq 'vscode')[0]
     Assert-Portable ($vscodePair.ConfigFormat -eq 'json' -and $vscodePair.Snippet -match '"servers"' -and $vscodePair.Snippet -match '"type": "stdio"' -and $vscodePair.Snippet -notmatch 'mcp\.servers' -and $vscodePair.ConfigFile -like '*Code*User*mcp.json') 'pairing VS Code: mcp.json del profilo con chiave servers e type stdio'
@@ -650,17 +651,22 @@ try{
     [IO.Directory]::CreateDirectory($workspaceDir) | Out-Null
     $codeWs = Get-SBMcpPairing -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -ClaudeCodeConfigFile (Join-Path $workspaceDir 'assente.claude.json')
     Assert-Portable ($codeWs.Target -eq 'claude-code' -and $codeWs.ConfigFile -eq (Join-Path $workspaceDir '.mcp.json') -and $codeWs.Snippet -match '"mcpServers"' -and $codeWs.CliCommand -match 'claude mcp add --transport stdio --scope project secondbrain' -and $codeWs.CliCommandUser -match '--scope user' -and !$codeWs.Configured) 'pairing Claude Code: .mcp.json di progetto, comandi CLI per ambito e stato non configurato'
-    Assert-Portable (@($pairingsAll | Where-Object Target -eq 'claude-code').Count -eq 0) 'pairing all non include i target di progetto'
+    Assert-Portable (@($pairingsAll | Where-Object {$_.Target -eq 'claude-code' -and $_.Scope -eq 'user'}).Count -eq 1) 'pairing all include Claude Code in ambito utente'
     $vscodeWs = Get-SBMcpPairing -BrainRoot $brain -Target vscode -WorkspacePath $workspaceDir
     $cursorWs = Get-SBMcpPairing -BrainRoot $brain -Target cursor -WorkspacePath $workspaceDir
     Assert-Portable ($vscodeWs.ConfigFile -eq (Join-Path $workspaceDir '.vscode/mcp.json') -and $cursorWs.ConfigFile -eq (Join-Path $workspaceDir '.cursor/mcp.json')) 'pairing con WorkspacePath: .vscode/mcp.json e .cursor/mcp.json'
     $wsBackups = Join-Path $workspaceDir 'backups'
     $codeRefused = $false
-    try { Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -BackupRoot $wsBackups | Out-Null } catch { $codeRefused = $true }
+    try { Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -Scope project -BackupRoot $wsBackups | Out-Null } catch { $codeRefused = $true }
     Assert-Portable ($codeRefused -and !(Test-Path -LiteralPath (Join-Path $workspaceDir '.mcp.json'))) 'Set-SBMcpConfiguration claude-code senza WorkspacePath rifiutato senza scrivere'
-    $codeApplied = Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -BackupRoot $wsBackups
+    $nativeFixture={param($nativeCommand,$nativeArguments,$nativeCwd,$nativeEnvironment,$destination,$definition)
+        [IO.Directory]::CreateDirectory((Split-Path $destination))|Out-Null
+        [IO.File]::WriteAllText($destination,(ConvertTo-SBJson @{mcpServers=@{secondbrain=$definition}}))
+        @{status='applied';exitCode=0}
+    }
+    $codeApplied = Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -BackupRoot $wsBackups -CliInvoker $nativeFixture
     $codeDoc = Read-SBJson (Join-Path $workspaceDir '.mcp.json') @{}
-    Assert-Portable ($codeApplied.Action -eq 'created' -and $codeDoc.mcpServers.secondbrain.command -eq 'pwsh') 'Set-SBMcpConfiguration claude-code crea .mcp.json di progetto'
+    Assert-Portable ($codeApplied.Action -eq 'applied' -and $codeDoc.mcpServers.secondbrain.command -eq 'pwsh') 'Set-SBMcpConfiguration claude-code crea .mcp.json di progetto'
     $vscodeApplied = Set-SBMcpConfiguration -BrainRoot $brain -Target vscode -WorkspacePath $workspaceDir -BackupRoot $wsBackups
     $vscodeDoc = Read-SBJson (Join-Path $workspaceDir '.vscode/mcp.json') @{}
     Assert-Portable ($vscodeApplied.Action -eq 'created' -and $vscodeDoc.servers.secondbrain.type -eq 'stdio' -and $vscodeDoc.servers.secondbrain.command -eq 'pwsh' -and !$vscodeDoc.ContainsKey('mcpServers')) 'Set-SBMcpConfiguration vscode scrive servers con type stdio'
@@ -668,12 +674,13 @@ try{
     Assert-Portable ($vscodeAgain.Action -eq 'unchanged') 'Set-SBMcpConfiguration vscode e idempotente'
     $codeAfter = Get-SBMcpPairing -BrainRoot $brain -Target claude-code -WorkspacePath $workspaceDir -ClaudeCodeConfigFile (Join-Path $workspaceDir 'assente.claude.json')
     Assert-Portable ($codeAfter.ProjectConfigured -and $codeAfter.Configured) 'pairing Claude Code rileva .mcp.json configurato'
-    $serverPairOut = (& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -Pair -Target claude-code -Apply 2>&1 | Out-String)
-    Assert-Portable ($LASTEXITCODE -ne 0 -and $serverPairOut -match 'WorkspacePath') 'mcp-server -Pair -Apply claude-code senza WorkspacePath e rifiutato'
+    $serverPairOut = (& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -Pair -Target claude-code -Scope project -Apply 2>&1 | Out-String)
+    Assert-Portable ($LASTEXITCODE -ne 0 -and $serverPairOut -match 'scope|ambito') 'mcp-server -Pair -Apply claude-code senza WorkspacePath e rifiutato'
     $profileBackup = $env:USERPROFILE
     $agProfile = Join-Path $fixture 'ag-profile'
     try {
         $env:USERPROFILE = $agProfile
+        Put-Portable (Join-Path $agProfile '.gemini/antigravity/mcp_config.json') '{}'
         $agLegacyPair = Get-SBMcpPairing -BrainRoot $brain -Target antigravity
         [IO.Directory]::CreateDirectory((Join-Path $agProfile '.gemini/config')) | Out-Null
         Put-Portable (Join-Path $agProfile '.gemini/config/mcp_config.json') '{}'
@@ -682,6 +689,8 @@ try{
     } finally { $env:USERPROFILE = $profileBackup }
     $ideAssets = @(Get-SBIDEAssets)
     Assert-Portable (@($ideAssets | Where-Object { $_.name -in @('Claude Code', 'VS Code', 'Antigravity', 'Codex') -and !$_.mcpConfigPath }).Count -eq 0) 'mappa IDE: percorso e stato mcpConfigured per Claude Code, VS Code, Antigravity e Codex'
+
+    . (Join-Path $PSScriptRoot 'test-mcp-install.ps1')
 
     # Pacchetto distribuibile MCP
     $testPkgDir = Join-Path $fixture 'mcp-test-pkg'
@@ -1231,6 +1240,19 @@ public static bool Set(string name,bool enabled){
     $setupCfg=Read-SBJson $isoActivation.configuration $null
     Assert-Portable (@($setupCfg.bindings|Where-Object {$_.path -in @((Join-Path $setupRepos 'alpha'),(Join-Path $setupRepos 'beta'))}).Count -eq 2) '-Setup -Apply registra i binding selezionati'
     Assert-Portable ($setupCfg.selectionReceipt.confirmation -match '\(-Yes\)') 'ricevuta di selezione conserva la conferma'
+
+    $profileBeforeMcp=$env:USERPROFILE
+    $setupMcpProfile=Join-Path $fixture 'setup-mcp-profile'
+    try{
+        $env:USERPROFILE=$setupMcpProfile
+        $mcpPreview=Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-McpTargets','cursor','-ApproveMcpReadTools'))
+        $setupMcpFile=Join-Path $setupMcpProfile '.cursor/mcp.json'
+        Assert-Portable ($mcpPreview.exit -eq 0 -and $mcpPreview.text -match '"approveReadTools": true' -and !(Test-Path -LiteralPath $setupMcpFile)) '-Setup MCP preview shows consent without changing synthetic profile'
+        $mcpApply=Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-Apply','-McpTargets','cursor','-ApproveMcpReadTools'))
+        $setupPolicy=Read-SBJson (Join-Path $setupMcpProfile '.cursor/permissions.json') @{}
+        Assert-Portable ($mcpApply.exit -eq 0 -and (Test-Path -LiteralPath $setupMcpFile) -and $setupPolicy.mcpAllowlist.Count -eq 7) '-Setup applies selected MCP registration and separately approved read-only policy'
+    }finally{$env:USERPROFILE=$profileBeforeMcp}
+    Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-ApproveMcpReadTools'))).exit -eq 2) '-Setup refuses read-tool consent without selected MCP targets'
     Assert-Portable ([Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -NoRegisterEnvironment non cambia l ambiente utente'
     # Senza conferma esplicita (-RegisterEnvironment) la variabile utente non si scrive nemmeno quando manca anche -NoRegisterEnvironment.
     $noConfirmRun=Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha,beta','-Yes','-Apply')

@@ -154,8 +154,64 @@ function Get-SBWriteContention($Exception) {
     if (($io.HResult -band 0xffff) -in @(2, 3, 32, 33, 80, 183, 1175, 1176, 1177)) { return $io }
     $null
 }
+function Get-SBWriteDeniedException($Exception) {
+    while ($null -ne $Exception) {
+        if ($Exception -is [UnauthorizedAccessException] -or $Exception -is [Security.SecurityException] -or
+            ($Exception -is [IO.IOException] -and ($Exception.HResult -band 0xffff) -eq 5)) { return $Exception }
+        $Exception = $Exception.InnerException
+    }
+    $null
+}
+function ConvertTo-SBWriteError($Exception, [string]$Path) {
+    if (Test-SBError $Exception 'core.write.denied') { return $Exception }
+    $denied = Get-SBWriteDeniedException $Exception
+    if ($denied) {
+        $error = New-SBError 'core.write.denied' @($Path) ([IO.IOException]) 0 $Exception
+        $error.Data['path'] = $Path
+        return $error
+    }
+    $Exception
+}
+function Test-SBWriteDeniedError($ErrorRecord) {
+    $exception=if($ErrorRecord -is [Management.Automation.ErrorRecord]){$ErrorRecord.Exception}else{$ErrorRecord}
+    (Test-SBError $exception 'core.write.denied') -or ($null -ne (Get-SBWriteDeniedException $exception))
+}
+function Get-SBRetryCommand([string]$ScriptPath, [Collections.IDictionary]$Parameters) {
+    # A PowerShell invocation, not a shell-evaluated concatenation of argument values.
+    $quote = { param($value) "'" + ([string]$value).Replace("'", "''") + "'" }
+    $parts = [Collections.Generic.List[string]]::new()
+    $parts.Add('& ' + (& $quote $ScriptPath))
+    foreach ($key in $Parameters.Keys) {
+        if ($key -notmatch '^[A-Za-z][A-Za-z0-9]*$') { throw (New-SBError 'core.retry.parameter') }
+        $value = $Parameters[$key]
+        if ($value -is [Management.Automation.SwitchParameter] -or $value -is [bool]) {
+            $parts.Add('-' + $key + ':$' + ([bool]$value).ToString().ToLowerInvariant())
+        } elseif ($value -is [array]) {
+            $parts.Add('-' + $key + ' @(' + ((@($value | ForEach-Object { & $quote $_ })) -join ',') + ')')
+        } else { $parts.Add('-' + $key + ' ' + (& $quote $value)) }
+    }
+    $parts -join ' '
+}
+function Write-SBWriteDeniedDiagnostic($ErrorRecord, [string]$ScriptPath, [Collections.IDictionary]$Parameters) {
+    $exception = if ($ErrorRecord -is [Management.Automation.ErrorRecord]) { $ErrorRecord.Exception } else { $ErrorRecord }
+    $error = ConvertTo-SBWriteError $exception $ScriptPath
+    [Console]::Error.WriteLine('[core.write.denied] ' + $error.Message)
+    [Console]::Error.WriteLine((Get-SBMessage 'core.write.retry' @((Get-SBRetryCommand $ScriptPath $Parameters))))
+}
+function Get-SBIDEWriteScope($Ide) {
+    if ($Ide.ContainsKey('writeScope')) {
+        $scope = $Ide.writeScope
+        if ($scope -is [Collections.IDictionary] -and $scope.ContainsKey('status') -and
+            $scope.status -in @('unverified','verified','denied') -and $scope.ContainsKey('roots') -and
+            $scope.roots -is [array] -and $scope.ContainsKey('evidence')) {
+            if ($scope.status -eq 'unverified' -or (@($scope.roots).Count -gt 0 -and $scope.evidence)) { return $scope }
+        }
+    }
+    @{status='unverified';roots=@();evidence=$null}
+}
 function Write-SBFile {
     param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty)
+    try {
     Assert-SBWriteGuard
     Assert-SBPlainPath $Path
     if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
@@ -168,15 +224,17 @@ function Write-SBFile {
     $gitOnly = ($null -ne $git -and !$git.dirty)
     $script:SBWriteGeneration++
     $parent = Split-Path -Parent $Path
-    [IO.Directory]::CreateDirectory($parent) | Out-Null
     $temp = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.tmp')
     $backup = $null
     $completed=$false
-    [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
     $stageRecordPath=Join-Path $BackupRoot ([guid]::NewGuid().ToString('N')+'.stage')
     $stageRecord=@{schemaVersion=1;path=[IO.Path]::GetFullPath($Path);staging=$temp;expectedHash=$ExpectedHash;status='writing'}
-    [IO.File]::WriteAllText($stageRecordPath,(ConvertTo-SBJson $stageRecord),[Text.UTF8Encoding]::new($false))
+    $failure=$null;$stageRegistered=$false
     try {
+        [IO.Directory]::CreateDirectory($parent) | Out-Null
+        [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
+        [IO.File]::WriteAllText($stageRecordPath,(ConvertTo-SBJson $stageRecord),[Text.UTF8Encoding]::new($false))
+        $stageRegistered=$true
         $stream = [IO.FileStream]::new($temp, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
         try { $stream.Write($Bytes); $stream.Flush($true) } finally { $stream.Dispose() }
         if ((Get-SBFileHash $temp) -ne (Get-SBHash $Bytes)) { throw (New-SBError 'core.readback.staging') }
@@ -214,17 +272,25 @@ function Write-SBFile {
         $completed=$true
         return $true
     } catch {
+        $failure=$_.Exception
         # A competing writer holds or has just replaced the destination: stable code, original error kept as inner exception.
         $contention = Get-SBWriteContention $_.Exception
         if ($null -eq $contention) { throw }
         throw (New-SBError 'core.write.contended' @($Path) ([IO.IOException]) 0 $contention)
     } finally {
+        try {
         $stageRecord.status=if($completed){'completed'}else{'interrupted'}
         if([IO.File]::Exists($temp)){
             if($completed){[IO.File]::Delete($temp)}else{Write-Warning (Get-SBMessage 'core.staging.kept' @($temp))}
         }
-        [IO.File]::WriteAllText($stageRecordPath,(ConvertTo-SBJson $stageRecord),[Text.UTF8Encoding]::new($false))
+        if($stageRegistered){[IO.File]::WriteAllText($stageRecordPath,(ConvertTo-SBJson $stageRecord),[Text.UTF8Encoding]::new($false))}
+        } catch {
+            if(!$failure){throw}
+            # Keep the primary failure; recovery materials are never removed on failure.
+            Write-Warning (Get-SBMessage 'core.write.finalization' @($stageRecordPath,$_.Exception.Message))
+        }
     }
+    } catch { throw (ConvertTo-SBWriteError $_.Exception $Path) }
 }
 function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
     # Sola lettura: elenca i record .stage completati piu vecchi della soglia in uno o piu backupRoot (anche nelle sottocartelle). Backup .bin/.bin.json, staging interrotti e record illeggibili non sono mai candidati.
@@ -903,6 +969,12 @@ Export-ModuleMember -Function @(
     'Assert-SBPlainPath',
     'Get-SBWriteGeneration',
     'Write-SBFile',
+    'Get-SBWriteDeniedException',
+    'Test-SBWriteDeniedError',
+    'ConvertTo-SBWriteError',
+    'Get-SBRetryCommand',
+    'Write-SBWriteDeniedDiagnostic',
+    'Get-SBIDEWriteScope',
     'Get-SBStageRetention',
     'Get-SBRuntimeRetention',
     'Get-SBRuntimeIndex',

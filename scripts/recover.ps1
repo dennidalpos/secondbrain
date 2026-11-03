@@ -28,7 +28,7 @@ Add-SBMessages @{
     'recover.payload.invalid' = @{ it = 'Payload di recupero non valido'; en = 'Invalid recovery payload' }
 }
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
-trap { if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
+trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 # Con -ConfigPath il manifest puo stare nel backupRoot della postazione, anche fuori da .runtime: Restore-SBParaTransaction ne verifica il confinamento.
 $resolvePath={param($p) if($ConfigPath){if(!(Test-Path -LiteralPath $p)){throw (New-SBError 'recover.path.missing' @($p))};[IO.Path]::GetFullPath($p)}else{Assert-SBCentralDataPath $brain $p}}

@@ -155,6 +155,7 @@ function Update-SBParaIndex($Config,[switch]$Check) {
 # File-level journal: every old payload is verified before the first write. Recovery
 # verifies the deployed hashes and never overwrites a subsequent user edit.
 function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[string]$BrainRoot,[string[]]$AllowedPaths=@(),[string]$RecoveryManifest='') {
+    try {
     $backupFull=[IO.Path]::GetFullPath($BackupRoot)
     $brainFull=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     if($backupFull.StartsWith($brainFull,[StringComparison]::OrdinalIgnoreCase)){
@@ -210,7 +211,12 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
         if((Get-SBFileHash $marker) -ne (Get-SBTextHash $markerText)){throw (New-SBError 'para.transaction.marker')}
         Assert-SBWriteGuard;[IO.File]::Delete($marker)
         $manifest
-    }catch{$journal.status='interrupted';Save-Journal;throw (New-SBError 'para.transaction.interrupted' @($manifest, $_.Exception.Message))}
+    }catch{
+        $primary=$_.Exception;$journal.status='interrupted'
+        try{Save-Journal}catch{Write-Warning (Get-SBMessage 'core.write.finalization' @($manifest,$_.Exception.Message))}
+        throw (New-SBError 'para.transaction.interrupted' @($manifest,$primary.Message) ([IO.IOException]) 0 $primary)
+    }
+    }catch{throw (ConvertTo-SBWriteError $_.Exception $BackupRoot)}
 }
 
 function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[string]$BackupRoot,[string[]]$AllowedPaths=@()) {

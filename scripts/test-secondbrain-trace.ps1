@@ -72,25 +72,21 @@ try {
     Assert-Trace ((Set-SBTraceHook $brain $backups -Apply -SettingsPath $missing).applied -and (Get-SBTraceHookState $brain $missing).installed) 'settings.json assente: creato con la sola voce'
 
     # CLI: anteprima e stato in sola lettura, evento sempre con exit 0 (anche con stdin non valido).
-    $cli=Join-Path $PSScriptRoot 'trace.ps1';$cliSettings=Join-Path $root 'claude/cli.json'
+    $fixtureScripts=Join-Path $brain 'scripts';[IO.Directory]::CreateDirectory($fixtureScripts)|Out-Null
+    Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination $fixtureScripts
+    $cli=Join-Path $fixtureScripts 'trace.ps1';$cliSettings=Join-Path $root 'claude/cli.json'
     $status=(& pwsh -NoProfile -File $cli -HookStatus -SettingsPath $cliSettings)|ConvertFrom-Json -AsHashtable
     Assert-Trace ($LASTEXITCODE -eq 0 -and !$status.installed -and !(Test-Path -LiteralPath $cliSettings)) 'CLI -HookStatus: sola lettura'
     $cliPreview=(& pwsh -NoProfile -File $cli -InstallHook -SettingsPath $cliSettings)|ConvertFrom-Json -AsHashtable
     Assert-Trace ($LASTEXITCODE -eq 0 -and $cliPreview.preview -and !$cliPreview.applied -and !(Test-Path -LiteralPath $cliSettings)) 'CLI -InstallHook senza -Apply: solo anteprima'
     'non-json{'|& pwsh -NoProfile -File $cli -Event stop -Ide test-fixture
     Assert-Trace ($LASTEXITCODE -eq 0) 'CLI -Event stop esce con 0 anche con input non valido'
-    $realTrace=Join-Path (Get-SBTraceRoot ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')))) (Get-SBHostId)
-    $leftover=@(Get-ChildItem -LiteralPath $realTrace -File -Filter '*.jsonl' -ErrorAction SilentlyContinue|Where-Object {(Get-Content -LiteralPath $_.FullName -Raw) -match '"ide":"test-fixture"'})
-    foreach($item in $leftover){
-        # La riga di prova va tolta senza cancellare il resto della traccia reale.
-        $kept=@([IO.File]::ReadAllLines($item.FullName)|Where-Object {$_ -notmatch '"ide":"test-fixture"'})
-        [IO.File]::WriteAllLines($item.FullName,$kept)
-    }
+    . (Join-Path $PSScriptRoot 'test-trace-denied.ps1')
     'SUCCESS TRACE: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion
 } finally {
     $full=[IO.Path]::GetFullPath($root);$boundary=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Fixture trace fuori dal perimetro di prova'}
-    if(Test-Path -LiteralPath $full){
+    if($env:SECONDBRAIN_TEST_KEEP -ne '1' -and (Test-Path -LiteralPath $full)){
         $entries=@(Get-ChildItem -LiteralPath $full -Force -Recurse)
         foreach($entry in $entries){if(!$entry.FullName.StartsWith($full+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or $entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture trace non confinata'}}
         foreach($entry in $entries|Where-Object {!$_.PSIsContainer}){[IO.File]::SetAttributes($entry.FullName,[IO.FileAttributes]::Normal);[IO.File]::Delete($entry.FullName)}
