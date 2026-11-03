@@ -1,17 +1,17 @@
-# Politica di sicurezza
+# Security policy
 
-## Versioni supportate
+## Supported versions
 
-Riceve correzioni di sicurezza l'ultima versione pubblicata su `master` (vedi `VERSION`).
+Security fixes are applied to the latest version published on `master` (see `VERSION`).
 
-## Come segnalare una vulnerabilità
+## Reporting a vulnerability
 
-Non aprire una issue pubblica. Usa la segnalazione privata di GitHub: scheda **Security** del repository, poi **Report a vulnerability**.
+Do not open a public issue. Use GitHub's private reporting: open the **Security** tab of the repository, then **Report a vulnerability**.
 
-Indica la versione di SecondBrain, i passi per riprodurre il problema e l'impatto atteso. Non allegare segreti, token o dati personali reali: sostituiscili con valori fittizi.
+Include the SecondBrain version, the steps to reproduce the problem and the expected impact. Do not attach real secrets, tokens or personal data: replace them with dummy values.
 
-Si risponde alla segnalazione nella stessa conversazione privata. La correzione viene pubblicata prima della divulgazione dei dettagli.
+Replies are sent in the same private conversation. The fix is published before the details are disclosed.
 
-## Ambito
+## Scope
 
-SecondBrain è uno strumento locale: gli script PowerShell, il server MCP in sola lettura (`scripts/mcp-server.ps1`) e i file di configurazione degli IDE che genera. Sono fuori ambito le vulnerabilità degli IDE, di Git o di PowerShell stessi.
+SecondBrain is a local tool: the PowerShell scripts, the read-only MCP server (`scripts/mcp-server.ps1`) and the IDE configuration files it generates. Vulnerabilities in the IDEs, Git or PowerShell themselves are out of scope.
