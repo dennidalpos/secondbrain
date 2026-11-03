@@ -33,6 +33,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'backup.config.unavailable' = @{ it = 'Configurazione di postazione non disponibile, backup in .runtime/backups: {0}'; en = 'Workstation configuration unavailable, backup in .runtime/backups: {0}' }
     'backup.archive.missing' = @{ it = 'Archivio di backup non trovato per la verifica: ''{0}'''; en = 'Backup archive not found for verification: ''{0}''' }
     'backup.archive.corrupt' = @{ it = 'Archivio corrotto o non conforme: ''manifest.json'' assente in {0}'; en = 'Corrupt or non-conforming archive: ''manifest.json'' missing in {0}' }
     'backup.manifest.invalid' = @{ it = 'Manifest non valido o schema non supportato in {0}'; en = 'Invalid manifest or unsupported schema in {0}' }
@@ -129,7 +130,7 @@ if ($Verify) {
 $config = $null
 # Senza -ConfigPath una postazione non attivata usa la cartella predefinita; un -ConfigPath esplicito non valido e un errore.
 if ($ConfigPath) { $config = Read-SBConfiguration $ConfigPath }
-else { try { $config = Read-SBConfiguration } catch { Write-Warning ('Configurazione di postazione non disponibile, backup in .runtime/backups: ' + $_.Exception.Message) } }
+else { try { $config = Read-SBConfiguration } catch { Write-Warning (Get-SBMessage 'backup.config.unavailable' @($_.Exception.Message)) } }
 $backupRoot = if ($config -and $config.backupRoot) { $config.backupRoot } else { Join-Path $brain '.runtime/backups' }
 [System.IO.Directory]::CreateDirectory($backupRoot) | Out-Null
 

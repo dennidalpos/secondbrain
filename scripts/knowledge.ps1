@@ -5,7 +5,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][ValidateSet('Slim','Full')][string]$Profile='Slim',
     [Parameter(ParameterSetName='Startup')][switch]$Report,
     [Parameter(Mandatory,ParameterSetName='Compact')][switch]$Compact,
-    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
+    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=50000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
@@ -13,6 +13,8 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='TaskNew')][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
+    [Parameter(Mandatory,ParameterSetName='HistoryMigration')][switch]$MigrateHistoryMessages,
+    [Parameter(Mandatory,ParameterSetName='HistoryMessages')][switch]$HistoryMessages,
     [Parameter(Mandatory,ParameterSetName='Lifecycle')][ValidateSet('greenfield','none')][string]$SetLifecycle,
     [Parameter(Mandatory,ParameterSetName='Task')][string]$Task,
     [Parameter(Mandatory,ParameterSetName='Section')][string]$Section,[Parameter(ParameterSetName='Section')][string]$Source,
@@ -99,7 +101,15 @@ try{
         if($Repository -and $Repository -cne $working){throw (New-SBError 'knowledgecli.lifecycle.working')}
         $result=Set-SBRepositoryLifecycle -Dossier (Join-Path $brain (Resolve-SBWorkingDossier $brain $working)) -Lifecycle $SetLifecycle -BackupRoot $config.backupRoot
     }
-    elseif($NewTask -or $RenumberTasks){
+    elseif($HistoryMessages){
+        $repoId=& $resolveWorking
+        $resolved=Resolve-SBTracker -BrainRoot $brain -Identity $repoId -AllowedOwners @()
+        $archive=Read-SBJson (Join-Path (Split-Path $resolved.path) 'history/tracker-archive.json') $null
+        $archiveView=@()
+        if($archive){$archiveView=@(Get-SBTrackerHistoryMessages $archive)}
+        $result=@{repository=$repoId;history=@(Get-SBTrackerHistoryMessages $resolved.data);archive=$archiveView}
+    }
+    elseif($NewTask -or $RenumberTasks -or $MigrateHistoryMessages){
         # Creazione e numerazione restano nel repository in lavoro, come gli aggiornamenti di stato.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
@@ -109,6 +119,8 @@ try{
             $DependsOn=@($DependsOn|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             $Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repoId -WorkingRepository $working -Title $NewTask -Id $TaskId -Description $Description -Priority $Priority -Execution $Execution -DependsOn $DependsOn -Acceptance $Acceptance -ProvenanceReference $Provenance -ProvenancePointer $ProvenancePointer -BackupRoot $config.backupRoot
+        }elseif($MigrateHistoryMessages){
+            Invoke-SBTrackerHistoryMigration -BrainRoot $brain -Identity $repoId -WorkingRepository $working -BackupRoot $config.backupRoot -Apply:$Apply
         }else{
             Invoke-SBTrackerRenumber -BrainRoot $brain -Identity $repoId -WorkingRepository $working -BackupRoot $config.backupRoot -Apply:$Apply
         }

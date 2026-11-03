@@ -49,8 +49,8 @@ try {
     Assert-Source ($probe.complete -and $probe.sources[0].status -eq 'unbaselined') 'fonte senza baseline distinta da invariata'
     foreach($code in @(401,403,404,429,500)){
         $script:sourceStatus=$code
-        $p=Invoke-SBSourceProbe $registry {param($ep) throw ('http-'+$script:sourceStatus)}
-        Assert-Source (!$p.complete -and $p.sources[0].status -eq 'unverifiable' -and $p.sources[0].errors[0].reason -eq ('http-'+$code)) ('HTTP '+$code+' non diventa assenza o successo')
+        $p=Invoke-SBSourceProbe $registry {param($ep) $failure=New-SBError 'sources.http' @($script:sourceStatus);$failure.Data['httpStatus']=$script:sourceStatus;throw $failure}
+        Assert-Source (!$p.complete -and $p.sources[0].status -eq 'unverifiable' -and $p.sources[0].errors[0].reason -eq ('http-'+$code) -and $p.sources[0].errors[0].code -eq 'sources.reason.http' -and $p.sources[0].errors[0].message.Contains([string]$code)) ('HTTP '+$code+' non diventa assenza o successo')
     }
     $p=Invoke-SBSourceProbe $registry {throw [TimeoutException]::new('secret must not be logged')}
     Assert-Source (!$p.complete -and (ConvertTo-SBJson $p) -notmatch 'secret must') 'timeout sanificato e copertura incompleta'
@@ -86,6 +86,9 @@ try {
     Assert-Source (@($issues|Where-Object kind -eq 'candidate-pending').Count -eq 1) 'candidata pendente segnalata'
     $manifestPath=Join-Path $registry.sources[0]._root ('versions/'+$collected.versionId+'/manifest.json')
     $manifest=Read-SBJson $manifestPath $null
+    if($collected.status -eq 'unavailable'){
+        Assert-Source ($manifest.transcription.diagnostics.code -eq 'sources.reason.converter-unavailable' -and $manifest.transcription.diagnostics.message) 'converter diagnostics persist a stable code and localized message'
+    }
     if($manifest.transcription.path){
         $text=Read-SBText (Join-Path (Split-Path $manifestPath) $manifest.transcription.path)
         Assert-Source ($text -match '(?m)^Ente: ' -and $text -match '(?m)^---$') 'preambolo di provenienza separato dal testo originale'

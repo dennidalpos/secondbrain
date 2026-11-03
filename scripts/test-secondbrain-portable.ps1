@@ -409,7 +409,7 @@ try{
     }
     $batchHistory=@($batchPub.findings|Where-Object surface -eq 'history'|ForEach-Object {$_.rule+'|'+$_.path+'|'+$_.line+'|'+$_.fingerprint})
     Assert-Portable ($reference.Count -ge 4 -and (($reference|Sort-Object) -join "`n") -eq (($batchHistory|Sort-Object) -join "`n")) 'scansione storia in batch equivale al confronto per oggetto (UTF-8, BOM, UTF-16, nomi accentati)'
-    Assert-Portable (@($batchPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'binary-review-required' -and $_.path -ceq 'blob.bin'}).Count -eq 1) 'blob binario in storia segnalato come revisione richiesta'
+    Assert-Portable (@($batchPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'binary-review-required' -and $_.code -eq 'publication.reason.binary-review-required' -and $_.message -and $_.path -ceq 'blob.bin'}).Count -eq 1) 'blob binario in storia segnalato come revisione richiesta'
     Assert-Portable (@($batchPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'size-limit' -and $_.path -ceq 'big.txt'}).Count -eq 1) 'blob oltre il limite in storia segnalato come size-limit senza leggerne il contenuto'
     Assert-Portable (@($batchPub.findings|Where-Object {$_.surface -eq 'index' -and $_.rule -eq 'personal-email'}).Count -ge 1 -and !@($batchPub.incomplete|Where-Object reason -eq 'unreadable').Count) 'superficie indice letta in batch senza oggetti illeggibili'
     $batchLimited=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -MaxTextBytes 400 -MaxHistoryBlobs 2
@@ -594,7 +594,7 @@ try{
     $sys03Id = (@((Read-SBJson (Join-Path $brain 'direttive/prompts/catalog.json') $null).prompts | Where-Object code -ceq 'SYS03')[0]).id
     $mcpIdCall = @{ jsonrpc = '2.0'; id = 1041; method = 'tools/call'; params = @{ name = 'get_prompt'; arguments = @{ prompt = $sys03Id } } } | ConvertTo-Json -Compress
     $mcpIdRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpIdCall | ConvertFrom-Json
-    Assert-Portable (!$mcpIdRes.result.isError -and $mcpIdRes.result.content[0].text -match '# SYS03' -and $mcpIdRes.result.content[0].text -match "(?m)^ID: $sys03Id \| Codice: SYS03" -and $mcpIdRes.result.content[0].text -match 'Regola vincolante: se hai dubbi') 'get_prompt risolve il prompt per ID con scheda uniforme e regola sui dubbi'
+    Assert-Portable (!$mcpIdRes.result.isError -and $mcpIdRes.result.content[0].text -match '# SYS03' -and $mcpIdRes.result.content[0].text -match "(?m)^ID: $sys03Id \| (Codice|Code): SYS03" -and $mcpIdRes.result.content[0].text -match '(Regola vincolante: se hai dubbi|Binding rule: if in doubt)') 'get_prompt risolve il prompt per ID con scheda uniforme e regola sui dubbi'
     $mcpGetById = @{ jsonrpc = '2.0'; id = 1042; method = 'prompts/get'; params = @{ name = $sys03Id } } | ConvertTo-Json -Compress
     $mcpGetByIdRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpGetById | ConvertFrom-Json
     Assert-Portable ($mcpGetByIdRes.result.description -and $mcpGetByIdRes.result.messages[0].content.text -match '# SYS03') 'prompts/get risolve il prompt per ID'
@@ -610,7 +610,7 @@ try{
     Assert-Portable (!$mcpCompactRes.result.isError -and [regex]::Matches($mcpCompactRes.result.content[0].text, '(?m)^\S+ SYS\d{2} \| ').Count -eq 10 -and $mcpCompactRes.result.content[0].text -notmatch 'ID: pmt-') 'list_prompts compact filtra per prefisso con una riga per prompt'
     $mcpHome = @{ jsonrpc = '2.0'; id = 1052; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{} } } | ConvertTo-Json -Compress
     $mcpHomeRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHome | ConvertFrom-Json
-    Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README\.it\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
+    Assert-Portable (!$mcpHomeRes.result.isError -and $mcpHomeRes.result.content[0].text -match 'direttive/prompts/README(?:\.it)?\.md' -and $mcpHomeRes.result.content[0].text -match 'sb attiva') 'get_prompt_home espone link al catalogo e comandi'
     $mcpHomeEn = @{ jsonrpc = '2.0'; id = 1053; method = 'tools/call'; params = @{ name = 'get_prompt_home'; arguments = @{ language = 'en' } } } | ConvertTo-Json -Compress -Depth 5
     $mcpHomeEnRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpHomeEn | ConvertFrom-Json
     Assert-Portable (!$mcpHomeEnRes.result.isError -and $mcpHomeEnRes.result.content[0].text -match 'direttive/prompts/README\.md' -and $mcpHomeEnRes.result.content[0].text -match 'PROMPTS AND COMMANDS') 'get_prompt_home con language=en risponde in inglese'
@@ -819,7 +819,7 @@ try{
     $registry[$stationId].repositoryRoot='X:\spostato\altrove'
     Put-Portable $registryFile (ConvertTo-SBJson $registry)
     $moveResult=Invoke-FixtureCli 'cleanup.ps1' @('-ManifestPath',(Join-Path $brain '.runtime/inesistente.json'),'-Apply')
-    Assert-Portable ($moveResult.exit -ne 0 -and $moveResult.text -match 'riconciliare') 'stesso workstationId con percorsi diversi richiede riconciliazione esplicita'
+    Assert-Portable ($moveResult.exit -ne 0 -and $moveResult.text.Contains('scripts/access.ps1 -Reconcile')) 'stesso workstationId con percorsi diversi richiede riconciliazione esplicita'
     Assert-Portable (((Read-SBJson $registryFile @{})[$stationId].repositoryRoot) -eq 'X:\spostato\altrove') 'registro non sovrascritto in silenzio'
     Assert-Portable ((Invoke-FixtureCli $accessCli @('-Reconcile')).exit -eq 0) 'riconciliazione esplicita aggiorna il registro'
     Assert-Portable (((Read-SBJson $registryFile @{})[$stationId].repositoryRoot) -ne 'X:\spostato\altrove') 'registro aggiornato dopo la riconciliazione'
@@ -942,7 +942,7 @@ public static bool Set(string name,bool enabled){
     $regenDocs=Join-Path $brain '.runtime/hosts/regen-host/sources/keep.txt';Put-Portable $regenDocs 'resta'
     $regenGuard=Invoke-FixtureCli 'cleanup.ps1' @('-Regenerable','-KeepFixtures','0')
     $regenGuardPlan=$regenGuard.text|ConvertFrom-Json
-    Assert-Portable ($regenGuard.exit -eq 0 -and @($regenGuardPlan.targets).Count -eq 0 -and @($regenGuardPlan.skipped|Where-Object {$_.reason -match 'ultimi 10 minuti'}).Count -ge 5) 'cleanup -Regenerable salta le cartelle scritte da poco (potrebbero essere in uso)'
+    Assert-Portable ($regenGuard.exit -eq 0 -and @($regenGuardPlan.targets).Count -eq 0 -and @($regenGuardPlan.skipped|Where-Object {$_.reasonCode -eq 'recently-written'}).Count -ge 5) 'cleanup -Regenerable salta le cartelle scritte da poco (potrebbero essere in uso)'
     $regenPreview=Invoke-FixtureCli 'cleanup.ps1' @('-Regenerable','-KeepFixtures','2','-MinAgeMinutes','0')
     $regenPlan=$regenPreview.text|ConvertFrom-Json
     Assert-Portable ($regenPreview.exit -eq 0 -and !$regenPlan.applied -and @($regenPlan.targets|Where-Object {$_.kind -eq 'fixture-test'}).Count -eq 3 -and @($regenPlan.targets|Where-Object {$_.kind -eq 'python-sources'}).Count -eq 1 -and (Test-Path -LiteralPath $regenOldest)) 'cleanup -Regenerable senza Apply elenca 3 fixture oltre le ultime 2 e l ambiente Python, senza rimuovere'
@@ -1086,12 +1086,12 @@ public static bool Set(string name,bool enabled){
         $staleCandidate=@{schemaVersion=1;repository=$twoBinding.identity;reviewed=$true;reviewNote='dossier resolution fixture';sources=@{'context.md'='0';'memory.md'='0'};summaries=@{'context.md'='x';'memory.md'='x'};openTaskIds=@()}
         $stalePath=Join-Path $brain '.runtime/compaction-resolve.json';Put-Portable $stalePath (ConvertTo-SBJson $staleCandidate)
         $compactDefault=(& pwsh -NoProfile -File $knowledgeCli -Compact -CandidatePath $stalePath -ConfigPath $isoActivation.configuration 2>&1|Out-String)
-        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactDefault -match 'Fonte modificata dopo la preparazione' -and $compactDefault -notmatch 'GetFullPath') 'knowledge -Compact senza -Dossier risolve il checkout corrente'
+        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactDefault.Contains((Get-SBMessage 'knowledge.source.changed' @('context.md'))) -and $compactDefault -notmatch 'GetFullPath') 'knowledge -Compact senza -Dossier risolve il checkout corrente'
         $compactRelative=(& pwsh -NoProfile -File $knowledgeCli -Compact -Dossier $twoBinding.dossier -CandidatePath $stalePath -ConfigPath $isoActivation.configuration 2>&1|Out-String)
-        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactRelative -match 'Fonte modificata dopo la preparazione') 'knowledge -Compact accetta un -Dossier relativo alla radice'
+        Assert-Portable ($LASTEXITCODE -ne 0 -and $compactRelative.Contains((Get-SBMessage 'knowledge.source.changed' @('context.md')))) 'knowledge -Compact accetta un -Dossier relativo alla radice'
         Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot} 'Invoke-SBDossierCompaction rifiuta un dossier vuoto'
-        try{Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot|Out-Null;$emptyDossier=''}catch{$emptyDossier=$_.Exception.Message}
-        Assert-Portable ($emptyDossier -match 'Dossier non indicato') 'dossier vuoto: errore chiaro invece di GetFullPath'
+        try{Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot|Out-Null;$emptyDossier=''}catch{$emptyDossier=Test-SBError $_ 'knowledge.dossier.unspecified'}
+        Assert-Portable ($emptyDossier -eq $true) 'dossier vuoto: errore chiaro invece di GetFullPath'
         # pwsh -File passa gli elenchi come stringa unica: ';' separa criteri e dipendenze.
         $twoDossierDir=Join-Path $brain $twoBinding.dossier;$twoTrackerPath=Join-Path $twoDossierDir 'tracker.json'
         Put-Portable (Join-Path $twoDossierDir 'history/cli-source.md') "fonte`n"
@@ -1159,13 +1159,13 @@ public static bool Set(string name,bool enabled){
     $cliHome=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli 2>$null|Out-String)
     Assert-Portable ($cliHome -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{})))) 'parità CLI-MCP: get_prompt_home'
     $cliHomeHere=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -RepositoryPath $realBrain 2>$null|Out-String)
-    Assert-Portable ($cliHomeHere -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{repositoryPath=$realBrain}))) -and $cliHomeHere -cmatch 'DOVE SEI' -and $cliHomeHere -cmatch 'PROSSIMO PASSO') 'parità CLI-MCP: get_prompt_home con repositoryPath (stato e prossimo passo)'
+    Assert-Portable ($cliHomeHere -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt_home' @{repositoryPath=$realBrain}))) -and $cliHomeHere.Contains((Get-SBMessage 'home.where')) -and $cliHomeHere.Contains((Get-SBMessage 'home.next'))) 'parità CLI-MCP: get_prompt_home con repositoryPath (stato e prossimo passo)'
     $cliShow=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 2>$null|Out-String)
     $mcpShow=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06'}))
-    Assert-Portable ($cliShow.StartsWith('CATALOGO PROMPT') -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
+    Assert-Portable ($cliShow -match '^(CATALOGO PROMPT|PROMPT CATALOG)' -and $cliShow.EndsWith($mcpShow)) 'parità CLI-MCP: get_prompt'
     $cliShowEn=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -Show -Prompt TST06 -Language en 2>$null|Out-String)
     $mcpShowEn=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06';language='en'}))
-    Assert-Portable ($cliShowEn.StartsWith('PROMPT CATALOG') -and $cliShowEn.EndsWith($mcpShowEn) -and $cliShowEn -ne $cliShow) 'parità CLI-MCP: get_prompt con language=en'
+    Assert-Portable ($cliShowEn.StartsWith('PROMPT CATALOG') -and $cliShowEn.EndsWith($mcpShowEn) -and ((Get-SBUiLanguage) -eq 'en' -or $cliShowEn -ne $cliShow)) 'parità CLI-MCP: get_prompt con language=en'
 
     # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS13.
     $twoDossier=Join-Path $brain $twoBinding.dossier
@@ -1222,7 +1222,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($previewDoc.confirmed -eq $true -and $previewDoc.confirmation -match '^.+@.+ \d{4}-\d{2}-\d{2}T.* \(-Yes\)$' -and $previewDoc.reportSha256 -eq (Get-SBFileHash $setupReport)) 'selection.json generato con conferma registrata (utente, host, data) e hash del report'
     Assert-Portable ((Get-SBFileHash $isoActivation.configuration) -eq $configHash) 'anteprima -Setup non modifica la configurazione'
     $noSelection=(('' | & pwsh -NoProfile -File (Join-Path $brain 'scripts/secondbrain.ps1') -Setup -Roots $setupRepos -NoRegisterEnvironment 2>&1|Out-String))
-    Assert-Portable ($LASTEXITCODE -eq 2 -and $noSelection -match 'Selezione assente') '-Setup non interattivo senza selezione e un errore'
+    Assert-Portable ($LASTEXITCODE -eq 2 -and $noSelection.Contains((Get-SBMessage 'portable.selection.missing'))) '-Setup non interattivo senza selezione e un errore'
     Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','inesistente','-Yes'))).exit -eq 2) '-Setup rifiuta un repository non selezionabile'
     $interactiveRun=(('CONFERMO','' | & pwsh -NoProfile -File (Join-Path $brain 'scripts/secondbrain.ps1') @setupBase -Interactive -Select beta 2>&1|Out-String))
     Assert-Portable ($LASTEXITCODE -eq 0 -and $interactiveRun -match '"stage": "preview"' -and ((Read-SBJson $setupSelection $null).confirmation -match '\(interattiva\)')) '-Setup -Interactive legge la conferma da stdin e resta in anteprima'
@@ -1450,7 +1450,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($holder.exit -eq 0 -and $holderId) 'sessione di scrittura A aperta (tiene writer.lock)'
     try{
         $busy=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync','-WaitSeconds','1')
-        Assert-Portable ($busy.exit -eq 3 -and $busy.text -match 'occupato' -and $busy.text -match 'Titolare' -and $busy.text -match 'test-share') 'scrittura B concorrente: exit 3 a timeout con il titolare'
+        Assert-Portable ($busy.exit -eq 3 -and $busy.text -match '(occupato|busy)' -and $busy.text -match '(Titolare|Owner)' -and $busy.text -match 'test-share') 'scrittura B concorrente: exit 3 a timeout con il titolare'
         $readCheck=Invoke-FixtureCli 'secondbrain.ps1' @('-Check')
         Assert-Portable ($readCheck.exit -in @(0,1) -and $readCheck.text -match 'concurrent-writer') 'Check durante un writer non si blocca e segnala lo snapshot potenzialmente intermedio'
         $readTasks=Invoke-FixtureCli 'knowledge.ps1' @('-Tasks','-All')
@@ -1471,7 +1471,7 @@ public static bool Set(string name,bool enabled){
         $guarded=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync','-SessionId',$guardId)
         Assert-Portable ($guarded.exit -in @(0,1) -and $guarded.text -notmatch 'Assert-SBSession') 'scrittura con -SessionId di una sessione Write riesce (write guard risolve Assert-SBSession)'
         $badSession=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync','-SessionId',('0'*32))
-        Assert-Portable ($badSession.exit -ne 0 -and $badSession.text -match 'Sessione di scrittura assente') 'scrittura con -SessionId inesistente rifiutata'
+        Assert-Portable ($badSession.exit -ne 0 -and $badSession.text.Contains((Get-SBMessage 'access.session.missing.write'))) 'scrittura con -SessionId inesistente rifiutata'
     }finally{
         & pwsh -NoProfile -File (Join-Path $brain 'scripts/access.ps1') -End -SessionId $guardId *> $null
     }
@@ -1506,14 +1506,14 @@ Start-Sleep -Seconds 300
         $sharedDoc=Read-SBJson $badWait @{};$sharedDoc.lockWaitSeconds=2;Put-Portable $badWait (ConvertTo-SBJson $sharedDoc)
         try{
             $configWait=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync')
-            Assert-Portable ($configWait.exit -eq 3 -and $configWait.text -match 'attesa fino a 2 s' -and $configWait.text -match 'Titolare') 'lockWaitSeconds di shared.json governa l attesa (exit 3 con il titolare)'
+            Assert-Portable ($configWait.exit -eq 3 -and $configWait.text -match 'attesa fino a 2 s' -and $configWait.text -match '(Titolare|Owner)') 'lockWaitSeconds di shared.json governa l attesa (exit 3 con il titolare)'
             $env:SECONDBRAIN_LOCK_WAIT_SECONDS='1'
             try{$envWait=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync')}finally{Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue}
             Assert-Portable ($envWait.exit -eq 3 -and $envWait.text -match 'attesa fino a 1 s') 'SECONDBRAIN_LOCK_WAIT_SECONDS prevale su shared.json'
         }finally{Put-Portable $badWait $sharedOriginal}
         $racers=@(1..2|ForEach-Object {Start-Job -ScriptBlock {param($script) $out=(& pwsh -NoProfile -File $script -Sync -WaitSeconds 1 2>&1|Out-String);$out+"`nEXIT="+$LASTEXITCODE} -ArgumentList (Join-Path $brain 'scripts/secondbrain.ps1')})
         $racerOutputs=@($racers|Receive-Job -Wait -AutoRemoveJob)
-        Assert-Portable (@($racerOutputs|Where-Object {$_ -match 'EXIT=3\b' -and $_ -match 'Titolare'}).Count -eq 2) 'due writer concorrenti con il lock occupato escono entrambi con exit 3 e il titolare'
+        Assert-Portable (@($racerOutputs|Where-Object {$_ -match 'EXIT=3\b' -and $_ -match '(Titolare|Owner)'}).Count -eq 2) 'due writer concorrenti con il lock occupato escono entrambi con exit 3 e il titolare'
     }finally{
         if(!$simHolder.HasExited){Stop-Process -Id $simHolder.Id -Force}
         $simHolder.WaitForExit(10000)|Out-Null
@@ -1574,10 +1574,10 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
         }
         foreach($writerName in $writerCalls.Keys){
             $writerResult=Invoke-FixtureCli $writerName $writerCalls[$writerName]
-            Assert-Portable ($writerResult.exit -eq 3 -and $writerResult.text -match 'Titolare') ("lock occupato: $writerName esce con 3 e il titolare")
+            Assert-Portable ($writerResult.exit -eq 3 -and $writerResult.text -match '(Titolare|Owner)') ("lock occupato: $writerName esce con 3 e il titolare")
         }
         $startBusy=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-queue')
-        Assert-Portable ($startBusy.exit -eq 3 -and $startBusy.text -match 'occupato') 'lock occupato: access -Start in scrittura esce con 3'
+        Assert-Portable ($startBusy.exit -eq 3 -and $startBusy.text -match '(occupato|busy)') 'lock occupato: access -Start in scrittura esce con 3'
     }finally{
         Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue
         if(!$simHolder.HasExited){Stop-Process -Id $simHolder.Id -Force};$simHolder.WaitForExit(10000)|Out-Null
@@ -1593,17 +1593,17 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
     $txTarget=Join-Path $brain '.runtime/tx-target.txt';Put-Portable $txTarget 'originale'
     $guardCalls=0
     Set-SBWriteGuard {$script:guardCalls++;if($script:guardCalls -ge 3){throw 'interruzione simulata'}}
-    try{Invoke-SBParaTransaction @(@{path=$txTarget;expected=(Get-SBFileHash $txTarget);bytes=[Text.Encoding]::UTF8.GetBytes('nuovo')}) (Join-Path $hostRoot 'backups') $brain|Out-Null}catch{$txError=$_.Exception.Message}
+    try{Invoke-SBParaTransaction @(@{path=$txTarget;expected=(Get-SBFileHash $txTarget);bytes=[Text.Encoding]::UTF8.GetBytes('nuovo')}) (Join-Path $hostRoot 'backups') $brain|Out-Null}catch{$txError=Test-SBError $_ 'para.transaction.interrupted'}
     Set-SBWriteGuard $null
     $markerPath=Join-Path $brain '.runtime/para-transaction.json'
     $markerDoc=Read-SBJson $markerPath @{}
-    Assert-Portable ((Test-Path -LiteralPath $markerPath) -and $txError -match 'interrotta' -and $markerDoc.computer -eq [Environment]::MachineName -and $markerDoc.user -and $markerDoc.startedAt -and $markerDoc.brainRoot) 'marker transazione registra host, utente, data e radice'
+    Assert-Portable ((Test-Path -LiteralPath $markerPath) -and $txError -eq $true -and $markerDoc.computer -eq [Environment]::MachineName -and $markerDoc.user -and $markerDoc.startedAt -and $markerDoc.brainRoot) 'marker transazione registra host, utente, data e radice'
     $readPending=Invoke-FixtureCli 'secondbrain.ps1' @('-Check')
     Assert-Portable ($readPending.exit -in @(0,1) -and $readPending.text -match 'pending-transaction') 'Check con transazione pendente prosegue con un avviso'
     $writePending=Invoke-FixtureCli 'secondbrain.ps1' @('-Sync')
-    Assert-Portable ($writePending.exit -eq 2 -and $writePending.text -match 'Transazione PARA incompleta' -and $writePending.text -match 'recover\.ps1' -and $writePending.text -match [regex]::Escape([Environment]::MachineName)) 'scrittura con transazione pendente rifiutata con chi, quando e come recuperare'
+    Assert-Portable ($writePending.exit -eq 2 -and $writePending.text -match '(Transazione PARA incompleta|Incomplete PARA transaction)' -and $writePending.text -match 'recover\.ps1' -and $writePending.text -match [regex]::Escape([Environment]::MachineName)) 'scrittura con transazione pendente rifiutata con chi, quando e come recuperare'
     $statusPending=Invoke-FixtureCli $accessCli @('-Status')
-    Assert-Portable ($statusPending.exit -eq 0 -and $statusPending.text -match 'Transazione PARA incompleta') 'access -Status riepiloga la transazione pendente'
+    Assert-Portable ($statusPending.exit -eq 0 -and $statusPending.text -match '(Transazione PARA incompleta|Incomplete PARA transaction)') 'access -Status riepiloga la transazione pendente'
     $pendingManifest=(Get-SBPendingTransaction $brain).manifest
     $recoverPending=Invoke-FixtureCli 'recover.ps1' @('-ManifestPath',$pendingManifest,'-Apply')
     Assert-Portable ($recoverPending.exit -eq 0 -and !(Test-Path -LiteralPath $markerPath) -and (Read-SBText $txTarget) -eq 'originale') 'recupero della transazione interrotta da una postazione qualunque'

@@ -9,6 +9,59 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
+    'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
+    'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
+    'mcp.json.internal' = @{ it = 'Errore interno: {0}'; en = 'Internal error: {0}' }
+    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Profilo slim (predefinito, tetto 20000 caratteri): indice, sezioni essenziali di context.md e memory.md, task pronti in forma breve e l''elenco dei livelli non caricati (nulla eliminato). Profilo full: tutto, senza tetto.'; en = 'Return repository or dossier startup context. Slim (default, 20000-character limit): index, essential context and memory sections, brief ready tasks and omitted layers (nothing deleted). Full: complete context without a limit.' }
+    'mcp.description.get_startup_context.repository' = @{ it = 'Identificatore del repository (es. github.com/example-user/secondbrain); default: checkout in lavoro'; en = 'Repository identity (e.g. github.com/example-user/secondbrain); defaults to the working checkout' }
+    'mcp.description.get_startup_context.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
+    'mcp.description.get_startup_context.dossier' = @{ it = 'Percorso relativo del dossier (es. 02-areas/products/SecondBrain)'; en = 'Relative dossier path (e.g. 02-areas/products/SecondBrain)' }
+    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, include solo task con dipendenze soddisfatte (con slim è sempre attivo)'; en = 'If true, include only tasks with satisfied dependencies (always enabled for slim)' }
+    'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 20000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 20000 characters for initial loading only; full: complete context without a limit' }
+    'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 20000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 20000 for slim, unlimited for full)' }
+    'mcp.description.get_ready_tasks' = @{ it = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale e di sola lettura e richiede all=true.'; en = 'Return ready tasks with satisfied dependencies for the working repository, resolved from the current checkout or repository/checkoutPath. The global view is read-only and requires all=true.' }
+    'mcp.description.get_ready_tasks.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
+    'mcp.description.get_ready_tasks.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
+    'mcp.description.get_ready_tasks.all' = @{ it = 'Se true, vista globale di tutti i repository, in sola lettura (opt-in esplicito)'; en = 'If true, show all repositories globally, read-only (explicit opt-in)' }
+    'mcp.description.get_ready_tasks.includeAcceptance' = @{ it = 'Se true, include i criteri di accettazione dei task'; en = 'If true, include task acceptance criteria' }
+    'mcp.description.get_ready_tasks.offset' = @{ it = 'Solo con all=true: task da saltare (paginazione)'; en = 'Only with all=true: tasks to skip (pagination)' }
+    'mcp.description.get_ready_tasks.limit' = @{ it = 'Solo con all=true: task per pagina (default 50; 0 = tutti)'; en = 'Only with all=true: tasks per page (default 50; 0 = all)' }
+    'mcp.description.get_task' = @{ it = 'Restituisce il dettaglio integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) per id o numero seq, dal tracker attivo o dall''archivio del dossier. Serve per i task che il profilo slim mostra solo in forma breve.'; en = 'Return complete task details (description, acceptance criteria, evidence and provenance) by ID or sequence number from the active tracker or dossier archive. Use for tasks shown briefly by the slim profile.' }
+    'mcp.description.get_task.task' = @{ it = 'ID del task (es. SB-SIMP-QUEUE-20261101) oppure numero seq (es. 197 o #197)'; en = 'Task ID (e.g. SB-SIMP-QUEUE-20261101) or sequence number (e.g. 197 or #197)' }
+    'mcp.description.get_task.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
+    'mcp.description.get_task.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
+    'mcp.description.get_task.dossier' = @{ it = 'Percorso relativo del dossier (opzionale)'; en = 'Relative dossier path (optional)' }
+    'mcp.description.search_knowledge' = @{ it = 'Cerca nei file di conoscenza del dossier del repository in lavoro (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti). Predefiniti: 20 riscontri e 10000 caratteri; se hasMore=true richiamare con offset=nextOffset. limit=0 o budget=0 tolgono il tetto (sconsigliato). allDossiers=true cerca in tutte le aree; includeOriginals=true include gli originali compattati. mode=literal (predefinito): sottostringa esatta; mode=relevance: più termini ordinati per pertinenza, con score e section.'; en = 'Search knowledge files for the working repository (context, memory, tracker, tracker archive and batch reports). Defaults: 20 matches and 10000 characters; continue with nextOffset when hasMore=true. limit=0 or budget=0 removes the limit (discouraged). allDossiers=true searches all active dossiers; includeOriginals=true includes compacted originals. mode=literal (default): exact substring; mode=relevance: multiple terms ranked by relevance, with score and section.' }
+    'mcp.description.search_knowledge.query' = @{ it = 'Termine o frase da cercare nei dossier'; en = 'Term or phrase to search for in dossiers' }
+    'mcp.description.search_knowledge.budget' = @{ it = 'Tetto di caratteri (default 10000; 0 = nessun tetto)'; en = 'Character limit (default 10000; 0 = unlimited)' }
+    'mcp.description.search_knowledge.allDossiers' = @{ it = 'Se true, cerca in tutte le aree attive invece che nel repository in lavoro'; en = 'If true, search all active areas instead of the working repository' }
+    'mcp.description.search_knowledge.includeOriginals' = @{ it = 'Se true, include gli originali compattati (history/compaction)'; en = 'If true, include compacted originals (history/compaction)' }
+    'mcp.description.search_knowledge.dossier' = @{ it = 'Percorso relativo di un dossier specifico (opzionale)'; en = 'Relative path of a specific dossier (optional)' }
+    'mcp.description.search_knowledge.repository' = @{ it = 'Identificatore del repository per selezionare il dossier'; en = 'Repository identity used to select the dossier' }
+    'mcp.description.search_knowledge.mode' = @{ it = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza'; en = 'literal (default): exact substring; relevance: multiple terms ranked by relevance' }
+    'mcp.description.search_knowledge.offset' = @{ it = 'Numero di riscontri da saltare (paginazione, default 0)'; en = 'Matches to skip (pagination, default 0)' }
+    'mcp.description.search_knowledge.limit' = @{ it = 'Numero massimo di riscontri (default 20; 0 = tutti)'; en = 'Maximum matches (default 20; 0 = all)' }
+    'mcp.description.list_prompts' = @{ it = 'Elenca il catalogo dei prompt e workflow ingegneristici generici (pacchetto core), per area tematica; con pack=maintenance elenca i prompt di manutenzione di SecondBrain. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'; en = 'List the generic engineering prompt and workflow catalog (core pack) by category; pack=maintenance lists SecondBrain maintenance prompts. Each entry has a mode icon. compact=true returns one line per prompt (code, mode, summary): report the complete list without summarizing.' }
+    'mcp.description.list_prompts.category' = @{ it = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole; cerca in tutti i pacchetti'; en = 'Filter by category ID (sistema, test, governance...) or code prefix (SYS, TST, GOV...), case-insensitive; searches all packs' }
+    'mcp.description.list_prompts.pack' = @{ it = 'Pacchetto da elencare (predefinito core)'; en = 'Pack to list (default core)' }
+    'mcp.description.list_prompts.compact' = @{ it = 'Se true, una riga per prompt invece della scheda sintetica'; en = 'If true, return one line per prompt instead of its summary card' }
+    'mcp.description.list_prompts.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
+    'mcp.description.get_prompt_home' = @{ it = 'Schermata iniziale di `sb prompt`: link al catalogo completo, tabella dei comandi sb (chat) con l''equivalente da script. Con repositoryPath (checkout corrente) aggiunge stato, prossimo passo e flusso per prodotto.'; en = 'Initial sb prompt screen: full catalog link and sb chat commands with script equivalents. repositoryPath (working checkout) adds current state, next step and product workflow.' }
+    'mcp.description.get_prompt_home.repositoryPath' = @{ it = 'Percorso del checkout corrente; facoltativo'; en = 'Working checkout path (optional)' }
+    'mcp.description.get_prompt_home.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
+    'mcp.description.get_prompt' = @{ it = 'Restituisce la scheda completa di un prompt o workflow ingegneristico (es. SYS03, SEC07, DEV01).'; en = 'Return the full card for a prompt or engineering workflow (e.g. SYS03, SEC07, DEV01).' }
+    'mcp.description.get_prompt.prompt' = @{ it = 'Codice (SYS03, COM01...), ID immutabile (pmt-...) o alias del prompt'; en = 'Code (SYS03, COM01...), immutable ID (pmt-...) or prompt alias' }
+    'mcp.description.get_prompt.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
+    'mcp.description.check_publication' = @{ it = 'Esegue una verifica di sola lettura della pubblicabilità del working tree, indice e storia del repository specificato. Restituisce un riepilogo (conteggi per regola e primi 20 riscontri); detail=true il rapporto integro.'; en = 'Read-only publication check of the specified Git working tree, index and history. Returns a summary (counts by rule and the first 20 findings); detail=true returns the complete report.' }
+    'mcp.description.check_publication.repositoryPath' = @{ it = 'Percorso della radice o checkout del repository Git da verificare'; en = 'Git repository root or checkout path to check' }
+    'mcp.description.check_publication.detail' = @{ it = 'Se true, rapporto integro (tutti i riscontri e i riferimenti esclusi)'; en = 'If true, return the complete report (all findings and excluded references)' }
+    'mcp.prompt.objective' = @{ it = 'Obiettivo opzionale dell''attività'; en = 'Optional task objective' }
+    'mcp.resource.catalog' = @{ it = 'Catalogo Prompt e Workflow SecondBrain'; en = 'SecondBrain Prompt and Workflow Catalog' }
+    'mcp.tool.failed' = @{ it = 'Errore durante l''esecuzione dello strumento {0}: {1}'; en = 'Error executing tool {0}: {1}' }
+    'mcp.notice' = @{ it = 'Avviso: {0}'; en = 'Warning: {0}' }
+    'mcp.package.root' = @{ it = 'Impossibile trovare scripts/mcp-server.ps1 nella radice SecondBrain: {0}'; en = 'Cannot find scripts/mcp-server.ps1 in SecondBrain root: {0}' }
+    'mcp.package.applying' = @{ it = 'Applicazione configurazione MCP SecondBrain a tutti gli IDE...'; en = 'Applying SecondBrain MCP configuration to all IDEs...' }
     'mcp.repository.unresolved' = @{ it = 'Repository in lavoro non risolvibile: indicare repository o checkoutPath (oppure all=true per la vista globale in sola lettura)'; en = 'Working repository not resolvable: give repository or checkoutPath (or all=true for the read-only global view)' }
     'mcp.profile.invalid' = @{ it = 'Profilo non valido: usare slim o full'; en = 'Invalid profile: use slim or full' }
     'mcp.params.conflict' = @{ it = 'Parametri incompatibili: all e repository'; en = 'Incompatible parameters: all and repository' }
@@ -38,117 +91,118 @@ function Get-SBMcpToolDefinitions {
     @(
         @{
             name = 'get_startup_context'
-            description = 'Restituisce il contesto di avvio del repository o dossier. Profilo slim (predefinito, tetto 20000 caratteri): indice, sezioni essenziali di context.md e memory.md, task pronti in forma breve e l''elenco dei livelli non caricati (nulla eliminato). Profilo full: tutto, senza tetto.'
+            description = (Get-SBMessage 'mcp.description.get_startup_context')
             inputSchema = @{
                 type = 'object'
                 properties = @{
-                    repository = @{ type = 'string'; description = 'Identificatore del repository (es. github.com/example-user/secondbrain); default: checkout in lavoro' }
-                    checkoutPath = @{ type = 'string'; description = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)' }
-                    dossier = @{ type = 'string'; description = 'Percorso relativo del dossier (es. 02-areas/products/SecondBrain)' }
-                    readyOnly = @{ type = 'boolean'; description = 'Se true, include solo task con dipendenze soddisfatte (con slim è sempre attivo)' }
-                    profile = @{ type = 'string'; enum = @('slim', 'full'); description = 'slim (predefinito): parti essenziali entro 20000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto' }
-                    budget = @{ type = 'integer'; description = 'Budget caratteri massimo (default: 20000 con slim, nessun tetto con full)' }
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_startup_context.repository') }
+                    checkoutPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_startup_context.checkoutPath') }
+                    dossier = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_startup_context.dossier') }
+                    readyOnly = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.get_startup_context.readyOnly') }
+                    profile = @{ type = 'string'; enum = @('slim', 'full'); description = (Get-SBMessage 'mcp.description.get_startup_context.profile') }
+                    budget = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_startup_context.budget') }
                 }
             }
         },
         @{
             name = 'get_ready_tasks'
-            description = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale e di sola lettura e richiede all=true.'
+            description = (Get-SBMessage 'mcp.description.get_ready_tasks')
             inputSchema = @{
                 type = 'object'
                 properties = @{
-                    repository = @{ type = 'string'; description = 'Identificatore del repository (opzionale; default: checkout in lavoro)' }
-                    checkoutPath = @{ type = 'string'; description = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)' }
-                    all = @{ type = 'boolean'; description = 'Se true, vista globale di tutti i repository, in sola lettura (opt-in esplicito)' }
-                    includeAcceptance = @{ type = 'boolean'; description = 'Se true, include i criteri di accettazione dei task' }
-                    offset = @{ type = 'integer'; description = 'Solo con all=true: task da saltare (paginazione)' }
-                    limit = @{ type = 'integer'; description = 'Solo con all=true: task per pagina (default 50; 0 = tutti)' }
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.repository') }
+                    checkoutPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.checkoutPath') }
+                    all = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.all') }
+                    includeAcceptance = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.includeAcceptance') }
+                    offset = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.offset') }
+                    limit = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.limit') }
                 }
             }
         },
         @{
             name = 'get_task'
-            description = 'Restituisce il dettaglio integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) per id o numero seq, dal tracker attivo o dall''archivio del dossier. Serve per i task che il profilo slim mostra solo in forma breve.'
+            description = (Get-SBMessage 'mcp.description.get_task')
             inputSchema = @{
                 type = 'object'
                 required = @('task')
                 properties = @{
-                    task = @{ type = 'string'; description = 'ID del task (es. SB-SIMP-QUEUE-20261101) oppure numero seq (es. 197 o #197)' }
-                    repository = @{ type = 'string'; description = 'Identificatore del repository (opzionale; default: checkout in lavoro)' }
-                    checkoutPath = @{ type = 'string'; description = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)' }
-                    dossier = @{ type = 'string'; description = 'Percorso relativo del dossier (opzionale)' }
+                    task = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_task.task') }
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_task.repository') }
+                    checkoutPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_task.checkoutPath') }
+                    dossier = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_task.dossier') }
                 }
             }
         },
         @{
             name = 'search_knowledge'
-            description = 'Cerca nei file di conoscenza del dossier del repository in lavoro (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti). Predefiniti: 20 riscontri e 10000 caratteri; se hasMore=true richiamare con offset=nextOffset. limit=0 o budget=0 tolgono il tetto (sconsigliato). allDossiers=true cerca in tutte le aree; includeOriginals=true include gli originali compattati. mode=literal (predefinito): sottostringa esatta; mode=relevance: più termini ordinati per pertinenza, con score e section.'
+            description = (Get-SBMessage 'mcp.description.search_knowledge')
             inputSchema = @{
                 type = 'object'
                 required = @('query')
                 properties = @{
-                    query = @{ type = 'string'; description = 'Termine o frase da cercare nei dossier' }
-                    budget = @{ type = 'integer'; description = 'Tetto di caratteri (default 10000; 0 = nessun tetto)' }
-                    allDossiers = @{ type = 'boolean'; description = 'Se true, cerca in tutte le aree attive invece che nel repository in lavoro' }
-                    includeOriginals = @{ type = 'boolean'; description = 'Se true, include gli originali compattati (history/compaction)' }
-                    dossier = @{ type = 'string'; description = 'Percorso relativo di un dossier specifico (opzionale)' }
-                    repository = @{ type = 'string'; description = 'Identificatore del repository per selezionare il dossier' }
-                    mode = @{ type = 'string'; enum = @('literal', 'relevance'); description = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza' }
-                    offset = @{ type = 'integer'; description = 'Numero di riscontri da saltare (paginazione, default 0)' }
-                    limit = @{ type = 'integer'; description = 'Numero massimo di riscontri (default 20; 0 = tutti)' }
+                    query = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.search_knowledge.query') }
+                    budget = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.search_knowledge.budget') }
+                    allDossiers = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.search_knowledge.allDossiers') }
+                    includeOriginals = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.search_knowledge.includeOriginals') }
+                    dossier = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.search_knowledge.dossier') }
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.search_knowledge.repository') }
+                    mode = @{ type = 'string'; enum = @('literal', 'relevance'); description = (Get-SBMessage 'mcp.description.search_knowledge.mode') }
+                    offset = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.search_knowledge.offset') }
+                    limit = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.search_knowledge.limit') }
                 }
             }
         },
         @{
             name = 'list_prompts'
-            description = 'Elenca il catalogo dei prompt e workflow ingegneristici generici (pacchetto core), per area tematica; con pack=maintenance elenca i prompt di manutenzione di SecondBrain. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'
+            description = (Get-SBMessage 'mcp.description.list_prompts')
             inputSchema = @{
                 type = 'object'
                 properties = @{
-                    category = @{ type = 'string'; description = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole; cerca in tutti i pacchetti' }
-                    pack = @{ type = 'string'; enum = @('core', 'maintenance', 'all'); description = 'Pacchetto da elencare (predefinito core)' }
-                    compact = @{ type = 'boolean'; description = 'Se true, una riga per prompt invece della scheda sintetica' }
-                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
+                    category = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.list_prompts.category') }
+                    pack = @{ type = 'string'; enum = @('core', 'maintenance', 'all'); description = (Get-SBMessage 'mcp.description.list_prompts.pack') }
+                    compact = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.list_prompts.compact') }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.list_prompts.language') }
                 }
             }
         },
         @{
             name = 'get_prompt_home'
-            description = 'Schermata iniziale di `sb prompt`: link al catalogo completo, tabella dei comandi sb (chat) con l''equivalente da script. Con repositoryPath (checkout corrente) aggiunge stato, prossimo passo e flusso per prodotto.'
+            description = (Get-SBMessage 'mcp.description.get_prompt_home')
             inputSchema = @{
                 type = 'object'
                 properties = @{
-                    repositoryPath = @{ type = 'string'; description = 'Percorso del checkout corrente; facoltativo' }
-                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
+                    repositoryPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_prompt_home.repositoryPath') }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.get_prompt_home.language') }
                 }
             }
         },
         @{
             name = 'get_prompt'
-            description = 'Restituisce la scheda completa di un prompt o workflow ingegneristico (es. SYS03, SEC07, DEV01).'
+            description = (Get-SBMessage 'mcp.description.get_prompt')
             inputSchema = @{
                 type = 'object'
                 required = @('prompt')
                 properties = @{
-                    prompt = @{ type = 'string'; description = 'Codice (SYS03, COM01...), ID immutabile (pmt-...) o alias del prompt' }
-                    language = @{ type = 'string'; enum = @('en', 'it'); description = 'Lingua del testo (en o it); predefinito: lingua della postazione' }
+                    prompt = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_prompt.prompt') }
+                    language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.get_prompt.language') }
                 }
             }
         },
         @{
             name = 'check_publication'
-            description = 'Esegue una verifica di sola lettura della pubblicabilità del working tree, indice e storia del repository specificato. Restituisce un riepilogo (conteggi per regola e primi 20 riscontri); detail=true il rapporto integro.'
+            description = (Get-SBMessage 'mcp.description.check_publication')
             inputSchema = @{
                 type = 'object'
                 required = @('repositoryPath')
                 properties = @{
-                    repositoryPath = @{ type = 'string'; description = 'Percorso della radice o checkout del repository Git da verificare' }
-                    detail = @{ type = 'boolean'; description = 'Se true, rapporto integro (tutti i riscontri e i riferimenti esclusi)' }
+                    repositoryPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.check_publication.repositoryPath') }
+                    detail = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.check_publication.detail') }
                 }
             }
         }
     )
 }
+
 
 function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     # Repository esplicito, altrimenti quello del checkout in lavoro (argomento checkoutPath o directory corrente del server).
@@ -320,7 +374,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 id = $null
                 error = @{
                     code = -32700
-                    message = "Parse error: $($_.Exception.Message)"
+                    message = (Get-SBMessage 'mcp.json.parse' @($_.Exception.Message))
                 }
             }
         }
@@ -332,7 +386,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
             id = if ($Message -and $Message.ContainsKey('id')) { $Message.id } else { $null }
             error = @{
                 code = -32600
-                message = 'Invalid Request: jsonrpc must be 2.0'
+                message = (Get-SBMessage 'mcp.json.request')
             }
         }
     }
@@ -392,7 +446,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                     $output = Invoke-SBMcpToolCall -BrainRoot $BrainRoot -ToolName $toolName -Arguments $args
                     $contentBlocks = @(@{ type = 'text'; text = $output })
                     $notice = Get-SBMcpDeprecationNotice $toolName
-                    if ($notice) { $contentBlocks += @{ type = 'text'; text = "Avviso: $notice" } }
+                    if ($notice) { $contentBlocks += @{ type = 'text'; text = (Get-SBMessage 'mcp.notice' @($notice)) } }
                     return ConvertTo-SBMcpJson @{
                         jsonrpc = '2.0'
                         id = $id
@@ -409,7 +463,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                             content = @(
                                 @{
                                     type = 'text'
-                                    text = "Errore durante l'esecuzione dello strumento ${toolName}: $($_.Exception.Message)"
+                                    text = (Get-SBMessage 'mcp.tool.failed' @($toolName, $_.Exception.Message))
                                 }
                             )
                             isError = $true
@@ -422,12 +476,12 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 $promptsList = @($catalog.prompts | Where-Object status -ne 'deprecated' | ForEach-Object {
                     @{
                         name = $_.code
-                        title = $_.summary
-                        description = "$($_.summary) (ID $($_.id))"
+                        title = (Get-SBWorkflowField $_ 'summary')
+                        description = ((Get-SBWorkflowField $_ 'summary') + " (ID $($_.id))")
                         arguments = @(
                             @{
                                 name = 'objective'
-                                description = 'Obiettivo opzionale dell''attività'
+                                description = (Get-SBMessage 'mcp.prompt.objective')
                                 required = $false
                             }
                         )
@@ -448,12 +502,12 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 $match = @($resolution.prompt)
                 $text = Read-SBWorkflowPrompt $BrainRoot $match[0] $catalog
                 $text = (Format-SBWorkflowCard $match[0] $text) + "`n" + $text
-                if ($resolution.warning) { $text = "Avviso: $($resolution.warning)`n`n$text" }
+                if ($resolution.warning) { $text = (Get-SBMessage 'mcp.notice' @($resolution.warning)) + "`n`n$text" }
                 return ConvertTo-SBMcpJson @{
                     jsonrpc = '2.0'
                     id = $id
                     result = @{
-                        description = $match[0].summary
+                        description = (Get-SBWorkflowField $match[0] 'summary')
                         messages = @(
                             @{
                                 role = 'user'
@@ -474,7 +528,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                         resources = @(
                             @{
                                 uri = 'secondbrain://prompts/catalog'
-                                name = 'Catalogo Prompt e Workflow SecondBrain'
+                                name = (Get-SBMessage 'mcp.resource.catalog')
                                 mimeType = 'application/json'
                             }
                         )
@@ -509,7 +563,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                     id = $id
                     error = @{
                         code = -32601
-                        message = "Method not found: $method"
+                        message = (Get-SBMessage 'mcp.json.method' @($method))
                     }
                 }
             }
@@ -521,7 +575,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
             id = $id
             error = @{
                 code = -32603
-                message = "Internal error: $($_.Exception.Message)"
+                message = (Get-SBMessage 'mcp.json.internal' @($_.Exception.Message))
             }
         }
     }
@@ -997,6 +1051,14 @@ function New-SBMcpPackage {
         }
     }
 
+    # Bundle the message runtime so bootstrap errors work even without the brain.
+    $messageRuntime = Join-Path $OutDir 'SecondBrain.Messages.psm1'
+    [IO.File]::WriteAllText($messageRuntime, (Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')), [Text.UTF8Encoding]::new($false))
+    $createdFiles += $messageRuntime
+    $packageMessages = @{}
+    foreach($key in @('mcp.package.root','mcp.package.applying')){
+        $packageMessages[$key] = @{it=(Get-SBMessage $key @() 'it');en=(Get-SBMessage $key @() 'en')}
+    }
     # Install script one-click
     $installScript = Join-Path $OutDir 'install-all-ides.ps1'
     $installContent = @(
@@ -1006,17 +1068,20 @@ function New-SBMcpPackage {
         'Installa automaticamente il server MCP SecondBrain in tutti gli IDE supportati.',
         '#>',
         '[CmdletBinding()]',
-        'param()',
+        'param([ValidateSet(''en'',''it'')][string]$Language)',
+        'Import-Module (Join-Path $PSScriptRoot ''SecondBrain.Messages.psm1'') -Force',
+        'if($Language){Set-SBUiLanguage $Language;$env:SECONDBRAIN_LANG=$Language}',
+        ('Add-SBMessages (ConvertFrom-Json -AsHashtable -InputObject ''' + (ConvertTo-SBMcpJson $packageMessages).Replace("'","''") + ''')'),
         '$ErrorActionPreference = ''Stop''',
-        "`$brain = '$($BrainRoot.Replace('\', '/'))'",
+        "`$brain = '$($BrainRoot.Replace('\', '/').Replace("'", "''"))'",
         'if (!(Test-Path -LiteralPath (Join-Path $brain ''scripts/mcp-server.ps1''))) {',
         '    if ($env:SECONDBRAIN_HOME -and (Test-Path -LiteralPath (Join-Path $env:SECONDBRAIN_HOME ''scripts/mcp-server.ps1''))) {',
         '        $brain = $env:SECONDBRAIN_HOME',
         '    } else {',
-        '        throw "Impossibile trovare scripts/mcp-server.ps1 nella radice SecondBrain: $brain"',
+        '        throw (New-SBError ''mcp.package.root'' @($brain))',
         '    }',
         '}',
-        'Write-Host "Applicazione configurazione MCP SecondBrain a tutti gli IDE..." -ForegroundColor Cyan',
+        'Write-Host (Get-SBMessage ''mcp.package.applying'') -ForegroundColor Cyan',
         '& pwsh -NoProfile -File (Join-Path $brain ''scripts/mcp-server.ps1'') -Pair -Target all -Apply'
     ) -join "`n"
     [IO.File]::WriteAllText($installScript, ($installContent + "`n"), [Text.UTF8Encoding]::new($false))

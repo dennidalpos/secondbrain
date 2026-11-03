@@ -11,7 +11,7 @@ $script:SBMessages = @{}
 function Set-SBUiLanguage([string]$Language) {
     # Explicit override (for example from -Language); an empty value removes it.
     if ($Language -and $Language -notin $script:SBSupportedLanguages) {
-        throw ("Unsupported language '{0}'. Supported: {1}" -f $Language, ($script:SBSupportedLanguages -join ', '))
+        throw (New-SBError 'messages.language.invalid' @($Language, ($script:SBSupportedLanguages -join ', ')))
     }
     $script:SBLanguageOverride = if ($Language) { $Language } else { $null }
 }
@@ -52,7 +52,7 @@ function Get-SBMessage([string]$Key, [object[]]$Arguments = @(), [string]$Langua
         if ($candidate -and $entry.ContainsKey($candidate)) { $template = [string]$entry[$candidate]; break }
     }
     if ($null -eq $template) { return $Key }
-    if ($Arguments.Count -eq 0) { $template } else { $template -f $Arguments }
+    if ($null -eq $Arguments -or $Arguments.Count -eq 0) { $template } else { $template -f $Arguments }
 }
 function New-SBError([string]$Key, [object[]]$Arguments = @(), [type]$Type, [int]$HResult = 0, [Exception]$Inner) {
     # The exception carries the stable key in Data['code'] so callers and tests match the code, not the text.
@@ -72,7 +72,23 @@ function Test-SBError($ErrorRecord, [string]$Key) {
     $false
 }
 
+function Add-SBReportDiagnostic([System.Collections.IDictionary]$Record, [string]$Prefix) {
+    # Only call on program-owned diagnostics: user notes and policy reasons are data.
+    $reason = if ($Record.Contains('reason')) { [string]$Record.reason } else { '' }
+    $Record['code'] = $null; $Record['message'] = $null
+    if (!$reason) { return $Record }
+    $key = $Prefix + '.reason.' + $reason
+    $arguments = @()
+    if ($reason -match '^http[-_](\d{3})$') { $key = $Prefix + '.reason.http'; $arguments = @([int]$Matches[1]) }
+    if (!$script:SBMessages.ContainsKey($key)) { $key = 'report.reason.unverified' }
+    $Record['code'] = $key
+    $Record['message'] = Get-SBMessage $key $arguments
+    $Record
+}
+
 Add-SBMessages @{
+    'messages.language.invalid' = @{ it = "Lingua non supportata '{0}'. Supportate: {1}"; en = "Unsupported language '{0}'. Supported: {1}" }
+    'report.reason.unverified' = @{ it = 'Esito non verificabile; consultare i dettagli tecnici'; en = 'Outcome could not be verified; see technical details' }
     'core.version.missing'      = @{ it = 'File VERSION mancante'; en = 'VERSION file missing' }
     'core.reparse.unwritable'   = @{ it = 'Reparse point non scrivibile: {0}'; en = 'Reparse point is not writable: {0}' }
     'core.concurrent.modified'  = @{ it = 'Modifica concorrente: {0}'; en = 'Concurrent modification: {0}' }
@@ -111,4 +127,4 @@ Add-SBMessages @{
     'core.remove.backup'        = @{ it = 'Backup rimozione non verificato'; en = 'Removal backup not verified' }
 }
 
-Export-ModuleMember -Function Set-SBUiLanguage, Set-SBUiLanguageProvider, Get-SBUiLanguage, Add-SBMessages, Get-SBMessage, New-SBError, Test-SBError
+Export-ModuleMember -Function Set-SBUiLanguage, Set-SBUiLanguageProvider, Get-SBUiLanguage, Add-SBMessages, Get-SBMessage, New-SBError, Test-SBError, Add-SBReportDiagnostic

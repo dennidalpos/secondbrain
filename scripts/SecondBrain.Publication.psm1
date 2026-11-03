@@ -3,6 +3,12 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'publication.reason.binary-review-required' = @{ it = 'Revisionare il contenuto binario'; en = 'Binary content review required' }
+    'publication.reason.size-limit' = @{ it = 'Limite di dimensione raggiunto'; en = 'Size limit reached' }
+    'publication.reason.binary-or-size-limit' = @{ it = 'Contenuto binario o limite di dimensione'; en = 'Binary content or size limit' }
+    'publication.reason.unreadable' = @{ it = 'Contenuto non leggibile'; en = 'Content unreadable' }
+    'publication.reason.blob-limit' = @{ it = 'Limite di blob raggiunto'; en = 'Blob limit reached' }
+    'publication.reason.history-unavailable' = @{ it = 'Storia Git non disponibile'; en = 'Git history unavailable' }
     'publication.hook.checkout' = @{ it = 'Checkout Git richiesto per installare lʼhook pre-push'; en = 'Git checkout required to install the pre-push hook' }
     'publication.checkout' = @{ it = 'Checkout Git richiesto'; en = 'Git checkout required' }
     'publication.policy' = @{ it = 'Policy pubblicazione non valida'; en = 'Invalid publication policy' }
@@ -229,6 +235,7 @@ function Test-SBPublication {
         [IO.File]::WriteAllText($baselineFile, (ConvertTo-SBJson $baselineObj), [Text.UTF8Encoding]::new($false))
     }
 
+    foreach($diagnostic in $incomplete){[void](Add-SBReportDiagnostic $diagnostic 'publication')}
     @{schemaVersion=1;repositoryPath=$root;ready=(!$unresolved.Count -and !$incomplete.Count);complete=(!$incomplete.Count);findings=$findings;incomplete=$incomplete;
       checkedTextSurfaces=$checked;historyBlobs=$historyCount;workingTreeDirty=[bool]$status.output;historyRewritten=$false;incremental=[bool]$baseline;baseline=$baseline;excludedRefs=$excludedRefs;coverage='Rule-based text and Git inventory checks on branches, tags, remotes and HEAD (local tool refs listed in excludedRefs are not scanned); binary contents and legal compliance are not certified.'}
 }

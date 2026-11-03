@@ -3,6 +3,26 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'audit.limit.snapshot' = @{ it = 'Snapshot non atomico fra richieste; nessuna prova di assenza da errori HTTP.'; en = 'Non-atomic snapshot across requests; HTTP errors do not prove absence.' }
+    'audit.limit.wiki' = @{ it = 'Wiki abilitate: contenuto non acquisito; fork elencati senza scansione dei loro contenuti.'; en = 'Enabled wikis: content not collected; forks listed without scanning their content.' }
+    'audit.limit.scope' = @{ it = 'Nessuna scansione di cloni, cache, allegati, Actions o copie esterne. Corpi e titoli conservati solo come hash e lunghezze.'; en = 'Clones, caches, attachments, Actions and external copies are not scanned. Bodies and titles retained only as hashes and lengths.' }
+    'audit.reason.pagination_cycle_or_limit' = @{ it = 'Ciclo o limite di paginazione raggiunto'; en = 'Pagination cycle or limit reached' }
+    'audit.reason.unsafe_pagination_link' = @{ it = 'Collegamento di paginazione non sicuro'; en = 'Unsafe pagination link' }
+    'audit.reason.expected_array' = @{ it = 'Risposta attesa come elenco'; en = 'Expected an array response' }
+    'audit.reason.expected_object' = @{ it = 'Risposta attesa come oggetto'; en = 'Expected an object response' }
+    'audit.reason.ambiguous_pagination_link' = @{ it = 'Collegamento di paginazione ambiguo'; en = 'Ambiguous pagination link' }
+    'audit.reason.invalid_pagination_link' = @{ it = 'Collegamento di paginazione non valido'; en = 'Invalid pagination link' }
+    'audit.reason.invalid_response_or_transport' = @{ it = 'Risposta o trasporto non verificabile'; en = 'Response or transport could not be verified' }
+    'audit.reason.repository_identity_changed' = @{ it = 'Identita del repository cambiata'; en = 'Repository identity changed' }
+    'audit.reason.repository_unavailable' = @{ it = 'Repository non disponibile'; en = 'Repository unavailable' }
+    'audit.reason.repository_metadata' = @{ it = 'Stato ricavato dai metadati del repository'; en = 'State obtained from repository metadata' }
+    'audit.reason.wiki_content_not_collected' = @{ it = 'Contenuto della wiki non acquisito'; en = 'Wiki content not collected' }
+    'audit.reason.rate_limited' = @{ it = 'Limite API raggiunto'; en = 'API rate limit reached' }
+    'audit.reason.authentication_required' = @{ it = 'Autenticazione richiesta'; en = 'Authentication required' }
+    'audit.reason.transport_or_authentication' = @{ it = 'Trasporto o autenticazione non riusciti'; en = 'Transport or authentication failed' }
+    'audit.reason.timeout' = @{ it = 'Tempo della richiesta scaduto'; en = 'Request timed out' }
+    'audit.reason.invalid_json' = @{ it = 'Risposta JSON non valida'; en = 'Invalid JSON response' }
+    'audit.reason.http' = @{ it = 'Risposta HTTP {0} non verificabile'; en = 'HTTP {0} response could not be verified' }
     'audit.identity' = @{ it = 'Identita audit non ammessa; questo adattatore usa soltanto GitHub'; en = 'Audit identity not allowed; this adapter only uses GitHub' }
     'audit.api.item' = @{ it = 'Elemento API non valido'; en = 'Invalid API item' }
     'audit.scope' = @{ it = 'Perimetro audit vuoto o duplicato'; en = 'Audit scope empty or duplicated' }
@@ -103,13 +123,14 @@ function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Conte
     $resource.observedCount=$resource.items.Count
     if(!$resource.complete -and $resource.observedCount -gt 0){$resource.status='partial'}
     $resource.finishedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    [void](Add-SBReportDiagnostic $resource 'audit')
     @{resource=$resource;data=$(if(!$Collection -and $resource.complete){$data}else{$null})}
 }
 
 function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[scriptblock]$Request=${function:Invoke-SBAuditRequest}) {
     foreach($identity in $Identities){Assert-SBAuditIdentity $identity $AllowedOwners}
     if(!$Identities.Count -or @($Identities|Sort-Object -Unique).Count -ne $Identities.Count){throw (New-SBError 'audit.scope')}
-    $audit=@{schemaVersion=1;kind='github-readonly-audit';startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;apiVersion='2022-11-28';remoteMutation=$false;repositories=@();complete=$false;limits=@('Snapshot non atomico fra richieste; nessuna prova di assenza da errori HTTP.','Wiki abilitate: contenuto non acquisito; fork elencati senza scansione dei loro contenuti.','Nessuna scansione di cloni, cache, allegati, Actions o copie esterne. Corpi e titoli conservati solo come hash e lunghezze.')}
+    $audit=@{schemaVersion=1;kind='github-readonly-audit';startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;apiVersion='2022-11-28';remoteMutation=$false;repositories=@();complete=$false;limits=@((Get-SBMessage 'audit.limit.snapshot'),(Get-SBMessage 'audit.limit.wiki'),(Get-SBMessage 'audit.limit.scope'))}
     $context=@{halted=$false;reason=$null}
     foreach($identity in $Identities){
         $slug=$identity.Substring(11);$base='https://api.github.com/repos/'+$slug
@@ -141,6 +162,9 @@ function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[sc
         $reviews.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$repo.resources.reviews=$reviews
         $disabled=$repo.metadata -and $repo.metadata.ContainsKey('has_wiki') -and !$repo.metadata.has_wiki
         $repo.resources.wiki=@{url=('https://github.com/'+$slug+'/wiki');status=$(if($disabled){'disabled'}else{'unverified'});complete=[bool]$disabled;count=$(if($disabled){0}else{$null});observedAt=[DateTimeOffset]::UtcNow.ToString('o');reason=$(if($disabled){'repository_metadata'}else{'wiki_content_not_collected'})}
+        foreach($diagnostic in $repo.resources.Values){
+            if($diagnostic.ContainsKey('reason')){[void](Add-SBReportDiagnostic $diagnostic 'audit')}
+        }
         $repo.complete=@($repo.resources.Values|Where-Object {!$_.complete}).Count -eq 0
         $repo.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$audit.repositories+=@($repo)
     }

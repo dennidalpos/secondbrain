@@ -11,6 +11,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'portable.selection.summary' = @{ it = 'Selezione: {0} repository, {1} IDE'; en = 'Selection: {0} repositories, {1} IDEs' }
+    'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
+    'portable.output.summary' = @{ it = 'Output di {0}: {1} -> {2}'; en = 'Output for {0}: {1} -> {2}' }
     'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
     'portable.issue.output' = @{ it = 'Configuration and proof of build/cache output locations belong to the product agent'; en = 'Configuration and proof of build/cache output locations belong to the product agent' }
     'portable.issue.compaction' = @{ it = 'Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'; en = 'Propose SYS05 (sb compact): nothing is compacted without confirmation' }
@@ -385,7 +388,7 @@ function Invoke-SBSetup {
     $confirmed=$false;$how=''
     if($Yes){$confirmed=$true;$how='-Yes'}
     elseif($prompting){
-        Write-Host ('Selezione: {0} repository, {1} IDE' -f $chosen.Count,$chosenIdes.Count)
+        Write-Host (Get-SBMessage 'portable.selection.summary' @($chosen.Count,$chosenIdes.Count))
         if(([string](Read-Host 'Digita CONFERMO per registrare la scelta')).Trim() -ceq 'CONFERMO'){$confirmed=$true;$how='interattiva'}
     }
     $confirmation=if($confirmed){[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'}else{''}
@@ -478,7 +481,7 @@ function Invoke-SBSetupUnbind {
     $confirmed=$false;$how=''
     if($Yes){$confirmed=$true;$how='-Yes'}
     elseif($prompting){
-        Write-Host ('Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.' -f $retire.Count,$retireIdes.Count);$retire|ForEach-Object {Write-Host ('  '+$_)};$retireIdes|ForEach-Object {Write-Host ('  IDE '+$_)}
+        Write-Host (Get-SBMessage 'portable.unbind.summary' @($retire.Count,$retireIdes.Count));$retire|ForEach-Object {Write-Host ('  '+$_)};$retireIdes|ForEach-Object {Write-Host ('  IDE '+$_)}
         if(([string](Read-Host 'Digita CONFERMO per registrare la scelta')).Trim() -ceq 'CONFERMO'){$confirmed=$true;$how='interattiva'}
     }
     $confirmation=if($confirmed){[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'}else{''}
@@ -537,7 +540,7 @@ function Invoke-SBSetupOutput {
     $confirmed=$false;$how=''
     if($Yes){$confirmed=$true;$how='-Yes'}
     elseif($Interactive){
-        Write-Host ('Output di {0}: {1} -> {2}' -f $found[0].identity,$previous,$OutputStatus)
+        Write-Host (Get-SBMessage 'portable.output.summary' @($found[0].identity,$previous,$OutputStatus))
         if(([string](Read-Host 'Digita CONFERMO per registrare lo stato output')).Trim() -ceq 'CONFERMO'){$confirmed=$true;$how='interattiva'}
     }
     $result.confirmed=$confirmed

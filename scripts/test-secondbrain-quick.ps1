@@ -36,31 +36,38 @@ try {
     $messageGaps=@()
     foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter 'SecondBrain.*.psm1'|Where-Object Name -ne 'SecondBrain.Messages.psm1'){Import-Module $file.FullName -Force}
     foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter 'SecondBrain.*.psm1'){
-        foreach($m in [regex]::Matches((Read-SBText $file.FullName),"New-SBError '([a-z0-9.]+)'|Get-SBMessage '([a-z0-9.]+)'")){
+        foreach($m in [regex]::Matches((Read-SBText $file.FullName),"New-SBError '([a-z0-9._-]+)'|Get-SBMessage '([a-z0-9._-]+)'")){
             $key=if($m.Groups[1].Success){$m.Groups[1].Value}else{$m.Groups[2].Value}
             if((Get-SBMessage $key @() 'en') -ceq $key -or (Get-SBMessage $key @() 'it') -ceq $key){$messageGaps+=$key}
         }
     }
     Assert-Quick (!$messageGaps.Count) ('ogni chiave usata ha testo it e en'+$(if($messageGaps.Count){': '+(($messageGaps|Select-Object -Unique) -join ', ')}))
+    $catalog = & (Get-Module SecondBrain.Messages) { $script:SBMessages }
+    $incompleteKeys = @($catalog.Keys | Where-Object { !$catalog[$_].ContainsKey('it') -or !$catalog[$_].ContainsKey('en') -or !$catalog[$_].it -or !$catalog[$_].en })
+    Assert-Quick (!$incompleteKeys.Count) 'all registered message keys, including dynamic diagnostics, have it and en text'
     $literalThrows=@();$scriptGaps=@()
     foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Include '*.ps1','*.psm1' -File|Where-Object {$_.Name -notlike 'test-*' -and $_.Name -ne 'check-distribution.ps1'}){
         $source=Read-SBText $file.FullName
-        foreach($m in [regex]::Matches($source,"throw\s+['""]([^'""]*)['""]")){
-            if($m.Groups[1].Value -notmatch '^(redirect-limit|http-\$code|download-too-large|access-challenge|Impossibile trovare scripts/mcp-server\.ps1 .*)$'){$literalThrows+=($file.Name+': '+$m.Groups[1].Value)}
+        foreach($m in [regex]::Matches($source,"throw\s+(?:\(\s*)?['""]([^'""]*)['""]")){
+            $literalThrows+=($file.Name+': '+$m.Groups[1].Value)
         }
         if($file.Extension -eq '.ps1'){
-            foreach($m in [regex]::Matches($source,"New-SBError '([a-z0-9.]+)'")){
+            foreach($m in [regex]::Matches($source,"New-SBError '([a-z0-9._-]+)'")){
                 $escaped=[regex]::Escape($m.Groups[1].Value)
                 if($source -notmatch ("'"+$escaped+"'\s*=\s*@\{\s*it\s*=.*en\s*=")){$scriptGaps+=($file.Name+': '+$m.Groups[1].Value)}
             }
         }
     }
-    # Write-Host/-Warning/-Error: nessun testo letterale, salvo righe di soli dati interpolati e lo script generato per il pacchetto MCP.
+    # Check direct and parenthesized strings, including templates in the generated installer.
     $literalOutputs=@()
     foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Include '*.ps1','*.psm1' -File|Where-Object {$_.Name -notlike 'test-*' -and $_.Name -ne 'check-distribution.ps1'}){
-        foreach($m in [regex]::Matches((Read-SBText $file.FullName),"Write-(?:Host|Warning|Error)\s+(['""])([^\r\n]*)")){
+        foreach($m in [regex]::Matches((Read-SBText $file.FullName),"Write-(?:Host|Warning|Error)\s+(?:\(\s*)?(['""])([^\r\n]*)")){
             $text=$m.Groups[2].Value
-            if($text -match '^(  • \$f|`n\[\$\(\$item\.Target\.ToUpper\(\)\)\] |Applicazione configurazione MCP SecondBrain)'){continue}
+            if($text -match '^(  • \$f|`n\[\$\(\$item\.Target\.ToUpper\(\)\)\] )'){continue}
+            # Formatting-only prefixes and the technical acronym IDE carry no message.
+            $closingQuote=$text.IndexOf($m.Groups[1].Value)
+            $literal=if($closingQuote -ge 0){$text.Substring(0,$closingQuote)}else{$text}
+            if($literal -in @('`n','  {0}) {1}  [{2}]  {3}','  {0}) {1}  [{2}]','  IDE ','  ')){continue}
             $literalOutputs+=($file.Name+': '+$text.Substring(0,[Math]::Min(50,$text.Length)))
         }
     }

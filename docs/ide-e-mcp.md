@@ -91,6 +91,10 @@ pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 
 Un file aggiornato non basta: apri una nuova sessione e scrivi `sb prompt`.
 
+Le descrizioni degli strumenti MCP e dei loro parametri seguono la lingua della sessione server (`SECONDBRAIN_LANG` oppure `mcp-server.ps1 -Language it|en`). Il catalogo dei prompt usa le traduzioni già registrate. Gli argomenti `language` delle singole chiamate continuano a controllare il contenuto della risposta; per aggiornare le descrizioni memorizzate dal client occorre riavviare la sessione server.
+
+Il pacchetto generato da `-ExportPackage` include il modulo dei messaggi necessario a `install-all-ides.ps1`. Il launcher accetta `-Language it|en` e segnala una radice mancante con il codice `mcp.package.root` anche quando il clone non è disponibile. Conservare insieme i file del pacchetto. Le verifiche stdio non attestano il caricamento nelle GUI degli IDE.
+
 ## Altri strumenti
 
 Il codice riconosce anche VS Code, Cursor, Windsurf, Continue, JetBrains e Android Studio. Sono presenti ma **non convalidati**.

@@ -1,5 +1,4 @@
 # Scenari di policy: repository vietati, identita cervello, configurazione e Git; invocato da test-secondbrain.ps1 con fixture isolate.
-$env:SECONDBRAIN_LANG='it'
 if(!(Get-Command Assert -ErrorAction SilentlyContinue)){throw 'Eseguire scripts/test-secondbrain.ps1'}
 $policyRoot=Join-Path $root 'policy projects with spaces'
 $owned=Join-Path $policyRoot 'owned'
@@ -16,8 +15,8 @@ Assert (Test-SBForbiddenRepository $forbidden ($owned.Replace('\','/').ToUpperIn
 Assert (Test-SBForbiddenRepository $forbidden (Join-Path $policyRoot 'other') 'github.com/test/blocked') 'repo vietati: identita senza distinzione di maiuscole'
 Assert (!(Test-SBForbiddenRepository $forbidden (Join-Path $policyRoot 'other') 'github.com/test/free')) 'repo vietati: repository non elencato ammesso'
 $missingMessage=''
-try{Read-SBConfiguration (Join-Path $root 'missing-config.json')|Out-Null}catch{$missingMessage=$_.Exception.Message}
-Assert ($missingMessage -like 'Configurazione non trovata:*') 'ConfigPath inesistente: errore dedicato'
+try{Read-SBConfiguration (Join-Path $root 'missing-config.json')|Out-Null}catch{$missingMessage=Test-SBError $_ 'access.config.missing'}
+Assert ($missingMessage -eq $true) 'ConfigPath inesistente: errore dedicato'
 $accentRepo=Join-Path $root 'accent repo';[IO.Directory]::CreateDirectory($accentRepo)|Out-Null
 Git $accentRepo @('init','-q')|Out-Null;Put (Join-Path $accentRepo 'perché.txt') 'x';Git $accentRepo @('add','-A')|Out-Null
 Assert ((Git $accentRepo @('ls-files')) -ceq 'perché.txt') 'Invoke-SBGit: percorsi accentati in UTF-8 senza escape'

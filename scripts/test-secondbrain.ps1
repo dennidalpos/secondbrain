@@ -176,8 +176,8 @@ try {
     $dirtyHash=Get-SBFileHash $tracked
     Throws {Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup} 'file tracciato sporco rifiutato'
     Assert ((Get-SBFileHash $tracked) -eq $dirtyHash) 'file tracciato sporco intatto dopo rifiuto'
-    $dirtyMessage='';try{Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup|Out-Null}catch{$dirtyMessage=$_.Exception.Message}
-    Assert ($dirtyMessage -like '*modifiche non committate*git stash*') 'rifiuto con istruzioni chiare'
+    $dirtyMessage='';try{Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup|Out-Null}catch{$dirtyMessage=Test-SBError $_ 'core.tracked.dirty'}
+    Assert ($dirtyMessage -eq $true) 'rifiuto con istruzioni chiare'
     Assert ((Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup -BackupDirty) -eq $true -and @(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 1) 'rigenerato sporco con -BackupDirty conserva il .bin'
     Write-SBFile $untracked ([Text.Encoding]::UTF8.GetBytes("due`n")) (Get-SBFileHash $untracked) $gitBackup|Out-Null
     Assert (@(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 2) 'file non tracciato: .bin invariato'

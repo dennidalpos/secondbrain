@@ -31,7 +31,6 @@ function Invoke-Race([int]$Count,[scriptblock]$Work,[object[]]$Arguments=@()){
         param($Index,$Gate,$Ready,$Modules,$WorkText,$WorkArguments)
         $ErrorActionPreference='Stop'
         foreach($module in $Modules){Import-Module $module}
-        $env:SECONDBRAIN_LANG='it'
         $Ready.Signal()|Out-Null;$Gate.Wait()
         try{@{index=$Index;ok=$true;value=(& ([scriptblock]::Create($WorkText)) $Index $WorkArguments)}}
         catch{

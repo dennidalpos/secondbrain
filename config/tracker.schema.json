@@ -173,7 +173,19 @@
     "history": {
       "items": {
         "additionalProperties": false,
+        "dependentRequired": {
+          "code": ["messageArgs"],
+          "messageArgs": ["code"]
+        },
         "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]+$"
+          },
+          "messageArgs": {
+            "type": "array",
+            "items": {"type": ["string", "number", "boolean", "null"]}
+          },
           "description": {
             "type": "string"
           },

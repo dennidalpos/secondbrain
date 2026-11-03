@@ -5,6 +5,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'tracker.history.note' = @{ it = 'Nota originale: {0}'; en = 'Original note: {0}' }
+    'tracker.history.dependencies' = @{ it = 'Esiti storici espliciti usati per risolvere le dipendenze'; en = 'Explicit historical outcomes used to resolve dependencies' }
+    'tracker.history.numbered' = @{ it = 'Numerazione retroattiva: {0} task (archivio e attivi) in ordine cronologico; originali conservati per hash.'; en = 'Retroactive numbering: {0} tasks (archived and active) in chronological order; originals preserved by hash.' }
+    'tracker.reason.numbered' = @{ it = 'Tracker gia numerato'; en = 'Tracker already numbered' }
+    'tracker.history.snapshot' = @{ it = 'Originale storico non coerente: {0}'; en = 'History original does not match: {0}' }
     'tracker.seq.duplicate' = @{ it = 'Numero progressivo duplicato nel tracker {0}: {1}'; en = 'Duplicate sequence number in tracker {0}: {1}' }
     'tracker.title.prefix' = @{ it = 'Titolo senza prefisso #{0}: {1}'; en = 'Title without prefix #{0}: {1}' }
     'tracker.lastseq.type' = @{ it = 'extensions.lastSeq deve essere un intero'; en = 'extensions.lastSeq must be an integer' }
@@ -285,7 +290,7 @@ function ConvertTo-SBTracker {
         }
         if($HistoryPath){
             Assert-SBPlainPath $HistoryPath;$historyHash=Get-SBFileHash $HistoryPath;$historyText=Read-SBText $HistoryPath
-            $history+=@{reference=$HistoryPath;sha256=$historyHash;description='Esiti storici espliciti usati per risolvere le dipendenze'}
+            $history+=ConvertTo-SBTrackerHistoryRecord @{reference=$HistoryPath;sha256=$historyHash;description='Esiti storici espliciti usati per risolvere le dipendenze'}
             $line=0
             foreach($row in $historyText -split '\r?\n'){
                 $line++
@@ -464,14 +469,17 @@ function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[stri
 }
 
 # Valida il tracker aggiornato sull'intero grafo e lo scrive in transazione, con eventuali file aggiuntivi nello stesso journal.
-function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@()) {
-    $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
+function Assert-SBTrackerWriteData($Target,$Data) {
     $entities=@(Get-SBParaEntities $Target.brainRoot @())
     $managedIdentities=@($entities|Where-Object kind -eq 'area'|ForEach-Object repository)
     if($Target.identity -notin $managedIdentities){$managedIdentities+=,$Target.identity}
     $schemaPath=Join-Path $PSScriptRoot '../config/tracker.schema.json'
     $related=Get-SBTrackerRelatedData $Target.brainRoot $Target.identity $entities
     [void](Test-SBTrackerData $Data $Target.identity $managedIdentities $schemaPath $related)
+}
+function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@()) {
+    $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    Assert-SBTrackerWriteData $Target $Data
     if($WhatIf){return @{applied=$false;path=$Target.path;data=$Data}}
     if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $Target.brainRoot}
     [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
@@ -598,7 +606,7 @@ function Invoke-SBTrackerRenumber {
     if($archive){foreach($t in $archive.tasks){$items+=,@{task=$t;source='archive'}}}
     foreach($t in $next.tasks){$items+=,@{task=$t;source='tracker'}}
     $numbered=@($items|Where-Object {$_.task.ContainsKey('seq')})
-    if($items.Count -and $numbered.Count -eq $items.Count){return @{applied=$false;changed=$false;reason='Tracker gia numerato';count=$items.Count;lastSeq=(Get-SBTrackerLastSeq $next)}}
+    if($items.Count -and $numbered.Count -eq $items.Count){return @{applied=$false;changed=$false;reason='Tracker gia numerato';code='tracker.reason.numbered';message=(Get-SBMessage 'tracker.reason.numbered');count=$items.Count;lastSeq=(Get-SBTrackerLastSeq $next)}}
     if($numbered.Count){throw (New-SBError 'tracker.numbering.partial' @($numbered.Count,$items.Count))}
     $current='00000000';$index=0
     foreach($item in $items){
@@ -623,10 +631,86 @@ function Invoke-SBTrackerRenumber {
         $extra+=@{path=(Join-Path $originalRoot 'tracker-archive.json');expected='absent';bytes=[IO.File]::ReadAllBytes($ArchivePath)}
         $extra+=@{path=[IO.Path]::GetFullPath($ArchivePath);expected=$archiveHash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $archive))}
     }
-    $next.history+=,@{reference=$originalRel+'/tracker.json';sha256=$target.hash;description="Numerazione retroattiva: $seq task (archivio e attivi) in ordine cronologico; originali conservati per hash."}
+    $next.history+=,(ConvertTo-SBTrackerHistoryRecord @{reference=$originalRel+'/tracker.json';sha256=$target.hash;description="Numerazione retroattiva: $seq task (archivio e attivi) in ordine cronologico; originali conservati per hash."})
     $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:(!$Apply) -ExtraOperations $extra
     $saved.Remove('data')
     $saved+@{changed=$true;count=$seq;lastSeq=$seq;originals=$originalRel;mapping=$mapping}
+}
+
+function ConvertTo-SBTrackerHistoryRecord([System.Collections.IDictionary]$Record) {
+    $next = @{} + $Record
+    if ($next.ContainsKey('code')) { return $next }
+    $description = [string]$next.description
+    $next.code = 'tracker.history.note'; $next.messageArgs = @()
+    if ($description -ceq 'Esiti storici espliciti usati per risolvere le dipendenze') {
+        $next.code = 'tracker.history.dependencies'; $next.messageArgs = @()
+    } elseif ($description -cmatch '^Numerazione retroattiva: (\d+) task \(archivio e attivi\) in ordine cronologico; originali conservati per hash\.$') {
+        $next.code = 'tracker.history.numbered'; $next.messageArgs = @([int]$Matches[1])
+    }
+    $next
+}
+
+function Get-SBTrackerHistoryMessages($Data) {
+    # Derived view only: persisted descriptions and free notes remain unchanged.
+    $records = @()
+    if ($Data.ContainsKey('history')) { $records += @($Data.history) }
+    if ($Data.ContainsKey('description')) {
+        $metadata = @{}
+        foreach ($key in @('description','code','messageArgs','reference','sha256','archivedAt')) {
+            if ($Data.ContainsKey($key)) { $metadata[$key] = $Data[$key] }
+        }
+        $records += ,$metadata
+    }
+    foreach ($record in $records) {
+        $view = ConvertTo-SBTrackerHistoryRecord $record
+        $arguments = @()
+        if ($view.ContainsKey('messageArgs')) { $arguments = @($view.messageArgs) }
+        if ($view.code -eq 'tracker.history.note') { $arguments = @($view.description) }
+        $view.message = Get-SBMessage $view.code $arguments
+        $view
+    }
+}
+
+function Invoke-SBTrackerHistoryMigration {
+    [CmdletBinding()]
+    param([string]$BrainRoot, [string]$Identity, [string]$Path, [string]$WorkingRepository,
+        [string]$BackupRoot, [switch]$Apply)
+    $target = Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
+    Assert-SBTrackerWriteData $target $target.data
+    $dir = Split-Path $target.path
+    $archivePath = Join-Path $dir 'history/tracker-archive.json'
+    $inputs = @(@{path=$target.path;data=$target.data;hash=$target.hash;name='tracker.json'})
+    if (Test-Path -LiteralPath $archivePath -PathType Leaf) {
+        Assert-SBPlainPath $archivePath
+        $bytes = [IO.File]::ReadAllBytes($archivePath)
+        $archive = [Text.Encoding]::UTF8.GetString($bytes).TrimStart([char]0xFEFF) | ConvertFrom-Json -AsHashtable -DateKind String
+        if ($archive.repository -cne $target.identity -or $archive.schemaVersion -ne 1 -or !$archive.ContainsKey('tasks')) { throw (New-SBError 'tracker.archive.identity') }
+        $inputs += @{path=$archivePath;data=$archive;hash=(Get-SBHash $bytes);name='tracker-archive.json'}
+    }
+    $operations = @(); $changes = @(); $originals = @()
+    foreach ($inputFile in $inputs) {
+        $bytes = [IO.File]::ReadAllBytes($inputFile.path)
+        if ((Get-SBHash $bytes) -cne $inputFile.hash -or (ConvertTo-SBJson (Read-SBJson $inputFile.path $null)) -cne (ConvertTo-SBJson $inputFile.data)) {
+            throw (New-SBError 'tracker.history.snapshot' @($inputFile.name))
+        }
+        $before = ConvertTo-SBJson $inputFile.data
+        $next = ConvertTo-SBJson $inputFile.data | ConvertFrom-Json -AsHashtable -DateKind String
+        if ($next.ContainsKey('history')) { $next.history = @($next.history | ForEach-Object { ConvertTo-SBTrackerHistoryRecord $_ }) }
+        if ($next.ContainsKey('description')) { $next = ConvertTo-SBTrackerHistoryRecord $next }
+        if ((ConvertTo-SBJson $next) -ceq $before) { continue }
+        $snapshot = Join-Path $dir ('history/tracker-messages/' + $inputFile.hash.ToLowerInvariant() + '/' + $inputFile.name)
+        if (Test-Path -LiteralPath $snapshot) {
+            if ((Get-SBFileHash $snapshot) -cne $inputFile.hash) { throw (New-SBError 'tracker.history.snapshot' @($snapshot)) }
+        } else { $operations += @{path=$snapshot;expected='absent';bytes=$bytes} }
+        $originals += @{path=[IO.Path]::GetRelativePath($dir,$snapshot).Replace('\','/');sha256=$inputFile.hash}
+        $changes += $inputFile.name
+        if ($inputFile.name -eq 'tracker.json') { $target.data = $next }
+        else { $operations += @{path=$inputFile.path;expected=$inputFile.hash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $next))} }
+    }
+    if (!$changes.Count) { return @{applied=$false;changed=$false;files=@();originals=@()} }
+    $saved = Save-SBTrackerData $target $target.data $BackupRoot -WhatIf:(!$Apply) -ExtraOperations $operations
+    $saved.Remove('data')
+    $saved + @{changed=$true;files=$changes;originals=$originals}
 }
 
 function Update-SBTrackerTask {
@@ -661,5 +745,7 @@ Export-ModuleMember -Function @(
     'Set-SBTrackerTaskStatus',
     'New-SBTrackerTaskEntry',
     'Invoke-SBTrackerRenumber',
+    'Get-SBTrackerHistoryMessages',
+    'Invoke-SBTrackerHistoryMigration',
     'Update-SBTrackerTask'
 )

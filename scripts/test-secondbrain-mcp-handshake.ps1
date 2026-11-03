@@ -16,7 +16,6 @@ param(
     [string]$ReportPath,
     [int]$TimeoutSeconds = 300
 )
-$env:SECONDBRAIN_LANG='it'
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force

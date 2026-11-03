@@ -108,6 +108,22 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -RenumberTasks -Apply
 - Proiezione, `-Tasks` e MCP `get_ready_tasks` riportano `seq` quando presente.
 - Il record integro di un task (anche archiviato in `history/tracker-archive.json`) si legge con `knowledge.ps1 -Task <id|#seq>` o con il tool MCP `get_task`.
 
+## Codici dei messaggi e storico
+
+Gli errori prodotti dal programma hanno una chiave stabile in `Exception.Data['code']`; i consumatori PowerShell possono riconoscerli con `Test-SBError`. I report diagnostici di audit esterno, pubblicazione, fonti e numerazione tracker separano `code` e `message` localizzato. I campi macchina preesistenti (`reason`, stato, copertura) conservano il loro significato; motivazioni dell'utente e descrizioni private restano dati originali. La lingua non modifica l'esito della verifica.
+
+Gli eventi `history` dello schema v1 possono aggiungere `code` e `messageArgs` insieme. `description`, `reference` e `sha256` restano invariati. Solo gli eventi riconosciuti esattamente ricevono una chiave specifica; il testo libero riceve `tracker.history.note`, senza traduzione o duplicazione della nota negli argomenti. Il messaggio localizzato è una vista derivata.
+
+```powershell
+# Dal checkout gestito: vista in sola lettura e anteprima della migrazione.
+pwsh -NoProfile -File scripts/knowledge.ps1 -HistoryMessages -Language en
+pwsh -NoProfile -File scripts/knowledge.ps1 -MigrateHistoryMessages
+# Applica esclusivamente al dossier del repository in lavoro.
+pwsh -NoProfile -File scripts/knowledge.ps1 -MigrateHistoryMessages -Apply
+```
+
+La migrazione comprende tracker attivo e metadati storici dell'archivio, se presente. Conserva gli originali esatti in `history/tracker-messages/<sha256>/`, usa la transazione PARA con backup verificati e rifiuta modifiche concorrenti. L'anteprima non scrive; una seconda applicazione non modifica file o timestamp. Il recupero usa il manifest della transazione, secondo la [procedura di recupero](operations.md). Non è una compattazione e non modifica gli altri dossier.
+
 ## Proiezione dei Task e Budget
 
 Il `tracker.json` conserva tutti i task con il loro stato (`todo`, `in_progress`, `blocked`, `done`, `cancelled`, `unknown`); non esiste una archiviazione automatica verso file separati. Per contenere il pacchetto di avvio snello entro **20.000 caratteri**, `knowledge.ps1 -Startup` e il server MCP usano una proiezione: i task chiusi (`done`/`cancelled`) non vengono inclusi, e con `-ReadyOnly` (`get_ready_tasks`) restano solo i task non bloccati le cui dipendenze sono soddisfatte. Se il tracker cresce troppo, la compattazione conservativa (SYS05) archivia gli originali per hash senza cancellare informazioni.

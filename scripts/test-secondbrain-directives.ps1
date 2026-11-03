@@ -1,5 +1,4 @@
 # Fixture isolate della suite principale; nessun accesso ai checkout applicativi.
-$env:SECONDBRAIN_LANG='it'
 $revisionFixture = Join-Path $root 'directive-revision'
 Put (Join-Path $revisionFixture 'direttive/AGENTS.global_ide.md') "# Common fixture`nRevisione 3.0 — 2026-10-19."
 Put (Join-Path $revisionFixture 'direttive/workstation.template.md') 'Postazione fixture'

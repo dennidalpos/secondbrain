@@ -8,7 +8,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:auditLabel='TRACKER AUDIT';$script:auditChecks=0
-function Reject-Audit([scriptblock]$Action,[string]$Message,[string]$Pattern=''){$caught=$false;try{& $Action|Out-Null}catch{if($Pattern -and $_.Exception.Message -notmatch $Pattern){throw};$caught=$true};Assert-Audit $caught $Message}
+function Reject-Audit([scriptblock]$Action,[string]$Message,[string[]]$Codes=@()){$caught=$false;try{& $Action|Out-Null}catch{$ErrorRecord=$_;if($Codes.Count -and !@($Codes|Where-Object {Test-SBError $ErrorRecord $_}).Count){throw};$caught=$true};Assert-Audit $caught $Message}
 function Put-Audit([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function New-AuditFixture([string]$Name){
     $base=Join-Path $root $Name;$brain=Join-Path $base 'brain';$checkout=Join-Path $base 'repos/Repo';$dir=Join-Path $brain '02-areas/products/Repo'
@@ -116,7 +116,7 @@ try {
             $previewExit=$LASTEXITCODE
             Assert-Audit ($previewExit -eq $(if($scenario -in @('valid','changed')){0}else{1}) -and (Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Get-SBTrackerImportPath $f.config $f.identity))) ('anteprima grafo '+$scenario)
             if($scenario -in @('missing','cycle','foreign')){
-                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('migrazione rifiuta grafo '+$scenario) 'Dipendenza|Ciclo'
+                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate} ('migrazione rifiuta grafo '+$scenario) @('tracker.dependency.missing','tracker.dependency.cycle','tracker.dependency.unmanaged')
                 Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash -and !(Read-SBJson (Join-Path $f.dir 'repository.json') @{}).ContainsKey('tracker')) ('rifiuto preserva fonte e dichiarazione '+$scenario)
                 continue
             }
@@ -124,7 +124,7 @@ try {
             Assert-Audit ((Read-SBTrackerManifest $f.config $manifest).phase -eq 'verified') ('preparazione grafo '+$scenario)
             if($scenario -eq 'changed'){
                 $related.tasks=@();Put-Audit $relatedPath (ConvertTo-SBJson $related)
-                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate} 'dipendenza rimossa dopo preparazione rifiutata' 'Dipendenza'
+                Reject-Audit {Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate} 'dipendenza rimossa dopo preparazione rifiutata' @('tracker.dependency.missing')
                 Assert-Audit ((Get-SBFileHash $f.source) -eq $sourceHash -and !(Test-Path -LiteralPath (Join-Path $f.dir 'tracker.json'))) 'rivalidazione precede attivazione'
                 continue
             }
@@ -177,7 +177,7 @@ try {
             if($kind -ne 'rolled-back'){
                 [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
                 $targetText=Read-SBText $m.target;Put-Audit $m.target ($targetText+"`n")
-                Reject-Audit {Restore-SBTrackerImport $f.config $manifest} ('rollback rifiuta modifiche dopo spostamento '+$kind) 'modifiche successive'
+                Reject-Audit {Restore-SBTrackerImport $f.config $manifest} ('rollback rifiuta modifiche dopo spostamento '+$kind) @('trackerimport.restore.refused')
                 Put-Audit $m.target $targetText
                 Restore-SBTrackerImport $f.config $manifest
             }
@@ -204,11 +204,11 @@ try {
         $ops+=@(Get-SBTrackerRelocationOperations $f.config $mapping)
         $allowed=@(Get-SBParaRuntimePaths $f.config)
         Set-SBWriteGuard {if((Get-SBFileHash $manifest) -ne $before){throw 'interruzione dopo spostamento manifest'}}.GetNewClosure()
-        try{Reject-Audit {Invoke-SBParaTransaction $ops $f.config.backupRoot $f.brain $allowed} 'transazione interrotta dopo aggiornamento manifest' 'Transazione interrotta'}finally{Set-SBWriteGuard $null}
+        try{Reject-Audit {Invoke-SBParaTransaction $ops $f.config.backupRoot $f.brain $allowed} 'transazione interrotta dopo aggiornamento manifest' @('para.transaction.interrupted')}finally{Set-SBWriteGuard $null}
         $marker=Read-SBJson (Join-Path $f.brain '.runtime/para-transaction.json') $null
         Assert-Audit ($marker -and (Read-SBTrackerManifest $f.config $manifest).dossier -eq $destination) 'journal preserva lo spostamento incompleto'
         $targetContext=Join-Path $target 'context.md';$original=Read-SBText $targetContext;Put-Audit $targetContext ($original+' personale')
-        Reject-Audit {Restore-SBParaTransaction $marker.manifest $f.brain $f.config.backupRoot @(Get-SBParaRuntimePaths $f.config)} 'recupero PARA rifiuta modifiche successive' 'file modificato'
+        Reject-Audit {Restore-SBParaTransaction $marker.manifest $f.brain $f.config.backupRoot @(Get-SBParaRuntimePaths $f.config)} 'recupero PARA rifiuta modifiche successive' @('para.restore.refused')
         Assert-Audit ((Get-SBFileHash $manifest) -ne $before -and (Read-SBText $targetContext).EndsWith('personale')) 'rifiuto del recupero non modifica manifest o dati personali'
         Put-Audit $targetContext $original
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $marker.manifest -ConfigPath $f.config.configPath -Apply|Out-Null

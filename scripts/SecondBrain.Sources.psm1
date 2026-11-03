@@ -5,6 +5,16 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'sources.reason.http' = @{ it = 'Risposta HTTP {0} non verificabile'; en = 'HTTP {0} response could not be verified' }
+    'sources.reason.access-challenge' = @{ it = 'Accesso alla fonte soggetto a verifica'; en = 'Source access requires a challenge' }
+    'sources.reason.unverifiable' = @{ it = 'Fonte non verificabile'; en = 'Source could not be verified' }
+    'sources.reason.converter-unavailable' = @{ it = 'Convertitore non disponibile'; en = 'Converter unavailable' }
+    'sources.reason.conversion-timeout' = @{ it = 'Tempo della conversione scaduto'; en = 'Conversion timed out' }
+    'sources.reason.scanned-empty-or-incomplete' = @{ it = 'Trascrizione vuota o incompleta'; en = 'Transcript empty or incomplete' }
+    'sources.redirect.limit' = @{ it = 'Limite dei reindirizzamenti raggiunto'; en = 'Redirect limit reached' }
+    'sources.http' = @{ it = 'Risposta HTTP {0}'; en = 'HTTP response {0}' }
+    'sources.download.large' = @{ it = 'Download oltre il limite di dimensione'; en = 'Download exceeds size limit' }
+    'sources.access.challenge' = @{ it = 'Verifica di accesso richiesta dalla fonte'; en = 'Source access challenge required' }
     'sources.path.outside' = @{ it = 'Percorso fonte fuori perimetro'; en = 'Source path outside scope' }
     'sources.index.invalid' = @{ it = 'Indice PARA assente o non valido'; en = 'PARA index missing or invalid' }
     'sources.resource.unresolved' = @{ it = 'Risorsa resource-authoritative-sources non risolvibile'; en = 'Resource resource-authoritative-sources cannot be resolved' }
@@ -138,19 +148,19 @@ function Get-SBSourceContent([hashtable]$Endpoint,[scriptblock]$Transport) {
                     $response=$client.SendAsync($request,[Net.Http.HttpCompletionOption]::ResponseHeadersRead,$cancel.Token).GetAwaiter().GetResult()
                     $code=[int]$response.StatusCode
                     if($code -in @(301,302,303,307,308)){
-                        if(!$response.Headers.Location -or $redirect -eq 5){throw 'redirect-limit'}
+                        if(!$response.Headers.Location -or $redirect -eq 5){throw (New-SBError 'sources.redirect.limit')}
                         $url=[Uri]::new([Uri]$url,$response.Headers.Location).AbsoluteUri
                         Assert-SBSourceUri $url $Endpoint.allowedHosts
                         continue
                     }
-                    if($code -ne 200){throw "http-$code"}
+                    if($code -ne 200){$failure=New-SBError 'sources.http' @($code);$failure.Data['httpStatus']=$code;throw $failure}
                     $max=50MB
-                    if($response.Content.Headers.ContentLength -gt $max){throw 'download-too-large'}
+                    if($response.Content.Headers.ContentLength -gt $max){throw (New-SBError 'sources.download.large')}
                     $sourceStream=$response.Content.ReadAsStreamAsync($cancel.Token).GetAwaiter().GetResult()
                     $output=[IO.MemoryStream]::new();$buffer=[byte[]]::new(65536)
                     try {
                         while(($read=$sourceStream.ReadAsync($buffer,0,$buffer.Length,$cancel.Token).GetAwaiter().GetResult()) -gt 0){
-                            if($output.Length+$read -gt $max){throw 'download-too-large'}
+                            if($output.Length+$read -gt $max){throw (New-SBError 'sources.download.large')}
                             $output.Write($buffer,0,$read)
                         }
                         $result=@{bytes=$output.ToArray();finalUrl=$url;httpStatus=$code;contentType=[string]$response.Content.Headers.ContentType;etag=[string]$response.Headers.ETag;lastModified=[string]$response.Content.Headers.LastModified}
@@ -166,7 +176,7 @@ function Get-SBSourceContent([hashtable]$Endpoint,[scriptblock]$Transport) {
     if($Endpoint.format -eq 'pdf' -and !$text.StartsWith('%PDF-',[StringComparison]::Ordinal)){throw (New-SBError 'sources.format.pdf')}
     if($Endpoint.format -eq 'docx' -and !($result.bytes[0] -eq 80 -and $result.bytes[1] -eq 75)){throw (New-SBError 'sources.format.docx')}
     if($Endpoint.format -in @('html','text','json','csv')){
-        if($text -match '(?i)<title>\s*(?:just a moment|access denied|captcha|javascript is disabled)' -or $text -match '(?i)verify that you.re not a robot'){throw 'access-challenge'}
+        if($text -match '(?i)<title>\s*(?:just a moment|access denied|captcha|javascript is disabled)' -or $text -match '(?i)verify that you.re not a robot'){throw (New-SBError 'sources.access.challenge')}
         if($Endpoint.expectedText -and $text -notmatch $Endpoint.expectedText){throw (New-SBError 'sources.content.unverifiable')}
         if($Endpoint.format -eq 'json'){$null=$text|ConvertFrom-Json -AsHashtable -DateKind String}
     }
@@ -196,8 +206,12 @@ function Invoke-SBSourceProbe($Registry,[scriptblock]$Transport) {
                 $download=Get-SBSourceContent $ep $Transport
                 $items+=@{endpointId=$ep.id;url=$download.finalUrl;sha256=$download.sha256;contentHash=$download.contentHash;etag=$download.etag;lastModified=$download.lastModified}
             } catch {
-                $reason=if($_.Exception.Message -match 'http-(\d{3})'){$Matches[0]}elseif($_.Exception.Message -match 'access-challenge'){'access-challenge'}else{'unverifiable'}
-                $errors+=@{endpointId=$ep.id;reason=$reason}
+                $reason='unverifiable'
+                if(Test-SBError $_ 'sources.http'){
+                    $failure=$_.Exception;while(!$failure.Data.Contains('httpStatus') -and $failure.InnerException){$failure=$failure.InnerException}
+                    if($failure.Data.Contains('httpStatus')){$reason='http-'+$failure.Data['httpStatus']}
+                }elseif(Test-SBError $_ 'sources.access.challenge'){$reason='access-challenge'}
+                $errors+=Add-SBReportDiagnostic @{endpointId=$ep.id;reason=$reason} 'sources'
             }
         }
         $fingerprint=if($items.Count -and !$errors.Count){Get-SBSourceFingerprint $items}else{$null}
@@ -341,6 +355,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
         if(Test-Path -LiteralPath $diagnostics){$result=Read-SBJson $diagnostics $null}
         if(!$result){throw (New-SBError 'sources.converter.unavailable')}
     }
+    [void](Add-SBReportDiagnostic $result 'sources')
     if(Test-Path -LiteralPath $transcript){
         $previousHash=Get-SBFileHash $transcript
         $prefix=@(('# Trascrizione della fonte: '+$source.title),'',('Ente: '+$source.issuer),('Fonte originale: '+$canonical.download.finalUrl),('SHA-256 originale: '+$canonical.download.sha256),('Riutilizzo: '+$source.rights.notes),('Condizioni: '+$source.rights.reference),'','Conversione locale di formato; revisione separata dalla estrazione. Non costituisce una dichiarazione di vigenza o conformita.','','---','') -join "`n"

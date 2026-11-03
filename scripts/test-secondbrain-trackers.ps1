@@ -181,7 +181,7 @@ try {
     $manifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history
     Assert-Tracker ((Read-SBTrackerManifest $config $manifest).phase -eq 'verified' -and (Test-Path -LiteralPath $source) -and !(Test-Path -LiteralPath (Join-Path $dir 'tracker.json'))) 'preparazione verificata senza attivazione'
     $before=Snapshot-Tracker $root;$issues=@(Get-SBTrackerImportIssues $config)
-    Assert-Tracker ($issues.Count -eq 1 -and $issues[0] -like '*incompleta*verified*') 'Check segnala migrazione preparata'
+    Assert-Tracker ($issues.Count -eq 1 -and $issues[0] -match 'verified') 'Check segnala migrazione preparata'
     Assert-Tracker ((Snapshot-Tracker $root) -ceq $before) 'Check manifest non modifica file o timestamp'
     Reject-Tracker {Invoke-SBTrackerImport -Config $config -ManifestPath $manifest -Activate} 'attivazione senza approvazione rifiutata'
     $original=Read-SBText $source;Put-Tracker $source ($original+"`nModifica concorrente")
@@ -253,7 +253,7 @@ try {
     $beforeMEM02=Snapshot-Tracker $root
     foreach($selection in @(@('-Repository',$identity),@('-ProjectId','test-project'))){
         $composed=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -Prompt MEM02 -Objective 'prepara la migrazione' @selection) -join "`n"
-        Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed.StartsWith('CATALOGO PROMPT — MEM02') -and $composed.Contains((Join-Path $dir 'tracker.json')) -and $composed.Contains('modalità dell')) ('MEM02: composizione con fonte dichiarata '+$selection[0])
+        Assert-Tracker ($LASTEXITCODE -eq 0 -and $composed -match '^(CATALOGO PROMPT|PROMPT CATALOG) — MEM02' -and $composed.Contains((Join-Path $dir 'tracker.json')) -and $composed -match "modalità dell|IDE mode") ('MEM02: composizione con fonte dichiarata '+$selection[0])
     }
     foreach($invalid in @('MEM00','MEM99','INV01')){
         & pwsh -NoProfile -File (Join-Path $brain 'scripts/prompts.ps1') -Compose -ConfigPath $cliConfig -Repository $identity -Prompt $invalid -Objective fixture *> $null
@@ -269,6 +269,7 @@ try {
     Assert-Tracker ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $source)) 'CLI recupera originale e riferimenti'
     & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-tracker-audit.ps1')
     Assert-Tracker ($LASTEXITCODE -eq 0) 'regressioni audit: concorrenza, riferimenti, grafo e spostamenti PARA'
+    & { . (Join-Path $PSScriptRoot 'test-secondbrain-message-contract.ps1') }
     $success=$true
     'SUCCESS TRACKER: '+$script:checks+' verifiche'
 } finally {

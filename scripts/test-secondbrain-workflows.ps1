@@ -54,8 +54,8 @@ try {
     $prefixList=Format-SBWorkflowList $catalog 'TST' -Compact
     Assert-Workflow ($prefixList -match 'TST04 \|' -and $prefixList -notmatch 'SYS01 \|' -and (Format-SBWorkflowList $catalog 'Test') -match 'TST04 \|' -and (Format-SBWorkflowList $catalog 'sys') -match 'SYS13 \|' -and (Format-SBWorkflowList $catalog 'SYS') -match 'SYS11 \|' -and (Format-SBWorkflowList $catalog 'MEM') -match 'MEM06 \|' -and (Format-SBWorkflowList $catalog 'MEM') -notmatch 'SYS11 \|') 'filtro ambito per id o prefisso senza distinguere le maiuscole; ambito cerca anche nella manutenzione'
     $homeText=Format-SBWorkflowHome $brain $catalog
-    $homePath=Join-Path $brain 'direttive/prompts/README.it.md'
-    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '65 prompt in 12 aree' -and $homeText -match '16 prompt separati') 'schermata iniziale: link al catalogo esistente e conteggio'
+    $homePath=Join-Path $brain $(if((Get-SBUiLanguage) -eq 'it'){'direttive/prompts/README.it.md'}else{'direttive/prompts/README.md'})
+    Assert-Workflow ($homeText.Contains(($homePath -replace '\\','/')) -and (Test-Path -LiteralPath $homePath -PathType Leaf) -and $homeText -match '65 prompt(?: in 12 aree|s in 12 areas)' -and $homeText.Contains((Get-SBMessage 'home.maintenance' @(16)))) 'schermata iniziale: link al catalogo esistente e conteggio'
     Set-SBWorkflowLanguage 'en'
     try{$homeEn=Format-SBWorkflowHome $brain $catalog;Assert-Workflow ($homeEn.Contains(((Join-Path $brain 'direttive/prompts/README.md') -replace '\\','/')) -and $homeEn -match '65 prompts in 12 areas' -and $homeEn -match 'SECONDBRAIN — PROMPTS AND COMMANDS' -and $homeEn -notmatch 'Cosa fa') 'schermata iniziale in inglese: indice, conteggi e testi tradotti'}finally{Set-SBWorkflowLanguage $null}
     $template=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
@@ -65,7 +65,7 @@ try {
     $homeProposal=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
     Assert-Workflow ($homeProposal -match 'sb prompt list \(alias tutti\)' -and $homeProposal -match 'sb prompt maintenance' -and $homeProposal -notmatch 'REP0[257]' -and $homeProposal -match 'get_prompt_home' -and $homeProposal -match 'senza riassumerli') 'proposta direttive: schermata iniziale e elenco integrale'
     $repoRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-    Assert-Workflow ($homeText -match 'PRIMI PASSI' -and $homeText -match '(?m)^GUIDE$') 'schermata iniziale: primi passi e guide'
+    Assert-Workflow ($homeText.Contains((Get-SBMessage 'home.first.title')) -and $homeText.Contains((Get-SBMessage 'home.guides.title'))) 'schermata iniziale: primi passi e guide'
     $guides=@(Get-SBWorkflowGuides)
     $readmeRoot=Read-SBText (Join-Path $repoRoot 'README.md')
     Assert-Workflow ($guides.Count -ge 8 -and @($guides|Where-Object {!(Test-Path -LiteralPath (Join-Path $repoRoot (($_.path -split '#')[0])) -PathType Leaf) -or !$homeText.Contains($_.path)}).Count -eq 0) 'guide della schermata iniziale: file esistenti e linkati'
@@ -90,7 +90,7 @@ try {
     Assert-Workflow ($flow.Count -ge 8 -and @(Test-CommandLines $flowScripts).Count -eq 0 -and @($commands|Where-Object {!$_.script}).Count -eq 0) 'flusso per prodotto e registro: ogni comando da script usa script e parametri reali'
     $flowGuide=Read-SBText (Join-Path $repoRoot 'docs/flusso-prodotto.md')
     Assert-Workflow (@($flow|Where-Object {($_.chat -ne '—' -and !$flowGuide.Contains($_.chat)) -or ($_.script -ne '—' -and !$flowGuide.Contains($_.script))}).Count -eq 0 -and @($guides|Where-Object path -eq 'docs/flusso-prodotto.md').Count -eq 1 -and $readmeRoot.Contains('docs/flusso-prodotto.md')) 'guida flusso per prodotto: stessi passi del menu, registrata e linkata'
-    Assert-Workflow ($homeText -notmatch 'DOVE SEI' -and $homeText -match 'Da script' -and $homeText -match 'sb activate') 'schermata iniziale senza percorso: generica, con colonna da script e alias inglesi'
+    Assert-Workflow (!$homeText.Contains((Get-SBMessage 'home.where')) -and $homeText.Contains((Get-SBMessage 'home.table.commands')) -and $homeText -match 'sb activate') 'schermata iniziale senza percorso: generica, con colonna da script e alias inglesi'
     $stateNone=[ordered]@{activated=$false;hostId='ws-test';repositories=0;ides=0;repository=$null}
     $stateIdle=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=$null}
     $stateManaged=[ordered]@{activated=$true;hostId='ws-test';repositories=3;ides=2;repository=[ordered]@{path='C:\work\prod';identity='github.com/x/prod';managed=$true}}
@@ -99,9 +99,9 @@ try {
     $homeNone=Format-SBWorkflowHome $brain $catalog $stateNone
     $homeIdle=Format-SBWorkflowHome $brain $catalog $stateIdle
     $homeManaged=Format-SBWorkflowHome $brain $catalog $stateManaged
-    Assert-Workflow ($homeNone -match 'non attivata' -and $homeNone -cmatch 'PRIMI PASSI' -and $homeNone -cnotmatch 'FLUSSO PER PRODOTTO' -and $homeNone -match 'PROSSIMO PASSO\r?\n- Postazione non attivata') 'menu contestuale: postazione non attivata propone sb attiva e i primi passi'
-    Assert-Workflow ($homeIdle -match 'attivata \(ws-test\), 3 repository gestiti, 2 integrazioni IDE' -and $homeIdle -cmatch 'FLUSSO PER PRODOTTO' -and $homeIdle -cnotmatch 'PRIMI PASSI' -and $homeIdle -match 'repositoryPath') 'menu contestuale: postazione attivata senza repository mostra il flusso e chiede il percorso'
-    Assert-Workflow ($homeManaged -match 'github\.com/x/prod \(gestito\)' -and $homeManaged -match 'sb prompt MEM06' -and (Format-SBWorkflowHome $brain $catalog $stateUnmanaged) -match '\(non gestito\)[\s\S]*sb attiva. per aggiungerlo' -and (Format-SBWorkflowHome $brain $catalog $stateNoGit) -match 'non è un checkout Git') 'menu contestuale: repository gestito, non gestito e senza Git'
+    Assert-Workflow ($homeNone.Contains((Get-SBMessage 'home.station.inactive' @('ws-test'))) -and $homeNone.Contains((Get-SBMessage 'home.first.title')) -and !$homeNone.Contains((Get-SBMessage 'home.flow.title')) -and $homeNone.Contains((Get-SBMessage 'home.step.inactive'))) 'menu contestuale: postazione non attivata propone sb attiva e i primi passi'
+    Assert-Workflow ($homeIdle.Contains((Get-SBMessage 'home.station.active' @('ws-test',3,2))) -and $homeIdle.Contains((Get-SBMessage 'home.flow.title')) -and !$homeIdle.Contains((Get-SBMessage 'home.first.title')) -and $homeIdle.Contains('repositoryPath')) 'menu contestuale: postazione attivata senza repository mostra il flusso e chiede il percorso'
+    Assert-Workflow ($homeManaged.Contains('github.com/x/prod'+(Get-SBMessage 'home.repo.managed')) -and $homeManaged.Contains('sb prompt MEM06') -and (Format-SBWorkflowHome $brain $catalog $stateUnmanaged).Contains((Get-SBMessage 'home.step.unmanaged')) -and (Format-SBWorkflowHome $brain $catalog $stateNoGit).Contains((Get-SBMessage 'home.step.noidentity'))) 'menu contestuale: repository gestito, non gestito e senza Git'
     $stateReal=Get-SBWorkflowState $brain $env:TEMP
     Assert-Workflow ($stateReal.repository -and $null -eq $stateReal.repository.identity -and !$stateReal.repository.managed -and $stateReal.Keys -contains 'activated') 'stato reale: cartella senza Git non ha identità né gestione'
     $startSection=([regex]::Match($readmeRoot,'(?s)## Inizia\b.*?(?=\n## )')).Value
@@ -247,7 +247,7 @@ try {
     $greenComposition=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'TST04')[0]) $greenContext 'obiettivo'
     Assert-Workflow ($greenContext.repositories[0].lifecycle -eq 'greenfield' -and ($greenComposition -match 'greenfield \((block active|blocco attivo)\)') -and !$greenComposition.Contains('SYS13')) 'greenfield: la composizione core riporta il blocco e i divieti senza rimandare a prompt maintenance'
     $greenMaintenance=New-SBWorkflowComposition $brain $catalog (@($catalog.prompts|Where-Object code -eq 'MEM02')[0]) $greenContext 'obiettivo'
-    Assert-Workflow ($greenMaintenance.Contains('Ciclo di vita: greenfield (blocco attivo)') -and $greenMaintenance.Contains('SYS13')) 'greenfield: la composizione maintenance rimanda a SYS13'
+    Assert-Workflow ($greenMaintenance -match 'greenfield \((block active|blocco attivo)\)' -and $greenMaintenance.Contains('SYS13')) 'greenfield: la composizione maintenance rimanda a SYS13'
     Put-Workflow $recordFile (ConvertTo-SBJson @{schemaVersion=1;identity='github.com/test/repo';lifecycle='altro'})
     Reject-Workflow {Get-SBWorkflowContext -Config $config -RepositoryPath $repo} 'greenfield: valore di lifecycle sconosciuto rifiutato'
     Put-Workflow $recordFile $recordOriginal
@@ -394,9 +394,9 @@ try {
         if(!$section -or $section -notmatch '(?m)^- '){$decisionIssues+=$code}
     }
     Assert-Workflow ($decisionIssues.Count -eq 0) ('sezione Decisioni da raccogliere con elenco di decisioni nei prompt con scelte (la regola Function Calling / Tool Use è nel compositore)'+$(if($decisionIssues.Count){': '+($decisionIssues -join ', ')}))
-    $handoff=Read-SBWorkflowPrompt $brain (@($catalog.prompts|Where-Object code -ceq 'MEM03')[0]) $catalog
+    $handoff=Read-SBWorkflowPrompt $brain (@($catalog.prompts|Where-Object code -ceq 'MEM03')[0]) $catalog 'it'
     Assert-Workflow ($handoff -match 'context\.md' -and $handoff -match 'memory\.md' -and $handoff -match 'tracker' -and $handoff -match 'Sync e Check' -and $handoff -match 'commit e push' -and $handoff -match 'niente force push' -and $handoff -match 'sessione') 'MEM03 copre memorie, tracker, handoff, Sync/Check e richiesta esplicita di commit e push'
-    $sys11=Read-SBWorkflowPrompt $brain (@($catalog.prompts|Where-Object code -ceq 'SYS11')[0]) $catalog
+    $sys11=Read-SBWorkflowPrompt $brain (@($catalog.prompts|Where-Object code -ceq 'SYS11')[0]) $catalog 'it'
     Assert-Workflow ($sys11 -match '\*\*Aggiungi\.\*\*' -and $sys11 -match '\*\*Modifica\.\*\*' -and $sys11 -match '\*\*Rimuovi\.\*\*' -and $sys11 -match 'build-prompts\.ps1' -and $sys11 -match 'supersededBy' -and $sys11 -match 'deprecations') 'SYS11 descrive aggiunta, modifica e ritiro con indice generato e sostituto'
     $decisionCard=Join-Path $brain 'direttive/prompts/SYS11.md';$decisionOriginal=Read-SBText $decisionCard
     Put-Workflow $decisionCard ($decisionOriginal+"`n## Decisioni da raccogliere`n`nduplicata`n")
@@ -446,7 +446,7 @@ try {
     $afterAdd=Read-SBWorkflowCatalog $brain -ValidateBodies
     Assert-Workflow ($afterAdd.prompts.Count -eq 82 -and (Resolve-SBWorkflowPrompt $afterAdd 'SYS98').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterAdd $newId).via -eq 'id') 'caso d uso: aggiunta di un prompt con ID nuovo risolvibile per codice e ID'
     $driftAdd=@(Get-SBWorkflowDrift $brain)
-    Assert-Workflow ($driftAdd.Count -eq 2 -and @($driftAdd|Where-Object {$_.path -notmatch 'README\.maintenance(\.it)?\.md$'}).Count -eq 0 -and (Format-SBWorkflowList $afterAdd -Pack maintenance) -match 'SYS98 \| Prova uso aggiunta prompt\.' -and (Format-SBWorkflowList $afterAdd) -notmatch 'SYS98') 'caso d uso: un prompt di manutenzione compare nell elenco maintenance e non altera l indice core'
+    Assert-Workflow ($driftAdd.Count -eq 2 -and @($driftAdd|Where-Object {$_.path -notmatch 'README\.maintenance(\.it)?\.md$'}).Count -eq 0 -and (Format-SBWorkflowList $afterAdd -Pack maintenance) -match 'SYS98 \| (Prova uso aggiunta prompt|Test adding a prompt)\.' -and (Format-SBWorkflowList $afterAdd) -notmatch 'SYS98') 'caso d uso: un prompt di manutenzione compare nell elenco maintenance e non altera l indice core'
     $dupId=(ConvertTo-SBJson $added)|ConvertFrom-Json -AsHashtable;$dupId.prompts[-1].id=$sys11e.id
     Put-Workflow $catalogPath (ConvertTo-SBJson $dupId)
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'caso d uso: aggiunta con ID duplicato rifiutata'
@@ -463,7 +463,7 @@ try {
     $modified.prompts[-1].summary='Prova uso modifica prompt.';$modified.prompts[-1].i18n.en.summary='Test changing a prompt.';$modified.prompts[-1].aliases=@('ZZZ12')
     Put-Workflow $catalogPath (ConvertTo-SBJson $modified)
     $afterModify=Read-SBWorkflowCatalog $brain -ValidateBodies
-    Assert-Workflow ((Resolve-SBWorkflowPrompt $afterModify 'ZZZ12').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterModify 'SYS98').prompt.id -ceq $newId -and (Format-SBWorkflowList $afterModify -Pack maintenance) -match 'SYS98 \| Prova uso modifica prompt\.') 'caso d uso: modifica mantiene l ID e aggiunge un alias risolvibile'
+    Assert-Workflow ((Resolve-SBWorkflowPrompt $afterModify 'ZZZ12').prompt.id -ceq $newId -and (Resolve-SBWorkflowPrompt $afterModify 'SYS98').prompt.id -ceq $newId -and (Format-SBWorkflowList $afterModify -Pack maintenance) -match 'SYS98 \| (Prova uso modifica prompt|Test changing a prompt)\.') 'caso d uso: modifica mantiene l ID e aggiunge un alias risolvibile'
     $removed=(ConvertTo-SBJson $modified)|ConvertFrom-Json -AsHashtable
     $removed.prompts[-1].status='deprecated'
     Put-Workflow $catalogPath (ConvertTo-SBJson $removed)
@@ -476,7 +476,9 @@ try {
     Remove-Item -LiteralPath $newCard -Force;Remove-Item -LiteralPath $newCardEn -Force
     Assert-Workflow ((Read-SBWorkflowCatalog $brain -ValidateBodies).prompts.Count -eq 81 -and @(Get-SBWorkflowDrift $brain).Count -eq 0) 'caso d uso: catalogo fixture ripristinato e allineato'
     $proposalText=Read-SBText (Join-Path $PSScriptRoot '../direttive/workstation.template.md')
-    Assert-Workflow (($cardLabels|Where-Object {$_ -notin @('SCHEDA PROMPT','ID: pmt-')}|Where-Object {!$proposalText.Contains($_.TrimEnd(' ',':'))}).Count -eq 0 -and $proposalText.Contains('ID') -and $proposalText -match 'Function Calling / Tool Use a scelta multipla' -and $proposalText -match 'fermati') 'direttive: elencano i campi della scheda e la regola tool-use'
+    $previousWorkflowLanguage=Get-SBWorkflowLanguageOverride
+    try { Set-SBWorkflowLanguage 'it'; $directiveCardLabels=Get-CardLabels (Get-SBWorkflowText @{pack='maintenance'}) } finally { Set-SBWorkflowLanguage $previousWorkflowLanguage }
+    Assert-Workflow (($directiveCardLabels|Where-Object {$_ -notin @('SCHEDA PROMPT','ID: pmt-')}|Where-Object {!$proposalText.Contains($_.TrimEnd(' ',':'))}).Count -eq 0 -and $proposalText.Contains('ID') -and $proposalText -match 'Function Calling / Tool Use a scelta multipla' -and $proposalText -match 'fermati') 'direttive: elencano i campi della scheda e la regola tool-use'
     $costarCatalog=Read-SBWorkflowCatalog $brain -ValidateBodies
     $costarContext=@{repositories=@(@{identity='github.com/test/repo';checkout=$brain;agents='AGENTS.md';context='context.md';memory='memory.md';tracker=$null;trackerSource=$null;sourceApplicability=$null});sourceRegistry=$null;project=$null}
     $costarBad=@($costarCatalog.prompts|Where-Object {
