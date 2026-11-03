@@ -26,7 +26,7 @@ Leggi questa pagina prima di lanciare gli script. SecondBrain non installa softw
 | `publication.ps1 -InstallHook -Apply` / `-UninstallHook -Apply` | `.git/hooks/pre-push` (o `core.hooksPath`); la rimozione rifiuta hook non creati da SecondBrain | No | Senza `-Apply` |
 | `cleanup.ps1`, `recover.ps1` | No | Solo dentro `.runtime` | Senza `-Apply` |
 | `backup.ps1` | Solo con `-OutputPath` | Zip in `backupRoot` | No |
-| `work.ps1 -Run` | Esegue il programma che indichi | Cartelle sotto `.runtime` | Senza `-Run` stampa il piano |
+| `work.ps1 -Run` | Esegue il programma che indichi | Cartelle sotto `.runtime` (con `-Category` e `-Slug`: `hosts/<id>/repos/<repo>/<categoria>/<data>-<slug>` e area `temp`) | Senza `-Run` stampa il piano |
 
 File MCP scritti da `-Pair -Apply` (solo per i target scelti; con `-Target all` sono tutti):
 
@@ -62,7 +62,7 @@ Ogni file esistente **fuori da Git** (dossier, file degli IDE, configurazione MC
 
 **Git salva i file tracciati.** SecondBrain non sostituisce Git: se il file è tracciato e senza modifiche, la scrittura non crea `.bin` e registra commit e blob (`.git.json`); recuperi il contenuto precedente con `git show <gitCommit>:<percorso>` o `git checkout`. Se il file tracciato ha modifiche non committate, la scrittura **si ferma** con un messaggio: committa o metti da parte (`git stash`) le modifiche e ripeti (in `-Sync` il blocco risulta `conflict` con lo stesso avviso). I file rigenerati da SecondBrain stesso (`build-prompts.ps1`, `approve-revision.ps1`, `restore-managed.ps1`, `rollback-repo.ps1`) mantengono il `.bin` anche se sporchi. I `.bin` già esistenti di file oggi tracciati e puliti compaiono come proposta in `cleanup.ps1 -ProposeRuntime`; non vengono rimossi.
 
-`backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip. Esempi: `backup.ps1` (archivio di `01-projects`, `02-areas`, `03-resources`, `04-archives`, `PARA.md`, `para-index.json` e `.runtime/hosts`), `backup.ps1 -OutputPath D:/Backups/SecondBrain/backup.zip` per un percorso scelto, `backup.ps1 -Verify` (ultimo archivio in `.runtime/backups/`) e `backup.ps1 -Verify -BackupPath <zip>` per uno specifico.
+`backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Con il nome predefinito `secondbrain-backup-<data>-<ora>.zip` un archivio esistente non viene mai sovrascritto: due backup nello stesso secondo ricevono il suffisso `-2`, `-3`, … (con `-OutputPath` esplicito il file indicato viene rimpiazzato). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip. Esempi: `backup.ps1` (archivio di `01-projects`, `02-areas`, `03-resources`, `04-archives`, `PARA.md`, `para-index.json` e `.runtime/hosts`), `backup.ps1 -OutputPath D:/Backups/SecondBrain/backup.zip` per un percorso scelto, `backup.ps1 -Verify` (ultimo archivio in `.runtime/backups/`) e `backup.ps1 -Verify -BackupPath <zip>` per uno specifico.
 
 ## Ripristinare un file
 

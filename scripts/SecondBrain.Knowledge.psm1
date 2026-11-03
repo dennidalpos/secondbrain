@@ -6,6 +6,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'knowledge.tracker.data' = @{ it = 'Tracker data non disponibile'; en = 'Tracker data not available' }
     'knowledge.paging.invalid' = @{ it = 'Offset e Limit devono essere interi non negativi'; en = 'Offset and Limit must be non-negative integers' }
     'knowledge.record.missing' = @{ it = 'repository.json assente'; en = 'repository.json missing' }
     'knowledge.dossier.invalid' = @{ it = 'Dossier non valido'; en = 'Invalid dossier' }
@@ -276,7 +277,7 @@ function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$Al
         try{
             $tr=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $area.repository -AllowedOwners @() -DossierPath $dossier -Entities $entities
             $trData=if($tr.ContainsKey('data')){$tr.data}else{$null}
-            if(!$trData){@{repository=$area.repository;status='unverified';reason='Tracker data non disponibile';scope=$scope};continue}
+            if(!$trData){@{repository=$area.repository;status='unverified';reasonCode='tracker-unavailable';reason=(Get-SBMessage 'knowledge.tracker.data');scope=$scope};continue}
             $rel=if($tr.ContainsKey('related') -and $tr.related){$tr.related}else{@{}}
             foreach($task in @(Get-SBTaskProjection $trData -ReadyOnly:$ReadyOnly -RelatedTrackers $rel)){
                 $task.repository=$area.repository

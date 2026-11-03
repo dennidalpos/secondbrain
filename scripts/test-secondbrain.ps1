@@ -3,7 +3,7 @@
 # -Only <chiave> esegue una sola sub-suite; -KeepFixtures (o SECONDBRAIN_TEST_KEEP=1) conserva le fixture anche dopo un esito verde;
 # SECONDBRAIN_TEST_TIMING=1 esegue in sequenza e stampa le sezioni piu lente.
 [CmdletBinding()]
-param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
+param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
 $script:Full = [bool]$Full
 $script:Quick = [bool]$Quick
 $script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
@@ -19,6 +19,7 @@ function Assert($Condition,[string]$Message){
     if($script:Full){Write-Output "PASS: $Message"}
 }
 $script:laps = [Collections.Generic.List[object]]::new()
+$script:suiteResults = [Collections.Generic.List[object]]::new()
 # Sub-suite: chiave, titolo, file. Le prime cinque hanno fixture proprie e partono insieme in Fast (le piu lente per prime).
 $script:SubSuites = @(
     @{ Key='portable';       File='test-secondbrain-portable.ps1';       Name='Portabile: discovery, attivazione, compattazione, pubblicazione e asset' }
@@ -26,14 +27,15 @@ $script:SubSuites = @(
     @{ Key='workflows';      File='test-secondbrain-workflows.ps1';      Name='Workflow: catalogo, contesto Git/PARA, composizione e output' }
     @{ Key='audit2';         File='test-secondbrain-audit2.ps1';         Name='Audit2: rimozione protetta, Markdown, provenienza e recupero' }
     @{ Key='trace';          File='test-secondbrain-trace.ps1';          Name='Traccia di fine turno: evento, hook Stop e avviso di compattazione' }
-    @{ Key='sources';        File='test-secondbrain-sources.ps1';        Name='Fonti: registro, sicurezza, acquisizione, confronto e conversione' }
+    @{ Key='concurrency';    File='test-secondbrain-concurrency.ps1';    Name='Concorrenza: scritture simultanee, coda, transazioni, backup e casi limite' }
+    @{ Key='sources';        File='test-secondbrain-sources.ps1';       Name='Fonti: registro, sicurezza, acquisizione, confronto e conversione' }
     @{ Key='external-audit'; File='test-secondbrain-external-audit.ps1'; Name='Audit esterno: paginazione, copertura, errori e protezione dei contenuti' }
     @{ Key='quick';          File='test-secondbrain-quick.ps1';          Name='Quick: controlli puri su identita, JSON, versione, catalogo e messaggi' }
 )
 function Get-SubSuiteKeys {
     if ($Only) { return @($Only) }
     if ($script:Quick) { return @('quick','sources','external-audit') }
-    @('portable','trackers','workflows','audit2','trace','sources','external-audit')
+    @('portable','trackers','workflows','audit2','trace','concurrency','sources','external-audit')
 }
 function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
 function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
@@ -45,6 +47,7 @@ function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
     $summary = @($Output | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^(?:SUCCESS|PASS:)\s*' })
     $line = if ($summary.Count) { $summary[-1] } else { "SUCCESS $($Suite.Name): verifiche superate (exit code 0)" }
     Write-Output ($line + ' [' + $Suite.Key + ', ' + (Format-Seconds $Seconds) + ']')
+    $script:suiteResults.Add([ordered]@{ key = $Suite.Key; name = $Suite.Name; seconds = [Math]::Round($Seconds, 1); result = $line })
     $script:passed++
 }
 function Invoke-SubSuiteTimed($Suite) {
@@ -193,10 +196,30 @@ try {
     $runtimeIndex=Get-SBRuntimeIndex $pruneRoot @() 90
     $categoryOf=@{};foreach($entry in $runtimeIndex.entries){$categoryOf[$entry.name]=$entry.category}
     Assert ($categoryOf['work-20261102-prova'] -eq 'working' -and $categoryOf['evidence-20261102-prova'] -eq 'evidence' -and $categoryOf['report-20261102-prova'] -eq 'evidence' -and $categoryOf['trace'] -eq 'evidence' -and $categoryOf['t77'] -eq 'working') 'indice .runtime: i prefissi della convenzione e trace sono classificati'
-    $indexRows=@($runtimeIndex.markdown -split "`n"|Where-Object {$_ -match '^\| `'})
+    # Tabella principale: le righe prima della prima sezione "##" (livelli annidati e legacy hanno tabelle proprie).
+    $indexRows=@((($runtimeIndex.markdown -split "`n## ")[0]) -split "`n"|Where-Object {$_ -match '^\| `'})
     $categoryRank=@{protected=0;evidence=1;backup=2;working=3;regenerable=4};$ranks=@($indexRows|ForEach-Object {$categoryRank[(($_ -split '\|')[2]).Trim()]})
     Assert ($indexRows.Count -eq @($runtimeIndex.entries).Count -and (@($ranks|Sort-Object) -join ',') -eq ($ranks -join ',') -and $runtimeIndex.markdown -match 'nome conforme') 'indice .runtime: righe ordinate per categoria e nomi conformi segnalati'
     Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($runtimeBefore -join '|')) 'indice .runtime: sola lettura, nessun file creato o rimosso'
+    foreach($nestedCase in @('hosts/h1/repos/prova-1234abcd/work/20261103-uno','hosts/h1/repos/prova-1234abcd/evidence/20261103-due','hosts/h1/repos/prova-1234abcd/temp','hosts/h1/repositories/abc/root/default')){$caseDir=Join-Path $pruneRoot (Join-Path '.runtime' $nestedCase);[IO.Directory]::CreateDirectory($caseDir)|Out-Null;[IO.File]::WriteAllText((Join-Path $caseDir 'x.txt'),'x')}
+    $nestedBefore=@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object)
+    $nestedIndex=Get-SBRuntimeIndex $pruneRoot @() 90
+    $nestedCategory=@{};foreach($item in $nestedIndex.nested){$nestedCategory[$item.path]=$item.category}
+    Assert (@($nestedIndex.nested).Count -eq 3 -and $nestedCategory['hosts/h1/repos/prova-1234abcd/work/20261103-uno'] -eq 'working' -and $nestedCategory['hosts/h1/repos/prova-1234abcd/evidence/20261103-due'] -eq 'evidence' -and $nestedCategory['hosts/h1/repos/prova-1234abcd/temp'] -eq 'working') 'indice .runtime: livelli annidati hosts/<id>/repos letti e classificati'
+    $legacyPaths=@($nestedIndex.legacy|ForEach-Object path)
+    Assert (($legacyPaths -contains 't77/') -and ($legacyPaths -contains 'work-20261102-prova/') -and ($legacyPaths -contains 'hosts/h1/repositories/abc/root/default/') -and !($legacyPaths -contains 'trace/') -and !($legacyPaths -contains 'hosts/') -and $nestedIndex.markdown -match 'Cartelle legacy' -and $nestedIndex.markdown -match 'Livelli annidati') 'indice .runtime: cartelle legacy e annidate segnalate, trace e hosts esclusi'
+    $legacyFlat=@($nestedIndex.legacy|Where-Object {$_.path -eq 'work-20261102-prova/'})[0]
+    Assert ($legacyFlat.suggestedPath -eq 'hosts/<id>/repos/<repo>/work/20261102-prova' -and $legacyFlat.action -match 'non eseguito') 'legacy: destinazione proposta nel nuovo layout, senza spostamento'
+    $nestedProposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
+    Assert (@($nestedProposal.legacy).Count -eq @($nestedIndex.legacy).Count -and @($nestedProposal.candidates|Where-Object {$_.path -like 'hosts/h1/repos/*'}).Count -eq 0) 'proposta .runtime: legacy elencate, nessuna cartella annidata recente proposta'
+    Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($nestedBefore -join '|') -and (Test-Path (Join-Path $pruneRoot '.runtime/work-20261102-prova/x.txt'))) 'layout annidato e legacy: sola lettura, nessuno spostamento'
+    # Report con codice stabile e testo nella lingua scelta: il codice non cambia con SECONDBRAIN_LANG.
+    $previousLang=$env:SECONDBRAIN_LANG
+    try{
+        $env:SECONDBRAIN_LANG='en';$retentionEn=@((Get-SBRuntimeRetention $pruneRoot @() 90).entries|Where-Object name -eq 'hosts')[0]
+        $env:SECONDBRAIN_LANG='it';$retentionIt=@((Get-SBRuntimeRetention $pruneRoot @() 90).entries|Where-Object name -eq 'hosts')[0]
+    }finally{$env:SECONDBRAIN_LANG=$previousLang}
+    Assert ($retentionEn.protectedReasonCode -ceq 'runtime-hosts' -and $retentionIt.protectedReasonCode -ceq 'runtime-hosts' -and $retentionEn.protectedReason -ceq 'workstation configuration and backups' -and $retentionIt.protectedReason -ceq 'configurazione e backup delle postazioni') 'report .runtime: protectedReasonCode stabile, protectedReason in it e en'
     $state=@{}
     Assert ((Set-SBManagedContent $path 'regola' 'test' $state $true $backup) -eq 'pending') 'Check rileva blocco mancante'
     Assert ((Get-SBFileHash $path) -eq $hash -and $state.Count -eq 0) 'Check senza scritture o adozione'
@@ -255,8 +278,18 @@ try {
     "SUCCESS: $script:passed verifiche in $(Format-Seconds $runWatch.Elapsed.TotalSeconds) [$($script:Level)]; nessun accesso a dati applicativi o remote di rete."
 } finally {
     $env:SECONDBRAIN_TEST_ROOT = $savedTestRoot
+    $fixturesRemoved = $false
     if ($success -and !$keepFixtures) {
-        if (Remove-TestRun $runDirectory $testBase) { Write-Output 'Fixture di questa esecuzione rimosse (esito verde; -KeepFixtures le conserva).' }
+        if (Remove-TestRun $runDirectory $testBase) { $fixturesRemoved = $true; Write-Output 'Fixture di questa esecuzione rimosse (esito verde; -KeepFixtures le conserva).' }
         else { Write-Output ('Fixture conservata: '+$runDirectory) }
     } else { Write-Output ('Fixture conservata: '+$runDirectory) }
+    # esito.json: riepilogo dell'esecuzione (durate, verifiche, stato delle fixture) accanto alla radice dei test, quindi sopravvive alla rimozione di run-<id>.
+    try {
+        $detail = Join-Path $testBase 'esito-concurrency.json'
+        $esito = [ordered]@{ schemaVersion = 1; level = $script:Level; observedAt = [DateTimeOffset]::UtcNow.ToString('o'); durationSeconds = [Math]::Round($runWatch.Elapsed.TotalSeconds, 1)
+            status = $(if ($success) { 'passed' } else { 'failed' }); checks = $script:passed
+            fixtures = [ordered]@{ run = (Split-Path $runDirectory -Leaf); removed = $fixturesRemoved; kept = !$fixturesRemoved; keepRequested = [bool]$keepFixtures }
+            suites = @($script:suiteResults); details = @($(if ((Test-Path -LiteralPath $detail -PathType Leaf) -and (Get-Item -LiteralPath $detail).LastWriteTimeUtc -ge [DateTime]::UtcNow.AddSeconds(-$runWatch.Elapsed.TotalSeconds - 5)) { 'esito-concurrency.json' })) }
+        [IO.File]::WriteAllText((Join-Path $testBase 'esito.json'), (ConvertTo-SBJson $esito), [Text.UTF8Encoding]::new($false))
+    } catch { Write-Warning ('esito.json non scritto: ' + $_.Exception.Message) }
 }

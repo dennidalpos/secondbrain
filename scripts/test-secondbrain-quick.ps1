@@ -55,6 +55,16 @@ try {
             }
         }
     }
+    # Write-Host/-Warning/-Error: nessun testo letterale, salvo righe di soli dati interpolati e lo script generato per il pacchetto MCP.
+    $literalOutputs=@()
+    foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Include '*.ps1','*.psm1' -File|Where-Object {$_.Name -notlike 'test-*' -and $_.Name -ne 'check-distribution.ps1'}){
+        foreach($m in [regex]::Matches((Read-SBText $file.FullName),"Write-(?:Host|Warning|Error)\s+(['""])([^\r\n]*)")){
+            $text=$m.Groups[2].Value
+            if($text -match '^(  • \$f|`n\[\$\(\$item\.Target\.ToUpper\(\)\)\] |Applicazione configurazione MCP SecondBrain)'){continue}
+            $literalOutputs+=($file.Name+': '+$text.Substring(0,[Math]::Min(50,$text.Length)))
+        }
+    }
+    Assert-Quick (!$literalOutputs.Count) ('nessun Write-Host/Warning/Error con testo letterale'+$(if($literalOutputs.Count){': '+(($literalOutputs|Select-Object -First 5) -join '; ')}))
     Assert-Quick (!$literalThrows.Count) ('nessun throw con testo letterale nei moduli e negli script'+$(if($literalThrows.Count){': '+(($literalThrows|Select-Object -First 5) -join '; ')}))
     Assert-Quick (!$scriptGaps.Count) ('ogni chiave usata dagli script ha testo it e en nello script'+$(if($scriptGaps.Count){': '+(($scriptGaps|Select-Object -Unique -First 5) -join '; ')}))
     $env:SECONDBRAIN_LANG='it';$itPara=Get-SBMessage 'para.status.invalid'

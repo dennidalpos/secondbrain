@@ -44,6 +44,21 @@ Add-SBMessages @{
     'rollback.self.repository' = @{ it = 'Rollback rifiutato: ''{0}'' e il repository di SecondBrain stesso.'; en = 'Rollback refused: ''{0}'' is the SecondBrain repository itself.' }
     'rollback.checkout.missing' = @{ it = 'Checkout di destinazione non trovato per {0} (specificare -DestinationPath o usare -Force se il checkout locale e rimosso).'; en = 'Destination checkout not found for {0} (give -DestinationPath or use -Force if the local checkout is removed).' }
     'rollback.self.checkout' = @{ it = 'Rollback rifiutato: il checkout di destinazione e SecondBrain stesso.'; en = 'Rollback refused: the destination checkout is SecondBrain itself.' }
+    'rollback.out.start' = @{ it = 'Inizio Rollback Privacy per: {0}'; en = 'Starting privacy rollback for: {0}' }
+    'rollback.out.source' = @{ it = '  Dossier sorgente: {0}'; en = '  Source dossier: {0}' }
+    'rollback.out.target' = @{ it = '  Checkout target : {0}'; en = '  Target checkout : {0}' }
+    'rollback.out.preview' = @{ it = 'Anteprima: nessuna modifica. Rilanciare con -Apply per restituire i dati, aggiornare la postazione ed eliminare il dossier.'; en = 'Preview: no changes made. Re-run with -Apply to return the data, update the workstation and delete the dossier.' }
+    'rollback.out.copied' = @{ it = '  Copiati {0} file del dossier -> .secondbrain/ (hash verificati)'; en = '  Copied {0} dossier files -> .secondbrain/ (hashes verified)' }
+    'rollback.out.excluded' = @{ it = '  Aggiunto .secondbrain/ a .git/info/exclude'; en = '  Added .secondbrain/ to .git/info/exclude' }
+    'rollback.out.nocheckout' = @{ it = 'Checkout assente: dossier salvato in {0} (nessun trasferimento nel repository).'; en = 'Checkout missing: dossier saved in {0} (nothing transferred to the repository).' }
+    'rollback.out.forbidden' = @{ it = '  Aggiunto a forbiddenRepositories: {0}'; en = '  Added to forbiddenRepositories: {0}' }
+    'rollback.out.workstation' = @{ it = '  Aggiornato workstation.json'; en = '  Updated workstation.json' }
+    'rollback.out.state' = @{ it = '  Rimosso managed state per {0}'; en = '  Removed managed state for {0}' }
+    'rollback.out.block' = @{ it = '  Rimosso blocco gestito SecondBrain da {0}'; en = '  Removed SecondBrain managed block from {0}' }
+    'rollback.out.dossier' = @{ it = '  Eliminato dossier: {0}'; en = '  Deleted dossier: {0}' }
+    'rollback.out.runtime' = @{ it = '  Eliminata directory runtime: {0}'; en = '  Deleted runtime directory: {0}' }
+    'rollback.out.index' = @{ it = '  Aggiornato para-index.json e PARA.md'; en = '  Updated para-index.json and PARA.md' }
+    'rollback.out.done' = @{ it = 'Rollback completato con successo per {0}.'; en = 'Rollback completed successfully for {0}.' }
 }
 
 function ConvertTo-RollbackPath([string]$Path) { [IO.Path]::GetFullPath($Path).TrimEnd('\','/') }
@@ -141,12 +156,12 @@ try {
         throw (New-SBError 'rollback.self.checkout')
     }
 
-    Write-Host "Inizio Rollback Privacy per: $resolvedIdentity" -ForegroundColor Cyan
-    Write-Host "  Dossier sorgente: $dossierPath"
-    Write-Host "  Checkout target : $checkoutPath"
+    Write-Host (Get-SBMessage 'rollback.out.start' @($resolvedIdentity)) -ForegroundColor Cyan
+    Write-Host (Get-SBMessage 'rollback.out.source' @($dossierPath))
+    Write-Host (Get-SBMessage 'rollback.out.target' @($checkoutPath))
 
     if (!$Apply) {
-        Write-Host 'Anteprima: nessuna modifica. Rilanciare con -Apply per restituire i dati, aggiornare la postazione ed eliminare il dossier.' -ForegroundColor Yellow
+        Write-Host (Get-SBMessage 'rollback.out.preview') -ForegroundColor Yellow
         return @{ identity = $resolvedIdentity; checkout = $checkoutPath; dossierDeleted = $null; forbidden = [bool]$Forbid; status = 'preview' }
     }
     if (!$PSCmdlet.ShouldProcess($dossierPath, 'Rollback: restituzione dei dati, aggiornamento postazione ed eliminazione del dossier SecondBrain')) {
@@ -158,7 +173,7 @@ try {
     $backupPath = $null
     if ($hasCheckout) {
         $transferred = Copy-RollbackTree $dossierPath (Join-Path $checkoutPath '.secondbrain')
-        Write-Host "  Copiati $transferred file del dossier -> .secondbrain/ (hash verificati)" -ForegroundColor Green
+        Write-Host (Get-SBMessage 'rollback.out.copied' @($transferred)) -ForegroundColor Green
         $gitDir = Join-Path $checkoutPath '.git'
         if (Test-Path -LiteralPath $gitDir) {
             $excludeFile = Join-Path $gitDir 'info/exclude'
@@ -166,14 +181,14 @@ try {
                 $excludeContent = [IO.File]::ReadAllText($excludeFile)
                 if ($excludeContent -notmatch '(?m)^\.secondbrain/?$') {
                     [IO.File]::AppendAllText($excludeFile, "`n.secondbrain/`n", [Text.Encoding]::UTF8)
-                    Write-Host '  Aggiunto .secondbrain/ a .git/info/exclude' -ForegroundColor Green
+                    Write-Host (Get-SBMessage 'rollback.out.excluded') -ForegroundColor Green
                 }
             }
         }
     } else {
         $backupPath = Join-Path $config.backupRoot ('rollback-' + [guid]::NewGuid().ToString('N'))
         $transferred = Copy-RollbackTree $dossierPath (Join-Path $backupPath 'dossier')
-        Write-Warning "Checkout assente: dossier salvato in $backupPath (nessun trasferimento nel repository)."
+        Write-Warning (Get-SBMessage 'rollback.out.nocheckout' @($backupPath))
     }
 
     # 4. workstation.json e state.json prima di qualunque eliminazione: un errore qui lascia il dossier intatto.
@@ -193,12 +208,12 @@ try {
                 reason = 'user-requested-rollback'
                 forbiddenAt = [DateTimeOffset]::UtcNow.ToString('o')
             }
-            Write-Host "  Aggiunto a forbiddenRepositories: $resolvedIdentity" -ForegroundColor Magenta
+            Write-Host (Get-SBMessage 'rollback.out.forbidden' @($resolvedIdentity)) -ForegroundColor Magenta
         }
     }
     $workstationConfig.forbiddenRepositories = $forbidden
     Write-SBFile $workstationConfigPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $workstationConfig))) (Get-SBFileHash $workstationConfigPath) $config.backupRoot | Out-Null
-    Write-Host '  Aggiornato workstation.json' -ForegroundColor Green
+    Write-Host (Get-SBMessage 'rollback.out.workstation') -ForegroundColor Green
 
     $statePath = Join-Path $workstationConfig.runtimeRoot 'state.json'
     if ($checkoutPath -and (Test-Path -LiteralPath $statePath)) {
@@ -207,7 +222,7 @@ try {
         if ($state.managed.ContainsKey($key)) {
             $state.managed.Remove($key)
             Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $config.backupRoot | Out-Null
-            Write-Host "  Rimosso managed state per $key" -ForegroundColor Green
+            Write-Host (Get-SBMessage 'rollback.out.state' @($key)) -ForegroundColor Green
         }
     }
 
@@ -221,27 +236,27 @@ try {
                 $newContent = ($content -replace $pattern, "`n").Trim() + "`n"
                 # Scrittura con controllo hash e backup verificato (ripristinabile con restore-managed.ps1).
                 Write-SBFile $agentsPath ([Text.UTF8Encoding]::new($false).GetBytes($newContent)) (Get-SBFileHash $agentsPath) $config.backupRoot -BackupDirty | Out-Null
-                Write-Host "  Rimosso blocco gestito SecondBrain da $agentsPath" -ForegroundColor Green
+                Write-Host (Get-SBMessage 'rollback.out.block' @($agentsPath)) -ForegroundColor Green
             }
         }
     }
 
     # 6. Eliminazioni (dopo trasferimento e aggiornamento della postazione)
     Remove-Item -LiteralPath $dossierPath -Recurse -Force
-    Write-Host "  Eliminato dossier: $dossierPath" -ForegroundColor Yellow
+    Write-Host (Get-SBMessage 'rollback.out.dossier' @($dossierPath)) -ForegroundColor Yellow
     if ($resolvedIdentity) {
         $repoRuntimeDir = Join-Path $workstationConfig.runtimeRoot ('repositories/' + (Get-SBTextHash $resolvedIdentity).Substring(0,24).ToLowerInvariant())
         if (Test-Path -LiteralPath $repoRuntimeDir) {
             Remove-Item -LiteralPath $repoRuntimeDir -Recurse -Force
-            Write-Host "  Eliminata directory runtime: $repoRuntimeDir" -ForegroundColor Yellow
+            Write-Host (Get-SBMessage 'rollback.out.runtime' @($repoRuntimeDir)) -ForegroundColor Yellow
         }
     }
 
     # 7. Rigenera para-index.json e PARA.md
     Update-SBParaIndex $config | Out-Null
-    Write-Host '  Aggiornato para-index.json e PARA.md' -ForegroundColor Green
+    Write-Host (Get-SBMessage 'rollback.out.index') -ForegroundColor Green
 
-    Write-Host "Rollback completato con successo per $resolvedIdentity." -ForegroundColor Green
+    Write-Host (Get-SBMessage 'rollback.out.done' @($resolvedIdentity)) -ForegroundColor Green
     return @{
         identity = $resolvedIdentity
         checkout = $checkoutPath

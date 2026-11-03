@@ -12,7 +12,7 @@
 | `regenerable` | `tests/` (fixture delle suite), `mcp-handshake/`, `hosts/<id>/sources/python` | Sì | `tests/`: rieseguendo le suite `test-secondbrain*.ps1`; handshake: rieseguendo il test; `sources/python`: lo ricrea `sources.ps1` |
 | `evidence` | `cleanup/` (registro delle pulizie), `trace/` (turni di fine prompt, solo metadati), `captures/` (originali degli screenshot), `publication/` (policy e baseline SEC07), `directives-activation/` | Con cautela | Non si rigenerano identiche: servono come prova o provenienza |
 | `backup` | `backups/` e `workstations/<id di origine>/` (host precedenti), `backup/mcp-pairing/` | Con cautela, solo con manifest | Sono i recuperi dei file che SecondBrain ha sostituito |
-| `working` | `operations/`, `q201/`, `t<numero>/`, `lotto-*`, `classify-*`, `compaction*/`, file sciolti e ogni cartella creata da un agent senza prefisso | Dopo verifica | Lavoro temporaneo: controlla riferimenti e proprietà; nessun codice le legge |
+| `working` | `hosts/<id>/repos/<repo>/{work,fixture,tmp,temp}/` (layout annidato), `operations/`, `q201/`, `t<numero>/`, `lotto-*`, `classify-*`, `compaction*/`, file sciolti e ogni cartella creata da un agent senza prefisso | Dopo verifica | Lavoro temporaneo: controlla riferimenti e proprietà; nessun codice le legge |
 
 Dentro `hosts/<id>/`: `workstation.json`, `state.json`, `inventory.json`, `ide-map.json`, `istruzioni-globali.md` non si cancellano; `backups/` contiene gli originali (`<guid>.bin` e `.bin.json`) e i record `.stage`; `sources/` contiene l'ambiente Python (rigenerabile) e i rapporti.
 
@@ -27,7 +27,9 @@ pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport
 pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport -ReportPath .runtime/INDEX.md
 ```
 
-**Nomi delle nuove cartelle degli agent**: `<categoria>-<yyyyMMdd>-<slug>` con categoria `work` (lavoro temporaneo), `evidence` (prove), `report` (rapporti), `fixture` o `tmp`. Il prefisso ordina le cartelle in Esplora risorse e il report le classifica senza ambiguità; l'indice segnala i nomi conformi. Le cartelle esistenti non vengono rinominate né spostate.
+**Layout delle nuove cartelle degli agent**: `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work` (lavoro temporaneo), `evidence` (prove), `report` (rapporti), `fixture` o `tmp`. `<repo>` è l'ultimo segmento dell'identità del repository più 8 caratteri dell'hash (leggibile e senza collisioni tra proprietari); `<slug>` usa minuscole, cifre e trattini (al più 60 caratteri). TEMP e TMP del lavoro stanno nell'area `hosts/<id>/repos/<repo>/temp`. Il percorso si ottiene con `work.ps1 -Repository <identità> -Category work -Slug <slug>` (senza `-Run` stampa il piano e non crea cartelle) o con `Get-SBRuntimeWorkPath`; senza `-Category` e `-Slug` `work.ps1` mantiene il layout precedente `hosts/<id>/repositories/<hash>/<Project>/<Runtime>`.
+
+`cleanup.ps1 -RuntimeReport` aggiunge all'indice due sezioni in sola lettura: **Livelli annidati** (le cartelle sotto `hosts/<id>/repos`, con categoria e conformità del nome) e **Cartelle legacy**, cioè le cartelle di primo livello fuori dalle voci gestite (`work-<data>-<slug>`, `t77`, `lotto-*`, …) e `hosts/<id>/repositories/…`, ciascuna con la destinazione proposta nel nuovo layout. `<id>` e `<repo>` restano da risolvere a mano: nulla viene spostato, rinominato o rimosso, e lo spostamento è una decisione tua. La proposta di pulizia (`-ProposeRuntime`) elenca le stesse legacy e valuta le cartelle annidate di lavoro oltre soglia; le prove (`evidence`, `report`) non sono mai candidate.
 
 ## Routine di manutenzione (una volta al mese)
 
@@ -65,11 +67,11 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 | Comando | Cosa esegue | Quando |
 |---|---|---|
 | `-Quick` | Controlli puri (identità dei repository, JSON deterministico, VERSION e direttive, catalogo prompt, catalogo messaggi e throw con chiave), fonti, audit esterno, parser. Nessun Git né processo figlio per i controlli puri. | A ogni modifica |
-| *(predefinito, Fast)* | Tutto il Quick più le sub-suite con fixture (portable, workflows, tracker, audit2, traccia) in parallelo (al più 4 processi `pwsh`); stampa una riga per sub-suite con il tempo. | Prima del commit |
+| *(predefinito, Fast)* | Tutto il Quick più le sub-suite con fixture (portable, workflows, tracker, audit2, traccia, concorrenza) in parallelo (al più 4 processi `pwsh`); stampa una riga per sub-suite con il tempo. | Prima del commit |
 | `-Full` | Come Fast, ma in sequenza e con una riga per ogni verifica. | Prima di una pubblicazione |
-| `-Only <chiave>` | Una sola sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `sources`, `external-audit`, `quick`). | Per ripetere un fallimento |
+| `-Only <chiave>` | Una sola sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `sources`, `external-audit`, `quick`). | Per ripetere un fallimento |
 
-Ogni esecuzione lavora in `.runtime/tests/run-<id>`, sub-suite comprese. A esito **verde** quella directory (e solo quella) viene rimossa; a esito rosso resta, con le sue fixture, per l'analisi. `-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano anche in caso di successo. Le sub-suite lanciate da sole (`pwsh -File scripts/test-secondbrain-<nome>.ps1`) conservano la propria fixture, come prima. `SECONDBRAIN_TEST_TIMING=1` esegue in sequenza e stampa le 15 sezioni più lente. I `git init` delle fixture usano un template minimo (`GIT_TEMPLATE_DIR` impostato da `test-helpers.ps1`, solo `info/exclude`): niente hook di esempio, circa 250 file in meno per fixture.
+Ogni esecuzione lavora in `.runtime/tests/run-<id>`, sub-suite comprese. A esito **verde** quella directory (e solo quella) viene rimossa; a esito rosso resta, con le sue fixture, per l'analisi. `-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano anche in caso di successo. Le sub-suite lanciate da sole (`pwsh -File scripts/test-secondbrain-<nome>.ps1`) conservano la propria fixture, come prima; fa eccezione `test-secondbrain-concurrency.ps1`, che la rimuove da sé a esito verde (e la conserva a esito rosso o con `SECONDBRAIN_TEST_KEEP=1`). A fine esecuzione `test-secondbrain.ps1` scrive `esito.json` accanto alle cartelle `run-<id>` (livello, verifiche, durata, suite con tempi, fixture rimosse o conservate) e la sub-suite di concorrenza `esito-concurrency.json` (per ogni caso durata, verifiche, file e byte della fixture): restano dopo la rimozione di `run-<id>`. `SECONDBRAIN_TEST_TIMING=1` esegue in sequenza e stampa le 15 sezioni più lente. I `git init` delle fixture usano un template minimo (`GIT_TEMPLATE_DIR` impostato da `test-helpers.ps1`, solo `info/exclude`): niente hook di esempio, circa 250 file in meno per fixture.
 
 ## Contesto iniziale: cosa viene caricato e come ridurlo
 

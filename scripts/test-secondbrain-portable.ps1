@@ -1428,6 +1428,15 @@ public static bool Set(string name,bool enabled){
     $localWork=Join-Path $fixture 'local-work'
     $defaultWork=Get-SBWorkEnvironment $brain (Get-SBHostId) 'github.com/acme/repo'
     Assert-Portable ($defaultWork.location -eq 'brain-runtime' -and $defaultWork.root.StartsWith((Join-Path $brain '.runtime'))) 'ambiente di lavoro predefinito sotto .runtime'
+    $nestedWork=Get-SBWorkEnvironment -BrainRoot $brain -HostId (Get-SBHostId) -Repository 'github.com/acme/repo' -Category work -Slug 'prova-1' -Date ([datetime]'2026-11-03')
+    $repoSegment=Get-SBRuntimeRepoSegment 'github.com/acme/repo'
+    Assert-Portable ($nestedWork.layout -eq 'repos' -and $defaultWork.layout -eq 'repositories' -and $repoSegment -match '^repo-[0-9a-f]{8}$' -and $nestedWork.root -eq (Get-SBRuntimeWorkPath $brain (Get-SBHostId) 'github.com/acme/repo' 'work' 'prova-1' ([datetime]'2026-11-03')) -and $nestedWork.root.Replace('\','/').EndsWith("/hosts/$((Get-SBHostId))/repos/$repoSegment/work/20261103-prova-1")) 'percorso di lavoro annidato hosts/<id>/repos/<repo>/<categoria>/<data>-<slug>'
+    Assert-Portable ($nestedWork.environment.TEMP.Replace('\','/').EndsWith("/repos/$repoSegment/temp") -and $nestedWork.environment.TMP -eq $nestedWork.environment.TEMP -and $nestedWork.root.StartsWith((Join-Path $brain '.runtime'))) 'area temp del repository per TEMP/TMP, sotto .runtime'
+    Reject-Portable {Get-SBRuntimeWorkPath $brain (Get-SBHostId) 'github.com/acme/repo' 'altro' 'prova-1'} 'categoria non ammessa rifiutata'
+    Reject-Portable {Get-SBRuntimeWorkPath $brain (Get-SBHostId) 'github.com/acme/repo' 'work' '..\evasione'} 'slug con separatori rifiutato'
+    Reject-Portable {Get-SBWorkEnvironment -BrainRoot $brain -HostId (Get-SBHostId) -Repository 'github.com/acme/repo' -Category work} 'Category senza Slug rifiutata'
+    $workPlan=(Invoke-FixtureCli 'work.ps1' @('-Repository','github.com/acme/repo','-Category','evidence','-Slug','prova-2','-ConfigPath',$isoActivation.configuration)).text|ConvertFrom-Json
+    Assert-Portable ($workPlan.layout -eq 'repos' -and $workPlan.root.Replace('\','/') -match "/repos/$repoSegment/evidence/\d{8}-prova-2$" -and !(Test-Path -LiteralPath $workPlan.root)) 'work.ps1 -Category -Slug: stampa il piano e non crea cartelle senza -Run'
     $env:SECONDBRAIN_WORK_LOCAL_ROOT=$localWork
     try{
         $overrideWork=Get-SBWorkEnvironment $brain (Get-SBHostId) 'github.com/acme/repo'

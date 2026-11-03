@@ -133,6 +133,7 @@ else { try { $config = Read-SBConfiguration } catch { Write-Warning ('Configuraz
 $backupRoot = if ($config -and $config.backupRoot) { $config.backupRoot } else { Join-Path $brain '.runtime/backups' }
 [System.IO.Directory]::CreateDirectory($backupRoot) | Out-Null
 
+$usedDefaultName = !$OutputPath
 if (!$OutputPath) {
     $timestamp = [DateTimeOffset]::UtcNow.ToString('yyyyMMdd-HHmmss')
     $OutputPath = Join-Path $backupRoot ("secondbrain-backup-$timestamp.zip")
@@ -145,6 +146,12 @@ $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 $lockConfig = if ($config) { $config } else { @{ brainRoot = $brain; coordinationRoot = (Join-Path $brain '.runtime/access'); workstationId = 'non-attivata'; sessionTimeoutMinutes = 30; lockWaitMs = 60000 } }
 $lock = Enter-SBOperation $lockConfig $SessionId -LockOnly
 try {
+# Due backup nello stesso secondo darebbero lo stesso nome: con il nome predefinito un archivio esistente non viene mai sovrascritto (suffisso -2, -3, ...).
+# Con -OutputPath esplicito il comportamento resta quello dichiarato dal chiamante.
+if ($usedDefaultName) {
+    $baseName = [IO.Path]::GetFileNameWithoutExtension($resolvedOutput); $suffix = 1
+    while (Test-Path -LiteralPath $resolvedOutput) { $suffix++; $resolvedOutput = Join-Path (Split-Path $resolvedOutput) ($baseName + '-' + $suffix + '.zip') }
+}
 $includeTargets = @(
     @{ type = 'dir';  path = '01-projects' },
     @{ type = 'dir';  path = '02-areas' },

@@ -1,6 +1,6 @@
 #requires -Version 7.5
 [CmdletBinding()]
-param([Parameter(Mandatory)][string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$ConfigPath,
+param([Parameter(Mandatory)][string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$Category,[string]$Slug,[string]$ConfigPath,
     [string]$FilePath,[string[]]$Arguments=@(),[string]$WorkingDirectory,[switch]$Run)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
@@ -12,7 +12,7 @@ Add-SBMessages @{
     'work.checkout.unmanaged' = @{ it = 'Checkout non gestito o ambiguo'; en = 'Checkout not managed or ambiguous' }
 }
 $config=Read-SBConfiguration $ConfigPath
-$plan=Get-SBWorkEnvironment $config.brainRoot $config.workstationId $Repository $Project $Runtime
+$plan=if($Category -or $Slug){Get-SBWorkEnvironment -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $Repository -Category $Category -Slug $Slug}else{Get-SBWorkEnvironment $config.brainRoot $config.workstationId $Repository $Project $Runtime}
 if(!$Run){ConvertTo-SBJson $plan;exit 0}
 if(!$FilePath -or !$WorkingDirectory){throw (New-SBError 'work.run.explicit')}
 $bindings=@($config.bindings|Where-Object {$_.identity -ceq $Repository -and [IO.Path]::GetFullPath($_.path) -eq [IO.Path]::GetFullPath($WorkingDirectory)})

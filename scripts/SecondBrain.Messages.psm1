@@ -76,6 +76,16 @@ Add-SBMessages @{
     'core.version.missing'      = @{ it = 'File VERSION mancante'; en = 'VERSION file missing' }
     'core.reparse.unwritable'   = @{ it = 'Reparse point non scrivibile: {0}'; en = 'Reparse point is not writable: {0}' }
     'core.concurrent.modified'  = @{ it = 'Modifica concorrente: {0}'; en = 'Concurrent modification: {0}' }
+    'core.runtime.reason.reparse-point' = @{ it = 'reparse point: non seguito'; en = 'reparse point: not followed' }
+    'core.runtime.reason.runtime-access' = @{ it = 'sessioni e lock di accesso'; en = 'access sessions and locks' }
+    'core.runtime.reason.runtime-hosts' = @{ it = 'configurazione e backup delle postazioni'; en = 'workstation configuration and backups' }
+    'core.runtime.reason.runtime-cleanup' = @{ it = 'registro delle pulizie (prova di recuperabilita)'; en = 'cleanup log (recoverability proof)' }
+    'core.runtime.reason.runtime-state' = @{ it = 'stato operativo'; en = 'operational state' }
+    'core.runtime.reason.runtime-para-marker' = @{ it = 'marker di transazione pendente'; en = 'pending transaction marker' }
+    'core.runtime.reason.config-path' = @{ it = 'percorso della configurazione o del registro postazioni'; en = 'configuration or workstation registry path' }
+    'core.runtime.reason.protected-path' = @{ it = 'contiene percorsi della configurazione o degli accessi'; en = 'contains configuration or access paths' }
+    'core.runtime.reason.recently-written' = @{ it = 'scritta negli ultimi {0} minuti: potrebbe essere in uso'; en = 'written in the last {0} minutes: it may be in use' }
+    'core.write.contended'      = @{ it = 'Scrittura contesa: il file è in uso o è stato sostituito da un altro scrittore: {0}'; en = 'Write contended: the file is in use or was replaced by another writer: {0}' }
     'core.tracked.dirty'        = @{ it = "File tracciato con modifiche non committate: {0}. Committa o metti da parte (git stash) le modifiche al file, poi ripeti l'operazione."; en = 'Tracked file has uncommitted changes: {0}. Commit or stash (git stash) the file changes, then retry.' }
     'core.readback.staging'     = @{ it = 'Readback staging fallito'; en = 'Staging readback failed' }
     'core.race.kept'            = @{ it = 'Gara di scrittura rilevata; copia concorrente conservata: {0}'; en = 'Write race detected; concurrent copy kept: {0}' }

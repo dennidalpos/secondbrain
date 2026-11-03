@@ -11,6 +11,14 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
+    'portable.issue.output' = @{ it = 'Configuration and proof of build/cache output locations belong to the product agent'; en = 'Configuration and proof of build/cache output locations belong to the product agent' }
+    'portable.issue.compaction' = @{ it = 'Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'; en = 'Propose SYS05 (sb compact): nothing is compacted without confirmation' }
+    'portable.issue.idecontext' = @{ it = 'Contesto IDE diverso da quello registrato: riverificare login e caricamento, quindi riattivare con Setup e ritirare il vecchio accesso con Unbind'; en = 'IDE context differs from the recorded one: re-verify login and loading, then re-activate with Setup and withdraw the old access with Unbind' }
+    'portable.issue.writer' = @{ it = 'Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'; en = 'A writer is active: the result may reflect an intermediate state, repeat the check' }
+    'portable.prompt.repos' = @{ it = 'Repository trovati:'; en = 'Repositories found:' }
+    'portable.prompt.noremote' = @{ it = 'senza remoto: identita locale'; en = 'no remote: local identity' }
+    'portable.prompt.ides' = @{ it = 'IDE trovati:'; en = 'IDEs found:' }
     'portable.directives.unapproved' = @{ it = 'Direttive non ancora approvate: distribuzione sospesa'; en = 'Directives not yet approved: distribution suspended' }
     'portable.directives.nonportable' = @{ it = 'Direttive globali non portabili'; en = 'Global directives are not portable' }
     'portable.selection.unconfirmed' = @{ it = 'Selezione richiede confirmed=true e riferimento alla conferma effettiva dellʼutente'; en = 'Selection requires confirmed=true and a reference to the user''s actual confirmation' }
@@ -305,7 +313,7 @@ function Invoke-SBSetup {
         }
     }
     elseif($prompting -and $repos.Count){
-        Write-Host 'Repository trovati:';for($i=0;$i -lt $repos.Count;$i++){Write-Host ('  {0}) {1}  [{2}]  {3}' -f ($i+1),$repos[$i].name,$(if($repos[$i].identity){$repos[$i].identity}else{'senza remoto: identita locale'}),$repos[$i].path)}
+        Write-Host (Get-SBMessage 'portable.prompt.repos');for($i=0;$i -lt $repos.Count;$i++){Write-Host ('  {0}) {1}  [{2}]  {3}' -f ($i+1),$repos[$i].name,$(if($repos[$i].identity){$repos[$i].identity}else{Get-SBMessage 'portable.prompt.noremote'}),$repos[$i].path)}
         foreach($n in @(Read-SBSetupNumbers 'Numeri da gestire separati da virgola, tutti, invio = nessuno' $repos.Count)){$chosen+=$repos[$n-1]}
     }
     $chosen=@($chosen|Sort-Object id -Unique)
@@ -320,7 +328,7 @@ function Invoke-SBSetup {
         }
     }
     elseif($needSelection -and $ideReport.Count){
-        Write-Host 'IDE trovati:';for($i=0;$i -lt $ideReport.Count;$i++){Write-Host ('  {0}) {1}  [{2}]' -f ($i+1),$ideReport[$i].name,$ideReport[$i].mode)}
+        Write-Host (Get-SBMessage 'portable.prompt.ides');for($i=0;$i -lt $ideReport.Count;$i++){Write-Host ('  {0}) {1}  [{2}]' -f ($i+1),$ideReport[$i].name,$ideReport[$i].mode)}
         foreach($n in @(Read-SBSetupNumbers 'Numeri da gestire separati da virgola, tutti, invio = nessuno' $ideReport.Count)){$chosenIdes+=$ideReport[$n-1]}
     }
     $chosenIdes=@($chosenIdes|Sort-Object id -Unique)
@@ -589,7 +597,7 @@ function Invoke-SBPortableSync {
         foreach($binding in $scoped){
             try{
                 if(Test-SBForbiddenRepository $forbiddenList $binding.path ([string]$binding.identity)){
-                    $issues+=@{kind='forbidden-repository-in-bindings';repository=$binding.identity;reason='Repository vietato presente nei binding attivi'}
+                    $issues+=@{kind='forbidden-repository-in-bindings';repository=$binding.identity;reason=(Get-SBMessage 'portable.issue.forbidden')}
                     continue
                 }
                 if($binding.status -ne 'managed'){$issues+=@{kind='tracker-import-required';repository=$binding.identity};continue}
@@ -605,7 +613,7 @@ function Invoke-SBPortableSync {
                     $proof=Assert-SBCentralDataPath $Config.brainRoot $binding.outputEvidence
                     $outputVerified=(Get-SBFileHash $proof) -eq $binding.outputEvidenceSha256
                 }
-                if(!$outputVerified){$issues+=@{kind='output-location-unverified';repository=$binding.identity;reason='Configuration and proof of build/cache output locations belong to the product agent'}}
+                if(!$outputVerified){$issues+=@{kind='output-location-unverified';repository=$binding.identity;reason=(Get-SBMessage 'portable.issue.output')}}
                 $toc=Get-SBDossierTOC $dir;$path=Join-Path $dir 'index.md'
                 if((Get-SBFileHash $path) -ne (Get-SBTextHash $toc)){
                     if($Check){$issues+=@{kind='toc-pending';repository=$binding.identity}}
@@ -632,7 +640,7 @@ function Invoke-SBPortableSync {
                 else{
                     # Soglia soft (vicino al tetto o molti turni dall'ultima compattazione): solo avviso, non rende il controllo non allineato.
                     $advice=Get-SBCompactionAdvice $startup $Config.brainRoot $dir
-                    if($advice.level -eq 'soft'){$compactionAdvice+=@{kind='compaction-advised';repository=$binding.identity;characters=$advice.characters;budget=$advice.budget;percent=$advice.percent;turnsSinceCompaction=$advice.turnsSinceCompaction;reason='Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'}}
+                    if($advice.level -eq 'soft'){$compactionAdvice+=@{kind='compaction-advised';repository=$binding.identity;characters=$advice.characters;budget=$advice.budget;percent=$advice.percent;turnsSinceCompaction=$advice.turnsSinceCompaction;reason=(Get-SBMessage 'portable.issue.compaction')}}
                 }
                 if($global){
                     $agents=Join-Path $binding.path 'AGENTS.md';$key=[IO.Path]::GetFullPath($agents)+'|repository'
@@ -654,7 +662,7 @@ function Invoke-SBPortableSync {
                 # Cambio di profilo, radice di configurazione o cartelle di configurazione dopo l attivazione: le istruzioni potrebbero non essere piu caricate.
                 $contextState=Get-SBIDEContextState $ide $state
                 if($contextState.status -eq 'unrecorded' -and !$Check -and $contextState.current){$state.ideContext[[string]$ide.id]=$contextState.current}
-                elseif($contextState.status -eq 'changed'){$issues+=@{kind='ide-context-changed';ide=$ide.name;reason='Contesto IDE diverso da quello registrato: riverificare login e caricamento, quindi riattivare con Setup e ritirare il vecchio accesso con Unbind'}}
+                elseif($contextState.status -eq 'changed'){$issues+=@{kind='ide-context-changed';ide=$ide.name;reason=(Get-SBMessage 'portable.issue.idecontext')}}
                 $observed=Test-SBIDEObservation $ide (Get-SBTextHash $global.Trim()) $observations $Config.brainRoot $Config.workstationId
                 if($ide.mode -eq 'manual'){
                     $alias=if($ide.ContainsKey('accountAlias')){[string]$ide.accountAlias}else{''}
@@ -703,7 +711,7 @@ function Invoke-SBPortableSync {
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.
         $warnings=@($compactionAdvice)
-        if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason='Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'}}
+        if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason=(Get-SBMessage 'portable.issue.writer')}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}
         if($pendingTransaction){$warnings+=@{kind='pending-transaction';reason=(Format-SBPendingTransaction $pendingTransaction)}}
         @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-imports','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}

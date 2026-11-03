@@ -32,6 +32,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'access.metadata.final' = @{ it = 'Metadati finali non disponibili'; en = 'Final metadata not available' }
     'access.session.foreign' = @{ it = 'Sessione non appartenente alla postazione corrente'; en = 'Session does not belong to the current workstation' }
     'access.coordinator.exited' = @{ it = 'Processo di coordinamento terminato prima della registrazione'; en = 'Coordination process exited before registration' }
     'access.open.timeout' = @{ it = 'Timeout apertura sessione'; en = 'Timeout opening the session' }
@@ -123,7 +124,7 @@ try {
     else{$metadata.error=$_.Exception.Message}
 }
 finally {
-    try{Write-SBAccessMetadata $path $metadata}catch{Write-Warning 'Metadati finali non disponibili'}
+    try{Write-SBAccessMetadata $path $metadata}catch{Write-Warning (Get-SBMessage 'access.metadata.final')}
     if($lease){$lease.Dispose()};if($writer){$writer.Dispose()}
     foreach($suffix in @('.stop','.renew','.lease')){[IO.File]::Delete((Join-Path $sessions ($SessionId+$suffix)))}
 }

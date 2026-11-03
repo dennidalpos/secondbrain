@@ -9,7 +9,11 @@ Add-SBMessages @{
     'host.discovery.checkpoint' = @{ it = 'Checkpoint discovery di altra postazione o clone'; en = 'Discovery checkpoint of another workstation or clone' }
     'host.discovery.root' = @{ it = 'Radice discovery assente: {0}'; en = 'Discovery root missing: {0}' }
     'host.work.segment' = @{ it = 'Progetto/runtime non valido'; en = 'Invalid project/runtime' }
-    'host.work.localroot' = @{ it = 'SECONDBRAIN_WORK_LOCAL_ROOT deve essere un percorso locale assoluto'; en = 'SECONDBRAIN_WORK_LOCAL_ROOT must be an absolute local path' }
+    'host.work.category' = @{ it = 'Categoria non valida; valori ammessi: {0}'; en = 'Invalid category; allowed values: {0}' }
+    'host.work.slug' = @{ it = 'Slug non valido: minuscole, cifre e trattini, fino a 60 caratteri'; en = 'Invalid slug: lowercase letters, digits and hyphens, up to 60 characters' }
+    'host.work.categoryslug' = @{ it = 'Category e Slug vanno indicati insieme'; en = 'Category and Slug must be given together' }
+    'host.work.repository' = @{ it = 'Repository non indicato'; en = 'Repository not specified' }
+    'host.work.localroot' =@{ it = 'SECONDBRAIN_WORK_LOCAL_ROOT deve essere un percorso locale assoluto'; en = 'SECONDBRAIN_WORK_LOCAL_ROOT must be an absolute local path' }
 }
 
 # The workstation configuration may carry "language" (it|en); it ranks below -Language and SECONDBRAIN_LANG.
@@ -242,7 +246,7 @@ function Invoke-SBHostDiscovery {
         try{
             $item=Get-Item -LiteralPath $path -Force -ErrorAction Stop
             if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){$excluded+=@{path=$path;reason='reparse-point'};continue}
-            if($path -eq (Join-Path $brain '.runtime')){$excluded+=@{path=$path;reason='SecondBrain operational data'};continue}
+            if($path -eq (Join-Path $brain '.runtime')){$excluded+=@{path=$path;reason='operational-data'};continue}
             if(& $isSkippedName $item.Name $path){$excluded+=@{path=$path;reason='known-system-or-build-tree'};continue}
             if(Test-SBForbiddenRepository $forbiddenList $path){$excluded+=@{path=$path;reason='forbidden-by-user-policy'};continue}
             $entries=@(Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop)
@@ -296,23 +300,54 @@ function Invoke-SBHostDiscovery {
     if($ReportPath){$output=Assert-SBCentralDataPath $brain $ReportPath;[IO.Directory]::CreateDirectory((Split-Path $output))|Out-Null;Write-SBFile $output ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $output) (Join-Path (Get-SBLocalRoot $brain (Get-SBHostId)) 'backups')|Out-Null}
     $report
 }
-function Get-SBWorkEnvironment {
-    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default')
-    foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw (New-SBError 'host.work.segment')}}
-    $relative='repositories/'+(Get-SBTextHash $Repository).Substring(0,24).ToLowerInvariant()+'/'+$Project+'/'+$Runtime
+# Categories of the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>; the area hosts/<id>/repos/<repo>/temp holds TEMP/TMP.
+$script:SBRuntimeCategories = @('work','evidence','report','fixture','tmp')
+# Readable and stable repository segment: last path component of the identity plus 8 hex characters of its hash (no collisions between owners).
+function Get-SBRuntimeRepoSegment([string]$Repository) {
+    if([string]::IsNullOrWhiteSpace($Repository)){throw (New-SBError 'host.work.repository')}
+    [string]$name=(($Repository -split '[\\/]')|Where-Object {$_}|Select-Object -Last 1)
+    $slug=(($name.ToLowerInvariant() -replace '[^a-z0-9]+','-').Trim('-'))
+    if(!$slug){$slug='repo'}
+    if($slug.Length -gt 48){$slug=$slug.Substring(0,48).Trim('-')}
+    $slug+'-'+(Get-SBTextHash $Repository).Substring(0,8).ToLowerInvariant()
+}
+# Resolves a path relative to the host runtime root, honouring the declared local override for brains on a share.
+function Resolve-SBWorkRoot([string]$BrainRoot,[string]$HostId,[string]$Relative) {
     $location='brain-runtime';$advice=@()
     $override=$env:SECONDBRAIN_WORK_LOCAL_ROOT
     if($override){
         # Cervello su share: TEMP, cache e build dell'host possono stare su un disco locale (eccezione dichiarata, non il comportamento predefinito).
         if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw (New-SBError 'host.work.localroot')}
         $hostRoot=Join-Path ([IO.Path]::GetFullPath($override)) (Split-Path (Get-SBLocalRoot $BrainRoot $HostId) -Leaf)
-        $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $relative));$location='local-override'
+        $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $Relative));$location='local-override'
     }else{
-        $root=Assert-SBCentralDataPath $BrainRoot (Join-Path (Get-SBLocalRoot $BrainRoot $HostId) $relative)
+        $root=Assert-SBCentralDataPath $BrainRoot (Join-Path (Get-SBLocalRoot $BrainRoot $HostId) $Relative)
         if($BrainRoot.StartsWith('\\')){$advice+='Cervello su share: cache e build risiedono sulla rete. Impostare SECONDBRAIN_WORK_LOCAL_ROOT su un disco locale per prestazioni e per non mescolare TEMP tra host.'}
     }
-    $map=@{SECONDBRAIN_WORK_ROOT=$root;TEMP=(Join-Path $root 'temp');TMP=(Join-Path $root 'temp');TMPDIR=(Join-Path $root 'temp');XDG_CACHE_HOME=(Join-Path $root 'cache');npm_config_cache=(Join-Path $root 'cache/npm');NUGET_PACKAGES=(Join-Path $root 'cache/nuget');DOTNET_CLI_HOME=(Join-Path $root 'cache/dotnet');GRADLE_USER_HOME=(Join-Path $root 'cache/gradle');CARGO_TARGET_DIR=(Join-Path $root 'build/cargo');PIP_CACHE_DIR=(Join-Path $root 'cache/pip');PYTHONPYCACHEPREFIX=(Join-Path $root 'cache/python')}
-    @{root=$root;location=$location;advice=$advice;environment=$map;buildRoot=(Join-Path $root 'build');status='configuration-only';exceptions=@('Tool-specific intermediate/output configuration must be verified in the product repository; environment alone does not redirect every build output.')}
+    @{root=$root;location=$location;advice=$advice}
+}
+function Get-SBRuntimeWorkPath {
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    if($Category -cnotin $script:SBRuntimeCategories){throw (New-SBError 'host.work.category' @(($script:SBRuntimeCategories -join ', ')))}
+    if($Slug -cnotmatch '^[a-z0-9][a-z0-9-]{0,59}$'){throw (New-SBError 'host.work.slug')}
+    (Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)).root
+}
+function Get-SBWorkEnvironment {
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    $nested=[bool]($Category -or $Slug)
+    if($nested){
+        if(!$Category -or !$Slug){throw (New-SBError 'host.work.categoryslug')}
+        $root=Get-SBRuntimeWorkPath $BrainRoot $HostId $Repository $Category $Slug $Date  # validates category and slug first
+        $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)
+        $temp=(Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/temp')).root
+    }else{
+        foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw (New-SBError 'host.work.segment')}}
+        $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repositories/'+(Get-SBTextHash $Repository).Substring(0,24).ToLowerInvariant()+'/'+$Project+'/'+$Runtime)
+        $root=$resolved.root
+        $temp=Join-Path $root 'temp'
+    }
+    $map=@{SECONDBRAIN_WORK_ROOT=$root;TEMP=$temp;TMP=$temp;TMPDIR=$temp;XDG_CACHE_HOME=(Join-Path $root 'cache');npm_config_cache=(Join-Path $root 'cache/npm');NUGET_PACKAGES=(Join-Path $root 'cache/nuget');DOTNET_CLI_HOME=(Join-Path $root 'cache/dotnet');GRADLE_USER_HOME=(Join-Path $root 'cache/gradle');CARGO_TARGET_DIR=(Join-Path $root 'build/cargo');PIP_CACHE_DIR=(Join-Path $root 'cache/pip');PYTHONPYCACHEPREFIX=(Join-Path $root 'cache/python')}
+    @{root=$root;location=$resolved.location;advice=$resolved.advice;environment=$map;buildRoot=(Join-Path $root 'build');layout=$(if($nested){'repos'}else{'repositories'});status='configuration-only';exceptions=@('Tool-specific intermediate/output configuration must be verified in the product repository; environment alone does not redirect every build output.')}
 }
 Export-ModuleMember -Function @(
     'Get-SBHostId',
@@ -325,5 +360,7 @@ Export-ModuleMember -Function @(
     'Test-SBForbiddenRepository',
     'Test-SBSystemAccessPath',
     'Invoke-SBHostDiscovery',
-    'Get-SBWorkEnvironment'
+    'Get-SBWorkEnvironment',
+    'Get-SBRuntimeWorkPath',
+    'Get-SBRuntimeRepoSegment'
 )

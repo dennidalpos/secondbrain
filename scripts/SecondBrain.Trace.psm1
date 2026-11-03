@@ -28,7 +28,7 @@ function Resolve-SBTraceRepository([string]$BrainRoot,[string]$Cwd) {
     $best
 }
 
-# Accoda un evento. Non usa il lock dei writer (un file per postazione e giorno, append atomico di una riga) e non scrive mai il contenuto del prompt.
+# Accoda un evento. Non usa il lock dei writer (un file per postazione e giorno, append serializzato da un lock breve sul giorno) e non scrive mai il contenuto del prompt.
 function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$InputJson='',[string]$Ide='claude-code') {
     $payload=@{}
     if($InputJson.Trim()){try{$parsed=$InputJson|ConvertFrom-Json -AsHashtable -ErrorAction Stop;if($parsed -is [Collections.IDictionary]){$payload=$parsed}}catch{}}
@@ -40,8 +40,18 @@ function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$
     $target=Assert-SBCentralDataPath $BrainRoot (Join-Path $directory ([DateTime]::Now.ToString('yyyy-MM-dd')+'.jsonl'))
     [IO.Directory]::CreateDirectory($directory)|Out-Null
     $bytes=[Text.UTF8Encoding]::new($false).GetBytes((($record|ConvertTo-Json -Compress -Depth 4)+"`n"))
-    $stream=[IO.FileStream]::new($target,[IO.FileMode]::Append,[IO.FileAccess]::Write,[IO.FileShare]::ReadWrite)
-    try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush()}finally{$stream.Dispose()}
+    # FileMode.Append di .NET scrive all'offset letto all'apertura: due scrittori simultanei si sovrascrivono. Un lock breve su <giorno>.jsonl.lock
+    # serializza gli append; se non si ottiene entro ~2 s si accoda comunque (l'hook resta fail-open e non blocca il turno).
+    $gate=$null
+    for($attempt=0;$attempt -lt 200 -and $null -eq $gate;$attempt++){
+        try{$gate=[IO.FileStream]::new($target+'.lock',[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
+        catch [IO.IOException]{Start-Sleep -Milliseconds 10}
+        catch [UnauthorizedAccessException]{Start-Sleep -Milliseconds 10}
+    }
+    try{
+        $stream=[IO.FileStream]::new($target,[IO.FileMode]::Append,[IO.FileAccess]::Write,[IO.FileShare]::ReadWrite)
+        try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush()}finally{$stream.Dispose()}
+    }finally{if($gate){$gate.Dispose()}}
     $target
 }
 
