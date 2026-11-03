@@ -15,53 +15,95 @@ foreach($definition in $ast.FindAll({param($node) $node -is [Management.Automati
     . ([scriptblock]::Create($definition.Extent.Text.Replace('$PSScriptRoot',("'"+$PSScriptRoot.Replace("'","''")+"'"))))
 }
 $root=Join-Path (Get-SBTestRoot) ('secondbrain-audit2-'+[guid]::NewGuid().ToString('N'))
+$success=$false
 try {
     if($Case -in @('All','Removal')){
-        $f=New-AuditFixture 'removal';$inputPath=Join-Path $f.checkout 'input.txt';Put-Audit $inputPath 'OLD';$hash=Get-SBFileHash $inputPath
-        foreach($attempt in @('write','rename','cancel')){
-            $counter=[pscustomobject]@{calls=0}
-            $guard={
-                $counter.calls++
-                if($counter.calls -eq 2){
-                    switch($attempt){
-                        write{[IO.File]::WriteAllText($inputPath,'NEW-CONCURRENT')}
-                        rename{[IO.File]::Move($inputPath,$inputPath+'.moved')}
-                        cancel{throw 'session lost'}
+        & (Get-Module SecondBrain.Core) {Initialize-SBFileRemoval}
+        foreach($pathKind in @('short','long')){
+            $f=New-AuditFixture ('removal-'+$pathKind)
+            $inputDirectory=$f.checkout
+            if($pathKind -eq 'long'){
+                while($inputDirectory.Length -lt 300){$inputDirectory=Join-Path $inputDirectory 'sezione Unicode à con spazi'}
+            }
+            $inputPath=Join-Path $inputDirectory 'input.txt';Put-Audit $inputPath 'OLD';$hash=Get-SBFileHash $inputPath
+            Assert-Next (($pathKind -eq 'short' -and $inputPath.Length -lt 260) -or ($pathKind -eq 'long' -and $inputPath.Length -gt 260)) ('rimozione: lunghezza '+$pathKind+' '+$inputPath.Length)
+            $openPaths=@($inputPath,('\\?\'+$inputPath),(Join-Path $inputDirectory './input.txt'),$inputPath.Replace('\','/'))
+            if($inputPath -match '^[A-Za-z]:\\'){
+                $unc='\\localhost\'+$inputPath.Substring(0,1)+'$'+$inputPath.Substring(2)
+                if([IO.File]::Exists($unc)){$openPaths+=@($unc,('\\?\UNC\'+$unc.Substring(2)))}
+                else{Write-Output ('SKIP AUDIT2: share UNC loopback non accessibile ('+$pathKind+')')}
+            }
+            foreach($openPath in $openPaths){
+                $opened=[SecondBrain.FileRemoval]::Open($openPath)
+                try{
+                    $copy=[IO.MemoryStream]::new()
+                    try{$opened.CopyTo($copy);Assert-Next ((Get-SBHash $copy.ToArray()) -eq $hash) ('apertura senza rimozione: '+$openPath)}finally{$copy.Dispose()}
+                }finally{$opened.Dispose()}
+                Assert-Next ((Get-SBFileHash $inputPath) -eq $hash) 'apertura: file originale intatto'
+            }
+            Reject-Next {Remove-SBFile $inputPath (Join-Path $f.checkout 'outside') $hash $f.config.backupRoot} 'rimozione: destinazione fuori perimetro rifiutata'
+            Assert-Next ((Get-SBFileHash $inputPath) -eq $hash) 'rimozione: originale fuori perimetro conservato'
+            foreach($attempt in @('write','rename','cancel')){
+                $counter=[pscustomobject]@{calls=0}
+                $guard={
+                    $counter.calls++
+                    if($counter.calls -eq 2){
+                        switch($attempt){
+                            write{[IO.File]::WriteAllText($inputPath,'NEW-CONCURRENT')}
+                            rename{[IO.File]::Move($inputPath,$inputPath+'.moved')}
+                            cancel{throw 'session lost'}
+                        }
                     }
-                }
-            }.GetNewClosure()
-            Set-SBWriteGuard $guard
-            try{Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} ('rimozione: '+$attempt+' nella finestra finale rifiutato')}finally{Set-SBWriteGuard $null}
-            Assert-Next ((Read-SBText $inputPath) -ceq 'OLD' -and !(Test-Path -LiteralPath ($inputPath+'.moved'))) ('rimozione: originale intatto '+$attempt)
+                }.GetNewClosure()
+                Set-SBWriteGuard $guard
+                try{Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} ('rimozione: '+$attempt+' nella finestra finale rifiutato')}finally{Set-SBWriteGuard $null}
+                Assert-Next ((Read-SBText $inputPath) -ceq 'OLD' -and !(Test-Path -LiteralPath ($inputPath+'.moved'))) ('rimozione: originale intatto '+$attempt)
+            }
+            Put-Audit $inputPath 'NEW-CONCURRENT'
+            Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} 'rimozione: versione diversa prima dell apertura conservata'
+            Assert-Next ((Read-SBText $inputPath) -ceq 'NEW-CONCURRENT') 'rimozione: versione concorrente non cancellata'
+            Put-Audit $inputPath 'OLD'
+            $writer=[IO.FileStream]::new($inputPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
+            try{Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} 'rimozione: writer gia aperto impedisce eliminazione'}finally{$writer.Dispose()}
+            $metadata=Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot
+            Assert-Next (!(Test-Path -LiteralPath $inputPath) -and (Read-SBText $metadata.backup) -ceq 'OLD') 'rimozione: backup esatto dei byte rimossi'
+            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/restore-managed.ps1') -ConfigPath $f.config.configPath -MetadataPath ($metadata.backup+'.json')|Out-Null
+            Assert-Next ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $inputPath) -eq $hash) 'rimozione: CLI recupera il backup esatto'
+            Put-Audit $inputPath 'REAPPEARED'
+            & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/restore-managed.ps1') -ConfigPath $f.config.configPath -MetadataPath ($metadata.backup+'.json') *> $null
+            Assert-Next ($LASTEXITCODE -ne 0 -and (Read-SBText $inputPath) -ceq 'REAPPEARED') 'rimozione: recupero conserva destinazione ricomparsa'
+            Put-Audit $inputPath 'OLD'
+            $probe=Join-Path $root ('kill-removal-'+$pathKind+'.ps1');$ready=Join-Path $root ('removal-'+$pathKind+'.ready')
+            Put-Audit $probe 'param($Modules,$Path,$Backup,$Ready) Import-Module (Join-Path $Modules "SecondBrain.Core.psm1"); $state=[pscustomobject]@{calls=0}; Set-SBWriteGuard {$state.calls++;if($state.calls -eq 2){[IO.File]::WriteAllText($Ready,"ready");Start-Sleep -Seconds 30}}.GetNewClosure(); Remove-SBFile $Path (Split-Path $Path) (Get-SBFileHash $Path) $Backup|Out-Null'
+            $start=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
+            foreach($arg in @('-NoProfile','-File',$probe,'-Modules',$PSScriptRoot,'-Path',$inputPath,'-Backup',$f.config.backupRoot,'-Ready',$ready)){$start.ArgumentList.Add($arg)}
+            $child=[Diagnostics.Process]::Start($start)
+            try{
+                $deadline=[DateTimeOffset]::UtcNow.AddSeconds(15)
+                while(!(Test-Path -LiteralPath $ready) -and !$child.HasExited -and [DateTimeOffset]::UtcNow -lt $deadline){Start-Sleep -Milliseconds 100}
+                Assert-Next (Test-Path -LiteralPath $ready) 'rimozione: checkpoint con handle protetto raggiunto'
+                $child.Kill($true);$child.WaitForExit()
+            }finally{if(!$child.HasExited){$child.Kill($true);$child.WaitForExit()};$child.Dispose()}
+            Assert-Next ((Get-SBFileHash $inputPath) -eq $hash) 'rimozione: processo interrotto prima della disposition conserva originale'
+            $metadata=Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot
+            Assert-Next (!(Test-Path -LiteralPath $inputPath) -and (Get-SBFileHash $metadata.backup) -eq $hash) 'rimozione: ripresa dopo interruzione con backup verificato'
+            if($pathKind -eq 'long'){
+                Put-Audit $inputPath 'OLD'
+                $sentinel=Join-Path $f.checkout 'transaction.txt'
+                $operations=@(@{path=$inputPath;expected=$hash;bytes=$null},@{path=$sentinel;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes('NEW')})
+                Set-SBWriteGuard {if(![IO.File]::Exists($inputPath)){throw 'checkpoint after long-path removal'}}.GetNewClosure()
+                try{Reject-Next {Invoke-SBParaTransaction $operations $f.config.backupRoot $f.brain @($inputPath,$sentinel)} 'transazione: interruzione dopo rimozione del percorso lungo'}finally{Set-SBWriteGuard $null}
+                $marker=Read-SBJson (Join-Path $f.brain '.runtime/para-transaction.json') $null
+                $journal=Read-SBJson $marker.manifest $null
+                Assert-Next (!(Test-Path -LiteralPath $inputPath) -and (Get-SBFileHash $journal.records[0].backup) -eq $hash) 'transazione: rimozione registrata e backup lungo esatto'
+                Put-Audit $inputPath 'USER-EDIT'
+                Reject-Next {Restore-SBParaTransaction $marker.manifest $f.brain $f.config.backupRoot @($inputPath,$sentinel)} 'transazione: recupero rifiuta modifica successiva del percorso lungo'
+                Assert-Next ((Read-SBText $inputPath) -ceq 'USER-EDIT') 'transazione: modifica successiva conservata'
+                [IO.File]::Delete($inputPath)
+                Restore-SBParaTransaction $marker.manifest $f.brain $f.config.backupRoot @($inputPath,$sentinel)|Out-Null
+                Assert-Next ((Get-SBFileHash $inputPath) -eq $hash -and !(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/para-transaction.json'))) 'transazione: recupero esatto del percorso lungo e marker risolto'
+            }
         }
-        Put-Audit $inputPath 'NEW-CONCURRENT'
-        Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} 'rimozione: versione diversa prima dell apertura conservata'
-        Assert-Next ((Read-SBText $inputPath) -ceq 'NEW-CONCURRENT') 'rimozione: versione concorrente non cancellata'
-        Put-Audit $inputPath 'OLD'
-        $writer=[IO.FileStream]::new($inputPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
-        try{Reject-Next {Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot} 'rimozione: writer gia aperto impedisce eliminazione'}finally{$writer.Dispose()}
-        $metadata=Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot
-        Assert-Next (!(Test-Path -LiteralPath $inputPath) -and (Read-SBText $metadata.backup) -ceq 'OLD') 'rimozione: backup esatto dei byte rimossi'
-        & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/restore-managed.ps1') -ConfigPath $f.config.configPath -MetadataPath ($metadata.backup+'.json')|Out-Null
-        Assert-Next ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $inputPath) -eq $hash) 'rimozione: CLI recupera il backup esatto'
-        Put-Audit $inputPath 'REAPPEARED'
-        & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/restore-managed.ps1') -ConfigPath $f.config.configPath -MetadataPath ($metadata.backup+'.json') *> $null
-        Assert-Next ($LASTEXITCODE -ne 0 -and (Read-SBText $inputPath) -ceq 'REAPPEARED') 'rimozione: recupero conserva destinazione ricomparsa'
-        Put-Audit $inputPath 'OLD'
-        $probe=Join-Path $root 'kill-removal.ps1';$ready=Join-Path $root 'removal.ready'
-        Put-Audit $probe 'param($Modules,$Path,$Backup,$Ready) Import-Module (Join-Path $Modules "SecondBrain.Core.psm1"); $state=[pscustomobject]@{calls=0}; Set-SBWriteGuard {$state.calls++;if($state.calls -eq 2){[IO.File]::WriteAllText($Ready,"ready");Start-Sleep -Seconds 30}}.GetNewClosure(); Remove-SBFile $Path (Split-Path $Path) (Get-SBFileHash $Path) $Backup|Out-Null'
-        $start=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
-        foreach($arg in @('-NoProfile','-File',$probe,'-Modules',$PSScriptRoot,'-Path',$inputPath,'-Backup',$f.config.backupRoot,'-Ready',$ready)){$start.ArgumentList.Add($arg)}
-        $child=[Diagnostics.Process]::Start($start)
-        try{
-            $deadline=[DateTimeOffset]::UtcNow.AddSeconds(15)
-            while(!(Test-Path -LiteralPath $ready) -and !$child.HasExited -and [DateTimeOffset]::UtcNow -lt $deadline){Start-Sleep -Milliseconds 100}
-            Assert-Next (Test-Path -LiteralPath $ready) 'rimozione: checkpoint con handle protetto raggiunto'
-            $child.Kill($true);$child.WaitForExit()
-        }finally{if(!$child.HasExited){$child.Kill($true);$child.WaitForExit()};$child.Dispose()}
-        Assert-Next ((Get-SBFileHash $inputPath) -eq $hash) 'rimozione: processo interrotto prima della disposition conserva originale'
-        $metadata=Remove-SBFile $inputPath $f.checkout $hash $f.config.backupRoot
-        Assert-Next (!(Test-Path -LiteralPath $inputPath) -and (Get-SBFileHash $metadata.backup) -eq $hash) 'rimozione: ripresa dopo interruzione con backup verificato'
     }
     if($Case -in @('All','Markdown')){
         $unknown="# Tracker`n`n| ID | Stato | Attivita |`n|---|---|---|`n| APP-01 | aperto | Task |`n"
@@ -188,12 +230,14 @@ try {
         & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Check|Out-Null
         Assert-Next ($LASTEXITCODE -eq 0) 'para CLI: Check coerente dopo il ciclo'
     }
+    $success=$true
     'SUCCESS AUDIT2: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion
 } finally {
     Set-SBWriteGuard $null
     $full=[IO.Path]::GetFullPath($root);$boundary=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Fixture audit2 fuori TEMP'}
-    if(Test-Path -LiteralPath $full){
+    if(!$success -or $env:SECONDBRAIN_TEST_KEEP -eq '1'){Write-Output ('Fixture audit2 conservata: '+$full)}
+    elseif(Test-Path -LiteralPath $full){
         $entries=@(Get-ChildItem -LiteralPath $full -Force -Recurse)
         foreach($entry in $entries){if(!$entry.FullName.StartsWith($full+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or $entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture audit2 non confinata'}}
         foreach($entry in $entries|Where-Object {!$_.PSIsContainer}){[IO.File]::SetAttributes($entry.FullName,[IO.FileAttributes]::Normal);[IO.File]::Delete($entry.FullName)}

@@ -79,4 +79,8 @@ Le importazioni tracker hanno un journal specifico e si recuperano tramite `impo
 
 Su Windows la rimozione protetta mantiene un handle READ/DELETE che esclude scritture e rinomine; writer già aperti o perdita della sessione impediscono l'operazione. [CreateFile e condivisione](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew), [File.Replace e vincolo dei volumi](https://learn.microsoft.com/en-us/dotnet/api/system.io.file.replace?view=net-10.0).
 
+`FileRemoval.Open` normalizza i percorsi ordinari prima di passare a `CreateFileW` la forma estesa: `\\?\` per i percorsi locali e `\\?\UNC\` per quelli UNC. I percorsi già estesi restano letterali. La conversione avviene solo all'apertura nativa: metadati, controlli degli hash, backup e recupero conservano i percorsi registrati. Vedere i [limiti dei percorsi Windows](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
+
+La suite `audit2` copre percorsi oltre 260 caratteri con Unicode e spazi, apertura senza rimozione, contesa, interruzione e recupero transazionale, compreso il rifiuto di sovrascrivere modifiche successive. Le prove UNC usano la share amministrativa di loopback, quando accessibile, con esclusione esplicita negli altri ambienti: non qualificano SMB fra postazioni diverse né un host con `LongPathsEnabled=0`. `SECONDBRAIN_TEST_KEEP=1` conserva anche le fixture di questa suite; un'esecuzione fallita le conserva sempre.
+
 Un backup verificato non autorizza da solo la cancellazione. Il collaudo delle fixture non certifica un ripristino su un altro PC o su filesystem non verificati.

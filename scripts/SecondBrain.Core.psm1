@@ -822,8 +822,18 @@ namespace SecondBrain {
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind,
             ref byte information, uint size);
+        private static string GetNativePath(string path) {
+            // Extended paths are already literal; ordinary paths must be normalized
+            // before disabling Win32 parsing (relative segments and forward slashes).
+            if (path.StartsWith(@"\\?\", StringComparison.Ordinal) ||
+                path.StartsWith(@"\\.\", StringComparison.Ordinal)) return path;
+            string full = Path.GetFullPath(path).Replace('/', '\\');
+            return full.StartsWith(@"\\", StringComparison.Ordinal)
+                ? @"\\?\UNC\" + full.Substring(2)
+                : @"\\?\" + full;
+        }
         public static FileStream Open(string path) {
-            var handle = CreateFileW(path, 0x80010000, 1, IntPtr.Zero, 3, 0x80, IntPtr.Zero);
+            var handle = CreateFileW(GetNativePath(path), 0x80010000, 1, IntPtr.Zero, 3, 0x80, IntPtr.Zero);
             if (handle.IsInvalid) {
                 int error = Marshal.GetLastWin32Error(); handle.Dispose();
                 throw new Win32Exception(error);
