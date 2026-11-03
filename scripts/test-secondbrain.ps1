@@ -1,8 +1,14 @@
 #requires -Version 7.5
+# Livelli: -Quick (controlli puri, pochi secondi), predefinito Fast (sub-suite in parallelo, output sintetico), -Full (sequenziale, output completo).
+# -Only <chiave> esegue una sola sub-suite; -KeepFixtures (o SECONDBRAIN_TEST_KEEP=1) conserva le fixture anche dopo un esito verde;
+# SECONDBRAIN_TEST_TIMING=1 esegue in sequenza e stampa le sezioni piu lente.
 [CmdletBinding()]
-param([switch]$Full)
+param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
 $script:Full = [bool]$Full
-Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + $(if(!$script:Full){ ' [Modalità Fast]' }else{ ' [Modalità Full]' }))
+$script:Quick = [bool]$Quick
+$script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
+$script:Level = if($Only){ 'Only' }elseif($script:Quick){ 'Quick' }elseif($script:Full){ 'Full' }else{ 'Fast' }
+Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + ' [Modalità '+$script:Level+']')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
@@ -12,34 +18,109 @@ function Assert($Condition,[string]$Message){
     $script:passed++
     if($script:Full){Write-Output "PASS: $Message"}
 }
-function Invoke-SubSuite([string]$Name, [scriptblock]$Action) {
-    if ($script:Full) {
-        & $Action
-        Assert ($LASTEXITCODE -eq 0) $Name
-    } else {
-        $output = & $Action 2>&1
-        $code = $LASTEXITCODE
-        if ($code -ne 0) {
-            Write-Host ("ERRORE IN SUB-SUITE " + $Name + " (exit code " + $code + "):") -ForegroundColor Red
-            $output | ForEach-Object { Write-Output $_ }
-            throw "FAIL: $Name fallito con codice $code"
-        }
-        $summary = @($output | Where-Object { $_ -match '^(?:SUCCESS|PASS:)\s*' })
-        if ($summary.Count) {
-            Write-Output ($summary[-1])
-        } else {
-            Write-Output ("SUCCESS " + $Name + ": verifiche superate (exit code 0)")
-        }
-        $script:passed++
+$script:laps = [Collections.Generic.List[object]]::new()
+# Sub-suite: chiave, titolo, file. Le prime cinque hanno fixture proprie e partono insieme in Fast (le piu lente per prime).
+$script:SubSuites = @(
+    @{ Key='portable';       File='test-secondbrain-portable.ps1';       Name='Portabile: discovery, attivazione, compattazione, pubblicazione e asset' }
+    @{ Key='trackers';       File='test-secondbrain-trackers.ps1';       Name='Tracker: conversioni, resolver, riferimenti, migrazione e recupero' }
+    @{ Key='workflows';      File='test-secondbrain-workflows.ps1';      Name='Workflow: catalogo, contesto Git/PARA, composizione e output' }
+    @{ Key='audit2';         File='test-secondbrain-audit2.ps1';         Name='Audit2: rimozione protetta, Markdown, provenienza e recupero' }
+    @{ Key='trace';          File='test-secondbrain-trace.ps1';          Name='Traccia di fine turno: evento, hook Stop e avviso di compattazione' }
+    @{ Key='sources';        File='test-secondbrain-sources.ps1';        Name='Fonti: registro, sicurezza, acquisizione, confronto e conversione' }
+    @{ Key='external-audit'; File='test-secondbrain-external-audit.ps1'; Name='Audit esterno: paginazione, copertura, errori e protezione dei contenuti' }
+    @{ Key='quick';          File='test-secondbrain-quick.ps1';          Name='Quick: controlli puri su identita, JSON, versione, catalogo e messaggi' }
+)
+function Get-SubSuiteKeys {
+    if ($Only) { return @($Only) }
+    if ($script:Quick) { return @('quick','sources','external-audit') }
+    @('portable','trackers','workflows','audit2','trace','sources','external-audit')
+}
+function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
+function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
+    if ($Code -ne 0) {
+        Write-Host ("ERRORE IN SUB-SUITE " + $Suite.Name + " (exit code " + $Code + "):") -ForegroundColor Red
+        $Output | ForEach-Object { Write-Output ([string]$_) }
+        throw "FAIL: $($Suite.Name) fallito con codice $Code"
     }
+    $summary = @($Output | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^(?:SUCCESS|PASS:)\s*' })
+    $line = if ($summary.Count) { $summary[-1] } else { "SUCCESS $($Suite.Name): verifiche superate (exit code 0)" }
+    Write-Output ($line + ' [' + $Suite.Key + ', ' + (Format-Seconds $Seconds) + ']')
+    $script:passed++
+}
+function Invoke-SubSuiteTimed($Suite) {
+    # Esecuzione in sequenza con marca di tempo per riga: il tempo di una riga PASS e l'intervallo dalla precedente.
+    $watch = [Diagnostics.Stopwatch]::StartNew(); $previous = 0.0
+    $output = @(& pwsh -NoProfile -File (Join-Path $PSScriptRoot $Suite.File) 2>&1 | ForEach-Object {
+        $now = $watch.Elapsed.TotalSeconds
+        $script:laps.Add([pscustomobject]@{ Suite = $Suite.Key; Seconds = $now - $previous; Line = [string]$_ })
+        $previous = $now
+        $_
+    })
+    Write-SubSuiteResult $Suite $output $LASTEXITCODE $watch.Elapsed.TotalSeconds
+}
+function Invoke-SubSuitePool($Suites) {
+    # Processi pwsh figli concorrenti (ThreadJob), output raccolto e stampato nell'ordine dichiarato.
+    $limit = [Math]::Max(1, [Math]::Min(4, [Environment]::ProcessorCount))
+    $jobs = @(foreach ($suite in $Suites) {
+        Start-ThreadJob -ThrottleLimit $limit -ArgumentList (Join-Path $PSScriptRoot $suite.File) -ScriptBlock {
+            param($File)
+            $watch = [Diagnostics.Stopwatch]::StartNew()
+            $out = @(& pwsh -NoProfile -File $File 2>&1 | ForEach-Object { [string]$_ })
+            [pscustomobject]@{ Code = $LASTEXITCODE; Output = $out; Seconds = $watch.Elapsed.TotalSeconds }
+        }
+    })
+    $failed = @()
+    for ($i = 0; $i -lt $Suites.Count; $i++) {
+        $result = $jobs[$i] | Receive-Job -Wait -AutoRemoveJob
+        try { Write-SubSuiteResult $Suites[$i] $result.Output $result.Code $result.Seconds } catch { $failed += $_.Exception.Message }
+    }
+    if ($failed.Count) { throw ($failed -join '; ') }
+}
+function Invoke-SubSuites([string[]]$Keys) {
+    $suites = @($Keys | ForEach-Object { $key = $_; $script:SubSuites | Where-Object { $_.Key -eq $key } })
+    if ($script:Full) {
+        foreach ($suite in $suites) {
+            & pwsh -NoProfile -File (Join-Path $PSScriptRoot $suite.File)
+            Assert ($LASTEXITCODE -eq 0) $suite.Name
+        }
+    } elseif ($script:Timing -or $Sequential -or $suites.Count -lt 2) {
+        foreach ($suite in $suites) { Invoke-SubSuiteTimed $suite }
+    } else {
+        Invoke-SubSuitePool $suites
+    }
+}
+function Write-SlowestSections {
+    if (!$script:Timing -or !$script:laps.Count) { return }
+    Write-Output 'Sezioni piu lente (tempo fino alla riga indicata):'
+    $script:laps | Where-Object { $_.Line -match '^PASS' } | Sort-Object Seconds -Descending | Select-Object -First 15 | ForEach-Object {
+        Write-Output ('  {0,7}  {1,-14} {2}' -f (Format-Seconds $_.Seconds), $_.Suite, $_.Line)
+    }
+}
+function Remove-TestRun([string]$RunDirectory, [string]$BaseRoot) {
+    # Rimuove soltanto la directory di questa esecuzione: figlia diretta della radice dei test con nome run-<8 esadecimali>.
+    $resolved = [IO.Path]::GetFullPath($RunDirectory).TrimEnd('\','/')
+    $base = [IO.Path]::GetFullPath($BaseRoot).TrimEnd('\','/')
+    if ((Split-Path $resolved -Parent) -ine $base -or (Split-Path $resolved -Leaf) -cnotmatch '^run-[0-9a-f]{8}$') { return $false }
+    if (!(Test-Path -LiteralPath $resolved)) { return $true }
+    try { Remove-Item -LiteralPath ('\\?\' + $resolved) -Recurse -Force -ErrorAction Stop; return $true }
+    catch { Write-Warning ('Fixture non rimosse: ' + $_.Exception.Message); return $false }
 }
 function Throws([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert $caught $Message}
 function Put([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function Git([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
+# Ogni esecuzione lavora in una propria directory run-<id> sotto la radice dei test: sub-suite comprese (le eredita da SECONDBRAIN_TEST_ROOT).
+# A esito verde la directory si rimuove (autorizzazione dell'utente, limitata a cio che crea questa esecuzione); a esito rosso si conserva.
+$keepFixtures = $KeepFixtures -or $env:SECONDBRAIN_TEST_KEEP -eq '1'
+$testBase = Get-SBTestRoot
+$savedTestRoot = $env:SECONDBRAIN_TEST_ROOT
+$runDirectory = Join-Path $testBase ('run-'+[guid]::NewGuid().ToString('N').Substring(0,8))
+[IO.Directory]::CreateDirectory($runDirectory)|Out-Null
+$env:SECONDBRAIN_TEST_ROOT = $runDirectory
 $root=Join-Path (Get-SBTestRoot) ('secondbrain-test-'+[guid]::NewGuid().ToString('N'))
 $backup=Join-Path (Get-SBTestRoot) ('secondbrain-test-backup-'+[guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($root)|Out-Null
 $success=$false
+$runWatch = [Diagnostics.Stopwatch]::StartNew()
 try {
     & {
         $backup = Join-Path $root 'directive-backups'
@@ -51,6 +132,7 @@ try {
             Write-Output "SUCCESS DIRECTIVES: $diff verifiche"
         }
     }
+    if ($script:Level -in 'Fast','Full') {
     $brain=Join-Path $root 'brain'
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem $PSScriptRoot -File | Where-Object Name -ne 'test-secondbrain.ps1' | Copy-Item -Destination (Join-Path $brain 'scripts')
@@ -155,45 +237,26 @@ try {
         }
     }
     finally {$env:CODEX_HOME=$oldCodexHome}
-    
-    Invoke-SubSuite 'Portabile: discovery, attivazione, compattazione, pubblicazione e asset' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-portable.ps1')
-    }
-    Invoke-SubSuite 'Workflow: catalogo, contesto Git/PARA, composizione e output' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-workflows.ps1')
-    }
-    Invoke-SubSuite 'Fonti: registro, sicurezza, acquisizione, confronto e conversione' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-sources.ps1')
-    }
-    Invoke-SubSuite 'Tracker: conversioni, resolver, riferimenti, migrazione e recupero' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-trackers.ps1')
-    }
-    Invoke-SubSuite 'Audit2: rimozione protetta, Markdown, provenienza e recupero' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-audit2.ps1')
-    }
-    Invoke-SubSuite 'Traccia di fine turno: evento, hook Stop e avviso di compattazione' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-trace.ps1')
-    }
-    Invoke-SubSuite 'Audit esterno: paginazione, copertura, errori e protezione dei contenuti' {
-        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'test-secondbrain-external-audit.ps1')
     }
 
-    foreach($script in Get-ChildItem $PSScriptRoot -File|Where-Object Extension -in @('.ps1','.psm1')){
-        $tokens=$null;$errors=$null;[Management.Automation.Language.Parser]::ParseFile($script.FullName,[ref]$tokens,[ref]$errors)|Out-Null
-        Assert ($errors.Count -eq 0) ('parser '+$script.Name)
-    }
-    if (!$script:Full) {
-        Write-Output "SUCCESS PARSER: tutti gli script analizzati senza errori di sintassi"
-    }
-    $success=$true
-    "SUCCESS: $script:passed verifiche; nessun accesso a dati applicativi o remote di rete."
-} finally {
-    if($success){
-        foreach($target in @($root,$backup)){
-            $resolved=[IO.Path]::GetFullPath($target)
-            $allowed=if($target -eq $root){[IO.Path]::GetFullPath((Get-SBTestRoot))}else{[IO.Path]::GetFullPath((Get-SBTestRoot))}
+    Invoke-SubSuites (Get-SubSuiteKeys)
 
-            if(Test-Path -LiteralPath $resolved){Write-Output ('Fixture conservata: '+$resolved)}
+    if ($script:Level -ne 'Only') {
+        foreach($script in Get-ChildItem $PSScriptRoot -File|Where-Object Extension -in @('.ps1','.psm1')){
+            $tokens=$null;$errors=$null;[Management.Automation.Language.Parser]::ParseFile($script.FullName,[ref]$tokens,[ref]$errors)|Out-Null
+            Assert ($errors.Count -eq 0) ('parser '+$script.Name)
         }
-    }else{"Fixture conservata: $root"}
+        if (!$script:Full) {
+            Write-Output "SUCCESS PARSER: tutti gli script analizzati senza errori di sintassi"
+        }
+    }
+    Write-SlowestSections
+    $success=$true
+    "SUCCESS: $script:passed verifiche in $(Format-Seconds $runWatch.Elapsed.TotalSeconds) [$($script:Level)]; nessun accesso a dati applicativi o remote di rete."
+} finally {
+    $env:SECONDBRAIN_TEST_ROOT = $savedTestRoot
+    if ($success -and !$keepFixtures) {
+        if (Remove-TestRun $runDirectory $testBase) { Write-Output 'Fixture di questa esecuzione rimosse (esito verde; -KeepFixtures le conserva).' }
+        else { Write-Output ('Fixture conservata: '+$runDirectory) }
+    } else { Write-Output ('Fixture conservata: '+$runDirectory) }
 }

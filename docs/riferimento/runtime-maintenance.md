@@ -58,6 +58,19 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 4. Per altre cartelle (rapporti handshake, lavoro di agent, zip) controlla i collegamenti (`Get-ChildItem <cartella> -Recurse -Force -Attributes ReparsePoint`; una junction si toglie con `cmd /c rmdir <link>`); per percorsi oltre 260 caratteri svuota con `robocopy <cartella-vuota> <cartella> /MIR`.
 5. Dopo la pulizia esegui `secondbrain.ps1 -Check`: deve restare lo stato noto della postazione.
 
+## Suite di test: livelli e fixture
+
+`scripts/test-secondbrain.ps1` ha tre livelli e una sub-suite singola:
+
+| Comando | Cosa esegue | Quando |
+|---|---|---|
+| `-Quick` | Controlli puri (identità dei repository, JSON deterministico, VERSION e direttive, catalogo prompt, catalogo messaggi e throw con chiave), fonti, audit esterno, parser. Nessun Git né processo figlio per i controlli puri. | A ogni modifica |
+| *(predefinito, Fast)* | Tutto il Quick più le sub-suite con fixture (portable, workflows, tracker, audit2, traccia) in parallelo (al più 4 processi `pwsh`); stampa una riga per sub-suite con il tempo. | Prima del commit |
+| `-Full` | Come Fast, ma in sequenza e con una riga per ogni verifica. | Prima di una pubblicazione |
+| `-Only <chiave>` | Una sola sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `sources`, `external-audit`, `quick`). | Per ripetere un fallimento |
+
+Ogni esecuzione lavora in `.runtime/tests/run-<id>`, sub-suite comprese. A esito **verde** quella directory (e solo quella) viene rimossa; a esito rosso resta, con le sue fixture, per l'analisi. `-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano anche in caso di successo. Le sub-suite lanciate da sole (`pwsh -File scripts/test-secondbrain-<nome>.ps1`) conservano la propria fixture, come prima. `SECONDBRAIN_TEST_TIMING=1` esegue in sequenza e stampa le 15 sezioni più lente. I `git init` delle fixture usano un template minimo (`GIT_TEMPLATE_DIR` impostato da `test-helpers.ps1`, solo `info/exclude`): niente hook di esempio, circa 250 file in meno per fixture.
+
 ## Contesto iniziale: cosa viene caricato e come ridurlo
 
 Dopo `sb prompt` l'agente carica il pacchetto di avvio del dossier. Il profilo predefinito è **snello** (tetto 20.000 caratteri, **solo per il primo caricamento**): indice, sezioni essenziali di `context.md` e `memory.md`, task pronti in una riga ciascuno e un elenco dei livelli non caricati. Il resto non è eliminato e si richiede quando serve: dopo il primo caricamento **non c'è nessun altro tetto**. `-Profile Full` e la ricerca (`-Search`, `search_knowledge`) restituiscono tutto ciò che è pertinente alla richiesta; `-Budget` è un limite facoltativo che imposti tu.

@@ -63,7 +63,7 @@ try {
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1') -Force
         $localPath=Get-SBHostConfigPath ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')))
         if(Test-Path -LiteralPath $localPath){
-            $local=Read-SBConfiguration $localPath
+            $local=Read-SBConfiguration $localPath -ReadOnly
             $candidate=if($local.ContainsKey('sourcePythonPath')){$local.sourcePythonPath}else{Join-Path $local.runtimeRoot 'sources/python/Scripts/python.exe'}
             if(Test-Path -LiteralPath $candidate){$PythonPath=$candidate}
         }

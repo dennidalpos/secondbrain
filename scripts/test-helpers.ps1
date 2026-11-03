@@ -10,3 +10,10 @@ function Get-SBTestRoot {
     [IO.Directory]::CreateDirectory($root)|Out-Null
     $root
 }
+# Template Git minimo per i `git init` delle fixture: solo info/exclude (usato da rollback-repo), senza i ~250 hook di esempio.
+if(!$env:GIT_TEMPLATE_DIR){
+    $gitTemplate=Join-Path (Get-SBTestRoot) 'git-template'
+    [IO.Directory]::CreateDirectory((Join-Path $gitTemplate 'info'))|Out-Null
+    [IO.File]::WriteAllText((Join-Path $gitTemplate 'info/exclude'),"# fixture`n")
+    $env:GIT_TEMPLATE_DIR=$gitTemplate
+}
