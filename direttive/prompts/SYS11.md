@@ -37,7 +37,7 @@ Dopo ogni operazione rigenera l'indice con `scripts/build-prompts.ps1` (non modi
 
 ## Verifiche
 
-`scripts/build-prompts.ps1 -Check` deve uscire 0: ID unici, nessun conflitto tra ID, codici e alias, categoria esistente, `related` validi e documentati, nessun segnaposto irrisolto, sezioni presenti e non vuote. Controlla con `scripts/prompts.ps1 -Show -Prompt <codice>` che la scheda uniforme si componga, che un alias ritirato risolva al sostituto con avviso e che `scripts/test-secondbrain-workflows.ps1` resti verde. Verifica che nessun conteggio dichiarato sia rimasto vecchio.
+`scripts/build-prompts.ps1 -Check` deve uscire 0: ID unici, nessun conflitto tra ID, codici e alias, categoria esistente, traduzione obbligatoria nell'altra lingua per ogni prompt attivo (voce `i18n` e scheda tradotta), `related` validi e documentati, nessun segnaposto irrisolto, sezioni presenti e non vuote. Controlla con `scripts/prompts.ps1 -Show -Prompt <codice>` che la scheda uniforme si componga, che un alias ritirato risolva al sostituto con avviso e che `scripts/test-secondbrain-workflows.ps1` resti verde. Verifica che nessun conteggio dichiarato sia rimasto vecchio.
 
 ## Consegna
 

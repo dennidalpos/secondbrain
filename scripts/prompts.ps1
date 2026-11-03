@@ -46,6 +46,8 @@ Add-SBMessages @{
     'promptscli.context.incompatible' = @{ it = 'Selezioni di contesto incompatibili'; en = 'Incompatible context selections' }
     'promptscli.goal.empty' = @{ it = 'Obiettivo vuoto'; en = 'Empty goal' }
     'promptscli.output.txt' = @{ it = 'Output TXT nuovo richiesto'; en = 'New TXT output required' }
+    'promptscli.bootstrap' = @{ it = 'Bootstrap: usa il checkout SecondBrain corrente, senza percorsi preimpostati.'; en = 'Bootstrap: use the current SecondBrain checkout, with no preset paths.' }
+    'promptscli.output.created' = @{ it = 'Creato: {0}'; en = 'Created: {0}' }
 }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $lock=$null
@@ -76,7 +78,7 @@ try {
         if(!$ConfigPath -and $Compose -and (Resolve-SBWorkflowPrompt $catalog $Prompt).prompt.code -ceq 'SYS03'){
             $selected=@((Resolve-SBWorkflowPrompt $catalog $Prompt).prompt)
             Read-SBWorkflowPrompt $brain $selected[0] $catalog
-            'Bootstrap: usa il checkout SecondBrain corrente, senza percorsi preimpostati.'
+            Get-SBMessage 'promptscli.bootstrap'
             exit 0
         }
         if(!$ConfigPath){throw (New-SBError 'promptscli.workstation.inactive')}
@@ -95,7 +97,7 @@ try {
                 if([IO.Path]::GetExtension($full) -ne '.txt'){throw (New-SBError 'promptscli.output.txt')}
                 $stream=[IO.FileStream]::new($full,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
                 try{$stream.Write([Text.Encoding]::UTF8.GetBytes($body));$stream.Flush($true)}finally{$stream.Dispose()}
-                'Creato: '+$full
+                Get-SBMessage 'promptscli.output.created' @($full)
             }else{$body}
         }
     }

@@ -393,6 +393,18 @@ IGIENE DEL REPOSITORY
   • Cosa serve: stato Git, regole di esclusione e cartelle da preservare nel repository
   • Esempio d'uso: allinea gitignore e gitkeep prima di pubblicare
 
+🔥 REP11 | Segnala un errore come issue GitHub nel formato del form, dopo conferma.
+  • ID: pmt-fe68329a
+  • Ambito: repo | Modalità: write
+  • Cosa serve: errore osservato, passi di riproduzione, versione e `gh` autenticato
+  • Esempio d'uso: segnala questo errore di build come issue GitHub
+
+🔥 REP12 | Consolida i branch con merge --no-ff ed elimina quelli integrati.
+  • ID: pmt-fabd3439
+  • Ambito: repo | Modalità: write
+  • Cosa serve: branch locali e remoti, ramo base e working tree pulito
+  • Esempio d'uso: consolida i branch conclusi in master
+
 
 GOVERNANCE, LICENZE E CONFORMITÀ
 ✅ GOV01 | Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.

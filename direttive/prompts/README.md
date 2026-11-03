@@ -393,6 +393,18 @@ REPOSITORY HYGIENE
   • Needs: Git state, exclusion rules and folders to preserve in the repository
   • Example: align gitignore and gitkeep before publishing
 
+🔥 REP11 | Report an error as GitHub issues in the form format, after confirmation.
+  • ID: pmt-fe68329a
+  • Scope: repo | Mode: write
+  • Needs: observed error, reproduction steps, version and `gh` authenticated
+  • Example: report this build error as a GitHub issue
+
+🔥 REP12 | Consolidate branches with a --no-ff merge and delete the integrated ones.
+  • ID: pmt-fabd3439
+  • Scope: repo | Mode: write
+  • Needs: local and remote branches, the base branch and a clean working tree
+  • Example: consolidate the finished branches into master
+
 
 GOVERNANCE, LICENSING AND COMPLIANCE
 ✅ GOV01 | Check open source licenses, file compliance and SPDX headers.

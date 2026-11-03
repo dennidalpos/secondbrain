@@ -2015,6 +2015,76 @@
     },
     {
       "aliases": [],
+      "category": "repository",
+      "code": "REP11",
+      "example": "report this build error as a GitHub issue",
+      "file": "REP11.md",
+      "i18n": {
+        "it": {
+          "example": "segnala questo errore di build come issue GitHub",
+          "requires": "errore osservato, passi di riproduzione, versione e `gh` autenticato",
+          "summary": "Segnala un errore come issue GitHub nel formato del form, dopo conferma."
+        }
+      },
+      "id": "pmt-fe68329a",
+      "mode": "write",
+      "next": [
+        "pmt-25ac264e",
+        "pmt-9bd26aad"
+      ],
+      "pack": "core",
+      "references": [
+        "https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms",
+        "https://cli.github.com/manual/gh_issue_create"
+      ],
+      "related": [
+        "pmt-9bd26aad",
+        "pmt-1839927a",
+        "pmt-058c474f"
+      ],
+      "requires": "observed error, reproduction steps, version and `gh` authenticated",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Report an error as GitHub issues in the form format, after confirmation.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
+      "category": "repository",
+      "code": "REP12",
+      "example": "consolidate the finished branches into master",
+      "file": "REP12.md",
+      "i18n": {
+        "it": {
+          "example": "consolida i branch conclusi in master",
+          "requires": "branch locali e remoti, ramo base e working tree pulito",
+          "summary": "Consolida i branch con merge --no-ff ed elimina quelli integrati."
+        }
+      },
+      "id": "pmt-fabd3439",
+      "mode": "write",
+      "next": [
+        "pmt-3e3728b6",
+        "pmt-0618969e"
+      ],
+      "pack": "core",
+      "references": [
+        "https://git-scm.com/docs/git-merge",
+        "https://git-scm.com/docs/git-branch"
+      ],
+      "related": [
+        "pmt-3e3728b6",
+        "pmt-40772e6e",
+        "pmt-f1df8757"
+      ],
+      "requires": "local and remote branches, the base branch and a clean working tree",
+      "scope": "repo",
+      "status": "active",
+      "summary": "Consolidate branches with a --no-ff merge and delete the integrated ones.",
+      "target": "repository"
+    },
+    {
+      "aliases": [],
       "category": "sicurezza",
       "code": "SEC01",
       "example": "review the pull request for data leaks",

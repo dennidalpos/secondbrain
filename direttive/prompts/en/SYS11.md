@@ -37,7 +37,7 @@ After every operation regenerate the index with `scripts/build-prompts.ps1` (do 
 
 ## Checks
 
-`scripts/build-prompts.ps1 -Check` must exit 0: unique IDs, no conflict among IDs, codes and aliases, existing category, valid and documented `related`, no unresolved placeholder, sections present and non-empty. Check with `scripts/prompts.ps1 -Show -Prompt <code>` that the uniform card composes, that a retired alias resolves to the replacement with a warning and that `scripts/test-secondbrain-workflows.ps1` stays green. Verify that no declared count was left stale.
+`scripts/build-prompts.ps1 -Check` must exit 0: unique IDs, no conflict among IDs, codes and aliases, existing category, mandatory translation in the other language for every active prompt (`i18n` entry and translated card), valid and documented `related`, no unresolved placeholder, sections present and non-empty. Check with `scripts/prompts.ps1 -Show -Prompt <code>` that the uniform card composes, that a retired alias resolves to the replacement with a warning and that `scripts/test-secondbrain-workflows.ps1` stays green. Verify that no declared count was left stale.
 
 ## Delivery
 

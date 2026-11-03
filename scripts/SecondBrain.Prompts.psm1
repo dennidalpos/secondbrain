@@ -9,6 +9,7 @@ Add-SBMessages @{
     'prompts.catalog.invalid' = @{ it = 'Catalogo prompt non valido'; en = 'Invalid prompt catalog' }
     'prompts.language.invalid' = @{ it = 'Lingua non supportata: {0} (usare en o it)'; en = 'Unsupported language: {0} (use en or it)' }
     'prompts.i18n.invalid' = @{ it = 'Traduzione non valida o scheda assente: {0} ({1})'; en = 'Invalid translation or missing card: {0} ({1})' }
+    'prompts.i18n.missing' = @{ it = 'Prompt attivo senza traduzione obbligatoria: {0} ({1})'; en = 'Active prompt without the required translation: {0} ({1})' }
     'prompts.category.invalid' = @{ it = 'Categoria duplicata o non valida'; en = 'Duplicate or invalid category' }
     'prompts.name.conflict' = @{ it = 'Identificatore prompt duplicato o in conflitto: {0}'; en = 'Duplicate or conflicting prompt identifier: {0}' }
     'prompts.id.duplicate' = @{ it = 'ID prompt duplicato: {0}'; en = 'Duplicate prompt ID: {0}' }
@@ -73,8 +74,13 @@ function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
         if(!$categories.ContainsKey($prompt.category)){throw (New-SBError 'prompts.category.unknown' @($prompt.category))}
         if($prompt.file -cne ($prompt.code+'.md') -or $prompt.summary -match '[\p{Cc}\p{Cf}]' -or ($prompt.code+' | '+$prompt.summary).Length -gt 88){throw (New-SBError 'prompts.card.invalid' @($prompt.code))}
         # Varianti nell'altra lingua: solo la lingua diversa dall'originale, con sommario valido e scheda presente in direttive/prompts/<lingua>/.
+        $sourceLanguage=Get-SBWorkflowSourceLanguage $prompt
+        # Un prompt attivo ha sempre la variante nell'altra lingua (voce i18n e scheda tradotta), altrimenti la vista ripiega in silenzio sull'originale.
+        if($prompt.status -eq 'active'){
+            $otherLanguage=if($sourceLanguage -ceq 'en'){'it'}else{'en'}
+            if(!(Test-SBWorkflowTranslation $prompt $otherLanguage)){throw (New-SBError 'prompts.i18n.missing' @($prompt.code,$otherLanguage))}
+        }
         if($prompt.ContainsKey('i18n')){
-            $sourceLanguage=Get-SBWorkflowSourceLanguage $prompt
             foreach($lang in $prompt.i18n.Keys){
                 $entry=$prompt.i18n[$lang]
                 if($lang -ceq $sourceLanguage -or $entry.summary -match '[\p{Cc}\p{Cf}]' -or ($prompt.code+' | '+$entry.summary).Length -gt 88 -or !(Test-Path -LiteralPath (Join-Path $root ($lang+'/'+$prompt.file)) -PathType Leaf)){throw (New-SBError 'prompts.i18n.invalid' @($prompt.code,$lang))}

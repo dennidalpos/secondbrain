@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose an improvement to the scripts, the prompt catalog or the MCP server
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use synthetic or redacted data only: no secrets, personal data, host paths or raw logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: The need or the limit that motivates the request.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What the tool should do, with an example command or prompt code.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Content of the VERSION file.
+    validations:
+      required: true
