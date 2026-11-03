@@ -5,6 +5,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'tracker.closure.advice' = @{ it = 'Aggiornare memoria e contesto, proporre il riepilogo minimo (memoria, storico o salta), poi eseguire Sync e Check.'; en = 'Update memory and context, offer a minimal summary (memory, history or skip), then run Sync and Check.' }
+    'tracker.closure.invalid' = @{ it = 'Metadati di chiusura del tracker non validi'; en = 'Invalid tracker closure metadata' }
     'tracker.history.note' = @{ it = 'Nota originale: {0}'; en = 'Original note: {0}' }
     'tracker.history.dependencies' = @{ it = 'Esiti storici espliciti usati per risolvere le dipendenze'; en = 'Explicit historical outcomes used to resolve dependencies' }
     'tracker.history.numbered' = @{ it = 'Numerazione retroattiva: {0} task (archivio e attivi) in ordine cronologico; originali conservati per hash.'; en = 'Retroactive numbering: {0} tasks (archived and active) in chronological order; originals preserved by hash.' }
@@ -489,6 +491,24 @@ function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[o
     @{applied=$true;manifest=$manifest;path=$Target.path;data=$Data}
 }
 
+# A timestamp is a reminder signal, not proof that a summary was reviewed.
+function Get-SBClosureMemoryPending([string]$Dossier,$Tracker) {
+    if(!$Tracker.extensions.ContainsKey('lastClosure')){return}
+    $closure=$Tracker.extensions.lastClosure
+    $closedAt=[DateTimeOffset]::MinValue
+    if($closure -isnot [Collections.IDictionary] -or !$closure.ContainsKey('taskId') -or
+       !$closure.taskId -or !$closure.ContainsKey('closedAt') -or
+       ![DateTimeOffset]::TryParse([string]$closure.closedAt,[ref]$closedAt)){
+        throw (New-SBError 'tracker.closure.invalid')
+    }
+    $memoryPath=Join-Path $Dossier 'memory.md'
+    Assert-SBPlainPath $memoryPath
+    $memoryUpdatedAt=if([IO.File]::Exists($memoryPath)){[DateTimeOffset][IO.File]::GetLastWriteTimeUtc($memoryPath)}else{$null}
+    if(!$memoryUpdatedAt -or $closedAt -gt $memoryUpdatedAt){
+        @{taskId=$closure.taskId;closedAt=$closure.closedAt;memoryUpdatedAt=$(if($memoryUpdatedAt){$memoryUpdatedAt.ToString('o')}else{$null})}
+    }
+}
+
 function Set-SBTrackerTaskStatus {
     [CmdletBinding()]
     param(
@@ -511,6 +531,10 @@ function Set-SBTrackerTaskStatus {
     $matching=@($next.tasks|Where-Object {$_.id -eq $TaskId})
     if($matching.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($TaskId))}
     $targetTask=$matching[0]
+    if($Status -eq 'done' -and $targetTask.status -ne 'done'){
+        # Keep the latest closure on the tracker so archiving tasks preserves the signal.
+        $next.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    }
     $targetTask.status=$Status
     if($PSBoundParameters.ContainsKey('StateReason')){
         if(!$targetTask.ContainsKey('extensions') -or $null -eq $targetTask.extensions){$targetTask.extensions=@{}}
@@ -522,7 +546,11 @@ function Set-SBTrackerTaskStatus {
         foreach($ev in @($Evidence)){$targetTask.evidence+=,$ev}
     }
     $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf
-    $saved+@{taskId=$TaskId;status=$Status}
+    $result=$saved+@{taskId=$TaskId;status=$Status}
+    if($Status -eq 'done'){
+        $result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');dossier=(Split-Path $target.path);steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
+    }
+    $result
 }
 
 # Crea un task con il numero progressivo successivo (mai riusato) e il titolo "#NNN - ".
@@ -743,6 +771,7 @@ Export-ModuleMember -Function @(
     'Get-SBTrackerAuthorityIssues',
     'Resolve-SBTrackerBackupRoot',
     'Set-SBTrackerTaskStatus',
+    'Get-SBClosureMemoryPending',
     'New-SBTrackerTaskEntry',
     'Invoke-SBTrackerRenumber',
     'Get-SBTrackerHistoryMessages',

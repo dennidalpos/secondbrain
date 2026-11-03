@@ -25,6 +25,7 @@ param(
     [string]$Repository='secondbrain',
     [string]$TargetPath=(Get-Location).Path,
     [string]$SessionId,
+    [Parameter(ParameterSetName='Start')][Parameter(ParameterSetName='Hold')][switch]$Exclusive,
     [ValidateRange(0,600)][int]$WaitSeconds=-1
 )
 $ErrorActionPreference='Stop'
@@ -40,7 +41,7 @@ Add-SBMessages @{
 # Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if ($WaitSeconds -ge 0) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS=[string]$WaitSeconds }
-$config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -in @('Status','Queue'))
+$config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -in @('Status','Queue','Start','Hold','End','Renew'))
 $sessions=Join-Path $config.coordinationRoot 'sessions'
 if ($Reconcile) {
     # Conferma esplicita dello spostamento di cartelle della postazione: aggiorna la registrazione sotto lock di scrittura.
@@ -79,6 +80,7 @@ if ($Start) {
     # Il protocollo comunica tramite metadati atomici, senza stdout del supporto.
     $processInfo.UseShellExecute=$true;$processInfo.WindowStyle=[Diagnostics.ProcessWindowStyle]::Hidden
     foreach($arg in @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Hold','-ConfigPath',$config.configPath,'-SessionId',$SessionId,'-Mode',$Mode,'-Client',$Client,'-Repository',$Repository,'-TargetPath',$TargetPath)){$processInfo.ArgumentList.Add($arg)}
+    if($Exclusive){$processInfo.ArgumentList.Add('-Exclusive')}
     $process=[Diagnostics.Process]::Start($processInfo)
     try {
         # La sessione di scrittura attende in coda fino a lockWaitMs: la finestra di apertura la include.
@@ -95,9 +97,9 @@ if ($Start) {
 Test-SBSessionId $SessionId
 $writer=$null;$lease=$null
 $path=Join-Path $sessions ($SessionId+'.json')
-$metadata=@{sessionId=$SessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client=$Client;repository=$Repository;path=[IO.Path]::GetFullPath($TargetPath);mode=$Mode;workstationId=$config.workstationId;startedAt=[DateTimeOffset]::UtcNow.ToString('o');heartbeat=[DateTimeOffset]::UtcNow.ToString('o');status='active'}
+$metadata=@{sessionId=$SessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client=$Client;repository=$Repository;path=[IO.Path]::GetFullPath($TargetPath);mode=$Mode;exclusive=[bool]$Exclusive;workstationId=$config.workstationId;startedAt=[DateTimeOffset]::UtcNow.ToString('o');heartbeat=[DateTimeOffset]::UtcNow.ToString('o');status='active'}
 try {
-    if($Mode -eq 'Write') {
+    if($Mode -eq 'Write' -and $Exclusive) {
         $writerPath=Join-Path $config.coordinationRoot 'writer.lock';Assert-SBPlainPath $writerPath
         $waitMs=Get-SBLockWaitMs $config
         $onWait={ [Console]::Error.WriteLine('SecondBrain: scrittura occupata, attesa fino a '+[int]($waitMs/1000)+' s. Titolare: '+(Get-SBOperationOwnerText $config)) }.GetNewClosure()

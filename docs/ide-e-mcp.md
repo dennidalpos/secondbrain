@@ -51,7 +51,7 @@ Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file
 
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
-| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Sola lettura per costruzione. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
+| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
 | **Contro** | La risposta JSON-RPC compatta `tools/list` misura 7.115 caratteri in italiano e 6.577 in inglese (misurazione del 2026-11-03; il solo `result` misura 7.081/6.543). Sono caratteri, non token. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
@@ -61,7 +61,7 @@ Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumen
 1. **Il collegamento è corretto?** `scripts/mcp-server.ps1 -Pair -Target <agente>` mostra l'anteprima di percorso e configurazione.
 2. **Il server risponde?** `scripts/test-secondbrain-mcp-handshake.ps1` simula l'avvio e le chiamate. Se passa, il problema sta nell'agente o nella sua configurazione.
 3. **L'agente lo vede?** In Claude Code apri `/mcp`; in Codex usa `codex mcp list`. Riavvia l'agente dopo ogni modifica.
-4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente, solo per gli strumenti di lettura.
+4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente per gli strumenti di conoscenza: possono integrare solo richieste pendenti già autorizzate; `check_publication` conserva il consenso separato.
 
 Limite: la verifica nelle interfacce grafiche degli IDE non è ancora provata dal vivo.
 

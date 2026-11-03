@@ -321,6 +321,46 @@ try{
     $reloadedTracker=Read-SBJson $trackerFilePath $null
     $reloadedTask=@($reloadedTracker.tasks|Where-Object id -eq 'FIXTURE-TASK')[0]
     Assert-Portable ($reloadedTask.status -eq 'in_progress' -and $reloadedTask.extensions.stateReason -eq 'in-progress verification' -and $reloadedTask.evidence.Count -ge 1) 'stato e metadati task aggiornati su disco'
+    Assert-Portable (!$statusUpdate.ContainsKey('closureAdvice')) 'non-done updates do not suggest closure'
+    $beforeClosure=Get-SBFileHash $trackerFilePath
+    $previewClosure=Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId 'FIXTURE-TASK' -Status done -WhatIf
+    Assert-Portable (!$previewClosure.applied -and $previewClosure.closureAdvice.code -eq 'tracker.closure.advice' -and (Get-SBFileHash $trackerFilePath) -eq $beforeClosure) 'closure preview returns advice without persisting a closure'
+    $closureCli=& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -ConfigPath $activation.configuration -CheckoutPath $repo -UpdateTaskId FIXTURE-TASK -Status done -Language en
+    Assert-Portable ($LASTEXITCODE -eq 0) 'CLI closes the fixture task'
+    $closedResult=($closureCli|Out-String)|ConvertFrom-Json -AsHashtable
+    Assert-Portable ($closedResult.closureAdvice.code -eq 'tracker.closure.advice' -and $closedResult.closureAdvice.steps.Count -eq 5 -and $closedResult.closureAdvice.summaryOptions.Count -eq 3) 'CLI returns structured closure advice'
+    $closureDoc=Read-SBJson $trackerFilePath $null
+    $closedAt=$closureDoc.extensions.lastClosure.closedAt
+    $memoryFile=Join-Path $dossier 'memory.md'
+    [IO.File]::SetLastWriteTimeUtc($memoryFile,([DateTimeOffset]::Parse($closedAt)).UtcDateTime.AddSeconds(-1))
+    $closureHash=Get-SBFileHash $trackerFilePath
+    $memoryHash=Get-SBFileHash $memoryFile
+    $memoryTime=[IO.File]::GetLastWriteTimeUtc($memoryFile)
+    $savedClosureLanguage=$env:SECONDBRAIN_LANG
+    try {
+        $closureMessages=@{}
+        foreach($closureLanguage in @('it','en')){
+            $env:SECONDBRAIN_LANG=$closureLanguage
+            $pendingCheck=Invoke-SBPortableSync $cfg -Check -Repository $trackerDoc.repository
+            $pendingWarnings=@($pendingCheck.warnings|Where-Object kind -eq 'closure-memory-pending')
+            Assert-Portable ($pendingWarnings.Count -eq 1 -and $pendingWarnings[0].taskId -eq 'FIXTURE-TASK' -and !@($pendingCheck.issues|Where-Object kind -eq 'closure-memory-pending').Count) ('closure warning is advisory: '+$closureLanguage)
+            $closureMessages[$closureLanguage]=$pendingWarnings[0].reason
+        }
+        Assert-Portable ($closureMessages.it -cne $closureMessages.en) 'closure warning is localized with a stable kind'
+    } finally {$env:SECONDBRAIN_LANG=$savedClosureLanguage}
+    Assert-Portable ((Get-SBFileHash $trackerFilePath) -eq $closureHash -and (Get-SBFileHash $memoryFile) -eq $memoryHash -and [IO.File]::GetLastWriteTimeUtc($memoryFile) -eq $memoryTime) 'closure Check leaves tracker and memory unchanged'
+    [IO.File]::SetLastWriteTimeUtc($memoryFile,([DateTimeOffset]::Parse($closedAt)).UtcDateTime.AddSeconds(1))
+    $closedAgain=Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId FIXTURE-TASK -Status done -BackupRoot $cfg.backupRoot
+    Assert-Portable ($closedAgain.data.extensions.lastClosure.closedAt -ceq $closedAt -and !@(Get-SBClosureMemoryPending $dossier $closedAgain.data).Count) 'repeating done preserves the closure date and acknowledged state'
+    $resolvedCheck=Invoke-SBPortableSync $cfg -Check -Repository $trackerDoc.repository
+    Assert-Portable (!@($resolvedCheck.warnings|Where-Object kind -eq 'closure-memory-pending').Count) 'memory update silences the closure warning'
+    Assert-Portable (!@(Get-SBClosureMemoryPending $dossier @{extensions=@{};tasks=@(@{id='LEGACY';status='done'})}).Count) 'legacy done tasks do not acquire invented closure dates'
+    $missingMemoryDir=Join-Path $fixture 'missing-memory'
+    Assert-Portable (@(Get-SBClosureMemoryPending $missingMemoryDir $closedAgain.data).Count -eq 1) 'missing memory remains pending'
+    Reject-Portable {Get-SBClosureMemoryPending $dossier @{extensions=@{lastClosure=@{taskId='X';closedAt='invalid'}}}} 'invalid closure metadata is reported'
+    [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId FIXTURE-TASK -Status in_progress -BackupRoot $cfg.backupRoot)
+    $reclosed=Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId FIXTURE-TASK -Status done -BackupRoot $cfg.backupRoot
+    Assert-Portable (([DateTimeOffset]::Parse($reclosed.data.extensions.lastClosure.closedAt)) -gt ([DateTimeOffset]::Parse($closedAt))) 'reopening and completing records a new closure'
     Reject-Portable {Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId 'FIXTURE-TASK' -Status 'invalid-state' -BackupRoot $cfg.backupRoot} 'stato non ammesso rifiutato'
     Reject-Portable {Set-SBTrackerTaskStatus -BrainRoot $brain -Path $trackerFilePath -TaskId 'NONEXISTENT-ID' -Status 'done' -BackupRoot $cfg.backupRoot} 'task inesistente rifiutato'
     Assert-Portable ((Read-SBJson $trackerFilePath $null).tasks.Count -eq 1) 'rifiuti non modificano il numero di task o lo schema'
@@ -568,10 +608,10 @@ try{
         }
     } else { Write-Warning 'sh non trovato: prove dell''esecuzione dell''hook saltate' }
 
-    # Fase 4: Server MCP stdio locale in sola lettura
+    # Fase 4: server MCP stdio con recupero delle scritture gia autorizzate.
     $mcpInit = @{ jsonrpc = '2.0'; id = 101; method = 'initialize'; params = @{} } | ConvertTo-Json -Compress
     $mcpInitRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpInit | ConvertFrom-Json
-    Assert-Portable ($mcpInitRes.result.serverInfo.name -eq 'secondbrain-mcp' -and $mcpInitRes.result.protocolVersion -eq '2024-11-05') 'server MCP risponde a initialize con versione e serverInfo'
+    Assert-Portable ($mcpInitRes.result.serverInfo.name -eq 'secondbrain-mcp' -and $mcpInitRes.result.protocolVersion -eq '2025-03-26') 'server MCP risponde a initialize con versione e serverInfo'
     
     $mcpPing = @{ jsonrpc = '2.0'; id = 102; method = 'ping'; params = @{} } | ConvertTo-Json -Compress
     $mcpPingRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpPing | ConvertFrom-Json
@@ -644,7 +684,7 @@ try{
     Assert-Portable ($claudePair.ConfigFormat -eq 'json' -and $claudePair.Snippet -match '"mcpServers"') 'pairing Claude produce JSON con mcpServers'
     $codePair=@($pairingsAll|Where-Object Target -eq 'claude-code')[0]
     $claudeAllow=@((ConvertFrom-Json $codePair.PermissionsSnippet).permissions.allow)
-    Assert-Portable ($claudeAllow.Count -eq @(Get-SBMcpReadOnlyToolNames).Count -and $claudeAllow -contains 'mcp__secondbrain__search_knowledge' -and $claudeAllow -notcontains 'mcp__secondbrain__check_publication') 'pairing Claude: permessi solo per gli strumenti di lettura, check_publication esclusa'
+    Assert-Portable ($claudeAllow.Count -eq @(Get-SBMcpKnowledgeToolNames).Count -and $claudeAllow -contains 'mcp__secondbrain__search_knowledge' -and $claudeAllow -notcontains 'mcp__secondbrain__check_publication') 'pairing Claude: permessi nominativi con integrazione dei pendenti, check_publication esclusa'
     $vscodePair = @($pairingsAll | Where-Object Target -eq 'vscode')[0]
     Assert-Portable ($vscodePair.ConfigFormat -eq 'json' -and $vscodePair.Snippet -match '"servers"' -and $vscodePair.Snippet -match '"type": "stdio"' -and $vscodePair.Snippet -notmatch 'mcp\.servers' -and $vscodePair.ConfigFile -like '*Code*User*mcp.json') 'pairing VS Code: mcp.json del profilo con chiave servers e type stdio'
     $workspaceDir = Join-Path $fixture 'mcp-workspace'
@@ -1250,7 +1290,7 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($mcpPreview.exit -eq 0 -and $mcpPreview.text -match '"approveReadTools": true' -and !(Test-Path -LiteralPath $setupMcpFile)) '-Setup MCP preview shows consent without changing synthetic profile'
         $mcpApply=Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-Apply','-McpTargets','cursor','-ApproveMcpReadTools'))
         $setupPolicy=Read-SBJson (Join-Path $setupMcpProfile '.cursor/permissions.json') @{}
-        Assert-Portable ($mcpApply.exit -eq 0 -and (Test-Path -LiteralPath $setupMcpFile) -and $setupPolicy.mcpAllowlist.Count -eq 7) '-Setup applies selected MCP registration and separately approved read-only policy'
+        Assert-Portable ($mcpApply.exit -eq 0 -and (Test-Path -LiteralPath $setupMcpFile) -and $setupPolicy.mcpAllowlist.Count -eq 7) '-Setup applies selected MCP registration and separately approved knowledge-tool policy'
     }finally{$env:USERPROFILE=$profileBeforeMcp}
     Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-ApproveMcpReadTools'))).exit -eq 2) '-Setup refuses read-tool consent without selected MCP targets'
     Assert-Portable ([Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -NoRegisterEnvironment non cambia l ambiente utente'
@@ -1467,7 +1507,7 @@ public static bool Set(string name,bool enabled){
         Reject-Portable {Get-SBWorkEnvironment $brain (Get-SBHostId) 'github.com/acme/repo'} 'ambiente di lavoro locale rifiuta percorsi di rete'
     }finally{Remove-Item Env:\SECONDBRAIN_WORK_LOCAL_ROOT -ErrorAction SilentlyContinue}
     Assert-Portable ((Invoke-FixtureCli $accessCli @('-Reconcile','-ConfigPath',$isoActivation.configuration)).exit -eq 0) 'riconciliazione postazione prima dei test di concorrenza'
-    $holder=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-share')
+    $holder=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Exclusive','-Client','test-share')
     $holderId=if($holder.text -match '"sessionId":\s*"([a-f0-9]{32})"'){$Matches[1]}else{''}
     Assert-Portable ($holder.exit -eq 0 -and $holderId) 'sessione di scrittura A aperta (tiene writer.lock)'
     try{
@@ -1598,7 +1638,7 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
             $writerResult=Invoke-FixtureCli $writerName $writerCalls[$writerName]
             Assert-Portable ($writerResult.exit -eq 3 -and $writerResult.text -match '(Titolare|Owner)') ("lock occupato: $writerName esce con 3 e il titolare")
         }
-        $startBusy=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-queue')
+        $startBusy=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Exclusive','-Client','test-queue')
         Assert-Portable ($startBusy.exit -eq 3 -and $startBusy.text -match '(occupato|busy)') 'lock occupato: access -Start in scrittura esce con 3'
     }finally{
         Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue

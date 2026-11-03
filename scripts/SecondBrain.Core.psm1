@@ -11,6 +11,7 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 $script:SBWriteGuard = $null
 
 function Set-SBWriteGuard([scriptblock]$Guard) { $script:SBWriteGuard=$Guard }
+function Get-SBWriteGuard { $script:SBWriteGuard }
 function Assert-SBWriteGuard { if($script:SBWriteGuard){ & $script:SBWriteGuard } }
 
 function Get-SBHash([byte[]]$Bytes) {
@@ -954,6 +955,7 @@ function Test-SBApproval([string]$BrainRoot) {
 }
 Export-ModuleMember -Function @(
     'Set-SBWriteGuard',
+    'Get-SBWriteGuard',
     'Assert-SBWriteGuard',
     'Get-SBHash',
     'Get-SBTextHash',

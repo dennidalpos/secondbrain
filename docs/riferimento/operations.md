@@ -51,7 +51,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 
 ![Output reale di secondbrain.ps1 -Check su una fixture sintetica](../assets/cli-check.png)
 
-Check non corregge e non prende lock bloccanti: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
+Check integra prima i pendenti autorizzati dei dossier, senza attesa sul lock; il controllo degli asset non applica correzioni: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
 
 ### Verifica prima del push
 
@@ -68,6 +68,8 @@ Restituisce 0 se l'indice è conforme e pulito; restituisce 1 e blocca la proced
 L'inventario e la mappa IDE risiedono nel runtime locale della postazione. I dossier e l'indice PARA sono condivisi. La presenza di un nuovo checkout nel filesystem non lo aggiunge al perimetro gestito; l'assenza di un percorso non elimina dossier o task.
 
 Il pacchetto iniziale (profilo snello) comprende TOC, sezioni essenziali di contesto e memoria, task pronti in una riga e l'elenco dei livelli non caricati. Quando supera il tetto del primo caricamento (20.000 caratteri, solo per l'avvio), SYS04 prepara con SYS05 una compattazione revisionata; la CLI non inventa sintesi e non tronca dati. Gli originali restano conservati.
+
+La chiusura con `knowledge.ps1 -UpdateTaskId ID -Status done` restituisce `closureAdvice`: memoria, contesto, riepilogo minimo e Sync/Check. Ogni nuova transizione a `done` registra `extensions.lastClosure` nel tracker; ripetere `done` conserva la data precedente. Check emette il solo avviso `closure-memory-pending` se `memory.md` manca o precede l'ultima chiusura. L'avviso tace dopo l'aggiornamento della memoria, non blocca l'allineamento e non certifica il contenuto del riepilogo. Non si ricostruiscono date per task storici e non si leggono trascrizioni. MEM03 propone il riepilogo aggiuntivo in memoria, nello storico o «salta», preservando gli aggiornamenti obbligatori.
 
 | Exit code | Significato |
 |---|---|

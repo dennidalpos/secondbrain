@@ -45,8 +45,8 @@ function Get-SBLockWaitMs($Config,[int]$WaitMs=-1) {
     if($Config -is [Collections.IDictionary] -and $Config.ContainsKey('lockWaitMs')){return [int]$Config.lockWaitMs}
     60000
 }
-function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransaction,[int]$MigrationDepth=0,[switch]$ReadOnly) {
-    $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransaction,[int]$MigrationDepth=0,[switch]$ReadOnly,[string]$BrainRoot) {
+    $brain = if($BrainRoot){[IO.Path]::GetFullPath($BrainRoot)}else{[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
     if(!$ConfigPath){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
         $ConfigPath=Get-SBHostConfigPath $brain
@@ -56,7 +56,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
     if($MigrationDepth -gt 3){throw (New-SBError 'access.config.chain')}
     if($local -and $local.ContainsKey('migratedTo')){
         $target=Assert-SBCentralDataPath $brain $local.migratedTo
-        return Read-SBConfiguration $target -AllowPendingTransaction:$AllowPendingTransaction -MigrationDepth ($MigrationDepth+1) -ReadOnly:$ReadOnly
+        return Read-SBConfiguration $target -AllowPendingTransaction:$AllowPendingTransaction -MigrationDepth ($MigrationDepth+1) -ReadOnly:$ReadOnly -BrainRoot $brain
     }
     $shared = Read-SBJson (Join-Path $brain 'config/shared.json') $null
     if($local -and $local.schemaVersion -eq 1 -and $local.mode -eq 'portable'){
@@ -219,7 +219,7 @@ function Write-SBReadWarnings($Operation, $Config) {
     if ($pending) { [Console]::Error.WriteLine('Avviso: ' + (Format-SBPendingTransaction $pending)) }
 }
 function Get-SBOperationOwnerText($Config) {
-    $owners = @(Get-SBAccessStatus $Config)
+    $owners = @(Get-SBAccessStatus $Config|Where-Object {$_.status -eq 'active' -and $_.mode -eq 'Write' -and (!$_.ContainsKey('exclusive') -or $_.exclusive)})
     $owner = Read-SBJson (Join-Path $Config.coordinationRoot 'operation-owner.json') @{}
     if ($owners.Count) { ($owners | ForEach-Object { "$($_.user)@$($_.computer), $($_.client), $($_.path), sessione $($_.sessionId)" }) -join '; ' }
     elseif ($owner.Count) { "$($owner.user)@$($owner.computer), $($owner.client), $($owner.path), dal $($owner.heartbeat)" }
@@ -308,7 +308,7 @@ function Assert-SBSession($Config, [string]$SessionId, [switch]$AllowRead) {
 
 function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]$WaitMs = -1, [switch]$ReconcileWorkstation, [switch]$LockOnly) {
     # -LockOnly: solo coda e lock di scrittura (nessun registro postazioni ne guardia), per i writer che operano fuori dal cervello e a postazione non attivata.
-    $result = @{ writer=$null; operation=$null; metadata=$null; ownerSessionId=$null; config=$Config; concurrentWriter=$false; pendingTransaction=$null }
+    $result = @{ writer=$null; operation=$null; metadata=$null; ownerSessionId=$null; config=$Config; concurrentWriter=$false; pendingTransaction=$null; previousGuard=(Get-SBWriteGuard) }
     $waitTotal = Get-SBLockWaitMs $Config $WaitMs
     try {
         if (!(Test-Path -LiteralPath $Config.coordinationRoot)) {
@@ -322,7 +322,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             if ($Config -is [Collections.IDictionary] -and $Config.ContainsKey('brainRoot')) { $result.pendingTransaction = Get-SBPendingTransaction $Config.brainRoot }
             if ($SessionId) {
                 $session = Assert-SBSession $Config $SessionId -AllowRead
-                if ($session.mode -eq 'Read' -and (Test-Path -LiteralPath $writerPath)) {
+                if (($session.mode -eq 'Read' -or ($session.ContainsKey('exclusive') -and !$session.exclusive)) -and (Test-Path -LiteralPath $writerPath)) {
                     try { $probe = [IO.File]::Open($writerPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None); $probe.Dispose() }
                     catch [IO.IOException] { $result.concurrentWriter = $true }
                 }
@@ -331,8 +331,13 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
                 catch [IO.IOException] { $result.concurrentWriter = $true }
             }
         } else {
-            if ($SessionId) { Assert-SBSession $Config $SessionId | Out-Null }
-            else {
+            $exclusiveSession=$false
+            if ($SessionId) {
+                $session=Assert-SBSession $Config $SessionId
+                # Old running sessions held writer.lock; preserve their contract until End.
+                $exclusiveSession=(!$session.ContainsKey('exclusive') -or [bool]$session.exclusive)
+            }
+            if (!$exclusiveSession) {
                 Assert-SBPlainPath $writerPath
                 $onWait = { [Console]::Error.WriteLine('SecondBrain: scrittura occupata, attesa fino a ' + [int]($waitTotal / 1000) + ' s. Titolare: ' + (Get-SBOperationOwnerText $Config)) }.GetNewClosure()
                 $result.writer = Open-SBWriterLock $Config $writerPath $waitTotal $onWait
@@ -386,7 +391,8 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
 
 function Exit-SBOperation($Operation) {
     if (!$Operation) { return }
-    Set-SBWriteGuard $null
+    $previousGuard=if($Operation.ContainsKey('previousGuard')){$Operation.previousGuard}else{$null}
+    Set-SBWriteGuard $previousGuard
     if ($Operation.operation) { $Operation.operation.Dispose() }
     # Il file del titolare si rimuove solo se e ancora quello scritto da questa operazione.
     if ($Operation.metadata -and [IO.File]::Exists($Operation.metadata)) {
@@ -397,6 +403,7 @@ function Exit-SBOperation($Operation) {
 }
 
 Export-ModuleMember -Function @(
+    'Assert-SBSession',
     'Get-SBPendingTransaction',
     'Format-SBPendingTransaction',
     'Get-SBLockWaitMs',

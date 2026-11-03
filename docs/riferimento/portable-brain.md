@@ -139,9 +139,9 @@ DOC01 prepara README e guide Markdown, senza GitHub Pages implicito. DOC03 richi
 
 ## Integrazione IDE via Server MCP (Model Context Protocol)
 
-Per gli IDE e gli agenti conformi alle specifiche MCP (Cursor, Claude Desktop, Antigravity, VS Code, Windsurf, OpenAI Codex), SecondBrain fornisce un server stdio locale in sola lettura tramite `scripts/mcp-server.ps1` (modulo `scripts/SecondBrain.Mcp.psm1`).
+Per gli IDE e gli agenti conformi alle specifiche MCP (Cursor, Claude Desktop, Antigravity, VS Code, Windsurf, OpenAI Codex), SecondBrain fornisce un server stdio locale tramite `scripts/mcp-server.ps1` (modulo `scripts/SecondBrain.Mcp.psm1`).
 
-Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2024-11-05`) su standard input e standard output, garantendo determinismo e sicurezza: non effettua mutazioni su disco, non acquisisce lock di scrittura ed espone gli strumenti informativi essenziali:
+Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2025-03-26`, con compatibilità `2024-11-05`) su standard input e standard output. All'avvio e prima delle letture prova, senza attendere il lock, a integrare le sole richieste di dossier già autorizzate e accodate; non espone comandi arbitrari né nuove scritture MCP. Espone gli strumenti informativi essenziali:
 - `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento) o `full` senza tetto.
 - `get_ready_tasks`: restituisce la lista delle sole attività sbloccate con dipendenze soddisfatte (`-ReadyOnly`).
 - `search_knowledge`: ricerca nel dossier del repository in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio e rapporti) con tetto predefinito di 20 riscontri e 10.000 caratteri; `allDossiers`, `includeOriginals`, `limit=0` e `budget=0` ampliano o tolgono il tetto.

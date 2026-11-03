@@ -73,7 +73,7 @@ Tutti gli output operativi gestiti stanno qui, isolati per host. Il clone può s
 | `hosts/<id>/backups/` | `Write-SBFile` | Originali dei file gestiti prima di ogni scrittura e record `.stage` delle transazioni. | Con cautela: `cleanup.ps1 -ListStageRecords` mostra i `.stage` oltre 90 giorni |
 | `hosts/<id>/migrations/` | `import-tracker.ps1` | Sorgenti preservati delle importazioni. | Con cautela |
 | `hosts/<id>/sources/` | `sources.ps1` | `python/` (ambiente dedicato per convertire le fonti), `reports/`, `latest.json`. | Sì: `python/` si ricrea dal lock; i rapporti hanno retention 90 giorni. Dopo la rimozione `sources.ps1 -Check` segnala rapporti assenti |
-| `access/` | `access.ps1`, `Enter-SBOperation` | Sessioni, `writer.lock`, `operation.lock`, registro `workstations.json`. | **No** con sessioni attive; lock e sessioni orfane si trattano con `access.ps1 -Reconcile` o `recover.ps1`, non a mano |
+| `access/` | `access.ps1`, `Enter-SBOperation`, `SecondBrain.Pending.psm1` | Sessioni, lock, registro postazioni, `pending-writes/` e `pending-receipts/`. | **No** con sessioni attive o richieste pendenti; originali e ricevute si conservano, recupero con gli strumenti dedicati |
 | `para-transaction.json` | `Invoke-SBParaTransaction` | Marker di una transazione in corso (assente a riposo). | **No**: se presente, recuperare con `recover.ps1` |
 | `backups/transactions/` | Transazioni PARA e tracker | Manifest e originali di ogni scrittura transazionale (recuperabili con `recover.ps1`). | Con cautela (retention con `cleanup.ps1` e manifest) |
 | `backups/tracker/`, `backups/tracker-*`, `backups/publication/` | Aggiornamenti del tracker, rapporti SEC07 | Copie dei tracker prima di una modifica e dei rapporti di pubblicazione. | Con cautela |

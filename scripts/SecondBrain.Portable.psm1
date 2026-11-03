@@ -11,13 +11,14 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di lettura';en='Select valid MCP targets to approve read-only tools'}
+    'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di conoscenza';en='Select valid MCP targets to approve knowledge tools'}
     'portable.selection.summary' = @{ it = 'Selezione: {0} repository, {1} IDE'; en = 'Selection: {0} repositories, {1} IDEs' }
     'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
     'portable.output.summary' = @{ it = 'Output di {0}: {1} -> {2}'; en = 'Output for {0}: {1} -> {2}' }
     'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
     'portable.issue.output' = @{ it = 'Configuration and proof of build/cache output locations belong to the product agent'; en = 'Configuration and proof of build/cache output locations belong to the product agent' }
     'portable.issue.compaction' = @{ it = 'Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'; en = 'Propose SYS05 (sb compact): nothing is compacted without confirmation' }
+    'portable.issue.closure' = @{ it = 'Un task e stato chiuso dopo l ultimo aggiornamento di memory.md: aggiornare memoria e contesto con MEM03.'; en = 'A task was closed after the last memory.md update: update memory and context with MEM03.' }
     'portable.issue.idecontext' = @{ it = 'Contesto IDE diverso da quello registrato: riverificare login e caricamento, quindi riattivare con Setup e ritirare il vecchio accesso con Unbind'; en = 'IDE context differs from the recorded one: re-verify login and loading, then re-activate with Setup and withdraw the old access with Unbind' }
     'portable.issue.writer' = @{ it = 'Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'; en = 'A writer is active: the result may reflect an intermediate state, repeat the check' }
     'portable.prompt.repos' = @{ it = 'Repository trovati:'; en = 'Repositories found:' }
@@ -605,6 +606,7 @@ function Invoke-SBPortableSync {
             if($scoped.Count -ne 1){throw (New-SBError 'portable.repository.notonhost' @($Repository))}
         }
         $compactionAdvice=@()
+        $closureWarnings=@()
         $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=1;managed=@{};dossierMap=@{}}
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
@@ -649,6 +651,14 @@ function Invoke-SBPortableSync {
                     if((Get-SBFileHash $viewFile) -ne (Get-SBTextHash $agentView)){
                         if($Check){$issues+=@{kind='agent-view-pending';repository=$binding.identity}}
                         else{Write-SBFile $viewFile ([Text.Encoding]::UTF8.GetBytes($agentView)) (Get-SBFileHash $viewFile) $Config.backupRoot|Out-Null;$changes+='agent-view:'+$binding.identity}
+                    }
+                }
+                if($Check){
+                    $closureTracker=Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $binding.identity -DossierPath $dir -CheckoutPath $binding.path -AllowedOwners @() -Entities $entities
+                    if($closureTracker.source -eq 'dossier'){
+                        foreach($pending in @(Get-SBClosureMemoryPending $dir $closureTracker.data)){
+                            $closureWarnings+=@{kind='closure-memory-pending';repository=$binding.identity;taskId=$pending.taskId;closedAt=$pending.closedAt;memoryUpdatedAt=$pending.memoryUpdatedAt;reason=(Get-SBMessage 'portable.issue.closure')}
+                        }
                     }
                 }
                 # Il tetto vale solo per il primo caricamento (profilo Slim, 20.000 caratteri), come in knowledge.ps1 -Startup.
@@ -732,7 +742,7 @@ function Invoke-SBPortableSync {
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.
-        $warnings=@($compactionAdvice)
+        $warnings=@($compactionAdvice)+@($closureWarnings)
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason=(Get-SBMessage 'portable.issue.writer')}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}
         if($pendingTransaction){$warnings+=@{kind='pending-transaction';reason=(Format-SBPendingTransaction $pendingTransaction)}}

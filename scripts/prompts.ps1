@@ -42,6 +42,7 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
     'promptscli.workstation.inactive' = @{ it = 'Postazione non attivata: usare sb attiva (SYS03)'; en = 'Workstation not activated: use sb attiva (SYS03)' }
     'promptscli.context.incompatible' = @{ it = 'Selezioni di contesto incompatibili'; en = 'Incompatible context selections' }
@@ -53,6 +54,8 @@ Add-SBMessages @{
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $lock=$null
 try {
+    $pendingWrites=Invoke-SBPendingWrites -BrainRoot $brain -ConfigPath $ConfigPath -SessionId $SessionId
+    if($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingWrites))}
     # Memory discovery must remain available even if the prompt catalog is broken.
     if(!$Context){$catalog=Read-SBWorkflowCatalog $brain}
     if(!$ConfigPath -and $PSCmdlet.ParameterSetName -in @('Context','Compose')){

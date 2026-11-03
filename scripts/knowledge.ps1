@@ -8,6 +8,12 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=50000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
+    [Parameter(Mandatory,ParameterSetName='FileSave')][string]$SaveFile,
+    [Parameter(Mandatory,ParameterSetName='FileAppend')][string]$AppendFile,
+    [Parameter(Mandatory,ParameterSetName='FileSave')][Parameter(Mandatory,ParameterSetName='FileAppend')][string]$ContentPath,
+    [Parameter(Mandatory,ParameterSetName='FileSave')][string]$ExpectedHash,
+    [Parameter(Mandatory,ParameterSetName='FlushPending')][switch]$FlushPending,
+    [Parameter(Mandatory,ParameterSetName='PendingWrites')][switch]$PendingWrites,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
     [Parameter(ParameterSetName='TaskNew')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
     [Parameter(ParameterSetName='TaskNew')][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
@@ -32,7 +38,10 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'knowledgecli.pending.size' = @{it='Il contenuto supera il limite di 2 MiB';en='Content exceeds the 2 MiB limit'}
+    'tracker.write.foreign' = @{ it = 'Scrittura rifiutata: il tracker di ''{0}'' non appartiene al repository in lavoro ''{1}'''; en = 'Write refused: the tracker of ''{0}'' does not belong to the working repository ''{1}''' }
     'knowledgecli.repository.all' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout, indicare -Repository o -CheckoutPath (-All per la vista globale dei task, sola lettura)'; en = 'Working repository not resolvable: run from the checkout, give -Repository or -CheckoutPath (-All for the read-only global task view)' }
     'knowledgecli.lifecycle.working' = @{ it = 'Il ciclo di vita si modifica soltanto per il repository in lavoro'; en = 'The lifecycle can be changed only for the working repository' }
     'knowledgecli.repository.checkout' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'; en = 'Working repository not resolvable: run from the checkout or give -CheckoutPath' }
@@ -40,9 +49,15 @@ Add-SBMessages @{
 }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
-    $readOnly=(!$Apply -and !$UpdateTaskId -and !$NewTask -and !$SetLifecycle)
+    $bufferedWrite=($UpdateTaskId -or $NewTask -or $SaveFile -or $AppendFile)
+    $readOnly=($bufferedWrite -or (!$Apply -and !$SetLifecycle))
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
+    $pendingResult=$null
+    if($readOnly -and !$bufferedWrite){
+        $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
+        if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
+    }
     # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
     # Il tetto di avvio vale solo per il primo caricamento (Slim: 20.000); Full non ha tetto (0) salvo -Budget esplicito; -Compact usa startupBudget o 50.000.
     # La ricerca ha un tetto predefinito (-1: 20 riscontri e 10.000 caratteri); -Limit 0 / -Budget 0 espliciti lo tolgono.
@@ -88,12 +103,30 @@ try{
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
         $result=if($Task){Get-SBTaskDetail -BrainRoot $brain -Dossier $Dossier -Task $Task -CheckoutPath $CheckoutPath}else{Get-SBSection -BrainRoot $brain -Dossier $Dossier -Title $Section -Source $Source}
     }
+    elseif($FlushPending){$result=$pendingResult}
+    elseif($PendingWrites){$result=@(Get-SBPendingWrites $brain)}
+    elseif($SaveFile -or $AppendFile){
+        $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
+        if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
+        if($Repository -and $Repository -cne $working){throw (New-SBError 'tracker.write.foreign' @($Repository,$working))}
+        Assert-SBPlainPath $ContentPath
+        if((Get-Item -LiteralPath $ContentPath).Length -gt 2MB){throw (New-SBError 'knowledgecli.pending.size')}
+        $operationName=if($SaveFile){'file.save'}else{'file.append'}
+        $relative=if($SaveFile){$SaveFile}else{$AppendFile}
+        $expected=if($SaveFile){@{hash=$ExpectedHash}}else{@{}}
+        $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation $operationName -Arguments @{relativePath=$relative;content=(Read-SBText $ContentPath)} -Expected $expected -Config $config -SessionId $SessionId
+        $result=Complete-SBPendingSubmission $submission $config $SessionId
+    }
     elseif($UpdateTaskId){
         # Le scritture restano nel repository in lavoro: un -Repository diverso dal checkout corrente e rifiutato.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
-        $result=Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $repoId -WorkingRepository $working -TaskId $UpdateTaskId -Status $Status -StateReason $StateReason -BackupRoot $config.backupRoot
+        if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
+        $arguments=@{TaskId=$UpdateTaskId;Status=$Status}
+        if($PSBoundParameters.ContainsKey('StateReason')){$arguments.StateReason=$StateReason}
+        $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.status -Arguments $arguments -Config $config -SessionId $SessionId
+        $result=Complete-SBPendingSubmission $submission $config $SessionId
     }
     elseif($SetLifecycle){
         # Blocco greenfield: come per i task, si modifica soltanto il repository in lavoro.
@@ -119,7 +152,10 @@ try{
             # Con pwsh -File gli elenchi arrivano come stringa unica: ';' separa i criteri e le dipendenze.
             $DependsOn=@($DependsOn|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             $Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
-            New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repoId -WorkingRepository $working -Title $NewTask -Id $TaskId -Description $Description -Priority $Priority -Execution $Execution -DependsOn $DependsOn -Acceptance $Acceptance -ProvenanceReference $Provenance -ProvenancePointer $ProvenancePointer -BackupRoot $config.backupRoot
+            if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
+            $arguments=@{Title=$NewTask;Id=$TaskId;Description=$Description;Priority=$Priority;Execution=$Execution;DependsOn=$DependsOn;Acceptance=$Acceptance;ProvenanceReference=$Provenance;ProvenancePointer=$ProvenancePointer}
+            $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.new -Arguments $arguments -Config $config -SessionId $SessionId
+            Complete-SBPendingSubmission $submission $config $SessionId
         }elseif($MigrateHistoryMessages){
             Invoke-SBTrackerHistoryMigration -BrainRoot $brain -Identity $repoId -WorkingRepository $working -BackupRoot $config.backupRoot -Apply:$Apply
         }else{

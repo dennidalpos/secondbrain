@@ -31,6 +31,8 @@ Su ogni PC: `pwsh -NoProfile -File \\server\share\SecondBrain\scripts\secondbrai
 
 ## Scritture
 
+Task, memoria, contesto e rapporti usano la [coda di scritture differite](pending-writes.md): se il centro e occupato salvano un JSON univoco e continuano senza attesa. Il successivo avvio o utilizzo MCP e i comandi di consultazione principali tentano l'integrazione delle richieste gia autorizzate. Una sessione `Write` ordinaria mantiene soltanto identita e heartbeat; il lock riguarda le singole transazioni. Configurazioni, direttive e PARA conservano le proprie operazioni esplicite e non entrano in questa coda.
+
 - Un solo writer alla volta: `writer.lock` e `operation.lock`, con coda FIFO dei ticket in `.runtime/access/queue/` (chi arriva prima entra prima; un ticket di un processo morto è rimosso senza forzare i lock). Chi trova il lock occupato attende (predefinito 60 s; `-WaitSeconds` su `secondbrain.ps1`, `SECONDBRAIN_LOCK_WAIT_SECONDS`, oppure `lockWaitSeconds` 0–600 in `config/shared.json`) e scrive su stderr il titolare (utente, PC, client, sessione). Solo a timeout esce con exit 3 e lo stesso messaggio.
 - Letture (`-Check`, `prompts.ps1 -Context`, `knowledge.ps1` in lettura, `ide-map.ps1 -Verify`, MCP) non prendono lock bloccanti e non fanno attendere il writer. Se un writer è attivo o c'è una transazione pendente, il risultato porta un avviso (`warnings`: `concurrent-writer`, `pending-transaction`; su stderr per gli altri comandi): il dato letto può essere intermedio, ripetere il controllo.
 - Le scritture protette (`Write-SBFile`) verificano l'hash precedente e conservano backup; i metadati di sessione si sostituiscono in modo atomico con nuovi tentativi, così un lettore su un altro PC non segna la sessione come fallita.

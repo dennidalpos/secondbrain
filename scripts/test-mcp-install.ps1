@@ -31,7 +31,7 @@ foreach($target in @('codex','claude','claude-code','cursor','vscode','antigravi
         Assert-Portable ($content.Contains('# personal comment') -and $content.Contains('[other]') -and $content.Contains('[mcp_servers.secondbrain.tools.check_publication]')) 'Codex preserves unrelated TOML and explicitly prompts for publication'
         $policyTables=[regex]::Matches($content,'(?ms)^\[mcp_servers\.secondbrain\.tools\.(?<name>[^\]]+)\]\n(?<body>.*?)(?=^\[|\z)')
         $auto=@($policyTables|Where-Object {$_.Groups['body'].Value -match 'approval_mode = "approve"'}|ForEach-Object {$_.Groups['name'].Value})
-        Assert-Portable ($auto.Count -eq 7 -and 'check_publication' -notin $auto -and $auto -notcontains '*') 'Codex approves exactly seven named read-only tools'
+        Assert-Portable ($auto.Count -eq 7 -and 'check_publication' -notin $auto -and $auto -notcontains '*') 'Codex approves exactly seven named tools with authorized pending recovery'
         $meta=Read-SBJson ($installed.BackupFile+'.json') @{}
         Assert-Portable ($meta.deployedHash -eq $installedHash) 'native backup metadata records final policy bytes'
     }elseif($target -eq 'claude-code'){
@@ -39,7 +39,7 @@ foreach($target in @('codex','claude','claude-code','cursor','vscode','antigravi
         Assert-Portable ($permissions.permissions.allow.Count -eq 7 -and $permissions.permissions.ask -contains 'mcp__secondbrain__check_publication') 'Claude Code explicit allow names and publication ask'
     }elseif($target -eq 'cursor'){
         $permissions=Read-SBJson (Join-Path $directory 'permissions.json') @{}
-        Assert-Portable ($permissions.mcpAllowlist.Count -eq 7 -and 'secondbrain:check_publication' -notin $permissions.mcpAllowlist) 'Cursor read-only allowlist excludes publication'
+        Assert-Portable ($permissions.mcpAllowlist.Count -eq 7 -and 'secondbrain:check_publication' -notin $permissions.mcpAllowlist) 'Cursor knowledge allowlist excludes publication'
     }else{
         Assert-Portable ($installed.PermissionAction -in @('manual','unverified')) ("MCP $target : no invented permission format")
     }

@@ -6,12 +6,12 @@ Questa guida illustra l'architettura e la procedura passo-passo per attivare, co
 
 ## 1. Architettura, Protocollo e Garanzie
 
-Il server MCP di SecondBrain è un servizio conforme allo standard di settore **Model Context Protocol (versione protocollo 2024-11-05)** progettato per fornire contesto ingegneristico continuo e sicuro agli agenti di sviluppo.
+Il server MCP di SecondBrain usa JSON-RPC su stdio e negozia **2025-03-26**, mantenendo **2024-11-05** se richiesto dal client. Le prove coprono handshake, strumenti, prompt e risorse; non dimostrano conformita generale al protocollo o caricamento nelle GUI.
 
 ### Garanzie di Isolamento e Sicurezza
 - **Nessuna porta di rete aperta**: la comunicazione avviene esclusivamente tramite flussi standard di input/output (**stdio**) via `pwsh` su processo locale.
 - **Zero telemetria esterna**: nessun dato, richiesta, prompt o metadato viene trasmesso a servizi terzi o remoti.
-- **Accesso in sola lettura (`read`/`verify`)**: il server espone strumenti di sola consultazione (contesto di avvio, task pronti, ricerca nella conoscenza PARA, catalogo prompt e verifica di pubblicabilità), prevenendo modifiche distruttive o accidentali al repository.
+- **Consultazione con recupero delle scritture autorizzate**: all'avvio e nelle richieste il server tenta di integrare i [pendenti dei dossier](pending-writes.md), senza attendere il lock. I tool dichiarano `readOnlyHint=false`; le relative regole nominative includono questo effetto. Non si eseguono comandi arbitrari o nuove scritture richieste via MCP.
 
 ### Prerequisiti di Sistema
 - **PowerShell 7.5+** (`pwsh`) installato su Windows.
@@ -27,7 +27,7 @@ Il server MCP di SecondBrain è un servizio conforme allo standard di settore **
 | Tool MCP | Modalità | Parametri principali | Descrizione |
 | :--- | :---: | :--- | :--- |
 | `get_startup_context` | `read` | `repository`, `checkoutPath`, `dossier`, `readyOnly`, `profile`, `budget` | Restituisce il pacchetto di avvio del repository in lavoro. Profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento): indice, sezioni essenziali di `context.md` e `memory.md`, task pronti in una riga ed elenco dei livelli non caricati. Profilo `full`: tutto, senza tetto. Senza `repository` né `dossier` il repository si risolve dal checkout (`checkoutPath` o directory corrente); non esiste più un default sul dossier di SecondBrain. |
-| `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance`, `offset`, `limit` *(solo con `all=true`: 50 task per pagina, `nextOffset` per la successiva)* | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, è in sola lettura, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
+| `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance`, `offset`, `limit` *(solo con `all=true`: 50 task per pagina, `nextOffset` per la successiva)* | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
 | `get_task` | `read` | `task` *(obbligatorio: ID o `#seq`)*, `repository`, `checkoutPath`, `dossier` | Restituisce il record integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) dal tracker o da `history/tracker-archive.json`. Alias `secondbrain_get_task`. |
 | `search_knowledge` | `read` | `query` *(obbligatorio)*, `budget`, `limit`, `offset`, `dossier`, `repository`, `allDossiers`, `includeOriginals`, `mode` *(`literal` predefinito, `relevance` per termini multipli ordinati per pertinenza)* | Ricerca deterministica nei file di conoscenza del dossier in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio tracker, rapporti). Tetto predefinito: 20 riscontri e 10.000 caratteri; con `hasMore=true` si richiama con `offset=nextOffset`. `limit=0` e `budget=0` tolgono il tetto; `allDossiers=true` cerca in tutte le aree; `includeOriginals=true` include `history/compaction/`. |
 | `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `pack` *(opzionale: `core`, `maintenance`, `all`)* | Elenca il catalogo dei 62 workflow generici (pacchetto core; `pack` = `maintenance` per i 16 di manutenzione SecondBrain). Con `compact` una riga per prompt (codice, modalità, sommario). |
@@ -317,13 +317,13 @@ La registrazione di Codex e Claude Code usa rispettivamente `codex mcp add` e `c
 
 Prima di modificare un file esistente viene conservata una copia dei byte con hash e metadati in `.runtime/backup/mcp-pairing`. La CLI nativa mantiene le proprie modalità di scrittura: il backup e la verifica successiva non rendono atomica l'intera installazione. In caso di errore consultare gli esiti e il backup, senza cancellare i materiali di recupero.
 
-L'anteprima mostra registrazione, ambito e regole opzionali. `-Apply` applica la registrazione; solo `-ApproveReadTools` autorizza anche le regole nominative per i sette strumenti di lettura. `check_publication` resta soggetto a consenso.
+L'anteprima mostra registrazione, ambito e regole opzionali. `-Apply` applica la registrazione; `-ApproveKnowledgeTools` (alias storico `-ApproveReadTools`) autorizza le regole nominative per i sette strumenti di conoscenza, che possono integrare solo richieste pendenti già autorizzate. `check_publication` resta soggetto a consenso.
 
 ```powershell
 # Anteprima, senza scritture
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Scope user
 # Applicare soltanto dopo aver esaminato l'anteprima
-pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply -ApproveReadTools
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply -ApproveKnowledgeTools
 # Setup: target MCP esplicito e approvazione dei tool separata
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Progetti -Select mio-progetto -McpTargets cursor -ApproveMcpReadTools -Yes
 ```

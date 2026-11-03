@@ -43,7 +43,7 @@ param(
     [Parameter(ParameterSetName='Setup')][string[]]$Ides=@(),
     [Parameter(ParameterSetName='Setup')][switch]$AllIdes,
     [Parameter(ParameterSetName='Setup')][string[]]$McpTargets=@(),
-    [Parameter(ParameterSetName='Setup')][switch]$ApproveMcpReadTools,
+    [Parameter(ParameterSetName='Setup')][Alias('ApproveMcpKnowledgeTools')][switch]$ApproveMcpReadTools,
     [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
@@ -73,6 +73,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
     'cli.output.required' = @{ it = '-{0} richiede -Output'; en = '-{0} requires -Output' }
     'cli.setup.conflict' = @{ it = '-Status/-Unbind/-Output non accettano: -{0}'; en = '-Status/-Unbind/-Output do not accept: -{0}' }
@@ -122,6 +123,10 @@ try {
         exit 0
     }
     $config = Read-SBConfiguration $ConfigPath -ReadOnly:(!$Sync)
+    if(!$Sync){
+        $pendingWrites=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
+        if($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingWrites))}
+    }
     $result = Invoke-SBPortableSync -Config $config -Check:(!$Sync) -SessionId $SessionId -ObservationPath $ObservationPath -Repository $Repository
     ConvertTo-SBJson $result
     if (!$result.aligned) { exit 1 }

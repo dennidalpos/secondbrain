@@ -3,7 +3,7 @@
 # -Only <chiave> esegue una sola sub-suite; -KeepFixtures (o SECONDBRAIN_TEST_KEEP=1) conserva le fixture anche dopo un esito verde;
 # SECONDBRAIN_TEST_TIMING=1 esegue in sequenza e stampa le sezioni piu lente.
 [CmdletBinding()]
-param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
+param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
 $script:Full = [bool]$Full
 $script:Quick = [bool]$Quick
 $script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
@@ -28,6 +28,7 @@ $script:SubSuites = @(
     @{ Key='audit2';         File='test-secondbrain-audit2.ps1';         Name='Audit2: rimozione protetta, Markdown, provenienza e recupero' }
     @{ Key='trace';          File='test-secondbrain-trace.ps1';          Name='Traccia di fine turno: evento, hook Stop e avviso di compattazione' }
     @{ Key='concurrency';    File='test-secondbrain-concurrency.ps1';    Name='Concorrenza: scritture simultanee, coda, transazioni, backup e casi limite' }
+    @{ Key='pending';        File='test-secondbrain-pending.ps1';        Name='Scritture differite: contesa, integrazione, conflitti e ricevute' }
     @{ Key='sources';        File='test-secondbrain-sources.ps1';       Name='Fonti: registro, sicurezza, acquisizione, confronto e conversione' }
     @{ Key='external-audit'; File='test-secondbrain-external-audit.ps1'; Name='Audit esterno: paginazione, copertura, errori e protezione dei contenuti' }
     @{ Key='quick';          File='test-secondbrain-quick.ps1';          Name='Quick: controlli puri su identita, JSON, versione, catalogo e messaggi' }
@@ -35,7 +36,7 @@ $script:SubSuites = @(
 function Get-SubSuiteKeys {
     if ($Only) { return @($Only) }
     if ($script:Quick) { return @('quick','sources','external-audit') }
-    @('portable','trackers','workflows','audit2','trace','concurrency','sources','external-audit')
+    @('portable','trackers','workflows','audit2','trace','concurrency','pending','sources','external-audit')
 }
 function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
 function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {

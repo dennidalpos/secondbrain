@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Server MCP (Model Context Protocol) stdio locale in sola lettura per SecondBrain.
+Server MCP stdio: consultazione e integrazione delle scritture di dossier gia autorizzate e accodate.
 Espone contesto di avvio, task pronti (-ReadyOnly), dettaglio integro di un task (get_task), ricerca trasversale paginata, catalogo prompt e verifica di pubblicabilità (SEC07) agli IDE conformi.
 Supporta l'accoppiamento con tutti i principali IDE (-Pair -Target <ide> o -Target all) e la generazione di pacchetti di configurazione (-ExportPackage).
 
@@ -32,7 +32,7 @@ param(
     [switch]$Apply,
 
     [Parameter(ParameterSetName = 'Pair')][ValidateSet('user','project')][string]$Scope,
-    [Parameter(ParameterSetName = 'Pair')][switch]$ApproveReadTools,
+    [Parameter(ParameterSetName = 'Pair')][Alias('ApproveKnowledgeTools')][switch]$ApproveReadTools,
 
     [Parameter(Mandatory, ParameterSetName = 'ExportPackage')]
     [switch]$ExportPackage,
@@ -62,7 +62,7 @@ Add-SBMessages @{
     'mcpcli.pair.configfile' = @{ it = 'Config file: {0}'; en = 'Config file: {0}' }
     'mcpcli.pair.codefile' = @{ it = 'Claude Code (sola lettura): {0}'; en = 'Claude Code (read-only): {0}' }
     'mcpcli.pair.snippet' = @{ it = '--- Configurazione {0} da inserire ---'; en = '--- {0} configuration to insert ---' }
-    'mcpcli.pair.permissions' = @{ it = '--- Regole opzionali per i tool di lettura (-ApproveReadTools); check_publication richiede consenso ---'; en = '--- Optional read-only tool rules (-ApproveReadTools); check_publication requires approval ---' }
+    'mcpcli.pair.permissions' = @{ it = '--- Consensi ai tool con integrazione automatica (-ApproveKnowledgeTools, alias storico -ApproveReadTools); check_publication richiede consenso ---'; en = '--- Tool permissions including automatic queued writes (-ApproveKnowledgeTools, legacy alias -ApproveReadTools); check_publication requires approval ---' }
     'mcpcli.permissions.status' = @{ it = 'Consensi: {0}; esito: {1}'; en = 'Permissions: {0}; outcome: {1}' }
     'mcpcli.pair.cli' = @{ it = '--- Comando CLI equivalente ---'; en = '--- Equivalent CLI command ---' }
     'mcpcli.pair.cliuser' = @{ it = "--- Comando CLI per l'ambito utente (tutti i progetti) ---"; en = '--- CLI command for the user scope (all projects) ---' }

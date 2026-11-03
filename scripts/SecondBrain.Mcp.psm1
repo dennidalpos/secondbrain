@@ -1,5 +1,6 @@
 #requires -Version 7.5
 Set-StrictMode -Version Latest
+$script:SBMcpConfigPath=$null
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
@@ -8,7 +9,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'mcp.pending.contract' = @{it='All avvio e durante le letture integra scritture di dossier gia autorizzate e accodate, senza attendere il lock; puo quindi modificare dati locali.';en='At startup and during reads, applies previously authorized queued dossier writes without waiting for the lock; it can therefore modify local data.'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
     'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
@@ -20,10 +23,10 @@ Add-SBMessages @{
     'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, include solo task con dipendenze soddisfatte (con slim è sempre attivo)'; en = 'If true, include only tasks with satisfied dependencies (always enabled for slim)' }
     'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 20000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 20000 characters for initial loading only; full: complete context without a limit' }
     'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 20000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 20000 for slim, unlimited for full)' }
-    'mcp.description.get_ready_tasks' = @{ it = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale e di sola lettura e richiede all=true.'; en = 'Return ready tasks with satisfied dependencies for the working repository, resolved from the current checkout or repository/checkoutPath. The global view is read-only and requires all=true.' }
+    'mcp.description.get_ready_tasks' = @{ it = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale richiede all=true.'; en = 'Return ready tasks with satisfied dependencies for the working repository, resolved from the current checkout or repository/checkoutPath. The global view requires all=true.' }
     'mcp.description.get_ready_tasks.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
     'mcp.description.get_ready_tasks.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
-    'mcp.description.get_ready_tasks.all' = @{ it = 'Se true, vista globale di tutti i repository, in sola lettura (opt-in esplicito)'; en = 'If true, show all repositories globally, read-only (explicit opt-in)' }
+    'mcp.description.get_ready_tasks.all' = @{ it = 'Se true, vista globale di tutti i repository (opt-in esplicito)'; en = 'If true, show all repositories globally (explicit opt-in)' }
     'mcp.description.get_ready_tasks.includeAcceptance' = @{ it = 'Se true, include i criteri di accettazione dei task'; en = 'If true, include task acceptance criteria' }
     'mcp.description.get_ready_tasks.offset' = @{ it = 'Solo con all=true: task da saltare (paginazione)'; en = 'Only with all=true: tasks to skip (pagination)' }
     'mcp.description.get_ready_tasks.limit' = @{ it = 'Solo con all=true: task per pagina (default 50; 0 = tutti)'; en = 'Only with all=true: tasks per page (default 50; 0 = all)' }
@@ -62,7 +65,7 @@ Add-SBMessages @{
     'mcp.notice' = @{ it = 'Avviso: {0}'; en = 'Warning: {0}' }
     'mcp.package.root' = @{ it = 'Impossibile trovare scripts/mcp-server.ps1 nella radice SecondBrain: {0}'; en = 'Cannot find scripts/mcp-server.ps1 in SecondBrain root: {0}' }
     'mcp.package.applying' = @{ it = 'Applicazione configurazione MCP SecondBrain a tutti gli IDE...'; en = 'Applying SecondBrain MCP configuration to all IDEs...' }
-    'mcp.repository.unresolved' = @{ it = 'Repository in lavoro non risolvibile: indicare repository o checkoutPath (oppure all=true per la vista globale in sola lettura)'; en = 'Working repository not resolvable: give repository or checkoutPath (or all=true for the read-only global view)' }
+    'mcp.repository.unresolved' = @{ it = 'Repository in lavoro non risolvibile: indicare repository o checkoutPath (oppure all=true per la vista globale)'; en = 'Working repository not resolvable: give repository or checkoutPath (or all=true for the global view)' }
     'mcp.profile.invalid' = @{ it = 'Profilo non valido: usare slim o full'; en = 'Invalid profile: use slim or full' }
     'mcp.params.conflict' = @{ it = 'Parametri incompatibili: all e repository'; en = 'Incompatible parameters: all and repository' }
     'mcp.paging.invalid' = @{ it = 'offset e limit devono essere interi non negativi'; en = 'offset and limit must be non-negative integers' }
@@ -86,8 +89,19 @@ function ConvertTo-SBMcpJson($Value) {
     ConvertTo-SBStableValue $Value | ConvertTo-Json -Depth 40 -Compress
 }
 
+function Invoke-SBMcpPendingRecovery([string]$BrainRoot,[string]$ConfigPath) {
+    $summary=$null
+    # Storage diagnostics must never become stray lines on the JSON-RPC stdout channel.
+    foreach($record in @(Invoke-SBPendingWrites -BrainRoot $BrainRoot -ConfigPath $ConfigPath *>&1)){
+        if($record -is [Collections.IDictionary] -and $record.ContainsKey('pending') -and $record.ContainsKey('applied')){$summary=$record}
+        else{[Console]::Error.WriteLine([string]$record)}
+    }
+    if($summary){return $summary}
+    @{state='unavailable';applied=@();conflicts=@();pending=$null;errors=@(@{code='pending.recovery.no-result'})}
+}
+
 function Get-SBMcpToolDefinitions {
-    @(
+    $definitions=@(
         @{
             name = 'get_startup_context'
             description = (Get-SBMessage 'mcp.description.get_startup_context')
@@ -200,6 +214,11 @@ function Get-SBMcpToolDefinitions {
             }
         }
     )
+    foreach($definition in $definitions){
+        $definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')
+        $definition.annotations=@{readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
+        $definition
+    }
 }
 
 
@@ -401,13 +420,19 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
     }
     
     try {
+        $pendingWrites=$null
+        if($method -in @('initialize','tools/list','tools/call','prompts/list','prompts/get','resources/list','resources/read')){
+            $pendingWrites=Invoke-SBMcpPendingRecovery $BrainRoot $script:SBMcpConfigPath
+        }
         switch ($method) {
             'initialize' {
                 return ConvertTo-SBMcpJson @{
                     jsonrpc = '2.0'
                     id = $id
                     result = @{
-                        protocolVersion = '2024-11-05'
+                        protocolVersion = $(if($params.ContainsKey('protocolVersion') -and $params.protocolVersion -eq '2024-11-05'){'2024-11-05'}else{'2025-03-26'})
+                        instructions = (Get-SBMessage 'mcp.pending.contract')
+                        _meta = @{pendingWrites=$pendingWrites}
                         capabilities = @{
                             tools = @{ listChanged = $false }
                             prompts = @{ listChanged = $false }
@@ -444,6 +469,9 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 try {
                     $output = Invoke-SBMcpToolCall -BrainRoot $BrainRoot -ToolName $toolName -Arguments $args
                     $contentBlocks = @(@{ type = 'text'; text = $output })
+                    if($pendingWrites -and ($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count)){
+                        $contentBlocks+=@{type='text';text=((Format-SBPendingNotice $pendingWrites)+"`n"+(ConvertTo-SBMcpJson $pendingWrites))}
+                    }
                     $notice = Get-SBMcpDeprecationNotice $toolName
                     if ($notice) { $contentBlocks += @{ type = 'text'; text = (Get-SBMessage 'mcp.notice' @($notice)) } }
                     return ConvertTo-SBMcpJson @{
@@ -589,6 +617,9 @@ function Start-SBMcpServer {
     if (!$BrainRoot) {
         $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     }
+    $script:SBMcpConfigPath=$ConfigPath
+    $startupPending=Invoke-SBMcpPendingRecovery $BrainRoot $ConfigPath
+    if($startupPending.applied.Count -or $startupPending.conflicts.Count -or $startupPending.pending -or $startupPending.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $startupPending))}
     
     # Stdio loop
     $reader = [Console]::In
@@ -610,7 +641,10 @@ function Start-SBMcpServer {
 }
 
 function Get-SBMcpReadOnlyToolNames {
-    # Strumenti di sola lettura che non scrivono nel cervello ne altrove: candidati all'approvazione automatica. check_publication esclusa (analizza un percorso scelto dal chiamante).
+    # Compatibility entry point: recovery-enabled tools no longer qualify as read-only.
+    @()
+}
+function Get-SBMcpKnowledgeToolNames {
     @('get_startup_context', 'get_ready_tasks', 'get_task', 'search_knowledge', 'list_prompts', 'get_prompt', 'get_prompt_home')
 }
 function Test-SBClaudeCodeRegistration([string]$ConfigFile) {
@@ -659,7 +693,7 @@ function Read-SBMcpSettings([string]$Path) {
     } catch { throw (New-SBError 'mcp.pair.json' @($Path)) }
 }
 function Get-SBMcpPermissionPlan($Pairing) {
-    $names=@(Get-SBMcpReadOnlyToolNames)
+    $names=@(Get-SBMcpKnowledgeToolNames)
     $status='manual';$path=$null;$snippet=$null
     switch($Pairing.Target){
         'codex' {
@@ -683,7 +717,7 @@ function Get-SBMcpPermissionPlan($Pairing) {
         'antigravity' {$status='unverified'}
         'windsurf' {$status='unverified'}
     }
-    @{status=$status;path=$path;snippet=$snippet;tools=$names;requiresConsent=@('check_publication')}
+    @{status=$status;path=$path;snippet=$snippet;tools=$names;requiresConsent=@('check_publication');contract='knowledge-with-authorized-pending-writes';automaticDossierWrites=$true}
 }
 function Set-SBMcpTomlValue([string]$Text,[string]$Table,[string]$Key,[string]$Value,[switch]$KeepRestrictive) {
     # Edit only a single-line string in an exact table. Preserve all other bytes/comments;
@@ -1083,7 +1117,7 @@ function Set-SBMcpConfiguration {
         [string]$BrainRoot,
         [ValidateSet('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')][string]$Target='all',
         [string]$WorkspacePath,[string]$ConfigFile,[string]$BackupRoot,
-        [ValidateSet('user','project')][string]$Scope,[switch]$ApproveReadTools,
+        [ValidateSet('user','project')][string]$Scope,[Alias('ApproveKnowledgeTools')][switch]$ApproveReadTools,
         [scriptblock]$CliInvoker
     )
     if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
@@ -1309,6 +1343,7 @@ Export-ModuleMember -Function @(
     'Start-SBMcpServer',
     'Get-SBMcpPairing',
     'Get-SBMcpReadOnlyToolNames',
+    'Get-SBMcpKnowledgeToolNames',
     'Set-SBMcpConfiguration',
     'New-SBMcpPackage'
 )

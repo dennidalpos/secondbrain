@@ -15,5 +15,7 @@ Più proposte possono portare la stessa etichetta di revisione quando correggono
 | `2026-11-02-para-runtime-trace` | 1.2 | approvata (regole PARA, nomi in `.runtime`, avviso di compattazione) |
 | `2026-11-02-prompt-list-maintenance` | 1.2 | approvata (solo `workstation.template.md`) |
 | `2026-11-02-direttive-snelle` | 1.2 | approvata, testo attivo (correzioni e meno ripetizioni, #234) |
+| `2026-11-03-chiusura-riepilogo` | 1.3 proposta | non approvata; riepilogo minimo alla chiusura, #245 |
+| `2026-11-03-nonblocking-dossiers` | 1.2 o 1.3 proposta | non approvata; integra #245 con scritture differite e contratto MCP di #292 |
 
 Nota su `approved.json`: il campo `authorization` riporta «dell utente» senza apostrofo. È la ricevuta dell'approvazione registrata e non si riscrive a mano (l'hash del README e la tracciabilità restano quelli approvati); viene sostituita dalla prossima approvazione con `approve-revision.ps1` (revisione 1.3, #255).
