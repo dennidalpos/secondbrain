@@ -405,6 +405,12 @@ IGIENE DEL REPOSITORY
   • Cosa serve: branch locali e remoti, ramo base e working tree pulito
   • Esempio d'uso: consolida i branch conclusi in master
 
+🔥 REP13 | Allinea pagina GitHub, file della community e sicurezza, dopo conferma.
+  • ID: pmt-3e2e75f6
+  • Ambito: repo | Modalità: write
+  • Cosa serve: `gh` con diritti di amministratore ed esito di SEC07
+  • Esempio d'uso: rendi trovabile questo repository e applica la sicurezza standard
+
 
 GOVERNANCE, LICENZE E CONFORMITÀ
 ✅ GOV01 | Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.

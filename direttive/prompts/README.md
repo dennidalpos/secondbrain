@@ -405,6 +405,12 @@ REPOSITORY HYGIENE
   • Needs: local and remote branches, the base branch and a clean working tree
   • Example: consolidate the finished branches into master
 
+🔥 REP13 | Align the GitHub page, community files and security, after confirmation.
+  • ID: pmt-3e2e75f6
+  • Scope: repo | Mode: write
+  • Needs: `gh` authenticated with admin rights and a SEC07 result
+  • Example: make this repository discoverable and apply standard security
+
 
 GOVERNANCE, LICENSING AND COMPLIANCE
 ✅ GOV01 | Check open source licenses, file compliance and SPDX headers.
