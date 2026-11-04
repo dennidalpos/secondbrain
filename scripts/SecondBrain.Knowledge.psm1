@@ -131,12 +131,6 @@ function Split-SBTieredMarkdown([string]$Text) {
 # Vista per agenti di memory.md (memory.agent.md): file derivato, mai modificato a mano. Una voce per riga, `- [T#id] data · scope · testo`,
 # con T = D decisione, G gotcha, A architettura, C vincolo. Contiene le sole parti essenziali; le voci in forma libera (storiche) sono classificate
 # dal titolo di sezione o dal prefisso (Decisione:/Gotcha:) con data `s.d.`. L'intestazione riporta l'hash della fonte: allineamento verificato da -Check.
-function Get-SBAgentViewScope([string]$Heading) {
-    $slug=([regex]::Replace($Heading.ToLowerInvariant(),'[^a-z0-9]+','-')).Trim('-')
-    if(!$slug){return 'generale'}
-    if($slug.Length -gt 30){$slug=$slug.Substring(0,30).Trim('-')}
-    $slug
-}
 function Get-SBAgentViewType([string]$Heading,[string]$Text) {
     if($Text -match '^(?i)decisione\s*:'){return 'D'}
     if($Text -match '^(?i)gotcha\s*:'){return 'G'}
@@ -201,11 +195,20 @@ function Get-SBStartupContext {
     $slim=($Profile -eq 'Slim')
     $toc=Get-SBDossierTOC $Dossier
     $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $Dossier -AllowedOwners @() -Entities $Entities
+    $contextText=Read-SBText (Join-Path $Dossier 'context.md');$memoryText=Read-SBText (Join-Path $Dossier 'memory.md')
+    $viewPath=Join-Path $Dossier 'memory.agent.md'
+    $viewHash=if($slim -and [IO.File]::Exists($viewPath)){Get-SBFileHash $viewPath}else{''}
+    New-SBStartupPackage -Record $record -Tracker $tracker -TOC $toc -ContextText $contextText -MemoryText $memoryText -AgentViewHash $viewHash -TaskIds $TaskIds -Budget $Budget -ReadyOnly:$ReadyOnly -Profile $Profile
+}
+# Compose the startup package from a resolved snapshot, without reading or writing files.
+# Compaction supplies the final planned texts and agent view, before its transaction.
+function New-SBStartupPackage {
+    param($Record,$Tracker,[string]$TOC,[string]$ContextText,[string]$MemoryText,[string]$AgentViewHash,
+        [string[]]$TaskIds=@(),[int]$Budget=50000,[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full')
+    $slim=($Profile -eq 'Slim')
     $trData=if($tracker.ContainsKey('data')){$tracker.data}else{$null}
     $trRel=if($tracker.ContainsKey('related')){$tracker.related}else{@{}}
     $projection=if($trData){@(Get-SBTaskProjection $trData $TaskIds -ReadyOnly:($ReadyOnly -or $slim) -RelatedTrackers $trRel)}else{@()}
-    $contextPath=Join-Path $Dossier 'context.md';$memoryPath=Join-Path $Dossier 'memory.md'
-    $contextText=Read-SBText $contextPath;$memoryText=Read-SBText $memoryPath
     if(!$slim){
         $parts=@{index=$toc;context=$contextText;memory=$memoryText;tasks=(ConvertTo-SBJson $projection)}
         $omitted=@()
@@ -221,10 +224,9 @@ function Get-SBStartupContext {
         foreach($item in $omitted){$levelLines+=('- '+$item.part+$(if($item.characters){' — '+$item.characters+' caratteri'}else{''})+$(if(@($item.sections).Count){' ('+(@($item.sections) -join '; ')+')'}else{''})+': '+$item.how)}
         # Memoria: la vista per agenti, se allineata alla fonte (stesso hash), sostituisce le parti essenziali di memory.md.
         $memorySlim=$memoryTiers.essential
-        $viewPath=Join-Path $Dossier 'memory.agent.md'
-        if([IO.File]::Exists($viewPath)){
+        if($AgentViewHash){
             $viewExpected=ConvertTo-SBAgentMemoryView $memoryText
-            if((Get-SBFileHash $viewPath) -eq (Get-SBTextHash $viewExpected)){$memorySlim=$viewExpected}
+            if($AgentViewHash -eq (Get-SBTextHash $viewExpected)){$memorySlim=$viewExpected}
         }
         $parts=@{index=$toc;context=$contextTiers.essential;memory=$memorySlim;tasks=(Format-SBSlimTasks $projection);levels=(($levelLines -join "`n")+"`n")}
     }
@@ -573,7 +575,7 @@ function Invoke-SBDossierCompaction {
     if(!$candidate -or $candidate.schemaVersion -ne 1 -or $candidate.reviewed -ne $true -or !$candidate.reviewNote){throw (New-SBError 'knowledge.candidate.review')}
     $record=Read-SBJson (Join-Path $dir 'repository.json') $null
     if($candidate.repository -cne $record.identity){throw (New-SBError 'knowledge.candidate.repository')}
-    $ops=@();$archives=@()
+    $ops=@();$archives=@();$planned=@{}
     $attributesPath=Join-Path $dir 'history/compaction/.gitattributes'
     if((Get-SBFileHash $attributesPath) -eq 'absent'){$ops+=@{path=$attributesPath;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes("* -text -whitespace`n")}}
     foreach($name in @('context.md','memory.md')){
@@ -586,11 +588,13 @@ function Invoke-SBDossierCompaction {
         $archive=Join-Path $dir $archiveRelative;$existing=Get-SBFileHash $archive
         if($existing -eq 'absent'){$ops+=@{path=$archive;expected='absent';bytes=[IO.File]::ReadAllBytes($source)}}elseif($existing -ne $hash){throw (New-SBError 'knowledge.original.diverged')}
         $text=$text.TrimEnd()+"`n`nOriginale conservato: ["+$name+']('+$archiveRelative+"). Le autorizzazioni storiche non sono autorizzazioni correnti.`n"
+        $planned[$name]=$text
         $ops+=@{path=$source;expected=$hash;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
         if($name -eq 'memory.md'){
             # La vista per agenti segue la nuova memoria nella stessa transazione.
             $viewPath=Join-Path $dir 'memory.agent.md'
-            $ops+=@{path=$viewPath;expected=(Get-SBFileHash $viewPath);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBAgentMemoryView $text))}
+            $planned['memory.agent.md']=ConvertTo-SBAgentMemoryView $text
+            $ops+=@{path=$viewPath;expected=(Get-SBFileHash $viewPath);bytes=[Text.Encoding]::UTF8.GetBytes($planned['memory.agent.md'])}
         }
         $archives+=@{source=$name;sha256=$hash;archive=$archiveRelative}
     }
@@ -599,10 +603,9 @@ function Invoke-SBDossierCompaction {
     if(@($openIds|Where-Object {$_ -notin $candidate.openTaskIds}).Count){throw (New-SBError 'knowledge.candidate.tasks')}
     $toc=Get-SBDossierTOC $dir;$index=Join-Path $dir 'index.md'
     $ops+=@{path=$index;expected=(Get-SBFileHash $index);bytes=[Text.Encoding]::UTF8.GetBytes($toc)}
-    # Il budget misura le sole parti caricate all'avvio (profilo Slim): le sezioni (storico) restano nel file ma non contano.
-    $total=($ops|Where-Object {[IO.Path]::GetFileName($_.path) -in @('context.md','memory.md') -and $_.path -notmatch '[\\/]history[\\/]'}|ForEach-Object {(Split-SBTieredMarkdown ([Text.Encoding]::UTF8.GetString($_.bytes))).essential.Length}|Measure-Object -Sum).Sum
-    $projection=ConvertTo-SBJson @(Get-SBTaskProjection $tracker.data)
-    if($total+$toc.Length+$projection.Length -gt $Budget){throw (New-SBError 'knowledge.budget.exceeded')}
+    # Measure exactly the Slim package that startup will load after this transaction.
+    $startup=New-SBStartupPackage -Record $record -Tracker $tracker -TOC $toc -ContextText $planned['context.md'] -MemoryText $planned['memory.md'] -AgentViewHash (Get-SBTextHash $planned['memory.agent.md']) -Profile Slim -Budget $Budget
+    if($startup.characters -gt $Budget){throw (New-SBError 'knowledge.budget.exceeded')}
     $manifest=@{schemaVersion=1;repository=$record.identity;archives=$archives;reviewNote=$candidate.reviewNote;openTaskIds=$openIds;candidateSha256=(Get-SBFileHash $CandidatePath)}
     $manifestPath=Join-Path $dir ('history/compaction/'+(Get-SBFileHash $CandidatePath).ToLowerInvariant()+'.json')
     $manifestText=ConvertTo-SBJson $manifest

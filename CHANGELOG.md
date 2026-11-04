@@ -2,6 +2,8 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
+> Versione corrente: **1.0.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
 ## [Non rilasciato]
 
 ## [1.2.0] - 2026-11-02

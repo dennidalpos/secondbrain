@@ -1,13 +1,13 @@
 {
-  "approvedAt": "2026-11-02T20:55:22.0728913+01:00",
-  "authorization": "Approvazione esplicita dell utente in chat (2026-11-02): Fase 3 #234, opzione Solo correzioni (direttive senza testo errato sulla ricerca e senza ripetizioni, revisione 1.2)",
+  "approvedAt": "2026-11-04T12:02:45.6383329+01:00",
+  "authorization": "Richiesta esplicita dell utente 2026-11-04: attiva blocco e torna alla prima versione di rilascio su tutti i fronti; prima release 1.0.0 (881d7eb), revisione 1.0, prescrizioni attuali conservate.",
   "files": {
-    "direttive/AGENTS.global_ide.md": "D0578CD3722904F51A4AAC3809ADE6A3AEC7A5EB8482CC1B40BA0E95E21D2D18",
+    "direttive/AGENTS.global_ide.md": "C5BF494601C28A796AF090380CFB2A1542E54B4BC918961A995E7EAD1573C403",
     "direttive/workstation.template.md": "002E9F0AE6F73498E180423B2638EABF39C5FADEBB1C517AEFC681B31CE35B0A"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-02-direttive-snelle",
-    "readmeHash": "BB547F6E0DC0F1C075D60D3AFF113270D3032571BD48DE0B4F2B26D06E51346D"
+    "path": "direttive/proposals/2026-11-04-version-reset",
+    "readmeHash": "8F1146D6C1CBB4758CE8A8E5743FD7E633D08A0444542897A28DFFD901210C53"
   },
   "schemaVersion": 1
 }

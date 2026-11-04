@@ -106,8 +106,9 @@ try {
     Assert-Workflow ($homeManaged.Contains('github.com/x/prod'+(Get-SBMessage 'home.repo.managed')) -and $homeManaged.Contains('sb prompt MEM06') -and (Format-SBWorkflowHome $brain $catalog $stateUnmanaged).Contains((Get-SBMessage 'home.step.unmanaged')) -and (Format-SBWorkflowHome $brain $catalog $stateNoGit).Contains((Get-SBMessage 'home.step.noidentity'))) 'menu contestuale: repository gestito, non gestito e senza Git'
     $stateReal=Get-SBWorkflowState $brain $env:TEMP
     Assert-Workflow ($stateReal.repository -and $null -eq $stateReal.repository.identity -and !$stateReal.repository.managed -and $stateReal.Keys -contains 'activated') 'stato reale: cartella senza Git non ha identità né gestione'
-    $startSection=([regex]::Match($readmeRoot,'(?s)## Inizia\b.*?(?=\n## )')).Value
-    Assert-Workflow ($startSection.Contains('docs/sicurezza.md') -and $startSection -match '-Setup' -and $startSection -match '-Pair' -and $startSection -match '-Sync') 'README: sezione Inizia con avviso, MCP e direttive'
+    $startSection=([regex]::Match($readmeRoot,'(?ms)^## Get started\b.*?(?=^## |\z)')).Value
+    $italianStart=([regex]::Match($readmeRoot,'(?ms)^### Inizia\b.*?(?=^#{2,3} |\z)')).Value
+    Assert-Workflow ($startSection.Contains('docs/sicurezza.md') -and $startSection -match '-Setup' -and $startSection -match '-Pair' -and $startSection -match '-Sync' -and $italianStart.Contains('docs/sicurezza.md') -and $italianStart.Contains('#get-started')) 'README: English setup with safety, MCP and directives; Italian section links to the same commands'
     Assert-Workflow (@(Test-CommandLines $startSection).Count -eq 0 -and @(Test-CommandLines (Read-SBText (Join-Path $repoRoot 'docs/inizia.md'))).Count -eq 0) 'README e setup: comandi con script e parametri esistenti'
     $unifiedGuide=Read-SBText (Join-Path $repoRoot 'docs/guida.md')
     $guideCommands=@([regex]::Matches($unifiedGuide,'`((?:scripts/)?([\w.-]+\.ps1)((?: -[A-Za-z]+(?: (?![-.])[\w<>#:/\\.-]+)?)*))')|ForEach-Object {@{script=$_.Groups[2].Value;parameters=$_.Groups[3].Value}})

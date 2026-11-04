@@ -6,7 +6,6 @@ foreach($module in @('Core','Access','Para','Tracker','TrackerImport')){Import-M
 $script:checks=0
 function Assert-Next($Condition,[string]$Message){if(!$Condition){throw ('FAIL AUDIT2: '+$Message)};$script:checks++;'PASS AUDIT2: '+$Message}
 function Reject-Next([scriptblock]$Action,[string]$Message){$rejected=$false;try{& $Action|Out-Null}catch{$rejected=$true};Assert-Next $rejected $Message}
-function Git-Next([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
 function Snapshot-Next([string]$Path){ConvertTo-SBJson @(Get-ChildItem -LiteralPath $Path -File -Recurse -Force|ForEach-Object {@{path=$_.FullName;hash=Get-SBFileHash $_.FullName;time=$_.LastWriteTimeUtc.Ticks}}|Sort-Object path)}
 # Reuse only the existing fixture constructors, without executing the older suite.
 $tokens=$null;$errors=$null

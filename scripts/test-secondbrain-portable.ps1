@@ -223,6 +223,88 @@ try{
     $levelCandidate.summaries['context.md']=$levelSummary+"`n`n## Cronaca`n`n"+('cronaca di lotto '*4000)
     Put-Portable $levelPath (ConvertTo-SBJson $levelCandidate)
     Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $levelPath -BackupRoot $cfg.backupRoot -CheckoutPath $repo} 'compattazione: la stessa cronaca senza marcatore di livello supera il budget'
+    # Regression #295: compare the guard with the actual post-transaction Slim package.
+    $budgetTrackerPath=Join-Path $dossier 'tracker.json';$budgetViewPath=Join-Path $dossier 'memory.agent.md'
+    $budgetSaved=@{}
+    foreach($name in @('context.md','memory.md','memory.agent.md','tracker.json','index.md')){$budgetSaved[$name]=[IO.File]::ReadAllBytes((Join-Path $dossier $name))}
+    $budgetSnapshot={
+        $entries=@(foreach($dir in @($dossier,$cfg.backupRoot)){
+            Get-ChildItem -LiteralPath $dir -Recurse -Force|ForEach-Object {
+                @{path=$_.FullName;directory=$_.PSIsContainer;hash=$(if(!$_.PSIsContainer){Get-SBFileHash $_.FullName}else{''});modified=$(if(!$_.PSIsContainer){$_.LastWriteTimeUtc.Ticks}else{0})}
+            }
+        })
+        ConvertTo-SBJson @($entries|Sort-Object path)
+    }
+    $budgetReject={param([scriptblock]$Action,[string]$Code,[string]$Message)
+        $rejected=$false;try{& $Action|Out-Null}catch{$rejected=Test-SBError $_ $Code}
+        Assert-Portable $rejected $Message
+    }
+    try{
+        $budgetTracker=Read-SBJson $budgetTrackerPath $null
+        $budgetTracker.tasks=@(foreach($id in @('BUDGET-READY','BUDGET-WAIT','BUDGET-DONE','BUDGET-AFTER-DONE')){
+            New-SBTrackerTask @{id=$id;title=$id;priority='P3';status=$(if($id -eq 'BUDGET-DONE'){'done'}else{'todo'})} $budgetTracker.repository 'tasks' 'budget-fixture' (Get-SBTextHash 'budget') '/tasks'
+        })
+        $budgetTracker.tasks[0].extensions.stateReason='detail '*3000
+        $budgetTracker.tasks[1].dependencies=@(@{id='BUDGET-READY'})
+        $budgetTracker.tasks[3].dependencies=@(@{id='BUDGET-DONE'})
+        Put-Portable $budgetTrackerPath (ConvertTo-SBJson $budgetTracker)
+        $budgetCandidate=@{schemaVersion=1;repository=$budgetTracker.repository;reviewed=$true;reviewNote='Slim budget regression';sources=@{};
+            summaries=@{'context.md'=($levelSummary+$historyBlock+"`n`n## Essential tail`n`nCurrent note.`n");'memory.md'="# Memory`n`n- Decisione: preserve facts — Motivo: regression.`n`n## Old (storico)`n`n"+('old '*5000)};
+            openTaskIds=@($budgetTracker.tasks|Where-Object status -ne 'done'|ForEach-Object id)}
+        foreach($name in @('context.md','memory.md')){$budgetCandidate.sources[$name]=Get-SBFileHash (Join-Path $dossier $name)}
+        $budgetPath=Join-Path $brain '.runtime/compaction-budget.json';Put-Portable $budgetPath (ConvertTo-SBJson $budgetCandidate)
+        $budgetArgs=@{BrainRoot=$brain;Dossier=$dossier;CandidatePath=$budgetPath;BackupRoot=$cfg.backupRoot;CheckoutPath=$repo}
+        Assert-Portable ((ConvertTo-SBJson @(Get-SBTaskProjection $budgetTracker)).Length -gt 15000) 'budget: complete task JSON exceeds 15000 characters'
+        $beforeBudget=& $budgetSnapshot
+        $budgetPlan=Invoke-SBDossierCompaction @budgetArgs -Budget 15000
+        $afterBudget=& $budgetSnapshot
+        if($beforeBudget -cne $afterBudget){Put-Portable (Join-Path $fixture 'budget-snapshot-before.json') $beforeBudget;Put-Portable (Join-Path $fixture 'budget-snapshot-after.json') $afterBudget}
+        Assert-Portable (!$budgetPlan.applied -and $beforeBudget -ceq $afterBudget) 'budget: large JSON accepted in preview without filesystem changes'
+        $validView=Get-SBStartupContext $brain $dossier $repo -Profile Slim
+        Assert-Portable ($validView.parts.memory -ceq (ConvertTo-SBAgentMemoryView (Read-SBText (Join-Path $dossier 'memory.md')))) 'budget: startup uses the valid current agent view'
+        $savedViewPath=Join-Path $fixture 'budget-agent-before.md'
+        [IO.File]::Move($budgetViewPath,$savedViewPath)
+        try{
+            $absentView=Get-SBStartupContext $brain $dossier $repo -Profile Slim
+            Assert-Portable ($absentView.parts.memory -ceq (Split-SBTieredMarkdown (Read-SBText (Join-Path $dossier 'memory.md'))).essential) 'budget: absent agent view uses essential source memory'
+            $beforeBudget=& $budgetSnapshot
+            $null=Invoke-SBDossierCompaction @budgetArgs -Budget 15000
+            Assert-Portable ($beforeBudget -ceq (& $budgetSnapshot)) 'budget: preview plans a new agent view without creating it'
+        }finally{[IO.File]::Move($savedViewPath,$budgetViewPath)}
+        Put-Portable $budgetViewPath 'obsolete agent view'
+        $obsoleteView=Get-SBStartupContext $brain $dossier $repo -Profile Slim
+        Assert-Portable ($obsoleteView.parts.memory -ceq $absentView.parts.memory) 'budget: obsolete agent view uses essential source memory'
+        $beforeBudget=& $budgetSnapshot
+        $null=Invoke-SBDossierCompaction @budgetArgs -Budget 15000
+        Assert-Portable ($beforeBudget -ceq (& $budgetSnapshot)) 'budget: preview leaves the obsolete view intact'
+        $budgetTrackerHash=Get-SBFileHash $budgetTrackerPath
+        $budgetApplied=Invoke-SBDossierCompaction @budgetArgs -Budget 15000 -Apply
+        $budgetStartup=Get-SBStartupContext $brain $dossier $repo -Profile Slim -Budget 15000
+        $budgetExact=[int]$budgetStartup.characters
+        Assert-Portable ($budgetApplied.applied -and $budgetStartup.withinBudget -and !$budgetStartup.originalsTruncated) 'budget: applied fixture really fits in Slim without truncation'
+        Assert-Portable ($budgetStartup.parts.memory -ceq (ConvertTo-SBAgentMemoryView (Read-SBText (Join-Path $dossier 'memory.md')))) 'budget: Apply regenerates the obsolete agent view'
+        Assert-Portable ($budgetStartup.parts.tasks.Contains('BUDGET-READY') -and $budgetStartup.parts.tasks.Contains('BUDGET-AFTER-DONE') -and !$budgetStartup.parts.tasks.Contains('BUDGET-WAIT')) 'budget: startup keeps only ready tasks using dependency states'
+        Assert-Portable ($budgetStartup.parts.levels.Contains('Old (storico)') -and $budgetStartup.parts.levels.Contains('Cronaca (storico)') -and !$budgetStartup.parts.memory.Contains('old old') -and $budgetStartup.parts.context.Contains('Originale conservato:')) 'budget: omitted history is listed and the final source link is counted'
+        Assert-Portable ($budgetTrackerHash -eq (Get-SBFileHash $budgetTrackerPath)) 'budget: all open task records are preserved during Apply'
+        foreach($original in $budgetApplied.archives){Assert-Portable ((Get-SBFileHash (Join-Path $dossier $original.archive)) -eq $original.sha256) ('budget: exact original archived '+$original.source)}
+        # Restore the candidate sources, so the same plan can be checked at the exact observed boundary.
+        foreach($name in @('context.md','memory.md','memory.agent.md','index.md')){[IO.File]::WriteAllBytes((Join-Path $dossier $name),$budgetSaved[$name])}
+        $beforeBudget=& $budgetSnapshot
+        $null=Invoke-SBDossierCompaction @budgetArgs -Budget $budgetExact
+        & $budgetReject {Invoke-SBDossierCompaction @budgetArgs -Budget ($budgetExact-1)} 'knowledge.budget.exceeded' 'budget: one character below the actual Startup package is rejected'
+        Assert-Portable ($beforeBudget -ceq (& $budgetSnapshot)) 'budget: exact boundary accepted and rejected previews perform no writes'
+        $budgetCandidate.summaries['memory.md']="# Memory`n`n- "+('essential '*2000)
+        Put-Portable $budgetPath (ConvertTo-SBJson $budgetCandidate)
+        $beforeBudget=& $budgetSnapshot
+        & $budgetReject {Invoke-SBDossierCompaction @budgetArgs -Budget 15000} 'knowledge.budget.exceeded' 'budget: genuinely oversized Slim package rejected without truncation'
+        Assert-Portable ($beforeBudget -ceq (& $budgetSnapshot)) 'budget: oversized candidate leaves sources, archives and backups unchanged'
+        $budgetCandidate.openTaskIds=@();Put-Portable $budgetPath (ConvertTo-SBJson $budgetCandidate)
+        & $budgetReject {Invoke-SBDossierCompaction @budgetArgs -Budget 15000} 'knowledge.candidate.tasks' 'budget: omitting even non-ready open tasks is rejected'
+        $budgetCandidate.sources['memory.md']='0'*64;Put-Portable $budgetPath (ConvertTo-SBJson $budgetCandidate)
+        & $budgetReject {Invoke-SBDossierCompaction @budgetArgs -Budget 15000} 'knowledge.source.changed' 'budget: stale source hashes are still rejected'
+    }finally{
+        foreach($name in $budgetSaved.Keys){[IO.File]::WriteAllBytes((Join-Path $dossier $name),$budgetSaved[$name])}
+    }
     $searchResults=Find-SBKnowledge -BrainRoot $brain -Search 'autorizzazioni' -Dossier $dossier
     Assert-Portable ($searchResults.count -gt 0 -and $searchResults.withinBudget) 'ricerca trasversale restituisce riscontri entro budget'
     Assert-Portable ($searchResults.extracts[0].path -and $searchResults.extracts[0].line -gt 0 -and $searchResults.extracts[0].sha256.Length -eq 64) 'estratto di ricerca contiene percorso, riga e sha256'
@@ -1076,14 +1158,18 @@ public static bool Set(string name,bool enabled){
     $distRepo=Join-Path $fixture 'distribution-repo';[IO.Directory]::CreateDirectory($distRepo)|Out-Null
     Git-Portable $distRepo @('init','-q')|Out-Null
     Put-Portable (Join-Path $distRepo 'README.md') '# ok'
-    Git-Portable $distRepo @('add','README.md')|Out-Null
+    Put-Portable (Join-Path $distRepo 'CONTRIBUTING.md') '# Public contribution guide'
+    Put-Portable (Join-Path $distRepo 'CODE_OF_CONDUCT.md') '# Public conduct policy'
+    Git-Portable $distRepo @('add','README.md','CONTRIBUTING.md','CODE_OF_CONDUCT.md')|Out-Null
     $distOk=Invoke-FixtureCli 'check-distribution.ps1' @('-RepositoryPath',$distRepo)
     Assert-Portable ($distOk.exit -eq 0 -and $distOk.text -match 'DISTRIBUTION CHECK SUCCESS') 'check-distribution accetta un perimetro conforme'
     Put-Portable (Join-Path $distRepo '02-areas/privato.md') 'riservato'
     Put-Portable (Join-Path $distRepo 'fuori-perimetro.txt') 'non ammesso'
-    Git-Portable $distRepo @('add','-f','02-areas/privato.md','fuori-perimetro.txt')|Out-Null
+    Put-Portable (Join-Path $distRepo 'CONTRIBUTING-private.md') 'not a public filename'
+    Put-Portable (Join-Path $distRepo 'CODE_OF_CONDUCT.local.md') 'not a public filename'
+    Git-Portable $distRepo @('add','-f','02-areas/privato.md','fuori-perimetro.txt','CONTRIBUTING-private.md','CODE_OF_CONDUCT.local.md')|Out-Null
     $distBad=Invoke-FixtureCli 'check-distribution.ps1' @('-RepositoryPath',$distRepo)
-    Assert-Portable ($distBad.exit -eq 1 -and $distBad.text -match 'VIOLAZIONE CRITICA' -and $distBad.text -match 'VIOLAZIONE PERIMETRO' -and $distBad.text -match 'DISTRIBUTION CHECK FAILED') 'check-distribution stampa entrambe le violazioni, il messaggio finale ed esce con 1'
+    Assert-Portable ($distBad.exit -eq 1 -and $distBad.text -match 'VIOLAZIONE CRITICA' -and $distBad.text -match 'VIOLAZIONE PERIMETRO' -and $distBad.text -match 'CONTRIBUTING-private.md' -and $distBad.text -match 'CODE_OF_CONDUCT.local.md' -and $distBad.text -match 'DISTRIBUTION CHECK FAILED') 'check-distribution rejects private data and community filename lookalikes, reports both violations and exits 1'
 
     # Isolamento per repository: task, startup, MCP, Check/Sync e scritture restano nel repository in lavoro.
     $noRemote=Join-Path $repos 'no-remote'
