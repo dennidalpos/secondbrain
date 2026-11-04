@@ -9,6 +9,10 @@ Add-SBMessages @{
     'publication.reason.unreadable' = @{ it = 'Contenuto non leggibile'; en = 'Content unreadable' }
     'publication.reason.blob-limit' = @{ it = 'Limite di blob raggiunto'; en = 'Blob limit reached' }
     'publication.reason.history-unavailable' = @{ it = 'Storia Git non disponibile'; en = 'Git history unavailable' }
+    'publication.reason.history-paths-unavailable' = @{ it = 'Percorsi storici Git non verificabili'; en = 'Git history paths could not be verified' }
+    'publication.reason.history-limited' = @{ it = 'Storia Git parziale o modificata da graft'; en = 'Git history is shallow or modified by grafts' }
+    'publication.reason.index-unmerged' = @{ it = 'Indice Git con conflitti'; en = 'Git index has unresolved conflicts' }
+    'publication.reason.status-unavailable' = @{ it = 'Stato Git non disponibile'; en = 'Git status unavailable' }
     'publication.hook.checkout' = @{ it = 'Checkout Git richiesto per installare lʼhook pre-push'; en = 'Git checkout required to install the pre-push hook' }
     'publication.checkout' = @{ it = 'Checkout Git richiesto'; en = 'Git checkout required' }
     'publication.policy' = @{ it = 'Policy pubblicazione non valida'; en = 'Invalid publication policy' }
@@ -71,55 +75,91 @@ function Get-SBPublicationBaselinePath([string]$BrainRoot,[string]$RepositoryRoo
 }
 function Read-SBPublicationBaseline([string]$BrainRoot,[string]$RepositoryRoot) {
     $file=Get-SBPublicationBaselinePath $BrainRoot $RepositoryRoot
-    if(Test-Path -LiteralPath $file -PathType Leaf){return Read-SBJson $file $null}
-    # Compatibility: the previous single file applies only when registered for this repository; never rewrite it.
-    $legacy=Join-Path $BrainRoot '.runtime/publication/baseline.json'
-    if(Test-Path -LiteralPath $legacy -PathType Leaf){
-        $data=Read-SBJson $legacy $null
-        if($data -and $data.repository -and ([IO.Path]::GetFullPath([string]$data.repository).TrimEnd('\','/') -ieq [IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\','/'))){return $data}
+    Assert-SBPlainPath $file
+    try { Read-SBJson $file $null } catch { $null }
+}
+function Set-SBPublicationHistoryPaths([string]$Root,[string[]]$Roots,$ObjectInfo,$Entries) {
+    # Root commits introduce their entire tree. Every later path is introduced by a change against a parent.
+    # Use raw NUL-delimited diffs, including merge parents, because rev-list names only one path per object.
+    $commits=@($ObjectInfo.Keys | Where-Object { $ObjectInfo[$_].type -eq 'commit' })
+    if($commits.Count){
+        $diff=Invoke-SBGit $Root @('--no-replace-objects','diff-tree','--stdin','--root','--diff-merges=separate','-r','--raw','-z',
+            '--no-commit-id','--no-renames','--no-abbrev','--no-relative','--ignore-submodules=none') 120000 -PreserveOutput -InputText (($commits -join "`n")+"`n")
+        if($diff.code -ne 0 -or $diff.error){return $false}
+        if($diff.output){
+            $records=$diff.output.Split([char]0)
+            if($records[-1] -or ($records.Count-1)%2){return $false}
+            for($i=0;$i -lt $records.Count-1;$i+=2){
+                $path=$records[$i+1]
+                if(!$path -or $path.Contains([char]0xfffd) -or
+                    $records[$i] -cnotmatch '^:[0-7]{6} ([0-7]{6}) [a-f0-9]{40,64} ([a-f0-9]{40,64}) [ADMT]$'){return $false}
+                $mode=$Matches[1];$oid=$Matches[2]
+                if($mode -notin @('000000','160000') -and $Entries.Contains($oid)){[void]$Entries[$oid].Paths.Add($path)}
+            }
+        }
     }
-    $null
+
+    # Explicit roots can also be trees or blobs, including through annotated tags.
+    if(@($Roots | Where-Object { !$ObjectInfo.ContainsKey($_) }).Count){return $false}
+    $tagTargets=@($Roots | Where-Object { $ObjectInfo[$_].type -eq 'tag' } | ForEach-Object { $_+'^{}' })
+    $peeled=@()
+    if($tagTargets.Count){
+        $result=Invoke-SBGit $Root @('--no-replace-objects','cat-file','--batch-check=%(objectname)') -InputText (($tagTargets -join "`n")+"`n")
+        $peeled=@($result.output -split '\r?\n')
+        if($result.code -ne 0 -or $result.error -or $peeled.Count -ne $tagTargets.Count -or
+            @($peeled | Where-Object {$_ -cnotmatch '^(?:[a-f0-9]{40}|[a-f0-9]{64})$'}).Count){return $false}
+    }
+    $nonCommitRoots=@($Roots + $peeled | Sort-Object -Unique)
+    foreach($oid in $nonCommitRoots){
+        if(!$ObjectInfo.ContainsKey($oid)){return $false}
+        if($ObjectInfo[$oid].type -eq 'blob' -and $Entries.Contains($oid)){
+            $Entries[$oid].Direct=$true
+        }elseif($ObjectInfo[$oid].type -eq 'tree'){
+            $tree=Invoke-SBGit $Root @('--no-replace-objects','ls-tree','-r','-z','--full-tree',$oid) 120000 -PreserveOutput
+            if($tree.code -ne 0 -or $tree.error -or ($tree.output -and !$tree.output.EndsWith([char]0))){return $false}
+            foreach($record in $tree.output.Split([char]0,[StringSplitOptions]::RemoveEmptyEntries)){
+                if($record -cnotmatch '^[0-7]{6} (blob|commit) ([a-f0-9]{40,64})\t([\s\S]+)$' -or
+                    $Matches[3].Contains([char]0xfffd)){return $false}
+                if($Matches[1] -eq 'blob' -and $Entries.Contains($Matches[2])){[void]$Entries[$Matches[2]].Paths.Add($Matches[3])}
+            }
+        }
+    }
+    !@($Entries.Values | Where-Object { !$_.Direct -and !$_.Paths.Count }).Count
 }
 function Test-SBPublication {
-    param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[int]$MaxHistoryBlobs=10000,[int]$MaxTextBytes=2097152,[switch]$Initial)
+    param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[ValidateRange(0,[int]::MaxValue)][int]$MaxHistoryBlobs=10000,[ValidateRange(0,[int]::MaxValue)][int]$MaxTextBytes=2097152,[switch]$Initial,
+        [ValidatePattern('^(?:[0-9a-f]{40}|[0-9a-f]{64})$')][string[]]$PushObjectIds=@())
     $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw (New-SBError 'publication.checkout')};$root=$repo.output
     $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
     $findings=@();$incomplete=@();$checked=0
-    
-    # One baseline per repository (name from normalized path): -Initial on one repository leaves others unchanged.
-    $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root } else { $null }
-    $baseline = if (!$Initial -and $baselineFile) { Read-SBPublicationBaseline $BrainRoot $root } else { $null }
 
-    $targetFiles = @()
-    if ($baseline -and $baseline.headCommit) {
-        # Incremental mode: scan only modified, staged or untracked files.
-        $diffFiles = Invoke-SBGit $root @('diff', '--name-only', $baseline.headCommit)
-        $untracked = Invoke-SBGit $root @('ls-files', '--others', '--exclude-standard')
-        $cached = Invoke-SBGit $root @('diff', '--cached', '--name-only')
-        $rawList = @()
-        if ($diffFiles.code -eq 0 -and $diffFiles.output) { $rawList += @($diffFiles.output -split "`n") }
-        if ($untracked.code -eq 0 -and $untracked.output) { $rawList += @($untracked.output -split "`n") }
-        if ($cached.code -eq 0 -and $cached.output) { $rawList += @($cached.output -split "`n") }
-        $targetFiles = @($rawList | Where-Object { $_ -and $_.Trim() } | ForEach-Object { $_.Trim() } | Sort-Object -Unique)
-    } else {
-        $files=Invoke-SBGit $root @('ls-files','-z','--cached','--others','--exclude-standard') -PreserveOutput
-        if($files.code -ne 0){throw (New-SBError 'publication.inventory')}
-        $targetFiles = @($files.output -split "`0"|Where-Object {$_}|Sort-Object -Unique)
+    $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root }
+    $baselineBefore = if ($Initial -and $baselineFile) {
+        Assert-SBPlainPath $baselineFile
+        Get-SBFileHash $baselineFile
     }
+    $files=Invoke-SBGit $root @('ls-files','-z','--cached','--others','--exclude-standard') -PreserveOutput
+    if($files.code -ne 0){throw (New-SBError 'publication.inventory')}
+    $targetFiles = @($files.output -split "`0"|Where-Object {$_}|Sort-Object -CaseSensitive -Unique)
 
     # Index OIDs in one process, then batch type/size: no per-file rev-parse/cat-file -s.
-    $indexMap=@{}
+    $indexMap=[hashtable]::new([StringComparer]::Ordinal)
     $indexList=Invoke-SBGit $root @('ls-files','-s','-z') 120000 -PreserveOutput
     if($indexList.code -ne 0){throw (New-SBError 'publication.index')}
-    foreach($entry in $indexList.output -split "`0"){if($entry -match '^\d+ ([a-f0-9]{40,64}) 0\t(.+)$'){$indexMap[$Matches[2]]=$Matches[1]}}
-    $indexInfo=Get-SBGitObjectInfo $root @($targetFiles|Where-Object {$indexMap.ContainsKey($_)}|ForEach-Object {$indexMap[$_]}|Sort-Object -Unique)
+    foreach($entry in $indexList.output -split "`0"){
+        if(!$entry){continue}
+        if($entry -cnotmatch '^(\d+) ((?:[a-f0-9]{40}|[a-f0-9]{64})) ([0-3])\t([\s\S]+)$'){throw (New-SBError 'publication.index')}
+        if($Matches[3] -ne '0'){$incomplete+=@{path=$Matches[4];surface='index';reason='index-unmerged'};continue}
+        if($Matches[1] -ne '160000'){$indexMap[$Matches[4]]=$Matches[2]}
+    }
+    $indexInfo=Get-SBGitObjectInfo $root @($indexMap.Values|Sort-Object -Unique) -NoReplaceObjects
     # Index blob contents in one process within a memory budget; beyond the budget, retain per-file reads.
     $indexText=@{};$prefetchBudget=268435456;$prefetch=[Collections.Generic.List[object]]::new()
     foreach($oid in @($indexInfo.Keys|Sort-Object)){
         $meta=$indexInfo[$oid];if($meta.type -ne 'blob' -or $meta.size -gt $MaxTextBytes -or $meta.size -gt $prefetchBudget){continue}
         $prefetchBudget-=$meta.size;$prefetch.Add(@{Oid=$oid;Skip=$false})
     }
-    if($prefetch.Count){Read-SBGitBlobs $root $prefetch.ToArray()|ForEach-Object {if(!$_.Missing -and $null -ne $_.Bytes){$indexText[$_.Entry.Oid]=ConvertTo-SBBlobText $_.Bytes}}}
+    if($prefetch.Count){Read-SBGitBlobs $root $prefetch.ToArray() -NoReplaceObjects|ForEach-Object {if(!$_.Missing -and $null -ne $_.Bytes){$indexText[$_.Entry.Oid]=ConvertTo-SBBlobText $_.Bytes}}}
 
     $verifiedAncestors=@{}
     foreach($relative in $targetFiles){
@@ -140,8 +180,13 @@ function Test-SBPublication {
             }
             $indexOid=if($indexMap.ContainsKey($relative)){$indexMap[$relative]}else{$null}
             $index=@{code=1;output=''}
-            if($indexOid -and $indexInfo.ContainsKey($indexOid)){
-                if($indexInfo[$indexOid].size -le $MaxTextBytes){$index=if($indexText.ContainsKey($indexOid)){@{code=0;output=$indexText[$indexOid]}}else{Invoke-SBGit $root @('cat-file','blob',$indexOid) -PreserveOutput}}
+            if($indexOid -and (!$indexInfo.ContainsKey($indexOid) -or $indexInfo[$indexOid].type -ne 'blob')){
+                $incomplete+=@{path=$relative;surface='index';reason='unreadable'}
+            }elseif($indexOid){
+                if($indexInfo[$indexOid].size -le $MaxTextBytes){
+                    $index=if($indexText.ContainsKey($indexOid)){@{code=0;output=$indexText[$indexOid]}}else{Invoke-SBGit $root @('--no-replace-objects','cat-file','blob',$indexOid) -PreserveOutput}
+                    if($index.code -ne 0){$incomplete+=@{path=$relative;surface='index';reason='unreadable'}}
+                }
                 elseif(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.gitBlob -eq $indexOid -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='index';reason='size-limit'}}
             }
             if($index.code -eq 0){
@@ -162,86 +207,124 @@ function Test-SBPublication {
         }catch{$incomplete+=@{path=$relative;surface='working-or-index';reason=$_.Exception.GetType().Name}}
     }
 
-    $headRes = Invoke-SBGit $root @('rev-parse', 'HEAD')
-    $currentHead = if ($headRes.code -eq 0) { $headRes.output.Trim() } else { $null }
-
-    $objects = if ($baseline -and $baseline.headCommit -and $currentHead) {
-        if ($currentHead -eq $baseline.headCommit) {
-            @{ code = 0; output = '' }
+    $headRes = Invoke-SBGit $root @('rev-parse','--verify','--quiet','HEAD')
+    $currentHead = if ($headRes.code -eq 0) { $headRes.output }
+    $refList = Invoke-SBGit $root @('for-each-ref','--sort=refname','--format=%(objectname) %(refname)')
+    $refs = @($refList.output -split '\r?\n' | Where-Object {$_})
+    $selectedRefs = @($refs | Where-Object {$_ -cmatch ' refs/(heads|tags|remotes)/'})
+    $pushObjects = @($PushObjectIds | Where-Object {$_ -notmatch '^0+$'} | Sort-Object -Unique)
+    $excludedRefs = @($refs | Where-Object {$_ -cnotmatch ' refs/(heads|tags|remotes)/'} | ForEach-Object {
+        $oid,$ref = $_ -split ' ',2
+        if ($oid -notin $pushObjects) { $ref }
+    })
+    $roots = @(@($currentHead) + $pushObjects + @($selectedRefs | ForEach-Object { ($_ -split ' ',2)[0] }) |
+        Where-Object {$_} | Sort-Object -Unique)
+    $shallow = Invoke-SBGit $root @('rev-parse','--is-shallow-repository')
+    $grafts = Invoke-SBGit $root @('rev-parse','--path-format=absolute','--git-path','info/grafts')
+    if ($refList.code -ne 0 -or $refList.error -or $shallow.code -ne 0 -or $grafts.code -ne 0 -or $headRes.code -notin @(0,1)) {
+        $incomplete+=@{surface='history';reason='history-unavailable'}
+    } elseif ($shallow.output -ne 'false' -or $env:GIT_GRAFT_FILE -or (Test-Path -LiteralPath $grafts.output)) {
+        $incomplete+=@{surface='history';reason='history-limited'}
+    }
+    $historyAvailable = !@($incomplete | Where-Object surface -eq 'history').Count
+    $historyKey = Get-SBTextHash (ConvertTo-SBJson @{
+        repository=$root; refs=$selectedRefs; head=$currentHead; pushObjects=$pushObjects
+        policy=@{allowances=$allowances;binaryReviews=$binaryReviews}
+        limits=@{history=$MaxHistoryBlobs;text=$MaxTextBytes}
+        scanner=(Get-SBFileHash $PSCommandPath)
+        gitReader=(Get-SBFileHash (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1'))
+    })
+    $baseline = if (!$Initial -and $baselineFile -and $historyAvailable) {
+        $saved = Read-SBPublicationBaseline $BrainRoot $root
+        if ($saved -is [Collections.IDictionary] -and $saved['schemaVersion'] -eq 2 -and $saved['historyKey'] -ceq $historyKey -and
+            $saved['repository'] -ceq $root -and $saved['historyBlobs'] -is [ValueType] -and
+            $saved.historyBlobs -ge 0 -and $saved.historyBlobs -le $MaxHistoryBlobs -and
+            $saved['historyFindings'] -is [array] -and
+            !@($saved.historyFindings | Where-Object { $_ -isnot [Collections.IDictionary] -or $_['surface'] -ne 'history' -or $_['reviewed'] -ne $true }).Count) { $saved }
+    }
+    $historyCount = 0
+    if ($baseline) {
+        $historyCount = [int]$baseline.historyBlobs
+        $findings += @($baseline.historyFindings)
+    } elseif ($roots.Count -and $historyAvailable) {
+        $objects = Invoke-SBGit $root @('--no-replace-objects','rev-list','--objects','--no-object-names','--stdin') 120000 -InputText (($roots -join "`n")+"`n")
+        if ($objects.code -ne 0 -or $objects.error) {
+            $incomplete+=@{surface='history';reason='history-unavailable'}
         } else {
-            Invoke-SBGit $root @('rev-list', '--objects', "$($baseline.headCommit)..$currentHead")
-        }
-    } else {
-        # Only publishable refs (branches, tags, remotes) and HEAD: local tool refs (refs/codex/*, stash, notes) never leave the clone.
-        $scanRefs = @('--branches', '--tags', '--remotes')
-        if ($currentHead) { $scanRefs += 'HEAD' }
-        Invoke-SBGit $root (@('rev-list', '--objects') + $scanRefs)
-    }
-    $excludedRefs = @()
-    $refList = Invoke-SBGit $root @('for-each-ref', '--format=%(refname)')
-    if ($refList.code -eq 0 -and $refList.output) {
-        $excludedRefs = @($refList.output -split "`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -and $_ -notmatch '^refs/(heads|tags|remotes)/' })
-    }
-
-    $historyCount = if ($baseline -and $baseline.historyBlobs) { [int]$baseline.historyBlobs } else { 0 }
-    if($objects.code -eq 0){
-        # All object types/sizes in one process, blob contents in another (streamed in rev-list order).
-        $entries=[Collections.Generic.List[object]]::new()
-        foreach($line in $objects.output -split "`n"){
-            if($line -notmatch '^([a-f0-9]{40,64}) (.+)$'){continue}
-            $entries.Add(@{Oid=$Matches[1];Path=$Matches[2]})
-        }
-        $objectInfo=Get-SBGitObjectInfo $root @($entries|ForEach-Object {$_.Oid})
-        $queue=[Collections.Generic.List[object]]::new();$blobLimit=$false
-        foreach($entry in $entries){
-            if($historyCount -ge $MaxHistoryBlobs){$blobLimit=$true;break}
-            $meta=$objectInfo[$entry.Oid];if(!$meta -or $meta.type -ne 'blob'){continue};$historyCount++
-            $entry.Skip=([long]$meta.size -gt $MaxTextBytes)
-            $queue.Add($entry)
-        }
-        if($queue.Count){
-            Read-SBGitBlobs $root $queue.ToArray() | ForEach-Object {
-                $relative=$_.Entry.Path;$oid=$_.Entry.Oid
-                if($_.Entry.Skip){
-                    # Beyond the threshold, the blob is not read: use the binary review bound to its path and object.
-                    if(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.gitBlob -eq $oid -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='history';reason='size-limit'}}
-                    return
+            $oids=@($objects.output -split '\r?\n')
+            if(@($oids | Where-Object {$_ -cnotmatch '^(?:[a-f0-9]{40}|[a-f0-9]{64})$'}).Count){
+                $incomplete+=@{surface='history';reason='unreadable'}
+            }else{
+                $objectInfo=Get-SBGitObjectInfo $root $oids -NoReplaceObjects
+                $entries=[ordered]@{}
+                foreach($oid in $oids){
+                    $meta=$objectInfo[$oid]
+                    if(!$meta){$incomplete+=@{surface='history';reason='unreadable'};continue}
+                    if($meta.type -ne 'blob'){continue}
+                    if($entries.Count -ge $MaxHistoryBlobs){$incomplete+=@{surface='history';reason='blob-limit'};break}
+                    $entries[$oid]=@{Oid=$oid;Skip=([long]$meta.size -gt $MaxTextBytes);Paths=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal);Direct=$false}
                 }
-                if($_.Missing -or $null -eq $_.Bytes){$incomplete+=@{path=$relative;surface='history';reason='unreadable'};return}
-                $blobText=ConvertTo-SBBlobText $_.Bytes
-                if(!$blobText.Contains([char]0)){$findings+=@(Test-SBPublicationText $blobText $relative 'history' $allowances)}
-                elseif(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.gitBlob -eq $oid -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='history';reason='binary-review-required'}}
+                if($entries.Count){
+                    if(!(Set-SBPublicationHistoryPaths $root $roots $objectInfo $entries)){
+                        $incomplete+=@{surface='history';reason='history-paths-unavailable'}
+                    }else{
+                        $historyCount=$entries.Count
+                        Read-SBGitBlobs $root @($entries.Values) -NoReplaceObjects | ForEach-Object {
+                            $entry=$_.Entry
+                            $oid=$entry.Oid
+                            $reason=if($entry.Skip){'size-limit'}elseif($_.Missing -or $null -eq $_.Bytes){'unreadable'}
+                            $blobText=if(!$reason){ConvertTo-SBBlobText $_.Bytes}
+                            if(!$reason -and $blobText.Contains([char]0)){$reason='binary-review-required'}
+                            foreach($relative in $entry.Paths | Sort-Object -CaseSensitive){
+                                if(!$reason){
+                                    $findings+=@(Test-SBPublicationText $blobText $relative 'history' $allowances)
+                                }elseif($reason -eq 'unreadable' -or !@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.gitBlob -eq $oid -and $_.reviewed -and $_.reason}).Count){
+                                    $incomplete+=@{path=$relative;surface='history';reason=$reason}
+                                }
+                            }
+                            if($entry.Direct){
+                                $label='(object '+$oid+')'
+                                if($reason){$incomplete+=@{path=$label;surface='history';reason=$reason}}
+                                else{$findings+=@(Test-SBPublicationText $blobText $label 'history')}
+                            }
+                        }
+                    }
+                }
             }
         }
-        if($blobLimit){$incomplete+=@{surface='history';reason='blob-limit'}}
-    }else{$incomplete+=@{surface='history';reason='history-unavailable'}}
-    $status=Invoke-SBGit $root @('status','--porcelain=v1','--ignored') 30000
-    foreach($line in $status.output -split "`n"){
-        if($line -match '^!! (.+)$'){
-            $ignored=$Matches[1].Trim('"')
+    }
+    $status=Invoke-SBGit $root @('status','--porcelain=v1','-z','--ignored=matching') 30000 -PreserveOutput
+    if($status.code -ne 0){$incomplete+=@{surface='ignored';reason='status-unavailable'}}
+    $dirty=$false;$renameSource=$false
+    foreach($line in $status.output -split "`0"){
+        if($renameSource){$renameSource=$false;continue}
+        if($line.StartsWith('!! ')){
+            $ignored=$line.Substring(3)
             if($ignored -match '(^|/)(?:node_modules|bin|obj|build|dist|\.gradle|\.venv|__pycache__|test-results|backups?)(/|$)|(^|/)\.env(?:\.|$)|\.(?:bak|tmp)$'){
                 $findings+=@{rule='ignored-operational-residue';severity='review';path=$ignored;surface='ignored';reviewed=$false}
             }
+        }elseif($line){
+            $dirty=$true
+            $renameSource=$line.Substring(0,2) -match '[RC]'
         }
     }
     $unresolved=@($findings|Where-Object {!$_.reviewed})
     
-    if ($Initial -and $BrainRoot -and $currentHead) {
-        [IO.Directory]::CreateDirectory((Join-Path $BrainRoot '.runtime/publication')) | Out-Null
+    if ($Initial -and $baselineFile -and $roots.Count -and !$unresolved.Count -and !$incomplete.Count) {
         $baselineObj = @{
-            schemaVersion = 1
-            headCommit = $currentHead
+            schemaVersion = 2
+            historyKey = $historyKey
             generatedAt = [DateTimeOffset]::UtcNow.ToString('o')
             historyBlobs = $historyCount
-            authorized = $true
+            historyFindings = @($findings | Where-Object surface -eq 'history')
             repository = $root
         }
-        [IO.File]::WriteAllText($baselineFile, (ConvertTo-SBJson $baselineObj), [Text.UTF8Encoding]::new($false))
+        [void](Write-SBFile $baselineFile ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $baselineObj))) $baselineBefore (Join-Path $BrainRoot '.runtime/backups/publication'))
     }
 
     foreach($diagnostic in $incomplete){[void](Add-SBReportDiagnostic $diagnostic 'publication')}
     @{schemaVersion=1;repositoryPath=$root;ready=(!$unresolved.Count -and !$incomplete.Count);complete=(!$incomplete.Count);findings=$findings;incomplete=$incomplete;
-      checkedTextSurfaces=$checked;historyBlobs=$historyCount;workingTreeDirty=[bool]$status.output;historyRewritten=$false;incremental=[bool]$baseline;baseline=$baseline;excludedRefs=$excludedRefs;coverage='Rule-based text and Git inventory checks on branches, tags, remotes and HEAD (local tool refs listed in excludedRefs are not scanned); binary contents and legal compliance are not certified.'}
+      checkedTextSurfaces=$checked;historyBlobs=$historyCount;workingTreeDirty=$dirty;historyRewritten=$false;incremental=[bool]$baseline;baseline=$baseline;excludedRefs=$excludedRefs;pushObjectIds=$pushObjects;coverage='Rule-based text and Git inventory checks on branches, tags, remotes, HEAD and explicit push objects; binary contents and legal compliance are not certified.'}
 }
 function New-SBCaptureRecord {
     param([string]$BrainRoot,[string]$SourcePath,[string]$Repository,[string]$Application,[string]$Version,[string]$Commit,[string]$Scenario,[string]$CaptureTool,[string]$Reproduction,[bool]$Dirty=$false)
@@ -334,7 +417,7 @@ if [ ! -f "$SB_ROOT/scripts/publication.ps1" ]; then
     fail_closed "SECONDBRAIN_HOME punta a un percorso senza scripts/publication.ps1 (clone spostato o variabile obsoleta)."
 fi
 
-"$PWSH_CMD" -NoProfile -ExecutionPolicy Bypass -File "$SB_ROOT/scripts/publication.ps1" -RepositoryPath "$REPO_ROOT"
+"$PWSH_CMD" -NoProfile -ExecutionPolicy Bypass -File "$SB_ROOT/scripts/publication.ps1" -RepositoryPath "$REPO_ROOT" -PrePushInput
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
@@ -391,7 +474,7 @@ function Install-SBPublicationHook {
         [IO.Directory]::CreateDirectory($hooksDir) | Out-Null
     }
     
-    [IO.File]::WriteAllText($hookFile, $content, [Text.Encoding]::UTF8)
+    [IO.File]::WriteAllText($hookFile, $content, [Text.UTF8Encoding]::new($false))
     
     return @{
         applied = $true
@@ -467,9 +550,11 @@ function Get-SBPublicationHookStatus {
     
     $installed = Test-Path -LiteralPath $hookFile -PathType Leaf
     $isSecondBrainHook = $false
+    $usesPushInput = $false
     if ($installed) {
         $text = [IO.File]::ReadAllText($hookFile)
         $isSecondBrainHook = [bool]($text -match 'SecondBrain pre-push hook')
+        $usesPushInput = $isSecondBrainHook -and $text.Contains('-PrePushInput')
     }
     
     @{
@@ -477,6 +562,7 @@ function Get-SBPublicationHookStatus {
         hookPath = $hookFile
         installed = $installed
         isSecondBrainHook = $isSecondBrainHook
+        usesPushInput = $usesPushInput
     }
 }
 

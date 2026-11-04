@@ -19,6 +19,9 @@ param(
     [Parameter(ParameterSetName='Check')]
     [switch]$Initial,
 
+    [Parameter(ParameterSetName='Check')]
+    [switch]$PrePushInput,
+
     [Parameter(Mandatory,ParameterSetName='InstallHook')]
     [switch]$InstallHook,
 
@@ -38,6 +41,10 @@ param(
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'publication.push.input' = @{ it = 'Aggiornamento pre-push Git non valido'; en = 'Invalid Git pre-push update' }
+}
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 try{
@@ -57,7 +64,20 @@ try{
         exit 0
     }
     $PolicyPath=Resolve-SBPublicationPolicyPath $brain $PolicyPath
-    $report=Test-SBPublication -RepositoryPath $RepositoryPath -BrainRoot $brain -PolicyPath $PolicyPath -MaxHistoryBlobs $MaxHistoryBlobs -Initial:$Initial
+    $pushObjects=@(if($PrePushInput){
+        while($null -ne ($update=[Console]::In.ReadLine())){
+            if($update -cnotmatch '^(\S+) ([a-f0-9]{40}|[a-f0-9]{64}) \S+ ([a-f0-9]{40}|[a-f0-9]{64})$'){
+                throw (New-SBError 'publication.push.input')
+            }
+            $deletion=$Matches[1] -ceq '(delete)'
+            $localObject=$Matches[2]
+            if($localObject.Length -ne $Matches[3].Length -or $deletion -ne ($localObject -match '^0+$')){
+                throw (New-SBError 'publication.push.input')
+            }
+            if(!$deletion){$localObject}
+        }
+    })
+    $report=Test-SBPublication -RepositoryPath $RepositoryPath -BrainRoot $brain -PolicyPath $PolicyPath -MaxHistoryBlobs $MaxHistoryBlobs -Initial:$Initial -PushObjectIds $pushObjects
     if($ReportPath){$path=Assert-SBCentralDataPath $brain $ReportPath;[IO.Directory]::CreateDirectory((Split-Path $path))|Out-Null;Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $path) (Join-Path $brain '.runtime/backups/publication')|Out-Null}
     ConvertTo-SBJson $report
     if(!$report.complete){exit 2};if(!$report.ready){exit 1}

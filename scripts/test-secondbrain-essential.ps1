@@ -154,6 +154,28 @@ if('pending' -in $Groups){
     Check ($receipt.state -eq 'applied' -and $receipt.result.taskId -eq 'T-1') 'receipt identifies atomically applied task'
     $legacy=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='in_progress'} -Config $cfg
     Check ((Complete-SBPendingSubmission $legacy $cfg).applied) 'existing task.status request remains supported'
+    $compatible=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Status='todo'} -Config $cfg
+    $legacyQueue=Split-Path $compatible.path
+    Check ($compatible.request.operation -ceq 'task.status' -and (Split-Path $legacyQueue -Leaf) -ceq 'pending-writes') 'status-only producer preserves the legacy wire format and queue'
+    Check ((Complete-SBPendingSubmission $compatible $cfg).applied) 'compatible status request applies'
+
+    $healthy=Read-SBText $trackerPath
+    $broken=$healthy|ConvertFrom-Json -AsHashtable -DateKind String
+    $broken.tasks[1].dependencies=@(@{id='MISSING-FIXTURE'})
+    Put $trackerPath (ConvertTo-SBJson $broken)
+    $repairable=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Stream='after-repair';Priority='P2'} -Config $cfg
+    Check ((Split-Path (Split-Path $repairable.path) -Leaf) -ceq 'task-update' -and
+        $repairable.id -notin @(Get-ChildItem -LiteralPath $legacyQueue -Filter '*.json' -File | ForEach-Object BaseName)) 'legacy nonrecursive consumer cannot see extended request'
+    $response=Complete-SBPendingSubmission $repairable $cfg
+    Check ($response.state -eq 'deferred' -and $response.pendingWrites.errors.Count -eq 1) 'preexisting broken graph leaves a durable request without terminal receipt'
+    Put $trackerPath $healthy
+    Check ((Complete-SBPendingSubmission $repairable $cfg).applied -and (Read-SBJson $trackerPath $null).tasks[0].extensions.stream -eq 'after-repair') 'repair allows the original request to apply'
+    $after=Get-SBFileHash $trackerPath
+    Check ((Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg).applied.Count -eq 0 -and (Get-SBFileHash $trackerPath) -ceq $after) 'repair replay applies once'
+
+    $oldUpdate=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Stream='legacy-location'} -Config $cfg
+    Move-Item -LiteralPath $oldUpdate.path -Destination (Join-Path $legacyQueue ($oldUpdate.id+'.json'))
+    Check ((Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg).applied.id -eq $oldUpdate.id) 'upgraded consumer integrates earlier task.update from the legacy directory'
     [void](Update-SBTrackerTask @argsBase -TaskId T-2 -Status done)
     $metadata=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-2';Priority='P1'} -Config $cfg
     $response=Complete-SBPendingSubmission $metadata $cfg
@@ -196,12 +218,129 @@ if('audit2' -in $Groups){
     & git -C $repo add README.md
     $pub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
     Check (!$pub.ready -and @($pub.findings|Where-Object {$_.rule -eq 'credential' -and $_.surface -eq 'index'}).Count -gt 0 -and !(ConvertTo-SBJson $pub).Contains($privateText)) 'real staged private fixture blocks publication without leaking its value'
+
+    $base=(Invoke-SBGit $repo @('rev-parse','HEAD')).output
+    $historyCommit=(Invoke-SBGit $repo @('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit-tree',(Invoke-SBGit $repo @('write-tree')).output,'-p',$base,'-m','Synthetic divergent history')).output
+    Check ($historyCommit -match '^[a-f0-9]{40,64}$') 'created divergent history without changing HEAD'
+    Put (Join-Path $repo 'README.md') 'Public synthetic documentation.'
+    [void](Invoke-SBGit $repo @('add','README.md'))
+    $baselinePath=Get-SBPublicationBaselinePath $brain $repo
+    $initial=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial -MaxHistoryBlobs 0
+    Check (!$initial.complete -and !(Test-Path -LiteralPath $baselinePath)) 'incomplete initial scan cannot persist a baseline'
+    Put $baselinePath (ConvertTo-SBJson @{schemaVersion=1;headCommit=$base;authorized=$true})
+    $legacyHash=Get-SBFileHash $baselinePath
+    Check (!(Test-SBPublication -BrainRoot $brain -RepositoryPath $repo).incremental) 'legacy baseline is ignored'
+    $initial=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial
+    Check ($initial.ready -and (Get-SBFileHash $baselinePath) -ne $legacyHash) 'complete clean scan saves a new baseline'
+    $cleanHash=Get-SBFileHash $baselinePath
+    Check ((Test-SBPublication -BrainRoot $brain -RepositoryPath $repo).incremental) 'unchanged history reuses the verified baseline'
+    Put (Join-Path $repo 'untracked.txt') $privateText
+    $withLocalFile=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
+    Check ($withLocalFile.incremental -and !$withLocalFile.ready) 'history reuse still scans working files'
+    Put (Join-Path $repo 'untracked.txt') 'Public synthetic documentation.'
+
+    Check ((Invoke-SBGit $repo @('update-ref','refs/heads/divergent',$historyCommit)).code -eq 0) 'created divergent branch'
+    $blocked=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -Initial
+    Check (!$blocked.ready -and (Get-SBFileHash $baselinePath) -ceq $cleanHash) 'history finding cannot replace a clean baseline'
+    $blocked=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
+    Check (!$blocked.incremental -and @($blocked.findings|Where-Object surface -eq history).Count -gt 0 -and (Invoke-SBGit $repo @('rev-parse','HEAD')).output -ceq $base) 'divergent branch is checked at unchanged HEAD'
+    Check ((Invoke-SBGit $repo @('tag','audit-tag',$historyCommit)).code -eq 0) 'created tag for divergent history'
+    Check ((Invoke-SBGit $repo @('update-ref','-d','refs/heads/divergent')).code -eq 0) 'kept divergent history reachable only via tag'
+    $blocked=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
+    $historyFinding=@($blocked.findings|Where-Object surface -eq history)[0]
+    Check (!$blocked.ready -and $historyFinding.path -ceq 'README.md') 'tag-only history is checked'
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=@(@{rule=$historyFinding.rule;path=$historyFinding.path;fingerprint=$historyFinding.fingerprint;reason='synthetic review'})})
+    Check ((Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy -Initial).ready) 'reviewed history can seed a baseline'
+    $reviewed=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check ($reviewed.incremental -and @($reviewed.findings|Where-Object {$_.surface -eq 'history' -and $_.reviewed}).Count -gt 0) 'history reuse retains reviewed findings'
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=@()})
+    $blocked=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check (!$blocked.ready -and !$blocked.incremental) 'policy change invalidates history coverage'
+    Check ((Invoke-SBGit $repo @('tag','-d','audit-tag')).code -eq 0) 'removed the publishable tag from the fixture'
+    Check ((Invoke-SBGit $repo @('update-ref','refs/audit/private',$historyCommit)).code -eq 0) 'created a nonstandard local ref'
+    $pub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
+    Check ($pub.ready -and 'refs/audit/private' -cin $pub.excludedRefs) 'ordinary audit reports excluded local ref'
+
+    $remote=Join-Path $fixture 'pub.git'
+    Check ((Invoke-SBGit $fixture @('init','--bare',$remote)).code -eq 0) 'initialized local push remote'
+    [void](Install-SBPublicationHook -RepositoryPath $repo -BrainRoot $brain -Apply)
+    $savedBrain=$env:SECONDBRAIN_HOME
+    $savedSkip=$env:SECONDBRAIN_SKIP_PRE_PUSH
+    try {
+        $env:SECONDBRAIN_HOME=$brain
+        $env:SECONDBRAIN_SKIP_PRE_PUSH=$null
+        $push=Invoke-SBGit $repo @('push',$remote,'HEAD:refs/heads/clean') 30000
+        Check ($push.code -eq 0) ('clean push through hook: '+$push.error)
+        foreach($source in @('refs/audit/private',$historyCommit)){
+            $push=Invoke-SBGit $repo @('push',$remote,($source+':refs/heads/blocked')) 30000
+            Check ($push.code -ne 0 -and $push.error -match 'SEC07.*codice 1') ('hook blocks explicit push source '+$source)
+        }
+        $push=Invoke-SBGit $repo @('push',$remote,':refs/heads/clean') 30000
+        Check ($push.code -eq 0) ('hook accepts a deletion record: '+$push.error)
+    } finally {
+        $env:SECONDBRAIN_HOME=$savedBrain
+        $env:SECONDBRAIN_SKIP_PRE_PUSH=$savedSkip
+    }
+
+    $secretOid=(Invoke-SBGit $repo @('rev-parse',($historyCommit+':README.md'))).output
+    $aliasPaths=@('copy-a.txt',"copy-b`n.txt")
+    $treeInput=($aliasPaths | ForEach-Object {"100644 blob $secretOid`t$_`0"}) -join ''
+    $treeInput+="100644 blob $oid`tlarge-a.bin`0100644 blob $oid`tlarge-b.bin`0"
+    $aliasTree=Invoke-SBGit $repo @('mktree','-z') -InputText $treeInput
+    Check ($aliasTree.code -eq 0) 'created a tree with one blob at two historical paths'
+    $parentTree=Invoke-SBGit $repo @('mktree','-z') -InputText ("100644 blob $secretOid`t"+$aliasPaths[0]+"`0")
+    $commitCommand=@('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit-tree')
+    $aliasParent=Invoke-SBGit $repo ($commitCommand+@($parentTree.output,'-p',$base,'-m','First historical name'))
+    Check ($parentTree.code -eq 0 -and $aliasParent.code -eq 0) 'created a parent with only the first name'
+    $aliasCommit=Invoke-SBGit $repo ($commitCommand+@($aliasTree.output,'-p',$aliasParent.output,'-p',$base,'-m','Historical path aliases'))
+    Check ($aliasCommit.code -eq 0 -and (Invoke-SBGit $repo @('update-ref','refs/heads/aliases',$aliasCommit.output)).code -eq 0) 'second name is introduced only by a merge'
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo
+    $aliases=@($scan.findings|Where-Object {$_.surface -eq 'history' -and $_.rule -eq 'credential'})
+    Check ($aliases.Count -eq 2 -and @($aliases|Where-Object path -CIn $aliasPaths).Count -eq 2) 'history retains exact distinct paths, including a newline'
+    $reviews=@($aliases | ForEach-Object {@{rule=$_.rule;path=$_.path;fingerprint=$_.fingerprint;reason='synthetic path review'}})
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=@($reviews[0])})
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check (!$scan.ready -and $scan.complete -and @($scan.findings|Where-Object {!$_.reviewed}).path -ceq $reviews[1].path) 'reviewing one path leaves the other historical path blocked'
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=$reviews})
+    Check ((Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy -Initial).ready) 'reviewing both paths permits a verified history baseline'
+    $sizeReviews=@('big.txt','large-a.bin' | ForEach-Object {
+        @{path=$_;gitBlob=$oid;sha256=(Get-SBFileHash (Join-Path $repo 'big.txt'));reviewed=$true;reason='synthetic path review'}
+    })
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=$reviews;binaryReviews=$sizeReviews})
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy -MaxTextBytes 400
+    Check (!$scan.complete -and @($scan.incomplete|Where-Object surface -eq history).path -ceq 'large-b.bin') 'size review for one alias cannot cover the other'
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy -PushObjectIds @($secretOid)
+    Check (!$scan.ready -and @($scan.findings|Where-Object {!$_.reviewed}).path -ceq ('(object '+$secretOid+')')) 'path reviews cannot authorize an explicitly pushed bare blob'
+    Check ((Invoke-SBGit $repo @('update-ref','-d','refs/heads/aliases')).code -eq 0) 'removed alias commit from the scanned refs'
+    $treeTag=Invoke-SBGit $repo @('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','tag','-am','Synthetic tree tag','aliases-tree',$aliasTree.output)
+    Check ($treeTag.code -eq 0) 'created annotated tag pointing directly to the alias tree'
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check ($scan.ready -and @($scan.findings|Where-Object {$_.surface -eq 'history' -and $_.reviewed}).Count -eq 2) 'annotated tree tags retain both path-specific reviews'
 }
 if('git-environment' -in $Groups){
+    $runner=Join-Path $PSScriptRoot 'test-secondbrain.ps1'
+    Reject {& $runner -Quick -Full} 'Quick and Full cannot be combined'
+    Reject {& $runner -Quick -Only portable} 'Quick and Only cannot be combined'
+    Reject {& $runner -Full -Only quick} 'Full and Only cannot be combined'
+    Reject {& $runner -Only @()} 'empty Only cannot pass without running a suite'
+
     $before=@{};foreach($name in @('GIT_CONFIG_COUNT','GIT_CONFIG_GLOBAL','GIT_TEMPLATE_DIR')){$before[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
     $nested=Enter-SBTestGitEnvironment
     try{Assert-SBTestGitEnvironment;Check $true 'isolated Git environment is effective'}finally{Exit-SBTestGitEnvironment $nested}
     foreach($name in $before.Keys){Check ([Environment]::GetEnvironmentVariable($name,'Process') -ceq $before[$name]) ('Git environment restored: '+$name)}
+    $relative=(('long-payload-segment-'+('x'*24)+'/')*5)+'payload.bin'
+    $payload=Join-Path $repo $relative
+    $expectedBytes=[byte[]](0,13,10,26,65,127,128,195,169,255,10,0)
+    Check ($payload.Length -gt 260) 'tracked payload exceeds MAX_PATH in the central fixture'
+    [void][IO.Directory]::CreateDirectory((Split-Path $payload))
+    [IO.File]::WriteAllBytes($payload,$expectedBytes)
+    Check ((Invoke-SBGit $repo @('-c','core.autocrlf=false','add','--',$relative)).code -eq 0) 'Git adds the long tracked path'
+    Check ((Invoke-SBGit $repo @('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','Synthetic long path')).code -eq 0) 'Git commits the long tracked path'
+    $blob=Invoke-SBGit $repo @('rev-parse',('HEAD:'+$relative))
+    Check ($blob.code -eq 0) 'long tracked path resolves to a committed blob'
+    $actual=Read-SBGitBlobs $repo @(@{Oid=$blob.output;Skip=$false})
+    Check (!$actual.Missing -and [Linq.Enumerable]::SequenceEqual[byte]($expectedBytes,$actual.Bytes)) 'Git blob bytes match the original long-path payload'
+
     $run=New-SBTestRun ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))) 'Only' @{}
     Check ($run.parent -and (Split-Path $run.directory) -eq (Split-Path $env:SECONDBRAIN_TEST_ROOT)) 'nested run is a sibling with parent evidence'
     $run.inputsBefore=Get-SBTestInputSnapshot $run.brainRoot

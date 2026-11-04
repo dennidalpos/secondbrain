@@ -634,20 +634,29 @@ function New-SBGitStartInfo([string]$Root, [string[]]$GitArguments) {
     foreach ($arg in $prefix + @('-C',$Root) + $GitArguments) { $start.ArgumentList.Add($arg) }
     $start
 }
-function Invoke-SBGit([string]$Root, [string[]]$GitArguments, [int]$TimeoutMs = 10000, [switch]$PreserveOutput) {
-    $process = [Diagnostics.Process]::Start((New-SBGitStartInfo $Root $GitArguments))
+function Invoke-SBGit([string]$Root, [string[]]$GitArguments, [int]$TimeoutMs = 10000, [switch]$PreserveOutput, [string]$InputText) {
+    $start = New-SBGitStartInfo $Root $GitArguments
+    $start.RedirectStandardInput = $PSBoundParameters.ContainsKey('InputText')
+    $process = [Diagnostics.Process]::Start($start)
     try {
         $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()
+        $inputWriter = if ($start.RedirectStandardInput) { $process.StandardInput.WriteAsync($InputText) }
+        if ($inputWriter) {
+            if (!$inputWriter.Wait($TimeoutMs)) { $process.Kill($true); throw (New-SBError 'core.git.timeout' @($Root)) }
+            $process.StandardInput.Close()
+        }
         if (!$process.WaitForExit($TimeoutMs)) { $process.Kill($true); throw (New-SBError 'core.git.timeout' @($Root)) }
         $output=$stdout.GetAwaiter().GetResult()
         @{ code = $process.ExitCode; output = $(if($PreserveOutput){$output}else{$output.Trim()}); error = $stderr.GetAwaiter().GetResult().Trim() }
     } finally { $process.Dispose() }
 }
 # Types and sizes of many objects in one process (cat-file --batch-check): oid -> @{type;size}; omit missing objects.
-function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutMs = 120000) {
+function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutMs = 120000, [switch]$NoReplaceObjects) {
     $info = @{}
     if (!$ObjectIds.Count) { return $info }
-    $start = New-SBGitStartInfo $Root @('cat-file','--batch-check')
+    $gitArguments = @('cat-file','--batch-check')
+    if ($NoReplaceObjects) { $gitArguments = @('--no-replace-objects') + $gitArguments }
+    $start = New-SBGitStartInfo $Root $gitArguments
     $start.RedirectStandardInput = $true; $start.StandardInputEncoding = [Text.UTF8Encoding]::new($false)
     $process = [Diagnostics.Process]::Start($start)
     try {
@@ -663,7 +672,7 @@ function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutM
 }
 # Stream many blobs through one process (cat-file --batch), in Entries order (use in a pipeline).
 # Each entry: @{Oid;Skip}. Entries with Skip are not read (Bytes null). Emits @{Entry;Bytes;Missing}.
-function Read-SBGitBlobs([string]$Root, [object[]]$Entries, [int]$ReadTimeoutMs = 60000) {
+function Read-SBGitBlobs([string]$Root, [object[]]$Entries, [int]$ReadTimeoutMs = 60000, [switch]$NoReplaceObjects) {
     if (!('SBGitBatchReader' -as [type])) {
         Add-Type -TypeDefinition @'
 using System;
@@ -702,7 +711,9 @@ public sealed class SBGitBatchReader {
     $process = $null
     try {
         if ($wanted.Count) {
-            $start = New-SBGitStartInfo $Root @('cat-file','--batch')
+            $gitArguments = @('cat-file','--batch')
+            if ($NoReplaceObjects) { $gitArguments = @('--no-replace-objects') + $gitArguments }
+            $start = New-SBGitStartInfo $Root $gitArguments
             $start.RedirectStandardInput = $true; $start.StandardInputEncoding = [Text.UTF8Encoding]::new($false)
             $process = [Diagnostics.Process]::Start($start)
             $stderr = $process.StandardError.ReadToEndAsync()

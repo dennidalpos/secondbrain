@@ -28,11 +28,15 @@ L'avvio MCP, le richieste MCP di consultazione, `knowledge.ps1` in lettura, `pro
 
 I JSON originali sono in `.runtime/access/pending-writes/`; le ricevute sono in `.runtime/access/pending-receipts/`. Sono metadati operativi della stessa cartella SecondBrain condivisa: ogni postazione li raggiunge attraverso il proprio alias della radice. I percorsi di destinazione sono risolti dal repository e dal dossier; non si riusano percorsi assoluti del PC produttore. Cloni Git separati non condividono questi file, esclusi da Git.
 
+I cambi di stato compatibili usano `task.status` nella directory originaria. Gli aggiornamenti estesi nuovi usano `task.update` nella sottocartella `task-update/`, invisibile ai consumer precedenti. I consumer aggiornati integrano entrambe le directory, incluse le richieste estese già presenti nella directory originaria, con le stesse ricevute e lo stesso lock. Durante il rollout un consumer precedente può integrare richieste compatibili mentre quelle estese attendono un consumer aggiornato.
+
 La modifica centrale e la ricevuta entrano nello stesso journal di recupero. Due importatori non applicano due volte la stessa richiesta. Originali, ricevute, conflitti e prove restano conservati fino a una pulizia esplicitamente richiesta.
 
 ## Conflitti e interruzioni
 
 Per un cambio di stato si confronta il singolo task: modifiche a task diversi possono convivere. Una modifica concorrente allo stesso task o una sostituzione di file con base cambiata produce `conflict`; il dato corrente resta intatto. Un agente puo leggere richiesta e stato corrente, preparare una riconciliazione e inviare una nuova richiesta autorizzata. Il conflitto precedente resta consultabile.
+
+Se il grafo esistente del tracker è invalido, una modifica al task con hash verificabile può essere accodata e resta pendente fino alla riparazione. L'integrazione riesamina l'hash del task e il grafo riparato. Se il tracker non permette di determinare con certezza l'hash, l'invio restituisce un errore. Le ricevute legacy `invalid` restano conservate per revisione e riconciliazione esplicita.
 
 JSON invalidi e ricevute incoerenti sono segnalati; non impediscono l'integrazione delle altre richieste indipendenti. Errori di accesso non producono ricevute di successo. Una transazione centrale interrotta mantiene il normale gate di recupero: le nuove richieste restano salvate e le letture continuano, mentre il journal va recuperato con `recover.ps1`. Non si forzano lock o marker.
 

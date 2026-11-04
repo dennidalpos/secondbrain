@@ -135,6 +135,8 @@ publication.ps1 esamina working tree, indice e blob storici con regole locali; i
 
 L'installazione opzionale dell'hook Git pre-push (`scripts/publication.ps1 -InstallHook -Apply`) collega la verifica SEC07 all'operazione `git push`, bloccando tempestivamente tentativi di invio di credenziali, percorsi host o residui operativi. L'hook è scritto in shell POSIX portabile, non contiene percorsi personali o credenziali cablate, ed è **fail-closed**: se `pwsh` manca, `SECONDBRAIN_HOME` non è impostata o punta a un percorso senza `scripts/publication.ps1` (clone spostato, variabile obsoleta) il push si ferma con istruzioni; fuori da un repository Git esce con 0. Il bypass una tantum e consapevole è `SECONDBRAIN_SKIP_PRE_PUSH=1 git push`. Può essere verificato con `-HookStatus` e rimosso con `-UninstallHook -Apply`.
 
+Se `-HookStatus` indica un hook SecondBrain con `usesPushInput: false`, riesegui `-InstallHook -Apply` sul checkout interessato. La versione aggiornata legge dallo standard input di Git gli OID effettivamente inviati e gestisce le eliminazioni di riferimenti. [Contratto Git del pre-push](https://git-scm.com/docs/githooks#_pre_push)
+
 DOC01 prepara README e guide Markdown, senza GitHub Pages implicito. DOC03 richiede app reale, dati sintetici, versione e scenario. New-SBCaptureRecord registra PNG e provenienza; il manifest deve essere revisionato prima di Export-SBPublicCapture. Solo le copie pubbliche selezionate entrano in docs/assets. Non viene inventata una UI se la cattura non è disponibile. Pubblicazione, riscrittura di storia e rotazione di credenziali richiedono operazioni specifiche.
 
 ## Integrazione IDE via Server MCP (Model Context Protocol)

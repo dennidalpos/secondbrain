@@ -14,7 +14,8 @@ Add-SBMessages @{
 }
 
 function Get-SBPendingPaths([string]$BrainRoot) {
-    @{queue=(Join-Path $BrainRoot '.runtime/access/pending-writes');receipts=(Join-Path $BrainRoot '.runtime/access/pending-receipts')}
+    $queue=Join-Path $BrainRoot '.runtime/access/pending-writes'
+    @{queue=$queue;taskUpdates=(Join-Path $queue 'task-update');receipts=(Join-Path $BrainRoot '.runtime/access/pending-receipts')}
 }
 function Get-SBPendingHash($Request) {
     $copy=@{}+$Request
@@ -46,11 +47,22 @@ function Read-SBPendingTracker([string]$BrainRoot,[string]$Repository,[string]$D
         throw (New-SBError 'pending.invalid' @('tracker declaration'))
     }
     $path=Resolve-SBParaPath $Dossier $declaration.path
+    $hash=Get-SBFileHash $path
     $data=Read-SBJson $path $null
-    if(!$data -or $data.schemaVersion -ne 1 -or $data.repository -cne $Repository -or !$data.ContainsKey('tasks')){
+    if($data -isnot [Collections.IDictionary] -or $data['schemaVersion'] -ne 1 -or $data['repository'] -cne $Repository -or
+       $data['tasks'] -isnot [array] -or $hash -eq 'absent' -or (Get-SBFileHash $path) -cne $hash){
         throw (New-SBError 'pending.invalid' @('tracker data'))
     }
-    @{path=$path;data=$data}
+    @{path=$path;data=$data;hash=$hash}
+}
+function Test-SBPendingCandidateValidationError($Failure) {
+    foreach($code in @('tracker.dependency.missing','tracker.dependency.cycle','tracker.dependency.unmanaged',
+                       'tracker.schema.invalid','tracker.related.schema','tracker.related.missing',
+                       'tracker.related.declaration','tracker.related.identity','tracker.date.invalid',
+                       'tracker.id.duplicate','tracker.identity.unmanaged')){
+        if(Test-SBError $Failure $code){return $true}
+    }
+    $false
 }
 function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('object'))}
@@ -101,15 +113,17 @@ function New-SBPendingWrite {
     $session=$null
     if($SessionId){$session=Assert-SBSession $Config $SessionId}
     $dir=Resolve-SBPendingDossier $BrainRoot $Repository
+    if($Operation -eq 'task.update' -and $Arguments.ContainsKey('Status') -and
+       !@($Arguments.Keys|Where-Object {$_ -notin @('TaskId','Status','StateReason','Evidence')}).Count){
+        $Operation='task.status'
+        $Arguments=@{}+$Arguments
+        if($Arguments.ContainsKey('StateReason')){$Arguments.StateReason=([string]$Arguments.StateReason).Trim()}
+    }
     if($Operation -in @('task.status','task.update')){
         $tracker=Read-SBPendingTracker $BrainRoot $Repository $dir
         $task=@($tracker.data.tasks|Where-Object id -eq $Arguments.TaskId)
         if($task.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($Arguments.TaskId))}
         $Expected=@{taskHash=(Get-SBTextHash (ConvertTo-SBJson $task[0]))}
-        if($Operation -eq 'task.update'){
-            # Reject invalid graphs before adding a durable request to the queue.
-            [void](Update-SBTrackerTask -BrainRoot $BrainRoot -Identity $Repository -WorkingRepository $Repository @Arguments -WhatIf)
-        }
     }elseif($Operation -eq 'task.new'){
         $provenance=([string]$Arguments.ProvenanceReference -split '#',2)[0]
         $source=if([IO.Path]::IsPathFullyQualified($provenance)){$provenance}else{Join-Path $dir $provenance}
@@ -122,12 +136,25 @@ function New-SBPendingWrite {
     $request=@{schemaVersion=1;id=[guid]::NewGuid().ToString('N');repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=[DateTimeOffset]::UtcNow.ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
     $request.sha256=Get-SBPendingHash $request
     Assert-SBPendingRequest $request $request.id
+    if($Operation -eq 'task.update'){
+        try {
+            [void](Update-SBTrackerTask -BrainRoot $BrainRoot -Identity $Repository -WorkingRepository $Repository @Arguments -WhatIf)
+        } catch {
+            $failure=$_
+            $baseValid=$false
+            try{Assert-SBTrackerWriteData $BrainRoot $Repository $tracker.data;$baseValid=$true}catch{
+                # The request envelope and task hash are known even when the rest of the graph cannot be read.
+            }
+            if($baseValid){throw $failure}
+        }
+    }
     $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $request))
     if($bytes.Length -gt 2MB){throw (New-SBError 'pending.invalid' @('size > 2 MiB'))}
     $paths=Get-SBPendingPaths $BrainRoot
-    Assert-SBPlainPath $paths.queue
-    [IO.Directory]::CreateDirectory($paths.queue)|Out-Null
-    $path=Join-Path $paths.queue ($request.id+'.json')
+    $queue=if($Operation -eq 'task.update'){$paths.taskUpdates}else{$paths.queue}
+    Assert-SBPlainPath $queue
+    [IO.Directory]::CreateDirectory($queue)|Out-Null
+    $path=Join-Path $queue ($request.id+'.json')
     if($clock){$Diagnostics.prepareMs=$clock.Elapsed.TotalMilliseconds;$writeStart=$clock.Elapsed.TotalMilliseconds}
     # Each request has a private new file: no shared append, no writer/operation lock.
     $stream=[IO.FileStream]::new($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -160,11 +187,17 @@ function Get-SBPendingWrites([string]$BrainRoot) {
     $verified=@{}
     Assert-SBPlainPath $paths.queue -VerifiedAncestors $verified
     if(!(Test-Path -LiteralPath $paths.queue)){return}
-    foreach($file in @(Get-ChildItem -LiteralPath $paths.queue -Filter '*.json' -File|Sort-Object Name)){
+    Assert-SBPlainPath $paths.taskUpdates -VerifiedAncestors $verified
+    $files=@(Get-ChildItem -LiteralPath $paths.queue -Filter '*.json' -File)
+    if(Test-Path -LiteralPath $paths.taskUpdates){
+        $files+=@(Get-ChildItem -LiteralPath $paths.taskUpdates -Filter '*.json' -File)
+    }
+    foreach($file in @($files|Sort-Object Name)){
         $id=$file.BaseName
         if($id -cnotmatch '^[a-f0-9]{32}$'){continue}
         $receiptPath=Join-Path $paths.receipts ($id+'.json')
         Assert-SBPlainPath $paths.queue -VerifiedAncestors $verified
+        if($file.DirectoryName -eq $paths.taskUpdates){Assert-SBPlainPath $paths.taskUpdates -VerifiedAncestors $verified}
         Assert-SBPlainPath $paths.receipts -VerifiedAncestors $verified
         Assert-SBPlainPath $file.FullName -VerifiedAncestors $verified
         Assert-SBPlainPath $receiptPath -VerifiedAncestors $verified
@@ -224,12 +257,13 @@ function Invoke-SBPendingWrites {
                 if($file.Length -gt 2MB){throw (New-SBError 'pending.invalid' @('size'))}
                 $request=Read-SBJson $entry.path $null
                 Assert-SBPendingRequest $request $entry.id
+                if($request.operation -in @('task.status','task.update')){$targetResolved=$true}
                 $dossier=Resolve-SBPendingDossier $BrainRoot $request.repository
                 $targetResolved=$true
                 $ops=@()
                 if($request.operation -like 'task.*'){
                     $target=Read-SBPendingTracker $BrainRoot $request.repository $dossier
-                    $before=Get-SBFileHash $target.path
+                    $before=$target.hash
                     if($request.operation -in @('task.status','task.update')){
                         $task=@($target.data.tasks|Where-Object id -eq $request.arguments.TaskId)
                         if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $request.expected.taskHash){$state='conflict'}
@@ -239,9 +273,10 @@ function Invoke-SBPendingWrites {
                             try{$candidate=& $updater -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
                             catch{
                                 $failure=$_
-                                $validationError=@('tracker.dependency.missing','tracker.dependency.cycle','tracker.dependency.unmanaged','tracker.schema.invalid','tracker.task.notfound')|Where-Object {Test-SBError $failure $_}
-                                if($request.operation -ne 'task.update' -or !$validationError){throw}
-                                $state='invalid';$errorCode=$_.Exception.Message
+                                if(!(Test-SBPendingCandidateValidationError $failure)){throw}
+                                # If the current graph is broken, this throws before a terminal receipt is written.
+                                Assert-SBTrackerWriteData $BrainRoot $request.repository $target.data
+                                $state='invalid';$errorCode=$failure.Exception.Message
                             }
                         }
                     }else{

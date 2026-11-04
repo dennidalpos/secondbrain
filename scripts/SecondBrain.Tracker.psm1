@@ -474,17 +474,17 @@ function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[stri
 }
 
 # Validate the updated tracker across the entire graph, then write transactionally, with optional additional files in the same journal.
-function Assert-SBTrackerWriteData($Target,$Data) {
-    $entities=@(Get-SBParaEntities $Target.brainRoot @())
+function Assert-SBTrackerWriteData([string]$BrainRoot,[string]$Identity,$Data) {
+    $entities=@(Get-SBParaEntities $BrainRoot @())
     $managedIdentities=@($entities|Where-Object kind -eq 'area'|ForEach-Object repository)
-    if($Target.identity -notin $managedIdentities){$managedIdentities+=,$Target.identity}
+    if($Identity -notin $managedIdentities){$managedIdentities+=,$Identity}
     $schemaPath=Join-Path $PSScriptRoot '../config/tracker.schema.json'
-    $related=Get-SBTrackerRelatedData $Target.brainRoot $Target.identity $entities
-    [void](Test-SBTrackerData $Data $Target.identity $managedIdentities $schemaPath $related)
+    $related=Get-SBTrackerRelatedData $BrainRoot $Identity $entities
+    [void](Test-SBTrackerData $Data $Identity $managedIdentities $schemaPath $related)
 }
 function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@()) {
     $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
-    Assert-SBTrackerWriteData $Target $Data
+    Assert-SBTrackerWriteData $Target.brainRoot $Target.identity $Data
     if($WhatIf){return @{applied=$false;path=$Target.path;data=$Data}}
     if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $Target.brainRoot}
     [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
@@ -542,7 +542,7 @@ function Set-SBTrackerTaskStatus {
     if($PSBoundParameters.ContainsKey('StateReason')){
         if(!$targetTask.ContainsKey('extensions') -or $null -eq $targetTask.extensions){$targetTask.extensions=@{}}
         if($StateReason){$targetTask.extensions.stateReason=$StateReason}
-        else{$targetTask.extensions.Remove('stateReason')}
+        else{[void]$targetTask.extensions.Remove('stateReason')}
     }
     if($Evidence -and @($Evidence).Count -gt 0){
         if(!$targetTask.ContainsKey('evidence') -or $null -eq $targetTask.evidence){$targetTask.evidence=@()}
@@ -804,6 +804,7 @@ function Update-SBTrackerTask {
 Export-ModuleMember -Function @(
     'Test-SBTrackerPolicy',
     'Test-SBTrackerData',
+    'Assert-SBTrackerWriteData',
     'Get-SBTrackerRelatedData',
     'Resolve-SBTracker',
     'New-SBTrackerTask',

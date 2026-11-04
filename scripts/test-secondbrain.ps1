@@ -1,9 +1,15 @@
 #requires -Version 7.5
 # Minimal profiles; reports and fixtures are retained after every outcome.
-[CmdletBinding()]
-param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
+[CmdletBinding(DefaultParameterSetName='Fast')]
+param(
+    [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
+    [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
+    [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,
+    [switch]$KeepFixtures,[switch]$Sequential
+)
+$profileWatch=[Diagnostics.Stopwatch]::StartNew()
 $ErrorActionPreference='Stop'
-if($Full -and $Quick){throw 'Choose Quick or Full.'}
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 . (Join-Path $PSScriptRoot 'test-git-environment.ps1')
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
@@ -15,7 +21,7 @@ $run=$null;$gitEnvironment=$null;$success=$false;$checks=0;$results=[Collections
 $saved=@{}
 foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {
-    $run=New-SBTestRun $brain $level $PSBoundParameters
+    $run=New-SBTestRun $brain $level $PSBoundParameters $profileWatch
     $run.noGit=$pure;$run.budgetSeconds=$budget
     $run.inputsBefore=Get-SBTestInputSnapshot $brain -NoGit:$pure
     $run.environment=Get-SBTestEvidenceEnvironment -NoGit:$pure
@@ -54,15 +60,22 @@ try {
         }
     } *>&1 | Tee-Object -FilePath $run.log
     $checks=$results.Count
-    if($budget -gt 0 -and $run.watch.Elapsed.TotalSeconds -gt $budget){throw ('Profile exceeds '+$budget+' seconds: '+[math]::Round($run.watch.Elapsed.TotalSeconds,2))}
+    if(!$checks){throw 'No test suite ran.'}
     $success=$true
 } catch {
     if($run){$run.error=$_.Exception.Message;[IO.File]::AppendAllText($run.log,("`nERROR: "+$_+"`n"))}
     throw
 } finally {
-    try{if($run){Complete-SBTestRun $run $success $checks $results.ToArray() ([bool]$KeepFixtures)}}finally{
-        if($gitEnvironment){Exit-SBTestGitEnvironment $gitEnvironment}
-        foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+    try {
+        try{if($gitEnvironment){Exit-SBTestGitEnvironment $gitEnvironment}}finally{
+            foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
+        }
+    } catch {
+        $success=$false
+        if($run){$run.error=$_.Exception.Message}
+        throw
+    } finally {
+        if($run){Complete-SBTestRun $run $success $results.Count $results.ToArray() ([bool]$KeepFixtures)}
     }
 }
 'SUCCESS '+$level+': '+[math]::Round($run.durationSeconds,2)+' s; groups='+$checks+'; retained report: '+$run.report

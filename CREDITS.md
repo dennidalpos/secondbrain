@@ -16,6 +16,12 @@ Questo documento riconosce e ringrazia progetti, standard, toolchain e riferimen
 - **Licenza**: GNU General Public License v2 (GPL-2.0)
 - **Descrizione**: Sistema di controllo di versione distribuito standard per il monitoraggio e la cooperazione deterministica tra repository e postazioni.
 
+### MarkItDown
+
+Il convertitore opzionale delle fonti usa MarkItDown 0.1.9, sviluppato da Microsoft e distribuito con licenza MIT. Gli extra `pdf` e `docx` abilitano la conversione di questi formati in Markdown. [Release 0.1.9](https://pypi.org/project/markitdown/0.1.9/) · [Licenza upstream](https://github.com/microsoft/markitdown/blob/main/LICENSE)
+
+Il [manifest](scripts/source-requirements.txt) dichiara `markitdown[pdf,docx]==0.1.9`. Il [lock](scripts/source-requirements.lock.txt) fissa le versioni di 30 pacchetti, incluso il convertitore. L'ambiente Python 3.13 dedicato risiede nella sottocartella `sources/python` del runtime della postazione. I pacchetti si installano localmente e restano fuori dalle build dei prodotti e dalla distribuzione di SecondBrain. [Configurazione del convertitore](docs/riferimento/authoritative-sources.md)
+
 ---
 
 ## 2. Standard e Specifiche Tecniche
@@ -63,6 +69,7 @@ Tutti i marchi, loghi e nomi commerciali registrati citati in questo repository 
 | --- | --- | --- | --- |
 | PowerShell 7 | MIT | Runtime richiesto, non ridistribuito | Compatibile |
 | Git | GPL-2.0 | Strumento esterno invocato da riga di comando, non incorporato né ridistribuito | Compatibile (nessun lavoro derivato) |
+| MarkItDown 0.1.9 | MIT | Dipendenza diretta opzionale per la conversione delle fonti, installata nel runtime | Licenza del pacchetto diretto |
 | JSON Schema, SPDX, OWASP, PARA | Specifiche e riferimenti | Citati nella documentazione, nessun codice incorporato | Compatibile |
 
-Il repository non contiene lockfile né dipendenze di pacchetti (NuGet, npm, pip, Cargo, Gradle): non esistono dipendenze transitive da censire. Strumenti opzionali usati solo in locale per le catture (per esempio Pillow, licenza MIT-CMU) non sono ridistribuiti. Verifica del 2026-11-02 sul repository; non estende la garanzia a futuri componenti.
+Per i pacchetti del lock Python valgono le licenze e gli avvisi dei rispettivi progetti. L'inventario delle versioni è nel lock. Strumenti opzionali usati localmente per le catture restano fuori dalla distribuzione.

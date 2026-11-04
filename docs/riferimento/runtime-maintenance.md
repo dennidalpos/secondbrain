@@ -62,7 +62,7 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 
 ## Suite di test: livelli e fixture
 
-`scripts/test-secondbrain.ps1` usa tre profili minimi. I budget si riferiscono alla postazione di riferimento e includono preparazione, controlli e rapporto; il runner fallisce se il tempo supera il budget.
+`scripts/test-secondbrain.ps1` usa tre profili minimi. Scegli un solo selettore tra `-Quick`, `-Full` e `-Only`. Senza selettore parte Fast. Il runner rifiuta una selezione vuota. I budget della postazione di riferimento includono preparazione, verifiche, ripristino dell'ambiente e scritture del rapporto e del riepilogo. Il runner fallisce se il tempo supera il budget. Il collaudo dei budget misura anche il comando completo dall'esterno, compreso l'avvio di PowerShell.
 
 | Comando | Copertura | Budget |
 |---|---|---:|
@@ -154,8 +154,10 @@ Dal server MCP: `get_startup_context` con `profile` = `slim` (predefinito) o `fu
 
 Senza `-Dossier`, `-Compact` risolve il dossier del repository in lavoro (checkout corrente o `-CheckoutPath`/`-Repository`), come `-Startup`; un `-Dossier` relativo è inteso rispetto alla radice SecondBrain. Il tetto di `-Compact` (`-Budget`, predefinito 50.000) misura in memoria il pacchetto Slim che verrà caricato dopo la transazione, con la stessa composizione di `-Startup -Profile Slim`: indice, contesto essenziale con collegamento all'originale, vista agente rigenerata dalla memoria finale, righe dei task pronti (incluse le dipendenze dei tracker correlati) e descrizione dei livelli omessi. Non conta la proiezione JSON completa dei task né il corpo delle sezioni storiche; anche i task non pronti restano integralmente conservati nel tracker. L'anteprima non scrive il candidato nel dossier. Una riorganizzazione per livelli che sposta la cronaca in sezioni `(storico)` non richiede quindi un `-Budget` esplicito; il pacchetto Slim realmente oltre il tetto viene rifiutato senza troncamenti.
 
-**Baseline di pubblicazione**: `publication.ps1 -Initial` scrive il baseline SEC07 in `publication/baseline-<id>.json`, un file per repository (l'id deriva dal percorso del checkout). Un `-Initial` su un repository non altera il baseline degli altri. Il file unico `publication/baseline.json` delle versioni precedenti è letto solo se registrato per lo stesso repository e non viene riscritto.
+**Baseline di pubblicazione.** `publication.ps1 -Initial` scrive `.runtime/publication/baseline-<id>.json` solo dopo una verifica completa senza rilievi irrisolti. Le baseline legacy sono ignorate. La baseline corrente riusa la copertura della sola storia quando repository, riferimenti e OID, policy effettiva, scanner e limiti coincidono. Working tree e indice vengono esaminati a ogni verifica.
 
-**Riferimenti scansionati da SEC07**: la storia esaminata (primo controllo e `-Initial`) parte da rami, tag, remoti e `HEAD`. I riferimenti locali che non lasciano il clone (per esempio `refs/codex/*` creati dagli strumenti, stash, notes) non sono scansionati e il rapporto li elenca in `excludedRefs`; se uno di essi va pubblicato, trasformalo in ramo o tag prima del controllo. La scansione incrementale (`baseline..HEAD`) non cambia.
+**Riferimenti scansionati da SEC07.** La storia parte da rami, tag, riferimenti remoti locali e `HEAD`. Il rapporto elenca in `excludedRefs` gli altri riferimenti locali esclusi dal controllo. L'hook pre-push include anche gli OID effettivamente inviati, compresi quelli indicati da SHA o riferimenti non standard. La storia di un clone shallow o con graft è dichiarata incompleta.
+
+Una revisione storica vale per il singolo percorso. SEC07 legge ogni blob una volta, ma verifica separatamente tutti i suoi percorsi storici. Se la mappa dei percorsi non è verificabile, la copertura risulta incompleta. Un blob inviato direttamente tramite OID o tag, senza un percorso, viene verificato anche come oggetto autonomo e non eredita le revisioni dei percorsi.
 
 Cosa il rapporto **non** misura: prompt di sistema, definizioni degli strumenti MCP e skill dell'IDE. Se il contesto iniziale resta alto, guarda il riepilogo del contesto dell'IDE per vedere quali server MCP e skill pesano di più. Le misure sono in caratteri, non in token (la stima è caratteri/4).

@@ -4,12 +4,12 @@ function Get-SBTestInputSnapshot([string]$BrainRoot,[switch]$NoGit) {
         $files=[ordered]@{}
         $paths=@(foreach($directory in @('scripts','docs','direttive','.github')){Get-ChildItem -LiteralPath (Join-Path $BrainRoot $directory) -File -Recurse})
         $paths+=@(Get-ChildItem -LiteralPath (Join-Path $BrainRoot 'config') -File)
-        $paths+=@(foreach($name in @('VERSION','README.md','AGENTS.md','.gitignore','CHANGELOG.md')){Get-Item -LiteralPath (Join-Path $BrainRoot $name)})
+        $paths+=@(foreach($name in @('VERSION','README.md','AGENTS.md','.gitignore','CHANGELOG.md','CREDITS.md')){Get-Item -LiteralPath (Join-Path $BrainRoot $name)})
         foreach($file in $paths|Sort-Object FullName){
             Assert-SBPlainPath $file.FullName
             $files[[IO.Path]::GetRelativePath($BrainRoot,$file.FullName).Replace('\','/')]=Get-SBFileHash $file.FullName
         }
-        return @{coverage='Quick only: explicit public source directories, config root files, VERSION/README/AGENTS/.gitignore/CHANGELOG; no Git inventory or ignored/private data.';files=$files;sha256=(Get-SBTextHash (ConvertTo-SBJson $files))}
+        return @{coverage='Quick only: explicit public source directories, config root files, VERSION/README/AGENTS/.gitignore/CHANGELOG/CREDITS; no Git inventory or ignored/private data.';files=$files;sha256=(Get-SBTextHash (ConvertTo-SBJson $files))}
     }
     $info=[Diagnostics.ProcessStartInfo]::new((Get-Command git).Source)
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
@@ -54,7 +54,7 @@ function Save-SBTestRunRecord($Run,[switch]$CreateNew) {
     $copy=@{};foreach($key in $Run.Keys){if($key -ne 'watch'){$copy[$key]=$Run[$key]}}
     Write-SBTestEvidenceJson $Run.report $copy -CreateNew:$CreateNew
 }
-function New-SBTestRun([string]$BrainRoot,[string]$Level,$Parameters) {
+function New-SBTestRun([string]$BrainRoot,[string]$Level,$Parameters,[Diagnostics.Stopwatch]$Watch=[Diagnostics.Stopwatch]::StartNew()) {
     $requested=if($env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT}else{
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
         $segment='tests-'+(Get-SBTextHash $BrainRoot).Substring(0,8).ToLowerInvariant()
@@ -77,7 +77,7 @@ function New-SBTestRun([string]$BrainRoot,[string]$Level,$Parameters) {
     [IO.Directory]::CreateDirectory($directory)|Out-Null
     $state=@{schemaVersion=1;brainRoot=$BrainRoot;runId=$runId;baseRoot=$base;directory=$directory;report=(Join-Path $directory 'run.json');log=(Join-Path $directory 'runner.log')
       parent=$parent;children=@();level=$Level;command=@{script='scripts/test-secondbrain.ps1';parameters=@{};workingDirectory=(Get-Location).Path}
-      startedAt=[DateTimeOffset]::UtcNow.ToString('o');status='running';error=$null;watch=[Diagnostics.Stopwatch]::StartNew()}
+      startedAt=[DateTimeOffset]::UtcNow.Subtract($Watch.Elapsed).ToString('o');status='running';error=$null;watch=$Watch}
     foreach($key in $Parameters.Keys){$value=$Parameters[$key];$state.command.parameters[$key]=if($value -is [Management.Automation.SwitchParameter]){[bool]$value}else{$value}}
     # Write the identity first so setup failures still have a durable report.
     Save-SBTestRunRecord $state -CreateNew
@@ -88,8 +88,8 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
     try{$after=Get-SBTestInputSnapshot $Run.brainRoot -NoGit:($Run.ContainsKey('noGit') -and $Run.noGit)}catch{$Run.inputEvidenceError=$_.Exception.Message}
     $stable=$Run.ContainsKey('inputsBefore') -and $null -ne $after -and $Run.inputsBefore.sha256 -ceq $after.sha256
     $Run.inputsAfter=$after;$Run.inputsStable=$stable
-    $Run.status=if(!$Success){'failed'}elseif(!$stable){'invalidated'}else{'passed'}
-    $Run.eligibleForClosure=($Success -and $stable)
+    $Run.status='finalizing'
+    $Run.eligibleForClosure=$false
     $Run.checks=$Checks;$Run.suites=@($Suites)
     $Run.fixtures=@{run=$Run.runId;removed=$false;kept=$true;keepRequested=$KeepRequested}
     $Run.children=@(foreach($candidate in Get-ChildItem -LiteralPath $Run.baseRoot -Directory -Filter 'run-*'){
@@ -99,25 +99,50 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
             @{runId=$child.runId;report=$path;status=$child.status}
         }
     })
-    $Run.watch.Stop()
-    $Run.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$Run.durationSeconds=[Math]::Round($Run.watch.Elapsed.TotalSeconds,3)
-    $overBudget=$Run.ContainsKey('budgetSeconds') -and $Run.budgetSeconds -gt 0 -and $Run.durationSeconds -gt $Run.budgetSeconds
-    if($overBudget){$Run.status='failed';$Run.eligibleForClosure=$false;$Run.error='Profile exceeded its time budget.'}
     Save-SBTestRunRecord $Run
     # Backward-compatible latest summary. Permanent reports above are never shared across runs.
-    $summary=[ordered]@{schemaVersion=1;level=$Run.level;observedAt=$Run.finishedAt;durationSeconds=$Run.durationSeconds;status=$Run.status;checks=$Checks
+    $summary=[ordered]@{schemaVersion=1;level=$Run.level;observedAt=$null;durationSeconds=$null;status=$Run.status;checks=$Checks
       fixtures=$Run.fixtures;suites=@($Suites);details=@($(if(Test-Path (Join-Path $Run.directory 'esito-concurrency.json')){$Run.runId+'/esito-concurrency.json'}))
-      report=$Run.report;runId=$Run.runId;inputsStable=$stable;eligibleForClosure=$Run.eligibleForClosure}
+      report=$Run.report;runId=$Run.runId;inputsStable=$stable;eligibleForClosure=$false}
     # Serialize only the short latest-summary update. Different runs keep their own complete evidence regardless of contention.
     $lockPath=Join-Path $Run.baseRoot 'esito.lock';$lock=$null
+    $summaryPath=Join-Path $Run.baseRoot 'esito.json'
+    $overBudget=$false
+    function Test-ProfileBudget {
+        $Run.ContainsKey('budgetSeconds') -and $Run.budgetSeconds -gt 0 -and $Run.watch.Elapsed.TotalSeconds -gt $Run.budgetSeconds
+    }
+    function Publish-Outcome {
+        $Run.finishedAt=[DateTimeOffset]::UtcNow.ToString('o')
+        $Run.durationSeconds=[Math]::Round($Run.watch.Elapsed.TotalSeconds,3)
+        $Run.status=if(!$Success -or $overBudget -or !$Checks){'failed'}elseif(!$stable){'invalidated'}else{'passed'}
+        $Run.eligibleForClosure=$Run.status -eq 'passed'
+        if($overBudget){$Run.error='Profile exceeded its time budget.'}
+        $summary.observedAt=$Run.finishedAt
+        foreach($key in @('durationSeconds','status','eligibleForClosure')){$summary[$key]=$Run[$key]}
+        Save-SBTestRunRecord $Run
+        Write-SBTestEvidenceJson $summaryPath $summary
+    }
     try{
         for($attempt=0;$attempt -lt 50 -and !$lock;$attempt++){
             try{$lock=[IO.File]::Open($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
             catch [IO.IOException]{Start-Sleep -Milliseconds 20}
         }
         if(!$lock){throw 'Latest-summary lock unavailable; permanent run report retained.'}
-        Write-SBTestEvidenceJson (Join-Path $Run.baseRoot 'esito.json') $summary
+        Write-SBTestEvidenceJson $summaryPath $summary
+        # The first durable writes, input snapshot, lock wait and environment restoration all precede this stamp.
+        $overBudget=Test-ProfileBudget
+        Publish-Outcome
+        if(!$overBudget -and (Test-ProfileBudget)){
+            $overBudget=$true
+            Publish-Outcome
+        }
+    }catch{
+        $Run.status='failed';$Run.eligibleForClosure=$false;$Run.error=$_.Exception.Message
+        Save-SBTestRunRecord $Run
+        throw
     }finally{if($lock){$lock.Dispose()}}
+    $Run.watch.Stop()
+    if($Success -and !$Checks){throw 'No test suite ran. See run.json.'}
     if($Success -and !$stable){throw 'Test inputs changed or were not captured; evidence is insufficient for closure. See run.json.'}
     if($overBudget){throw ('Profile exceeded '+$Run.budgetSeconds+' seconds; see run.json.')}
 }
