@@ -39,7 +39,9 @@ $success=$false
 try {
     if($Case -in @('All','Source')){
         foreach($checkpoint in @('prepared','copied','verified','references_updated')){
-            $f=New-AuditFixture ('source-'+$checkpoint)
+            # Keep Git metadata discoverable on Windows; the runtime root stays unchanged.
+            $fixturePhase=if($checkpoint -eq 'references_updated'){'refs-updated'}else{$checkpoint}
+            $f=New-AuditFixture ('source-'+$fixturePhase)
             Put-Audit $f.source '{"tasks":[{"id":"X","title":"Originale","status":"pending"}]}'
             $hash=Get-SBFileHash $f.source;$source=$f.source
             $edit={param($phase) if($phase -eq $checkpoint){Put-Audit $source '{"tasks":[{"id":"X","title":"Originale","status":"pending"},{"id":"NEW","title":"Concorrente","status":"pending"}]}'}}.GetNewClosure()

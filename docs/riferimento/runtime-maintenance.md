@@ -66,12 +66,45 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 
 | Comando | Cosa esegue | Quando |
 |---|---|---|
-| `-Quick` | Controlli puri (identità dei repository, JSON deterministico, VERSION e direttive, catalogo prompt, catalogo messaggi e throw con chiave), fonti, audit esterno, parser. Nessun Git né processo figlio per i controlli puri. | A ogni modifica |
-| *(predefinito, Fast)* | Tutto il Quick più le sub-suite con fixture (portable, workflows, tracker, audit2, traccia, concorrenza) in parallelo (al più 4 processi `pwsh`); stampa una riga per sub-suite con il tempo. | Prima del commit |
+| `-Quick` | Controlli puri (identità dei repository, JSON deterministico, VERSION e direttive, catalogo prompt, catalogo messaggi e throw con chiave), fonti, audit esterno, ambiente Git e parser. Nessun Git né processo figlio per i controlli puri. | A ogni modifica |
+| *(predefinito, Fast)* | Controlli CLI e integrazione, poi portable, workflows, tracker, audit2, traccia, concorrenza, pending, fonti, audit esterno e ambiente Git, oltre al parser. Sub-suite in parallelo (al più 4 processi `pwsh`), una riga di riepilogo con il tempo per ciascuna. | Prima del commit |
 | `-Full` | Come Fast, ma in sequenza e con una riga per ogni verifica. | Prima di una pubblicazione |
-| `-Only <chiave>` | Una sola sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `sources`, `external-audit`, `quick`). | Per ripetere un fallimento |
+| `-Only <chiave>` | Una o più sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `pending`, `sources`, `external-audit`, `quick`, `git-environment`). | Per ripetere un fallimento |
 
 Ogni esecuzione lavora in `.runtime/tests/run-<id>`, sub-suite comprese. A esito **verde** quella directory (e solo quella) viene rimossa; a esito rosso resta, con le sue fixture, per l'analisi. `-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano anche in caso di successo. Le sub-suite lanciate da sole (`pwsh -File scripts/test-secondbrain-<nome>.ps1`) conservano la propria fixture, come prima; fa eccezione `test-secondbrain-concurrency.ps1`, che la rimuove da sé a esito verde (e la conserva a esito rosso o con `SECONDBRAIN_TEST_KEEP=1`). A fine esecuzione `test-secondbrain.ps1` scrive `esito.json` accanto alle cartelle `run-<id>` (livello, verifiche, durata, suite con tempi, fixture rimosse o conservate) e la sub-suite di concorrenza `esito-concurrency.json` (per ogni caso durata, verifiche, file e byte della fixture): restano dopo la rimozione di `run-<id>`. `SECONDBRAIN_TEST_TIMING=1` esegue in sequenza e stampa le 15 sezioni più lente. I `git init` delle fixture usano un template minimo (`GIT_TEMPLATE_DIR` impostato da `test-helpers.ps1`, solo `info/exclude`): niente hook di esempio, circa 250 file in meno per fixture.
+
+### Git e percorsi lunghi nelle fixture Windows
+
+Il runner imposta `core.longpaths=true` solo nell'ambiente del processo e dei figli. Aggiunge una coppia a `GIT_CONFIG_COUNT` / `GIT_CONFIG_KEY_n` / `GIT_CONFIG_VALUE_n` e usa un file temporaneo tramite `GIT_CONFIG_GLOBAL`: include i file globali ereditati nell'ordine di lettura Git e aggiunge `core.longpaths=true`. Questo serve al livello Windows che può leggere la configurazione da file prima degli override di comando. Le configurazioni persistenti restano intatte. Le coppie ereditate sono preservate e ogni variabile modificata (anche quelle prima assenti, `GIT_CONFIG_GLOBAL` e `GIT_TEMPLATE_DIR`) viene ripristinata in `finally`, inclusi errori di preparazione.
+
+I wrapper restano in `.runtime/hosts/<host>/repos/tests-<hash-checkout>/tmp/tmp-<data>-git-env-<id>/global.config`; la radice delle fixture resta quella richiesta. Lo helper richiede `git var GIT_CONFIG_GLOBAL` e percorsi globali assoluti su una sola riga, senza fallback per versioni non supportate; il wrapper deve essere leggibile sotto MAX_PATH. Comportamento verificato con Git `2.56.0.windows.4`. Riferimenti: [variabili Git](https://git-scm.com/docs/git-config), [percorsi restituiti da git var](https://git-scm.com/docs/git-var), [ordine dei file nel sorgente della versione verificata](https://github.com/git-for-windows/git/blob/v2.56.0.windows.4/builtin/var.c). Ogni sub-suite che usa `test-helpers.ps1` verifica sia il valore effettivo sia quello globale da file prima di creare la fixture; una configurazione incompleta o un override di solo comando con valore globale disabilitato vengono rifiutati. La sub-suite `git-environment`, inclusa anche in Quick, verifica ereditarietà e ripristino; i controlli puri `quick` restano senza Git né processi figli.
+
+Per una sub-suite avviata direttamente, usare lo stesso ambiente temporaneo:
+
+```powershell
+. ./scripts/test-git-environment.ps1
+$fixtureGitEnvironment = Enter-SBTestGitEnvironment
+try {
+    $env:SECONDBRAIN_TEST_KEEP = '1'
+    pwsh -NoProfile -File scripts/test-secondbrain-portable.ps1
+} finally {
+    Exit-SBTestGitEnvironment $fixtureGitEnvironment
+}
+```
+
+Impostare `SECONDBRAIN_TEST_ROOT` su una directory del runtime centrale per verificare il percorso annidato effettivo; non sostituirlo con una radice corta per aggirare un errore. Per conservare tutte le fixture usare `-KeepFixtures` e `SECONDBRAIN_TEST_KEEP=1`. `core.longpaths` riguarda Git for Windows: non qualifica un host con `LongPathsEnabled=0` né una share SMB fisica.
+
+Limiti osservati con Git `2.56.0.windows.4`: inizializzazione e discovery dei metadati possono fallire quando il percorso del nuovo `.git/config` raggiunge 260 caratteri, anche con `core.longpaths=true` verificato nell'ambiente e con `-c core.longpaths=true`; i processi dei worktree rifiutano inoltre `GIT_DIR` oltre `PATH_MAX-40` ([sorgente Git della versione verificata](https://github.com/git-for-windows/git/blob/v2.56.0.windows.4/setup.c)). Il caso audit `references_updated` usa il nome sintetico `source-refs-updated` e le fixture workflow `wf-<id>`, mantenendo la radice runtime annidata e gli scenari originali. La regressione dell'ambiente verifica separatamente che la fixture riconosca il proprio repository e che un file tracciato oltre 260 caratteri sia aggiunto, committato e riletto esattamente. Non vengono qualificati metadati Git a profondità arbitrarie. Conservare la fixture e l'errore iniziale di Git: un'inizializzazione fallita può far risalire la ricerca del repository al checkout padre.
+
+### Benchmark esplicito della coda pendente
+
+`test-pending-benchmark.ps1 -OutputRoot <directory-nuova-in-.runtime>` esegue separatamente dalle suite ordinarie i profili con 1, 2, 4 e 8 produttori, tre ripetizioni, cinque richieste di riscaldamento e 100 richieste misurate per produttore. Ogni append contiene 1024 byte e un identificatore unico. Il writer resta occupato durante la produzione; due nuovi processi importano poi le richieste durevoli e una ripetizione verifica l'assenza di duplicati. Tutte le fixture, i log e i campioni restano conservati; una directory di output esistente viene rifiutata.
+
+Il rapporto contiene hash del codice, ambiente, profondità osservata della coda e distribuzioni p50/p95/p99/massimo. La diagnostica opzionale `-Diagnostics <hashtable>` di `New-SBPendingWrite`, `Invoke-SBPendingWrites` e `Complete-SBPendingSubmission` separa preparazione, scrittura/flush, rilettura, scansione e tentativi non bloccanti di acquisizione del lock; non cambia richieste, ricevute o output ordinario CLI/MCP. CPU del processo e tempo trascorso sono misurati separatamente: la differenza non dimostra da sola latenza del disco.
+
+La scansione riusa le verifiche degli antenati nello stesso ciclo tramite l'API batch del Core; coda, directory delle ricevute e file sono ricontrollati a ogni elemento. Non conserva una cache delle richieste o delle ricevute tra le chiamate: hash, conflitti e ordinamento restano letti dai file correnti.
+
+I percentili usano il metodo nearest-rank (rango arrotondato per eccesso) sui soli campioni misurati, escluso il riscaldamento. Il limite operativo è la massima concorrenza che passa tutte le ripetizioni con p95 entro 2 secondi e p99 entro 5 secondi, nel carico e nella postazione riportati. I parametri `-Producers`, `-Repetitions`, `-Samples` e `-Warmup` consentono smoke ridotti, che non sostituiscono il profilo completo. Nessuna misura locale dimostra prestazioni SMB o di altre postazioni.
 
 ## Contesto iniziale: cosa viene caricato e come ridurlo
 

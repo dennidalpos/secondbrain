@@ -18,7 +18,9 @@ function Assert-Workflow($Condition,[string]$Message){if(!$Condition){throw 'FAI
 function Reject-Workflow([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert-Workflow $caught $Message}
 function Put-Workflow([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function Snapshot-Workflow([string]$Path){$state=@{};foreach($f in Get-ChildItem -LiteralPath $Path -File -Recurse -Force){$state[$f.FullName]=@{hash=Get-SBFileHash $f.FullName;time=$f.LastWriteTimeUtc.Ticks}};ConvertTo-SBJson $state}
-$temp=Join-Path (Get-SBTestRoot) ('secondbrain-workflows-'+[guid]::NewGuid().ToString('N'))
+# Git worktree subprocesses bound GIT_DIR to PATH_MAX-40 on Windows.
+# Keep only this synthetic label compact; do not change the runtime root.
+$temp=Join-Path (Get-SBTestRoot) ('wf-'+[guid]::NewGuid().ToString('N').Substring(0,20))
 try {
     $brain=Join-Path $temp 'brain';$repo=Join-Path $temp 'repos/Repo';$dir=Join-Path $brain '02-areas/products/Repo'
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null

@@ -88,7 +88,9 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
 
 function New-SBPendingWrite {
     [CmdletBinding()]
-    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId)
+    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId,[hashtable]$Diagnostics)
+    $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
+    try {
     if(!$Config -or !(Test-SBSamePath $Config.brainRoot $BrainRoot)){throw (New-SBError 'pending.invalid' @('configuration root'))}
     $session=$null
     if($SessionId){$session=Assert-SBSession $Config $SessionId}
@@ -116,16 +118,20 @@ function New-SBPendingWrite {
     Assert-SBPlainPath $paths.queue
     [IO.Directory]::CreateDirectory($paths.queue)|Out-Null
     $path=Join-Path $paths.queue ($request.id+'.json')
+    if($clock){$Diagnostics.prepareMs=$clock.Elapsed.TotalMilliseconds;$writeStart=$clock.Elapsed.TotalMilliseconds}
     # Each request has a private new file: no shared append, no writer/operation lock.
     $stream=[IO.FileStream]::new($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try{$stream.Write($bytes);$stream.Flush($true)}finally{$stream.Dispose()}
+    if($clock){$Diagnostics.writeFlushMs=$clock.Elapsed.TotalMilliseconds-$writeStart;$readStart=$clock.Elapsed.TotalMilliseconds}
     if((Get-SBFileHash $path) -ne (Get-SBHash $bytes)){throw (New-SBError 'core.readback.destination')}
+    if($clock){$Diagnostics.readbackMs=$clock.Elapsed.TotalMilliseconds-$readStart;$Diagnostics.requestBytes=$bytes.Length}
     @{id=$request.id;path=$path;state='deferred';applied=$false;request=$request}
+    } finally {if($clock){$Diagnostics.submissionMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
-function Read-SBPendingReceipt([string]$Path,[string]$RequestPath,[string]$Id) {
+function Read-SBPendingReceipt([string]$Path,[string]$RequestPath,[string]$Id,[hashtable]$VerifiedAncestors) {
     try{
-        Assert-SBPlainPath $Path
+        Assert-SBPlainPath $Path -VerifiedAncestors $VerifiedAncestors
         $receipt=Read-SBJson $Path $null
         if(!$receipt){return $null}
         $required=@('schemaVersion','id','state','requestHash','sourceHash','observedAt','result','error')
@@ -139,14 +145,20 @@ function Read-SBPendingReceipt([string]$Path,[string]$RequestPath,[string]$Id) {
 }
 function Get-SBPendingWrites([string]$BrainRoot) {
     $paths=Get-SBPendingPaths $BrainRoot
-    Assert-SBPlainPath $paths.queue
+    # Ancestor validation is shared only within this scan, using the Core batch API.
+    # The queue, receipt directory and individual files are still checked on every item.
+    $verified=@{}
+    Assert-SBPlainPath $paths.queue -VerifiedAncestors $verified
     if(!(Test-Path -LiteralPath $paths.queue)){return}
     foreach($file in @(Get-ChildItem -LiteralPath $paths.queue -Filter '*.json' -File|Sort-Object Name)){
         $id=$file.BaseName
         if($id -cnotmatch '^[a-f0-9]{32}$'){continue}
         $receiptPath=Join-Path $paths.receipts ($id+'.json')
-        Assert-SBPlainPath $receiptPath
-        $receipt=Read-SBPendingReceipt $receiptPath $file.FullName $id
+        Assert-SBPlainPath $paths.queue -VerifiedAncestors $verified
+        Assert-SBPlainPath $paths.receipts -VerifiedAncestors $verified
+        Assert-SBPlainPath $file.FullName -VerifiedAncestors $verified
+        Assert-SBPlainPath $receiptPath -VerifiedAncestors $verified
+        $receipt=Read-SBPendingReceipt $receiptPath $file.FullName $id -VerifiedAncestors $verified
         $createdAt=$file.CreationTimeUtc.ToString('o')
         if(!$receipt -and $file.Length -le 2MB){try{$header=Read-SBJson $file.FullName $null;if($header -and $header.ContainsKey('createdAt')){$createdAt=[DateTimeOffset]::Parse($header.createdAt).UtcDateTime.ToString('o')}}catch{}}
         $repository=if($receipt -and $receipt.ContainsKey('repository')){$receipt.repository}else{$null}
@@ -156,12 +168,17 @@ function Get-SBPendingWrites([string]$BrainRoot) {
 
 function Invoke-SBPendingWrites {
     [CmdletBinding()]
-    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10)
+    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics)
+    $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
+    if($clock){$Diagnostics.lockAttemptMs=0.0;$Diagnostics.lockAttempts=0}
+    try {
     $summary=@{state='idle';applied=@();conflicts=@();errors=@();pending=0}
     try{$entries=@(Get-SBPendingWrites $BrainRoot)}catch{$summary.state='unavailable';$summary.errors+=@{code='pending.scan.failed';message=$_.Exception.Message};return $summary}
+    finally{if($clock){$Diagnostics.scanMs=$clock.Elapsed.TotalMilliseconds}}
     $todo=@($entries|Where-Object state -eq 'deferred'|Sort-Object createdAt,id)
     $summary.conflicts=@($entries|Where-Object state -in @('conflict','invalid','invalid-receipt')|ForEach-Object {@{id=$_.id;repository=$_.repository;state=$_.state;path=$_.path}})
     $summary.pending=$todo.Count
+    if($clock){$Diagnostics.queueDepth=$entries.Count;$Diagnostics.deferredCount=$todo.Count}
     if(!$todo.Count){return $summary}
     if(!$Config){
         try{
@@ -184,7 +201,9 @@ function Invoke-SBPendingWrites {
     foreach($entry in @($todo|Select-Object -First $Limit)){
         $scope=$null;$sourceLease=$null
         try{
-            $scope=Enter-SBOperation $Config -SessionId $SessionId -WaitMs 0
+            if($clock){$lockStart=$clock.Elapsed.TotalMilliseconds;$Diagnostics.lockAttempts++}
+            try{$scope=Enter-SBOperation $Config -SessionId $SessionId -WaitMs 0}
+            finally{if($clock){$Diagnostics.lockAttemptMs+=$clock.Elapsed.TotalMilliseconds-$lockStart}}
             # Another importer may have completed this request while we acquired the lock.
             if(Test-Path -LiteralPath $entry.receiptPath){$summary.pending--;continue}
             Assert-SBPlainPath $entry.path
@@ -267,10 +286,13 @@ function Invoke-SBPendingWrites {
         }finally{if($sourceLease){$sourceLease.Dispose()};Exit-SBOperation $scope}
     }
     $summary
+    } finally {if($clock){$Diagnostics.drainMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
-function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId) {
-    $drain=Invoke-SBPendingWrites -BrainRoot $Config.brainRoot -Config $Config -SessionId $SessionId
+function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[hashtable]$Diagnostics) {
+    $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
+    try {
+    $drain=Invoke-SBPendingWrites -BrainRoot $Config.brainRoot -Config $Config -SessionId $SessionId -Diagnostics $Diagnostics
     $paths=Get-SBPendingPaths $Config.brainRoot
     $receipt=Read-SBPendingReceipt (Join-Path $paths.receipts ($Submission.id+'.json')) $Submission.path $Submission.id
     $result=@{requestId=$Submission.id;requestPath=$Submission.path;state='deferred';applied=$false;pendingWrites=$drain}
@@ -282,6 +304,7 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId) {
         }
     }
     $result
+    } finally {if($clock){$Diagnostics.responseMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
 function Format-SBPendingNotice($Summary) {

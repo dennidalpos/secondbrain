@@ -64,13 +64,16 @@ try {
     $holder=Enter-SBOperation $cfg -WaitMs 0
     $guard=Get-SBWriteGuard
     $watch=[Diagnostics.Stopwatch]::StartNew()
-    $first=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='in_progress'} -Config $cfg
+    $diagnostics=@{}
+    $first=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='in_progress'} -Config $cfg -Diagnostics $diagnostics
     $prepareSeconds=$watch.Elapsed.TotalSeconds
     $lockWatch=[Diagnostics.Stopwatch]::StartNew()
-    $deferred=Complete-SBPendingSubmission $first $cfg
+    $deferred=Complete-SBPendingSubmission $first $cfg -Diagnostics $diagnostics
     $lockWatch.Stop()
     $watch.Stop()
     Assert-Pending (!$deferred.applied -and $deferred.state -eq 'deferred' -and $lockWatch.Elapsed.TotalSeconds -lt ($cfg.lockWaitMs/1000)) ('busy writer returns before the configured lock timeout; prepare='+[math]::Round($prepareSeconds,3)+' s; attempt='+[math]::Round($lockWatch.Elapsed.TotalSeconds,3)+' s; '+$deferred.state)
+    Assert-Pending ($diagnostics.prepareMs -ge 0 -and $diagnostics.writeFlushMs -ge 0 -and $diagnostics.readbackMs -ge 0 -and $diagnostics.scanMs -ge 0 -and $diagnostics.lockAttemptMs -ge 0 -and $diagnostics.responseMs -ge $diagnostics.scanMs -and $diagnostics.lockAttempts -eq 1 -and $diagnostics.queueDepth -eq 1) 'optional diagnostics separate preparation, durable I/O, scan and non-blocking lock attempt'
+    Assert-Pending (!$first.request.ContainsKey('diagnostics') -and !$deferred.ContainsKey('diagnostics')) 'diagnostics do not alter durable request or ordinary response schemas'
     Assert-Pending ((Get-SBWriteGuard) -eq $guard) 'failed nested acquisition preserves the outer write guard'
     Assert-Pending ((Read-SBJson $trackerPath $null).tasks[0].status -eq 'todo') 'deferred is not reported as applied'
     foreach($client in @('agent-a','agent-b')){
@@ -215,6 +218,17 @@ try {
     Assert-Pending ([regex]::Matches((Read-SBText (Join-Path $dossier 'memory.md')),'Exactly once').Count -eq 1) 'two importing processes apply the same append once'
     $list=Invoke-PendingCli 'knowledge.ps1' @('-PendingWrites')
     Assert-Pending ($list.code -eq 0 -and @($list.data|Where-Object state -eq 'conflict').Count -ge 2) 'pending list exposes preserved conflicts'
+    $scanProbe=Join-Path $fixture 'scan-probe'
+    foreach($suffix in @('0','1')){Put-Pending (Join-Path $scanProbe ('.runtime/access/pending-writes/'+('f'*31)+$suffix+'.json')) '{}'}
+    $junctionTarget=Join-Path $fixture 'receipt-junction-target';[IO.Directory]::CreateDirectory($junctionTarget)|Out-Null
+    $seen=0;$rejected=$false
+    try{
+        Get-SBPendingWrites $scanProbe | ForEach-Object {
+            $seen++
+            if($seen -eq 1){New-Item -ItemType Junction -Path (Join-Path $scanProbe '.runtime/access/pending-receipts') -Target $junctionTarget|Out-Null}
+        }
+    }catch{$rejected=(Test-SBError $_.Exception 'core.reparse.unwritable')}
+    Assert-Pending ($rejected -and $seen -eq 1) 'scan-local ancestor reuse still rejects a receipt directory replaced by a junction between items'
     'SUCCESS PENDING: '+$checks+' verifiche; fixture conservata: '+$fixture
 } finally {
     Exit-SBOperation $holder

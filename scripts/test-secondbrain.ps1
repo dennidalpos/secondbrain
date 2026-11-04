@@ -3,7 +3,7 @@
 # -Only <chiave> esegue una sola sub-suite; -KeepFixtures (o SECONDBRAIN_TEST_KEEP=1) conserva le fixture anche dopo un esito verde;
 # SECONDBRAIN_TEST_TIMING=1 esegue in sequenza e stampa le sezioni piu lente.
 [CmdletBinding()]
-param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
+param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
 $script:Full = [bool]$Full
 $script:Quick = [bool]$Quick
 $script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
@@ -11,6 +11,9 @@ $script:Level = if($Only){ 'Only' }elseif($script:Quick){ 'Quick' }elseif($scrip
 Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + ' [Modalità '+$script:Level+']')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
+. (Join-Path $PSScriptRoot 'test-git-environment.ps1')
+$gitEnvironment = Enter-SBTestGitEnvironment
+try {
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:passed=0
 function Assert($Condition,[string]$Message){
@@ -22,6 +25,7 @@ $script:laps = [Collections.Generic.List[object]]::new()
 $script:suiteResults = [Collections.Generic.List[object]]::new()
 # Sub-suite: chiave, titolo, file. Le prime cinque hanno fixture proprie e partono insieme in Fast (le piu lente per prime).
 $script:SubSuites = @(
+    @{ Key='git-environment'; File='test-secondbrain-git-environment.ps1'; Name='Git process environment and restoration' }
     @{ Key='portable';       File='test-secondbrain-portable.ps1';       Name='Portabile: discovery, attivazione, compattazione, pubblicazione e asset' }
     @{ Key='trackers';       File='test-secondbrain-trackers.ps1';       Name='Tracker: conversioni, resolver, riferimenti, migrazione e recupero' }
     @{ Key='workflows';      File='test-secondbrain-workflows.ps1';      Name='Workflow: catalogo, contesto Git/PARA, composizione e output' }
@@ -35,8 +39,8 @@ $script:SubSuites = @(
 )
 function Get-SubSuiteKeys {
     if ($Only) { return @($Only) }
-    if ($script:Quick) { return @('quick','sources','external-audit') }
-    @('portable','trackers','workflows','audit2','trace','concurrency','pending','sources','external-audit')
+    if ($script:Quick) { return @('quick','sources','external-audit','git-environment') }
+    @('portable','trackers','workflows','audit2','trace','concurrency','pending','sources','external-audit','git-environment')
 }
 function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
 function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
@@ -294,3 +298,4 @@ try {
         [IO.File]::WriteAllText((Join-Path $testBase 'esito.json'), (ConvertTo-SBJson $esito), [Text.UTF8Encoding]::new($false))
     } catch { Write-Warning ('esito.json non scritto: ' + $_.Exception.Message) }
 }
+} finally { Exit-SBTestGitEnvironment $gitEnvironment }
