@@ -140,7 +140,7 @@ try {
     Assert-Workflow ($LASTEXITCODE -eq 0 -and ($cliHome -join "`n") -match 'sb prompt tutti' -and ($cliHome -join "`n") -notmatch 'TST04 \|') 'CLI senza argomenti mostra la schermata iniziale e non l''elenco'
     $cliCompact=& pwsh -NoProfile -File $cli -List -Compact
     Assert-Workflow ($LASTEXITCODE -eq 0 -and [regex]::Matches(($cliCompact -join "`n"),'(?m)^\S+ [A-Z]{2,4}\d{2} \| ').Count -eq 65) 'CLI -List -Compact elenca i 65 prompt core attivi'
-    # Messaggi residui localizzati (SB-EVO-20261103-13): -Pair e riga Bootstrap seguono -Language, i contenuti degli snippet restano invariati.
+    # Localized residual messages (SB-EVO-20261103-13): -Pair and Bootstrap line follow -Language; snippet contents stay unchanged.
     $mcpCli=Join-Path $PSScriptRoot 'mcp-server.ps1'
     $pairEn=(& pwsh -NoProfile -File $mcpCli -Pair -Target codex -Language en 2>&1|Out-String);$pairIt=(& pwsh -NoProfile -File $mcpCli -Pair -Target codex -Language it 2>&1|Out-String)
     Assert-Workflow ($pairEn -match 'SecondBrain MCP pairing for' -and $pairEn -match 'Equivalent CLI command' -and $pairEn -notmatch 'Accoppiamento' -and $pairIt -match 'Accoppiamento MCP SecondBrain per' -and $pairIt -match 'Comando CLI equivalente' -and $pairIt -notmatch 'pairing for') '-Pair: intestazioni e sezioni seguono -Language en/it'
@@ -176,7 +176,7 @@ try {
         Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} ('validazione '+$case)
     }
     Assert-Workflow (@($catalog.prompts.id|Select-Object -Unique).Count -eq 81 -and @($catalog.prompts|Where-Object {$_.id -cnotmatch '^pmt-[0-9a-f]{8}$'}).Count -eq 0) 'ogni prompt ha un ID univoco pmt-esadecimale'
-    # REP11/REP12 (SB-EVO-20261103-08): prompt di segnalazione issue e consolidamento branch, con i form GitHub nella distribuzione.
+    # REP11/REP12 (SB-EVO-20261103-08): issue-reporting and branch-consolidation prompts, with GitHub forms in the distribution.
     $repNew=@($catalog.prompts|Where-Object code -in 'REP11','REP12','REP13')
     Assert-Workflow ($repNew.Count -eq 3 -and @($repNew|Where-Object {$_.category -ceq 'repository' -and $_.pack -ceq 'core' -and $_.mode -ceq 'write' -and $_.status -ceq 'active' -and $_.ContainsKey('i18n') -and $_.i18n.ContainsKey('it')}).Count -eq 3) 'REP11, REP12 e REP13: prompt core attivi in scrittura con traduzione it'
     Assert-Workflow ((Read-SBText (Join-Path $repoRoot 'direttive/prompts/REP13.md')) -match 'never made public' -and (Read-SBText (Join-Path $repoRoot 'direttive/prompts/it/REP13.md')) -match 'mai reso pubblico') 'REP13: la scheda vieta di rendere pubblico un repository privato'
@@ -184,7 +184,7 @@ try {
     Assert-Workflow (@($issueForms|Where-Object {Test-Path -LiteralPath $_ -PathType Leaf}).Count -eq 3 -and (Read-SBText $issueForms[2]) -match 'blank_issues_enabled: false' -and (Read-SBText $issueForms[0]) -match 'type: textarea' -and (Read-SBText (Join-Path $PSScriptRoot 'check-distribution.ps1')).Contains("'.github/'")) 'form issue .github/ISSUE_TEMPLATE presenti e ammessi dal controllo di distribuzione'
     $nextBad=@($catalog.prompts|Where-Object {$_.status -ne 'deprecated' -and (!$_.ContainsKey('next') -or @($_.next).Count -lt 1 -or @($_.next).Count -gt 4)})
     Assert-Workflow ($nextBad.Count -eq 0) 'ogni scheda attiva ha da 1 a 4 candidati next validi (esistenti, diversi da se)'
-    # Raffinamento catalogo (SB-EVO-PROMPT-CATALOG-REFINE): PRG05 scaffolding (scrittura) e PRG06 piano (lettura), SYS06 in memoria, TST07 in scrittura, nuove schede.
+    # Catalog refinement (SB-EVO-PROMPT-CATALOG-REFINE): PRG05 scaffolding (write) and PRG06 plan (read), SYS06 in memory, TST07 write, new cards.
     $byCode=@{};foreach($entry in $catalog.prompts){$byCode[$entry.code]=$entry}
     $refined=@{PRG05=@('progettazione','write');PRG06=@('progettazione','read');MEM06=@('memoria','read');TST07=@('test','write');OPS05=@('operativita','write');DEV07=@('sviluppo','read');DEV08=@('sviluppo','read');INT04=@('interfaccia','verify')}
     $refinedIssues=@(foreach($code in $refined.Keys){if(!$byCode.ContainsKey($code) -or $byCode[$code].category -cne $refined[$code][0] -or $byCode[$code].mode -cne $refined[$code][1]){$code}})
@@ -359,7 +359,7 @@ try {
         Assert-Workflow ($rendered.Contains($case.objective) -and $rendered.Contains(($caseText.cardMode -f $case.mode,$caseEntry.target))) ('fixture workflow '+$case.code+': richiesta e modalita')
         Assert-Workflow ([regex]::Matches($rendered,'(?m)^'+$caseText.title+': [A-Z]{2,4}[0-9]{2} — ').Count -eq 1 -and !$rendered.Contains('PRIVATE_DOSSIER_CONTENT')) ('fixture workflow '+$case.code+': una sola scheda, dossier per riferimento')
     }
-    # Etichette della scheda per pacchetto: core in inglese, maintenance in italiano.
+    # Card labels by pack: core in English, maintenance in Italian.
     function Get-CardLabels($Text){@($Text.card,($Text.id+': pmt-'),($Text.title+': '),($Text.does+': '),($Text.example+': '),($Text.mode+': '),($Text.scope+': '),($Text.needs+': '),($Text.rule.Substring(0,$Text.rule.IndexOf(':')+2)))}
     $cardLabels=Get-CardLabels (Get-SBWorkflowText @{pack='maintenance'})
     $incomplete=@()
@@ -386,7 +386,7 @@ try {
     $maintenanceEn=(& pwsh -NoProfile -File $cli -Compose -Prompt MEM02 -Objective 'x' -RepositoryPath $repo -ConfigPath $configPath -Language en|Out-String).Replace("`r`n","`n")
     Assert-Workflow ($maintenanceEn.Contains('Binding rule: if in doubt') -and $maintenanceEn.Contains('Closing the task and updating SecondBrain') -and $maintenanceEn.Contains('memory.md') -and $maintenanceEn -notmatch 'Regola vincolante') 'composizione maintenance in inglese: scheda tradotta e chiusura SecondBrain'
     Assert-Workflow ([regex]::Matches($maintenanceComposed,'Regola vincolante: se hai dubbi').Count -eq 2 -and $maintenanceComposed.Contains('fermati e non procedere per ipotesi') -and $maintenanceComposed.Contains('Chiusura del task e aggiornamento SecondBrain') -and $maintenanceComposed.Contains('memory.md')) 'composizione maintenance in italiano con chiusura SecondBrain'
-    # Decisioni da raccogliere: sezione opzionale ma obbligatoria nei prompt che chiedono scelte, con Function Calling / Tool Use.
+    # "Decisioni da raccogliere": optional section, required in prompts requesting choices, with Function Calling / Tool Use.
     $decisionCodes=@('SYS11','SYS01','MEM03','COM01','COM02','PRG01','PRG02','SYS03','SYS04','SYS05','SEC07','MEM01','PRG06','DEV07','OPS05')
     $decisionIssues=@()
     foreach($code in $decisionCodes){
@@ -407,7 +407,7 @@ try {
     Put-Workflow $decisionCard ($decisionOriginal -replace '(?s)(## Decisioni da raccogliere\n).*?(?=\n## Verifiche)','$1')
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'sezione Decisioni da raccogliere vuota rifiutata'
     Put-Workflow $decisionCard $decisionOriginal
-    # Titolo, intestazione e «Prompt vicini» devono ripetere il catalogo; nessun segnaposto tra i vicini.
+    # Title, header and "Prompt vicini" must repeat the catalog; no placeholders among related prompts.
     $driftCard=Join-Path $brain 'direttive/prompts/COM01.md';$driftOriginal=Read-SBText $driftCard
     Put-Workflow $driftCard ($driftOriginal -replace '\*\*Needs\*\*: ','**Needs**: other ')
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: intestazione diversa dal catalogo rifiutata'
@@ -418,11 +418,11 @@ try {
     Put-Workflow $driftCard ($driftOriginal -replace '(?m)^- COM02: .+$','- COM02: consultare la scheda soltanto quando pertinente.')
     Reject-Workflow {Read-SBWorkflowCatalog $brain -ValidateBodies} 'scheda: Prompt vicini segnaposto rifiutati'
     Put-Workflow $driftCard $driftOriginal
-    # Casi d'uso SYS11 su cervello fixture: aggiungi, modifica, rimuovi e rifiuti.
+    # SYS11 use cases on a fixture brain: add, edit, remove and reject.
     $uc=Read-SBWorkflowCatalog $brain -ValidateBodies;$sys04=@($uc.prompts|Where-Object code -ceq 'SYS04')[0];$sys11e=@($uc.prompts|Where-Object code -ceq 'SYS11')[0]
     $newId=New-SBWorkflowPromptId $uc
     $newCard=Join-Path $brain 'direttive/prompts/SYS98.md'
-    # La scheda ripete titolo, intestazione e prompt vicini del catalogo: la fixture li riallinea alla voce di prova.
+    # The card repeats catalog title, header and related prompts: the fixture aligns them with the test entry.
     function Get-FixtureCard([string]$Body,[string]$Summary,$Neighbor){
         $lines=$Body.Split("`n")
         $lines[0]='# SYS98 — '+$Summary.TrimEnd('.')
@@ -432,7 +432,7 @@ try {
     }
     $newBody=Get-FixtureCard ($decisionOriginal.Replace('SYS11','SYS98')) 'Prova uso aggiunta prompt.' $sys04
     Put-Workflow $newCard $newBody
-    # Traduzione obbligatoria (SB-EVO-20261103-14): scheda en e voce i18n della lingua non d'origine.
+    # Required translation (SB-EVO-20261103-14): en card and i18n entry for the other language.
     $newCardEn=Join-Path $brain 'direttive/prompts/en/SYS98.md';$decisionOriginalEn=Read-SBText (Join-Path $brain 'direttive/prompts/en/SYS11.md')
     function Get-FixtureCardEn([string]$Summary,$Neighbor){
         $lines=$decisionOriginalEn.Replace('SYS11','SYS98').Split("`n")
@@ -521,7 +521,7 @@ try {
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $PSScriptRoot '../direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
     Assert-Workflow ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
     Assert-Workflow (@(Get-SBWorkflowDrift ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')))).Count -eq 0) 'catalogo reale allineato'
-    # Lingua dei messaggi: ordine override, SECONDBRAIN_LANG, cultura; il codice stabile non cambia con la lingua.
+    # Message language: override, SECONDBRAIN_LANG, culture precedence; stable code does not change with language.
     $savedLang=$env:SECONDBRAIN_LANG
     try {
         $env:SECONDBRAIN_LANG='en';Set-SBUiLanguage ''
@@ -549,13 +549,13 @@ try {
             }
         }
         Assert-Workflow (!$messageGaps.Count) ('ogni chiave usata ha testo it e en'+$(if($messageGaps.Count){': '+(($messageGaps|Select-Object -Unique) -join ', ')}))
-        # Ogni throw dei moduli e degli script porta una chiave: restano soltanto i codici macchina di rete (Sources) e lo script autonomo di distribuzione.
+        # Every module/script throw carries a key: only network machine codes (Sources) and the standalone distribution script remain.
         $literalThrows=@()
         $scriptGaps=@()
         foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Include '*.ps1','*.psm1' -File|Where-Object {$_.Name -notlike 'test-*' -and $_.Name -ne 'check-distribution.ps1'}){
             $source=Read-SBText $file.FullName
             foreach($m in [regex]::Matches($source,"throw\s+['""]([^'""]*)['""]")){
-                # Eccezioni: codici macchina di rete e launcher autonomo generato dentro un pacchetto MCP (non importa i moduli).
+                # Exceptions: network machine codes and the standalone launcher generated inside an MCP package (imports no modules).
                 if($m.Groups[1].Value -notmatch '^(redirect-limit|http-\$code|download-too-large|access-challenge|Impossibile trovare scripts/mcp-server\.ps1 .*)$'){$literalThrows+=($file.Name+': '+$m.Groups[1].Value)}
             }
             if($file.Extension -eq '.ps1'){
@@ -567,7 +567,7 @@ try {
         }
         Assert-Workflow (!$literalThrows.Count) ('nessun throw con testo letterale nei moduli e negli script'+$(if($literalThrows.Count){': '+(($literalThrows|Select-Object -First 5) -join '; ')}))
         Assert-Workflow (!$scriptGaps.Count) ('ogni chiave usata dagli script ha testo it e en nello script'+$(if($scriptGaps.Count){': '+(($scriptGaps|Select-Object -Unique -First 5) -join '; ')}))
-        # Stesso codice in it e en per i moduli convertiti per ultimi; il testo cambia con la lingua.
+        # Same code in it and en for the last converted modules; text changes with language.
         $env:SECONDBRAIN_LANG='it'; $itPara=Get-SBMessage 'para.status.invalid'
         $env:SECONDBRAIN_LANG='en'; $enPara=Get-SBMessage 'para.status.invalid'
         Assert-Workflow ($itPara -ceq 'Stato PARA non valido' -and $enPara -ceq 'Invalid PARA status') 'catalogo messaggi: Para in it e en'

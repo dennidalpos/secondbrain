@@ -1,10 +1,10 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Elenca i backup dei file sostituiti da SecondBrain e ripristina un file dal suo backup.
+Lists backups of files replaced by SecondBrain and restores a file from its backup.
 .DESCRIPTION
--List (sola lettura) mostra i backup per percorso originale, con data e hash, cercando in backupRoot della postazione e in .runtime/backup/mcp-pairing. -Path filtra per file originale.
--MetadataPath ripristina un file dal suo <guid>.bin.json: il backup deve avere l'hash registrato e il file attuale deve coincidere con quello distribuito da SecondBrain.
+-List (read-only) shows backups by original path, with date and hash, searching the workstation backupRoot and .runtime/backup/mcp-pairing. -Path filters by original file.
+-MetadataPath restores a file from its <guid>.bin.json: the backup must match the recorded hash and the current file must match the file deployed by SecondBrain.
 .EXAMPLE
 pwsh -NoProfile -File scripts/restore-managed.ps1 -List -Path "$HOME/.claude/CLAUDE.md"
 .EXAMPLE
@@ -26,7 +26,7 @@ Add-SBMessages @{
     'restore.metadata.invalid' = @{ it = 'Metadati di ripristino non validi'; en = 'Invalid restore metadata' }
     'restore.backup.altered' = @{ it = 'Backup alterato: ripristino rifiutato'; en = 'Backup altered: restore refused' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if($List){
     $config=Read-SBConfiguration $ConfigPath -ReadOnly

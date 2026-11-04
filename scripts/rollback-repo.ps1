@@ -1,15 +1,15 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Esegue il rollback di un repository dismesso o vietato da SecondBrain: restituisce i dati nel repository target ed elimina ogni residuo in SecondBrain per tutela della privacy.
+Rolls back a retired or forbidden SecondBrain repository: returns data to the target repository and removes all SecondBrain remnants to protect privacy.
 .DESCRIPTION
-Senza -Apply mostra solo l'anteprima e non modifica nulla.
-Richiede una sessione di scrittura (Enter-SBOperation, opzionale -SessionId) e rifiuta il dossier del cervello stesso.
-1. Copia l'intero dossier (inclusi history/, snapshots/ e tracker.md) in <TargetRepo>/.secondbrain/ e ne verifica gli hash. Senza checkout (-Force) il dossier e salvato in backupRoot (rollback-<id>) prima della rimozione.
-2. Aggiorna workstation.json (binding rimosso, repository aggiunto a forbiddenRepositories con -Forbid) e state.json.
-3. Rimuove il blocco managed SecondBrain da AGENTS.md del repository target.
-4. Solo a questo punto rimuove il dossier e la cache di runtime, poi rigenera para-index.json e PARA.md.
-Un errore nei passi 1-3 lascia il dossier intatto: il rollback e ripetibile.
+Without -Apply, previews only and changes nothing.
+Requires a write session (Enter-SBOperation, optional -SessionId) and refuses the brain's own dossier.
+1. Copies the entire dossier (including history/, snapshots/ and tracker.md) to <TargetRepo>/.secondbrain/ and verifies its hashes. Without a checkout (-Force), saves the dossier in backupRoot (rollback-<id>) before removal.
+2. Updates workstation.json (binding removed, repository added to forbiddenRepositories with -Forbid) and state.json.
+3. Removes the managed SecondBrain block from the target repository's AGENTS.md.
+4. Only then removes the dossier and runtime cache, then regenerates para-index.json and PARA.md.
+An error in steps 1-3 leaves the dossier intact: rollback can be repeated.
 .EXAMPLE
 pwsh -NoProfile -File scripts/rollback-repo.ps1 -RepositoryIdentity "github.com/my-org/my-project" -Forbid -Apply
 #>
@@ -29,7 +29,7 @@ $ErrorActionPreference = 'Stop'
 $brain = if ($BrainRoot) { [IO.Path]::GetFullPath($BrainRoot) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
@@ -63,7 +63,7 @@ Add-SBMessages @{
 
 function ConvertTo-RollbackPath([string]$Path) { [IO.Path]::GetFullPath($Path).TrimEnd('\','/') }
 
-# Copia ricorsiva dell'intero dossier con verifica hash file per file; rifiuta reparse point.
+# Recursively copy the entire dossier, verifying each file hash; reject reparse points.
 function Copy-RollbackTree([string]$Source,[string]$Destination) {
     $sourceRoot = ConvertTo-RollbackPath $Source
     $files = @(Get-ChildItem -LiteralPath $sourceRoot -Recurse -Force -File)
@@ -86,7 +86,7 @@ $workstationConfigPath = Get-SBHostConfigPath $brain
 $workstationConfig = Read-SBJson $workstationConfigPath @{}
 $operation = Enter-SBOperation $config $SessionId
 try {
-    # 1. Individua il dossier in 02-areas/products (confronti case-sensitive, ambiguita sempre rifiutata)
+    # 1. Find the dossier in 02-areas/products (case-sensitive comparisons; always reject ambiguity).
     $entities = @(Get-SBParaEntities $brain @())
     $matchedEntities = @($entities | Where-Object {
         $_.kind -eq 'area' -and (
@@ -136,13 +136,13 @@ try {
         throw (New-SBError 'rollback.dossier.missing' @($RepositoryIdentity))
     }
 
-    # Il dossier del cervello stesso non e mai restituibile ne eliminabile.
+    # The brain's own dossier can never be returned or deleted.
     $brainIdentity = Get-SBBrainIdentity $brain
     if (($brainIdentity -and $resolvedIdentity -ceq $brainIdentity) -or (ConvertTo-RollbackPath $dossierPath) -ieq (ConvertTo-RollbackPath $brain)) {
         throw (New-SBError 'rollback.self.repository' @($resolvedIdentity))
     }
 
-    # 2. Risolvi il checkout target
+    # 2. Resolve the target checkout.
     $checkoutPath = $DestinationPath
     if (!$checkoutPath -and $workstationConfig.ContainsKey('bindings')) {
         $binding = @($workstationConfig.bindings | Where-Object { $_.identity -ceq $resolvedIdentity -or $_.dossier -ceq $dossierRelative }) | Select-Object -First 1
@@ -168,7 +168,7 @@ try {
         return @{ identity = $resolvedIdentity; checkout = $checkoutPath; dossierDeleted = $null; forbidden = [bool]$Forbid; status = 'skipped' }
     }
 
-    # 3. Trasferimento: tutto il dossier nel repository target, oppure backup centrale se il checkout e assente.
+    # 3. Transfer the whole dossier to the target repository, or a central backup if the checkout is absent.
     $transferred = 0
     $backupPath = $null
     if ($hasCheckout) {
@@ -191,7 +191,7 @@ try {
         Write-Warning (Get-SBMessage 'rollback.out.nocheckout' @($backupPath))
     }
 
-    # 4. workstation.json e state.json prima di qualunque eliminazione: un errore qui lascia il dossier intatto.
+    # 4. Update workstation.json and state.json before any deletion: failure here leaves the dossier intact.
     $bindings = @()
     if ($workstationConfig.ContainsKey('bindings')) {
         $bindings = @($workstationConfig.bindings | Where-Object { $_.identity -ne $resolvedIdentity -and $_.dossier -ne $dossierRelative })
@@ -226,7 +226,7 @@ try {
         }
     }
 
-    # 5. Pulisci AGENTS.md nel repository target
+    # 5. Clean AGENTS.md in the target repository.
     if ($hasCheckout) {
         $agentsPath = Join-Path $checkoutPath 'AGENTS.md'
         if (Test-Path -LiteralPath $agentsPath) {
@@ -234,14 +234,14 @@ try {
             $pattern = '(?s)\r?\n?<!-- secondbrain:repository:begin -->.*?<!-- secondbrain:repository:end -->\r?\n?'
             if ($content -match $pattern) {
                 $newContent = ($content -replace $pattern, "`n").Trim() + "`n"
-                # Scrittura con controllo hash e backup verificato (ripristinabile con restore-managed.ps1).
+                # Write with hash checking and a verified backup (restorable with restore-managed.ps1).
                 Write-SBFile $agentsPath ([Text.UTF8Encoding]::new($false).GetBytes($newContent)) (Get-SBFileHash $agentsPath) $config.backupRoot -BackupDirty | Out-Null
                 Write-Host (Get-SBMessage 'rollback.out.block' @($agentsPath)) -ForegroundColor Green
             }
         }
     }
 
-    # 6. Eliminazioni (dopo trasferimento e aggiornamento della postazione)
+    # 6. Delete after transfer and workstation update.
     Remove-Item -LiteralPath $dossierPath -Recurse -Force
     Write-Host (Get-SBMessage 'rollback.out.dossier' @($dossierPath)) -ForegroundColor Yellow
     if ($resolvedIdentity) {
@@ -252,7 +252,7 @@ try {
         }
     }
 
-    # 7. Rigenera para-index.json e PARA.md
+    # 7. Regenerate para-index.json and PARA.md.
     Update-SBParaIndex $config | Out-Null
     Write-Host (Get-SBMessage 'rollback.out.index') -ForegroundColor Green
 

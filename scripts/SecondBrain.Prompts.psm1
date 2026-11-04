@@ -67,15 +67,15 @@ function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
         if($category.ContainsKey('i18n')){foreach($lang in $category.i18n.Keys){if($category.i18n[$lang].title -match '[\p{Cc}\p{Cf}]'){throw (New-SBError 'prompts.category.invalid')}}}
         $categories[$category.id]=$true
     }
-    # Un solo spazio di nomi per ID, codici, alias e alias ritirati: ogni chiave risolve a un solo prompt.
+    # One namespace for IDs, codes, aliases and retired aliases: every key resolves to one prompt.
     $claim={param([string]$name,[string]$owner) if($names.ContainsKey($name)){throw (New-SBError 'prompts.name.conflict' @($name))}; $names[$name]=$owner}
     foreach($prompt in $catalog.prompts){
         if($ids.ContainsKey($prompt.id)){throw (New-SBError 'prompts.id.duplicate' @($prompt.id))}
         if(!$categories.ContainsKey($prompt.category)){throw (New-SBError 'prompts.category.unknown' @($prompt.category))}
         if($prompt.file -cne ($prompt.code+'.md') -or $prompt.summary -match '[\p{Cc}\p{Cf}]' -or ($prompt.code+' | '+$prompt.summary).Length -gt 88){throw (New-SBError 'prompts.card.invalid' @($prompt.code))}
-        # Varianti nell'altra lingua: solo la lingua diversa dall'originale, con sommario valido e scheda presente in direttive/prompts/<lingua>/.
+        # Other-language variants: only the language differing from the original, with a valid summary and a card in direttive/prompts/<language>/.
         $sourceLanguage=Get-SBWorkflowSourceLanguage $prompt
-        # Un prompt attivo ha sempre la variante nell'altra lingua (voce i18n e scheda tradotta), altrimenti la vista ripiega in silenzio sull'originale.
+        # An active prompt always has an other-language variant (i18n entry and translated card); otherwise the view silently falls back to the original.
         if($prompt.status -eq 'active'){
             $otherLanguage=if($sourceLanguage -ceq 'en'){'it'}else{'en'}
             if(!(Test-SBWorkflowTranslation $prompt $otherLanguage)){throw (New-SBError 'prompts.i18n.missing' @($prompt.code,$otherLanguage))}
@@ -96,7 +96,7 @@ function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
     }
     foreach($prompt in $catalog.prompts){
         foreach($related in $prompt.related){if(!$ids.ContainsKey($related) -or $related -eq $prompt.id){throw (New-SBError 'prompts.related.invalid' @($related))}}
-        # Candidati del prompt successivo: esistenti e diversi dal prompt; i ritirati restano ammessi (il ritiro morbido non obbliga a riscrivere) ma la composizione non li propone.
+        # Next-prompt candidates must exist and differ from the current prompt; retired ones remain valid (soft retirement requires no rewrite), but composition does not suggest them.
         if($prompt.ContainsKey('next')){foreach($candidate in $prompt.next){if(!$ids.ContainsKey($candidate) -or $candidate -eq $prompt.id){throw (New-SBError 'prompts.next.invalid' @($prompt.code, $candidate))}}}
         if($prompt.ContainsKey('supersededBy') -and (!$ids.ContainsKey($prompt.supersededBy) -or $prompt.supersededBy -eq $prompt.id)){throw (New-SBError 'prompts.replacement.invalid' @($prompt.code))}
         if($prompt.status -eq 'deprecated' -and !$prompt.ContainsKey('supersededBy')){throw (New-SBError 'prompts.retired.noreplacement' @($prompt.code))}
@@ -106,7 +106,7 @@ function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
         }
     }
     foreach($category in $catalog.categories){if(!@($catalog.prompts|Where-Object category -eq $category.id).Count){throw (New-SBError 'prompts.category.empty' @($category.id))}}
-    # Una categoria ha un solo prefisso e un solo pacchetto; un prefisso appartiene a una sola categoria.
+    # A category has one prefix and one pack; each prefix belongs to one category.
     $prefixOwner=@{}
     foreach($prompt in $catalog.prompts){
         $prefix=Get-SBWorkflowPrefix $prompt
@@ -133,14 +133,14 @@ function Resolve-SBWorkflowPrompt($Catalog, [string]$Key) {
 }
 
 function New-SBWorkflowPromptId($Catalog) {
-    # Il catalogo puo non avere ancora ritiri: la chiave deprecations e opzionale (StrictMode).
+    # The catalog may have no retirements yet: deprecations is optional (StrictMode).
     $retired=if($Catalog.ContainsKey('deprecations')){@($Catalog.deprecations|ForEach-Object {$_.supersededBy;$_.alias})}else{@()}
     $taken=@($Catalog.prompts|ForEach-Object id)+$retired
     do{$id='pmt-'+(-join(1..8|ForEach-Object {'{0:x}' -f (Get-Random -Maximum 16)}))}while($id -in $taken)
     $id
 }
 
-# Le schede del pacchetto core sono in inglese, quelle del pacchetto maintenance (SecondBrain) in italiano: le etichette seguono il pacchetto.
+# Core-pack cards are in English; maintenance-pack (SecondBrain) cards are in Italian: labels follow the pack.
 $script:SBWorkflowLabels=@{
     core=@{
         scope='Scope';mode='Mode';requires='Needs';example='Example'
@@ -158,8 +158,8 @@ function Get-SBWorkflowPack($Prompt) {
     if($Prompt.ContainsKey('pack') -and $Prompt.pack -eq 'maintenance'){'maintenance'}else{'core'}
 }
 
-# Lingua dei prompt: la scheda originale è in inglese (core) o in italiano (maintenance); la variante nell'altra lingua sta in
-# direttive/prompts/<lingua>/ e nel campo i18n del catalogo. Senza variante si usa la lingua originale.
+# Prompt language: the original card is English (core) or Italian (maintenance); the other-language variant lives in
+# direttive/prompts/<language>/ and the catalog's i18n field. Without a variant, use the original language.
 $script:SBWorkflowLanguageOverride=$null
 function Set-SBWorkflowLanguage([string]$Language) {
     if($Language -and $Language -notin @('en','it')){throw (New-SBError 'prompts.language.invalid' @($Language))}
@@ -173,7 +173,7 @@ function Get-SBWorkflowLang($Prompt) {
     $want=Get-SBWorkflowRequestedLanguage
     if($want -ne (Get-SBWorkflowSourceLanguage $Prompt) -and (Test-SBWorkflowTranslation $Prompt $want)){$want}else{Get-SBWorkflowSourceLanguage $Prompt}
 }
-# Campo del catalogo (summary, requires, example, audience, tone) nella lingua indicata, con ritorno al valore originale.
+# Catalog field (summary, requires, example, audience, tone) in the selected language, falling back to the original value.
 function Get-SBWorkflowField($Prompt,[string]$Name,[string]$Language) {
     if(!$Language){$Language=Get-SBWorkflowLang $Prompt}
     if($Language -ne (Get-SBWorkflowSourceLanguage $Prompt) -and (Test-SBWorkflowTranslation $Prompt $Language) -and $Prompt.i18n[$Language].ContainsKey($Name)){return $Prompt.i18n[$Language][$Name]}
@@ -191,7 +191,7 @@ function Get-SBWorkflowLabels($Prompt,[string]$Language) {
     if($Language -eq 'it'){$script:SBWorkflowLabels.maintenance}else{$script:SBWorkflowLabels.core}
 }
 
-# Testi di card, elenco e composizione per pacchetto: core in inglese e neutro (nessun riferimento a SecondBrain), maintenance in italiano.
+# Card, list and composition text by pack: core is English and neutral (no SecondBrain references); maintenance is Italian.
 $script:SBWorkflowText=@{
     core=@{
         catalog='PROMPT CATALOG';card='PROMPT CARD';listTitle='Prompt catalog';listTitleMaintenance='Prompt catalog — SecondBrain maintenance'
@@ -299,7 +299,7 @@ $script:SBWorkflowText=@{
 }
 
 function Get-SBWorkflowTextFor([string]$Language) { if($Language -eq 'it'){$script:SBWorkflowText.maintenance}else{$script:SBWorkflowText.core} }
-# Varianti per pacchetto nella lingua non d'origine: il core resta neutro (nessun riferimento a SecondBrain), la manutenzione cita tracker, memoria e SYS13.
+# Pack variants in the other language: core remains neutral (no SecondBrain references); maintenance mentions trackers, memory and SYS13.
 $script:SBWorkflowPackText=@{
     core=@{it=@{
         greenfield='Ciclo di vita: greenfield (blocco attivo). Vietati: bump di VERSION, voci di CHANGELOG, migrazioni o importazioni di schema, alias di compatibilità, deprecations.'
@@ -346,7 +346,7 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog, [string]$L
         $content=([regex]::Split($body,$pattern)[1] -split '(?m)^## ',2)[0]
         if(!$content.Trim()){throw (New-SBError 'prompts.section.empty' @($section, $Prompt.code))}
     }
-    # Sezione opzionale per i prompt che chiedono scelte: se presente e unica, non vuota. La regola di interazione (Function Calling / Tool Use) è nel compositore, una volta sola.
+    # Optional section for prompts requesting decisions: when present, unique and nonempty. The composer adds the interaction rule (Function Calling / Tool Use) once.
     $decisionPattern='(?m)^## '+[regex]::Escape($L.decisions)+'\n'
     $decisionCount=[regex]::Matches($body,$decisionPattern).Count
     if($decisionCount -gt 1){throw (New-SBError 'prompts.section.duplicate' @($L.decisions, $Prompt.code))}
@@ -360,11 +360,11 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog, [string]$L
         $target=@($Catalog.prompts|Where-Object id -ceq $related)
         if($target.Count -ne 1 -or $body -notmatch ('\b'+[regex]::Escape($target[0].code)+'\b')){throw (New-SBError 'prompts.related.undocumented' @($related))}
     }
-    # Titolo e intestazione ripetono i valori del catalogo, che resta la fonte mostrata da elenco e composizione.
+    # Title and header repeat catalog values; the catalog remains the source displayed by listing and composition.
     $expectedHeader='> **Scope**: '+$Prompt.scope+' | **'+$L.mode+'**: '+$L.modes[$Prompt.mode]+' | **'+$L.requires+'**: '+(Get-SBWorkflowField $Prompt 'requires' $Language)+' | **'+$L.example+'**: `'+(Get-SBWorkflowField $Prompt 'example' $Language)+'`'
     if(!($body -split "`n")[2].Equals($expectedHeader,[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.catalogheader' @($Prompt.code))}
     if(!($body -split "`n")[0].Equals('# '+$Prompt.code+' — '+(Get-SBWorkflowField $Prompt 'summary' $Language).TrimEnd('.'),[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.catalogtitle' @($Prompt.code))}
-    # Ogni voce di «Prompt vicini» cita un prompt correlato con il suo sommario e nessun altro.
+    # Each "Prompt vicini" entry cites one related prompt with its summary and no other prompt.
     $neighbors=@([regex]::Matches((([regex]::Split($body,'(?m)^## '+[regex]::Escape($L.related)+'\n')[1] -split '(?m)^## ',2)[0]),'(?m)^- ([A-Z]{3}\d{2}): (.+)$'))
     $expectedNeighbors=@($Prompt.related|ForEach-Object {$id=$_;$t=@($Catalog.prompts|Where-Object id -ceq $id)[0];$t.code+': '+(Get-SBWorkflowField $t 'summary' $Language)})
     $actualNeighbors=@($neighbors|ForEach-Object {$_.Groups[1].Value+': '+$_.Groups[2].Value})
@@ -372,7 +372,7 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog, [string]$L
     $body.TrimEnd()+"`n"
 }
 
-# Regola unica per ogni canale (CLI, MCP, composizione): in dubbio ci si ferma e si chiede con strumenti strutturati. Il testo segue il pacchetto (campo rule).
+# One rule for every channel (CLI, MCP, composition): stop on doubt and ask through structured tools. Text follows the pack (rule field).
 function Format-SBWorkflowCard($Prompt, [string]$Body) {
     $T=Get-SBWorkflowText $Prompt
     $areas=$T.areas
@@ -393,7 +393,7 @@ function Format-SBWorkflowCard($Prompt, [string]$Body) {
 
 function Get-SBWorkflowPrefix($Prompt) { $Prompt.code -replace '\d+$','' }
 
-# Icone di modalità: 🔭 legge, ✅ verifica, 🔥 scrive, ⛔ distruttivo o irreversibile (sostituisce la modalità).
+# Mode icons: 🔭 read, ✅ verify, 🔥 write, ⛔ destructive or irreversible (overrides the mode).
 function Get-SBWorkflowModeIcon($Prompt) {
     if($Prompt.ContainsKey('destructive') -and $Prompt.destructive){return [char]::ConvertFromUtf32(0x26D4)}
     switch($Prompt.mode){
@@ -411,15 +411,15 @@ function Get-SBWorkflowLegend([string]$Language) {
     $text
 }
 
-# Ambito: id della categoria (sistema) oppure prefisso dei codici (SYS), senza distinguere le maiuscole.
-# Senza ambito l'elenco mostra un solo pacchetto (core per impostazione predefinita); con ambito cerca in tutti.
+# Scope: category ID (sistema) or code prefix (SYS), case-insensitive.
+# Without scope, list one pack (core by default); with scope, search all packs.
 function Format-SBWorkflowList($Catalog, [string]$Category, [switch]$Compact, [ValidateSet('core','maintenance','all')][string]$Pack='core') {
     $byCategory=$Category -and @($Catalog.categories|Where-Object id -ieq $Category).Count -gt 0
     $byPrefix=$Category -and !$byCategory -and @($Catalog.prompts|Where-Object {(Get-SBWorkflowPrefix $_) -ieq $Category}).Count -gt 0
     if($Category -and !$byCategory -and !$byPrefix){
         throw (New-SBError 'prompts.scope.unknown' @(((@($Catalog.categories|ForEach-Object {$_.id+' ('+((@($Catalog.prompts|Where-Object category -eq $_.id|ForEach-Object {Get-SBWorkflowPrefix $_})|Sort-Object -Unique) -join '/')+')'})) -join ', ')))
     }
-    # Intestazione e legenda seguono la lingua richiesta e il pacchetto; ogni voce usa il testo della propria lingua.
+    # Header and legend follow the requested language and pack; each entry uses its own language's text.
     $listText=Get-SBWorkflowTextFor (Get-SBWorkflowRequestedLanguage)
     $lines=@($(if($Pack -eq 'maintenance'){$listText.listTitleMaintenance}else{$listText.listTitle}),(Get-SBWorkflowLegend),'')
     foreach($item in $Catalog.categories){
@@ -534,7 +534,7 @@ function Get-SBWorkflowIndexPath([string]$Language,[string]$Pack='core') {
     'direttive/prompts/'+$name+$(if($Language -eq 'it'){'.it'}else{''})+'.md'
 }
 
-# Registro dei comandi `sb`: unica fonte per la schermata iniziale; un test lo confronta con la direttiva di postazione (italiano).
+# `sb` command registry: single source for the home screen; a test compares it with the Italian workstation directive.
 function Get-SBWorkflowCommands {
     @(
         @{command='sb prompt';does=(Get-SBWorkflowMessage 'cmd.prompt');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1'},
@@ -550,7 +550,7 @@ function Get-SBWorkflowCommands {
     )
 }
 
-# Guide per il primo avvio: percorso relativo alla radice (con ancora opzionale), a chi servono. Un test verifica che i file esistano.
+# Getting-started guides: root-relative path (optional anchor) and intended audience. A test verifies file existence.
 function Get-SBWorkflowGuides {
     @(
         @{title=(Get-SBWorkflowMessage 'guide.safety.title');path='docs/sicurezza.md';for=(Get-SBWorkflowMessage 'guide.safety.for')},
@@ -567,7 +567,7 @@ function Get-SBWorkflowGuides {
     )
 }
 
-# Primi passi: comandi PowerShell reali dalla radice del clone; un test controlla che script e parametri esistano.
+# First steps: actual PowerShell commands from the clone root; a test verifies scripts and parameters.
 function Get-SBWorkflowFirstSteps {
     @(
         @{step=(Get-SBWorkflowMessage 'first.1');command=$null},
@@ -579,7 +579,7 @@ function Get-SBWorkflowFirstSteps {
     )
 }
 
-# Flusso sequenziale per prodotto: la stessa sequenza in chat e da script. I comandi pwsh sono reali e verificati da un test.
+# Per-product sequence: same steps in chat and scripts. Actual pwsh commands are verified by a test.
 function Get-SBWorkflowProductFlow {
     @(
         @{step=(Get-SBWorkflowMessage 'flow.1');chat='sb attiva';script='pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive'},
@@ -594,7 +594,7 @@ function Get-SBWorkflowProductFlow {
     )
 }
 
-# Stato leggero e di sola lettura per la schermata iniziale: nessun lock, nessuna discovery, nessuna scrittura.
+# Lightweight read-only home-screen state: no locks, discovery or writes.
 function Get-SBWorkflowState([string]$BrainRoot, [string]$RepositoryPath) {
     $brain=[IO.Path]::GetFullPath($BrainRoot)
     Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
@@ -672,7 +672,7 @@ function Format-SBWorkflowHome([string]$BrainRoot, $Catalog, $State=$null) {
     ($lines -join "`n")+"`n"
 }
 
-# Indici generati: uno per lingua (en, it) e per pacchetto (core, manutenzione). Non si modificano a mano.
+# Generated indexes: one per language (en, it) and pack (core, maintenance). Never edit manually.
 function Get-SBWorkflowIndexTargets { foreach($language in @('en','it')){foreach($pack in @('core','maintenance')){@{language=$language;pack=$pack;path=(Get-SBWorkflowIndexPath $language $pack)}}} }
 
 function New-SBWorkflowIndex([string]$BrainRoot,[string]$Language='en',[ValidateSet('core','maintenance')][string]$Pack='core') {
@@ -782,7 +782,7 @@ function Get-SBWorkflowContext {
     @{repositories=$result;project=$(if($project){@{id=$project.id;brief=(Resolve-SBParaPath $brain ($project.path+'/brief.md'))}}else{$null});sourceRegistry=$registry}
 }
 
-# Sezioni di una scheda per titolo di secondo livello; i blocchi di codice non contano come titoli.
+# Card sections by second-level heading; code fences do not count as headings.
 function Get-SBWorkflowSections([string]$Body) {
     $sections=[ordered]@{};$current=$null;$fence=$false
     foreach($line in ($Body -split '\r?\n')){
@@ -802,7 +802,7 @@ function Get-SBWorkflowAudience($Prompt) {
     $audience.default
 }
 
-# Candidati del prompt successivo: voci `next` della scheda (senza ritirati; fuori da SecondBrain anche senza prompt centrali) e task pronti dei repository nel contesto.
+# Next-prompt candidates: card `next` entries (excluding retired prompts and, outside SecondBrain, central prompts) and ready tasks from repositories in context.
 function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Context) {
     $centralHere=(@($Context.repositories).Count -eq 1 -and [IO.Path]::GetFullPath($Context.repositories[0].checkout) -eq [IO.Path]::GetFullPath($BrainRoot))
     $prompts=@()
@@ -823,7 +823,7 @@ function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Contex
     @{prompts=@($prompts);tasks=@($tasks|Select-Object -First 4)}
 }
 
-# Il prompt finale segue CO-STAR: Context, Objective, Style, Tone, Audience, Response. Le schede restano la sorgente.
+# Final prompt follows CO-STAR: Context, Objective, Style, Tone, Audience, Response. Cards remain the source.
 function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,[string]$Objective) {
     if($Prompt.target -eq 'central' -and (@($Context.repositories).Count -ne 1 -or [IO.Path]::GetFullPath($Context.repositories[0].checkout) -ne [IO.Path]::GetFullPath($BrainRoot))){
         $suggested=if(@($Context.repositories).Count -eq 1 -and $Context.repositories[0].identity){[string]$Context.repositories[0].identity}else{'<identity>'}

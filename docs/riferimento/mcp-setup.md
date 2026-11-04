@@ -8,6 +8,10 @@ Questa guida illustra l'architettura e la procedura passo-passo per attivare, co
 
 Il server MCP di SecondBrain usa JSON-RPC su stdio e negozia **2025-03-26**, mantenendo **2024-11-05** se richiesto dal client. Le prove coprono handshake, strumenti, prompt e risorse; non dimostrano conformita generale al protocollo o caricamento nelle GUI.
 
+Una versione sconosciuta riceve `2025-03-26` come alternativa supportata; il client deve verificare di supportarla prima di proseguire. L'handshake attende la risposta a `initialize`, invia `notifications/initialized` e controlla che stdout contenga solo risposte JSON-RPC valide. Per provare un'altra versione usare `test-secondbrain-mcp-handshake.ps1 -ProtocolVersion <versione>`; il rapporto distingue versione richiesta e negoziata. Riferimento: [negoziazione MCP 2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26/basic/lifecycle).
+
+Gli otto strumenti espongono un titolo localizzato in `annotations.title`, secondo lo [schema MCP 2025-03-26](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.ts). Le annotazioni conservano `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`: le letture possono recuperare scritture pendenti già autorizzate. Sono indicazioni per il client, non permessi; `check_publication` conserva il consenso separato. I titoli seguono la lingua della sessione server, come le descrizioni. La misura dei popup e dei consensi negli IDE reali resta distinta dalle prove stdio.
+
 ### Garanzie di Isolamento e Sicurezza
 - **Nessuna porta di rete aperta**: la comunicazione avviene esclusivamente tramite flussi standard di input/output (**stdio**) via `pwsh` su processo locale.
 - **Zero telemetria esterna**: nessun dato, richiesta, prompt o metadato viene trasmesso a servizi terzi o remoti.

@@ -109,8 +109,8 @@ function Get-SBTaskProjection($Tracker,[string[]]$TaskIds=@(),[switch]$IncludeAc
         $task
     })
 }
-# Livelli di un file Markdown di dossier: una sezione `## ` e storica se il titolo finisce con (storico) o se la sua prima riga non vuota e <!-- sb:tier=history -->.
-# Il testo prima della prima sezione e le sezioni senza marcatore sono essenziali. Senza marcatori il file e interamente essenziale.
+# Dossier Markdown tiers: a `## ` section is historical if its title ends in (storico) or its first nonempty line is <!-- sb:tier=history -->.
+# Text before the first section and unmarked sections are essential. Without markers, the entire file is essential.
 function Split-SBTieredMarkdown([string]$Text) {
     $normalized=$Text.Replace("`r`n","`n")
     $chunks=[regex]::Split($normalized,'(?m)^(?=## )')
@@ -128,9 +128,9 @@ function Split-SBTieredMarkdown([string]$Text) {
     }
     @{essential=$essential.ToString();history=$history.ToString();historyTitles=$titles}
 }
-# Vista per agenti di memory.md (memory.agent.md): file derivato, mai modificato a mano. Una voce per riga, `- [T#id] data · scope · testo`,
-# con T = D decisione, G gotcha, A architettura, C vincolo. Contiene le sole parti essenziali; le voci in forma libera (storiche) sono classificate
-# dal titolo di sezione o dal prefisso (Decisione:/Gotcha:) con data `s.d.`. L'intestazione riporta l'hash della fonte: allineamento verificato da -Check.
+# Agent view of memory.md (memory.agent.md): derived file, never edited manually. One entry per line, `- [T#id] date · scope · text`,
+# where T = D decision, G gotcha, A architecture, C constraint. Includes essential parts only; free-form historical entries are classified
+# by section title or prefix (Decisione:/Gotcha:) with date `s.d.`. The header carries the source hash: -Check verifies alignment.
 function Get-SBAgentViewType([string]$Heading,[string]$Text) {
     if($Text -match '^(?i)decisione\s*:'){return 'D'}
     if($Text -match '^(?i)gotcha\s*:'){return 'G'}
@@ -176,12 +176,12 @@ function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
     ($out -join "`n")+"`n"
 }
 function Format-SBSlimTasks($Projection) {
-    # Una riga per task pronto: ID, priorita, stato, titolo. Descrizione, criteri ed evidenze restano a get_task / knowledge.ps1 -Task.
+    # One line per ready task: ID, priority, status, title. Descriptions, criteria and evidence remain available through get_task / knowledge.ps1 -Task.
     $rows=@()
     foreach($task in @($Projection)){
         if($null -eq $task){continue}
         $blocker=if($task -is [Collections.IDictionary] -and $task.Contains('blocker')){[string]$task['blocker']}else{''}
-        # Il motivo è abbreviato: il testo completo resta nel tracker (get_task).
+        # The reason is abbreviated: the full text stays in the tracker (get_task).
         if($blocker.Length -gt 90){$blocker=$blocker.Substring(0,90).TrimEnd()+'…'}
         $rows+=('- '+$task['id']+' ['+$task['priority']+'/'+$task['status']+'] '+$task['title']+$(if($blocker){' (motivo: '+$blocker+')'}else{''}))
     }
@@ -222,7 +222,7 @@ function New-SBStartupPackage {
         $omitted+=@{part='storico del dossier (history/, knowledge/, topics/)';characters=0;sections=@();how='history/index.md e indice del dossier; knowledge.ps1 -Section <titolo> per una sezione intera, -Search per cercare anche in archivio tracker e rapporti (-Offset/-Limit)'}
         $levelLines=@('# Livelli non caricati','','Profilo Slim: sono caricate le sole parti essenziali. Nulla è stato eliminato; richiedi il resto quando serve.','')
         foreach($item in $omitted){$levelLines+=('- '+$item.part+$(if($item.characters){' — '+$item.characters+' caratteri'}else{''})+$(if(@($item.sections).Count){' ('+(@($item.sections) -join '; ')+')'}else{''})+': '+$item.how)}
-        # Memoria: la vista per agenti, se allineata alla fonte (stesso hash), sostituisce le parti essenziali di memory.md.
+        # Memory: the agent view replaces essential memory.md parts when aligned with the source (same hash).
         $memorySlim=$memoryTiers.essential
         if($AgentViewHash){
             $viewExpected=ConvertTo-SBAgentMemoryView $memoryText
@@ -234,10 +234,10 @@ function New-SBStartupPackage {
     @{repository=$record.identity;profile=$Profile;budget=$Budget;characters=$characters;withinBudget=($Budget -le 0 -or $characters -le $Budget);needsCompaction=($Budget -gt 0 -and $characters -gt $Budget);
       parts=$parts;loadedParts=@($parts.Keys|Sort-Object);omittedParts=@($omitted);taskSource=$tracker.path;originalsTruncated=$false;unit='characters-not-tokens'}
 }
-# Tetto del primo caricamento (profilo Slim): fonte unica per knowledge.ps1 -Startup e per secondbrain.ps1 -Check.
+# Initial loading limit (Slim profile): single source for knowledge.ps1 -Startup and secondbrain.ps1 -Check.
 function Get-SBSlimStartupBudget { 20000 }
-# Avviso di compattazione (sola lettura): hard se il pacchetto Slim supera il tetto, soft se e vicino al tetto o se i turni tracciati
-# dall'ultima compattazione sono molti. Non compatta mai: l'applicazione resta su richiesta (SYS05).
+# Read-only compaction advice: hard when the Slim package exceeds the limit, soft when near it or when many turns have elapsed
+# since the last compaction. Never compacts automatically: application remains on request (SYS05).
 function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[int]$SoftPercent=80,[int]$SoftTurns=50,[int]$SoftTurnsPercent=60) {
     $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*$Startup.characters/$Startup.budget)}else{0}
     $last=[DateTimeOffset]::MinValue
@@ -251,7 +251,7 @@ function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[in
     elseif($Startup.budget -gt 0 -and ($percent -ge $SoftPercent -or ($turns -ge $SoftTurns -and $percent -ge $SoftTurnsPercent))){$level='soft'}
     @{level=$level;characters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
 }
-# Rapporto di sola lettura: caratteri per parte, stima token (caratteri/4, non esatta), parti omesse e peso delle direttive caricate.
+# Read-only report: characters per part, estimated tokens (characters/4, not exact), omitted parts and loaded directive sizes.
 function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
     $lines=@('RAPPORTO CONTESTO DI AVVIO','',('Repository: '+$Startup.repository),('Profilo: '+$Startup.profile+' | budget '+$(if($Startup.budget -gt 0){[string]$Startup.budget+' caratteri'}else{'nessun tetto'})+' | usati '+$Startup.characters+' (stima ~'+[int][Math]::Ceiling($Startup.characters/4)+' token, caratteri/4)'),'')
     $lines+='Parti caricate:'
@@ -268,7 +268,7 @@ function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
     ($lines -join "`n")+"`n"
 }
 function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$All,[switch]$ReadyOnly) {
-    # Perimetro cooperativo: senza repository esplicito la vista globale richiede -All (sola lettura, ogni voce etichettata scope=global).
+    # Cooperative scope: without an explicit repository, the global view requires -All (read-only; each entry labeled scope=global).
     if(!$Repository -and !$All){throw (New-SBError 'knowledge.repository.required')}
     $entities=@(Get-SBParaEntities $BrainRoot @())
     $areas=@($entities|Where-Object {$_.kind -eq 'area' -and !$_.archived -and (!$Repository -or $_.repository -eq $Repository)})
@@ -291,7 +291,7 @@ function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$Al
     }
 }
 function Get-SBGlobalTaskPage([string]$BrainRoot,[int]$Offset=0,[int]$Limit=50,[switch]$ReadyOnly) {
-    # Vista globale paginata (stessa forma per CLI e MCP): Limit 0 = tutte le voci; nextOffset per la pagina successiva.
+    # Paginated global view (same shape for CLI and MCP): Limit 0 = all entries; nextOffset identifies the next page.
     if($Offset -lt 0 -or $Limit -lt 0){throw (New-SBError 'knowledge.paging.invalid')}
     $tasks=@(Get-SBGlobalTasks -BrainRoot $BrainRoot -All -ReadyOnly:$ReadyOnly)
     $page=@($tasks|Select-Object -Skip $Offset)
@@ -300,20 +300,20 @@ function Get-SBGlobalTaskPage([string]$BrainRoot,[int]$Offset=0,[int]$Limit=50,[
     @{total=$tasks.Count;offset=$Offset;limit=$Limit;count=$page.Count;hasMore=$hasMore;nextOffset=$(if($hasMore){$Offset+$page.Count}else{$null});tasks=$page}
 }
 function Resolve-SBWorkingDossier([string]$BrainRoot,[string]$Repository) {
-    # Dossier (percorso relativo al cervello) dell'unico Area attiva del repository.
+    # Dossier (brain-relative path) of the repository's unique active Area.
     $found=@(Get-SBParaEntities $BrainRoot @()|Where-Object {$_.kind -eq 'area' -and !$_.archived -and $_.repository -ceq $Repository})
     if($found.Count -ne 1){throw (New-SBError 'knowledge.dossier.ambiguous' @($Repository))}
     $found[0].path
 }
 function Get-SBSearchTokens([string]$Query) {
-    # Termini distinti della richiesta, senza maiuscole e senza parole vuote; se restano solo parole vuote si usano tutti i termini.
+    # Distinct case-insensitive query terms without stop words; use all terms if only stop words remain.
     $stop=@('il','lo','la','le','gli','un','una','uno','di','del','della','dei','delle','da','dal','in','nel','nella','con','su','per','tra','fra','che','the','and','for','with','from','into','of','to','an')
     $all=@([regex]::Split($Query.ToLowerInvariant(),'[^\p{L}\p{N}_-]+')|Where-Object {$_.Length -ge 2}|Select-Object -Unique)
     $kept=@($all|Where-Object {$_ -notin $stop})
     if($kept.Count){$kept}else{$all}
 }
 function Split-SBSearchUnits([string[]]$Lines,[bool]$Markdown) {
-    # Unita di ricerca: sezioni (titolo # fino al successivo) per Markdown, blocchi separati da righe vuote (max 40 righe) per gli altri file.
+    # Search units: sections (heading through the next heading) for Markdown, blank-line-separated blocks (up to 40 lines) for other files.
     $units=[Collections.Generic.List[object]]::new()
     $current=@{title='';start=1;lines=[Collections.Generic.List[string]]::new()}
     $fence=$false;$number=0
@@ -337,7 +337,7 @@ function Split-SBSearchUnits([string[]]$Lines,[bool]$Markdown) {
 function Get-SBSearchDefaultLimit { 20 }
 function Get-SBSearchDefaultBudget { 10000 }
 function Limit-SBSearchLine([string]$Text,[int]$Max=600) {
-    # Riga lunga troncata con marcatore (la riga intera si legge con -Section o aprendo il file).
+    # Truncate long lines with a marker (read the whole line with -Section or by opening the file).
     if($Text.Length -le $Max){return $Text}
     $Text.Substring(0,$Max)+' [...+'+($Text.Length-$Max)+' car]'
 }
@@ -348,7 +348,7 @@ function Find-SBKnowledge {
         [Parameter(Mandatory)][string]$Search,
         [string]$Dossier='',
         [string]$Repository='',
-        # -1 = valore predefinito (Get-SBSearchDefaultLimit / Get-SBSearchDefaultBudget); 0 = nessun tetto esplicito.
+        # -1 = default (Get-SBSearchDefaultLimit / Get-SBSearchDefaultBudget); 0 = explicitly unlimited.
         [ValidateRange(-1,[int]::MaxValue)][int]$Budget=-1,
         $Entities=@(),
         [ValidateSet('Literal','Relevance')][string]$Mode='Literal',
@@ -386,14 +386,14 @@ function Find-SBKnowledge {
             $candidate=Join-Path $dir $name
             if(Test-Path -LiteralPath $candidate -PathType Leaf){$filesToSearch.Add($candidate)}
         }
-        # Gli originali compattati sono copie quasi identiche dei file correnti: cercati solo con -IncludeOriginals.
+        # Compacted originals nearly duplicate current files: search them only with -IncludeOriginals.
         $compactionDir=Join-Path $dir 'history/compaction'
         if($IncludeOriginals -and (Test-Path -LiteralPath $compactionDir -PathType Container)){
             foreach($item in (Get-ChildItem -LiteralPath $compactionDir -File -Recurse|Sort-Object FullName)){
                 if($item.Extension -in @('.md','.json','.txt')){$filesToSearch.Add($item.FullName)}
             }
         }
-        # Strato di approfondimento: task archiviati e rapporti dei lotti (sempre cercabili, a richiesta con Offset/Limit).
+        # Deeper layer: archived tasks and batch reports (always searchable; Offset/Limit available on request).
         $archiveFile=Join-Path $dir 'history/tracker-archive.json'
         if(Test-Path -LiteralPath $archiveFile -PathType Leaf){$filesToSearch.Add($archiveFile)}
         $historyDir=Join-Path $dir 'history'
@@ -433,7 +433,7 @@ function Find-SBKnowledge {
                 if($heading.Contains($token)){$headingHits++}
             }
             if(!$distinct){continue}
-            # Copertura dei termini prima di tutto, poi titolo, frase esatta e frequenza (limitata).
+            # Term coverage first, then title, exact phrase and capped frequency.
             $score=$distinct*100+$headingHits*25+$(if($text.Contains($phrase)){50}else{0})+[Math]::Min($occurrences,20)
             $ranked+=@{unit=$unit;score=$score}
         }
@@ -449,11 +449,11 @@ function Find-SBKnowledge {
             }
         }
     }
-    # Paginazione sull'elenco ordinato dei riscontri, poi tetto facoltativo di caratteri sulla pagina.
+    # Page the sorted matches, then apply the optional character limit to that page.
     $totalMatches=$candidates.Count
     $page=@($candidates|Select-Object -Skip $Offset)
     if($Limit -gt 0){$page=@($page|Select-Object -First $Limit)}
-    # Il tetto di caratteri taglia la pagina al primo riscontro che lo supera (almeno uno e sempre incluso): la pagina resta contigua e nextOffset riprende da li.
+    # The character limit stops at the first overflowing match (always include at least one): the page stays contiguous and nextOffset resumes there.
     foreach($candidate in $page){
         if($Budget -gt 0 -and $extracts.Count -gt 0 -and $totalChars + $candidate.size -gt $Budget){break}
         $extracts.Add($candidate.extract)
@@ -479,7 +479,7 @@ function Find-SBKnowledge {
         extracts=@($extracts)
     }
 }
-# Ciclo di vita del repository nel repository.json del dossier: assente (normale) oppure greenfield (blocco di versioni, changelog, migrazioni, alias e deprecations).
+# Repository lifecycle in the dossier's repository.json: absent (normal) or greenfield (guard for versions, changelog, migrations, aliases and deprecations).
 function Get-SBRepositoryLifecycle([string]$Dossier) {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record -or !$record.ContainsKey('lifecycle')){return ''}
@@ -498,7 +498,7 @@ function Set-SBRepositoryLifecycle {
     @{repository=$record.identity;lifecycle=$(if($Lifecycle -eq 'greenfield'){'greenfield'}else{''});changed=$changed}
 }
 function Get-SBTaskDetail {
-    # Dettaglio integro di un task per id o seq (anche "#203"), dal tracker attivo o dall'archivio del dossier.
+    # Complete task details by ID or seq (including "#203"), from the active tracker or dossier archive.
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Task,[string]$CheckoutPath)
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
@@ -518,7 +518,7 @@ function Get-SBTaskDetail {
     throw (New-SBError 'knowledge.task.notfound' @($Task))
 }
 function Get-SBMarkdownSections([string[]]$Lines) {
-    # Sezioni di un Markdown: intestazione di qualunque livello fino alla successiva dello stesso livello o superiore (sottosezioni incluse); i blocchi di codice non contano.
+    # Markdown sections: any heading through the next heading at the same or a higher level (including subsections); ignore code fences.
     $headings=@();$fence=$false;$number=0
     foreach($line in $Lines){
         $number++
@@ -531,7 +531,7 @@ function Get-SBMarkdownSections([string[]]$Lines) {
     $headings
 }
 function Get-SBSection {
-    # Sezione intera per titolo da context.md, memory.md e history/*/report.md (Source: context, memory, history, history/<cartella>).
+    # Whole named section from context.md, memory.md and history/*/report.md (Source: context, memory, history, history/<folder>).
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Title,[string]$Source='')
     $root=[IO.Path]::GetFullPath($BrainRoot)
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
@@ -591,7 +591,7 @@ function Invoke-SBDossierCompaction {
         $planned[$name]=$text
         $ops+=@{path=$source;expected=$hash;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
         if($name -eq 'memory.md'){
-            # La vista per agenti segue la nuova memoria nella stessa transazione.
+            # The agent view follows the new memory in the same transaction.
             $viewPath=Join-Path $dir 'memory.agent.md'
             $planned['memory.agent.md']=ConvertTo-SBAgentMemoryView $text
             $ops+=@{path=$viewPath;expected=(Get-SBFileHash $viewPath);bytes=[Text.Encoding]::UTF8.GetBytes($planned['memory.agent.md'])}

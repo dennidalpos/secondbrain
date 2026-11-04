@@ -11,6 +11,14 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'mcp.title.get_startup_context' = @{ it = 'Contesto iniziale'; en = 'Startup context' }
+    'mcp.title.get_ready_tasks' = @{ it = 'Attività pronte'; en = 'Ready tasks' }
+    'mcp.title.get_task' = @{ it = 'Dettaglio attività'; en = 'Task details' }
+    'mcp.title.search_knowledge' = @{ it = 'Cerca nella conoscenza'; en = 'Search knowledge' }
+    'mcp.title.list_prompts' = @{ it = 'Elenco prompt'; en = 'List prompts' }
+    'mcp.title.get_prompt_home' = @{ it = 'Menu dei prompt'; en = 'Prompt home' }
+    'mcp.title.get_prompt' = @{ it = 'Scheda prompt'; en = 'Prompt card' }
+    'mcp.title.check_publication' = @{ it = 'Verifica pubblicabilità'; en = 'Publication check' }
     'mcp.pending.contract' = @{it='All avvio e durante le letture integra scritture di dossier gia autorizzate e accodate, senza attendere il lock; puo quindi modificare dati locali.';en='At startup and during reads, applies previously authorized queued dossier writes without waiting for the lock; it can therefore modify local data.'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
@@ -216,14 +224,14 @@ function Get-SBMcpToolDefinitions {
     )
     foreach($definition in $definitions){
         $definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')
-        $definition.annotations=@{readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
+        $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
         $definition
     }
 }
 
 
 function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
-    # Repository esplicito, altrimenti quello del checkout in lavoro (argomento checkoutPath o directory corrente del server).
+    # Explicit repository, otherwise the working checkout's repository (checkoutPath argument or server current directory).
     if ($Arguments.ContainsKey('repository') -and $Arguments.repository) { return [string]$Arguments.repository }
     $checkout = if ($Arguments.ContainsKey('checkoutPath') -and $Arguments.checkoutPath) { [string]$Arguments.checkoutPath } else { '' }
     $bindings = @()
@@ -233,7 +241,7 @@ function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     $resolved
 }
 
-# Alias storici (prefisso secondbrain_) ancora accettati in tools/call ma ritirati da tools/list: deprecati.
+# Historical aliases (secondbrain_ prefix) remain accepted by tools/call but are retired from tools/list: deprecated.
 function Get-SBMcpDeprecatedToolAliases {
     [ordered]@{
         secondbrain_startup_context = 'get_startup_context'
@@ -258,7 +266,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
     $legacyAliases = Get-SBMcpDeprecatedToolAliases
     if ($legacyAliases.Contains($ToolName)) { $ToolName = $legacyAliases[$ToolName] }
 
-    # La lingua dei prompt (en o it) vale solo per gli strumenti sui prompt e per la durata della chiamata.
+    # Prompt language (en or it) applies only to prompt tools and only for the duration of the call.
     $previousLanguage = Get-SBWorkflowLanguageOverride
     if ($ToolName -in @('list_prompts', 'get_prompt_home', 'get_prompt') -and $Arguments.ContainsKey('language') -and $Arguments.language) {
         if ([string]$Arguments.language -notin @('en', 'it')) { throw (New-SBError 'mcp.language.invalid') }
@@ -270,14 +278,14 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $startupProfile = if ($Arguments.ContainsKey('profile') -and $Arguments.profile) { [string]$Arguments.profile } else { 'slim' }
             if ($startupProfile -notin @('slim', 'full')) { throw (New-SBError 'mcp.profile.invalid') }
             $startupProfile = if ($startupProfile -eq 'full') { 'Full' } else { 'Slim' }
-            # Tetto solo per il primo caricamento (slim); full non ha tetto salvo budget esplicito.
+            # Limit only initial loading (slim); full is unlimited unless budget is explicit.
             $budgetDefault = if ($startupProfile -eq 'Slim') { Get-SBSlimStartupBudget } else { 0 }
             $budget = if ($Arguments.ContainsKey('budget') -and $Arguments.budget) { [int]$Arguments.budget } else { $budgetDefault }
             $readyOnly = if ($Arguments.ContainsKey('readyOnly')) { [bool]$Arguments.readyOnly } else { $false }
             $dossier = if ($Arguments.ContainsKey('dossier')) { [string]$Arguments.dossier } else { $null }
 
             if (!$dossier) {
-                # Nessun default sul repository del cervello: il dossier segue il repository esplicito o il checkout in lavoro.
+                # Never default to the brain repository: the dossier follows the explicit repository or working checkout.
                 $repo = Resolve-SBMcpRepository $BrainRoot $Arguments
                 $dossier = Resolve-SBWorkingDossier $BrainRoot $repo
             }
@@ -292,7 +300,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if (!$all) {
                 return ConvertTo-SBMcpJson @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository (Resolve-SBMcpRepository $BrainRoot $Arguments) -ReadyOnly)
             }
-            # Vista globale paginata (predefinito 50 task per pagina): dimensione limitata, nextOffset per la pagina successiva.
+            # Paginated global view (default 50 tasks per page): bounded size; nextOffset identifies the next page.
             $offset = if ($Arguments.ContainsKey('offset') -and $Arguments.offset) { [int]$Arguments.offset } else { 0 }
             $limit = if ($Arguments.ContainsKey('limit') -and $null -ne $Arguments.limit) { [int]$Arguments.limit } else { 50 }
             if ($offset -lt 0 -or $limit -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
@@ -311,13 +319,13 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
                 throw (New-SBError 'mcp.query.required')
             }
             $query = [string]$Arguments.query
-            # -1 = tetto predefinito (20 riscontri, 10.000 caratteri); 0 esplicito = nessun tetto.
+            # -1 = default limit (20 matches, 10,000 characters); explicit 0 = unlimited.
             $budget = if ($Arguments.ContainsKey('budget') -and $null -ne $Arguments.budget) { [int]$Arguments.budget } else { -1 }
             $dossier = if ($Arguments.ContainsKey('dossier')) { [string]$Arguments.dossier } else { $null }
             $repo = if ($Arguments.ContainsKey('repository')) { [string]$Arguments.repository } else { $null }
             $allDossiers = $Arguments.ContainsKey('allDossiers') -and [bool]$Arguments.allDossiers
             $includeOriginals = $Arguments.ContainsKey('includeOriginals') -and [bool]$Arguments.includeOriginals
-            # Ambito predefinito: repository del checkout in lavoro (se risolvibile), altrimenti tutte le aree ma con il tetto predefinito.
+            # Default scope: working checkout's repository, if resolvable; otherwise all areas, still with the default limit.
             if (!$dossier -and !$repo -and !$allDossiers) {
                 try { $repo = Resolve-SBMcpRepository $BrainRoot $Arguments } catch { $repo = $null }
             }
@@ -362,7 +370,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $repoPath = [string]$Arguments.repositoryPath
             $report = Test-SBPublication -RepositoryPath $repoPath -BrainRoot $BrainRoot -PolicyPath (Resolve-SBPublicationPolicyPath $BrainRoot $null)
             if ($Arguments.ContainsKey('detail') -and [bool]$Arguments.detail) { return ConvertTo-SBMcpJson $report }
-            # Riepilogo: conteggi per regola e primi 20 riscontri; excludedRefs ridotto a conteggio. detail=true restituisce il rapporto integro.
+            # Summary: counts per rule and first 20 matches; excludedRefs becomes a count. detail=true returns the complete report.
             $allFindings = @($report.findings)
             $summary = @{}
             foreach ($key in $report.Keys) { $summary[$key] = $report[$key] }
@@ -648,7 +656,7 @@ function Get-SBMcpKnowledgeToolNames {
     @('get_startup_context', 'get_ready_tasks', 'get_task', 'search_knowledge', 'list_prompts', 'get_prompt', 'get_prompt_home')
 }
 function Test-SBClaudeCodeRegistration([string]$ConfigFile) {
-    # Sola lettura di .claude.json: server a livello utente (mcpServers) o locale a un progetto (projects.<percorso>.mcpServers).
+    # Read-only .claude.json access: user-level server (mcpServers) or project-local server (projects.<path>.mcpServers).
     if (!$ConfigFile -or !(Test-Path -LiteralPath $ConfigFile -PathType Leaf)) { return $false }
     try {
         $document = Get-Content -LiteralPath $ConfigFile -Raw -ErrorAction Stop | ConvertFrom-Json -AsHashtable -ErrorAction Stop
@@ -902,7 +910,7 @@ function Get-SBMcpPairing {
                 $claudeRoot = [Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User')
                 if (!$claudeRoot) { $claudeRoot = $env:CLAUDE_CONFIG_DIR }
                 $cliCommand = $null
-                # Claude Code registra i server in .claude.json (nella cartella CLAUDE_CONFIG_DIR se impostata, altrimenti nel profilo utente), non in claude_desktop_config.json.
+                # Claude Code registers servers in .claude.json (under CLAUDE_CONFIG_DIR when set, otherwise the user profile), not claude_desktop_config.json.
                 $claudeCodeFile = if ($ClaudeCodeConfigFile) { $ClaudeCodeConfigFile } elseif ($claudeRoot) { Join-Path $claudeRoot '.claude.json' } else { Join-Path $env:USERPROFILE '.claude.json' }
                 $configFile = Join-Path $env:APPDATA 'Claude/claude_desktop_config.json'
 
@@ -915,7 +923,7 @@ function Get-SBMcpPairing {
                     }
                 }
                 $json = ConvertTo-Json -InputObject $snippetObj -Depth 10
-                # Claude Code: regole di permesso (settings.json) solo per gli strumenti di lettura, da incollare dopo approvazione dell'utente.
+                # Claude Code: settings.json permission rules only for knowledge tools, to paste after user approval.
 
                 $results += [PSCustomObject]@{
                     Target = 'claude'
@@ -967,7 +975,7 @@ function Get-SBMcpPairing {
                 }
             }
             'vscode' {
-                # VS Code legge i server MCP da mcp.json (chiave servers, type obbligatorio): nel profilo utente o, con -WorkspacePath, in .vscode/ del progetto.
+                # VS Code reads MCP servers from mcp.json (servers key, required type): user profile or, with -WorkspacePath, the project's .vscode/.
                 $configFile = if ($workspaceRoot) { Join-Path $workspaceRoot '.vscode/mcp.json' } else { Join-Path $env:APPDATA 'Code/User/mcp.json' }
 
                 $snippetObj = [ordered]@{
@@ -997,7 +1005,7 @@ function Get-SBMcpPairing {
                 }
             }
             'claude-code' {
-                # Claude Code: ambito project = .mcp.json nella radice del progetto (chiave mcpServers); l'ambito user vive in ~/.claude.json, gestito dalla CLI.
+                # Claude Code: project scope = .mcp.json in the project root (mcpServers key); user scope lives in ~/.claude.json, managed by the CLI.
                 $configFile = if ($workspaceRoot) { Join-Path $workspaceRoot '.mcp.json' } else { $null }
                 $claudeRootCode = [Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User')
                 if (!$claudeRootCode) { $claudeRootCode = $env:CLAUDE_CONFIG_DIR }
@@ -1035,7 +1043,7 @@ function Get-SBMcpPairing {
                 }
             }
             'antigravity' {
-                # Antigravity 2.0 condivide la configurazione in ~/.gemini/config/mcp_config.json; le versioni precedenti usano ~/.gemini/antigravity/mcp_config.json. Vale il file nuovo se esiste.
+                # Antigravity 2.0 shares configuration in ~/.gemini/config/mcp_config.json; earlier versions use ~/.gemini/antigravity/mcp_config.json. Prefer the new file when present.
                 $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'
                 $agLegacy = Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json'
                 $configFile = if($workspaceRoot){Join-Path $workspaceRoot '.agents/mcp_config.json'}elseif((Test-Path -LiteralPath $agLegacy -PathType Leaf) -and !(Test-Path -LiteralPath $agShared -PathType Leaf)){$agLegacy}else{$agShared}

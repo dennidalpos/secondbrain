@@ -68,7 +68,7 @@ function Test-SBTrackerPolicy([string]$BrainRoot) {
     (Test-SBApproval $BrainRoot) -and (Read-SBText (Join-Path $BrainRoot 'direttive/workstation.template.md')).Contains('<!-- secondbrain:tracker-contract:1 -->')
 }
 
-# Numerazione progressiva: seq univoco, titolo "#NNN - " coerente, contatore extensions.lastSeq mai inferiore al massimo (i numeri non si riusano).
+# Sequential numbering: unique seq, consistent "#NNN - " title, extensions.lastSeq never below the maximum (numbers are never reused).
 $script:SBTrackerSeqSeparator=' '+[char]0x2014+' '
 function Format-SBTrackerSeqTitle([int]$Seq,[string]$Title) {
     '#'+$Seq.ToString('000')+$script:SBTrackerSeqSeparator+($Title -replace ('^#\d+'+[regex]::Escape($script:SBTrackerSeqSeparator)),'')
@@ -273,7 +273,7 @@ function ConvertTo-SBTracker {
                 $m=@{}+$Matches;$value=@{id=$m.id;title=$m.result.Trim();status='pending';priority=($m.state.Trim() -split ' ')[0];description=$m.result.Trim();closureCriteria=$m.result.Trim();dependencies=@();originalRow=$row}
                 if($m.state -match 'bloccato'){$value.status='blocked'}elseif($m.state -match 'parziale|in corso'){$value.status='PARTIAL'}
                 $dependencyText=[regex]::Replace($m.deps,'SB-OPT-(\d+)\.\.(\d+)',[Text.RegularExpressions.MatchEvaluator]{param($match) (([int]$match.Groups[1].Value)..([int]$match.Groups[2].Value)|ForEach-Object {'SB-OPT-'+$_.ToString('00')}) -join ', '})
-                # Le condizioni dopo il punto e virgola restano testo originale, non nuovi prerequisiti.
+                # Conditions after a semicolon remain original text, not new prerequisites.
                 if($dependencyText.TrimStart() -match '^SB-OPT-'){$value.dependencies=@([regex]::Matches(($dependencyText -split ';',2)[0],'SB-OPT-\d+')|ForEach-Object Value|Sort-Object -Unique)}
                 $tasks.Add((New-SBTrackerTask $value $Identity 'markdown.open' $Reference $hash ('line:'+ $line) $Commit))
                 $recognized=$true
@@ -381,7 +381,7 @@ function Get-SBCuratedReferenceIssues([string]$BrainRoot,$Entities) {
                     continue
                 }
                 if($fence){continue}
-                # I percorsi obsoleti in prosa o codice inline restano riferimenti; i blocchi sono esclusi.
+                # Stale paths in prose or inline code remain references; fenced blocks are excluded.
                 foreach($match in [regex]::Matches($line,'(?<![\w:/\\.-])repos/[^/\s`<>]+/(?:context|memory|tracker)\.md')){
                     'Riferimento dossier obsoleto: '+$area.path+'/'+$name+':'+$lineNumber+': '+$match.Value
                 }
@@ -415,8 +415,8 @@ function Get-SBTrackerAuthorityIssues([string]$BrainRoot,$Entities) {
 }
 
 function Resolve-SBTrackerBackupRoot([string]$BrainRoot) {
-    # Il backupRoot predefinito e quello della configurazione dell'host corrente (workstation.json, anche migrato);
-    # senza configurazione attiva resta .runtime/backups/transactions. Una configurazione presente ma non valida e un errore, non un fallback.
+    # Default backupRoot comes from the current host configuration (workstation.json, including migrated configurations);
+    # without active configuration, use .runtime/backups/transactions. An existing invalid configuration is an error, not a fallback.
     $fallback=Join-Path $BrainRoot '.runtime/backups/transactions'
     $configPath=Get-SBHostConfigPath $BrainRoot
     if(!(Test-Path -LiteralPath $configPath -PathType Leaf)){return $fallback}
@@ -427,7 +427,7 @@ function Resolve-SBTrackerBackupRoot([string]$BrainRoot) {
     if(![IO.Path]::IsPathFullyQualified($value)){$value=Join-Path $BrainRoot $value}
     Assert-SBCentralDataPath $BrainRoot $value
 }
-# Risolve il tracker su cui scrivere (per Path o per identita dichiarata nel dossier) e applica il perimetro cooperativo.
+# Resolve the writable tracker (by Path or dossier-declared identity) and enforce cooperative scope.
 function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[string]$Path,[string]$WorkingRepository) {
     if($WorkingRepository -and $Identity -and $Identity -cne $WorkingRepository){throw (New-SBError 'tracker.write.foreign' @($Identity,$WorkingRepository))}
     if(!$BrainRoot){
@@ -470,7 +470,7 @@ function Resolve-SBTrackerWriteTarget([string]$BrainRoot,[string]$Identity,[stri
     @{brainRoot=$BrainRoot;identity=$Identity;path=$trackerPath;hash=(Get-SBFileHash $trackerPath);data=$next}
 }
 
-# Valida il tracker aggiornato sull'intero grafo e lo scrive in transazione, con eventuali file aggiuntivi nello stesso journal.
+# Validate the updated tracker across the entire graph, then write transactionally, with optional additional files in the same journal.
 function Assert-SBTrackerWriteData($Target,$Data) {
     $entities=@(Get-SBParaEntities $Target.brainRoot @())
     $managedIdentities=@($entities|Where-Object kind -eq 'area'|ForEach-Object repository)
@@ -553,8 +553,8 @@ function Set-SBTrackerTaskStatus {
     $result
 }
 
-# Crea un task con il numero progressivo successivo (mai riusato) e il titolo "#NNN - ".
-# Richiede un tracker gia numerato: per i tracker storici eseguire prima Invoke-SBTrackerRenumber.
+# Create a task with the next sequential number (never reused) and a "#NNN - " title.
+# Requires an already numbered tracker: run Invoke-SBTrackerRenumber first for historical trackers.
 function New-SBTrackerTaskEntry {
     [CmdletBinding()]
     param(
@@ -583,7 +583,7 @@ function New-SBTrackerTaskEntry {
     $seq=(Get-SBTrackerLastSeq $next)+1
     if(!$Id){$Id='TASK-'+$seq.ToString('000')}
     if(@($next.tasks|Where-Object {$_.id -ceq $Id}).Count){throw (New-SBError 'tracker.task.exists' @($Id))}
-    # La provenienza e un file reale: riferimento relativo al dossier (o assoluto), hash calcolato qui.
+    # Provenance is a real file: dossier-relative or absolute reference; compute its hash here.
     $dossierDir=Split-Path $target.path
     $sourcePath=if([IO.Path]::IsPathFullyQualified($ProvenanceReference)){$ProvenanceReference}else{Join-Path $dossierDir (($ProvenanceReference -split '#',2)[0])}
     if(!(Test-Path -LiteralPath $sourcePath -PathType Leaf)){throw (New-SBError 'tracker.provenance.missing' @($ProvenanceReference))}
@@ -606,8 +606,8 @@ function New-SBTrackerTaskEntry {
     $saved+@{taskId=$Id;seq=$seq;title=$task.title}
 }
 
-# Numerazione retroattiva in ordine cronologico: archivio e tracker attivo, data ricavata dall'ID (aaaammgg) o ereditata dal task precedente.
-# Ordinamento stabile; gli originali sono conservati per hash in history/tracker-seq/<sha256>/ nella stessa transazione. Senza -Apply e un'anteprima.
+# Retrospective chronological numbering: archive and active tracker; date from the ID (yyyyMMdd) or inherited from the previous task.
+# Stable ordering; preserve originals by hash in history/tracker-seq/<sha256>/ within the same transaction. Without -Apply, preview only.
 function Invoke-SBTrackerRenumber {
     [CmdletBinding()]
     param(

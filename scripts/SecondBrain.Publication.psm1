@@ -30,7 +30,7 @@ Add-SBMessages @{
 
 $script:SBPublicationRuleCache=$null
 function Get-SBPublicationRules {
-    # Regole e regex costruite una sola volta per processo (IgnoreCase come l operatore -match).
+    # Build rules and regexes once per process (IgnoreCase, like the -match operator).
     if($script:SBPublicationRuleCache){return $script:SBPublicationRuleCache}
     $script:SBPublicationRuleCache=@(
         @{id='credential';severity='error';pattern='(?i)(?:gh[pousr]_[A-Za-z0-9_]{30,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|(?:api[_-]?key|password|token)\s*[:=]\s*["''][^"''\r\n]{12,}["''])'},
@@ -40,7 +40,7 @@ function Get-SBPublicationRules {
     $script:SBPublicationRuleCache
 }
 function ConvertTo-SBBlobText([byte[]]$Bytes) {
-    # Stessa decodifica dello stream di processo: UTF-8 con rilevamento del BOM (UTF-16/32 inclusi).
+    # Match process-stream decoding: UTF-8 with BOM detection (including UTF-16/32).
     $utf8=[Text.UTF8Encoding]::new($false)
     if($Bytes.Length -and $Bytes[0] -notin 0x00,0xEF,0xFE,0xFF){return $utf8.GetString($Bytes)}
     $reader=[IO.StreamReader]::new([IO.MemoryStream]::new($Bytes),$utf8,$true)
@@ -59,7 +59,7 @@ function Test-SBPublicationText([string]$Text,[string]$Path,[string]$Surface,$Al
     }
 }
 function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath) {
-    # Senza -PolicyPath esplicito usa la policy locale di default, se esiste (CLI e MCP danno lo stesso esito).
+    # Without explicit -PolicyPath, use the default local policy when present (CLI and MCP return the same outcome).
     if($PolicyPath){return $PolicyPath}
     if(Test-Path -LiteralPath (Join-Path $BrainRoot '.runtime/publication/policy.json') -PathType Leaf){return '.runtime/publication/policy.json'}
     return $null
@@ -72,7 +72,7 @@ function Get-SBPublicationBaselinePath([string]$BrainRoot,[string]$RepositoryRoo
 function Read-SBPublicationBaseline([string]$BrainRoot,[string]$RepositoryRoot) {
     $file=Get-SBPublicationBaselinePath $BrainRoot $RepositoryRoot
     if(Test-Path -LiteralPath $file -PathType Leaf){return Read-SBJson $file $null}
-    # Compatibilità: il file unico precedente vale solo se registrato per questo repository; non viene mai riscritto.
+    # Compatibility: the previous single file applies only when registered for this repository; never rewrite it.
     $legacy=Join-Path $BrainRoot '.runtime/publication/baseline.json'
     if(Test-Path -LiteralPath $legacy -PathType Leaf){
         $data=Read-SBJson $legacy $null
@@ -86,13 +86,13 @@ function Test-SBPublication {
     $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
     $findings=@();$incomplete=@();$checked=0
     
-    # Un baseline per repository (nome dal percorso normalizzato): -Initial su un repository non altera gli altri.
+    # One baseline per repository (name from normalized path): -Initial on one repository leaves others unchanged.
     $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root } else { $null }
     $baseline = if (!$Initial -and $baselineFile) { Read-SBPublicationBaseline $BrainRoot $root } else { $null }
 
     $targetFiles = @()
     if ($baseline -and $baseline.headCommit) {
-        # Modalità incrementale: scansiona solo file modificati, staged o non tracciati
+        # Incremental mode: scan only modified, staged or untracked files.
         $diffFiles = Invoke-SBGit $root @('diff', '--name-only', $baseline.headCommit)
         $untracked = Invoke-SBGit $root @('ls-files', '--others', '--exclude-standard')
         $cached = Invoke-SBGit $root @('diff', '--cached', '--name-only')
@@ -107,13 +107,13 @@ function Test-SBPublication {
         $targetFiles = @($files.output -split "`0"|Where-Object {$_}|Sort-Object -Unique)
     }
 
-    # Oid dell indice in un solo processo, poi tipo/dimensione in batch: niente rev-parse/cat-file -s per file.
+    # Index OIDs in one process, then batch type/size: no per-file rev-parse/cat-file -s.
     $indexMap=@{}
     $indexList=Invoke-SBGit $root @('ls-files','-s','-z') 120000 -PreserveOutput
     if($indexList.code -ne 0){throw (New-SBError 'publication.index')}
     foreach($entry in $indexList.output -split "`0"){if($entry -match '^\d+ ([a-f0-9]{40,64}) 0\t(.+)$'){$indexMap[$Matches[2]]=$Matches[1]}}
     $indexInfo=Get-SBGitObjectInfo $root @($targetFiles|Where-Object {$indexMap.ContainsKey($_)}|ForEach-Object {$indexMap[$_]}|Sort-Object -Unique)
-    # Contenuto dei blob d indice in un solo processo, entro un budget di memoria; oltre il budget resta la lettura per file.
+    # Index blob contents in one process within a memory budget; beyond the budget, retain per-file reads.
     $indexText=@{};$prefetchBudget=268435456;$prefetch=[Collections.Generic.List[object]]::new()
     foreach($oid in @($indexInfo.Keys|Sort-Object)){
         $meta=$indexInfo[$oid];if($meta.type -ne 'blob' -or $meta.size -gt $MaxTextBytes -or $meta.size -gt $prefetchBudget){continue}
@@ -172,7 +172,7 @@ function Test-SBPublication {
             Invoke-SBGit $root @('rev-list', '--objects', "$($baseline.headCommit)..$currentHead")
         }
     } else {
-        # Solo i riferimenti pubblicabili (rami, tag, remoti) e HEAD: i ref locali degli strumenti (refs/codex/*, stash, notes) non lasciano il clone.
+        # Only publishable refs (branches, tags, remotes) and HEAD: local tool refs (refs/codex/*, stash, notes) never leave the clone.
         $scanRefs = @('--branches', '--tags', '--remotes')
         if ($currentHead) { $scanRefs += 'HEAD' }
         Invoke-SBGit $root (@('rev-list', '--objects') + $scanRefs)
@@ -185,7 +185,7 @@ function Test-SBPublication {
 
     $historyCount = if ($baseline -and $baseline.historyBlobs) { [int]$baseline.historyBlobs } else { 0 }
     if($objects.code -eq 0){
-        # Tipo/dimensione di tutti gli oggetti con un processo, contenuto dei blob con un altro (streaming nell ordine di rev-list).
+        # All object types/sizes in one process, blob contents in another (streamed in rev-list order).
         $entries=[Collections.Generic.List[object]]::new()
         foreach($line in $objects.output -split "`n"){
             if($line -notmatch '^([a-f0-9]{40,64}) (.+)$'){continue}
@@ -202,7 +202,11 @@ function Test-SBPublication {
         if($queue.Count){
             Read-SBGitBlobs $root $queue.ToArray() | ForEach-Object {
                 $relative=$_.Entry.Path;$oid=$_.Entry.Oid
-                if($_.Entry.Skip){$incomplete+=@{path=$relative;surface='history';reason='size-limit'};return}
+                if($_.Entry.Skip){
+                    # Beyond the threshold, the blob is not read: use the binary review bound to its path and object.
+                    if(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.gitBlob -eq $oid -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='history';reason='size-limit'}}
+                    return
+                }
                 if($_.Missing -or $null -eq $_.Bytes){$incomplete+=@{path=$relative;surface='history';reason='unreadable'};return}
                 $blobText=ConvertTo-SBBlobText $_.Bytes
                 if(!$blobText.Contains([char]0)){$findings+=@(Test-SBPublicationText $blobText $relative 'history' $allowances)}
@@ -434,7 +438,7 @@ function Uninstall-SBPublicationHook {
         }
     }
     
-    # Un pre-push non creato da SecondBrain e dell'utente: non si cancella.
+    # A pre-push hook not created by SecondBrain belongs to the user: never delete it.
     if ((Get-Content -LiteralPath $hookFile -Raw) -notmatch 'SecondBrain pre-push hook') {
         throw (New-SBError 'publication.hook.foreign' @($hookFile))
     }

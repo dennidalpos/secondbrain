@@ -181,7 +181,7 @@ function Get-SBSourceContent([hashtable]$Endpoint,[scriptblock]$Transport) {
         if($Endpoint.format -eq 'json'){$null=$text|ConvertFrom-Json -AsHashtable -DateKind String}
     }
     $result['sha256']=Get-SBHash $result.bytes
-    # HTML: i contenuti eseguibili e il solo whitespace non determinano una variazione.
+    # HTML: executable content and whitespace alone do not count as changes.
     $relevant=if($Endpoint.format -eq 'html'){
         $clean=[regex]::Replace($text,'(?is)<(script|style|noscript)\b[^>]*>.*?</\1>|<!--.*?-->',' ')
         [regex]::Replace([Net.WebUtility]::HtmlDecode([regex]::Replace($clean,'<[^>]+>',' ')),'\s+',' ').Trim()

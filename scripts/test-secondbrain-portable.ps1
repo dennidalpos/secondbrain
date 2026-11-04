@@ -93,10 +93,10 @@ try{
     $beforeEnvironment=[Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User')
     $activation=Invoke-SBHostActivation $brain $selection -Apply
     Assert-Portable ($activation.applied -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $beforeEnvironment) 'attivazione fixture non cambia ambiente utente'
-    # Ramo positivo di -RegisterEnvironment: la scrittura va nel solo processo di prova e il valore utente resta intatto.
+    # Positive -RegisterEnvironment path: write only to the test process, preserving the user-level value.
     $portableModule=Get-Module SecondBrain.Portable
     $savedProcessHome=[Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','Process')
-    # Come a riga 899: la seconda attivazione in-process confligge con il registro postazioni scritto dalla prima; lo si sposta e lo si ripristina.
+    # As at line 899: the second in-process activation conflicts with the first activation's workstation registry; move and restore it.
     $stationRegistry=Join-Path $brain '.runtime/access/workstations.json';$stationRegistryText=if(Test-Path -LiteralPath $stationRegistry){[IO.File]::ReadAllText($stationRegistry)}else{$null}
     try{
         & $portableModule {$script:SBEnvironmentScope='Process'}
@@ -162,7 +162,7 @@ try{
     $projectionTask=@{tasks=@(@{id='ACTIVE';title='Active fixture';status='todo';priority='P2';dependencies=@();acceptance=@('full criteria preserved in source');extensions=@{stateReason='requires fixture prerequisite'}})}
     $minimal=@(Get-SBTaskProjection $projectionTask);$detail=@(Get-SBTaskProjection $projectionTask -IncludeAcceptance)
     Assert-Portable (!$minimal[0].ContainsKey('acceptance') -and $detail[0].acceptance.Count -eq 1 -and $minimal[0].blocker -eq 'requires fixture prerequisite') 'task iniziali selettivi con criteri completi disponibili su richiesta'
-    # Profilo di avvio snello: sezioni storiche non caricate, indice dei livelli, task brevi, nulla eliminato.
+    # Slim startup profile: omit historical sections, index unloaded layers, shorten tasks, delete nothing.
     $baseContext=Read-SBText (Join-Path $dossier 'context.md');$baseMemory=Read-SBText (Join-Path $dossier 'memory.md')
     $historyBulk=('cronaca di lotto '*1500)
     Put-Portable (Join-Path $dossier 'memory.md') ($baseMemory.TrimEnd()+"`n`n## Decisioni durevoli`n`nESSENZIALE-MEMORIA`n`n## Cronaca lotti (storico)`n`n"+$historyBulk+"`n`n## Altro storico`n<!-- sb:tier=history -->`nSTORICO-MARCATO`n")
@@ -179,14 +179,14 @@ try{
     Assert-Portable ($slimStartup.parts.levels -match 'Cronaca lotti' -and $slimStartup.parts.levels -match 'Altro storico' -and $slimStartup.parts.levels -match 'knowledge\.ps1' -and @($slimStartup.omittedParts|Where-Object {$_.part -like 'memory*'}).Count -eq 1) 'indice dei livelli elenca le sezioni non caricate e come richiederle'
     Assert-Portable ($slimStartup.parts.tasks -notmatch 'acceptance' -and $slimStartup.parts.tasks -notmatch '\{') 'task di avvio snelli in forma testuale breve'
     Put-Portable (Join-Path $dossier 'memory.md') $baseMemory;Put-Portable (Join-Path $dossier 'context.md') $baseContext
-    # La vista agente generata da Sync (se presente) cambia la forma di memory: qui si verifica il solo comportamento dei livelli.
+    # The Sync-generated agent view (when present) changes the memory representation: verify only tier behavior here.
     Remove-Item -LiteralPath (Join-Path $dossier 'memory.agent.md') -Force -ErrorAction SilentlyContinue
     $plainSlim=Get-SBStartupContext $brain $dossier $repo -Profile Slim
     $plainFull=Get-SBStartupContext $brain $dossier $repo -Profile Full
     Assert-Portable ($plainSlim.parts.memory -eq $plainFull.parts.memory -and $plainSlim.parts.context -eq $plainFull.parts.context) 'dossier senza marcatori di livello: Slim carica per intero come Full'
     $tiered=Split-SBTieredMarkdown ("# T`n`npre`n`n## A`n`na`n`n## B (Storico)`n`nb`n`n## C`n`n<!-- sb:tier=history -->`nc`n")
     Assert-Portable ($tiered.essential.Contains('pre') -and $tiered.essential.Contains('## A') -and !$tiered.essential.Contains('## B') -and !$tiered.essential.Contains('## C') -and $tiered.history.Contains('b') -and @($tiered.historyTitles).Count -eq 2) 'Split-SBTieredMarkdown separa preambolo, essenziale e storico'
-    # Vista per agenti: voci tipizzate con id stabile, schema esplicito rispettato, voci libere classificate dal titolo, storico e footer esclusi, deduplica.
+    # Agent view: typed entries with stable IDs, explicit schema respected, free-form entries classified by heading, history/footer excluded, deduplicated.
     $viewSource="# Memoria`n`n## Decisioni`n`n- **Scelta uno**: motivo`n- **Scelta uno**: motivo`n- Decisione: usare X — Motivo: Y`n`n## Gotcha`n`n- [G] 2026-11-02 · mcp · Gotcha: attenzione`n  continua qui`n`n## Altro (storico)`n`n- voce storica`n`nOriginale conservato: [memory.md](history/x). Le autorizzazioni storiche non sono autorizzazioni correnti.`n"
     $view=ConvertTo-SBAgentMemoryView $viewSource
     $viewLines=@($view -split "`n"|Where-Object {$_ -match '^- \['})
@@ -212,7 +212,7 @@ try{
     foreach($original in $compaction.archives){Assert-Portable ((Get-SBFileHash (Join-Path $dossier $original.archive)) -eq $original.sha256) ('originale preservato '+$original.source)}
     Assert-Portable (Get-SBStartupContext $brain $dossier $repo).withinBudget 'contesto rientra nel budget'
     Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Apply} 'candidato obsoleto rifiutato'
-    # Budget di compattazione: conta le parti caricate da Slim, non le sezioni (storico).
+    # Compaction budget: count Slim-loaded parts, excluding historical sections marked (storico).
     $levelSummary=@('## Stato corrente','essenziale','## Vincoli','essenziale','## Problemi aperti','nessuno','## Prossimo passo','nessuno')-join "`n`n"
     $historyBlock="`n`n## Cronaca (storico)`n`n"+('cronaca di lotto '*4000)
     $levelCandidate=@{schemaVersion=1;repository=$cfg.bindings[0].identity;reviewed=$true;reviewNote='tiered fixture';sources=@{};summaries=@{'context.md'=($levelSummary+$historyBlock);'memory.md'='# Memoria'};openTaskIds=@()}
@@ -311,7 +311,7 @@ try{
     $archiveMatches=Find-SBKnowledge -BrainRoot $brain -Search 'archive' -Dossier $dossier -IncludeOriginals
     Assert-Portable ($archiveMatches.count -gt 0 -and @($archiveMatches.extracts|Where-Object {$_.path -match 'history/compaction'}).Count -gt 0) 'ricerca con -IncludeOriginals esplora history/compaction'
     Assert-Portable (@((Find-SBKnowledge -BrainRoot $brain -Search 'archive' -Dossier $dossier).extracts|Where-Object {$_.path -match 'history/compaction'}).Count -eq 0) 'ricerca predefinita esclude gli originali compattati'
-    # Tetto predefinito: limite di riscontri, pagina contigua con nextOffset, righe lunghe troncate, nessun campo matches duplicato.
+    # Default limit: bounded matches, contiguous page with nextOffset, truncated long lines, no duplicate matches field.
     $defaultCap=Find-SBKnowledge -BrainRoot $brain -Search 'e' -Dossier $dossier
     $unlimitedCap=Find-SBKnowledge -BrainRoot $brain -Search 'e' -Dossier $dossier -Limit 0 -Budget 0
     Assert-Portable ($defaultCap.limit -eq (Get-SBSearchDefaultLimit) -and $defaultCap.budget -eq (Get-SBSearchDefaultBudget) -and $defaultCap.count -le 20 -and !$defaultCap.ContainsKey('matches')) 'ricerca: tetto predefinito di riscontri e caratteri, senza duplicati'
@@ -319,7 +319,7 @@ try{
     Assert-Portable (@($unlimitedCap.extracts|Where-Object {$_.text.Length -gt 700}).Count -eq 0) 'ricerca: righe oltre 600 caratteri troncate con marcatore'
     $cappedSearch=Find-SBKnowledge -BrainRoot $brain -Search 'autorizzazioni' -Dossier $dossier -Budget 50
     Assert-Portable (!$cappedSearch.withinBudget -and $cappedSearch.extracts.Count -lt $searchResults.totalMatches) 'budget limitato segnalato da withinBudget'
-    # Ricerca per pertinenza: termini multipli, sezioni ordinate per copertura, titolo e frase; estratti con percorso, riga e sha256 invariati.
+    # Relevance search: multiple terms, sections ordered by coverage, title and phrase; snippets preserve path, line and sha256.
     $relevanceMemory=Read-SBText (Join-Path $dossier 'memory.md')
     Put-Portable (Join-Path $dossier 'memory.md') ($relevanceMemory.TrimEnd()+"`n`n## Rotazione chiavi`n`nLa rotazione delle chiavi avviene ogni trimestre.`n`n## Archivio parziale`n`nSolo la parola rotazione compare qui.`n`n## Altro`n`nNessun riscontro rilevante.`n")
     $literalPhrase=Find-SBKnowledge -BrainRoot $brain -Search 'rotazione chiavi trimestre' -Dossier $dossier
@@ -332,7 +332,7 @@ try{
     Assert-Portable (!$rankedCapped.withinBudget -and $rankedCapped.count -lt $ranked.totalMatches) 'ricerca per pertinenza: budget facoltativo segnalato da withinBudget'
     Assert-Portable ((Find-SBKnowledge -BrainRoot $brain -Search 'il di la' -Dossier $dossier -Mode Relevance).tokens.Count -eq 3 -and (Find-SBKnowledge -BrainRoot $brain -Search 'La rotazione' -Dossier $dossier -Mode Relevance).tokens.Count -eq 1) 'parole vuote ignorate, salvo query composta solo da parole vuote'
     Put-Portable (Join-Path $dossier 'memory.md') $relevanceMemory
-    # Strati di approfondimento: dettaglio integro di un task (anche archiviato), sezione intera per titolo, ricerca su archivio e rapporti con paginazione.
+    # Deeper layers: complete task details (including archived tasks), whole named section, paginated search of archives and reports.
     $layerArchive=Join-Path $dossier 'history/tracker-archive.json';$layerReport=Join-Path $dossier 'history/2026-01-01-lotto-prova/report.md'
     $layerTrackerPath=Join-Path $dossier 'tracker.json';$layerTrackerOriginal=Read-SBText $layerTrackerPath
     $layerDoc=Read-SBJson $layerTrackerPath $null
@@ -454,7 +454,7 @@ try{
     Assert-Portable ((Resolve-SBTrackerBackupRoot $noHostBrain) -eq (Join-Path $noHostBrain '.runtime/backups/transactions')) 'senza configurazione host resta il percorso di transazione sotto .runtime'
     $badHostPath=Get-SBHostConfigPath $noHostBrain;Put-Portable $badHostPath (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='bad'})
     Reject-Portable {Resolve-SBTrackerBackupRoot $noHostBrain} 'configurazione host senza backupRoot non ripiega in silenzio'
-    # Numerazione progressiva: rifiuto su tracker non numerato, rinumerazione cronologica con archivio e originali per hash, creazione max+1.
+    # Sequential numbering: reject unnumbered trackers, chronologically renumber with archive and originals by hash, create at max+1.
     $seqProvenance=Join-Path $dossier 'history/seq-source.md';Put-Portable $seqProvenance "fonte`n"
     Reject-Portable {New-SBTrackerTaskEntry -BrainRoot $brain -Path $trackerFilePath -Title 'Prima' -Acceptance @('ok') -ProvenanceReference 'history/seq-source.md' -BackupRoot $cfg.backupRoot} 'creazione rifiutata su tracker non numerato'
     $seqDoc=Read-SBJson $trackerFilePath $null
@@ -506,7 +506,7 @@ try{
     Put-Portable (Join-Path $other ' private-note.txt') 'person@example.test'
     $spacedName=Test-SBPublication -BrainRoot $brain -RepositoryPath $other
     Assert-Portable (@($spacedName.findings|Where-Object {$_.path -ceq ' private-note.txt' -and $_.rule -eq 'personal-email'}).Count -gt 0) 'controllo privacy preserva nomi file con spazio iniziale'
-    # Scansione in batch (un processo git per tipi/dimensioni, uno per i contenuti): stesso esito del confronto per oggetto.
+    # Batch scan (one Git process for types/sizes, one for contents): same result as per-object comparison.
     $batchRepo=Join-Path $fixture 'batch-scan';[IO.Directory]::CreateDirectory($batchRepo)|Out-Null;Git-Portable $batchRepo @('init','-q')|Out-Null
     Put-Portable (Join-Path $batchRepo 'secret.txt') ('token='+$secret)
     Put-Portable (Join-Path $batchRepo 'accent-è.md') ('contatto person@'+'example.test'+"`n"+'riga con C:\Us'+'ers\qualcuno\file')
@@ -533,10 +533,18 @@ try{
     Assert-Portable ($reference.Count -ge 4 -and (($reference|Sort-Object) -join "`n") -eq (($batchHistory|Sort-Object) -join "`n")) 'scansione storia in batch equivale al confronto per oggetto (UTF-8, BOM, UTF-16, nomi accentati)'
     Assert-Portable (@($batchPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'binary-review-required' -and $_.code -eq 'publication.reason.binary-review-required' -and $_.message -and $_.path -ceq 'blob.bin'}).Count -eq 1) 'blob binario in storia segnalato come revisione richiesta'
     Assert-Portable (@($batchPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'size-limit' -and $_.path -ceq 'big.txt'}).Count -eq 1) 'blob oltre il limite in storia segnalato come size-limit senza leggerne il contenuto'
+    # Previously reviewed oversized blob: binaryReviews bound to path and object resolves size-limit; a different object does not.
+    $bigOid=(Git-Portable $batchRepo @('hash-object','big.txt')).Trim()
+    $reviewPolicy=Join-Path $brain '.runtime/publication/policy-size-review.json'
+    foreach($case in @(@{Oid=$bigOid;Left=0},@{Oid=('0'*40);Left=1})){
+        Put-Portable $reviewPolicy (ConvertTo-SBJson @{schemaVersion=1;allowances=@();binaryReviews=@(@{path='big.txt';sha256=('0'*64);gitBlob=$case.Oid;reviewed=$true;reason='fixture'})})
+        $reviewedPub=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -MaxTextBytes 400 -PolicyPath $reviewPolicy
+        Assert-Portable (@($reviewedPub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'size-limit' -and $_.path -ceq 'big.txt'}).Count -eq $case.Left) ('size-limit in storia con binaryReviews: attesi '+$case.Left+' residui')
+    }
     Assert-Portable (@($batchPub.findings|Where-Object {$_.surface -eq 'index' -and $_.rule -eq 'personal-email'}).Count -ge 1 -and !@($batchPub.incomplete|Where-Object reason -eq 'unreadable').Count) 'superficie indice letta in batch senza oggetti illeggibili'
     $batchLimited=Test-SBPublication -BrainRoot $brain -RepositoryPath $batchRepo -MaxTextBytes 400 -MaxHistoryBlobs 2
     Assert-Portable (@($batchLimited.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'blob-limit'}).Count -eq 1 -and $batchLimited.historyBlobs -eq 2 -and !$batchLimited.complete) 'limite di blob in storia dichiarato come copertura incompleta'
-    # Riferimenti locali di strumenti (refs/codex/*): non pubblicabili, esclusi dalla storia scansionata e dichiarati in excludedRefs.
+    # Local tool refs (refs/codex/*): not publishable, excluded from scanned history and declared in excludedRefs.
     $refsRepo=Join-Path $fixture 'refs-scan';[IO.Directory]::CreateDirectory($refsRepo)|Out-Null;Git-Portable $refsRepo @('init','-q')|Out-Null
     $gitIdentity=@('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','commit.gpgsign=false')
     Put-Portable (Join-Path $refsRepo 'ok.txt') 'pulito'
@@ -636,7 +644,7 @@ try{
     Assert-Portable (@($missing.issues|Where-Object kind -eq 'repository-unverified').Count -gt 0) 'spostamento checkout richiede riconciliazione'
     Assert-Portable (Test-Path -LiteralPath (Join-Path $dossier 'tracker.json')) 'assenza checkout non elimina dossier o task'
 
-    # Fase 4: Hook pre-push
+    # Phase 4: pre-push hook.
     $hookPreview = Install-SBPublicationHook -RepositoryPath $other
     Assert-Portable (!$hookPreview.applied -and $hookPreview.preview -and !(Test-Path -LiteralPath $hookPreview.hookPath)) 'anteprima installazione hook non scrive file'
     $hookInstall = Install-SBPublicationHook -RepositoryPath $other -Apply
@@ -652,7 +660,7 @@ try{
     try { Uninstall-SBPublicationHook -RepositoryPath $other -Apply | Out-Null } catch { $foreignRefused = $true }
     Assert-Portable ($foreignRefused -and (Test-Path -LiteralPath $hookStatus.hookPath) -and ([IO.File]::ReadAllText($hookStatus.hookPath) -match 'hook dell utente')) 'disinstallazione rifiuta un pre-push non creato da SecondBrain e lo conserva'
     Remove-Item -LiteralPath $hookStatus.hookPath -Force
-    # L'hook generato è fail-closed: senza SecondBrain valido il push si ferma con istruzioni.
+    # Generated hook fails closed: without valid SecondBrain, stop the push with instructions.
     $shCommand=Get-Command sh -CommandType Application -ErrorAction SilentlyContinue|Select-Object -First 1
     if(!$shCommand){$gitCommand=(Get-Command git -CommandType Application|Select-Object -First 1).Source;$shCandidate=Join-Path (Split-Path (Split-Path $gitCommand)) 'usr/bin/sh.exe';if(Test-Path -LiteralPath $shCandidate){$shCommand=@{Source=$shCandidate}}}
     if($shCommand){
@@ -668,7 +676,7 @@ try{
             $env:SECONDBRAIN_HOME=Join-Path $repos 'clone-spostato con spazi'
             $hookBadHome=(& $shCommand.Source $hookFile 2>&1|Out-String);$hookBadHomeExit=$LASTEXITCODE
             Assert-Portable ($hookBadHomeExit -eq 1 -and $hookBadHome -match 'senza scripts/publication.ps1') 'hook con SECONDBRAIN_HOME errato (clone spostato, percorso con spazi) blocca il push'
-            # Ramo pwsh assente: PATH ridotto alle cartelle di sh e git.
+            # Missing-pwsh path: restrict PATH to the sh and git folders.
             $savedPath=$env:PATH
             try {
                 $gitDir=Split-Path (Get-Command git -CommandType Application|Select-Object -First 1).Source
@@ -690,10 +698,33 @@ try{
         }
     } else { Write-Warning 'sh non trovato: prove dell''esecuzione dell''hook saltate' }
 
-    # Fase 4: server MCP stdio con recupero delle scritture gia autorizzate.
+    # Phase 4: MCP stdio server with recovery of previously authorized writes.
     $mcpInit = @{ jsonrpc = '2.0'; id = 101; method = 'initialize'; params = @{} } | ConvertTo-Json -Compress
     $mcpInitRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpInit | ConvertFrom-Json
     Assert-Portable ($mcpInitRes.result.serverInfo.name -eq 'secondbrain-mcp' -and $mcpInitRes.result.protocolVersion -eq '2025-03-26') 'server MCP risponde a initialize con versione e serverInfo'
+    foreach($versionCase in @(
+        @{requested='2024-11-05';expected='2024-11-05'},
+        @{requested='2025-03-26';expected='2025-03-26'},
+        @{requested='2099-01-01';expected='2025-03-26'}
+    )){
+        $versionRequest=@{jsonrpc='2.0';id=1011;method='initialize';params=@{protocolVersion=$versionCase.requested;capabilities=@{};clientInfo=@{name='fixture';version='1'}}}|ConvertTo-Json -Depth 5 -Compress
+        $versionResponse=Invoke-SBMcpMessage -BrainRoot $brain -Message $versionRequest|ConvertFrom-Json
+        Assert-Portable ($versionResponse.result.protocolVersion -ceq $versionCase.expected) ('MCP protocol negotiation: '+$versionCase.requested+' -> '+$versionCase.expected)
+    }
+    $savedMetadataLanguage=$env:SECONDBRAIN_LANG
+    try{
+        $localizedTitles=@{}
+        foreach($metadataLanguage in @('it','en')){
+            $env:SECONDBRAIN_LANG=$metadataLanguage
+            $metadataRequest=@{jsonrpc='2.0';id=1012;method='tools/list';params=@{}}|ConvertTo-Json -Compress
+            $metadataResponse=Invoke-SBMcpMessage -BrainRoot $brain -Message $metadataRequest|ConvertFrom-Json
+            $metadataTools=@($metadataResponse.result.tools)
+            Assert-Portable ($metadataTools.Count -eq 8 -and !@($metadataTools|Where-Object {!$_.annotations.title -or $_.annotations.title -like 'mcp.title.*'}).Count) ('all 8 MCP tools have localized titles: '+$metadataLanguage)
+            Assert-Portable (!@($metadataTools|Where-Object {$_.annotations.readOnlyHint -ne $false -or $_.annotations.destructiveHint -ne $true -or $_.annotations.idempotentHint -ne $false -or $_.annotations.openWorldHint -ne $false}).Count) ('MCP annotations preserve pending-write side effects: '+$metadataLanguage)
+            $localizedTitles[$metadataLanguage]=@($metadataTools|Sort-Object name|ForEach-Object {$_.annotations.title})
+        }
+        Assert-Portable (($localizedTitles.it -join '|') -cne ($localizedTitles.en -join '|')) 'MCP titles differ between Italian and English'
+    }finally{$env:SECONDBRAIN_LANG=$savedMetadataLanguage}
     
     $mcpPing = @{ jsonrpc = '2.0'; id = 102; method = 'ping'; params = @{} } | ConvertTo-Json -Compress
     $mcpPingRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpPing | ConvertFrom-Json
@@ -751,13 +782,20 @@ try{
     $mcpMutateRes = Invoke-SBMcpMessage -BrainRoot $brain -Message $mcpMutate | ConvertFrom-Json
     Assert-Portable ($mcpMutateRes.error.code -eq -32601) 'richiesta sconosciuta o di mutazione respinta con errore -32601'
 
-    # Handshake stdio reale: il comando registrato per l IDE viene avviato come processo e interrogato su tutti gli strumenti (cervello fixture).
+    # Actual stdio handshake: start the IDE's registered command as a process and query every tool (fixture brain).
     $handshakeOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/test-secondbrain-mcp-handshake.ps1') -BrainRoot $brain -Target 'codex,vscode,claude-code' -PublicationPath $other -ReportPath (Join-Path $brain '.runtime/mcp-handshake/fixture.json') 2>&1|Out-String)
     Assert-Portable ($LASTEXITCODE -eq 0 -and $handshakeOut -match 'SUCCESS MCP-HANDSHAKE: 3 IDE' -and $handshakeOut -notmatch 'FAIL MCP') 'handshake stdio MCP: initialize, tools/list (8) e tools/call di ogni strumento per le configurazioni IDE'
     $handshakeReport=Read-SBJson (Join-Path $brain '.runtime/mcp-handshake/fixture.json') $null
     Assert-Portable ($handshakeReport.guiVerified -eq $false -and @($handshakeReport.skippedTools).Count -eq 0 -and @($handshakeReport.ides).Count -eq 3) 'rapporto handshake dichiara la prova visiva GUI non verificata e nessuno strumento saltato'
+    foreach($wireVersion in @('2025-03-26','2099-01-01')){
+        $wireReportPath=Join-Path $brain ('.runtime/mcp-handshake/'+$wireVersion+'.json')
+        $wireOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/test-secondbrain-mcp-handshake.ps1') -BrainRoot $brain -Target codex -ProtocolVersion $wireVersion -PublicationPath $other -ReportPath $wireReportPath 2>&1|Out-String)
+        Assert-Portable ($LASTEXITCODE -eq 0 -and $wireOut -match 'SUCCESS MCP-HANDSHAKE: 1 IDE') ('stdio handshake validates negotiated protocol: '+$wireVersion)
+        $wireReport=Read-SBJson $wireReportPath $null
+        Assert-Portable ($wireReport.requestedProtocolVersion -ceq $wireVersion -and $wireReport.ides[0].protocolVersion -ceq '2025-03-26' -and !$wireReport.guiVerified) ('handshake report distinguishes requested and negotiated protocol: '+$wireVersion)
+    }
 
-    # Accoppiamento Codex MCP e rilevamento Host
+    # Codex MCP pairing and Host detection.
     $pairing = Get-SBMcpPairing -BrainRoot $brain -Target codex
     Assert-Portable ($pairing.Target -eq 'codex' -and $pairing.Toml -match 'mcp_servers\.secondbrain' -and $pairing.CliCommand -match 'codex mcp add secondbrain') 'pairing Codex produce TOML e comando CLI validi'
     $pairingsAll = Get-SBMcpPairing -BrainRoot $brain -Target all
@@ -814,13 +852,13 @@ try{
 
     . (Join-Path $PSScriptRoot 'test-mcp-install.ps1')
 
-    # Pacchetto distribuibile MCP
+    # Distributable MCP package.
     $testPkgDir = Join-Path $fixture 'mcp-test-pkg'
     $pkgResult = New-SBMcpPackage -BrainRoot $brain -OutDir $testPkgDir
     Assert-Portable ($pkgResult.FileCount -ge 8 -and (Test-Path -LiteralPath (Join-Path $testPkgDir 'README.md')) -and (Test-Path -LiteralPath (Join-Path $testPkgDir 'install-all-ides.ps1'))) 'New-SBMcpPackage genera bundle con README e install script'
     Assert-Portable ((Test-Path -LiteralPath (Join-Path $testPkgDir 'claude/claude_desktop_config.json')) -and (Test-Path -LiteralPath (Join-Path $testPkgDir 'codex/config.toml'))) 'New-SBMcpPackage genera configurazioni per singoli IDE'
 
-    # Iniezione sicura configurazione con merge e backup
+    # Safe configuration injection with merge and backup.
     $testCfgDir = Join-Path $fixture 'mcp-test-cfg'
     [IO.Directory]::CreateDirectory($testCfgDir) | Out-Null
     $mockClaude = Join-Path $testCfgDir 'claude_desktop_config.json'
@@ -833,7 +871,7 @@ try{
     Assert-Portable ($pairMeta -and $pairMeta.previousHash -and $pairMeta.deployedHash -and (Get-SBFileHash $setRes.BackupFile) -eq $pairMeta.previousHash -and ((Read-SBText $setRes.BackupFile) -notmatch 'secondbrain')) 'backup del pairing MCP con hash e metadati, contenente l originale'
     $sameRes = Set-SBMcpConfiguration -BrainRoot $brain -Target claude -ConfigFile $mockClaude -BackupRoot (Join-Path $testCfgDir 'backups')
     Assert-Portable ($sameRes.Action -eq 'unchanged' -and !$sameRes.BackupFile) 'pairing MCP ripetuto non riscrive ne crea backup'
-    # Claude Code registra il server in .claude.json (stato distinto da Claude Desktop, sola lettura).
+    # Claude Code registers the server in .claude.json (state separate from Claude Desktop, read-only).
     $codeUser = Join-Path $testCfgDir 'code-user.claude.json'
     Put-Portable $codeUser (ConvertTo-SBJson @{ mcpServers = @{ secondbrain = @{ command = 'pwsh' } } })
     $codeLocal = Join-Path $testCfgDir 'code-local.claude.json'
@@ -881,7 +919,7 @@ try{
         Assert-Portable ($androidStudioIde[0].mode -eq 'manual' -and $androidStudioIde[0].ContainsKey('installationEvidence')) 'Get-SBIDEAssets include rilevamento presenza per Android Studio'
     }
 
-    # Verifica lista globale dei repository vietati (shared.json) ed esecuzione rollback-repo
+    # Check the global forbidden-repository list (shared.json) and run rollback-repo.
     $sharedCfg = Read-SBJson (Join-Path $brain 'config/shared.json') @{}
     $sharedCfg.forbiddenRepositories = @(@{ identity = 'gitlab.example/team/one'; reason = 'test-forbidden' })
     Put-Portable (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson $sharedCfg)
@@ -895,7 +933,7 @@ try{
     Move-Item -LiteralPath $moved -Destination $repo
     $rollbackCli = Join-Path $brain 'scripts/rollback-repo.ps1'
     if (Test-Path -LiteralPath $rollbackCli) {
-        # Rollback sicuro: dossier sintetici, ciascuno con il proprio checkout fittizio.
+        # Safe rollback: synthetic dossiers, each with its own fake checkout.
         function New-RollbackDossier([string]$Name,[string]$Identity) {
             $dir=Join-Path $brain ('02-areas/products/'+$Name)
             Put-Portable (Join-Path $dir 'repository.json') (ConvertTo-SBJson @{identity=$Identity})
@@ -940,7 +978,7 @@ try{
         Assert-Portable (!(Test-Path -LiteralPath $dossier)) 'rollback-repo elimina dossier da SecondBrain'
     }
 
-    # Policy di accesso: registro postazioni, shared.json fail-closed, identita del cervello con alias.
+    # Access policy: workstation registry, fail-closed shared.json, brain identity with aliases.
     function Invoke-FixtureCli([string]$Script,[string[]]$CliArguments) { $text=(& pwsh -NoProfile -File (Join-Path $brain ('scripts/'+$Script)) @CliArguments 2>&1|Out-String); @{exit=$LASTEXITCODE;text=$text} }
     $accessCli='access.ps1'
     Assert-Portable ((Invoke-FixtureCli $accessCli @('-Reconcile')).exit -eq 0) 'access -Reconcile registra la postazione'
@@ -971,7 +1009,7 @@ try{
     Assert-Portable ((Get-SBBrainIdentity $identityRepo) -eq 'github.com/acme/identity-repo') 'identita del cervello dal percorso reale'
     Assert-Portable ((Get-SBBrainIdentity $identityLink) -eq 'github.com/acme/identity-repo') 'identita del cervello risolta anche tramite junction'
 
-    # Copertura onesta della Discovery: checkout con nome da build e accesso negato in cartelle dell'utente.
+    # Honest discovery coverage: build-like checkout name and denied access in user folders.
     $discoveryRoot=Join-Path $fixture 'discovery-coverage'
     foreach($name in @('build','dist')){
         $named=Join-Path $discoveryRoot $name;[IO.Directory]::CreateDirectory($named)|Out-Null;Git-Portable $named @('init','-q')|Out-Null
@@ -986,8 +1024,8 @@ try{
     Assert-Portable (Test-SBSystemAccessPath (Join-Path (Split-Path $env:USERPROFILE -Parent) 'altro-utente-fixture\Documents')) 'profilo di altro utente e di sistema'
     $locked=Join-Path $discoveryRoot 'locked';[IO.Directory]::CreateDirectory($locked)|Out-Null
     $account=[Security.Principal.WindowsIdentity]::GetCurrent().Name
-    # Da Git Bash (MSYS2) i processi figli ereditano SeBackupPrivilege/SeRestorePrivilege abilitati: l'apertura di cartelle con semantica di backup aggira il deny ACL.
-    # Per la sola prova i due privilegi vengono disabilitati nel processo e poi ripristinati; se il deny resta inefficace il test fallisce (nessun salto silenzioso).
+    # Git Bash (MSYS2) children inherit enabled SeBackupPrivilege/SeRestorePrivilege: opening folders with backup semantics bypasses deny ACLs.
+    # Disable both privileges in the test process only, then restore them; fail if deny remains ineffective (no silent skip).
     if(!('SBPortablePrivilege' -as [type])){
         Add-Type -Namespace '' -Name SBPortablePrivilege -MemberDefinition @'
 [DllImport("advapi32.dll",SetLastError=true)] static extern bool OpenProcessToken(IntPtr h,uint access,out IntPtr token);
@@ -1017,11 +1055,11 @@ public static bool Set(string name,bool enabled){
         Assert-Portable (!$denied.complete) 'accesso negato in cartella utente rende la ricognizione incompleta'
     }finally{& icacls $locked /remove:d $account *> $null;foreach($privilege in $privilegesBefore){[SBPortablePrivilege]::Set($privilege,$true)|Out-Null}}
 
-    # Copertura dei residui minori: Assert-SBPlainPath, stato accessi, purge, cleanup con manifest, retention .stage, check-distribution.
+    # Minor residual coverage: Assert-SBPlainPath, access status, purge, manifest cleanup, .stage retention, check-distribution.
     $realBrain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     Assert-Portable ($null -eq (Assert-SBPlainPath $realBrain)) 'Assert-SBPlainPath accetta la radice del cervello'
     Reject-Portable {Assert-SBPlainPath $identityLink} 'Assert-SBPlainPath rifiuta un reparse point dentro i dati'
-    # Cache degli antenati (ciclo SEC07): stesso esito della verifica senza cache, nessun avvelenamento dopo un rifiuto, foglia sempre controllata.
+    # Ancestor cache (SEC07 cycle): same outcome as uncached validation, no poisoning after rejection, always check the leaf.
     $plainCache=@{};$plainSibling=Join-Path (Split-Path $identityLink) 'plain-sibling.txt'
     Assert-Portable ($null -eq (Assert-SBPlainPath $realBrain $plainCache)) 'Assert-SBPlainPath con cache accetta la radice del cervello'
     Assert-Portable ($null -eq (Assert-SBPlainPath $plainSibling $plainCache) -and $plainCache.ContainsKey((Split-Path $identityLink))) 'Assert-SBPlainPath con cache registra gli antenati verificati'
@@ -1061,7 +1099,7 @@ public static bool Set(string name,bool enabled){
     $holdB=[IO.File]::Open($partialB,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
     try{$partial=Invoke-FixtureCli 'cleanup.ps1' @('-ManifestPath',$partialManifest,'-Apply','-Authorization','fixture richiesta utente')}finally{$holdB.Dispose()}
     Assert-Portable ($partial.exit -eq 1 -and $partial.text -match '"status": "partial"' -and $partial.text -match '"removed"' -and !(Test-Path -LiteralPath $partialA) -and (Test-Path -LiteralPath $partialB)) 'cleanup con errore a meta emette il riepilogo parziale ed esce con 1'
-    # cleanup -Regenerable: perimetro fisso (fixture di test oltre le ultime N, ambiente Python delle fonti), junction non seguite, sola lettura rimossa, registro e guardia di eta.
+    # cleanup -Regenerable: fixed scope (test fixtures beyond the latest N, source Python environment), no junction traversal, clear read-only, journal and age guard.
     $regenTests=Join-Path $brain '.runtime/tests'
     $regenOutside=Join-Path $fixture 'regenerable-outside';Put-Portable (Join-Path $regenOutside 'sentinel.txt') 'fuori da .runtime'
     for($i=1;$i -le 5;$i++){Put-Portable (Join-Path $regenTests "fx-$i/a/b/file.txt") "fixture $i"}
@@ -1126,7 +1164,7 @@ public static bool Set(string name,bool enabled){
     $runtimeApply=Invoke-FixtureCli 'cleanup.ps1' @('-ListRuntime','-Apply')
     Assert-Portable ($runtimeApply.exit -ne 0 -and (Test-Path -LiteralPath $oldRuntimeFile) -and (Test-Path -LiteralPath (Join-Path $junctionTarget 'fuori.txt')) -and @(Get-ChildItem -LiteralPath (Join-Path $brain '.runtime') -Recurse -Force -File).Count -eq $runtimeBefore) 'ListRuntime non e combinabile con Apply e non rimuove nulla'
     Assert-Portable ($oldEntry.category -eq 'working' -and $oldEntry.recovery -and (@($runtimeReport.entries|Where-Object name -eq 'hosts')[0]).category -eq 'protected' -and $runtimeReport.byCategory.ContainsKey('protected')) 'ListRuntime classifica le voci per categoria e dichiara come recuperarle'
-    # Proposta di pulizia: sola lettura, non un manifest eseguibile.
+    # Cleanup proposal: read-only, not an executable manifest.
     1..6|ForEach-Object {$d=Join-Path $brain ('.runtime/tests/portable-prova-'+$_);Put-Portable (Join-Path $d 'dato.txt') ('f'*50);(Get-Item -LiteralPath $d).LastWriteTimeUtc=[DateTime]::UtcNow.AddDays(-$_)}
     $proposalBefore=@(Get-ChildItem -LiteralPath (Join-Path $brain '.runtime') -Recurse -Force -File).Count
     $proposalRun=Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-KeepFixtures','2')
@@ -1138,7 +1176,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ProposalPath',$proposalFile)).exit -eq 0 -and (Test-Path -LiteralPath $proposalFile) -and (Read-SBJson $proposalFile @{}).scope -eq 'runtime-cleanup-proposal') 'ProposeRuntime salva la proposta in un nuovo file con -ProposalPath'
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ProposalPath',$proposalFile)).exit -ne 0) 'ProposeRuntime non sovrascrive una proposta esistente'
     Assert-Portable ((Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-ListRuntime')).exit -ne 0 -and (Invoke-FixtureCli 'cleanup.ps1' @('-ProposeRuntime','-Apply')).exit -ne 0) 'ProposeRuntime non e combinabile con ListRuntime o Apply'
-    # Backup .bin: duplicato di Git solo con SHA-256 pari a previousHash e blob presente; senza blob e l'unica copia.
+    # .bin backup duplicates Git only when SHA-256 equals previousHash and the blob exists; otherwise it is the only copy.
     $binRepo=Join-Path $fixture 'bin-proposal-repo';[IO.Directory]::CreateDirectory($binRepo)|Out-Null;Git-Portable $binRepo @('init','-q')|Out-Null
     Put-Portable (Join-Path $binRepo 'con-blob.txt') 'versione committata';Put-Portable (Join-Path $binRepo 'senza-blob.txt') 'versione committata'
     Git-Portable $binRepo @('add','.')|Out-Null;Git-Portable $binRepo @('-c','user.name=prova','-c','user.email=prova@example.invalid','commit','-qm','base')|Out-Null
@@ -1171,13 +1209,13 @@ public static bool Set(string name,bool enabled){
     $distBad=Invoke-FixtureCli 'check-distribution.ps1' @('-RepositoryPath',$distRepo)
     Assert-Portable ($distBad.exit -eq 1 -and $distBad.text -match 'VIOLAZIONE CRITICA' -and $distBad.text -match 'VIOLAZIONE PERIMETRO' -and $distBad.text -match 'CONTRIBUTING-private.md' -and $distBad.text -match 'CODE_OF_CONDUCT.local.md' -and $distBad.text -match 'DISTRIBUTION CHECK FAILED') 'check-distribution rejects private data and community filename lookalikes, reports both violations and exits 1'
 
-    # Isolamento per repository: task, startup, MCP, Check/Sync e scritture restano nel repository in lavoro.
+    # Per-repository isolation: tasks, startup, MCP, Check/Sync and writes stay in the working repository.
     $noRemote=Join-Path $repos 'no-remote'
     $isoReport=Invoke-SBHostDiscovery -BrainRoot $brain -ResumePath $checkpoint
     $isoChoice=@{}+$choice;$isoChoice.reportSha256=(Get-SBFileHash $checkpoint)
     $isoChoice.repositories=@(@($isoReport.repositories|Where-Object {$_.path -in @($other,$noRemote)})|ForEach-Object {@{id=$_.id;identity=$(if($_.requiresIdentity){'local'}else{$null})}}|ForEach-Object {@{id=$_.id}})
     Put-Portable $selection (ConvertTo-SBJson $isoChoice)
-    # Le chiamate in-process usano i moduli del repository reale: il registro postazioni della fixture, scritto dalle CLI della fixture, va azzerato.
+    # In-process calls use real repository modules: reset the fixture workstation registry written by fixture CLIs.
     Remove-Item -LiteralPath (Join-Path $brain '.runtime/access/workstations.json') -Force -ErrorAction SilentlyContinue
     $isoActivation=Invoke-SBHostActivation $brain $selection -Apply
     $isoCfg=Read-SBJson $isoActivation.configuration $null
@@ -1196,7 +1234,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable (@($globalTasks|Where-Object {$_.id -in @('ISO-TWO','ISO-LOCAL')}).Count -eq 2 -and !@($globalTasks|Where-Object {$_.scope -ne 'global'}).Count) 'vista globale solo con -All e voci etichettate'
     Reject-Portable {Get-SBGlobalTasks -BrainRoot $brain -Repository 'gitlab.example/team/inesistente'} 'repository senza dossier rifiutato'
     $knowledgeCli=Join-Path $brain 'scripts/knowledge.ps1'
-    # Il registro postazioni e stato scritto dai moduli in-process: le CLI della fixture richiedono la riconciliazione esplicita.
+    # In-process modules wrote the workstation registry: fixture CLIs require explicit reconciliation.
     Assert-Portable ((Invoke-FixtureCli $accessCli @('-Reconcile','-ConfigPath',$isoActivation.configuration)).exit -eq 0) 'riconciliazione della postazione per le CLI della fixture'
     Push-Location $other
     try{
@@ -1217,7 +1255,7 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($LASTEXITCODE -eq 0 -and (@((Read-SBJson (Join-Path (Join-Path $brain $twoBinding.dossier) 'tracker.json') $null).tasks)[0].status -eq 'in_progress')) 'scrittura sul tracker del repository in lavoro consentita'
         $startupCli=(& pwsh -NoProfile -File $knowledgeCli -Startup -ConfigPath $isoActivation.configuration 2>$null|ConvertFrom-Json)
         Assert-Portable ($startupCli.repository -eq $twoBinding.identity) 'knowledge -Startup senza dossier risolve il checkout corrente'
-        # #230: -Compact risolve il dossier come -Startup (checkout corrente o percorso relativo); il candidato obsoleto prova che la risoluzione e riuscita.
+        # #230: -Compact resolves the dossier like -Startup (current checkout or relative path); a stale candidate proves successful resolution.
         $staleCandidate=@{schemaVersion=1;repository=$twoBinding.identity;reviewed=$true;reviewNote='dossier resolution fixture';sources=@{'context.md'='0';'memory.md'='0'};summaries=@{'context.md'='x';'memory.md'='x'};openTaskIds=@()}
         $stalePath=Join-Path $brain '.runtime/compaction-resolve.json';Put-Portable $stalePath (ConvertTo-SBJson $staleCandidate)
         $compactDefault=(& pwsh -NoProfile -File $knowledgeCli -Compact -CandidatePath $stalePath -ConfigPath $isoActivation.configuration 2>&1|Out-String)
@@ -1227,7 +1265,7 @@ public static bool Set(string name,bool enabled){
         Reject-Portable {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot} 'Invoke-SBDossierCompaction rifiuta un dossier vuoto'
         try{Invoke-SBDossierCompaction -BrainRoot $brain -Dossier '' -CandidatePath $stalePath -BackupRoot $isoCfg.backupRoot|Out-Null;$emptyDossier=''}catch{$emptyDossier=Test-SBError $_ 'knowledge.dossier.unspecified'}
         Assert-Portable ($emptyDossier -eq $true) 'dossier vuoto: errore chiaro invece di GetFullPath'
-        # pwsh -File passa gli elenchi come stringa unica: ';' separa criteri e dipendenze.
+        # pwsh -File passes lists as one string: ';' separates criteria and dependencies.
         $twoDossierDir=Join-Path $brain $twoBinding.dossier;$twoTrackerPath=Join-Path $twoDossierDir 'tracker.json'
         Put-Portable (Join-Path $twoDossierDir 'history/cli-source.md') "fonte`n"
         & pwsh -NoProfile -File $knowledgeCli -RenumberTasks -Apply -ConfigPath $isoActivation.configuration *> $null
@@ -1262,7 +1300,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ((Invoke-SBPortableSync $isoCfg -Check).scope.coverage -eq 'workstation') 'Check senza filtro resta a livello di postazione'
     Reject-Portable {Invoke-SBPortableSync $isoCfg -Check -Repository 'gitlab.example/team/inesistente'} 'Check filtrato su repository non gestito rifiutato'
 
-    # Senza server MCP: la CLI restituisce gli stessi contenuti degli 8 strumenti MCP sugli stessi input (parità CLI-MCP).
+    # Without an MCP server: CLI returns the same content as the 8 MCP tools on the same inputs (CLI-MCP parity).
     function ConvertTo-ParityText([string]$Text) { ($Text -replace "`r`n","`n").Trim() }
     function ConvertTo-ParityJson([string]$Text) { ConvertTo-SBJson ($Text | ConvertFrom-Json -AsHashtable) }
     function Invoke-ParityCli([string]$Script,[string[]]$CliArguments) { (& pwsh -NoProfile -File (Join-Path $brain ('scripts/'+$Script)) @CliArguments 2>$null | Out-String) }
@@ -1287,7 +1325,7 @@ public static bool Set(string name,bool enabled){
         $mcpPublicationFull=Invoke-SBMcpToolCall $brain 'check_publication' @{repositoryPath=$other;detail=$true}|ConvertFrom-Json
         Assert-Portable (@($cliPublicationDoc.findings).Count -eq @($mcpPublicationFull.findings).Count) 'MCP check_publication detail=true: rapporto integro'
     }finally{Pop-Location}
-    # Strumenti sui prompt: il catalogo è quello del repository SecondBrain; la CLI aggiunge solo l'intestazione del prompt.
+    # Prompt tools use the SecondBrain repository's catalog; CLI adds only the prompt header.
     $promptsCli=Join-Path $realBrain 'scripts/prompts.ps1'
     $cliList=ConvertTo-ParityText (& pwsh -NoProfile -File $promptsCli -List -Compact 2>$null|Out-String)
     Assert-Portable ($cliList -ceq (ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'list_prompts' @{compact=$true})))) 'parità CLI-MCP: list_prompts'
@@ -1302,7 +1340,7 @@ public static bool Set(string name,bool enabled){
     $mcpShowEn=ConvertTo-ParityText ([string](Invoke-SBMcpToolCall $realBrain 'get_prompt' @{prompt='TST06';language='en'}))
     Assert-Portable ($cliShowEn.StartsWith('PROMPT CATALOG') -and $cliShowEn.EndsWith($mcpShowEn) -and ((Get-SBUiLanguage) -eq 'en' -or $cliShowEn -ne $cliShow)) 'parità CLI-MCP: get_prompt con language=en'
 
-    # Blocco greenfield: flag nel dossier, violazioni rispetto a Git, rimozione con SYS13.
+    # Greenfield guard: dossier flag, Git-relative violations, removal with SYS13.
     $twoDossier=Join-Path $brain $twoBinding.dossier
     $greenKinds={param($check) @($check.issues|Where-Object kind -eq 'greenfield-violation')}
     Assert-Portable ((Get-SBRepositoryLifecycle $twoDossier) -eq '' -and !(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: senza flag nessuna violazione e ciclo di vita normale'
@@ -1333,7 +1371,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable (!(& $greenKinds (Invoke-SBPortableSync $isoCfg -Check -Repository $twoBinding.identity)).Count) 'greenfield: rimosso il blocco le violazioni non sono piu segnalate'
     Remove-Item -LiteralPath (Join-Path $other 'VERSION'),(Join-Path $other 'CHANGELOG.md') -Force
 
-    # Attivazione guidata -Setup: proposta, conferma, anteprima, applicazione; mai interattiva senza richiesta e senza toccare l'ambiente utente.
+    # Guided -Setup activation: proposal, confirmation, preview, application; never interactive without a request or touching the user environment.
     $setupRepos=Join-Path $fixture 'setup-roots'
     foreach($name in @('alpha','beta')){
         $path=Join-Path $setupRepos $name;[IO.Directory]::CreateDirectory($path)|Out-Null;Git-Portable $path @('init','-q')|Out-Null
@@ -1380,7 +1418,7 @@ public static bool Set(string name,bool enabled){
     }finally{$env:USERPROFILE=$profileBeforeMcp}
     Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($setupBase+@('-Select','alpha','-Yes','-ApproveMcpReadTools'))).exit -eq 2) '-Setup refuses read-tool consent without selected MCP targets'
     Assert-Portable ([Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -NoRegisterEnvironment non cambia l ambiente utente'
-    # Senza conferma esplicita (-RegisterEnvironment) la variabile utente non si scrive nemmeno quando manca anche -NoRegisterEnvironment.
+    # Without explicit confirmation (-RegisterEnvironment), never write the user variable, even when -NoRegisterEnvironment is absent too.
     $noConfirmRun=Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha,beta','-Yes','-Apply')
     Assert-Portable ($noConfirmRun.exit -eq 0 -and $noConfirmRun.text -match 'non registrata' -and [Environment]::GetEnvironmentVariable('SECONDBRAIN_HOME','User') -eq $envBefore) '-Setup -Apply senza conferma non scrive la variabile utente'
     Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Roots',$setupRepos,'-Select','alpha','-Yes','-Apply','-RegisterEnvironment','-NoRegisterEnvironment')).exit -eq 2) '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'
@@ -1389,7 +1427,7 @@ public static bool Set(string name,bool enabled){
     $discoverDefault=Invoke-FixtureCli 'secondbrain.ps1' @('-Discover','-Roots',$setupRepos)
     Assert-Portable ($discoverDefault.exit -eq 0 -and (Test-Path -LiteralPath $setupReport)) '-Discover senza -ReportPath scrive il report per host'
 
-    # Blocchi gestiti gia presenti: quello identico al testo approvato (marcatori e hash di origine) non richiede -ApproveExistingBlocks, uno diverso si.
+    # Existing managed blocks: one identical to approved text (markers and source hashes) requires no -ApproveExistingBlocks; a different one does.
     $blockRoots=Join-Path $fixture 'setup-block-roots'
     $approvedRevision=Get-SBApprovedDirectiveRevision $brain
     $approvedBody=& (Get-Module SecondBrain.Portable) { param($revision) New-SBPortableRepositoryBody $revision } $approvedRevision
@@ -1408,7 +1446,7 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($foreignBlock.exit -eq 2 -and $foreignBlock.text -match 'ApproveExistingBlocks') '-Setup: blocco gestito diverso dal testo approvato richiede -ApproveExistingBlocks'
     Assert-Portable ((Invoke-FixtureCli 'secondbrain.ps1' ($blockBase+@('-Select','delta','-ApproveExistingBlocks'))).exit -eq 0) '-Setup -ApproveExistingBlocks approva il blocco diverso'
 
-    # Un IDE selezionato per nome e dichiarato con alias e una sola integrazione.
+    # An IDE selected by name and declared with an alias is a single integration.
     $reportIdes=@((Read-SBJson $setupReport $null).ides)
     if($reportIdes.Count){
         $ideName=[string]$reportIdes[0].name
@@ -1417,7 +1455,7 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($aliasRun.exit -eq 0 -and $aliasIdes.Count -eq 1 -and $aliasIdes[0].accountAlias -ceq 'alias-prova') '-Setup: -Ides e -IdeAccount per lo stesso IDE producono una sola integrazione con alias'
     }
 
-    # -Setup -Status (sola lettura) e -Unbind (disassociazione con proposta, conferma e anteprima).
+    # -Setup -Status (read-only) and -Unbind (unbinding with proposal, confirmation and preview).
     $alphaPath=Join-Path $setupRepos 'alpha';$betaPath=Join-Path $setupRepos 'beta'
     $betaBinding=@($setupCfg.bindings|Where-Object path -eq $betaPath)[0]
     $statusHash=Get-SBFileHash $isoActivation.configuration
@@ -1442,7 +1480,7 @@ public static bool Set(string name,bool enabled){
     $statusAfter=(Invoke-FixtureCli 'secondbrain.ps1' @('-Setup','-Status')).text|ConvertFrom-Json
     Assert-Portable (!@($statusAfter.bindings|Where-Object path -eq $betaPath).Count -and @($statusAfter.bindings|Where-Object path -eq $alphaPath).Count -eq 1) '-Setup -Status riflette la disassociazione'
 
-    # -Setup -Output: registra outputStatus/outputEvidence/outputException con proposta, conferma, anteprima e -Apply.
+    # -Setup -Output: register outputStatus/outputEvidence/outputException with proposal, confirmation, preview and -Apply.
     $alphaBinding=@($statusAfter.bindings|Where-Object path -eq $alphaPath)[0]
     $outProof=Join-Path $brain '.runtime/output-proof-cli.json';Put-Portable $outProof '{"scenario":"synthetic output location proof"}'
     $outHash=Get-SBFileHash $outProof;$outCfgHash=Get-SBFileHash $isoActivation.configuration
@@ -1468,7 +1506,7 @@ public static bool Set(string name,bool enabled){
     $afterReset=@((Read-SBJson $isoActivation.configuration $null).bindings|Where-Object path -eq $alphaPath)[0]
     Assert-Portable ($outReset.exit -eq 0 -and $afterReset.outputStatus -eq 'unverified' -and !$afterReset.ContainsKey('outputException') -and (Test-Path -LiteralPath $outProof)) '-Setup -Output unverified azzera lo stato e conserva la prova'
 
-    # -Setup -Unbind per integrazioni IDE: id o nome, anteprima, file IDE e dossier intatti, ambiguita rifiutate.
+    # -Setup -Unbind for IDE integrations: ID or name, preview, intact IDE files and dossiers, ambiguity rejected.
     $ideFile=Join-Path $fixture 'fake-ide-instructions.md';Put-Portable $ideFile "# Istruzioni IDE fittizie`n"
     $ideFileHash=Get-SBFileHash $ideFile
     $ideCfg=Read-SBJson $isoActivation.configuration $null
@@ -1498,14 +1536,14 @@ public static bool Set(string name,bool enabled){
     Assert-Portable ($mixed.exit -eq 0 -and !@($afterMixed.ides|Where-Object id -like 'fakeide-*').Count -and !@($afterMixed.bindings|Where-Object path -eq $alphaPath).Count -and (Test-Path -LiteralPath (Join-Path $brain $betaBinding.dossier))) 'unbind misto repository + IDE (id e nome) disassocia tutto e conserva i dossier'
     Assert-Portable (@($afterMixed.ides|Where-Object {$_}).Count -eq @($ideBase|Where-Object {$_}).Count) 'configurazione IDE ripristinata allo stato precedente alla prova'
 
-    # Rilevamento del cambio di contesto IDE (login, profilo, radice di configurazione) senza leggere credenziali (SB-EVO-ALIGN-REPOS-IDE).
+    # Detect IDE context changes (login, profile, configuration root) without reading credentials (SB-EVO-ALIGN-REPOS-IDE).
     $ctxSaved=@{USERPROFILE=$env:USERPROFILE;APPDATA=$env:APPDATA;CLAUDE_CONFIG_DIR=$env:CLAUDE_CONFIG_DIR;CODEX_HOME=$env:CODEX_HOME}
     $ctxUserClaude=[Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User');$ctxUserCodex=[Environment]::GetEnvironmentVariable('CODEX_HOME','User')
     try{
         $ctxHome=Join-Path $fixture 'ctx-home';$ctxApp=Join-Path $ctxHome 'AppData/Roaming'
         [void][IO.Directory]::CreateDirectory($ctxApp)
         $env:USERPROFILE=$ctxHome;$env:APPDATA=$ctxApp
-        # Variabili User e Process non devono influenzare la prova: si lavora su una sola radice dedicata.
+        # User and Process variables must not influence the test: use a single dedicated root.
         if($ctxUserClaude -or $ctxUserCodex){Write-Host 'NOTA: variabili CLAUDE_CONFIG_DIR/CODEX_HOME utente presenti; prove sul fingerprint limitate a Cursor/Windsurf/JetBrains'}
         $ctxBase=(Get-SBIDEContext 'Cursor')
         Assert-Portable ($ctxBase.configDirectories.Count -eq 0 -and $ctxBase.fingerprint -match '^[0-9A-Fa-f]{64}$') 'contesto IDE: nessuna cartella di configurazione rilevata nel profilo vuoto'
@@ -1522,7 +1560,7 @@ public static bool Set(string name,bool enabled){
         $ctxJetFingerprint=(Get-SBIDEContext 'JetBrains AI').fingerprint
         [void][IO.Directory]::CreateDirectory((Join-Path $ctxApp 'JetBrains/PyCharm2026.1'))
         Assert-Portable ((Get-SBIDEContext 'JetBrains AI').fingerprint -ceq $ctxJetFingerprint) 'contesto IDE: un nuovo prodotto JetBrains non cambia il fingerprint'
-        # Cursor registrato con il fingerprint corrente: invariato; con una base diversa: cambiato; senza base: non registrato.
+        # Cursor registered with the current fingerprint: unchanged; different baseline: changed; no baseline: unrecorded.
         $ctxIde=@{id='manual-ctx0000000000';name='Cursor';mode='manual';environmentFingerprint=$ctxCursor.fingerprint}
         Assert-Portable ((Get-SBIDEContextState $ctxIde $null).status -eq 'unchanged') 'stato contesto IDE: invariato con base coincidente'
         Remove-Item -LiteralPath (Join-Path $ctxHome '.cursor') -Recurse -Force
@@ -1530,13 +1568,13 @@ public static bool Set(string name,bool enabled){
         $ctxLegacy=@{id='manual-ctx0000000000';name='Cursor'}
         Assert-Portable ((Get-SBIDEContextState $ctxLegacy $null).status -eq 'unrecorded' -and (Get-SBIDEContextState $ctxLegacy @{ideContext=@{'manual-ctx0000000000'=(Get-SBIDEContext 'Cursor').fingerprint}}).status -eq 'unchanged') 'stato contesto IDE: base mancante non registrata, poi letta da state.json'
         Assert-Portable ((Get-SBIDEContextState @{id='x';name='IDE Sconosciuto'} $null).status -eq 'unknown') 'stato contesto IDE: IDE non riconosciuto'
-        # Cambio della radice di configurazione di Claude Code (nuovo profilo/login): il fingerprint cambia solo se l override e effettivo.
+        # Claude Code configuration root change (new profile/login): fingerprint changes only when the override is effective.
         if(!$ctxUserClaude){
             $env:CLAUDE_CONFIG_DIR=$null;$claudeBefore=(Get-SBIDEContext 'Claude Code').fingerprint
             $env:CLAUDE_CONFIG_DIR=(Join-Path $ctxHome '.claude-altro-profilo');$claudeAfter=(Get-SBIDEContext 'Claude Code')
             Assert-Portable ($claudeAfter.fingerprint -cne $claudeBefore -and $claudeAfter.rootSource -eq 'process-env' -and $claudeAfter.instructions -like '*.claude-altro-profilo*CLAUDE.md') 'contesto IDE: CLAUDE_CONFIG_DIR diverso cambia fingerprint, origine e percorso istruzioni'
         }
-        # Check/Sync: contesto registrato diverso -> ide-context-changed (liveLoadingVerified falso, filesAligned invariato); riattivazione = nuova base.
+        # Check/Sync: different registered context -> ide-context-changed (liveLoadingVerified false, filesAligned unchanged); reactivation = new baseline.
         $ctxIdeBase=@{}+$observationIDE;$ctxIdeBase.name='Cursor'
         $ctxChangedIde=@{}+$ctxIdeBase;$ctxChangedIde.environmentFingerprint=(Get-SBTextHash 'contesto-precedente')
         $ctxCfg=@{}+$manualCfg;$ctxCfg.ides=@($ctxChangedIde)
@@ -1551,7 +1589,7 @@ public static bool Set(string name,bool enabled){
     }
     Assert-Portable ((Get-SBFileHash $ideFile) -eq $ideFileHash) 'rilevamento del contesto IDE non modifica i file di istruzioni dell IDE'
 
-    # Cervello su share: alias di percorso, attesa del writer, letture senza lock, marker transazione, cache e ambiente di lavoro.
+    # Brain on a share: path aliases, writer wait, lock-free reads, transaction marker, caches and work environment.
     Assert-Portable (Test-SBSamePath 'D:\Srv\Share\Dir' 'd:\srv\share\dir\') 'percorsi: maiuscole e separatore finale ignorati'
     Assert-Portable (Test-SBSamePath '\\SRV.corp.local\share\x' '\\srv\SHARE\X') 'percorsi: UNC con FQDN e nome breve equivalenti'
     Assert-Portable (!(Test-SBSamePath '\\srv1\share\x' '\\srv2\share\x')) 'percorsi: server diversi non equivalenti'
@@ -1611,7 +1649,7 @@ public static bool Set(string name,bool enabled){
     $waited=Receive-Job -Job $waiter -Wait -AutoRemoveJob
     Assert-Portable ($waited -match 'attesa fino a' -and $waited -match 'EXIT=(0|1)\b') 'scrittura B attende il rilascio di A e poi procede senza exit 3'
     Assert-Portable ($waited -notmatch 'EXIT=3') 'scrittura B non termina con exit 3 se il writer viene rilasciato entro l attesa'
-    # Regressione #222: il write guard con -SessionId risolve Assert-SBSession anche dentro la closure.
+    # Regression #222: the write guard with -SessionId resolves Assert-SBSession inside the closure too.
     $guardSession=Invoke-FixtureCli $accessCli @('-Start','-Mode','Write','-Client','test-guard')
     $guardId=if($guardSession.text -match '"sessionId":\s*"([a-f0-9]{32})"'){$Matches[1]}else{''}
     Assert-Portable ($guardSession.exit -eq 0 -and $guardId) 'sessione di scrittura per il write guard aperta'
@@ -1630,7 +1668,7 @@ public static bool Set(string name,bool enabled){
         Assert-Portable ($badResult.exit -eq 2 -and $badResult.text -match 'lockWaitSeconds') 'lockWaitSeconds non valido rifiutato'
     }finally{Put-Portable $badWait $sharedOriginal}
 
-    # Simulazione dello scenario share senza una vera share SMB: scrittori concorrenti, attesa configurabile, processo terminato.
+    # Simulate a shared-brain scenario without a real SMB share: concurrent writers, configurable wait, exited process.
     $holderScript=Join-Path $hostRoot 'smb-sim-holder.ps1';$holderReady=Join-Path $hostRoot 'smb-sim-ready.txt'
     Put-Portable $holderScript @'
 param($Brain,$ConfigPath,$Ready)
@@ -1674,7 +1712,7 @@ Start-Sleep -Seconds 300
     Assert-Portable (@($contenderOutputs|Where-Object {$_ -match 'EXIT=(0|1)\b'}).Count -eq 3) 'tre Sync simultanei si serializzano e terminano tutti senza errore ne exit 3'
     Assert-Portable ($null -eq (Get-SBPendingTransaction $brain) -and (Invoke-FixtureCli 'secondbrain.ps1' @('-Check')).exit -in @(0,1)) 'dopo la contesa il cervello e consistente (nessun marker, Check eseguibile)'
 
-    # Coda FIFO dei writer: ordine di arrivo, ticket orfano di un processo terminato, exit 3 uniforme in tutti gli script di scrittura.
+    # FIFO writer queue: arrival order, orphan ticket from an exited process, consistent exit 3 across all writing scripts.
     $queueScript=Join-Path $hostRoot 'queue-waiter.ps1';$queueLog=Join-Path $hostRoot 'queue-order.log'
     Put-Portable $queueScript @'
 param($Brain,$ConfigPath,$Label,$Log)
@@ -1693,7 +1731,7 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
     try{
         foreach($label in 'A','B','C','D'){
             $queueProcs+=Start-Process pwsh -ArgumentList @('-NoProfile','-File',$queueScript,'-Brain',$brain,'-ConfigPath',$isoActivation.configuration,'-Label',$label,'-Log',$queueLog) -PassThru -WindowStyle Hidden
-            # Il ticket successivo parte solo quando quello precedente e in coda: l'ordine di arrivo e noto.
+            # Start the next ticket only after the previous one is queued: arrival order is known.
             for($i=0;$i -lt 160 -and (Get-FixtureQueue).Count -lt $queueProcs.Count;$i++){Start-Sleep -Milliseconds 250}
         }
         $queued=Get-FixtureQueue
@@ -1730,7 +1768,7 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
         Remove-Item Env:\SECONDBRAIN_LOCK_WAIT_SECONDS -ErrorAction SilentlyContinue
         if(!$simHolder.HasExited){Stop-Process -Id $simHolder.Id -Force};$simHolder.WaitForExit(10000)|Out-Null
     }
-    # A lock libero il backup serializzato riesce e il suo archivio si verifica.
+    # With the lock free, serialized backup succeeds and its archive verifies.
     $backupZip=Join-Path $hostRoot 'backups/serializzato.zip'
     $backupFree=Invoke-FixtureCli 'backup.ps1' @('-OutputPath',$backupZip)
     $backupVerify=Invoke-FixtureCli 'backup.ps1' @('-Verify','-BackupPath',$backupZip)
@@ -1771,8 +1809,8 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
         }
     }else{Assert-Portable $true 'alias UNC amministrativo non raggiungibile su questa macchina: prova saltata e dichiarata'}
 
-    # Secondo host simulato (stessa macchina fisica, NON una prova su un secondo PC): clone del cervello in un altro percorso, checkout in radici diverse con spazi,
-    # profilo utente deviato. Il secondo host si associa ai dossier esistenti per identita, senza duplicarli e senza toccare il primo host.
+    # Simulated second host (same physical machine, NOT a second-PC test): brain cloned to another path, checkouts under different roots with spaces,
+    # redirected user profile. The second host binds existing dossiers by identity without duplicating them or touching the first host.
     function New-SecondHostBrain([string]$Path){
         [IO.Directory]::CreateDirectory((Join-Path $Path 'scripts'))|Out-Null
         Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $Path 'scripts');Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../VERSION') -Destination (Join-Path $Path 'VERSION')
@@ -1801,7 +1839,7 @@ try{Add-Content -LiteralPath $Log -Value $Label;Start-Sleep -Milliseconds 400}fi
     $cfgA=Read-SBJson $cfgAFile $null
     Assert-Portable ($setupA.exit -eq 0 -and @($cfgA.bindings).Count -eq 2) 'host A: -Setup applica due binding'
     $areasA=@(Get-ChildItem -LiteralPath (Join-Path $hostAbrain '02-areas/products') -Directory|ForEach-Object Name|Sort-Object)
-    # Clone del cervello su un secondo percorso: solo conoscenza condivisa (dossier, indice PARA), nessuno stato di postazione.
+    # Brain cloned to a second path: shared knowledge only (dossiers, PARA index), no workstation state.
     New-SecondHostBrain $hostBbrain
     Copy-Item -LiteralPath (Join-Path $hostAbrain '02-areas') -Destination (Join-Path $hostBbrain '02-areas') -Recurse
     foreach($shared in @('para-index.json','PARA.md')){if(Test-Path -LiteralPath (Join-Path $hostAbrain $shared)){Copy-Item -LiteralPath (Join-Path $hostAbrain $shared) -Destination (Join-Path $hostBbrain $shared)}}

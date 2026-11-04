@@ -84,7 +84,7 @@ Add-SBMessages @{
     'portable.dossier.identity' = @{ it = 'Identita dossier divergente'; en = 'Dossier identity diverges' }
 }
 
-# Destinazione di SECONDBRAIN_HOME: 'User' in produzione; le prove la portano a 'Process' per non toccare l'ambiente dell'utente.
+# SECONDBRAIN_HOME target: 'User' in production; tests redirect it to 'Process' to preserve the user's environment.
 $script:SBEnvironmentScope='User'
 
 function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(Get-SBHostId)) {
@@ -176,7 +176,7 @@ function Invoke-SBHostActivation {
         $ide=@{}+$assets[0]
         if($ide.mode -eq 'file' -and (Get-SBFileHash $ide.instructions) -ne $ide.sha256){throw (New-SBError 'portable.ide.changed')}
         foreach($key in @('accountAlias','profile','environment','accountObservation','observedRevision','observedHash')){if($choice.ContainsKey($key)){$ide[$key]=$choice[$key]}}
-        # Radice di configurazione alternativa (es. altro CLAUDE_CONFIG_DIR): solo IDE di tipo file; la voce ha percorso, hash e fingerprint propri.
+        # Alternative configuration root (e.g. another CLAUDE_CONFIG_DIR): file-based IDEs only; the entry has its own path, hash and fingerprint.
         if($choice.ContainsKey('instructionsPath') -and $choice.instructionsPath){
             if($ide.mode -ne 'file'){throw (New-SBError 'portable.path.filetype' @($ide.name))}
             $custom=Assert-SBIDEInstructionsPath $ide.name ([string]$choice.instructionsPath)
@@ -265,7 +265,7 @@ function Read-SBSetupNumbers([string]$Prompt,[int]$Count) {
     @($indexes|Sort-Object -Unique)
 }
 function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
-    # Percorso istruzioni alternativo (altra radice di configurazione) per un IDE di tipo file: assoluto, nome file atteso, sotto il profilo utente, fuori da cartelle di credenziali.
+    # Alternative instruction path (another configuration root) for a file-based IDE: absolute, expected filename, under the user profile, outside credential folders.
     $expected=switch -Regex ($Name){'^Claude Code'{'CLAUDE.md'}'^Codex'{'AGENTS.md'}'^Antigravity'{'GEMINI.md'}default{''}}
     if(!$expected){throw (New-SBError 'portable.path.unsupported' @($Name))}
     if(!$Path -or ![IO.Path]::IsPathFullyQualified($Path)){throw (New-SBError 'portable.path.notabsolute')}
@@ -284,7 +284,7 @@ function Invoke-SBSetup {
     $McpTargets=@($McpTargets|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
     if($ApproveMcpReadTools -and !$McpTargets.Count){throw (New-SBError 'portable.mcp.targets')}
     foreach($target in $McpTargets){if($target -notin @('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')){throw (New-SBError 'portable.mcp.targets')}}
-    # Da -File un elenco arriva come stringa unica separata da virgole.
+    # With -File, a list arrives as a single comma-separated string.
     $Select=@($Select|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $Ides=@($Ides|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $result=[ordered]@{stage='preflight';hostId=$hostId;confirmed=$false;applied=$false}
@@ -310,7 +310,7 @@ function Invoke-SBSetup {
     $result.proposal=[ordered]@{
         repositories=@($repos|ForEach-Object {[ordered]@{id=$_.id;name=$_.name;path=$_.path;identity=$(if($_.identity){$_.identity}else{'local'});bound=($_.path -in $boundPaths)}})
         ides=@($report.ides|ForEach-Object {[ordered]@{id=$_.id;name=$_.name;mode=$_.mode}})}
-    # Scelta dei repository.
+    # Repository selection.
     $chosen=@()
     if($All){$chosen=$repos}
     elseif($Select.Count){
@@ -326,7 +326,7 @@ function Invoke-SBSetup {
         foreach($n in @(Read-SBSetupNumbers 'Numeri da gestire separati da virgola, tutti, invio = nessuno' $repos.Count)){$chosen+=$repos[$n-1]}
     }
     $chosen=@($chosen|Sort-Object id -Unique)
-    # Scelta degli IDE.
+    # IDE selection.
     $ideReport=@($report.ides);$chosenIdes=@()
     if($AllIdes){$chosenIdes=$ideReport}
     elseif($Ides.Count){
@@ -341,8 +341,8 @@ function Invoke-SBSetup {
         foreach($n in @(Read-SBSetupNumbers 'Numeri da gestire separati da virgola, tutti, invio = nessuno' $ideReport.Count)){$chosenIdes+=$ideReport[$n-1]}
     }
     $chosenIdes=@($chosenIdes|Sort-Object id -Unique)
-    # Più account o radici dello stesso IDE: ogni voce "id-o-nome|alias[|chiave=valore...]" diventa una integrazione distinta (voci separate da ';', campi da '|').
-    # Chiavi: profile, environment, path (solo IDE di tipo file), revision e hash (testo account osservato, dichiarato dall'utente).
+    # Multiple accounts or roots for the same IDE: each "id-or-name|alias[|key=value...]" entry becomes a separate integration (';' separates entries, '|' separates fields).
+    # Keys: profile, environment, path (file-based IDEs only), revision and hash (observed account text, declared by the user).
     $accountEntries=@();$plainIdes=$chosenIdes
     foreach($spec in @($IdeAccount|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})){
         $parts=@($spec -split '\|'|ForEach-Object {$_.Trim()})
@@ -373,10 +373,10 @@ function Invoke-SBSetup {
         if($found[0].id -notin @($chosenIdes|ForEach-Object {$_.id})){$chosenIdes+=$found[0]}
     }
     if(!$chosen.Count -and !$chosenIdes.Count){throw (New-SBError 'portable.selection.empty')}
-    # Un IDE con alias dichiarato è una sola integrazione: la voce senza alias per lo stesso IDE (selezione per nome) non si aggiunge.
+    # An IDE with a declared alias is one integration: do not add the unaliased entry for the same IDE selected by name.
     $accountIdeIds=@($accountEntries|ForEach-Object {$_.id})
     $plainIdes=@($plainIdes|Where-Object {$_.id -notin $accountIdeIds})
-    # Blocchi gestiti gia presenti: richiedono revisione esplicita, salvo il blocco identico a quello che Sync scriverebbe con la revisione approvata (stessi marcatori e hash di origine).
+    # Existing managed blocks require explicit review, except a block identical to what Sync would write using the approved revision (same markers and source hashes).
     $approvals=@{}
     $approvedRevision=Get-SBApprovedDirectiveRevision $brain
     $approvedBlock=if($approvedRevision){"<!-- secondbrain:repository:begin -->`n"+(New-SBPortableRepositoryBody $approvedRevision).Trim()+"`n<!-- secondbrain:repository:end -->"}else{$null}
@@ -390,7 +390,7 @@ function Invoke-SBSetup {
         if(!$approvals[$asset.id]){throw (New-SBError 'portable.block.unapproved' @($asset.path))}
     }
     $result.selected=[ordered]@{repositories=@($chosen|ForEach-Object {$_.name});ides=@($chosenIdes|ForEach-Object {$_.name})}
-    # Conferma effettiva dell'utente.
+    # Actual user confirmation.
     $confirmed=$false;$how=''
     if($Yes){$confirmed=$true;$how='-Yes'}
     elseif($prompting){
@@ -405,7 +405,7 @@ function Invoke-SBSetup {
     Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) (Join-Path $paths.hostRoot 'backups')|Out-Null
     $result.selection=$selectionPath;$result.confirmed=$confirmed
     if(!$confirmed){$result.note='Conferma mancante: selezione registrata come proposta (confirmed=false). Rilanciare con -Yes oppure -Interactive.';return $result}
-    # Anteprima, poi applicazione.
+    # Preview, then apply.
     $result.stage='preview'
     $preview=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId
     if($McpTargets.Count){
@@ -415,7 +415,7 @@ function Invoke-SBSetup {
     $doApply=[bool]$Apply
     if(!$doApply -and $prompting){$doApply=(([string](Read-Host 'Digita APPLICA per attivare ora (invio = solo anteprima)')).Trim() -ceq 'APPLICA')}
     if(!$doApply){$result.activation=$preview;return $result}
-    # La variabile utente SECONDBRAIN_HOME si scrive solo con conferma esplicita (-RegisterEnvironment o risposta SI); -NoRegisterEnvironment la esclude.
+    # Write the user SECONDBRAIN_HOME variable only with explicit confirmation (-RegisterEnvironment or answer SI); -NoRegisterEnvironment excludes it.
     if($RegisterEnvironment -and $NoRegisterEnvironment){throw (New-SBError 'portable.environment.alternatives')}
     $doRegister=[bool]$RegisterEnvironment
     if(!$doRegister -and !$NoRegisterEnvironment -and $prompting){$doRegister=(([string](Read-Host 'Registrare SECONDBRAIN_HOME come variabile utente? Digita SI per confermare (invio = no)')).Trim() -ceq 'SI')}
@@ -438,7 +438,7 @@ function Invoke-SBSetup {
     $result
 }
 function Get-SBIDEStaleObservation($Ide,[string]$GlobalText) {
-    # Voce manuale con testo osservato (observedHash) diverso da quello approvato: restituisce revisione osservata e attesa, altrimenti $null.
+    # Manual entry with observed text (observedHash) differing from approval: return observed and expected revisions; otherwise $null.
     if(!$Ide.ContainsKey('observedHash') -or !$Ide.observedHash){return $null}
     $text=$GlobalText.Trim()
     if([string]$Ide.observedHash -ceq (Get-SBTextHash $text)){return $null}
@@ -447,10 +447,10 @@ function Get-SBIDEStaleObservation($Ide,[string]$GlobalText) {
     @{observedRevision=$observed;expectedRevision=$expected}
 }
 function Get-SBIDEContextState($Ide,$State) {
-    # Confronta il contesto corrente con la base registrata (configurazione, altrimenti state.json): unrecorded, unchanged, changed o unknown.
+    # Compare current context against the registered baseline (configuration, otherwise state.json): unrecorded, unchanged, changed or unknown.
     $name=[string]$Ide.name;$context=Get-SBIDEContext $name
     if(!$context){return @{status='unknown';current='';recorded=''}}
-    # Voce con radice alternativa: il fingerprint corrente include il suo percorso, come alla registrazione.
+    # Entry with an alternative root: its current fingerprint includes its path, as at registration.
     if($Ide.ContainsKey('customInstructionsPath') -and $Ide.customInstructionsPath){$context.fingerprint=Get-SBTextHash ($context.fingerprint+'|'+([string]$Ide.instructions).ToLowerInvariant())}
     $recorded=if($Ide.ContainsKey('environmentFingerprint') -and $Ide.environmentFingerprint){[string]$Ide.environmentFingerprint}
         elseif($State -and $State.ContainsKey('ideContext') -and $State.ideContext.ContainsKey([string]$Ide.id)){[string]$State.ideContext[[string]$Ide.id]}else{''}
@@ -458,7 +458,7 @@ function Get-SBIDEContextState($Ide,$State) {
     @{status=$status;current=$context.fingerprint;recorded=$recorded}
 }
 function Get-SBSetupStatus([string]$BrainRoot) {
-    # Sola lettura: nessun lock, nessuna discovery, nessuna scrittura.
+    # Read-only: no locks, discovery or writes.
     $brain=[IO.Path]::GetFullPath($BrainRoot);$configPath=Get-SBHostConfigPath $brain
     if(!(Test-Path -LiteralPath $configPath -PathType Leaf)){throw (New-SBError 'portable.workstation.inactive')}
     $config=Read-SBJson $configPath @{}
@@ -516,7 +516,7 @@ function Invoke-SBSetupUnbind {
     $result
 }
 function Invoke-SBSetupOutput {
-    # Registra outputStatus/outputEvidence/outputException di un binding dopo la prova dell agent prodotto: proposta, conferma, anteprima, -Apply.
+    # Register a binding's outputStatus/outputEvidence/outputException after product-agent testing: proposal, confirmation, preview, -Apply.
     param([string]$BrainRoot,[string]$Target,[string]$OutputStatus,[string]$Evidence,[string]$Exception,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[string]$SessionId)
     $brain=[IO.Path]::GetFullPath($BrainRoot)
     if(!$Target -or $Target.Contains(',')){throw (New-SBError 'portable.output.single')}
@@ -573,7 +573,7 @@ function Invoke-SBSetupOutput {
     $result.stage='applied';$result.applied=$true;$result.confirmation=[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'
     $result
 }
-# Blocco greenfield: segnali, rispetto a HEAD, di versioni, changelog, migrazioni, alias di compatibilita e deprecations. Una modifica gia committata non e segnalata.
+# Greenfield guard: changes relative to HEAD for versions, changelog, migrations, compatibility aliases and deprecations. Already committed changes are not reported.
 function Get-SBGreenfieldViolations($Config,$Binding,[string]$Dossier) {
     $found=@()
     $version=Invoke-SBGit $Binding.path @('status','--porcelain=v1','--','VERSION')
@@ -599,7 +599,7 @@ function Invoke-SBPortableSync {
     param($Config,[switch]$Check,[string]$SessionId,[string]$ObservationPath,[string]$Repository)
     $lock=Enter-SBOperation $Config $SessionId -ReadOnly:$Check
     try{
-        # Con -Repository il controllo e limitato al repository indicato: nessun dato o esito di altri repository, copertura dichiarata nel risultato.
+        # -Repository limits checks to that repository: no other repositories' data or results; the result declares coverage.
         $scoped=@($Config.bindings)
         if($Repository){
             $scoped=@($Config.bindings|Where-Object {$_.identity -ceq $Repository})
@@ -644,7 +644,7 @@ function Invoke-SBPortableSync {
                     if($Check){$issues+=@{kind='history-index-pending';repository=$binding.identity}}
                     else{Write-SBFile $historyPath ([Text.Encoding]::UTF8.GetBytes($historyIndex)) (Get-SBFileHash $historyPath) $Config.backupRoot|Out-Null}
                 }
-                # Vista per agenti di memory.md (file derivato): generata da Sync, verificata da Check come l'indice.
+                # Agent view of memory.md (derived file): generated by Sync and verified by Check, like the index.
                 $memorySource=Join-Path $dir 'memory.md'
                 if([IO.File]::Exists($memorySource)){
                     $agentView=ConvertTo-SBAgentMemoryView (Read-SBText $memorySource);$viewFile=Join-Path $dir 'memory.agent.md'
@@ -661,12 +661,12 @@ function Invoke-SBPortableSync {
                         }
                     }
                 }
-                # Il tetto vale solo per il primo caricamento (profilo Slim, 20.000 caratteri), come in knowledge.ps1 -Startup.
+                # The limit applies only to initial loading (Slim profile, 20,000 characters), as in knowledge.ps1 -Startup.
                 $budget = Get-SBSlimStartupBudget
                 $startup=Get-SBStartupContext -BrainRoot $Config.brainRoot -Dossier $dir -CheckoutPath $binding.path -Entities $entities -Budget $budget -Profile Slim
                 if(!$startup.withinBudget){$issues+=@{kind='compaction-required';repository=$binding.identity;characters=$startup.characters;budget=$budget}}
                 else{
-                    # Soglia soft (vicino al tetto o molti turni dall'ultima compattazione): solo avviso, non rende il controllo non allineato.
+                    # Soft threshold (near the limit or many turns since compaction): warning only; does not make the check unaligned.
                     $advice=Get-SBCompactionAdvice $startup $Config.brainRoot $dir
                     if($advice.level -eq 'soft'){$compactionAdvice+=@{kind='compaction-advised';repository=$binding.identity;characters=$advice.characters;budget=$advice.budget;percent=$advice.percent;turnsSinceCompaction=$advice.turnsSinceCompaction;reason=(Get-SBMessage 'portable.issue.compaction')}}
                 }
@@ -691,7 +691,7 @@ function Invoke-SBPortableSync {
             }
             if(!$state.ContainsKey('ideContext')){$state.ideContext=@{}}
             foreach($ide in $Config.ides){
-                # Cambio di profilo, radice di configurazione o cartelle di configurazione dopo l attivazione: le istruzioni potrebbero non essere piu caricate.
+                # Profile, configuration root or configuration folders changed since activation: instructions may no longer be loaded.
                 $contextState=Get-SBIDEContextState $ide $state
                 if($contextState.status -eq 'unrecorded' -and !$Check -and $contextState.current){$state.ideContext[[string]$ide.id]=$contextState.current}
                 elseif($contextState.status -eq 'changed'){$issues+=@{kind='ide-context-changed';ide=$ide.name;reason=(Get-SBMessage 'portable.issue.idecontext')}}
@@ -699,7 +699,7 @@ function Invoke-SBPortableSync {
                 if($ide.mode -eq 'manual'){
                     $alias=if($ide.ContainsKey('accountAlias')){[string]$ide.accountAlias}else{''}
                     if(!$observed){$issues+=@{kind='account-unverified';ide=$ide.name;id=$ide.id;accountAlias=$alias}}
-                    # Testo account osservato diverso da quello approvato: va riallineato (nuova revisione o account non aggiornato).
+                    # Observed account text differs from approval: realignment needed (new revision or stale account).
                     $stale=Get-SBIDEStaleObservation $ide $global
                     if($stale){$issues+=@{kind='ide-directive-stale';ide=$ide.name;id=$ide.id;accountAlias=$alias;observedRevision=$stale.observedRevision;expectedRevision=$stale.expectedRevision}}
                     continue
@@ -741,7 +741,7 @@ function Invoke-SBPortableSync {
         $fileIssueKinds=@('directive-pending','directive-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','agent-view-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
-        # Le letture non bloccano il writer: un writer attivo o una transazione pendente rendono lo snapshot potenzialmente intermedio.
+        # Reads do not block writers: an active writer or pending transaction makes the snapshot potentially intermediate.
         $warnings=@($compactionAdvice)+@($closureWarnings)
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason=(Get-SBMessage 'portable.issue.writer')}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}

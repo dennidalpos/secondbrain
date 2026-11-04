@@ -70,7 +70,7 @@ function Get-SBTrackerImportPath($Config,[string]$Identity) {
     Join-Path $Config.runtimeRoot ('tracker-imports/'+(Get-SBTextHash $Identity).Substring(0,24)+'.json')
 }
 
-# Registri, manifest e archivi creati prima della V1.0 usano il prefisso tracker-migration: restano leggibili, le nuove importazioni scrivono tracker-import.
+# Journals, manifests and archives created before V1.0 use tracker-migration: keep them readable; new imports write tracker-import.
 $script:SBTrackerImportRootNames=@('tracker-imports','tracker-migrations')
 $script:SBTrackerImportKinds=@('tracker-import','tracker-migration')
 function Get-SBTrackerImportPaths($Config,[string]$Identity) {
@@ -302,7 +302,7 @@ function Invoke-SBTrackerImport {
         }
         if(Test-Path -LiteralPath $m.target){throw (New-SBError 'trackerimport.target.existing')}
     }
-    # Tutti i percorsi riscritti restano nel checkout di SecondBrain o nel backupRoot.
+    # All rewritten paths stay within the SecondBrain checkout or backupRoot.
     $expectedTarget=Resolve-SBParaPath $dir 'tracker.json'
     if($m.dossier -ne $area.path -or $m.target -ne $expectedTarget){throw (New-SBError 'trackerimport.dossier.moved')}
     $manifestHash=Get-SBFileHash $ManifestPath
@@ -312,7 +312,7 @@ function Invoke-SBTrackerImport {
         $manifestHash=Get-SBFileHash $ManifestPath
     }
     $phase={param($Name) $m.phase=$Name;. $save;if($AfterPhase){& $AfterPhase $Name}}
-    # Registra prima l'operazione, cosi anche una scrittura interrotta resta recuperabile.
+    # Record the operation first so an interrupted write remains recoverable.
     $write={param([string]$Path,[byte[]]$Bytes,[switch]$Remove)
         $full=[IO.Path]::GetFullPath($Path)
         if($full -ne $m.source.path -and !$full.StartsWith($Config.brainRoot.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'trackerimport.operation.archive')}

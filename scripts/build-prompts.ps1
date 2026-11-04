@@ -1,17 +1,17 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Valida catalogo e schede, genera direttive/prompts/README.md.
+Validates the catalog and prompt cards; generates direttive/prompts/README.md.
 .DESCRIPTION
--Check verifica senza scrivere: exit 0 allineato, 1 da rigenerare.
-Il catalogo prompt è nella radice SecondBrain. Usare -SessionId nelle sessioni Write.
+-Check verifies without writing: exit 0 when aligned, 1 when regeneration is required.
+The prompt catalog lives in the SecondBrain root. Use -SessionId in Write sessions.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[switch]$Check)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
 $config=Read-SBConfiguration $ConfigPath

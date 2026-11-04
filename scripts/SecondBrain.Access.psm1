@@ -26,7 +26,7 @@ Add-SBMessages @{
 }
 
 function Get-SBPendingTransaction([string]$BrainRoot) {
-    # Riepilogo del marker di una transazione interrotta: chi, quando, manifest e se e raggiungibile da questa postazione.
+    # Summarize an interrupted transaction marker: owner, time, manifest and reachability from this workstation.
     $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
     if(!(Test-Path -LiteralPath $marker)){return $null}
     $pending=try{Read-SBJson $marker @{}}catch{@{}}
@@ -39,7 +39,7 @@ function Format-SBPendingTransaction($Pending) {
     (Get-SBMessage 'access.pending' @($who,$Pending.manifest))
 }
 function Get-SBLockWaitMs($Config,[int]$WaitMs=-1) {
-    # Attesa predefinita del writer su cervello condiviso: parametro esplicito, poi SECONDBRAIN_LOCK_WAIT_SECONDS, poi policy condivisa, poi 60 s.
+    # Default writer wait on a shared brain: explicit parameter, then SECONDBRAIN_LOCK_WAIT_SECONDS, shared policy, then 60 s.
     if($WaitMs -ge 0){return $WaitMs}
     if($env:SECONDBRAIN_LOCK_WAIT_SECONDS -match '^\d{1,3}$'){return [Math]::Min([int]$env:SECONDBRAIN_LOCK_WAIT_SECONDS,600)*1000}
     if($Config -is [Collections.IDictionary] -and $Config.ContainsKey('lockWaitMs')){return [int]$Config.lockWaitMs}
@@ -68,15 +68,15 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
             $local[$key]=Assert-SBCentralDataPath $brain $value
         }
         foreach($binding in $local.bindings){if(!(Test-SBRepositoryIdentity $binding.identity) -or ![IO.Path]::IsPathFullyQualified($binding.path)){throw (New-SBError 'access.binding.invalid')}}
-        # La policy condivisa (config/shared.json) e l'unica fonte di owner ammessi e cartelle escluse anche in modalita portabile.
-        # Fail-closed: senza policy valida non si assume "tutti gli owner ammessi".
+        # Shared policy (config/shared.json) is the only source of allowed owners and excluded folders, including portable mode.
+        # Fail closed: without a valid policy, never assume that all owners are allowed.
         if(!($shared -is [Collections.IDictionary]) -or !$shared.ContainsKey('allowedOwners') -or !$shared.ContainsKey('excludedDirectories')){throw (New-SBError 'access.shared.incomplete')}
         $owners=@($shared.allowedOwners)
         foreach($owner in $owners){if($owner -notmatch '^[a-zA-Z0-9][a-zA-Z0-9-]*$'){throw (New-SBError 'access.shared.owner')}}
         $excludedDirs=@($shared.excludedDirectories)
         $local.brainRoot=$brain;$local.configPath=[IO.Path]::GetFullPath($ConfigPath);$local.repositoryRoot=$brain;$local.allowedOwners=$owners;$local.excludedDirectories=$excludedDirs;$local.sessionTimeoutMinutes=30
         $local.coordinationRoot=Join-Path $brain '.runtime/access'
-        # Attesa del writer: lockWaitSeconds in config/shared.json (0-600, predefinito 60).
+        # Writer wait: lockWaitSeconds in config/shared.json (0-600, default 60).
         $local.lockWaitMs=60000
         if($shared.ContainsKey('lockWaitSeconds')){
             $wait=$shared.lockWaitSeconds
@@ -85,7 +85,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         }
         $pending=Get-SBPendingTransaction $brain
         if($pending -and !$AllowPendingTransaction){
-            # I lettori continuano con un avviso: i dati possono essere in uno stato intermedio finche il manifest non e recuperato.
+            # Readers continue with a warning: data may remain in an intermediate state until the manifest is recovered.
             if(!$ReadOnly){throw (Format-SBPendingTransaction $pending)}
             $local.pendingTransaction=$pending
         }
@@ -101,7 +101,7 @@ function Write-SBAccessMetadata([string]$Path, $Value) {
         $bytes = [Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $Value))
         $stream = [IO.FileStream]::new($temp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try { $stream.Write($bytes); $stream.Flush($true) } finally { $stream.Dispose() }
-        # Un lettore su un altro host puo avere il file aperto un istante: la sostituzione viene ritentata invece di segnare la sessione come fallita.
+        # A reader on another host may briefly hold the file open: retry replacement instead of marking the session failed.
         for ($attempt = 1; $attempt -le 6; $attempt++) {
             try { [IO.File]::Move($temp,$Path,$true); break }
             catch [IO.IOException], [UnauthorizedAccessException] { if ($attempt -eq 6) { throw }; Start-Sleep -Milliseconds (40 * $attempt) }
@@ -122,7 +122,7 @@ function Open-SBLockFile([string]$Path, [IO.FileMode]$Mode, [IO.FileAccess]$Acce
         } catch [IO.IOException] {
             $hr = $_.Exception.GetBaseException().HResult -band 0xffff
             if ($hr -notin @(32, 33) -or [DateTimeOffset]::UtcNow -ge $deadline) { throw }
-            # Una sola segnalazione, con il titolare, appena inizia l'attesa.
+            # Report the owner once, as soon as waiting begins.
             if ($OnWait -and !$notified) { $notified = $true; & $OnWait }
             Start-Sleep -Milliseconds $delay
             $delay = [Math]::Min(500, [int]($delay * 1.5))
@@ -130,12 +130,12 @@ function Open-SBLockFile([string]$Path, [IO.FileMode]$Mode, [IO.FileAccess]$Acce
     }
 }
 function Test-SBBusyError($ErrorRecord) {
-    # Contesa sul lock di scrittura dopo l'attesa (sharing/lock violation), non altri errori di I/O.
+    # Writer-lock contention after waiting (sharing/lock violation), excluding other I/O errors.
     $base = $ErrorRecord.Exception.GetBaseException()
     $base -is [IO.IOException] -and ($base.HResult -band 0xffff) -in @(32, 33)
 }
 function Test-SBQueueTicketAlive([string]$LeasePath) {
-    # Il ticket e vivo finche il suo processo tiene aperto il lease; un lease apribile e di un processo terminato.
+    # A ticket is live while its process holds the lease open; an openable lease belongs to an exited process.
     $probe = $null
     try { $probe = [IO.File]::Open($LeasePath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None); return $false }
     catch [IO.FileNotFoundException] { return $false }
@@ -148,15 +148,15 @@ function Remove-SBQueueTicketFiles([string]$Root, [string]$Name) {
     foreach ($suffix in @('.json','.lease')) { try { [IO.File]::Delete((Join-Path $Root ($Name+$suffix))) } catch {} }
 }
 function Get-SBQueueTicketNames([string]$Root) {
-    # Ordine di arrivo: il nome inizia con i tick UTC a larghezza fissa, poi un guid di spareggio.
+    # Arrival order: the name starts with fixed-width UTC ticks, followed by a GUID tie-breaker.
     if (!(Test-Path -LiteralPath $Root)) { return @() }
     $names = @(Get-ChildItem -LiteralPath $Root -Filter '*.lease' -File -ErrorAction SilentlyContinue | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_.Name) })
     [Array]::Sort($names, [StringComparer]::Ordinal)
     $names
 }
 function Enter-SBQueue($Config, [int]$WaitMs, [scriptblock]$OnWait) {
-    # Coda FIFO dei writer sopra writer.lock: il ticket e un lease esclusivo tenuto aperto; i ticket di processi terminati
-    # (lease apribile) vengono rimossi senza toccare writer.lock ne i marker di transazione.
+    # FIFO writer queue over writer.lock: the ticket is an exclusive open lease; tickets from exited processes
+    # (openable leases) are removed without touching writer.lock or transaction markers.
     $root = Join-Path $Config.coordinationRoot 'queue'
     Assert-SBPlainPath $root
     [IO.Directory]::CreateDirectory($root) | Out-Null
@@ -189,7 +189,7 @@ function Exit-SBQueue($Ticket) {
     Remove-SBQueueTicketFiles $Ticket.root $Ticket.name
 }
 function Open-SBWriterLock($Config, [string]$WriterPath, [int]$WaitMs, [scriptblock]$OnWait) {
-    # Ticket in coda, poi writer.lock entro l'attesa residua; il ticket si libera appena il lock e acquisito.
+    # Queue a ticket, then acquire writer.lock within the remaining wait; release the ticket as soon as the lock is acquired.
     $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
     $state = @{ notified=$false }
     $notify = { if (!$state.notified) { $state.notified = $true; if ($OnWait) { & $OnWait } } }.GetNewClosure()
@@ -200,7 +200,7 @@ function Open-SBWriterLock($Config, [string]$WriterPath, [int]$WaitMs, [scriptbl
     } finally { Exit-SBQueue $ticket }
 }
 function Get-SBQueueStatus($Config, [switch]$Purge) {
-    # Sola lettura (con -Purge rimuove i ticket orfani): posizione 1 = prossimo writer.
+    # Read-only (-Purge removes orphan tickets): position 1 = next writer.
     $root = Join-Path $Config.coordinationRoot 'queue'
     $position = 0
     foreach ($name in @(Get-SBQueueTicketNames $root)) {
@@ -213,7 +213,7 @@ function Get-SBQueueStatus($Config, [switch]$Purge) {
     }
 }
 function Write-SBReadWarnings($Operation, $Config) {
-    # Lettori senza lock: segnala su stderr uno stato potenzialmente intermedio, senza fallire.
+    # Lock-free readers: warn on stderr about a potentially intermediate state without failing.
     if ($Operation -and $Operation.concurrentWriter) { [Console]::Error.WriteLine('Avviso: un writer SecondBrain e attivo, i dati letti possono essere intermedi.') }
     $pending = if ($Operation -and $Operation.pendingTransaction) { $Operation.pendingTransaction } elseif ($Config -is [Collections.IDictionary] -and $Config.ContainsKey('pendingTransaction')) { $Config.pendingTransaction } else { $null }
     if ($pending) { [Console]::Error.WriteLine('Avviso: ' + (Format-SBPendingTransaction $pending)) }
@@ -242,7 +242,7 @@ function Get-SBAccessStatus($Config, [switch]$Repair) {
             catch [IO.IOException] {
                 if (($_.Exception.GetBaseException().HResult -band 0xffff) -notin @(32,33) -or ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($entry.heartbeat)).TotalSeconds -gt 15) { $entry.status = 'unverified' }
             } finally { if ($lease) { $lease.Dispose() } }
-            # Lo stato e in sola lettura: la persistenza dell'abbandono richiede -Repair (o Clear-SBStaleSessions).
+            # Status is read-only: persisting abandonment requires -Repair (or Clear-SBStaleSessions).
             if ($Repair -and $entry.status -eq 'abandoned') {
                 try { Write-SBAccessMetadata $file.FullName $entry } catch {}
                 foreach ($suffix in @('.stop','.renew','.lease')) { [IO.File]::Delete((Join-Path $root ($entry.sessionId+$suffix))) }
@@ -307,7 +307,7 @@ function Assert-SBSession($Config, [string]$SessionId, [switch]$AllowRead) {
 }
 
 function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]$WaitMs = -1, [switch]$ReconcileWorkstation, [switch]$LockOnly) {
-    # -LockOnly: solo coda e lock di scrittura (nessun registro postazioni ne guardia), per i writer che operano fuori dal cervello e a postazione non attivata.
+    # -LockOnly: writer queue and lock only (no workstation registry or guard), for writers outside the brain and on inactive workstations.
     $result = @{ writer=$null; operation=$null; metadata=$null; ownerSessionId=$null; config=$Config; concurrentWriter=$false; pendingTransaction=$null; previousGuard=(Get-SBWriteGuard) }
     $waitTotal = Get-SBLockWaitMs $Config $WaitMs
     try {
@@ -318,7 +318,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
         }
         $writerPath = Join-Path $Config.coordinationRoot 'writer.lock'
         if ($ReadOnly) {
-            # Le letture non prendono lock bloccanti (non affamano il writer): segnalano un writer attivo o una transazione pendente come avviso.
+            # Reads take no blocking locks (avoiding writer starvation): report an active writer or pending transaction as a warning.
             if ($Config -is [Collections.IDictionary] -and $Config.ContainsKey('brainRoot')) { $result.pendingTransaction = Get-SBPendingTransaction $Config.brainRoot }
             if ($SessionId) {
                 $session = Assert-SBSession $Config $SessionId -AllowRead
@@ -349,7 +349,7 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             Assert-SBPlainPath $opPath
             $result.operation = Open-SBLockFile $opPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) $waitTotal
             if ($LockOnly) { return $result }
-            # La registrazione impedisce due postazioni con stesso id o baseline condivisa per errore.
+            # Registration prevents two workstations from accidentally sharing an ID or baseline.
             $registryPath = Join-Path $Config.coordinationRoot 'workstations.json'
             $registry = Read-SBJson $registryPath @{}
             $identity = [Environment]::MachineName+'|'+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
@@ -362,16 +362,16 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
             foreach ($key in $registry.Keys) {
                 if ($key -ne $Config.workstationId -and ($registry[$key].runtimeRoot -ieq $Config.runtimeRoot -or $registry[$key].backupRoot -ieq $Config.backupRoot)) { throw (New-SBError 'access.station.roots') }
             }
-            # Stessa identita con percorsi diversi (cartella spostata, alias UNC, baseline condivisa per errore): serve conferma esplicita.
-            # Alias dello stesso percorso (maiuscole, drive mappato, UNC con FQDN) non sono uno spostamento.
+            # Same identity with different paths (moved folder, UNC alias, accidentally shared baseline): explicit confirmation required.
+            # Aliases of the same path (case, mapped drive, UNC with FQDN) are not relocations.
             $moved = $known -and !((Test-SBSamePath $known.runtimeRoot $station.runtimeRoot) -and (Test-SBSamePath $known.backupRoot $station.backupRoot) -and (Test-SBSamePath $known.repositoryRoot $station.repositoryRoot))
             if ($moved -and !$ReconcileWorkstation) { throw (New-SBError 'access.station.moved' @($Config.workstationId,$known.repositoryRoot,$station.repositoryRoot)) }
             if (!$known -or $moved) { $registry[$Config.workstationId]=$station; Write-SBAccessMetadata $registryPath $registry }
-            # La closure non vede le funzioni private del modulo: si cattura il comando prima di GetNewClosure().
+            # The closure cannot see private module functions: capture the command before GetNewClosure().
             $assertSession=${function:Assert-SBSession}
             $writeGuard={
                 if($SessionId){& $assertSession $Config $SessionId|Out-Null}
-                # Un vero I/O sull'handle condiviso rileva la perdita del coordinamento.
+                # Actual I/O on the shared handle detects loss of coordination.
                 $result.operation.Position=0;$result.operation.WriteByte(1);$result.operation.Flush($true)
                 if($result.writer){$result.writer.Position=0;$result.writer.WriteByte(1);$result.writer.Flush($true)}
             }.GetNewClosure()
@@ -394,7 +394,7 @@ function Exit-SBOperation($Operation) {
     $previousGuard=if($Operation.ContainsKey('previousGuard')){$Operation.previousGuard}else{$null}
     Set-SBWriteGuard $previousGuard
     if ($Operation.operation) { $Operation.operation.Dispose() }
-    # Il file del titolare si rimuove solo se e ancora quello scritto da questa operazione.
+    # Remove the owner file only if it is still the file written by this operation.
     if ($Operation.metadata -and [IO.File]::Exists($Operation.metadata)) {
         $recorded = try { Read-SBJson $Operation.metadata @{} } catch { @{} }
         if (!$Operation.ownerSessionId -or ($recorded.ContainsKey('sessionId') -and $recorded.sessionId -eq $Operation.ownerSessionId)) { [IO.File]::Delete($Operation.metadata) }

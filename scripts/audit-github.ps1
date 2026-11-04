@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Audit GitHub GET esplicito, separato da Check e Sync. Vedere docs/riferimento/external-audit.md.
+Explicit GitHub GET audit, separate from Check and Sync. See docs/riferimento/external-audit.md.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[string[]]$Repository,[string]$OutputPath)
@@ -32,7 +32,7 @@ try {
     if($OutputPath){
         $target=[IO.Path]::GetFullPath($OutputPath);Assert-SBPlainPath $target
         if($portable){$target=Assert-SBCentralDataPath $config.brainRoot $target}
-        # Artefatti nuovi soltanto: non sovrascrivere tracker, codice o audit precedenti.
+        # New artifacts only: never overwrite trackers, code or previous audits.
         if([IO.Path]::GetExtension($target) -ne '.json' -or (Test-Path -LiteralPath $target)){throw (New-SBError 'audit.output.new')}
         $expected=Get-SBFileHash $target
     }

@@ -1,9 +1,9 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Server MCP stdio: consultazione e integrazione delle scritture di dossier gia autorizzate e accodate.
-Espone contesto di avvio, task pronti (-ReadyOnly), dettaglio integro di un task (get_task), ricerca trasversale paginata, catalogo prompt e verifica di pubblicabilità (SEC07) agli IDE conformi.
-Supporta l'accoppiamento con tutti i principali IDE (-Pair -Target <ide> o -Target all) e la generazione di pacchetti di configurazione (-ExportPackage).
+MCP stdio server: reads dossiers and applies previously authorized queued dossier writes.
+Exposes startup context, ready tasks (-ReadyOnly), complete task details (get_task), paginated cross-dossier search, the prompt catalog and publication checks (SEC07) to compatible IDEs.
+Supports pairing with all major IDEs (-Pair -Target <ide> or -Target all) and configuration package generation (-ExportPackage).
 
 .EXAMPLE
 pwsh -NoProfile -File scripts/mcp-server.ps1
@@ -67,7 +67,7 @@ Add-SBMessages @{
     'mcpcli.pair.cli' = @{ it = '--- Comando CLI equivalente ---'; en = '--- Equivalent CLI command ---' }
     'mcpcli.pair.cliuser' = @{ it = "--- Comando CLI per l'ambito utente (tutti i progetti) ---"; en = '--- CLI command for the user scope (all projects) ---' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if(Test-SBWriteDeniedError $_){Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters;exit 4}; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
 if (!$BrainRoot) {
@@ -89,7 +89,7 @@ if ($Pair) {
     $pairOptions=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath}
     if($Scope){$pairOptions.Scope=$Scope}
     if ($Apply) {
-        # Le configurazioni degli IDE sono scritte fuori dal cervello: stessa coda FIFO e lock di ogni writer, anche a postazione non attivata.
+        # IDE configurations are written outside the brain: use the same FIFO queue and lock as every writer, including on inactive workstations.
         $pairLock = Enter-SBOperation @{coordinationRoot=(Join-Path $BrainRoot '.runtime/access');brainRoot=$BrainRoot;workstationId='non-attivata'} -LockOnly
         try { $applied = Set-SBMcpConfiguration @pairOptions -ApproveReadTools:$ApproveReadTools } finally { Exit-SBOperation $pairLock }
         Write-Host (Get-SBMessage 'mcpcli.apply.done') -ForegroundColor Green

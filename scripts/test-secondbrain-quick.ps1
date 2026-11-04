@@ -1,5 +1,5 @@
 #requires -Version 7.5
-# Livello Quick: controlli puri (nessun Git, nessun processo figlio, nessuna fixture). Duplicano per scelta alcuni controlli di Portable e Workflow.
+# Quick level: pure checks (no Git, child processes or fixtures). Intentionally duplicates some Portable and Workflow checks.
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
@@ -13,21 +13,21 @@ $productRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $savedLang=$env:SECONDBRAIN_LANG
 try {
     $env:SECONDBRAIN_LANG='it';Set-SBUiLanguage ''
-    # Identita dei repository
+    # Repository identities.
     Assert-Quick ((ConvertTo-SBRepositoryIdentity 'git@gitlab.example:group/nested/repo.git') -eq 'gitlab.example/group/nested/repo') 'GitLab annidato senza vincolo owner'
     Assert-Quick ((ConvertTo-SBRepositoryIdentity 'https://user:private@github.com/OWNER/REPO.git') -eq 'github.com/owner/repo') 'identita normalizzata senza credenziali'
     Assert-Quick ((ConvertTo-SBRepositoryIdentity 'git@ssh.dev.azure.com:v3/org/project/repo') -eq 'dev.azure.com/org/project/_git/repo') 'alias SSH Azure DevOps'
     Assert-Quick ((ConvertTo-SBRepositoryIdentity 'file:///not-a-remote') -eq $null) 'remoto file non promosso a identita globale'
     Assert-Quick (Test-SBRepositoryIdentity ('local:'+('a'*32))) 'identita locale persistente'
-    # JSON deterministico
+    # Deterministic JSON.
     Assert-Quick ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'
-    # VERSION e direttive
+    # VERSION and directives.
     $productVersion=(Read-SBText (Join-Path $productRoot 'VERSION')).Trim()
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $productRoot 'direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
     Assert-Quick ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
-    # Catalogo prompt reale
+    # Actual prompt catalog.
     Assert-Quick (@(Get-SBWorkflowDrift $productRoot).Count -eq 0) 'catalogo reale allineato'
-    # Catalogo messaggi: lingue e chiavi stabili
+    # Message catalog: languages and stable keys.
     $env:SECONDBRAIN_LANG='en'
     Assert-Quick ((Get-SBUiLanguage) -ceq 'en' -and (Get-SBMessage 'core.block.duplicate' @('x')) -ceq 'Duplicate block: x') 'lingua en da SECONDBRAIN_LANG'
     $env:SECONDBRAIN_LANG='it'

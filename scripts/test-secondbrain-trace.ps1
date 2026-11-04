@@ -1,5 +1,5 @@
 #requires -Version 7.5
-# Traccia di fine turno, hook Stop e avviso di compattazione: fixture sotto .runtime/tests, nessuna scrittura nel .runtime reale.
+# End-of-turn trace, Stop hook and compaction advice: fixtures under .runtime/tests, no writes to the real .runtime.
 $ErrorActionPreference='Stop'
 foreach($module in @('Core','Host','Trace','Knowledge')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
@@ -13,7 +13,7 @@ try {
     $hostDir=Join-Path $brain ('.runtime/hosts/'+(Get-SBHostId));[IO.Directory]::CreateDirectory($hostDir)|Out-Null
     [IO.File]::WriteAllText((Join-Path $hostDir 'workstation.json'),(ConvertTo-SBJson @{schemaVersion=1;bindings=@(@{identity='github.com/acme/repo-a';path=$checkout})}))
 
-    # Evento: solo metadati, repository risolto dal percorso, nessun testo di prompt.
+    # Event: metadata only, repository resolved from path, no prompt text.
     $stdin=ConvertTo-Json -Compress @{session_id='sess-1';cwd=(Join-Path $checkout 'src');prompt='SEGRETO-DEL-PROMPT';transcript_path='C:/x/y.jsonl'}
     $file=Add-SBTraceEvent $brain 'stop' $stdin
     $line=@([IO.File]::ReadAllLines($file))[0];$entry=$line|ConvertFrom-Json -AsHashtable
@@ -25,13 +25,13 @@ try {
     $rows=@([IO.File]::ReadAllLines($file)|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
     Assert-Trace ($rows.Count -eq 4 -and $rows[1].repository -eq '' -and $rows[2].sessionId -eq '' -and $rows[3].sessionId -eq '' -and $rows[3].repository -ceq 'github.com/acme/repo-a') 'checkout estraneo, input non JSON e sessione non valida: righe valide senza errori'
 
-    # Conteggio dei turni per repository e per intervallo.
+    # Count turns by repository and time interval.
     $future=[DateTimeOffset]::Now.AddMinutes(5)
     Assert-Trace ((Get-SBTraceTurns $brain 'github.com/acme/repo-a') -eq 2 -and (Get-SBTraceTurns $brain 'github.com/acme/altro') -eq 0 -and (Get-SBTraceTurns $brain 'github.com/acme/repo-a' $future) -eq 0) 'turni contati per repository e dopo l ultima compattazione'
     $junk=Join-Path (Split-Path $file) 'illeggibile.jsonl';[IO.File]::WriteAllText($junk,"github.com/acme/repo-a rotto`n{non json`n")
     Assert-Trace ((Get-SBTraceTurns $brain 'github.com/acme/repo-a') -eq 2) 'righe illeggibili ignorate nel conteggio'
 
-    # Avviso di compattazione: hard oltre il tetto, soft vicino al tetto o con molti turni, nessuno altrimenti.
+    # Compaction advice: hard beyond the limit, soft near it or after many turns, none otherwise.
     $dossier=Join-Path $root 'dossier';[IO.Directory]::CreateDirectory((Join-Path $dossier 'history/compaction'))|Out-Null
     $startup={param($chars) @{repository='github.com/acme/repo-a';characters=$chars;budget=20000}}
     Assert-Trace ((Get-SBCompactionAdvice (& $startup 20001) $brain $dossier).level -eq 'hard') 'oltre il tetto: avviso hard'
@@ -46,7 +46,7 @@ try {
     Assert-Trace ($after.level -eq 'none' -and $after.turnsSinceCompaction -eq 0 -and $after.lastCompactionUtc) 'dopo una compattazione i turni ripartono da zero'
     Remove-Item -LiteralPath $junk,$heavy -Force
 
-    # Hook Stop in settings.json: anteprima, installazione idempotente, voci altrui intatte, rimozione e rifiuto di JSON non valido.
+    # Stop hook in settings.json: preview, idempotent install, other entries intact, removal, invalid JSON rejected.
     $settings=Join-Path $root 'claude/settings.json';[IO.Directory]::CreateDirectory((Split-Path $settings))|Out-Null
     $original=ConvertTo-SBJson @{theme='dark';hooks=@{Stop=@(@{hooks=@(@{type='command';command='echo altrui'})});PreToolUse=@(@{matcher='Bash';hooks=@(@{type='command';command='echo pre'})})}}
     [IO.File]::WriteAllText($settings,$original)
@@ -71,7 +71,7 @@ try {
     $missing=Join-Path $root 'claude/nuovo/settings.json'
     Assert-Trace ((Set-SBTraceHook $brain $backups -Apply -SettingsPath $missing).applied -and (Get-SBTraceHookState $brain $missing).installed) 'settings.json assente: creato con la sola voce'
 
-    # CLI: anteprima e stato in sola lettura, evento sempre con exit 0 (anche con stdin non valido).
+    # CLI: read-only preview and status; event always exits 0 (including invalid stdin).
     $fixtureScripts=Join-Path $brain 'scripts';[IO.Directory]::CreateDirectory($fixtureScripts)|Out-Null
     Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination $fixtureScripts
     $cli=Join-Path $fixtureScripts 'trace.ps1';$cliSettings=Join-Path $root 'claude/cli.json'

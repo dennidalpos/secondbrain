@@ -1,11 +1,11 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Registra gli accessi cooperativi a SecondBrain; vedere docs/riferimento/operations.md.
-Lo stato (-Status) e in sola lettura; -Purge elimina le sessioni chiuse, scadute o abbandonate da piu di 60 minuti.
--Reconcile conferma esplicitamente uno spostamento della postazione (stesso workstationId, percorsi diversi) e aggiorna il registro.
--Queue elenca la coda FIFO dei writer (posizione 1 = prossimo); con -Purge rimuove i ticket di processi terminati senza toccare writer.lock.
-Exit 3: scrittura occupata oltre l'attesa (-WaitSeconds, SECONDBRAIN_LOCK_WAIT_SECONDS o lockWaitSeconds in config/shared.json).
+Registers cooperative access to SecondBrain; see docs/riferimento/operations.md.
+Status (-Status) is read-only; -Purge removes sessions closed, expired or abandoned for more than 60 minutes.
+-Reconcile explicitly confirms a workstation relocation (same workstationId, different paths) and updates the registry.
+-Queue lists the FIFO writer queue (position 1 = next); -Purge removes tickets of exited processes without touching writer.lock.
+Exit 3: writer busy beyond the wait limit (-WaitSeconds, SECONDBRAIN_LOCK_WAIT_SECONDS or lockWaitSeconds in config/shared.json).
 .EXAMPLE
 pwsh -NoProfile -File scripts/access.ps1 -Start -Mode Write -Client Codex -Repository my-org/secondbrain
 #>
@@ -38,13 +38,13 @@ Add-SBMessages @{
     'access.coordinator.exited' = @{ it = 'Processo di coordinamento terminato prima della registrazione'; en = 'Coordination process exited before registration' }
     'access.open.timeout' = @{ it = 'Timeout apertura sessione'; en = 'Timeout opening the session' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if ($WaitSeconds -ge 0) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS=[string]$WaitSeconds }
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:($PSCmdlet.ParameterSetName -in @('Status','Queue','Start','Hold','End','Renew'))
 $sessions=Join-Path $config.coordinationRoot 'sessions'
 if ($Reconcile) {
-    # Conferma esplicita dello spostamento di cartelle della postazione: aggiorna la registrazione sotto lock di scrittura.
+    # Explicitly confirm relocated workstation folders: update the registration under the writer lock.
     $operation=Enter-SBOperation $config -ReconcileWorkstation
     try { ConvertTo-SBJson @{reconciled=$true;workstationId=$config.workstationId;repositoryRoot=$config.repositoryRoot;runtimeRoot=$config.runtimeRoot;backupRoot=$config.backupRoot} } finally { Exit-SBOperation $operation }
     exit 0
@@ -52,7 +52,7 @@ if ($Reconcile) {
 if ($PSCmdlet.ParameterSetName -eq 'Status') {
     if ($Purge) { Clear-SBStaleSessions $config 60 | Out-Null }
     @(Get-SBAccessStatus $config) | ConvertTo-Json -Depth 8
-    # Una transazione interrotta blocca le scritture di tutti gli host: chi, quando e come recuperarla.
+    # An interrupted transaction blocks writes on every host: identify who, when and how to recover it.
     if ($config.ContainsKey('pendingTransaction')) { [Console]::Error.WriteLine((Format-SBPendingTransaction $config.pendingTransaction)) }
     exit 0
 }
@@ -76,14 +76,14 @@ Assert-SBPlainPath $sessions
 if ($Start) {
     $SessionId=[guid]::NewGuid().ToString('N')
     $processInfo=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source)
-    # ShellExecute isola anche gli handle ereditabili delle pipeline native Windows.
-    # Il protocollo comunica tramite metadati atomici, senza stdout del supporto.
+    # ShellExecute also isolates inheritable handles from native Windows pipelines.
+    # The protocol communicates through atomic metadata, without helper stdout.
     $processInfo.UseShellExecute=$true;$processInfo.WindowStyle=[Diagnostics.ProcessWindowStyle]::Hidden
     foreach($arg in @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Hold','-ConfigPath',$config.configPath,'-SessionId',$SessionId,'-Mode',$Mode,'-Client',$Client,'-Repository',$Repository,'-TargetPath',$TargetPath)){$processInfo.ArgumentList.Add($arg)}
     if($Exclusive){$processInfo.ArgumentList.Add('-Exclusive')}
     $process=[Diagnostics.Process]::Start($processInfo)
     try {
-        # La sessione di scrittura attende in coda fino a lockWaitMs: la finestra di apertura la include.
+        # The writer session waits in the queue up to lockWaitMs; the opening window includes that wait.
         $openPolls=100+$(if($Mode -eq 'Write'){[int]((Get-SBLockWaitMs $config)/100)}else{0})
         for($i=0;$i -lt $openPolls;$i++) {
             $entry=Read-SBJson (Join-Path $sessions ($SessionId+'.json')) $null
@@ -112,7 +112,7 @@ try {
         $renewPath=Join-Path $sessions ($SessionId+'.renew')
         if(Test-Path -LiteralPath $renewPath){$expires=[DateTimeOffset]::UtcNow.AddMinutes($config.sessionTimeoutMinutes);[IO.File]::Delete($renewPath)}
         if([DateTimeOffset]::UtcNow -ge $expires){$metadata.status='expired';break}
-        # Flush verifica anche che l'handle sia ancora utilizzabile; nessuna nuova scrittura dopo un errore.
+        # Flush also checks that the handle is still usable; no further writes after an error.
         if($writer){$writer.Flush($true)}
         $lease.Flush($true)
         $metadata.heartbeat=[DateTimeOffset]::UtcNow.ToString('o');$metadata.expiresAt=$expires.ToString('o')

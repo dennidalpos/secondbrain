@@ -110,7 +110,7 @@ try {
     $markdown=ConvertTo-SBTracker -SourcePath $source -Identity $identity -HistoryPath $history
     Assert-Tracker ($markdown.tasks.Count -eq 4 -and $markdown.tasks[0].dependencies.Count -eq 2 -and $markdown.extensions.original.markdown.Contains('Testo storico')) 'Markdown importa solo attivita, residui e completamenti espliciti'
     [void](Test-SBTrackerData $markdown $identity @($identity) $schema)
-    # Rimuove solo il JSON creato da questa fixture per esercitare il fallback.
+    # Remove only the JSON created by this fixture to exercise fallback.
     [IO.File]::Delete($json)
     $resolved=Resolve-SBTracker $brain $identity $checkout @('test')
     Assert-Tracker ($resolved.source -eq 'dossier_undeclared') 'resolver Markdown non dichiarato'
@@ -138,7 +138,7 @@ try {
     Reject-Tracker {Resolve-SBTracker $brain $identity $checkout @('test')} 'fonte dichiarata invalida: nessun fallback'
     Put-Tracker $metaPath (ConvertTo-SBJson @{schemaVersion=1;identity=$identity})
     [IO.File]::Delete((Join-Path $dir 'tracker.json'));[IO.File]::Delete($json)
-    # Prova riferimenti curati: fence storico e snapshot non devono diventare falsi positivi.
+    # Curated-reference test: historical fences and snapshots must not become false positives.
     Put-Tracker (Join-Path $dir 'context.md') ('repos/Repo/memory.md'+"`n"+'[manca](missing.md)'+"`n"+'Esempio inline: `[titolo](url)`.'+"`n"+'```powershell'+"`n"+'repos/Example/memory.md'+"`n"+'[esempio](example.md)'+"`n"+'```')
     Put-Tracker (Join-Path $dir 'history/old.md') 'repos/Repo/memory.md'
     Put-Tracker (Join-Path $dir 'snapshots/old.md') '[manca](old.md)'
@@ -147,7 +147,7 @@ try {
     Assert-Tracker ($issues.Count -eq 2 -and $issues[0] -like '*obsoleto*' -and $issues[1] -like '*mancante*') 'riferimenti curati rilevati, codice e storico esclusi'
     Assert-Tracker ((Snapshot-Tracker $root) -ceq $before) 'controllo riferimenti non scrive file o timestamp'
     Put-Tracker (Join-Path $dir 'context.md') '# Dossier'
-    # Ogni checkpoint viene interrotto e poi ripreso, compreso quello successivo alla rimozione.
+    # Interrupt and resume every checkpoint, including the one after removal.
     foreach($checkpoint in @('pending','prepared','copied','verified','references_updated','originals_removed','completed')){
         $hash=Get-SBFileHash $source
         $fail={param($name) if($name -eq $checkpoint){throw 'interruzione fixture'}}.GetNewClosure()
@@ -163,7 +163,7 @@ try {
         [void](Invoke-SBTrackerImport -Config $config -ManifestPath $registration.manifest -Activate)
         Assert-Tracker ((Snapshot-Tracker $dir) -ceq $again) ('riesecuzione senza duplicazioni '+$checkpoint)
         if($checkpoint -eq 'completed'){
-            # Layout precedente alla V1.0 (prefisso tracker-migration): registro, manifest e archivio restano leggibili e verificabili.
+            # Pre-V1.0 layout (tracker-migration prefix): journal, manifest and archive remain readable and verifiable.
             $newReg=Get-SBTrackerImportPath $config $identity;$oldReg=$newReg.Replace('tracker-imports','tracker-migrations')
             $archiveDir=Split-Path (Read-SBJson $registration.manifest $null).source.archive
             [IO.Directory]::CreateDirectory((Split-Path $oldReg))|Out-Null
@@ -176,7 +176,7 @@ try {
         Restore-SBTrackerImport $config $registration.manifest
         Assert-Tracker ((Get-SBFileHash $source) -eq $hash -and !(Read-SBJson $metaPath @{}).ContainsKey('tracker')) ('recupero esatto '+$checkpoint)
     }
-    # La preparazione reale conserva la fonte originale finche il testo non e approvato.
+    # Actual preparation preserves the original source until text approval.
     Put-Tracker (Join-Path $brain 'direttive/workstation.template.md') 'legacy';Approve-TrackerFixture
     $manifest=Invoke-SBTrackerImport -Config $config -Identity $identity -SourcePath $source -HistoryPath $history
     Assert-Tracker ((Read-SBTrackerManifest $config $manifest).phase -eq 'verified' -and (Test-Path -LiteralPath $source) -and !(Test-Path -LiteralPath (Join-Path $dir 'tracker.json'))) 'preparazione verificata senza attivazione'
@@ -195,7 +195,7 @@ try {
     Put-Tracker $target ($text+"`n")
     Reject-Tracker {Restore-SBTrackerImport $config $manifest} 'recupero rifiuta modifiche successive'
     Put-Tracker $target $text;Restore-SBTrackerImport $config $manifest
-    # I progetti devono convergere sulla dichiarazione, anche se entrambe le copie esistono.
+    # Projects must converge on the declaration, even when both copies exist.
     $project=Join-Path $brain '01-projects/test-project'
     Put-Tracker (Join-Path $project 'brief.md') '# Brief'
     Put-Tracker (Join-Path $project 'para.json') (ConvertTo-SBJson @{schemaVersion=1;id='test-project';kind='project';title='Project';status='active';areas=@('repo-area');trackers=@(@{area='repo-area';path='tracker.md'})})
@@ -225,7 +225,7 @@ try {
     Restore-SBTrackerImport $config $reviewManifest
     Assert-Tracker ((Test-Path -LiteralPath $json) -and (Test-Path -LiteralPath $reviewPath)) 'recupero review preserva entrambe le fonti originali'
     [IO.File]::Delete($json)
-    # CLI vera: anteprima in sola lettura e compositore sulla fonte dichiarata.
+    # Actual CLI: read-only preview and composition from the declared source.
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem -LiteralPath $PSScriptRoot -File|Copy-Item -Destination (Join-Path $brain 'scripts')
     Put-Tracker (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git')})

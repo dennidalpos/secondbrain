@@ -50,8 +50,8 @@ function Resolve-SBParaPath([string]$Root,[string]$Relative) {
 
 $script:SBParaCache=@{}
 function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners) {
-    # Su una share la scansione completa dei dossier a ogni chiamata e costosa: memoizzazione di breve durata, invalidata da ogni scrittura
-    # di questo processo (generazione) e dalla scadenza. In locale resta disattivata (SECONDBRAIN_PARA_CACHE=1 la forza).
+    # On a share, scanning every dossier on each call is costly: short-lived memoization, invalidated by each write
+    # in this process (generation) and by expiry. Disabled locally unless forced with SECONDBRAIN_PARA_CACHE=1.
     if(!($BrainRoot.StartsWith('\\') -or $env:SECONDBRAIN_PARA_CACHE -eq '1')){return @(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)}
     $key=[IO.Path]::GetFullPath($BrainRoot).ToLowerInvariant()+'|'+((@($AllowedOwners)|Sort-Object) -join ',')
     $generation=Get-SBWriteGeneration
@@ -193,7 +193,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
     $markerHash=Get-SBFileHash $marker
     if($markerHash -ne 'absent'){
         $pending=Read-SBJson $marker @{}
-        # Il marker puo essere stato scritto da un altro host con un alias diverso dello stesso cervello.
+        # The marker may have been written by another host using a different alias of the same brain.
         $pendingManifest=if($pending.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pending.manifest) ([string]$pending.brainRoot) $BrainRoot}else{[string]$pending.manifest}
         if(!$RecoveryManifest -or $pendingManifest -ne [IO.Path]::GetFullPath($RecoveryManifest)){throw (New-SBError 'para.transaction.incomplete')}
     }
@@ -228,7 +228,7 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
     if(!$journal -or $journal.schemaVersion -ne 1 -or !(Test-SBSamePath $journal.brainRoot $BrainRoot)){throw (New-SBError 'para.manifest.foreign')}
     $ops=@()
     foreach($r in $journal.records){
-        # Il journal puo essere stato scritto da un altro host che raggiunge lo stesso cervello con un alias diverso.
+        # The journal may have been written by another host accessing the same brain through a different alias.
         $r.path=Convert-SBBrainAlias $r.path $journal.brainRoot $BrainRoot
         if($r.backup){$r.backup=Convert-SBBrainAlias $r.backup $journal.brainRoot $BrainRoot}
         $path=[IO.Path]::GetFullPath($r.path)

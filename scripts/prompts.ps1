@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Consulta e compone i workflow del catalogo. Non esegue task o servizi AI.
+Browses and composes catalog workflows. Does not execute tasks or AI services.
 .EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1
 .EXAMPLE

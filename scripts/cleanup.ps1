@@ -1,24 +1,24 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Mostra o applica la rimozione di file esplicitamente elencati in un manifest revisionato.
+Previews or applies removal of files explicitly listed in a reviewed manifest.
 .DESCRIPTION
-Senza Apply non modifica file. Richiede un manifest con reviewed, referencesChecked, reason e
-i file con hash SHA-256. Ogni rimozione applicata ha un backup SHA-256 e metadati compatibili
-con restore-managed. Non seleziona per eta o nome e non cancella checkout.
-Con -ListStageRecords (sola lettura) elenca i record .stage completati in backupRoot piu vecchi di
--OlderThanDays (default 90) nel formato files del manifest; non elimina nulla. Per rimuoverli
-si compila un manifest revisionato con quell elenco e lo si passa a -ManifestPath.
-Con -ListRuntime (sola lettura) mostra le voci di primo livello sotto .runtime con ultima scrittura, dimensione, riferimenti
-testuali e protezione (configurazione, registro postazioni, accesso), categoria (protected, evidence, backup, regenerable, working) e come si ricrea; non seleziona ne elimina nulla.
-Con -ProposeRuntime (sola lettura) produce una proposta di pulizia: cartelle candidate con dimensione, eta, riferimenti e recupero (fixture di test oltre le ultime -KeepFixtures, rapporti handshake vecchi, ambiente Python delle fonti, zip di backup oltre i due piu recenti, lavoro di agent senza riferimenti).
-Non e un manifest eseguibile e non rimuove nulla. Con -ProposalPath salva la proposta (nuovo file sotto .runtime, mai sovrascritto).
-Con -RuntimeReport (sola lettura) produce l'indice leggibile di .runtime in Markdown: voci ordinate per categoria e dimensione, chi le scrive, riferimenti e recupero.
-Con -ReportPath lo salva in un nuovo file .md sotto .runtime (mai sovrascritto) oppure rigenera .runtime/INDEX.md, vista derivata senza dati propri. Non rimuove nulla.
-Con -Regenerable mostra (senza -Apply) o rimuove (con -Apply e -Authorization che cita la richiesta esplicita dell utente) le sole cartelle rigenerabili di .runtime:
-fixture di test oltre le ultime -KeepFixtures e ambiente Python delle fonti (hosts/<id>/sources/python). Perimetro fisso, nessuna selezione per nome; salta cartelle
-scritte negli ultimi -MinAgeMinutes minuti, che contengono percorsi di configurazione o reparse point; rifiuta con transazione pendente o sessioni di accesso attive; non segue
-junction/symlink; nessun backup (si ricreano con le suite o con sources.ps1) ma un registro in .runtime/cleanup con elenco, dimensioni, esito e come ricrearle.
+Without Apply, no files are changed. Requires a manifest with reviewed, referencesChecked, reason and
+files with SHA-256 hashes. Each applied removal has a SHA-256 backup and metadata compatible
+with restore-managed. Does not select by age or name and does not delete checkouts.
+-ListStageRecords (read-only) lists completed .stage records in backupRoot older than
+-OlderThanDays (default 90) in the manifest files format; deletes nothing. To remove them,
+create a reviewed manifest with that list and pass it to -ManifestPath.
+-ListRuntime (read-only) shows top-level .runtime entries with last write time, size, textual references,
+protection (configuration, workstation registry, access), category (protected, evidence, backup, regenerable, working) and recovery instructions; selects and deletes nothing.
+-ProposeRuntime (read-only) produces a cleanup proposal: candidate folders with size, age, references and recovery instructions (test fixtures beyond the latest -KeepFixtures, old handshake reports, source Python environment, backup ZIPs beyond the two latest, unreferenced agent work).
+It is not an executable manifest and removes nothing. -ProposalPath saves the proposal (a new file under .runtime, never overwritten).
+-RuntimeReport (read-only) produces a readable Markdown index of .runtime: entries sorted by category and size, their writers, references and recovery instructions.
+-ReportPath saves it to a new .md file under .runtime (never overwritten) or regenerates .runtime/INDEX.md, a derived view with no independent data. Removes nothing.
+-Regenerable previews (without -Apply) or removes (with -Apply and -Authorization quoting the user's explicit request) only regenerable .runtime folders:
+test fixtures beyond the latest -KeepFixtures and the source Python environment (hosts/<id>/sources/python). Fixed scope, no name-based selection; skips folders
+written within the latest -MinAgeMinutes, containing configuration paths or reparse points; refuses pending transactions or active access sessions; does not follow
+junctions/symlinks; no backup (recreated with the suites or sources.ps1), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
@@ -40,7 +40,7 @@ Add-SBMessages @{
     'cleanup.manifest.content' = @{ it = 'Contenuto assente, duplicato o modificato nel manifest'; en = 'Content missing, duplicated or modified in the manifest' }
     'cleanup.transaction.pending' = @{ it = 'Transazione pendente: pulizia sospesa'; en = 'Pending transaction: cleanup suspended' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
@@ -53,7 +53,7 @@ try {
         if(!$Apply){$summary.note='Anteprima: nessuna cartella rimossa. Con -Apply e -Authorization si rimuovono solo i target elencati.';ConvertTo-SBJson $summary;exit 0}
         if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
         if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
-        # Sessioni di altri processi; il proprietario dell'operazione corrente (writer lock) non e una sessione.
+        # Sessions owned by other processes; the current operation's writer-lock owner is not a session.
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
         if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
         $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
@@ -66,7 +66,7 @@ try {
             try{Remove-SBRuntimeTree $target.path $config.brainRoot;$removedItems+=@{relative=$target.relative;kind=$target.kind;files=$target.files;bytes=$target.bytes;recovery=$target.recovery}}
             catch{$failures+=@{relative=$target.relative;error=$_.Exception.Message}}
         }
-        # Le fixture possono avere registrato worktree Git: si potano solo quelli con cartella ormai assente.
+        # Fixtures may have registered Git worktrees: prune only those whose folder is already absent.
         if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.git')){Invoke-SBGit $config.brainRoot @('worktree','prune')|Out-Null}
         $record.items=@($removedItems);$record.failed=@($failures);$record.status=if($failures.Count){'partial'}else{'completed'}
         $record.removedBytes=0L;$record.removedFiles=0L;foreach($item in $removedItems){$record.removedBytes+=$item.bytes;$record.removedFiles+=$item.files}
@@ -79,7 +79,7 @@ try {
     if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){
         if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw (New-SBError 'cleanup.modes.exclusive')}
         if($Apply -or $ManifestPath){throw (New-SBError 'cleanup.readonly.modes')}
-        # Tutti i backupRoot noti: quello corrente e quelli delle postazioni registrate sotto .runtime.
+        # All known backupRoot locations: the current one and those of workstations registered under .runtime.
         $stageRoots=@($config.backupRoot)
         $registry=Read-SBJson (Join-Path $config.coordinationRoot 'workstations.json') @{}
         foreach($station in $registry.Values){if($station -is [Collections.IDictionary] -and $station.ContainsKey('backupRoot') -and $station.backupRoot){try{$stageRoots+=Assert-SBCentralDataPath $config.brainRoot $station.backupRoot}catch{}}}
@@ -91,7 +91,7 @@ try {
                 $bytes=[Text.UTF8Encoding]::new($false).GetBytes($index.markdown)
                 [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
                 if($target -ieq [IO.Path]::GetFullPath((Join-Path $config.brainRoot '.runtime/INDEX.md'))){
-                    # Vista derivata: si rigenera in modo atomico, senza lasciare un file parziale.
+                    # Derived view: regenerate atomically without leaving a partial file.
                     $temp=$target+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
                     try{[IO.File]::WriteAllBytes($temp,$bytes);[IO.File]::Move($temp,$target,$true)}finally{if([IO.File]::Exists($temp)){[IO.File]::Delete($temp)}}
                 }else{
@@ -145,7 +145,7 @@ try {
             catch{$failure=@{path=$entry.path;error=$_.Exception.Message};break}
         }
     }
-    # Con Apply senza file nel manifest nulla e stato applicato; un errore a meta lascia un riepilogo dei file gia rimossi.
+    # Apply with no manifest files changes nothing; a mid-operation error leaves a summary of files already removed.
     $summary=@{applied=[bool]($Apply -and !$failure -and $files.Count -gt 0);files=$files;removed=$removed;backup=$backup;authorization=$Authorization;scope='explicit-files-only'}
     if($failure){$summary.failed=$failure;$summary.status='partial'}
     ConvertTo-SBJson $summary

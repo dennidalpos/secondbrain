@@ -199,7 +199,7 @@ try {
             & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/secondbrain.ps1') -ConfigPath $f.config.configPath $option *> $null
             Assert-Next ($LASTEXITCODE -ne 0 -and (Read-SBText $marker) -eq '{"manifest":"fixture-only"}') ('recupero: gate resta chiuso '+$option)
         }
-        # Verifica che recover.ps1 non sia bloccato dal gate (AllowPendingTransaction) e risolva una transazione senza record.
+        # Verify that recover.ps1 passes the gate (AllowPendingTransaction) and resolves a transaction with no records.
         $markerReal=Join-Path $f.brain '.runtime/para-transaction.json'
         $paraManifest=Join-Path $f.config.backupRoot 'para-fixture/manifest.json'
         Put-Audit $paraManifest (ConvertTo-SBJson @{schemaVersion=1;brainRoot=$f.brain;records=@()})

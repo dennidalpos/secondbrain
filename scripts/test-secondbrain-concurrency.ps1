@@ -1,7 +1,7 @@
 #requires -Version 7.5
-# Scritture concorrenti (Write-SBFile, tracker -NewTask, traccia, coda di accesso, transazioni PARA, backup) e casi limite
-# (percorsi oltre 260 caratteri, Unicode, maiuscole/minuscole, file bloccato). Fixture sotto Get-SBTestRoot, nessuna scrittura nel .runtime reale.
-# A esito verde la fixture si rimuove; l'esito (durate, dimensioni, stato fixture) resta in esito-concurrency.json accanto alla radice dei test.
+# Concurrent writes (Write-SBFile, tracker -NewTask, trace, access queue, PARA transactions, backups) and edge cases
+# (paths beyond 260 characters, Unicode, case differences, locked files). Fixtures under Get-SBTestRoot; no writes to the real .runtime.
+# On success, remove the fixture; results (duration, size, fixture status) remain in esito-concurrency.json next to the test root.
 $ErrorActionPreference='Stop'
 foreach($module in @('Core','Access','Host','Para','Tracker','Trace')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
@@ -21,9 +21,9 @@ function Invoke-Case([string]$Name,[string]$Folder,[scriptblock]$Body){
         $script:cases.Add([ordered]@{name=$Name;status=$status;durationMs=[int]$watch.ElapsedMilliseconds;checks=($script:checks-$before);fixtureFiles=$size.files;fixtureBytes=$size.bytes;error=$problem})
     }
 }
-# Codice stabile dell'eccezione (Data['code']) cercato anche nelle eccezioni interne.
+# Stable exception code (Data['code']), including inner exceptions.
 function Get-ErrorCode($Exception){while($null -ne $Exception){if($Exception.Data.Contains('code')){return [string]$Exception.Data['code']};$Exception=$Exception.InnerException};$null}
-# Lancia $Count worker in thread distinti, li fa partire insieme (barriera) e restituisce gli esiti ordinati per indice.
+# Launch $Count workers in separate threads, start them together (barrier), then return results sorted by index.
 function Invoke-Race([int]$Count,[scriptblock]$Work,[object[]]$Arguments=@()){
     $gate=[Threading.ManualResetEventSlim]::new($false);$ready=[Threading.CountdownEvent]::new($Count)
     $modules=@('Core','Access','Host','Para','Tracker','Trace')|ForEach-Object {Join-Path $PSScriptRoot ('SecondBrain.'+$_+'.psm1')}
@@ -52,7 +52,7 @@ function Remove-Fixture([string]$Path){
     if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Fixture concurrency fuori dal perimetro di prova'}
     if(!(Test-Path -LiteralPath $full)){return}
     foreach($entry in @(Get-ChildItem -LiteralPath $full -Force -Recurse)){if($entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture concurrency non confinata'}}
-    # Il prefisso \\?\ permette di rimuovere anche percorsi oltre 260 caratteri.
+    # The \\?\ prefix also allows removal of paths beyond 260 characters.
     [IO.Directory]::Delete('\\?\'+$full,$true)
 }
 $testRoot=Get-SBTestRoot
@@ -66,7 +66,7 @@ try {
 
     Invoke-Case 'write-file' (Join-Path $root 'write') {
         $dir=Join-Path $root 'write';$backups=Join-Path $dir 'backups';[IO.Directory]::CreateDirectory($dir)|Out-Null
-        # Il file esiste: 8 scrittori con lo stesso hash atteso, nessun contenuto misto e originale recuperabile.
+        # Existing file: 8 writers with the same expected hash; no mixed content and recoverable original.
         $target=Join-Path $dir 'condiviso.md';[IO.File]::WriteAllText($target,"originale`n")
         $original=Get-SBFileHash $target
         $outcomes=Invoke-Race 8 {param($i,$a) $payload=[Text.Encoding]::UTF8.GetBytes("scrittore-$i`n");Write-SBFile $a[0] $payload $a[1] $a[2]} @($target,$original,$backups)
@@ -75,7 +75,7 @@ try {
         Assert-Conc ($wins.Count -le 1) ('Write-SBFile su file esistente: al piu un vincitore ('+$wins.Count+' su 8)')
         Assert-Conc (@($outcomes|Where-Object {!$_.ok -and $_.code -notin $allowed}).Count -eq 0) 'Write-SBFile: i perdenti falliscono con un codice stabile noto' (@($outcomes|Where-Object {!$_.ok}|ForEach-Object {[string]$_.code+':'+$_.type+':'+$_.message}) -join ' | ')
         Assert-Conc (@(1..8|Where-Object {$final -ceq "scrittore-$_`n"}).Count -eq 1 -or $final -ceq "originale`n") 'Write-SBFile: il contenuto finale e esattamente quello di un solo scrittore (o l originale)'
-        # Lo staging dei perdenti resta di proposito (avviso "Staging transazionale conservato"), ma ogni .tmp deve avere un record .stage interrotto che lo descrive.
+        # Losing writers intentionally retain staging ("Staging transazionale conservato" warning), but each .tmp must have an interrupted .stage record describing it.
         $interrupted=@(Get-ChildItem -LiteralPath $backups -File -Filter '*.stage'|ForEach-Object {Read-SBJson $_.FullName $null}|Where-Object {$_.status -eq 'interrupted'}|ForEach-Object staging)
         $kept=@(Get-ChildItem -LiteralPath $dir -Force -Filter '.secondbrain-*.tmp'|ForEach-Object FullName)
         Assert-Conc (@($kept|Where-Object {$_ -notin $interrupted}).Count -eq 0) ('Write-SBFile: gli staging conservati ('+$kept.Count+') hanno tutti un record .stage interrotto; nessuno staging orfano')
@@ -83,7 +83,7 @@ try {
             $recoverable=@(Get-ChildItem -LiteralPath $backups -File -Filter '*.bin' -ErrorAction SilentlyContinue|Where-Object {(Get-SBFileHash $_.FullName) -eq $original}).Count+@(Get-ChildItem -LiteralPath $dir -Force -Filter '.secondbrain-*.recovery'|Where-Object {(Get-SBFileHash $_.FullName) -eq $original}).Count
             Assert-Conc ($recoverable -ge 1) 'Write-SBFile: il contenuto originale resta recuperabile (backup .bin o .recovery)'
         }
-        # File assente: solo uno puo crearlo.
+        # Absent file: only one writer can create it.
         $fresh=Join-Path $dir 'nuovo.md'
         $created=Invoke-Race 8 {param($i,$a) Write-SBFile $a[0] ([Text.Encoding]::UTF8.GetBytes("nuovo-$i`n")) 'absent' $a[1]} @($fresh,$backups)
         $creators=@($created|Where-Object {$_.ok -and $_.value -eq $true})
@@ -111,7 +111,7 @@ try {
         $access=Join-Path $root 'access';$coordination=Join-Path $access 'coordination';$counter=Join-Path $access 'counter.txt';$marker=Join-Path $access 'inside.marker'
         [IO.Directory]::CreateDirectory($coordination)|Out-Null;[IO.File]::WriteAllText($counter,'0')
         $config=@{brainRoot=$access;coordinationRoot=$coordination;workstationId='fixture';sessionTimeoutMinutes=30;lockWaitMs=60000}
-        # Sezione critica protetta dal lock di scrittura: incremento non atomico + marker CreateNew; qualsiasi sovrapposizione si vede.
+        # Writer-lock-protected critical section: non-atomic increment plus CreateNew marker; any overlap is visible.
         $outcomes=Invoke-Race 6 {
             param($i,$a)
             $lock=Enter-SBOperation $a[0] $null -LockOnly
@@ -182,24 +182,24 @@ try {
 
     Invoke-Case 'edge-cases' (Join-Path $root 'edge') {
         $dir=Join-Path $root 'edge';$backups=Join-Path $dir 'backups';[IO.Directory]::CreateDirectory($dir)|Out-Null
-        # Unicode nel nome e nel contenuto.
+        # Unicode filename and content.
         $unicode=Join-Path $dir ('perché-ñ-日本語-'+[char]::ConvertFromUtf32(0x1F600)+'.md');$text="àèìòù — ñ — 日本語`n"
         $created=Write-SBFile $unicode ([Text.UTF8Encoding]::new($false).GetBytes($text)) 'absent' $backups
         Assert-Conc ($created -and (Read-SBText $unicode) -ceq $text) 'Unicode: nome e contenuto UTF-8 scritti e riletti identici'
-        # Maiuscole/minuscole: stesso percorso con forma diversa e confronto dei percorsi.
+        # Case differences: same path with a different spelling, and path comparison.
         Assert-Conc (Test-SBSamePath $unicode $unicode.ToUpperInvariant() ) 'maiuscole/minuscole: lo stesso percorso e riconosciuto'
         $caseFile=Join-Path $dir 'Caso.md';[IO.File]::WriteAllText($caseFile,"uno`n");$caseHash=Get-SBFileHash $caseFile
         $upperPath=Join-Path $dir 'CASO.md'
         Assert-Conc ((Get-SBFileHash $upperPath) -eq $caseHash -and (Write-SBFile $upperPath ([Text.Encoding]::UTF8.GetBytes("due`n")) $caseHash $backups) -and [IO.File]::ReadAllText($caseFile) -ceq "due`n") 'maiuscole/minuscole: la scrittura con un altro caso aggiorna lo stesso file senza duplicarlo'
         Assert-Conc (@(Get-ChildItem -LiteralPath $dir -File -Filter 'caso.md').Count -eq 1) 'maiuscole/minuscole: nessun file duplicato'
-        # File bloccato da un altro processo/handle: errore chiaro, contenuto intatto, nessuno staging.
+        # File locked by another process/handle: clear error, intact content, no staging.
         $locked=Join-Path $dir 'bloccato.md';[IO.File]::WriteAllText($locked,"bloccato`n");$lockedHash=Get-SBFileHash $locked
         $holder=[IO.File]::Open($locked,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
         $lockError=$null
         try{try{Write-SBFile $locked ([Text.Encoding]::UTF8.GetBytes("nuovo`n")) $lockedHash $backups|Out-Null}catch{$lockError=$_.Exception}}finally{$holder.Dispose()}
         Assert-Conc ($null -ne $lockError) 'file bloccato: la scrittura fallisce con un errore, non in silenzio'
         Assert-Conc ((Get-SBFileHash $locked) -eq $lockedHash -and @(Get-ChildItem -LiteralPath $dir -Force -Filter '.secondbrain-*.tmp').Count -le 1) 'file bloccato: contenuto originale intatto'
-        # Percorso oltre 260 caratteri.
+        # Path beyond 260 characters.
         $deep=$dir;while($deep.Length -lt 300){$deep=Join-Path $deep ('sezione-lunga-numero-'+$deep.Length)}
         $longPath=Join-Path $deep 'file-lungo.md';$longError=$null;$longCreated=$false
         try{[IO.Directory]::CreateDirectory($deep)|Out-Null;$longCreated=Write-SBFile $longPath ([Text.Encoding]::UTF8.GetBytes("lungo`n")) 'absent' $backups}catch{$longError=$_.Exception}

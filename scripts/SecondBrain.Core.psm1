@@ -18,7 +18,7 @@ function Get-SBHash([byte[]]$Bytes) {
     [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($Bytes))
 }
 function Get-SBTextHash([string]$Text) { Get-SBHash ([Text.Encoding]::UTF8.GetBytes($Text)) }
-# Versione del prodotto: unica fonte è il file VERSION nella radice del clone.
+# Product version: the VERSION file in the clone root is the single source.
 function Get-SBVersion {
     $path=Join-Path $PSScriptRoot '../VERSION'
     if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw (New-SBError 'core.version.missing')}
@@ -31,7 +31,7 @@ function Get-SBFileHash([string]$Path) {
 }
 function Read-SBJson([string]$Path, $Default) {
     if (!(Test-Path -LiteralPath $Path)) { return $Default }
-    # Su una share la sostituzione atomica di un file da parte di un altro host puo dare una violazione di condivisione transitoria.
+    # On a share, atomic replacement by another host may cause a transient sharing violation.
     for ($attempt = 1; $attempt -le 5; $attempt++) {
         try { return (Read-SBText $Path | ConvertFrom-Json -AsHashtable -DateKind String) }
         catch [IO.IOException] {
@@ -41,7 +41,7 @@ function Read-SBJson([string]$Path, $Default) {
     }
 }
 function ConvertTo-SBComparablePath([string]$Path) {
-    # Forma di confronto per alias dello stesso percorso: maiuscole, drive mappato o condivisione amministrativa locale e UNC con nome host breve o FQDN.
+    # Comparison form for path aliases: case, mapped drive or local administrative share, and UNC with short host name or FQDN.
     $full = [IO.Path]::GetFullPath($Path).TrimEnd('\','/')
     if ($full -match '^(?<drive>[A-Za-z]):(?<rest>.*)$') {
         $mapped = Get-PSDrive -Name $Matches.drive -PSProvider FileSystem -ErrorAction SilentlyContinue
@@ -62,7 +62,7 @@ function Test-SBSamePath([string]$First, [string]$Second) {
     (ConvertTo-SBComparablePath $First) -ceq (ConvertTo-SBComparablePath $Second)
 }
 function Convert-SBBrainAlias([string]$Path, [string]$FromRoot, [string]$ToRoot) {
-    # Riscrive un percorso registrato da un altro host (alias UNC, drive mappato) sulla radice del cervello corrente.
+    # Rewrite a path recorded by another host (UNC alias, mapped drive) relative to the current brain root.
     if (!$Path -or !$FromRoot) { return $Path }
     $from = [IO.Path]::GetFullPath($FromRoot).TrimEnd('\','/'); $to = [IO.Path]::GetFullPath($ToRoot).TrimEnd('\','/')
     $full = [IO.Path]::GetFullPath($Path)
@@ -85,11 +85,11 @@ function ConvertTo-SBStableValue($Value) {
 function ConvertTo-SBJson($Value) { (ConvertTo-SBStableValue $Value | ConvertTo-Json -Depth 40).Replace("`r`n","`n") + "`n" }
 $script:SBBrainRootFull = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')).TrimEnd('\','/')
 function Assert-SBPlainPath([string]$Path, [hashtable]$VerifiedAncestors) {
-    # VerifiedAncestors (opzionale, a cura del chiamante per un ciclo su molti file): directory antenate gia risultate
-    # senza reparse point in questa esecuzione; il percorso indicato e controllato sempre, solo gli antenati si saltano.
+    # VerifiedAncestors (optional, managed by the caller for a multi-file cycle): ancestor directories already checked
+    # for reparse points in this run; always check the specified path, skipping only ancestors.
     $current = [IO.Path]::GetFullPath($Path)
-    # Sotto il cervello la verifica si ferma alla sua radice: la posizione scelta per l'installazione
-    # (OneDrive, junction, DFS) non e un reindirizzamento introdotto dentro i dati.
+    # Inside the brain, verification stops at its root: the chosen installation location
+    # (OneDrive, junction, DFS) is not a redirection introduced inside the data.
     $brainRoot = $script:SBBrainRootFull
     $boundary = $brainRoot + [IO.Path]::DirectorySeparatorChar
     $underBrain = $current.StartsWith($boundary, [StringComparison]::OrdinalIgnoreCase) -or $current.TrimEnd('\','/') -ieq $brainRoot
@@ -113,7 +113,7 @@ function Assert-SBPlainPath([string]$Path, [hashtable]$VerifiedAncestors) {
 $script:SBWriteGeneration = 0
 function Get-SBWriteGeneration { $script:SBWriteGeneration }
 function Get-SBGitFileState([string]$Path) {
-    # Sola lettura: $null se il file non esiste, Git non e disponibile o il file non e tracciato (dossier ignorati, IDE globali, config MCP).
+    # Read-only: $null if the file is absent, Git is unavailable or the file is untracked (ignored dossiers, global IDEs, MCP config).
     $gitExe = (Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
     if (!$gitExe) { return $null }
     $full = [IO.Path]::GetFullPath($Path)
@@ -128,7 +128,7 @@ function Get-SBGitFileState([string]$Path) {
     @{ dirty = ($status.Length -gt 0); commit = [string]$commit; blob = [string]$blob }
 }
 function Test-SBBackupInGit([string]$MetadataPath) {
-    # Sola lettura: true solo se il .bin di un .bin.json e un duplicato di Git (copia presente con SHA-256 pari a previousHash, file origine tracciato e pulito, contenuto presente come blob).
+    # Read-only: true only if a .bin.json's .bin duplicates Git (copy SHA-256 equals previousHash, tracked clean source, content present as a blob).
     $info = $null; try { $info = Read-SBJson $MetadataPath $null } catch { return $false }
     if ($null -eq $info -or !$info.path -or !$info.backup) { return $false }
     $backup = [string]$info.backup
@@ -217,7 +217,7 @@ function Write-SBFile {
     Assert-SBPlainPath $Path
     if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
     if ((Get-SBHash $Bytes) -eq $ExpectedHash) { return $false }
-    # Git salva i file tracciati: pulito = niente .bin (commit e blob registrati); sporco = rifiuto, salvo -BackupDirty (file rigenerati: resta il .bin).
+    # Git preserves tracked files: clean = no .bin (commit and blob recorded); dirty = refused unless -BackupDirty (regenerated files retain the .bin).
     $git = Get-SBGitFileState $Path
     if ($null -ne $git -and $git.dirty -and !$BackupDirty) {
         throw (New-SBError 'core.tracked.dirty' @($Path))
@@ -244,7 +244,7 @@ function Write-SBFile {
         if ($ExpectedHash -ne 'absent') {
             [IO.Directory]::CreateDirectory($BackupRoot) | Out-Null
             $backup = Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.bin')
-            # Replace conserva esattamente il file sostituito per rilevare anche gare nell'ultima finestra.
+            # Replace preserves the replaced file exactly, detecting races in the final window too.
             $localBackup = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.recovery')
             $stageRecord.recovery=$localBackup
             [IO.File]::Replace($temp, $Path, $localBackup)
@@ -264,8 +264,8 @@ function Write-SBFile {
                 [IO.File]::Delete($localBackup)
             }
             if ($actual -ne $ExpectedHash) {
-                # Non tentare un rollback con Copy(overwrite): un editor esterno
-                # potrebbe avere cambiato ancora il file dopo il controllo hash.
+                # Never attempt rollback with Copy(overwrite): an external editor
+                # may have changed the file again after the hash check.
                 throw (New-SBError 'core.race.kept' @($backup))
             }
         } else { [IO.File]::Move($temp, $Path) }
@@ -294,7 +294,7 @@ function Write-SBFile {
     } catch { throw (ConvertTo-SBWriteError $_.Exception $Path) }
 }
 function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
-    # Sola lettura: elenca i record .stage completati piu vecchi della soglia in uno o piu backupRoot (anche nelle sottocartelle). Backup .bin/.bin.json, staging interrotti e record illeggibili non sono mai candidati.
+    # Read-only: list completed .stage records older than the threshold in one or more backupRoot locations, recursively. Never select .bin/.bin.json backups, interrupted stages or unreadable records.
     if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
     $cutoff=[DateTimeOffset]::UtcNow.AddDays(-$OlderThanDays)
     $candidates=@();$retained=@{recent=0;notCompleted=0;unreadable=0};$seenRecords=@{}
@@ -313,8 +313,8 @@ function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
     @{olderThanDays=$OlderThanDays;candidates=@($candidates|Sort-Object path);retained=$retained}
 }
 function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
-    # Sola lettura: inventario delle voci di primo livello sotto .runtime con eta (ultima scrittura), dimensione, riferimenti testuali e protezione.
-    # Non elenca file da rimuovere e non segue reparse point: la rimozione resta possibile solo con un manifest revisionato (cleanup.ps1 -ManifestPath).
+    # Read-only: inventory top-level .runtime entries with age (last write), size, textual references and protection.
+    # Does not list files for removal or follow reparse points: removal still requires a reviewed manifest (cleanup.ps1 -ManifestPath).
     if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     if(!(Test-Path -LiteralPath $runtime -PathType Container)){return @{olderThanDays=$OlderThanDays;entries=@();reviewable=@();totalBytes=0L;nested=@();legacy=@()}}
@@ -343,7 +343,7 @@ function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@()
         $classification=Get-SBRuntimeCategory $item.Name ([bool]$reason)
         $entries+=@{name=$item.Name;kind=$kind;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(([DateTime]::UtcNow-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);protected=[bool]$reason;protectedReason=$reason;protectedReasonCode=$reasonCode;category=$classification.category;recovery=$classification.recovery;references=@{mentions=0;samples=@()}}
     }
-    # Riferimenti testuali a .runtime/<voce> nelle superfici versionate e nei dossier (file di testo fino a 2 MB).
+    # Textual references to .runtime/<entry> in versioned surfaces and dossiers (text files up to 2 MB).
     $names=@($entries|ForEach-Object {[regex]::Escape($_.name)})
     if($names.Count){
         $pattern=[regex]::new('\.runtime[\\/]+(?<n>'+($names -join '|')+')(?![A-Za-z0-9_-])',[Text.RegularExpressions.RegexOptions]::IgnoreCase)
@@ -374,7 +374,7 @@ function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@()
     $entryBytes=0L;foreach($e in $entries){$entryBytes+=[long]$e.bytes}
     @{olderThanDays=$OlderThanDays;entries=$entries;reviewable=@($entries|Where-Object {!$_.protected -and $_.olderThanThreshold}|ForEach-Object {$_.name});totalBytes=[long]$entryBytes;byCategory=$byCategory;nested=@(Get-SBRuntimeNested $BrainRoot $OlderThanDays);legacy=@(Get-SBRuntimeLegacy $BrainRoot $entries)}
 }
-# Classificazione delle voci di primo livello di .runtime: protected (configurazione/accessi), evidence (prove da tenere), backup (recuperi), regenerable (si ricrea), working (lavoro temporaneo di agent da verificare).
+# Top-level .runtime categories: protected (configuration/access), evidence (proof to preserve), backup (recovery), regenerable (recreatable), working (agent temporary work to review).
 function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
     $key=$Name.ToLowerInvariant()
     if($IsProtected){return @{category='protected';recovery='non rimuovere: configurazione, accessi o stato attivo'}}
@@ -382,15 +382,15 @@ function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
     if($key -eq 'index.md'){return @{category='regenerable';recovery='vista derivata: si rigenera con cleanup.ps1 -RuntimeReport'}}
     if($key -eq 'mcp-handshake'){return @{category='regenerable';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'}}
     if($key -in @('cleanup','captures','publication','directives-activation','trace')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
-    # Convenzione <categoria>-<yyyyMMdd>-<slug> per le cartelle create dagli agenti: il prefisso dichiara la natura del lavoro.
+    # Agent folder convention <category>-<yyyyMMdd>-<slug>: the prefix declares the type of work.
     if($key -match '^(evidence|report)-'){return @{category='evidence';recovery='prova o rapporto: non si rigenera identico'}}
     if($key -match '^(work|fixture|tmp)-'){return @{category='working';recovery='lavoro temporaneo dichiarato dal prefisso: verificare riferimenti e proprietà prima di valutarlo'}}
     if($key -in @('backups','backup','workstations')){return @{category='backup';recovery='recupero di file gestiti: rimuovere solo con manifest revisionato (cleanup.ps1)'}}
     @{category='working';recovery='lavoro temporaneo: verificare riferimenti e proprietà prima di valutarlo'}
 }
-# Voci di primo livello gestite dal codice: non sono mai legacy. Tutto il resto sotto .runtime precede il layout hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>.
+# Code-managed top-level entries are never legacy. All other .runtime entries predate hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>.
 $script:SBRuntimeManagedTopLevel = @('access','hosts','cleanup','state.json','para-transaction.json','tests','mcp-handshake','captures','publication','directives-activation','trace','backups','backup','workstations','mcp-package','index.md')
-# Inventario di sola lettura del layout annidato hosts/<id>/repos/<repo>/<area>[/<cartella>] (area = categoria o temp). Non segue reparse point.
+# Read-only inventory of hosts/<id>/repos/<repo>/<area>[/<folder>] (area = category or temp). Does not follow reparse points.
 function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $hostsDir=Join-Path $runtime 'hosts'
@@ -417,7 +417,7 @@ function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
     }
     $entries
 }
-# Cartelle precedenti al layout annidato (sola lettura): per ciascuna indica dove andrebbe spostata. Nulla viene spostato, rinominato o rimosso.
+# Folders predating the nested layout (read-only): show a proposed destination for each. Nothing is moved, renamed or removed.
 function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
@@ -432,7 +432,7 @@ function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
         $t=& $target $entry.name ([DateTime]::Parse($entry.newestWriteUtc,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind))
         $legacy+=@{path=$entry.name+'/';kind=$t.kind;files=$entry.files;bytes=$entry.bytes;newestWriteUtc=$entry.newestWriteUtc;suggestedPath=$t.suggested;action='spostamento proposto, non eseguito'}
     }
-    # Layout precedente per postazione: hosts/<id>/repositories/<hash>/<Project>/<Runtime>.
+    # Previous per-workstation layout: hosts/<id>/repositories/<hash>/<Project>/<Runtime>.
     $hostsDir=Join-Path $runtime 'hosts'
     if(Test-Path -LiteralPath $hostsDir -PathType Container){
         foreach($hostDir in @(Get-ChildItem -LiteralPath $hostsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object Name)){
@@ -453,7 +453,7 @@ function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
     }
     $legacy
 }
-# Indice leggibile di .runtime (sola lettura): voci di primo livello ordinate per categoria, poi per dimensione, con chi le scrive e come si ricreano.
+# Readable .runtime index (read-only): top-level entries sorted by category, then size, with writers and recovery instructions.
 function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
     $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
@@ -497,7 +497,7 @@ function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[in
     if($details.Count){$lines+=@('','## Dettaglio delle voci grandi')+$details}
     @{markdown=($lines -join "`n")+"`n";entries=$report.entries;totalBytes=$report.totalBytes;byCategory=$report.byCategory;nested=$report.nested;legacy=$report.legacy}
 }
-# Proposta di pulizia di .runtime (sola lettura): NON è un manifest eseguibile. Elenca cartelle candidate con dimensioni, età, riferimenti e come si ricreano.
+# Read-only .runtime cleanup proposal, NOT an executable manifest. Lists candidate folders with size, age, references and recovery instructions.
 function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90,[int]$KeepFixtures=5) {
     $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
@@ -508,7 +508,7 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
     $candidates=@()
     $entryByName=@{};foreach($entry in $report.entries){$entryByName[$entry.name.ToLowerInvariant()]=$entry}
     $mentions={param([string]$Name) if($entryByName.ContainsKey($Name)){$entryByName[$Name].references.mentions}else{0}}
-    # 1. Fixture di test: si tengono le più recenti, il resto si ricrea rieseguendo le suite.
+    # 1. Test fixtures: retain the latest; recreate the rest by rerunning suites.
     $testsDir=Join-Path $runtime 'tests'
     if(Test-Path -LiteralPath $testsDir -PathType Container){
         $folders=@(Get-ChildItem -LiteralPath $testsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object LastWriteTimeUtc -Descending)
@@ -518,13 +518,13 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
             $candidates+=@{path='tests/';category='regenerable';action=('rimuovere '+$old.Count+' cartelle fixture più vecchie su '+$folders.Count+', tenendo le ultime '+$KeepFixtures);folders=$old.Count;files=$files;bytes=$bytes;oldestUtc=($old|Sort-Object LastWriteTimeUtc|Select-Object -First 1).LastWriteTimeUtc.ToString('o');recovery='si ricrea rieseguendo le suite test-secondbrain*.ps1';references=(& $mentions 'tests')}
         }
     }
-    # 2. Rapporti dell'handshake MCP oltre soglia.
+    # 2. MCP handshake reports beyond the threshold.
     $handshake=Join-Path $runtime 'mcp-handshake'
     if(Test-Path -LiteralPath $handshake -PathType Container){
         $oldFiles=@(Get-ChildItem -LiteralPath $handshake -File -Force|Where-Object {$_.LastWriteTimeUtc -lt $cutoff})
         if($oldFiles.Count){$candidates+=@{path='mcp-handshake/';category='regenerable';action=('rimuovere '+$oldFiles.Count+' rapporti oltre '+$OlderThanDays+' giorni');folders=0;files=$oldFiles.Count;bytes=[long](($oldFiles|Measure-Object Length -Sum).Sum);oldestUtc=($oldFiles|Sort-Object LastWriteTimeUtc|Select-Object -First 1).LastWriteTimeUtc.ToString('o');recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1';references=(& $mentions 'mcp-handshake')}}
     }
-    # 3. Per ogni host: ambiente Python delle fonti (rigenerabile) e zip di backup oltre i due più recenti.
+    # 3. Per host: source Python environment (regenerable) and backup ZIPs beyond the two latest.
     $hostsDir=Join-Path $runtime 'hosts'
     if(Test-Path -LiteralPath $hostsDir -PathType Container){
         foreach($hostDir in Get-ChildItem -LiteralPath $hostsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}){
@@ -537,7 +537,7 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
             $zips=@()
             if(Test-Path -LiteralPath $backupsDir -PathType Container){$zips=@(Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.zip' -Force|Sort-Object LastWriteTimeUtc -Descending)}
             $oldZips=@($zips|Select-Object -Skip 2)
-            # Backup .bin il cui contenuto esiste come blob in Git (SHA-256 pari a previousHash, file origine tracciato e pulito): duplicati da valutare. Senza blob il .bin e l'unica copia e non e candidato.
+            # .bin backups whose content exists as a Git blob (SHA-256 equals previousHash, source tracked and clean): duplicates to review. Without a blob, the .bin is the only copy and is not a candidate.
             if(Test-Path -LiteralPath $backupsDir -PathType Container){
                 $gitBins=@();$gitBytes=0L;$oldestBin=$null
                 foreach($meta in Get-ChildItem -LiteralPath $backupsDir -File -Filter '*.bin.json' -Force){
@@ -552,11 +552,11 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
             if($oldZips.Count){$candidates+=@{path=(& $relative $backupsDir)+'/*.zip';category='backup';action=('valutare '+$oldZips.Count+' zip di backup oltre i 2 più recenti (non esiste un restore automatico: verificare il più recente con backup.ps1 -Verify prima)');folders=0;files=$oldZips.Count;bytes=[long](($oldZips|Measure-Object Length -Sum).Sum);oldestUtc=($oldZips|Sort-Object LastWriteTimeUtc|Select-Object -First 1).LastWriteTimeUtc.ToString('o');recovery='copia compressa dei dati locali: tenere almeno uno zip verificato';references=0}}
         }
     }
-    # 4. Cartelle di lavoro di agent oltre soglia, non protette e senza riferimenti: solo da valutare.
+    # 4. Agent work folders beyond the threshold, unprotected and unreferenced: review only.
     foreach($entry in @($report.entries|Where-Object {$_.category -eq 'working' -and !$_.protected -and $_.olderThanThreshold -and $_.references.mentions -eq 0})){
         $candidates+=@{path=$entry.name+'/';category='working';action='valutare la rimozione (lavoro temporaneo senza riferimenti nel repository)';folders=1;files=$entry.files;bytes=$entry.bytes;oldestUtc=$entry.newestWriteUtc;recovery=$entry.recovery;references=0}
     }
-    # 5. Livelli annidati hosts/<id>/repos/<repo>: solo le cartelle di lavoro oltre soglia (non prove né rapporti), da valutare.
+    # 5. Nested hosts/<id>/repos/<repo>: review only work folders beyond the threshold, excluding evidence and reports.
     foreach($n in @($report.nested|Where-Object {$_.category -eq 'working' -and $_.olderThanThreshold})){
         $candidates+=@{path=$n.path+'/';category='working';action='valutare la rimozione (lavoro temporaneo annidato oltre soglia)';folders=1;files=$n.files;bytes=$n.bytes;oldestUtc=$n.newestWriteUtc;recovery=$n.recovery;references=0}
     }
@@ -564,7 +564,7 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
     @{scope='runtime-cleanup-proposal';applied=$false;generatedAt=[DateTimeOffset]::UtcNow.ToString('o');olderThanDays=$OlderThanDays;keepFixtures=$KeepFixtures;totalBytes=$report.totalBytes;byCategory=$report.byCategory;regenerableCandidateBytes=$regenerable;candidates=$candidates;legacy=@($report.legacy);
         note='Proposta di sola lettura, non un manifest eseguibile. Nessuna cartella è stata rimossa. L''applicazione richiede una richiesta esplicita e un perimetro concreto; i file con backup passano da cleanup.ps1 -ManifestPath.'}
 }
-# Pulizia delle sole cartelle rigenerabili di .runtime (fixture di test oltre le ultime N, ambiente Python delle fonti): perimetro fisso, mai selezione per nome libero.
+# Clean only regenerable .runtime folders (test fixtures beyond the latest N, source Python environment): fixed scope, never arbitrary name-based selection.
 function Get-SBRegenerableRuntimeTargets([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$KeepFixtures=5,[int]$MinAgeMinutes=10) {
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $sep=[IO.Path]::DirectorySeparatorChar
@@ -602,7 +602,7 @@ function Get-SBRegenerableRuntimeTargets([string]$BrainRoot,[string[]]$Protected
     @{targets=@($targets);skipped=@($skipped);keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;bytes=$totalBytes;files=$totalFiles}
 }
 function Remove-SBRuntimeTree([string]$Path,[string]$BrainRoot) {
-    # Rimuove una cartella sotto .runtime senza seguire junction/symlink (si scollegano soltanto) e togliendo l'attributo di sola lettura (oggetti Git).
+    # Remove a folder under .runtime without following junctions/symlinks (unlink only), clearing read-only attributes (Git objects).
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $full=[IO.Path]::GetFullPath($Path).TrimEnd('\','/')
     if(!$full.StartsWith($runtime+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'core.runtime.outside')}
@@ -624,11 +624,11 @@ function New-SBGitStartInfo([string]$Root, [string[]]$GitArguments) {
     $start = [Diagnostics.ProcessStartInfo]::new('git')
     $start.UseShellExecute = $false; $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true; $start.RedirectStandardError = $true
-    # Git emette UTF-8: senza codifica esplicita i percorsi accentati arrivano alterati.
+    # Git emits UTF-8: without an explicit encoding, accented paths become corrupted.
     $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false); $start.StandardErrorEncoding = [Text.UTF8Encoding]::new($false)
     $prefix = @('--no-optional-locks','-c','core.fsmonitor=false','-c','core.quotepath=false')
-    # Un cervello su share ha spesso un proprietario diverso dall'utente corrente: git rifiuta il percorso ("dubious ownership").
-    # Il consenso e limitato al solo cervello, mai ai checkout dei prodotti.
+    # A brain on a share often has a different owner from the current user: Git refuses the path ("dubious ownership").
+    # Consent is limited to the brain itself, never product checkouts.
     $brainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     if ($Root.StartsWith('\\') -and (Test-SBSamePath $Root $brainRoot)) { $prefix += @('-c', ('safe.directory=' + ($Root -replace '\\', '/'))) }
     foreach ($arg in $prefix + @('-C',$Root) + $GitArguments) { $start.ArgumentList.Add($arg) }
@@ -643,7 +643,7 @@ function Invoke-SBGit([string]$Root, [string[]]$GitArguments, [int]$TimeoutMs = 
         @{ code = $process.ExitCode; output = $(if($PreserveOutput){$output}else{$output.Trim()}); error = $stderr.GetAwaiter().GetResult().Trim() }
     } finally { $process.Dispose() }
 }
-# Tipo e dimensione di molti oggetti con un solo processo (cat-file --batch-check): oid -> @{type;size}; oggetti assenti omessi.
+# Types and sizes of many objects in one process (cat-file --batch-check): oid -> @{type;size}; omit missing objects.
 function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutMs = 120000) {
     $info = @{}
     if (!$ObjectIds.Count) { return $info }
@@ -661,8 +661,8 @@ function Get-SBGitObjectInfo([string]$Root, [string[]]$ObjectIds, [int]$TimeoutM
     } finally { $process.Dispose() }
     $info
 }
-# Contenuto di molti blob con un solo processo (cat-file --batch), emesso nell ordine di Entries in streaming (usare in pipeline).
-# Ogni voce: @{Oid;Skip}. Le voci con Skip non vengono lette (Bytes nullo). Emette @{Entry;Bytes;Missing}.
+# Stream many blobs through one process (cat-file --batch), in Entries order (use in a pipeline).
+# Each entry: @{Oid;Skip}. Entries with Skip are not read (Bytes null). Emits @{Entry;Bytes;Missing}.
 function Read-SBGitBlobs([string]$Root, [object[]]$Entries, [int]$ReadTimeoutMs = 60000) {
     if (!('SBGitBatchReader' -as [type])) {
         Add-Type -TypeDefinition @'
@@ -741,7 +741,7 @@ function ConvertTo-SBRepositoryIdentity([string]$Remote) {
     $hostName+$port+'/'+$repoPath
 }
 function Resolve-SBRealPath([string]$Path) {
-    # Risolve junction e symlink di ogni componente esistente, cosi percorsi alias e reali si confrontano come uguali.
+    # Resolve junctions and symlinks in every existing component so aliases and real paths compare equal.
     $full=[IO.Path]::GetFullPath($Path).TrimEnd('\','/')
     $root=[IO.Path]::GetPathRoot($full).TrimEnd('\','/')
     $current=$root
@@ -758,7 +758,7 @@ function Resolve-SBRealPath([string]$Path) {
 }
 function Get-SBBrainIdentity([string]$BrainRoot='') {
     if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
-    # Un cervello senza repository proprio (ZIP, cartella annidata) non eredita l'origin di un repository padre.
+    # A brain without its own repository (ZIP, nested folder) does not inherit a parent repository's origin.
     $top=Invoke-SBGit $BrainRoot @('rev-parse','--show-toplevel')
     if($top.code -ne 0 -or !$top.output -or (Resolve-SBRealPath $top.output) -ine (Resolve-SBRealPath $BrainRoot)){return ''}
     $origin=Invoke-SBGit $BrainRoot @('config','--get','remote.origin.url')
@@ -782,7 +782,7 @@ function Resolve-SBBoundIdentity([string]$Checkout,$Bindings=@()) {
     $remote
 }
 function Resolve-SBWorkingRepository([string]$Path='',$Bindings=@()) {
-    # Repository del checkout in lavoro (default: directory corrente); $null se non e un checkout Git con identita.
+    # Working checkout repository (default: current directory); $null unless it is a Git checkout with an identity.
     if(!$Path){$Path=(Get-Location).Path}
     if(!(Test-Path -LiteralPath $Path -PathType Container)){return $null}
     Resolve-SBBoundIdentity $Path $Bindings

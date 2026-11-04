@@ -58,12 +58,12 @@ try{
         $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
-    # Slim: tetto di 20.000 caratteri (parti essenziali, resto a richiesta). Full: startupBudget della postazione o 50.000.
-    # Il tetto di avvio vale solo per il primo caricamento (Slim: 20.000); Full non ha tetto (0) salvo -Budget esplicito; -Compact usa startupBudget o 50.000.
-    # La ricerca ha un tetto predefinito (-1: 20 riscontri e 10.000 caratteri); -Limit 0 / -Budget 0 espliciti lo tolgono.
+    # Slim: 20,000-character limit (essential parts; the rest on request). Full: workstation startupBudget or 50,000.
+    # The startup limit applies only to initial loading (Slim: 20,000); Full is unlimited (0) unless -Budget is explicit; -Compact uses startupBudget or 50,000.
+    # Search has a default limit (-1: 20 matches and 10,000 characters); explicit -Limit 0 / -Budget 0 removes it.
     $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
     $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
-    # Perimetro cooperativo: repository esplicito o, in sua assenza, quello del checkout in lavoro (directory corrente).
+    # Cooperative scope: explicit repository, otherwise the working checkout's repository (current directory).
     $resolveWorking={
         if($Repository){return $Repository}
         $resolved=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
@@ -92,13 +92,13 @@ try{
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
         $result=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $Dossier -CandidatePath $CandidatePath -BackupRoot $config.backupRoot -Apply:$Apply -CheckoutPath $CheckoutPath -Budget $effectiveBudget}
     elseif($Search){
-        # Ambito predefinito: dossier del repository in lavoro (se risolvibile); -AllDossiers per tutte le aree attive.
+        # Default scope: the working repository's dossier, if resolvable; -AllDossiers selects all active areas.
         $searchRepository=$Repository
         if(!$Dossier -and !$Repository -and !$AllDossiers){try{$searchRepository=& $resolveWorking}catch{$searchRepository=''}}
         $result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $searchRepository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $effectiveLimit -IncludeOriginals:$IncludeOriginals
     }
     elseif($Task -or $Section){
-        # Strati di approfondimento: dettaglio integro di un task (anche archiviato) o sezione intera per titolo, dal dossier del repository in lavoro.
+        # Deeper layers: complete task details (including archived tasks) or a whole named section from the working repository's dossier.
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
         $result=if($Task){Get-SBTaskDetail -BrainRoot $brain -Dossier $Dossier -Task $Task -CheckoutPath $CheckoutPath}else{Get-SBSection -BrainRoot $brain -Dossier $Dossier -Title $Section -Source $Source}
@@ -118,7 +118,7 @@ try{
         $result=Complete-SBPendingSubmission $submission $config $SessionId
     }
     elseif($UpdateTaskId){
-        # Le scritture restano nel repository in lavoro: un -Repository diverso dal checkout corrente e rifiutato.
+        # Writes stay in the working repository: a -Repository differing from the current checkout is rejected.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
@@ -129,7 +129,7 @@ try{
         $result=Complete-SBPendingSubmission $submission $config $SessionId
     }
     elseif($SetLifecycle){
-        # Blocco greenfield: come per i task, si modifica soltanto il repository in lavoro.
+        # Greenfield guard: like tasks, lifecycle changes are limited to the working repository.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         if($Repository -and $Repository -cne $working){throw (New-SBError 'knowledgecli.lifecycle.working')}
@@ -144,12 +144,12 @@ try{
         $result=@{repository=$repoId;history=@(Get-SBTrackerHistoryMessages $resolved.data);archive=$archiveView}
     }
     elseif($NewTask -or $RenumberTasks -or $MigrateHistoryMessages){
-        # Creazione e numerazione restano nel repository in lavoro, come gli aggiornamenti di stato.
+        # Creation and numbering stay in the working repository, like status updates.
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
         $result=if($NewTask){
-            # Con pwsh -File gli elenchi arrivano come stringa unica: ';' separa i criteri e le dipendenze.
+            # With pwsh -File, lists arrive as one string: ';' separates criteria and dependencies.
             $DependsOn=@($DependsOn|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             $Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
@@ -165,12 +165,12 @@ try{
     }
     elseif($All){
         if($Repository){throw (New-SBError 'knowledgecli.params.incompatible')}
-        # Vista globale paginata come in MCP (50 voci per pagina, -Limit 0 = tutte): oggetto con total, nextOffset e tasks.
+        # Global paging matches MCP (50 entries per page, -Limit 0 = all): object with total, nextOffset and tasks.
         $pageLimit=if($PSBoundParameters.ContainsKey('Limit')){$Limit}else{50}
         $result=Get-SBGlobalTaskPage -BrainRoot $brain -Offset $Offset -Limit $pageLimit -ReadyOnly:$ReadyOnly
     }
     else{$result=@(Get-SBGlobalTasks -BrainRoot $brain -Repository (& $resolveWorking) -ReadyOnly:$ReadyOnly)}
-    # Ricerca ed elenchi task in JSON compatto (nessuna indentazione): meno caratteri nel contesto dell'agente.
+    # Search and task lists use compact JSON (no indentation): fewer characters in the agent's context.
     if($Search -or $All){(ConvertTo-SBStableValue $result|ConvertTo-Json -Depth 40 -Compress)}else{ConvertTo-SBJson $result}
     if($Startup -and !$result.withinBudget){exit 1}
 }catch{

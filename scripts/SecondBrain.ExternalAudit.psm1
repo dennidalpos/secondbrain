@@ -34,7 +34,7 @@ function Assert-SBAuditIdentity([string]$Identity,[string[]]$AllowedOwners) {
 }
 
 function Invoke-SBAuditRequest([string]$Url) {
-    # stdout/stderr rimangono in memoria: gli errori non devono esporre corpi o credenziali.
+    # Keep stdout/stderr in memory: errors must never expose bodies or credentials.
     $start=[Diagnostics.ProcessStartInfo]::new('gh')
     $start.UseShellExecute=$false;$start.CreateNoWindow=$true
     $start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true

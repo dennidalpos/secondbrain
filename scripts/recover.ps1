@@ -1,13 +1,13 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Verifica o ripristina una transazione PARA interrotta a partire dal suo manifest.
+Checks or restores an interrupted PARA transaction from its manifest.
 .DESCRIPTION
-Senza -Apply mostra in anteprima le destinazioni che verrebbero ripristinate. Con -Apply esegue il
-ripristino verificato (hash precedente, payload nel registro del manifest) e rimuove il marker
-.runtime/para-transaction.json; il manifest originale viene conservato.
-Senza -ConfigPath usa la configurazione portabile di default (anche con attivazione parziale);
-con -ConfigPath usa backupRoot e i percorsi operativi della postazione indicata.
+Without -Apply, previews the destinations to restore. With -Apply, performs the
+verified restoration (previous hash, payload in the manifest journal) and removes the
+.runtime/para-transaction.json marker; preserves the original manifest.
+Without -ConfigPath, uses the default portable configuration (including partial activation);
+with -ConfigPath, uses backupRoot and operational paths from the specified workstation.
 .EXAMPLE
 pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath .runtime/hosts/<id>/backups/<transazione>/manifest.json
 pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath <manifest> -Apply
@@ -27,10 +27,10 @@ Add-SBMessages @{
     'recover.refused.changed' = @{ it = 'Recupero rifiutato: destinazione modificata successivamente'; en = 'Recovery refused: destination modified afterwards' }
     'recover.payload.invalid' = @{ it = 'Payload di recupero non valido'; en = 'Invalid recovery payload' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-# Con -ConfigPath il manifest puo stare nel backupRoot della postazione, anche fuori da .runtime: Restore-SBParaTransaction ne verifica il confinamento.
+# With -ConfigPath, the manifest may live in the workstation backupRoot, even outside .runtime: Restore-SBParaTransaction verifies confinement.
 $resolvePath={param($p) if($ConfigPath){if(!(Test-Path -LiteralPath $p)){throw (New-SBError 'recover.path.missing' @($p))};[IO.Path]::GetFullPath($p)}else{Assert-SBCentralDataPath $brain $p}}
 $manifestPath=& $resolvePath $ManifestPath
 $journal=Read-SBJson $manifestPath $null
@@ -50,7 +50,7 @@ try{
     $changes=@()
     $boundary=$brain.TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     foreach($record in $journal.records){
-        # Journal scritto da un altro host con un alias diverso dello stesso cervello (UNC, drive mappato).
+        # Journal written by another host using a different alias of the same brain (UNC, mapped drive).
         $record.path=Convert-SBBrainAlias $record.path $journal.brainRoot $brain
         if($record.backup){$record.backup=Convert-SBBrainAlias $record.backup $journal.brainRoot $brain}
         $path=[IO.Path]::GetFullPath($record.path)

@@ -1,11 +1,11 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Esegue il backup compresso deterministico dei dati locali di SecondBrain o ne verifica l'integrità.
+Creates a deterministic compressed backup of local SecondBrain data or verifies its integrity.
 .DESCRIPTION
-Include le directory PARA (01-projects, 02-areas, 03-resources, 04-archives), PARA.md, para-index.json
-e .runtime/hosts. Inserisce un manifest crittografico SHA-256 nell'archivio.
--Verify convalida la coerenza di ciascun file incluso rispetto al manifest.
+Includes PARA directories (01-projects, 02-areas, 03-resources, 04-archives), PARA.md, para-index.json
+and .runtime/hosts. Adds a cryptographic SHA-256 manifest to the archive.
+-Verify checks each included file against the manifest.
 #>
 [CmdletBinding(DefaultParameterSetName='Backup')]
 param(
@@ -42,7 +42,7 @@ Add-SBMessages @{
     'backup.size.diverged' = @{ it = 'Dimensione divergente per ''{0}'': atteso {1}, trovato {2}'; en = 'Size diverges for ''{0}'': expected {1}, found {2}' }
     'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}.'; en = 'No file found to include in the backup in {0}.' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 
 $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -126,9 +126,9 @@ if ($Verify) {
     }
 }
 
-# Modalità Backup
+# Backup mode
 $config = $null
-# Senza -ConfigPath una postazione non attivata usa la cartella predefinita; un -ConfigPath esplicito non valido e un errore.
+# Without -ConfigPath, an inactive workstation uses the default folder; an invalid explicit -ConfigPath is an error.
 if ($ConfigPath) { $config = Read-SBConfiguration $ConfigPath }
 else { try { $config = Read-SBConfiguration } catch { Write-Warning (Get-SBMessage 'backup.config.unavailable' @($_.Exception.Message)) } }
 $backupRoot = if ($config -and $config.backupRoot) { $config.backupRoot } else { Join-Path $brain '.runtime/backups' }
@@ -142,13 +142,13 @@ if (!$OutputPath) {
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 [System.IO.Directory]::CreateDirectory((Split-Path $resolvedOutput)) | Out-Null
 
-# Il backup legge i dati che i writer modificano: entra nella coda FIFO e prende il lock di scrittura (exit 3 se occupato oltre l'attesa).
-# A postazione non attivata il lock usa la cartella di coordinamento predefinita del cervello.
+# Backup reads data modified by writers: join the FIFO queue and acquire the writer lock (exit 3 on timeout).
+# On an inactive workstation, the lock uses the brain's default coordination folder.
 $lockConfig = if ($config) { $config } else { @{ brainRoot = $brain; coordinationRoot = (Join-Path $brain '.runtime/access'); workstationId = 'non-attivata'; sessionTimeoutMinutes = 30; lockWaitMs = 60000 } }
 $lock = Enter-SBOperation $lockConfig $SessionId -LockOnly
 try {
-# Due backup nello stesso secondo darebbero lo stesso nome: con il nome predefinito un archivio esistente non viene mai sovrascritto (suffisso -2, -3, ...).
-# Con -OutputPath esplicito il comportamento resta quello dichiarato dal chiamante.
+# Two backups in the same second would share a name: the default name never overwrites an existing archive (suffix -2, -3, ...).
+# An explicit -OutputPath retains the behavior specified by the caller.
 if ($usedDefaultName) {
     $baseName = [IO.Path]::GetFileNameWithoutExtension($resolvedOutput); $suffix = 1
     while (Test-Path -LiteralPath $resolvedOutput) { $suffix++; $resolvedOutput = Join-Path (Split-Path $resolvedOutput) ($baseName + '-' + $suffix + '.zip') }
@@ -177,12 +177,12 @@ foreach ($target in $includeTargets) {
     } elseif ($target.type -eq 'dir') {
         if (Test-Path -LiteralPath $full -PathType Container) {
             foreach ($item in Get-ChildItem -LiteralPath $full -Recurse -File -Force) {
-                # Escludi file temporanei o di lock
+                # Exclude temporary and lock files.
                 if ($item.Name -in @('.git', 'Thumbs.db', 'desktop.ini') -or $item.Extension -in @('.tmp', '.lock')) {
                     continue
                 }
                 $rel = [IO.Path]::GetRelativePath($brain, $item.FullName).Replace('\', '/')
-                # I backup e i giornali delle postazioni non rientrano in un nuovo archivio.
+                # Workstation backups and journals are excluded from a new archive.
                 if ($rel -match '^\.runtime/hosts/[^/]+/backups/' -or $item.FullName.StartsWith($backupRoot.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
                     continue
                 }
@@ -199,7 +199,7 @@ if ($fileList.Count -eq 0) {
     throw (New-SBError 'backup.files.none' @($brain))
 }
 
-# Calcolo hash per il manifest
+# Compute manifest hashes.
 $manifestFiles = @{}
 $sha = [System.Security.Cryptography.SHA256]::Create()
 try {
@@ -223,14 +223,14 @@ $manifestObj = @{
 }
 $manifestJson = ConvertTo-SBJson $manifestObj
 
-# Creazione archivio ZIP
+# Create the ZIP archive.
 if (Test-Path -LiteralPath $resolvedOutput) {
     [System.IO.File]::Delete($resolvedOutput)
 }
 
 $zip = [System.IO.Compression.ZipFile]::Open($resolvedOutput, [System.IO.Compression.ZipArchiveMode]::Create)
 try {
-    # Aggiungi manifest.json
+    # Add manifest.json.
     $manifestEntry = $zip.CreateEntry('manifest.json', [System.IO.Compression.CompressionLevel]::Optimal)
     $mStream = $manifestEntry.Open()
     try {
@@ -238,7 +238,7 @@ try {
         $mStream.Write($mBytes, 0, $mBytes.Length)
     } finally { $mStream.Dispose() }
 
-    # Aggiungi ciascun file
+    # Add each file.
     foreach ($f in $fileList) {
         $entry = $zip.CreateEntry($f.Relative, [System.IO.Compression.CompressionLevel]::Optimal)
         $entryStream = $entry.Open()

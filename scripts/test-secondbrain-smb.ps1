@@ -1,16 +1,16 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Prova di coordinamento (FileShare.None, scritture concorrenti, ExecutionPolicy, permessi) su una share SMB di loopback.
+Tests coordination (FileShare.None, concurrent writes, ExecutionPolicy, permissions) on a loopback SMB share.
 
 .DESCRIPTION
-Esegue la checklist di docs/riferimento/shared-brain.md su una share raggiunta da questo stesso PC e dallo stesso utente:
-UNC con localhost, 127.0.0.1, nome macchina e FQDN. Non crea share né utenti: per impostazione predefinita usa la
-share amministrativa dell'unità del clone (\\<alias>\D$), che passa dallo stack SMB (client e server). Con -ShareRoot
-si indica una share diversa (per esempio creata a mano con New-SmbShare).
+Runs the docs/riferimento/shared-brain.md checklist on a share accessed from this same PC and user:
+UNC with localhost, 127.0.0.1, machine name and FQDN. Creates no shares or users: by default, uses the
+clone drive's administrative share (\\<alias>\D$), passing through the SMB client and server stack. -ShareRoot
+selects a different share (for example one created manually with New-SmbShare).
 
-Limiti dichiarati: un solo PC e un solo utente; nessun NAS/Samba. L'esito massimo e quindi partial.
-La fixture resta sotto .runtime/tests (cartella smb-<data>) fino a una pulizia richiesta; il rapporto e report.json.
+Declared limits: one PC and one user; no NAS/Samba. The best possible outcome is therefore partial.
+The fixture stays under .runtime/tests (smb-<date> folder) until cleanup is requested; the report is report.json.
 
 .EXAMPLE
 pwsh -NoProfile -File scripts/test-secondbrain-smb.ps1
@@ -36,7 +36,7 @@ function Add-Result([string]$Name, [bool]$Ok, [string]$Detail = '', [switch]$Inf
     if (!$Ok -and !$Informational) { $failures.Add($Name) }
 }
 
-# Radice della share e percorso locale equivalente.
+# Share root and equivalent local path.
 if (!$ShareRoot) {
     $drive = [IO.Path]::GetPathRoot($brain).Substring(0, 1)
     $ShareRoot = '\\localhost\' + $drive + '$'
@@ -61,7 +61,7 @@ function Get-UncPath([string]$Alias, [string]$Leaf = '') {
 }
 Write-Host "Share: $ShareRoot  Fixture: $localFixture  Alias: $($Aliases -join ', ')"
 
-# Script figli, scritti nella fixture locale.
+# Child scripts, written inside the local fixture.
 $tools = Join-Path $localFixture 'tools'; New-Item -ItemType Directory -Force -Path $tools | Out-Null
 Set-Content -LiteralPath (Join-Path $tools 'holder.ps1') -Encoding utf8 -Value @'
 param($Path,$Ready,$Stop)
@@ -113,7 +113,7 @@ function Wait-File([string]$Path, [int]$Seconds = 30) {
     [IO.File]::Exists($Path)
 }
 
-# 1. Raggiungibilita, scrittura e lettura con hash per ogni alias.
+# 1. Reachability, writing and hash-checked reading for every alias.
 foreach ($alias in $Aliases) {
     try {
         $dir = Get-UncPath $alias
@@ -125,7 +125,7 @@ foreach ($alias in $Aliases) {
     } catch { Add-Result "scrittura e lettura 1 MiB via $alias" $false $_.Exception.Message }
 }
 
-# 2. FileShare.None: un titolare su un alias, sfidanti su tutti gli alias e sul percorso locale.
+# 2. FileShare.None: one owner on an alias, challengers on all aliases and the local path.
 $holderAlias = $Aliases[0]
 $lockLeaf = 'exclusive.lock'
 $lockHolderPath = Get-UncPath $holderAlias $lockLeaf
@@ -150,7 +150,7 @@ $out = Join-Path $localFixture 'contender-after.txt'
 (Start-Child 'contender.ps1' @((Get-UncPath $Aliases[-1] $lockLeaf), $out)).WaitForExit(60000) | Out-Null
 Add-Result 'lock rilasciato alla chiusura del titolare' ([IO.File]::ReadAllText($out) -eq 'OPENED') ([IO.File]::ReadAllText($out))
 
-# 2b. Titolare terminato con Kill: il sistema rilascia il lock (nessun marker da ripulire).
+# 2b. Owner killed: the system releases the lock (no marker to clean up).
 Remove-Item -LiteralPath $ready, $stop -Force -ErrorAction SilentlyContinue
 $holder = Start-Child 'holder.ps1' @($lockHolderPath, $ready, $stop)
 if (Wait-File $ready) {
@@ -166,7 +166,7 @@ if (Wait-File $ready) {
     Add-Result 'lock rilasciato dopo la terminazione forzata del titolare' $opened $(if ($opened) { '' } else { 'ancora occupato dopo 10 s' })
 } else { Add-Result 'lock rilasciato dopo la terminazione forzata del titolare' $false 'titolare non avviato' }
 
-# 3. Scritture concorrenti con Open-SBLockFile del modulo, un alias diverso per ogni processo.
+# 3. Concurrent writes with the module's Open-SBLockFile, a different alias per process.
 $log = Join-Path $localFixture 'writers.log'
 $writerLock = Get-UncPath $Aliases[0] 'writer.lock'
 New-Item -ItemType Directory -Force -Path (Split-Path (Get-UncPath $Aliases[0] 'x')) | Out-Null
@@ -182,7 +182,7 @@ for ($k = 1; $k -lt $intervals.Count; $k++) { if ($intervals[$k].enter -lt $inte
 Add-Result "scritture concorrenti ($Writers processi, alias diversi): tutte completate" ($intervals.Count -eq $Writers) "$($intervals.Count)/$Writers"
 Add-Result 'scritture concorrenti: mutua esclusione (nessuna sovrapposizione)' (!$overlap -and $intervals.Count -gt 1) (($intervals | ForEach-Object { "$($_.id) attesa $($_.waitedMs) ms" }) -join '; ')
 
-# 3b. Coda FIFO (Open-SBWriterLock): il primo writer tiene il lock, gli altri si accodano uno alla volta (ordine di arrivo noto) e devono entrare nello stesso ordine.
+# 3b. FIFO queue (Open-SBWriterLock): the first writer holds the lock; others queue one at a time (known arrival order) and must enter in that order.
 $fifoRoot = Get-UncPath $Aliases[0] 'fifo-coord'
 New-Item -ItemType Directory -Force -Path $fifoRoot | Out-Null
 $fifoLog = Join-Path $localFixture 'fifo.log'; $fifoStop = Join-Path $localFixture 'fifo.stop'
@@ -191,7 +191,7 @@ $fifoReady = $true
 for ($n = 0; $n -lt $Writers -and $fifoReady; $n++) {
     $alias = $Aliases[$n % $Aliases.Count]
     $fifoProcs.Add((Start-Child 'fifo-writer.ps1' @((Join-Path $brain 'scripts'), (Get-UncPath $alias 'fifo-coord'), $fifoLog, "w$n", $fifoStop)))
-    # Il successivo parte solo quando il precedente e visibile: w0 ha il lock (writer.lock creato), gli altri hanno un ticket in coda.
+    # Start the next only when the previous is visible: w0 holds the lock (writer.lock created); others have queued tickets.
     $fifoReady = if ($n -eq 0) { Wait-File (Join-Path $fifoRoot 'writer.lock') 60 } else {
         $queued = 0
         for ($t = 0; $t -lt 240 -and $queued -lt $n; $t++) { $queued = @(Get-ChildItem -LiteralPath (Join-Path $fifoRoot 'queue') -Filter '*.lease' -File -ErrorAction SilentlyContinue).Count; if ($queued -lt $n) { Start-Sleep -Milliseconds 250 } }
@@ -208,7 +208,7 @@ for ($k = 1; $k -lt $fifoOrder.Count; $k++) { if ($fifoOrder[$k].enter -lt $fifo
 $actualOrder = ($fifoOrder | ForEach-Object id) -join ','
 Add-Result "coda FIFO su share ($Writers writer, alias diversi): ingresso in ordine di arrivo" ($fifoReady -and $actualOrder -eq $expectedOrder -and !$fifoOverlap) "atteso $expectedOrder, osservato $actualOrder"
 
-# 4. ExecutionPolicy: esito osservato per alias (informativo, dipende da zona e criterio).
+# 4. ExecutionPolicy: observed outcome by alias (informative; depends on zone and policy).
 Copy-Item -LiteralPath (Join-Path $tools 'probe.ps1') -Destination (Get-UncPath $Aliases[0] 'probe.ps1') -Force
 $pwsh = (Get-Process -Id $PID).Path
 foreach ($alias in $Aliases) {
@@ -220,7 +220,7 @@ foreach ($alias in $Aliases) {
 }
 Add-Result 'ExecutionPolicy effettiva (Get-ExecutionPolicy -List)' $true ((Get-ExecutionPolicy -List | ForEach-Object { "$($_.Scope)=$($_.ExecutionPolicy)" }) -join ', ') -Informational
 
-# 5. Permessi: una cartella con negazione esplicita deve restare negata attraverso SMB (informativo).
+# 5. Permissions: an explicitly denied folder must remain denied through SMB (informative).
 $denyDir = Join-Path $localFixture 'deny-probe'
 New-Item -ItemType Directory -Force -Path $denyDir | Out-Null
 [IO.File]::WriteAllText((Join-Path $denyDir 'secret.txt'), 'x')

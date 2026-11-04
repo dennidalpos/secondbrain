@@ -45,14 +45,14 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 | `list_prompts`, `get_prompt`, `get_prompt_home` | Consultare i prompt |
 | `check_publication` | Controllare un progetto prima del push |
 
-Il server gira solo sul tuo PC: nessuna porta di rete e nessuna modifica ai file.
+Il server gira solo sul tuo PC e non apre porte di rete. All'avvio e durante le letture può integrare scritture di dossier già autorizzate e accodate; gli strumenti lo dichiarano con `readOnlyHint=false`.
 
 ## Con o senza MCP
 
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
 | **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | La risposta JSON-RPC compatta `tools/list` misura 7.115 caratteri in italiano e 6.577 in inglese (misurazione del 2026-11-03; il solo `result` misura 7.081/6.543). Sono caratteri, non token. Ogni strumento nuovo apre un popup finché non lo autorizzi. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
+| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 9.326 caratteri in italiano e 8.758 in inglese (misurazione del 2026-11-04; il solo `result` misura 9.292/8.724). Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
 

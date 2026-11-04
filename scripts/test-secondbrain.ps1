@@ -1,7 +1,7 @@
 #requires -Version 7.5
-# Livelli: -Quick (controlli puri, pochi secondi), predefinito Fast (sub-suite in parallelo, output sintetico), -Full (sequenziale, output completo).
-# -Only <chiave> esegue una sola sub-suite; -KeepFixtures (o SECONDBRAIN_TEST_KEEP=1) conserva le fixture anche dopo un esito verde;
-# SECONDBRAIN_TEST_TIMING=1 esegue in sequenza e stampa le sezioni piu lente.
+# Levels: -Quick (pure checks, a few seconds), default Fast (parallel sub-suites, concise output), -Full (sequential, complete output).
+# -Only <key> runs one sub-suite; -KeepFixtures (or SECONDBRAIN_TEST_KEEP=1) retains fixtures even after success;
+# SECONDBRAIN_TEST_TIMING=1 runs sequentially and prints the slowest sections.
 [CmdletBinding()]
 param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
 $script:Full = [bool]$Full
@@ -23,7 +23,7 @@ function Assert($Condition,[string]$Message){
 }
 $script:laps = [Collections.Generic.List[object]]::new()
 $script:suiteResults = [Collections.Generic.List[object]]::new()
-# Sub-suite: chiave, titolo, file. Le prime cinque hanno fixture proprie e partono insieme in Fast (le piu lente per prime).
+# Sub-suites: key, title, file. The first five have separate fixtures and start together in Fast (slowest first).
 $script:SubSuites = @(
     @{ Key='git-environment'; File='test-secondbrain-git-environment.ps1'; Name='Git process environment and restoration' }
     @{ Key='portable';       File='test-secondbrain-portable.ps1';       Name='Portabile: discovery, attivazione, compattazione, pubblicazione e asset' }
@@ -56,7 +56,7 @@ function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
     $script:passed++
 }
 function Invoke-SubSuiteTimed($Suite) {
-    # Esecuzione in sequenza con marca di tempo per riga: il tempo di una riga PASS e l'intervallo dalla precedente.
+    # Sequential execution with per-line timestamps: a PASS line's time is the interval since the preceding line.
     $watch = [Diagnostics.Stopwatch]::StartNew(); $previous = 0.0
     $output = @(& pwsh -NoProfile -File (Join-Path $PSScriptRoot $Suite.File) 2>&1 | ForEach-Object {
         $now = $watch.Elapsed.TotalSeconds
@@ -67,7 +67,7 @@ function Invoke-SubSuiteTimed($Suite) {
     Write-SubSuiteResult $Suite $output $LASTEXITCODE $watch.Elapsed.TotalSeconds
 }
 function Invoke-SubSuitePool($Suites) {
-    # Processi pwsh figli concorrenti (ThreadJob), output raccolto e stampato nell'ordine dichiarato.
+    # Concurrent child pwsh processes (ThreadJob); collect and print output in declared order.
     $limit = [Math]::Max(1, [Math]::Min(4, [Environment]::ProcessorCount))
     $jobs = @(foreach ($suite in $Suites) {
         Start-ThreadJob -ThrottleLimit $limit -ArgumentList (Join-Path $PSScriptRoot $suite.File) -ScriptBlock {
@@ -105,7 +105,7 @@ function Write-SlowestSections {
     }
 }
 function Remove-TestRun([string]$RunDirectory, [string]$BaseRoot) {
-    # Rimuove soltanto la directory di questa esecuzione: figlia diretta della radice dei test con nome run-<8 esadecimali>.
+    # Remove only this run's directory: a direct child of the test root named run-<8 hex characters>.
     $resolved = [IO.Path]::GetFullPath($RunDirectory).TrimEnd('\','/')
     $base = [IO.Path]::GetFullPath($BaseRoot).TrimEnd('\','/')
     if ((Split-Path $resolved -Parent) -ine $base -or (Split-Path $resolved -Leaf) -cnotmatch '^run-[0-9a-f]{8}$') { return $false }
@@ -116,8 +116,8 @@ function Remove-TestRun([string]$RunDirectory, [string]$BaseRoot) {
 function Throws([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert $caught $Message}
 function Put([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function Git([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
-# Ogni esecuzione lavora in una propria directory run-<id> sotto la radice dei test: sub-suite comprese (le eredita da SECONDBRAIN_TEST_ROOT).
-# A esito verde la directory si rimuove (autorizzazione dell'utente, limitata a cio che crea questa esecuzione); a esito rosso si conserva.
+# Each run uses its own run-<id> directory under the test root; sub-suites inherit it through SECONDBRAIN_TEST_ROOT.
+# Remove the directory on success (user authorization limited to this run's artifacts); retain it on failure.
 $keepFixtures = $KeepFixtures -or $env:SECONDBRAIN_TEST_KEEP -eq '1'
 $testBase = Get-SBTestRoot
 $savedTestRoot = $env:SECONDBRAIN_TEST_ROOT
@@ -144,7 +144,7 @@ try {
     $brain=Join-Path $root 'brain'
     [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
     Get-ChildItem $PSScriptRoot -File | Where-Object Name -ne 'test-secondbrain.ps1' | Copy-Item -Destination (Join-Path $brain 'scripts')
-    # I flussi CLI usano codice di produzione, file, Git e processi reali isolati.
+    # CLI workflows use production code, files, Git and actual isolated processes.
     Put (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git','node_modules')})
     Assert ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'
     $path=Join-Path $root 'file con spazi.md';Put $path "originale`n"
@@ -162,7 +162,7 @@ try {
     Assert ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino esatto'
     & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig *> $null
     Assert ($LASTEXITCODE -ne 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino rifiuta destinazione cambiata'
-    # Git salva i file tracciati: pulito = nessun .bin (commit e blob registrati), sporco = rifiuto, non tracciato = .bin invariato.
+    # Git preserves tracked files: clean = no .bin (commit and blob recorded), dirty = refused, untracked = .bin unchanged.
     $gitRepo=Join-Path $root 'git repo';[IO.Directory]::CreateDirectory($gitRepo)|Out-Null
     Git $gitRepo @('init','-q')|Out-Null
     Git $gitRepo @('config','user.email','test@example.invalid')|Out-Null
@@ -201,7 +201,7 @@ try {
     $runtimeIndex=Get-SBRuntimeIndex $pruneRoot @() 90
     $categoryOf=@{};foreach($entry in $runtimeIndex.entries){$categoryOf[$entry.name]=$entry.category}
     Assert ($categoryOf['work-20261102-prova'] -eq 'working' -and $categoryOf['evidence-20261102-prova'] -eq 'evidence' -and $categoryOf['report-20261102-prova'] -eq 'evidence' -and $categoryOf['trace'] -eq 'evidence' -and $categoryOf['t77'] -eq 'working') 'indice .runtime: i prefissi della convenzione e trace sono classificati'
-    # Tabella principale: le righe prima della prima sezione "##" (livelli annidati e legacy hanno tabelle proprie).
+    # Main table: rows before the first "##" section (nested levels and legacy have separate tables).
     $indexRows=@((($runtimeIndex.markdown -split "`n## ")[0]) -split "`n"|Where-Object {$_ -match '^\| `'})
     $categoryRank=@{protected=0;evidence=1;backup=2;working=3;regenerable=4};$ranks=@($indexRows|ForEach-Object {$categoryRank[(($_ -split '\|')[2]).Trim()]})
     Assert ($indexRows.Count -eq @($runtimeIndex.entries).Count -and (@($ranks|Sort-Object) -join ',') -eq ($ranks -join ',') -and $runtimeIndex.markdown -match 'nome conforme') 'indice .runtime: righe ordinate per categoria e nomi conformi segnalati'
@@ -218,7 +218,7 @@ try {
     $nestedProposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
     Assert (@($nestedProposal.legacy).Count -eq @($nestedIndex.legacy).Count -and @($nestedProposal.candidates|Where-Object {$_.path -like 'hosts/h1/repos/*'}).Count -eq 0) 'proposta .runtime: legacy elencate, nessuna cartella annidata recente proposta'
     Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($nestedBefore -join '|') -and (Test-Path (Join-Path $pruneRoot '.runtime/work-20261102-prova/x.txt'))) 'layout annidato e legacy: sola lettura, nessuno spostamento'
-    # Report con codice stabile e testo nella lingua scelta: il codice non cambia con SECONDBRAIN_LANG.
+    # Report with stable code and text in the selected language: SECONDBRAIN_LANG does not change the code.
     $previousLang=$env:SECONDBRAIN_LANG
     try{
         $env:SECONDBRAIN_LANG='en';$retentionEn=@((Get-SBRuntimeRetention $pruneRoot @() 90).entries|Where-Object name -eq 'hosts')[0]
@@ -288,7 +288,7 @@ try {
         if (Remove-TestRun $runDirectory $testBase) { $fixturesRemoved = $true; Write-Output 'Fixture di questa esecuzione rimosse (esito verde; -KeepFixtures le conserva).' }
         else { Write-Output ('Fixture conservata: '+$runDirectory) }
     } else { Write-Output ('Fixture conservata: '+$runDirectory) }
-    # esito.json: riepilogo dell'esecuzione (durate, verifiche, stato delle fixture) accanto alla radice dei test, quindi sopravvive alla rimozione di run-<id>.
+    # esito.json: run summary (durations, checks, fixture status) beside the test root, surviving removal of run-<id>.
     try {
         $detail = Join-Path $testBase 'esito-concurrency.json'
         $esito = [ordered]@{ schemaVersion = 1; level = $script:Level; observedAt = [DateTimeOffset]::UtcNow.ToString('o'); durationSeconds = [Math]::Round($runWatch.Elapsed.TotalSeconds, 1)

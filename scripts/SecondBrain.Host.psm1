@@ -55,9 +55,9 @@ function Get-SBIDERoot([string]$Variable,[string]$Default) {
     @{path=$value;source=$source}
 }
 function Get-SBIDEContext([string]$Name) {
-    # Contesto osservabile senza leggere archivi di autenticazione: radice di configurazione, origine dell override e cartelle di configurazione presenti.
-    # Non rileva un cambio di account nella stessa radice: quello resta dichiarato (accountAlias) e provato dalla ricevuta di osservazione.
-    # Le configurazioni migrate usano nomi descrittivi (es. "Claude Code (file CLAUDE.md)"): si riconducono al nome canonico.
+    # Observable context without reading authentication stores: configuration root, override source and existing configuration folders.
+    # Cannot detect account changes within the same root: those remain declared (accountAlias) and proven by an observation receipt.
+    # Migrated configurations use descriptive names (e.g. "Claude Code (file CLAUDE.md)"): map them to canonical names.
     $Name=switch -Regex ($Name){
         '^Claude Code' {'Claude Code'}
         '^Codex' {'Codex'}
@@ -121,7 +121,7 @@ function Get-SBIDEAssets {
                 }
             }
         }
-        # Altri IDE: la registrazione del server MCP è un file JSON noto; si legge soltanto la presenza della chiave secondbrain (nessuna credenziale).
+        # Other IDEs: MCP registration is a known JSON file; read only the presence of the secondbrain key (no credentials).
         $mcpFile = switch ($definition.name) {
             'Claude Code' { $claudeHome = Get-SBIDERoot 'CLAUDE_CONFIG_DIR' $env:USERPROFILE; Join-Path $claudeHome.path '.claude.json' }
             'Antigravity' { $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'; if (Test-Path -LiteralPath $agShared -PathType Leaf) { $agShared } else { Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json' } }
@@ -146,7 +146,7 @@ function Get-SBIDEAssets {
             }
         }
         $context=Get-SBIDEContext $definition.name
-        # Cursor e Windsurf: solo presenza delle cartelle di configurazione (nessuna lettura di credenziali o sessioni).
+        # Cursor and Windsurf: configuration folder presence only (no credential or session reads).
         if($definition.name -in @('Cursor','Windsurf')){$evidence+=@($context.configDirectories|ForEach-Object {'Directory: '+$_})}
         if($executables.Count -or $evidence.Count -or ($definition.instructions -and (Test-Path -LiteralPath $definition.instructions))){
             @{id=$definition.adapter+'-'+(Get-SBTextHash $definition.name).Substring(0,8);name=$definition.name;adapter=$definition.adapter;mode=$(if($definition.instructions){'file'}else{'manual'});
@@ -183,7 +183,7 @@ function Get-SBIDEAssets {
     }
 }
 function ConvertTo-SBHostComparablePath([string]$Path) {
-    # Come ConvertTo-SBComparablePath di Core (unica forma di confronto), ma tollerante: percorso vuoto o non valido non interrompe la ricognizione.
+    # Like Core's ConvertTo-SBComparablePath (the sole comparison form), but tolerant: empty or invalid paths do not interrupt discovery.
     if(!$Path){return ''}
     try{ConvertTo-SBComparablePath $Path}catch{$Path.TrimEnd('\','/').ToLowerInvariant()}
 }
@@ -209,7 +209,7 @@ function Test-SBForbiddenRepository($List,[string]$Path,[string]$Identity='') {
     $false
 }
 function Test-SBSystemAccessPath([string]$Path) {
-    # Cartelle di sistema o di altri profili: un accesso negato li e atteso e non rende incompleta la ricognizione.
+    # Access denial in system folders or other profiles is expected and does not make discovery incomplete.
     $full=ConvertTo-SBHostComparablePath $Path
     if(!$full){return $false}
     foreach($base in @($env:SystemRoot,$env:ProgramFiles,${env:ProgramFiles(x86)},$env:ProgramData)){
@@ -236,7 +236,7 @@ function Invoke-SBHostDiscovery {
     $sharedPolicy=Get-SBSharedPolicy $brain
     $forbiddenList=@(Get-SBForbiddenRepositories $brain $hostCfg)
     $excludedNames=@($excludedNames+$sharedPolicy.excludedDirectories|Sort-Object -Unique)
-    # Un nome "da build" (bin, build, dist, vendor, ...) non nasconde un checkout: si salta solo se la cartella non contiene .git.
+    # A build-like name (bin, build, dist, vendor, ...) does not hide a checkout: skip only folders without .git.
     $isSkippedName={param([string]$Name,[string]$FullPath) $Name -in $excludedNames -and ($Name -in $hardExcludedNames -or !(Test-Path -LiteralPath (Join-Path $FullPath '.git')))}
     $allowedOwners=@();if($hostCfg.ContainsKey('allowedOwners')){$allowedOwners=@($hostCfg.allowedOwners)}
     $allowedOwners=@($allowedOwners+$sharedPolicy.allowedOwners|Sort-Object -Unique)
@@ -285,7 +285,7 @@ function Invoke-SBHostDiscovery {
                 }
             }
         }catch{
-            # Solo cartelle di sistema o di altri profili non leggibili sono un avviso; nelle cartelle dell'utente la ricognizione resta incompleta.
+            # Only unreadable system folders or other profiles are warnings; inaccessible user folders make discovery incomplete.
             if($_.Exception -is [UnauthorizedAccessException] -or $_.Exception.InnerException -is [UnauthorizedAccessException]){
                 if(Test-SBSystemAccessPath $path){$warnings+=@{path=$path;kind='access-denied'}}
                 else{$issues+=@{path=$path;kind='access-denied';reason='UnauthorizedAccessException'}}
@@ -316,7 +316,7 @@ function Resolve-SBWorkRoot([string]$BrainRoot,[string]$HostId,[string]$Relative
     $location='brain-runtime';$advice=@()
     $override=$env:SECONDBRAIN_WORK_LOCAL_ROOT
     if($override){
-        # Cervello su share: TEMP, cache e build dell'host possono stare su un disco locale (eccezione dichiarata, non il comportamento predefinito).
+        # Brain on a share: host TEMP, caches and builds may live on a local drive (declared exception, not the default behavior).
         if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw (New-SBError 'host.work.localroot')}
         $hostRoot=Join-Path ([IO.Path]::GetFullPath($override)) (Split-Path (Get-SBLocalRoot $BrainRoot $HostId) -Leaf)
         $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $Relative));$location='local-override'

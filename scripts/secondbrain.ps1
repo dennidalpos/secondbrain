@@ -1,17 +1,17 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Controlla, sincronizza e attiva SecondBrain sulla postazione.
+Checks, synchronizes and activates SecondBrain on the workstation.
 .DESCRIPTION
-Exit code: 0 allineato, 1 attenzione, 2 errore, 3 archivio occupato (lock di scrittura non ottenuto entro -WaitSeconds, predefinito 60).
-Le letture (-Check) non prendono lock bloccanti: un writer attivo o una transazione pendente compaiono come warnings.
--Setup: attivazione guidata (preflight, discovery, proposta, conferma, anteprima, -Apply); 0 anteprima valida o attivazione applicata,
-1 proposta non confermata o discovery in pausa. Report e selezione per host in .runtime/hosts/<id>/.
--Setup scrive la variabile utente SECONDBRAIN_HOME solo con conferma (-RegisterEnvironment, o risposta SI in -Interactive); -NoRegisterEnvironment la esclude anche da -Activate -Apply.
--Setup -Status: stato di binding, IDE e ultima ricevuta di selezione (sola lettura, exit 0).
--Setup -Unbind <repo|percorso|idIDE|nomeIDE>[,..]: disassocia repository e integrazioni IDE gestiti con proposta, conferma (-Yes o -Interactive) e anteprima come l'attivazione; -Apply per applicare. I dossier e i file IDE non vengono eliminati.
--Setup -Output <repo|percorso> -OutputStatus verified|exception-accepted|unverified [-Evidence <file sotto .runtime>] [-Exception <motivo>]: registra nel binding l'esito della collocazione degli output dopo la prova dell'agent prodotto (anteprima, conferma -Yes o -Interactive, -Apply). verified lega la prova ai suoi byte (SHA-256); exception-accepted richiede un motivo; nessuna build o test dei prodotti viene eseguito.
-Operazioni e contratti portabili: docs/riferimento/portable-brain.md.
+Exit code: 0 aligned, 1 attention required, 2 error, 3 archive busy (writer lock not acquired within -WaitSeconds, default 60).
+Reads (-Check) take no blocking locks: an active writer or pending transaction appears in warnings.
+-Setup: guided activation (preflight, discovery, proposal, confirmation, preview, -Apply); 0 valid preview or activation applied,
+1 unconfirmed proposal or paused discovery. Per-host report and selection in .runtime/hosts/<id>/.
+-Setup writes the user SECONDBRAIN_HOME variable only with confirmation (-RegisterEnvironment or answer SI in -Interactive); -NoRegisterEnvironment excludes it from -Activate -Apply too.
+-Setup -Status: binding, IDE and latest selection receipt status (read-only, exit 0).
+-Setup -Unbind <repo|path|ideId|ideName>[,..]: unbinds managed repositories and IDE integrations with proposal, confirmation (-Yes or -Interactive) and preview, like activation; -Apply applies it. Dossiers and IDE files are not deleted.
+-Setup -Output <repo|path> -OutputStatus verified|exception-accepted|unverified [-Evidence <file under .runtime>] [-Exception <reason>]: records output-location results in the binding after product-agent testing (preview, -Yes or -Interactive confirmation, -Apply). verified binds evidence to its bytes (SHA-256); exception-accepted requires a reason; runs no product builds or tests.
+Portable operations and contracts: docs/riferimento/portable-brain.md.
 .EXAMPLE
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
@@ -65,7 +65,7 @@ param(
 )
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference = 'Stop'
-# Attesa massima del lock di scrittura (predefinita 60 s, o lockWaitSeconds in config/shared.json); exit 3 solo a timeout.
+# Maximum writer-lock wait (default 60 s, or lockWaitSeconds in config/shared.json); exit 3 only on timeout.
 if ($PSBoundParameters.ContainsKey('WaitSeconds')) { $env:SECONDBRAIN_LOCK_WAIT_SECONDS = [string]$WaitSeconds }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; break }
@@ -106,7 +106,7 @@ try {
         $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
             -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
         ConvertTo-SBJson $result
-        # 0: anteprima valida o attivazione applicata; 1: proposta senza conferma, discovery in pausa o controllo successivo non eseguibile.
+        # 0: valid preview or activation applied; 1: unconfirmed proposal, paused discovery or unavailable subsequent check.
         if($result.Contains('mcp') -and $result.mcp.Contains('complete') -and !$result.mcp.complete){exit 1}
         if ($result.stage -in @('preview', 'applied') -and !($result.Contains('check') -and $result.check.Contains('error'))) { exit 0 }
         exit 1

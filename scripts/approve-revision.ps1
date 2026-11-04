@@ -10,7 +10,7 @@ Add-SBMessages @{
     'approve.source.missing' = @{ it = 'Sorgente mancante: {0}'; en = 'Source missing: {0}' }
     'approve.readme.missing' = @{ it = 'README della proposta mancante'; en = 'Proposal README missing' }
 }
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 $config=Read-SBConfiguration $ConfigPath
 $lock=Enter-SBOperation $config $SessionId
@@ -32,7 +32,7 @@ foreach($relative in @('direttive/AGENTS.global_ide.md','direttive/workstation.t
 }
 $approval = @{ schemaVersion=1; approvedAt=[DateTimeOffset]::Now.ToString('o'); authorization=$Authorization; files=$files }
 if($ProposalPath){
-    # L'hash del README lega l'approvazione al testo della proposta, non solo alla richiesta.
+    # The README hash binds approval to the proposal text, not just the request.
     $readme=Join-Path $ProposalPath 'README.md'
     if(!(Test-Path -LiteralPath $readme -PathType Leaf)){throw (New-SBError 'approve.readme.missing')}
     $approval.proposal=@{path=[IO.Path]::GetRelativePath($brain,[IO.Path]::GetFullPath($ProposalPath)).Replace('\','/');readmeHash=Get-SBFileHash $readme}

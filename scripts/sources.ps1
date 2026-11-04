@@ -1,10 +1,10 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Registro fonti: Check locale, Probe remoto, raccolta candidata e indice. Nessuna esecuzione pianificata.
+Source registry: local Check, remote Probe, candidate collection and index. No scheduled execution.
 .DESCRIPTION
-Exit: 0 regolare, 1 variazioni/revisioni pendenti, 2 errore/copertura incompleta, 3 contesa.
-Check e Probe senza SaveReport non scrivono. Collect non accetta una versione.
+Exit: 0 normal, 1 pending changes/reviews, 2 error/incomplete coverage, 3 contention.
+Check and Probe without SaveReport do not write. Collect does not accept a version.
 #>
 [CmdletBinding(DefaultParameterSetName='Check')]
 param(
@@ -33,7 +33,7 @@ try {
     $lock=Enter-SBOperation $config $SessionId -ReadOnly:$readonly
     $registry=Read-SBSourceRegistry $config.brainRoot
     if($Probe){
-        # La rete non mantiene il lock dell'archivio. Le impronte delle schede legano il rapporto allo snapshot.
+        # Network operations hold no archive lock. Card fingerprints bind the report to the snapshot.
         Exit-SBOperation $lock;$lock=$null
         $report=Invoke-SBSourceProbe $registry
         if($SaveReport){

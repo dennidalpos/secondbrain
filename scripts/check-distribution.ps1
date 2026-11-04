@@ -1,13 +1,13 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Verifica che l'indice Git di SecondBrain contenga solo file pubblici consentiti per la distribuzione.
+Checks that the SecondBrain Git index contains only public files permitted for distribution.
 .DESCRIPTION
-Accerta che nessun file locale (01-projects/, 02-areas/, 03-resources/, 04-archives/, .runtime/,
-PARA.md, para-index.json) sia presente nell'indice Git o pronto per il push.
-Verifica che tutti i file tracciati appartengano alle cartelle/file pubblici autorizzati:
+Ensures that no local file (01-projects/, 02-areas/, 03-resources/, 04-archives/, .runtime/,
+PARA.md, para-index.json) is in the Git index or ready to push.
+Checks that every tracked file belongs to the permitted public folders/files:
 scripts/, config/, direttive/, docs/, .github/, README.md, AGENTS.md, LICENSE, VERSION, CHANGELOG.md, CREDITS.md, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, .gitattributes, .gitignore.
-Restituisce exit code 0 su working tree conforme, 1 in presenza di violazioni.
+Returns exit code 0 for a compliant working tree, 1 for violations.
 #>
 [CmdletBinding()]
 param(
@@ -25,7 +25,7 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 $repo = if ($RepositoryPath) { [IO.Path]::GetFullPath($RepositoryPath) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 
-# Cartelle e file ammessi nella radice di distribuzione pubblica
+# Permitted folders and files in the public distribution root.
 $allowedPrefixes = @(
     'scripts/',
     'config/',
@@ -48,7 +48,7 @@ $allowedRootFiles = @(
     '.gitignore'
 )
 
-# Prefissi e file locali severamente vietati nell'indice Git
+# Local prefixes and files strictly forbidden in the Git index.
 $forbiddenPatterns = @(
     '^01-projects/',
     '^02-areas/',
@@ -59,7 +59,7 @@ $forbiddenPatterns = @(
     '^para-index\.json$'
 )
 
-# Verifica file indicizzati (tracciati da Git)
+# Check indexed files (tracked by Git).
 $previousEncoding = [Console]::OutputEncoding
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 try {
@@ -84,7 +84,7 @@ foreach ($line in $trackedFiles) {
 
     $isParaSkeleton = ($f -match '^0[1-4]-[a-z]+(?:/[a-z]+)*/\.gitkeep$')
 
-    # Controllo pattern vietati (escludendo i marker .gitkeep previsti da .gitignore per lo scheletro PARA)
+    # Check forbidden patterns (excluding .gitkeep markers allowed by .gitignore for the PARA skeleton).
     if (!$isParaSkeleton) {
         foreach ($pattern in $forbiddenPatterns) {
             if ($f -match $pattern) {
@@ -94,7 +94,7 @@ foreach ($line in $trackedFiles) {
         }
     }
 
-    # Controllo perimetro consentito
+    # Check the permitted scope.
     $isAllowed = $false
     if ($allowedRootFiles -contains $f -or $isParaSkeleton) {
         $isAllowed = $true
@@ -114,7 +114,7 @@ foreach ($line in $trackedFiles) {
 
 $hasErrors = $false
 
-# Le violazioni sono stampate (non Write-Error terminante) cosi il messaggio finale e l'exit 1 sono sempre raggiunti.
+# Print violations without terminating Write-Error so the final message and exit 1 are always reached.
 if ($forbiddenFound.Count -gt 0) {
     $hasErrors = $true
     Write-Output "VIOLAZIONE CRITICA: Rilevati file locali/privati tracciati nell'indice Git:`n$($forbiddenFound -join "`n")"

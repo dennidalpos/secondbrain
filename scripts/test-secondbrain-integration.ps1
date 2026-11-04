@@ -1,4 +1,4 @@
-# Scenari di policy: repository vietati, identita cervello, configurazione e Git; invocato da test-secondbrain.ps1 con fixture isolate.
+# Policy scenarios: forbidden repositories, brain identity, configuration and Git; invoked by test-secondbrain.ps1 with isolated fixtures.
 if(!(Get-Command Assert -ErrorAction SilentlyContinue)){throw 'Eseguire scripts/test-secondbrain.ps1'}
 $policyRoot=Join-Path $root 'policy projects with spaces'
 $owned=Join-Path $policyRoot 'owned'

@@ -1,13 +1,13 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Traccia di fine turno per l'avviso di compattazione (hook Stop di Claude Code).
+End-of-turn trace for compaction advice (Claude Code Stop hook).
 .DESCRIPTION
--Event stop accoda una riga di soli metadati (ora, sessione, repository, hash della cartella) in .runtime/trace/<postazione>/<data>.jsonl,
-leggendo l'eventuale JSON dell'hook da stdin. Non contiene testo di prompt, non usa il lock dei writer, non misura il contesto e
-fallisce in modo aperto: esce sempre con 0 e non blocca mai il turno. La lettura e l'avviso sono in secondbrain.ps1 -Check.
--InstallHook / -UninstallHook / -HookStatus gestiscono la voce Stop in ~/.claude/settings.json (o -SettingsPath): senza -Apply
-mostrano solo l'anteprima, con -Apply salvano con backup; le voci di altri strumenti non vengono toccate.
+-Event stop appends a metadata-only line (time, session, repository, folder hash) to .runtime/trace/<workstation>/<date>.jsonl,
+reading optional hook JSON from stdin. Contains no prompt text, uses no writer lock, does not measure context and
+fails open: always exits 0 and never blocks the turn. Reading and advice live in secondbrain.ps1 -Check.
+-InstallHook / -UninstallHook / -HookStatus manage the Stop entry in ~/.claude/settings.json (or -SettingsPath): without -Apply,
+preview only; with -Apply, save with backup; leave other tools' entries untouched.
 .EXAMPLE
 pwsh -NoProfile -File scripts/trace.ps1 -InstallHook
 pwsh -NoProfile -File scripts/trace.ps1 -InstallHook -Apply -SessionId <id di una sessione Write>
@@ -28,7 +28,7 @@ param(
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if($PSCmdlet.ParameterSetName -eq 'Event'){
-    # Fail-open: qualsiasi errore e ignorato, il turno non viene mai bloccato.
+    # Fail-open: ignore every error; never block the turn.
     try{
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
         $stdin=''
@@ -46,7 +46,7 @@ if($PSCmdlet.ParameterSetName -eq 'Event'){
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
-# Scrittura occupata oltre l'attesa: exit 3 (il titolare e nel messaggio).
+# Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1') -Force
 if(!$SettingsPath){$SettingsPath=Get-SBTraceSettingsPath}

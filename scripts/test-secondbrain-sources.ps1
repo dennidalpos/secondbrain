@@ -141,7 +141,7 @@ try {
     Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
     Throws-Source {Get-SBSourceChecks (Read-SBSourceRegistry $root) $config -IncludeDossiers} 'fonte sconosciuta nella scheda del prodotto rifiutata'
     if($PythonPath){
-        # -B: nessuna cache bytecode in scripts/
+        # -B: no bytecode cache in scripts/.
         & $PythonPath -B (Join-Path $PSScriptRoot 'test-source-convert.py') -v
         Assert-Source ($LASTEXITCODE -eq 0) 'conversione HTML PDF DOCX CSV JSON e scansione'
     }else{'SKIP SOURCE: convertitore dedicato assente; suite conversione richiesta nel collaudo di acquisizione'}

@@ -8,8 +8,8 @@ Add-SBMessages @{
     'trace.settings.object' = @{ it = 'settings.json non e un oggetto JSON: nessuna modifica'; en = 'settings.json is not a JSON object: no change made' }
 }
 
-# Traccia di fine turno: metadati senza testo di prompt in .runtime/trace/<host>/<yyyy-MM-dd>.jsonl, una riga per evento.
-# Serve solo a contare i turni dall'ultima compattazione; non e una fonte di conoscenza e non autorizza nulla.
+# End-of-turn trace: metadata without prompt text in .runtime/trace/<host>/<yyyy-MM-dd>.jsonl, one event per line.
+# Used only to count turns since compaction; not a knowledge source and grants no authorization.
 function Get-SBTraceRoot([string]$BrainRoot) { Join-Path ([IO.Path]::GetFullPath($BrainRoot)) '.runtime/trace' }
 
 function Resolve-SBTraceRepository([string]$BrainRoot,[string]$Cwd) {
@@ -28,7 +28,7 @@ function Resolve-SBTraceRepository([string]$BrainRoot,[string]$Cwd) {
     $best
 }
 
-# Accoda un evento. Non usa il lock dei writer (un file per postazione e giorno, append serializzato da un lock breve sul giorno) e non scrive mai il contenuto del prompt.
+# Append an event. Uses no writer lock (one file per workstation/day; appends serialized by a short day lock) and never writes prompt contents.
 function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$InputJson='',[string]$Ide='claude-code') {
     $payload=@{}
     if($InputJson.Trim()){try{$parsed=$InputJson|ConvertFrom-Json -AsHashtable -ErrorAction Stop;if($parsed -is [Collections.IDictionary]){$payload=$parsed}}catch{}}
@@ -40,8 +40,8 @@ function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$
     $target=Assert-SBCentralDataPath $BrainRoot (Join-Path $directory ([DateTime]::Now.ToString('yyyy-MM-dd')+'.jsonl'))
     [IO.Directory]::CreateDirectory($directory)|Out-Null
     $bytes=[Text.UTF8Encoding]::new($false).GetBytes((($record|ConvertTo-Json -Compress -Depth 4)+"`n"))
-    # FileMode.Append di .NET scrive all'offset letto all'apertura: due scrittori simultanei si sovrascrivono. Un lock breve su <giorno>.jsonl.lock
-    # serializza gli append; se non si ottiene entro ~2 s si accoda comunque (l'hook resta fail-open e non blocca il turno).
+    # .NET FileMode.Append writes at the offset read on open: simultaneous writers overwrite each other. A short <day>.jsonl.lock
+    # serializes appends; if not acquired within ~2 s, append anyway (the hook stays fail-open and never blocks the turn).
     $gate=$null
     for($attempt=0;$attempt -lt 200 -and $null -eq $gate;$attempt++){
         try{$gate=[IO.FileStream]::new($target+'.lock',[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
@@ -55,7 +55,7 @@ function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$
     $target
 }
 
-# Turni registrati per un repository dopo l'istante indicato (tutte le postazioni). Righe illeggibili ignorate.
+# Recorded turns for a repository after the specified time (all workstations). Ignore unreadable lines.
 function Get-SBTraceTurns([string]$BrainRoot,[string]$Repository,[DateTimeOffset]$Since=[DateTimeOffset]::MinValue) {
     $root=Get-SBTraceRoot $BrainRoot
     if(!$Repository -or !(Test-Path -LiteralPath $root -PathType Container)){return 0}
@@ -73,7 +73,7 @@ function Get-SBTraceTurns([string]$BrainRoot,[string]$Repository,[DateTimeOffset
     $count
 }
 
-# Hook Stop di Claude Code: voce in settings.json che esegue trace.ps1 a fine turno. Riconosciuta dal percorso dello script; le voci altrui non si toccano.
+# Claude Code Stop hook: settings.json entry running trace.ps1 at turn end. Recognized by script path; leave other entries intact.
 function Get-SBTraceHookCommand([string]$BrainRoot) {
     $script=([IO.Path]::GetFullPath((Join-Path $BrainRoot 'scripts/trace.ps1'))).Replace('\','/')
     'pwsh -NoProfile -File "'+$script+'" -Event stop'

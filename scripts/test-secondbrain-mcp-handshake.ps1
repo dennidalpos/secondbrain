@@ -1,9 +1,9 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-Handshake stdio reale del server MCP di SecondBrain per le configurazioni dei 6 IDE.
-Per ogni IDE avvia il comando registrato (stesso command/args scritti da -Pair) e verifica initialize, tools/list (8 strumenti),
-tools/call di ciascuno strumento, prompts/list, resources/list e resources/read. La prova visiva nelle GUI degli IDE non e coperta.
+Actual stdio handshake of the SecondBrain MCP server for the selected IDE configurations.
+For each IDE, starts the registered command (same command/args written by -Pair) and checks initialize, tools/list (8 tools),
+tools/call for each tool, prompts/list, resources/list and resources/read. Does not cover visual verification in IDE GUIs.
 .EXAMPLE
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1 -Target codex,vscode -ReportPath .runtime/mcp-handshake/live.json
@@ -14,6 +14,7 @@ param(
     [string]$Target = 'all',
     [string]$PublicationPath,
     [string]$ReportPath,
+    [ValidateNotNullOrEmpty()][string]$ProtocolVersion = '2024-11-05',
     [int]$TimeoutSeconds = 300
 )
 $ErrorActionPreference = 'Stop'
@@ -32,7 +33,7 @@ function Assert-Handshake([bool]$Condition, [string]$Name, [string]$Ide) {
     [ordered]@{ ide = $Ide; check = $Name; passed = $Condition }
 }
 
-# Dossier di esempio (relativo) per get_startup_context: il primo con context.md; assente = strumento verificato come saltato.
+# Sample dossier (relative) for get_startup_context: first with context.md; absent = tool recorded as skipped.
 $dossierRelative = $null
 $productsRoot = Join-Path $BrainRoot '02-areas/products'
 if (Test-Path -LiteralPath $productsRoot -PathType Container) {
@@ -44,12 +45,12 @@ $isGit = (Invoke-SBGit $PublicationPath @('rev-parse','--is-inside-work-tree')).
 $requests = [System.Collections.Generic.List[hashtable]]::new()
 $next = 1
 function Add-Request([string]$Method, $Params) { $script:requests.Add(@{ jsonrpc = '2.0'; id = $script:next; method = $Method; params = $Params }); $script:next++ }
-Add-Request 'initialize' @{ protocolVersion = '2024-11-05'; capabilities = @{}; clientInfo = @{ name = 'secondbrain-handshake'; version = '1' } }
+Add-Request 'initialize' @{ protocolVersion = $ProtocolVersion; capabilities = @{}; clientInfo = @{ name = 'secondbrain-handshake'; version = '1' } }
 Add-Request 'tools/list' @{}
 $calls = [ordered]@{}
 if ($dossierRelative) { $calls['get_startup_context'] = @{ dossier = $dossierRelative; budget = 20000 } }
 $calls['get_ready_tasks'] = @{ all = $true }
-# get_task: primo task del tracker del dossier di esempio (assente = strumento verificato come saltato).
+# get_task: first task in the sample dossier's tracker; absent = tool recorded as skipped.
 if ($dossierRelative) {
     $sampleTracker = Read-SBJson (Join-Path $BrainRoot ($dossierRelative + '/tracker.json')) $null
     if ($sampleTracker -and $sampleTracker.ContainsKey('tasks') -and @($sampleTracker.tasks).Count) { $calls['get_task'] = @{ dossier = $dossierRelative; task = [string]@($sampleTracker.tasks)[0].id } }
@@ -69,7 +70,8 @@ $targets = @($Target -split ',' | ForEach-Object { $_.Trim().ToLowerInvariant() 
 $validTargets = @('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')
 if (!$targets.Count -or @($targets | Where-Object { $_ -notin $validTargets }).Count) { throw ('Target non valido: usare ' + ($validTargets -join ', ') + ' (separati da virgola)') }
 $pairings = @(@(Get-SBMcpPairing -BrainRoot $BrainRoot -Target 'all') | Where-Object { $targets -contains 'all' -or $_.Target -in $targets })
-$report = [ordered]@{ schemaVersion = 1; generatedAt = [DateTimeOffset]::UtcNow.ToString('o'); brainRoot = $BrainRoot; guiVerified = $false; note = 'Handshake stdio con il comando registrato per ogni IDE; la visualizzazione degli strumenti nelle GUI non e verificata.'
+$expectedVersion = if ($ProtocolVersion -in @('2024-11-05','2025-03-26')) { $ProtocolVersion } else { '2025-03-26' }
+$report = [ordered]@{ schemaVersion = 1; generatedAt = [DateTimeOffset]::UtcNow.ToString('o'); brainRoot = $BrainRoot; requestedProtocolVersion = $ProtocolVersion; expectedProtocolVersion = $expectedVersion; guiVerified = $false; note = 'Handshake stdio con il comando registrato per ogni IDE; la visualizzazione degli strumenti nelle GUI non e verificata.'
     skippedTools = @(@($expectedTools | Where-Object { $_ -notin $calls.Keys })); ides = @(); checks = @() }
 
 foreach ($pairing in $pairings) {
@@ -82,16 +84,28 @@ foreach ($pairing in $pairings) {
     $start.StandardInputEncoding = [Text.UTF8Encoding]::new($false); $start.StandardOutputEncoding = [Text.UTF8Encoding]::new($false)
     $watch = [Diagnostics.Stopwatch]::StartNew()
     $process = [Diagnostics.Process]::Start($start)
-    $exit = -1; $responses = @{}; $stderrText = ''
+    $exit = -1; $responses = @{}; $stderrText = ''; $invalidLines = 0; $toolsListCharacters = 0
     try {
-        $stdout = $process.StandardOutput.ReadToEndAsync(); $stderr = $process.StandardError.ReadToEndAsync()
-        foreach ($request in $requests) { $process.StandardInput.WriteLine((ConvertTo-Json $request -Depth 10 -Compress)) }
+        $stderr = $process.StandardError.ReadToEndAsync()
+        $process.StandardInput.WriteLine((ConvertTo-Json $requests[0] -Depth 10 -Compress))
+        $process.StandardInput.Flush()
+        $initialRead = $process.StandardOutput.ReadLineAsync()
+        if (!$initialRead.Wait($TimeoutSeconds * 1000)) { $process.Kill($true); throw "Timeout initialize dopo $TimeoutSeconds s" }
+        $initialLine = $initialRead.GetAwaiter().GetResult()
+        $stdout = $process.StandardOutput.ReadToEndAsync()
+        $process.StandardInput.WriteLine('{"jsonrpc":"2.0","method":"notifications/initialized"}')
+        foreach ($request in @($requests | Select-Object -Skip 1)) { $process.StandardInput.WriteLine((ConvertTo-Json $request -Depth 10 -Compress)) }
         $process.StandardInput.Flush(); $process.StandardInput.Close()
         if (!$process.WaitForExit($TimeoutSeconds * 1000)) { $process.Kill($true); throw "Timeout dopo $TimeoutSeconds s" }
         $exit = $process.ExitCode
-        foreach ($line in ($stdout.GetAwaiter().GetResult() -split "`n")) {
+        foreach ($line in @($initialLine)+@($stdout.GetAwaiter().GetResult() -split "`n")) {
             $line = $line.Trim(); if (!$line) { continue }
-            try { $message = ConvertFrom-Json -InputObject $line -AsHashtable; if ($message.ContainsKey('id')) { $responses[[int]$message.id] = $message } } catch { }
+            try {
+                $message = ConvertFrom-Json -InputObject $line -AsHashtable
+                if ($message.jsonrpc -ne '2.0' -or !$message.ContainsKey('id') -or $responses.ContainsKey([int]$message.id)) { $invalidLines++; continue }
+                $responses[[int]$message.id] = $message
+                if ([int]$message.id -eq 2) { $toolsListCharacters = $line.Length }
+            } catch { $invalidLines++ }
         }
         $stderrText = $stderr.GetAwaiter().GetResult().Trim()
     } finally { if (!$process.HasExited) { try { $process.Kill($true) } catch { } }; $process.Dispose() }
@@ -99,11 +113,14 @@ foreach ($pairing in $pairings) {
     $checks = @()
     $checks += Assert-Handshake ($exit -eq 0) 'processo terminato con exit 0 alla chiusura di stdin' $ide
     $checks += Assert-Handshake ($responses.Count -eq $requests.Count) ("tutte le {0} richieste hanno una risposta" -f $requests.Count) $ide
+    $checks += Assert-Handshake ($invalidLines -eq 0) 'stdout contiene solo risposte JSON-RPC valide e senza duplicati' $ide
     $init = $responses[1]
     $checks += Assert-Handshake ($init -and $init.ContainsKey('result') -and $init.result.serverInfo.name -eq 'secondbrain-mcp') 'initialize: serverInfo secondbrain-mcp' $ide
+    $checks += Assert-Handshake ($init.result.protocolVersion -ceq $expectedVersion) ("initialize: {0} negoziata come {1}" -f $ProtocolVersion,$expectedVersion) $ide
     $list = $responses[2]
     $names = if ($list -and $list.ContainsKey('result')) { @($list.result.tools | ForEach-Object { $_.name } | Sort-Object) } else { @() }
     $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: esattamente gli 8 strumenti attesi' $ide
+    $checks += Assert-Handshake (@($list.result.tools | Where-Object { !$_.annotations.title -or $_.annotations.readOnlyHint -ne $false -or $_.annotations.destructiveHint -ne $true -or $_.annotations.idempotentHint -ne $false -or $_.annotations.openWorldHint -ne $false }).Count -eq 0) 'tools/list: titoli e annotazioni coerenti con il recupero delle scritture' $ide
     foreach ($name in $calls.Keys) {
         $response = $responses[[int]$callIds[$name]]
         $ok = $response -and $response.ContainsKey('result') -and $response.result.isError -eq $false -and @($response.result.content).Count -ge 1 -and [string]@($response.result.content)[0].text
@@ -115,7 +132,7 @@ foreach ($pairing in $pairings) {
     $checks += Assert-Handshake ($responses[[int]$promptsId].result.prompts.Count -ge 1) 'prompts/list: catalogo non vuoto' $ide
     $checks += Assert-Handshake (@($responses[[int]$resourcesId].result.resources | Where-Object { $_.uri -eq 'secondbrain://prompts/catalog' }).Count -eq 1) 'resources/list: catalogo prompt esposto' $ide
     $checks += Assert-Handshake ([bool]$responses[[int]$readId].result.contents[0].text) 'resources/read: catalogo leggibile' $ide
-    $report.ides += [ordered]@{ ide = $ide; configFile = [string]$pairing.ConfigFile; registeredInIde = [bool]$pairing.Configured; command = [string]$definition.command; args = @($definition.args); exitCode = $exit; seconds = [math]::Round($watch.Elapsed.TotalSeconds, 1); stderrLength = $stderrText.Length }
+    $report.ides += [ordered]@{ ide = $ide; configFile = [string]$pairing.ConfigFile; registeredInIde = [bool]$pairing.Configured; command = [string]$definition.command; args = @($definition.args); protocolVersion = $init.result.protocolVersion; toolsListCharacters = $toolsListCharacters; exitCode = $exit; seconds = [math]::Round($watch.Elapsed.TotalSeconds, 1); stderrLength = $stderrText.Length }
     $report.checks += $checks
 }
 $report.failures = $failures
