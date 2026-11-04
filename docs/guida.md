@@ -12,7 +12,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive    # scegli pr
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync                  # distribuisce le regole approvate
 ```
 
-Servono Windows, Git e PowerShell 7.5+. Il passo `-Setup` non scrive la variabile utente `SECONDBRAIN_HOME` se non lo confermi (vedi [Variabili](#variabili)).
+Servono Windows, Git 2.42+ e PowerShell 7.5+. Il preflight rifiuta Git assente, non eseguibile, precedente a 2.42 o con versione non riconoscibile. Il passo `-Setup` non scrive la variabile utente `SECONDBRAIN_HOME` se non lo confermi (vedi [Variabili](#variabili)).
 
 ## Agenti (IDE) e comandi `sb`
 

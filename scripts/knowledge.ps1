@@ -15,8 +15,9 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='FlushPending')][switch]$FlushPending,
     [Parameter(Mandatory,ParameterSetName='PendingWrites')][switch]$PendingWrites,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
-    [Parameter(ParameterSetName='TaskNew')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
-    [Parameter(ParameterSetName='TaskNew')][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
+    [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
+    [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
+    [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Stream,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
     [Parameter(Mandatory,ParameterSetName='HistoryMigration')][switch]$MigrateHistoryMessages,
@@ -40,6 +41,7 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'tracker.update.empty' = @{it='Specificare almeno un campo da aggiornare';en='Specify at least one field to update'}
     'knowledgecli.pending.size' = @{it='Il contenuto supera il limite di 2 MiB';en='Content exceeds the 2 MiB limit'}
     'tracker.write.foreign' = @{ it = 'Scrittura rifiutata: il tracker di ''{0}'' non appartiene al repository in lavoro ''{1}'''; en = 'Write refused: the tracker of ''{0}'' does not belong to the working repository ''{1}''' }
     'knowledgecli.repository.all' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout, indicare -Repository o -CheckoutPath (-All per la vista globale dei task, sola lettura)'; en = 'Working repository not resolvable: run from the checkout, give -Repository or -CheckoutPath (-All for the read-only global task view)' }
@@ -123,9 +125,12 @@ try{
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
         $repoId=if($Repository){$Repository}else{$working}
         if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
-        $arguments=@{TaskId=$UpdateTaskId;Status=$Status}
-        if($PSBoundParameters.ContainsKey('StateReason')){$arguments.StateReason=$StateReason}
-        $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.status -Arguments $arguments -Config $config -SessionId $SessionId
+        $arguments=@{TaskId=$UpdateTaskId}
+        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream')){
+            if($PSBoundParameters.ContainsKey($field)){$arguments[$field]=$PSBoundParameters[$field]}
+        }
+        if($arguments.Count -eq 1){throw (New-SBError 'tracker.update.empty')}
+        $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.update -Arguments $arguments -Config $config -SessionId $SessionId
         $result=Complete-SBPendingSubmission $submission $config $SessionId
     }
     elseif($SetLifecycle){

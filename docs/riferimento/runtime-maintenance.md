@@ -62,16 +62,22 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 
 ## Suite di test: livelli e fixture
 
-`scripts/test-secondbrain.ps1` ha tre livelli e una sub-suite singola:
+`scripts/test-secondbrain.ps1` usa tre profili minimi. I budget si riferiscono alla postazione di riferimento e includono preparazione, controlli e rapporto; il runner fallisce se il tempo supera il budget.
 
-| Comando | Cosa esegue | Quando |
-|---|---|---|
-| `-Quick` | Controlli puri (identità dei repository, JSON deterministico, VERSION e direttive, catalogo prompt, catalogo messaggi e throw con chiave), fonti, audit esterno, ambiente Git e parser. Nessun Git né processo figlio per i controlli puri. | A ogni modifica |
-| *(predefinito, Fast)* | Controlli CLI e integrazione, poi portable, workflows, tracker, audit2, traccia, concorrenza, pending, fonti, audit esterno e ambiente Git, oltre al parser. Sub-suite in parallelo (al più 4 processi `pwsh`), una riga di riepilogo con il tempo per ciascuna. | Prima del commit |
-| `-Full` | Come Fast, ma in sequenza e con una riga per ogni verifica. | Prima di una pubblicazione |
-| `-Only <chiave>` | Una o più sub-suite (`portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `pending`, `sources`, `external-audit`, `quick`, `git-environment`). | Per ripetere un fallimento |
+| Comando | Copertura | Budget |
+|---|---|---:|
+| `-Quick` | Parser, identità, JSON/schema, versione/badge, direttive, catalogo e messaggi; nessun Git o processo figlio | 15 s |
+| *(predefinito, Fast)* | Quick e flussi essenziali: attivazione/idempotenza, aggiornamento task, coda differita, Slim/compattazione e handshake MCP stdio | 90 s |
+| `-Full` | Fast e confini critici: hash/backup/recovery, isolamento, percorsi/junction, accesso negato, concorrenza, fonti e pubblicabilità sintetica | 300 s |
+| `-Only <chiave>` | Gruppi pertinenti: `portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `pending`, `sources`, `external-audit`, `quick`, `git-environment` | Misurato, senza budget di profilo |
 
-Ogni esecuzione lavora in `.runtime/tests/run-<id>` oppure sotto `SECONDBRAIN_TEST_ROOT`, che deve appartenere al runtime centrale. Le sub-suite ordinarie condividono la directory del run. Un runner annidato usa invece una directory sorella: il contesto interno `SECONDBRAIN_TEST_RUN_CONTEXT` identifica il rapporto del padre, viene verificato contro la radice richiesta e ripristinato in `finally`. Non modificarlo per spostare le fixture. Il rapporto del figlio cita il padre e quello del padre elenca i figli. I payload intenzionalmente oltre MAX_PATH restano lunghi.
+Misure del lotto sulla postazione Windows di riferimento, con PowerShell 7.6.9 e Git 2.56.0.windows.4: Quick 9,00 s, Fast 49,17 s e Full 66,13 s. I rapporti locali registrano durata e impronte per ogni esecuzione.
+
+La suite essenziale condivide una sola fixture e verifica la logica tramite API; i processi figli coprono soltanto CLI e stdio. I cinque ingressi storici portable/workflows/trackers/audit2/git-environment invocano gli stessi gruppi consolidati, senza mantenere copie degli scenari. `-Sequential` e `SECONDBRAIN_TEST_TIMING` restano accettati: il runner minimo è già sequenziale. Non ci sono suite ricorsive nella verifica ordinaria.
+
+Rimossi dal percorso mantenuto: combinazioni equivalenti dei provider Git/IDE, asserzioni letterali su guide e prompt, ripetizioni CLI/MCP della stessa logica, copie di controlli puri e attivazioni ripetute per ogni variante. Restano casi positivi e negativi dei confini di protezione dati. Le prove sintetiche non qualificano account, GUI reali, SMB tra PC fisici o percorsi di qualsiasi profondità; i task relativi restano aperti. I benchmark estesi sono comandi separati e non fanno parte della suite ordinaria.
+
+Ogni esecuzione lavora in `.runtime/hosts/<id>/repos/tests-<hash>/fixture/fixture-<data>-minimal/run-<id>` oppure sotto `SECONDBRAIN_TEST_ROOT`, che deve appartenere al runtime centrale. Le sub-suite ordinarie condividono la directory del run. Un runner annidato usa invece una directory sorella: il contesto interno `SECONDBRAIN_TEST_RUN_CONTEXT` identifica il rapporto del padre, viene verificato contro la radice richiesta e ripristinato in `finally`. Non modificarlo per spostare le fixture. Il rapporto del figlio cita il padre e quello del padre elenca i figli. I payload intenzionalmente oltre MAX_PATH restano lunghi.
 
 Fixture e log restano conservati dopo successo ed errore, anche per la suite di concorrenza. `-KeepFixtures` e `SECONDBRAIN_TEST_KEEP=1` restano accettati per compatibilità; non sono più necessari nel runner, che trasmette la conservazione ai figli e ripristina il valore precedente. Nessun artefatto esistente viene spostato o cancellato. Per le sub-suite lanciate direttamente impostare `SECONDBRAIN_TEST_KEEP=1`: alcune mantengono la pulizia locale preesistente. Per la tracciabilità completa avviarle attraverso `test-secondbrain.ps1 -Only <chiave>`.
 
@@ -81,13 +87,13 @@ La copertura degli hash è conservativa: tutti i file nell'indice Git e i nuovi 
 
 Una prova verde con input stabili è utilizzabile per la chiusura solo entro questi limiti e dopo il confronto dell'ambiente e dei dati pertinenti; nessun riuso automatico o cache dei risultati. Per un lotto senza commit/push eseguire Quick finale e suite pertinenti. Ripetere verifiche già verdi per nuove modifiche ai loro input, errori o dubbi nuovi, motivando la ripetizione. Fast prima del commit e Full prima della pubblicazione restano obbligatori. Distinguere verifiche funzionali, allineamento Sync/Check e audit privacy.
 
-`SECONDBRAIN_TEST_TIMING=1` esegue in sequenza e stampa le 15 sezioni più lente. I `git init` delle fixture usano un template minimo (`GIT_TEMPLATE_DIR` impostato da `test-helpers.ps1`, solo `info/exclude`): niente hook di esempio, circa 250 file in meno per fixture.
+I tempi per gruppo sono nel rapporto run.json; il runner minimo è già sequenziale. I `git init` usano il template minimo di test-helpers.ps1 (solo info/exclude), senza hook di esempio.
 
 ### Git e percorsi lunghi nelle fixture Windows
 
 Il runner imposta `core.longpaths=true` solo nell'ambiente del processo e dei figli. Aggiunge una coppia a `GIT_CONFIG_COUNT` / `GIT_CONFIG_KEY_n` / `GIT_CONFIG_VALUE_n` e usa un file temporaneo tramite `GIT_CONFIG_GLOBAL`: include i file globali ereditati nell'ordine di lettura Git e aggiunge `core.longpaths=true`. Questo serve al livello Windows che può leggere la configurazione da file prima degli override di comando. Le configurazioni persistenti restano intatte. Le coppie ereditate sono preservate e ogni variabile modificata (anche quelle prima assenti, `GIT_CONFIG_GLOBAL` e `GIT_TEMPLATE_DIR`) viene ripristinata in `finally`, inclusi errori di preparazione.
 
-I wrapper restano in `.runtime/hosts/<host>/repos/tests-<hash-checkout>/tmp/tmp-<data>-git-env-<id>/global.config`; la radice delle fixture resta quella richiesta. Lo helper richiede `git var GIT_CONFIG_GLOBAL` e percorsi globali assoluti su una sola riga, senza fallback per versioni non supportate; il wrapper deve essere leggibile sotto MAX_PATH. Comportamento verificato con Git `2.56.0.windows.4`. Riferimenti: [variabili Git](https://git-scm.com/docs/git-config), [percorsi restituiti da git var](https://git-scm.com/docs/git-var), [ordine dei file nel sorgente della versione verificata](https://github.com/git-for-windows/git/blob/v2.56.0.windows.4/builtin/var.c). Ogni sub-suite che usa `test-helpers.ps1` verifica sia il valore effettivo sia quello globale da file prima di creare la fixture; una configurazione incompleta o un override di solo comando con valore globale disabilitato vengono rifiutati. La sub-suite `git-environment`, inclusa anche in Quick, verifica ereditarietà e ripristino; i controlli puri `quick` restano senza Git né processi figli.
+I wrapper restano in `.runtime/hosts/<host>/repos/tests-<hash-checkout>/tmp/tmp-<data>-git-env-<id>/global.config`; la radice delle fixture resta quella richiesta. Lo helper richiede Git 2.42+ e `git var GIT_CONFIG_GLOBAL` e percorsi globali assoluti su una sola riga, senza fallback per versioni non supportate; il wrapper deve essere leggibile sotto MAX_PATH. Comportamento verificato con Git `2.56.0.windows.4`. Riferimenti: [variabili Git](https://git-scm.com/docs/git-config), [percorsi restituiti da git var](https://git-scm.com/docs/git-var), [ordine dei file nel sorgente della versione verificata](https://github.com/git-for-windows/git/blob/v2.56.0.windows.4/builtin/var.c). Ogni sub-suite che usa `test-helpers.ps1` verifica sia il valore effettivo sia quello globale da file prima di creare la fixture; una configurazione incompleta o un override di solo comando con valore globale disabilitato vengono rifiutati. Il gruppo `git-environment`, incluso in Full, verifica ereditarietà e ripristino; i controlli puri `quick` restano senza Git né processi figli.
 
 Per una sub-suite avviata direttamente, usare lo stesso ambiente temporaneo:
 

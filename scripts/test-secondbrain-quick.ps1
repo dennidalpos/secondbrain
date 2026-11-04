@@ -1,5 +1,5 @@
 #requires -Version 7.5
-# Quick level: pure checks (no Git, child processes or fixtures). Intentionally duplicates some Portable and Workflow checks.
+# Pure source checks: no Git or child processes.
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
@@ -25,6 +25,23 @@ try {
     $productVersion=(Read-SBText (Join-Path $productRoot 'VERSION')).Trim()
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $productRoot 'direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
     Assert-Quick ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
+    function Test-ReadmeBadge([string]$Text,[string]$Version){$Text.Contains('https://img.shields.io/badge/version-'+$Version+'-blue') -and $Text.Contains('![Version '+$Version+']')}
+    Assert-Quick (Test-ReadmeBadge (Read-SBText (Join-Path $productRoot 'README.md')) $productVersion) 'README badge matches VERSION'
+    Assert-Quick (!(Test-ReadmeBadge '![Version 9.9.9](https://img.shields.io/badge/version-9.9.9-blue)' $productVersion)) 'stale README badge rejected'
+    foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -File|Where-Object Extension -in @('.ps1','.psm1')){
+        $tokens=$null;$errors=$null
+        [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+        if($errors.Count){throw ('FAIL QUICK parser '+$file.Name+': '+($errors.Message -join '; '))}
+    }
+    Assert-Quick $true 'all PowerShell sources parse'
+    foreach($name in @('shared.json','tracker.schema.json','prompt-catalog.schema.json')){
+        Assert-Quick (Test-Json -Json (Read-SBText (Join-Path $productRoot ('config/'+$name)))) ('valid JSON: '+$name)
+    }
+    $validTracker=@{schemaVersion=1;repository='github.com/test/quick';updatedAt='2026-11-04T00:00:00Z';tasks=@();history=@();extensions=@{}}
+    $schema=Join-Path $productRoot 'config/tracker.schema.json'
+    Assert-Quick (Test-Json -Json (ConvertTo-SBJson $validTracker) -SchemaFile $schema) 'tracker schema accepts minimal valid document'
+    $validTracker.schemaVersion=99
+    Assert-Quick (!(Test-Json -Json (ConvertTo-SBJson $validTracker) -SchemaFile $schema -ErrorAction SilentlyContinue)) 'tracker schema rejects unsupported version'
     # Actual prompt catalog.
     Assert-Quick (@(Get-SBWorkflowDrift $productRoot).Count -eq 0) 'catalogo reale allineato'
     # Message catalog: languages and stable keys.

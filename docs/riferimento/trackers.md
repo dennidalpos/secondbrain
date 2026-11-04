@@ -127,3 +127,15 @@ La migrazione comprende tracker attivo e metadati storici dell'archivio, se pres
 ## Proiezione dei Task e Budget
 
 Il `tracker.json` conserva tutti i task con il loro stato (`todo`, `in_progress`, `blocked`, `done`, `cancelled`, `unknown`); non esiste una archiviazione automatica verso file separati. Per contenere il pacchetto di avvio snello entro **20.000 caratteri**, `knowledge.ps1 -Startup` e il server MCP usano una proiezione: i task chiusi (`done`/`cancelled`) non vengono inclusi, e con `-ReadyOnly` (`get_ready_tasks`) restano solo i task non bloccati le cui dipendenze sono soddisfatte. Se il tracker cresce troppo, la compattazione conservativa (SYS05) archivia gli originali per hash senza cancellare informazioni.
+
+## Aggiornare stato e metadati
+
+`knowledge.ps1 -UpdateTaskId <id>` e `Update-SBTrackerTask` accettano `Status`, `StateReason`, `Priority` (P0–P3), `Execution` (autonomous/user_required/unspecified), `DependsOn` e `Stream`. Il cambio di stato è facoltativo; almeno un campo va specificato. I campi omessi restano invariati: i valori predefiniti usati da `-NewTask` non si applicano agli aggiornamenti.
+
+```powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTaskId TASK-278 -Priority P2 -Stream urgent
+pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTaskId TASK-278 -DependsOn 'TASK-261;github.com/example/repo#TASK-1'
+pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTaskId TASK-278 -DependsOn '' -Stream ''
+```
+
+`DependsOn` vuoto elimina tutte le dipendenze; `Stream` vuoto rimuove il campo. Riferimenti assenti, repository non gestiti, cicli e scritture su un repository diverso da quello in lavoro sono rifiutati. Le richieste `task.update` usano hash del task, ricevuta e transazione con backup; una modifica concorrente produce conflitto senza sovrascrittura. `task.status` resta supportato. Il segnale di chiusura è emesso solo quando si richiede esplicitamente `Status=done`, anche se un task già concluso riceve soltanto metadati.

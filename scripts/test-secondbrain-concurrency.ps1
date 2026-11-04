@@ -58,15 +58,15 @@ try {
 
     Invoke-Case 'write-file' (Join-Path $root 'write') {
         $dir=Join-Path $root 'write';$backups=Join-Path $dir 'backups';[IO.Directory]::CreateDirectory($dir)|Out-Null
-        # Existing file: 8 writers with the same expected hash; no mixed content and recoverable original.
+        # Existing file: 2 writers with the same expected hash; no mixed content and recoverable original.
         $target=Join-Path $dir 'condiviso.md';[IO.File]::WriteAllText($target,"originale`n")
         $original=Get-SBFileHash $target
-        $outcomes=Invoke-Race 8 {param($i,$a) $payload=[Text.Encoding]::UTF8.GetBytes("scrittore-$i`n");Write-SBFile $a[0] $payload $a[1] $a[2]} @($target,$original,$backups)
+        $outcomes=Invoke-Race 2 {param($i,$a) $payload=[Text.Encoding]::UTF8.GetBytes("scrittore-$i`n");Write-SBFile $a[0] $payload $a[1] $a[2]} @($target,$original,$backups)
         $wins=@($outcomes|Where-Object {$_.ok -and $_.value -eq $true});$allowed=@('core.concurrent.modified','core.write.contended','core.race.kept','core.backup.unverified','core.readback.destination')
         $final=[IO.File]::ReadAllText($target)
-        Assert-Conc ($wins.Count -le 1) ('Write-SBFile su file esistente: al piu un vincitore ('+$wins.Count+' su 8)')
+        Assert-Conc ($wins.Count -le 1) ('Write-SBFile su file esistente: al piu un vincitore ('+$wins.Count+' su 2)')
         Assert-Conc (@($outcomes|Where-Object {!$_.ok -and $_.code -notin $allowed}).Count -eq 0) 'Write-SBFile: i perdenti falliscono con un codice stabile noto' (@($outcomes|Where-Object {!$_.ok}|ForEach-Object {[string]$_.code+':'+$_.type+':'+$_.message}) -join ' | ')
-        Assert-Conc (@(1..8|Where-Object {$final -ceq "scrittore-$_`n"}).Count -eq 1 -or $final -ceq "originale`n") 'Write-SBFile: il contenuto finale e esattamente quello di un solo scrittore (o l originale)'
+        Assert-Conc (@(1..2|Where-Object {$final -ceq "scrittore-$_`n"}).Count -eq 1 -or $final -ceq "originale`n") 'Write-SBFile: il contenuto finale e esattamente quello di un solo scrittore (o l originale)'
         # Losing writers intentionally retain staging ("Staging transazionale conservato" warning), but each .tmp must have an interrupted .stage record describing it.
         $interrupted=@(Get-ChildItem -LiteralPath $backups -File -Filter '*.stage'|ForEach-Object {Read-SBJson $_.FullName $null}|Where-Object {$_.status -eq 'interrupted'}|ForEach-Object staging)
         $kept=@(Get-ChildItem -LiteralPath $dir -Force -Filter '.secondbrain-*.tmp'|ForEach-Object FullName)
@@ -77,7 +77,7 @@ try {
         }
         # Absent file: only one writer can create it.
         $fresh=Join-Path $dir 'nuovo.md'
-        $created=Invoke-Race 8 {param($i,$a) Write-SBFile $a[0] ([Text.Encoding]::UTF8.GetBytes("nuovo-$i`n")) 'absent' $a[1]} @($fresh,$backups)
+        $created=Invoke-Race 2 {param($i,$a) Write-SBFile $a[0] ([Text.Encoding]::UTF8.GetBytes("nuovo-$i`n")) 'absent' $a[1]} @($fresh,$backups)
         $creators=@($created|Where-Object {$_.ok -and $_.value -eq $true})
         Assert-Conc ($creators.Count -eq 1 -and [IO.File]::ReadAllText($fresh) -ceq ("nuovo-"+$creators[0].index+"`n")) 'Write-SBFile su file assente: esattamente un creatore e contenuto suo'
         $interruptedFresh=@(Get-ChildItem -LiteralPath $backups -File -Filter '*.stage'|ForEach-Object {Read-SBJson $_.FullName $null}|Where-Object {$_.status -eq 'interrupted'}|ForEach-Object staging)

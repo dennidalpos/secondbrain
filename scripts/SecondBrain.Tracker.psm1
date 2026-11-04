@@ -5,6 +5,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'tracker.update.empty' = @{it='Specificare almeno un campo da aggiornare';en='Specify at least one field to update'}
+    'tracker.priority.invalid' = @{it='Priorità non valida: usare P0, P1, P2 o P3';en='Invalid priority: use P0, P1, P2 or P3'}
+    'tracker.execution.invalid' = @{it='Modalità di esecuzione non valida';en='Invalid execution mode'}
     'tracker.closure.advice' = @{ it = 'Aggiornare memoria e contesto, proporre il riepilogo minimo (memoria, storico o salta), poi eseguire Sync e Check.'; en = 'Update memory and context, offer a minimal summary (memory, history or skip), then run Sync and Check.' }
     'tracker.closure.invalid' = @{ it = 'Metadati di chiusura del tracker non validi'; en = 'Invalid tracker closure metadata' }
     'tracker.history.note' = @{ it = 'Nota originale: {0}'; en = 'Original note: {0}' }
@@ -748,14 +751,54 @@ function Update-SBTrackerTask {
         [string]$Identity,
         [string]$Path,
         [Parameter(Mandatory)][string]$TaskId,
-        [Parameter(Mandatory)][string]$Status,
+        [string]$Status,
         [string]$StateReason,
+        [string]$Priority,
+        [string]$Execution,
+        [AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn,
+        [AllowEmptyString()][string]$Stream,
         $Evidence=@(),
         [string]$BackupRoot,
         [switch]$WhatIf,
         [string]$WorkingRepository
     )
-    Set-SBTrackerTaskStatus @PSBoundParameters
+    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Evidence')
+    if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
+    if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
+    if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3')){throw (New-SBError 'tracker.priority.invalid')}
+    if($PSBoundParameters.ContainsKey('Execution') -and $Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
+    $next=$target.data
+    $matching=@($next.tasks|Where-Object id -eq $TaskId)
+    if($matching.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($TaskId))}
+    $task=$matching[0]
+    $wasDone=$task.status -eq 'done'
+    if(!$task.ContainsKey('extensions') -or $null -eq $task.extensions){$task.extensions=@{}}
+    foreach($field in @('Status','Priority','Execution')){
+        if($PSBoundParameters.ContainsKey($field)){$task[$field.ToLowerInvariant()]=$PSBoundParameters[$field]}
+    }
+    foreach($field in @('StateReason','Stream')){
+        if($PSBoundParameters.ContainsKey($field)){
+            $key=if($field -eq 'StateReason'){'stateReason'}else{'stream'}
+            $value=$PSBoundParameters[$field].Trim()
+            if($value){$task.extensions[$key]=$value}else{[void]$task.extensions.Remove($key)}
+        }
+    }
+    if($PSBoundParameters.ContainsKey('DependsOn')){
+        $task.dependencies=@($DependsOn|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique|ForEach-Object {
+            $parts=$_ -split '#',2
+            if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$_}}
+        })
+    }
+    if($Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@($Evidence)}
+    $closing=$PSBoundParameters.ContainsKey('Status') -and $Status -eq 'done'
+    if($closing -and !$wasDone){
+        $next.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    }
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf
+    $result=$saved+@{taskId=$TaskId;status=$task.status}
+    if($closing){$result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');dossier=(Split-Path $target.path);steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}}
+    $result
 }
 
 Export-ModuleMember -Function @(

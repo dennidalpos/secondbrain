@@ -63,6 +63,7 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request.arguments -isnot [Collections.IDictionary] -or $Request.expected -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('arguments'))}
     $allowed=switch($Request.operation){
         'task.status' {@('TaskId','Status','StateReason','Evidence')}
+        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Evidence')}
         'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer')}
         'file.save' {@('relativePath','content')}
         'file.append' {@('relativePath','content')}
@@ -74,9 +75,14 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
         if($Request.arguments.content -isnot [string]){throw (New-SBError 'pending.invalid' @('content'))}
         if($Request.operation -eq 'file.save' -and (!$Request.expected.ContainsKey('hash') -or $Request.expected.hash -notmatch '^(?:absent|[A-Fa-f0-9]{64})$')){throw (New-SBError 'pending.invalid' @('expected hash'))}
     }
-    if($Request.operation -eq 'task.status'){
-        if(!$Request.arguments.ContainsKey('TaskId') -or !$Request.arguments.TaskId -or $Request.arguments.Status -notin @('todo','in_progress','blocked','done','cancelled','unknown') -or
+    if($Request.operation -in @('task.status','task.update')){
+        if(!$Request.arguments.ContainsKey('TaskId') -or !$Request.arguments.TaskId -or
            !$Request.expected.ContainsKey('taskHash') -or $Request.expected.taskHash -notmatch '^[A-Fa-f0-9]{64}$'){throw (New-SBError 'pending.invalid' @('task status'))}
+        if($Request.operation -eq 'task.status' -and !$Request.arguments.ContainsKey('Status')){throw (New-SBError 'pending.invalid' @('status required'))}
+        if($Request.arguments.Count -lt 2){throw (New-SBError 'tracker.update.empty')}
+        if($Request.arguments.ContainsKey('Status') -and $Request.arguments.Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Request.arguments.Status))}
+        if($Request.arguments.ContainsKey('Priority') -and $Request.arguments.Priority -cnotin @('P0','P1','P2','P3')){throw (New-SBError 'tracker.priority.invalid')}
+        if($Request.arguments.ContainsKey('Execution') -and $Request.arguments.Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
     }
     if($Request.operation -eq 'task.new'){
         if(!$Request.arguments.Title -or !@($Request.arguments.Acceptance).Count -or !$Request.expected.ContainsKey('provenancePath') -or
@@ -95,11 +101,15 @@ function New-SBPendingWrite {
     $session=$null
     if($SessionId){$session=Assert-SBSession $Config $SessionId}
     $dir=Resolve-SBPendingDossier $BrainRoot $Repository
-    if($Operation -eq 'task.status'){
+    if($Operation -in @('task.status','task.update')){
         $tracker=Read-SBPendingTracker $BrainRoot $Repository $dir
         $task=@($tracker.data.tasks|Where-Object id -eq $Arguments.TaskId)
         if($task.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($Arguments.TaskId))}
         $Expected=@{taskHash=(Get-SBTextHash (ConvertTo-SBJson $task[0]))}
+        if($Operation -eq 'task.update'){
+            # Reject invalid graphs before adding a durable request to the queue.
+            [void](Update-SBTrackerTask -BrainRoot $BrainRoot -Identity $Repository -WorkingRepository $Repository @Arguments -WhatIf)
+        }
     }elseif($Operation -eq 'task.new'){
         $provenance=([string]$Arguments.ProvenanceReference -split '#',2)[0]
         $source=if([IO.Path]::IsPathFullyQualified($provenance)){$provenance}else{Join-Path $dir $provenance}
@@ -220,10 +230,20 @@ function Invoke-SBPendingWrites {
                 if($request.operation -like 'task.*'){
                     $target=Read-SBPendingTracker $BrainRoot $request.repository $dossier
                     $before=Get-SBFileHash $target.path
-                    if($request.operation -eq 'task.status'){
+                    if($request.operation -in @('task.status','task.update')){
                         $task=@($target.data.tasks|Where-Object id -eq $request.arguments.TaskId)
                         if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $request.expected.taskHash){$state='conflict'}
-                        else{$arguments=@{}+$request.arguments;$candidate=Set-SBTrackerTaskStatus -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
+                        else{
+                            $arguments=@{}+$request.arguments
+                            $updater=if($request.operation -eq 'task.status'){'Set-SBTrackerTaskStatus'}else{'Update-SBTrackerTask'}
+                            try{$candidate=& $updater -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
+                            catch{
+                                $failure=$_
+                                $validationError=@('tracker.dependency.missing','tracker.dependency.cycle','tracker.dependency.unmanaged','tracker.schema.invalid','tracker.task.notfound')|Where-Object {Test-SBError $failure $_}
+                                if($request.operation -ne 'task.update' -or !$validationError){throw}
+                                $state='invalid';$errorCode=$_.Exception.Message
+                            }
+                        }
                     }else{
                         $source=Resolve-SBParaPath $BrainRoot $request.expected.provenancePath
                         if((Get-SBFileHash $source) -ine $request.expected.provenanceHash -or
@@ -232,7 +252,7 @@ function Invoke-SBPendingWrites {
                     }
                     if($state -eq 'applied'){
                         $ops+=@{path=$target.path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $candidate.data))}
-                        foreach($key in @('taskId','status','seq','title')){if($candidate.ContainsKey($key)){$result[$key]=$candidate[$key]}}
+                        foreach($key in @('taskId','status','seq','title','closureAdvice')){if($candidate.ContainsKey($key)){$result[$key]=$candidate[$key]}}
                     }
                 }else{
                     $path=Resolve-SBParaPath $dossier $request.arguments.relativePath
@@ -299,7 +319,7 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
     if($receipt){
         $result.state=$receipt.state;$result.applied=($receipt.state -eq 'applied')
         foreach($key in $receipt.result.Keys){$result[$key]=$receipt.result[$key]}
-        if($result.applied -and $receipt.result.ContainsKey('status') -and $receipt.result.status -eq 'done'){
+        if($result.applied -and $receipt.result.ContainsKey('closureAdvice')){
             $result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
         }
     }

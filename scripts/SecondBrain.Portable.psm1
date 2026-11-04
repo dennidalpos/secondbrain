@@ -11,6 +11,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'portable.git.required' = @{it='Serve Git 2.42 o successivo, eseguibile e con versione riconoscibile';en='Git 2.42 or later is required, executable and with a recognizable version'}
     'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di conoscenza';en='Select valid MCP targets to approve knowledge tools'}
     'portable.selection.summary' = @{ it = 'Selezione: {0} repository, {1} IDE'; en = 'Selection: {0} repositories, {1} IDEs' }
     'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
@@ -217,12 +218,19 @@ function Get-SBSetupPaths([string]$BrainRoot) {
     $root=Get-SBLocalRoot $BrainRoot (Get-SBHostId)
     @{hostRoot=$root;report=(Join-Path $root 'discovery.json');selection=(Join-Path $root 'selection.json')}
 }
+function Test-SBGitRequirement([string]$VersionText,[int]$ExitCode=0) {
+    $match=[regex]::Match($VersionText,'^git version (\d+)\.(\d+)\.(\d+)(?:[.\s-].*)?$')
+    $ok=$ExitCode -eq 0 -and $match.Success
+    if($ok){$ok=([version]($match.Groups[1].Value+'.'+$match.Groups[2].Value+'.'+$match.Groups[3].Value) -ge [version]'2.42.0')}
+    @{name='git';ok=[bool]$ok;blocking=$true;detail=$(if($ok){$VersionText}else{(Get-SBMessage 'portable.git.required')+' ('+$VersionText+')'})}
+}
 function Test-SBSetupPreflight([string]$BrainRoot) {
     $checks=@()
     $checks+=@{name='powershell';ok=($PSVersionTable.PSVersion -ge [version]'7.5');blocking=$true;detail=$PSVersionTable.PSVersion.ToString()}
     $git=Get-Command git -CommandType Application -ErrorAction SilentlyContinue|Select-Object -First 1
-    $gitDetail=if($git){try{(& $git.Source --version 2>&1|Out-String).Trim()}catch{'non eseguibile'}}else{'git non trovato nel PATH'}
-    $checks+=@{name='git';ok=[bool]$git;blocking=$true;detail=$gitDetail}
+    $gitExit=1
+    $gitDetail=if($git){try{$value=(& $git.Source --version 2>&1|Out-String).Trim();$gitExit=$LASTEXITCODE;$value}catch{''}}else{''}
+    $checks+=Test-SBGitRequirement $gitDetail $gitExit
     $writable=@{name='runtime-scrivibile';ok=$false;blocking=$true;detail='.runtime/hosts/'+(Get-SBHostId)}
     try{
         $hostRoot=Get-SBLocalRoot $BrainRoot (Get-SBHostId);[void][IO.Directory]::CreateDirectory($hostRoot)

@@ -17,7 +17,7 @@ flowchart LR
 
 ## Get started
 
-You need Windows, Git and PowerShell 7.5+. First read [what gets modified](docs/sicurezza.md) (in Italian).
+You need Windows, Git 2.42+ and PowerShell 7.5+. First read [what gets modified](docs/sicurezza.md) (in Italian).
 
 ```powershell
 git clone https://github.com/dennidalpos/SecondBrain.git C:/Progetti/SecondBrain
@@ -88,7 +88,7 @@ The guides are written in Italian.
 
 ## Development checks
 
-Run these commands from the repository root with PowerShell 7.5+ and Git. For a change without commit or publication, run a final Quick and the relevant sub-suites. Fast runs before a commit; Full runs before publication. Fixtures, logs and a unique `run.json` report stay in the local runtime after success or failure; `-KeepFixtures` remains accepted for compatibility. `esito.json` links the latest report. Reuse evidence only after checking matching inputs and environment; changed inputs invalidate it. See [run evidence and limits](docs/riferimento/runtime-maintenance.md#suite-di-test-livelli-e-fixture).
+Run these commands from the repository root with PowerShell 7.5+ and Git. Quick is pure (no Git or child processes), with a 15-second budget. The default essential checks have a 90-second budget; Full adds critical boundaries with a 5-minute budget on the reference workstation. For a change without commit or publication, run a final Quick and the relevant sub-suites. Fast runs before a commit; Full runs before publication. Fixtures, logs and a unique `run.json` report stay in the local runtime after success or failure; `-KeepFixtures` remains accepted for compatibility. `esito.json` links the latest report. Reuse evidence only after checking matching inputs and environment; changed inputs invalidate it. See [run evidence and limits](docs/riferimento/runtime-maintenance.md#suite-di-test-livelli-e-fixture).
 
 ```powershell
 pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick -KeepFixtures
@@ -118,7 +118,7 @@ Ogni agente riparte da quello che sa già: contesto, decisioni e task. I tuoi da
 
 ### Inizia
 
-Servono Windows, Git e PowerShell 7.5+. Prima leggi [cosa viene modificato](docs/sicurezza.md). I comandi di installazione sono quelli della sezione [Get started](#get-started); poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvio](docs/inizia.md).
+Servono Windows, Git 2.42+ e PowerShell 7.5+. Prima leggi [cosa viene modificato](docs/sicurezza.md). I comandi di installazione sono quelli della sezione [Get started](#get-started); poi, nella chat dell'agente, scrivi `sb prompt`. Passo per passo: [guida di avvio](docs/inizia.md).
 
 ### Cosa fa
 

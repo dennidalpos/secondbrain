@@ -11,7 +11,7 @@ flowchart LR
     E --> F["6. Scrivi: sb prompt"]
 ```
 
-Servono Windows, Git e PowerShell 7.5+.
+Servono Windows, Git 2.42+ e PowerShell 7.5+. Il preflight rifiuta Git assente, non eseguibile, precedente a 2.42 o con versione non riconoscibile.
 
 ## 1. Scarica
 

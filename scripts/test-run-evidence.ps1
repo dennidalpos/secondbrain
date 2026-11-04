@@ -1,5 +1,16 @@
 # Test-only run provenance. Reports contain hashes and an allowlist of environment values, never a full environment dump.
-function Get-SBTestInputSnapshot([string]$BrainRoot) {
+function Get-SBTestInputSnapshot([string]$BrainRoot,[switch]$NoGit) {
+    if($NoGit){
+        $files=[ordered]@{}
+        $paths=@(foreach($directory in @('scripts','docs','direttive','.github')){Get-ChildItem -LiteralPath (Join-Path $BrainRoot $directory) -File -Recurse})
+        $paths+=@(Get-ChildItem -LiteralPath (Join-Path $BrainRoot 'config') -File)
+        $paths+=@(foreach($name in @('VERSION','README.md','AGENTS.md','.gitignore','CHANGELOG.md')){Get-Item -LiteralPath (Join-Path $BrainRoot $name)})
+        foreach($file in $paths|Sort-Object FullName){
+            Assert-SBPlainPath $file.FullName
+            $files[[IO.Path]::GetRelativePath($BrainRoot,$file.FullName).Replace('\','/')]=Get-SBFileHash $file.FullName
+        }
+        return @{coverage='Quick only: explicit public source directories, config root files, VERSION/README/AGENTS/.gitignore/CHANGELOG; no Git inventory or ignored/private data.';files=$files;sha256=(Get-SBTextHash (ConvertTo-SBJson $files))}
+    }
     $info=[Diagnostics.ProcessStartInfo]::new((Get-Command git).Source)
     $info.UseShellExecute=$false;$info.CreateNoWindow=$true;$info.RedirectStandardOutput=$true;$info.RedirectStandardError=$true
     foreach($argument in @('-C',$BrainRoot,'ls-files','-z','--cached','--others','--exclude-standard')){$info.ArgumentList.Add($argument)}
@@ -16,7 +27,7 @@ function Get-SBTestInputSnapshot([string]$BrainRoot) {
         @{coverage='All Git-indexed and nonignored untracked files, working-tree bytes; ignored runtime/dossiers and external inputs excluded. Conservative superset, not a trace of consumed files.';files=$files;sha256=(Get-SBTextHash (ConvertTo-SBJson $files))}
     } finally {$process.Dispose()}
 }
-function Get-SBTestEvidenceEnvironment {
+function Get-SBTestEvidenceEnvironment([switch]$NoGit) {
     $values=[ordered]@{}
     foreach($name in @('SECONDBRAIN_LANG','SECONDBRAIN_TEST_TIMING','SECONDBRAIN_TEST_KEEP','SECONDBRAIN_TEST_ROOT','GIT_TEMPLATE_DIR')){
         $values[$name]=[Environment]::GetEnvironmentVariable($name,'Process')
@@ -24,6 +35,7 @@ function Get-SBTestEvidenceEnvironment {
     # Config pairs may contain credentials: fingerprint them without copying their values into reports.
     $gitConfig=[ordered]@{}
     Get-ChildItem Env:GIT_CONFIG* | Sort-Object Name | ForEach-Object {$gitConfig[$_.Name]=$_.Value}
+    if($NoGit){return @{powershell=$PSVersionTable.PSVersion.ToString();os=[Environment]::OSVersion.VersionString;values=$values;git='not inspected (pure Quick)';limits='Quick does not inspect Git or external state. No automatic reuse.'}}
     $globalPaths=@(& git var GIT_CONFIG_GLOBAL 2>$null)
     if($LASTEXITCODE -notin @(0,1)){throw 'Cannot inspect Git environment for test evidence.'}
     $globalHashes=@(foreach($path in $globalPaths){if([IO.File]::Exists($path)){Get-SBFileHash $path}else{'absent'}})
@@ -43,7 +55,11 @@ function Save-SBTestRunRecord($Run,[switch]$CreateNew) {
     Write-SBTestEvidenceJson $Run.report $copy -CreateNew:$CreateNew
 }
 function New-SBTestRun([string]$BrainRoot,[string]$Level,$Parameters) {
-    $requested=if($env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT}else{Join-Path $BrainRoot '.runtime/tests'}
+    $requested=if($env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT}else{
+        Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+        $segment='tests-'+(Get-SBTextHash $BrainRoot).Substring(0,8).ToLowerInvariant()
+        Join-Path (Get-SBLocalRoot $BrainRoot (Get-SBHostId)) ('repos/'+$segment+'/fixture/fixture-'+(Get-Date -Format yyyyMMdd)+'-minimal')
+    }
     $base=Assert-SBCentralDataPath $BrainRoot $requested
     $parent=$null
     if($env:SECONDBRAIN_TEST_RUN_CONTEXT){
@@ -68,14 +84,12 @@ function New-SBTestRun([string]$BrainRoot,[string]$Level,$Parameters) {
     $state
 }
 function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$KeepRequested) {
-    $Run.watch.Stop()
     $after=$null
-    try{$after=Get-SBTestInputSnapshot $Run.brainRoot}catch{$Run.inputEvidenceError=$_.Exception.Message}
+    try{$after=Get-SBTestInputSnapshot $Run.brainRoot -NoGit:($Run.ContainsKey('noGit') -and $Run.noGit)}catch{$Run.inputEvidenceError=$_.Exception.Message}
     $stable=$Run.ContainsKey('inputsBefore') -and $null -ne $after -and $Run.inputsBefore.sha256 -ceq $after.sha256
     $Run.inputsAfter=$after;$Run.inputsStable=$stable
     $Run.status=if(!$Success){'failed'}elseif(!$stable){'invalidated'}else{'passed'}
     $Run.eligibleForClosure=($Success -and $stable)
-    $Run.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$Run.durationSeconds=[Math]::Round($Run.watch.Elapsed.TotalSeconds,3)
     $Run.checks=$Checks;$Run.suites=@($Suites)
     $Run.fixtures=@{run=$Run.runId;removed=$false;kept=$true;keepRequested=$KeepRequested}
     $Run.children=@(foreach($candidate in Get-ChildItem -LiteralPath $Run.baseRoot -Directory -Filter 'run-*'){
@@ -85,6 +99,10 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
             @{runId=$child.runId;report=$path;status=$child.status}
         }
     })
+    $Run.watch.Stop()
+    $Run.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$Run.durationSeconds=[Math]::Round($Run.watch.Elapsed.TotalSeconds,3)
+    $overBudget=$Run.ContainsKey('budgetSeconds') -and $Run.budgetSeconds -gt 0 -and $Run.durationSeconds -gt $Run.budgetSeconds
+    if($overBudget){$Run.status='failed';$Run.eligibleForClosure=$false;$Run.error='Profile exceeded its time budget.'}
     Save-SBTestRunRecord $Run
     # Backward-compatible latest summary. Permanent reports above are never shared across runs.
     $summary=[ordered]@{schemaVersion=1;level=$Run.level;observedAt=$Run.finishedAt;durationSeconds=$Run.durationSeconds;status=$Run.status;checks=$Checks
@@ -101,4 +119,5 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
         Write-SBTestEvidenceJson (Join-Path $Run.baseRoot 'esito.json') $summary
     }finally{if($lock){$lock.Dispose()}}
     if($Success -and !$stable){throw 'Test inputs changed or were not captured; evidence is insufficient for closure. See run.json.'}
+    if($overBudget){throw ('Profile exceeded '+$Run.budgetSeconds+' seconds; see run.json.')}
 }

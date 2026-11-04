@@ -1,309 +1,68 @@
 #requires -Version 7.5
-# Levels: -Quick (pure checks, a few seconds), default Fast (parallel sub-suites, concise output), -Full (sequential, complete output).
-# -Only <key> runs one sub-suite; fixtures and unique run reports are always retained.
-# SECONDBRAIN_TEST_TIMING=1 runs sequentially and prints the slowest sections.
+# Minimal profiles; reports and fixtures are retained after every outcome.
 [CmdletBinding()]
 param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
-$script:Full = [bool]$Full
-$script:Quick = [bool]$Quick
-$script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
-$script:Level = if($Only){ 'Only' }elseif($script:Quick){ 'Quick' }elseif($script:Full){ 'Full' }else{ 'Fast' }
 $ErrorActionPreference='Stop'
-Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
+if($Full -and $Quick){throw 'Choose Quick or Full.'}
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 . (Join-Path $PSScriptRoot 'test-git-environment.ps1')
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
-$runState=$null;$gitEnvironment=$null
-$savedRunEnvironment=@{}
-foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR')){$savedRunEnvironment[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
-$success=$false;$script:runSucceeded=$false;$script:passed=0;$script:suiteResults=[Collections.Generic.List[object]]::new()
+$brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+$level=if($Only){'Only'}elseif($Quick){'Quick'}elseif($Full){'Full'}else{'Fast'}
+$pure=[bool]($Quick -or ($Only -and @($Only|Where-Object {$_ -ne 'quick'}).Count -eq 0))
+$budget=if($Only){0}elseif($Quick){15}elseif($Full){300}else{90}
+$run=$null;$gitEnvironment=$null;$success=$false;$checks=0;$results=[Collections.Generic.List[object]]::new()
+$saved=@{}
+foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {
-$runState=New-SBTestRun -BrainRoot ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))) -Level $script:Level -Parameters $PSBoundParameters
-$runState.inputsBefore=Get-SBTestInputSnapshot $runState.brainRoot
-$runState.environment=Get-SBTestEvidenceEnvironment
-Save-SBTestRunRecord $runState
-$env:SECONDBRAIN_TEST_ROOT=$runState.directory
-$env:SECONDBRAIN_TEST_RUN_CONTEXT=$runState.report
-$env:SECONDBRAIN_TEST_KEEP='1'
-$gitEnvironment = Enter-SBTestGitEnvironment
-& {
-Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + ' [Modalità '+$script:Level+']')
-. (Join-Path $PSScriptRoot 'test-helpers.ps1')
-$script:passed=0
-function Assert($Condition,[string]$Message){
-    if(!$Condition){throw "FAIL: $Message"}
-    $script:passed++
-    if($script:Full){Write-Output "PASS: $Message"}
-}
-$script:laps = [Collections.Generic.List[object]]::new()
-$script:suiteResults = [Collections.Generic.List[object]]::new()
-# Sub-suites: key, title, file. The first five have separate fixtures and start together in Fast (slowest first).
-$script:SubSuites = @(
-    @{ Key='git-environment'; File='test-secondbrain-git-environment.ps1'; Name='Git process environment and restoration' }
-    @{ Key='portable';       File='test-secondbrain-portable.ps1';       Name='Portabile: discovery, attivazione, compattazione, pubblicazione e asset' }
-    @{ Key='trackers';       File='test-secondbrain-trackers.ps1';       Name='Tracker: conversioni, resolver, riferimenti, migrazione e recupero' }
-    @{ Key='workflows';      File='test-secondbrain-workflows.ps1';      Name='Workflow: catalogo, contesto Git/PARA, composizione e output' }
-    @{ Key='audit2';         File='test-secondbrain-audit2.ps1';         Name='Audit2: rimozione protetta, Markdown, provenienza e recupero' }
-    @{ Key='trace';          File='test-secondbrain-trace.ps1';          Name='Traccia di fine turno: evento, hook Stop e avviso di compattazione' }
-    @{ Key='concurrency';    File='test-secondbrain-concurrency.ps1';    Name='Concorrenza: scritture simultanee, coda, transazioni, backup e casi limite' }
-    @{ Key='pending';        File='test-secondbrain-pending.ps1';        Name='Scritture differite: contesa, integrazione, conflitti e ricevute' }
-    @{ Key='sources';        File='test-secondbrain-sources.ps1';       Name='Fonti: registro, sicurezza, acquisizione, confronto e conversione' }
-    @{ Key='external-audit'; File='test-secondbrain-external-audit.ps1'; Name='Audit esterno: paginazione, copertura, errori e protezione dei contenuti' }
-    @{ Key='quick';          File='test-secondbrain-quick.ps1';          Name='Quick: controlli puri su identita, JSON, versione, catalogo e messaggi' }
-)
-function Get-SubSuiteKeys {
-    if ($Only) { return @($Only) }
-    if ($script:Quick) { return @('quick','sources','external-audit','git-environment') }
-    @('portable','trackers','workflows','audit2','trace','concurrency','pending','sources','external-audit','git-environment')
-}
-function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
-function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
-    $log=Join-Path $runState.directory ('suite-'+$Suite.Key+'.log')
-    [IO.File]::WriteAllLines($log,[string[]]@($Output|ForEach-Object {[string]$_}),[Text.UTF8Encoding]::new($false))
-    $script:suiteResults.Add([ordered]@{key=$Suite.Key;name=$Suite.Name;seconds=[Math]::Round($Seconds,1);exitCode=$Code;status=$(if($Code -eq 0){'passed'}else{'failed'});log=$log})
-    if ($Code -ne 0) {
-        Write-Host ("ERRORE IN SUB-SUITE " + $Suite.Name + " (exit code " + $Code + "):") -ForegroundColor Red
-        $Output | ForEach-Object { Write-Output ([string]$_) }
-        throw "FAIL: $($Suite.Name) fallito con codice $Code"
-    }
-    $summary = @($Output | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^(?:SUCCESS|PASS:)\s*' })
-    $line = if ($summary.Count) { $summary[-1] } else { "SUCCESS $($Suite.Name): verifiche superate (exit code 0)" }
-    Write-Output ($line + ' [' + $Suite.Key + ', ' + (Format-Seconds $Seconds) + ']')
-    $script:suiteResults[$script:suiteResults.Count-1].result=$line
-    if($script:Full){$Output|ForEach-Object {Write-Output ([string]$_)}}
-    $script:passed++
-}
-function Invoke-SubSuiteTimed($Suite) {
-    # Sequential execution with per-line timestamps: a PASS line's time is the interval since the preceding line.
-    $watch = [Diagnostics.Stopwatch]::StartNew(); $previous = 0.0
-    $output = @(& pwsh -NoProfile -File (Join-Path $PSScriptRoot $Suite.File) 2>&1 | ForEach-Object {
-        $now = $watch.Elapsed.TotalSeconds
-        $script:laps.Add([pscustomobject]@{ Suite = $Suite.Key; Seconds = $now - $previous; Line = [string]$_ })
-        $previous = $now
-        $_
-    })
-    Write-SubSuiteResult $Suite $output $LASTEXITCODE $watch.Elapsed.TotalSeconds
-}
-function Invoke-SubSuitePool($Suites) {
-    # Concurrent child pwsh processes (ThreadJob); collect and print output in declared order.
-    $limit = [Math]::Max(1, [Math]::Min(4, [Environment]::ProcessorCount))
-    $jobs = @(foreach ($suite in $Suites) {
-        Start-ThreadJob -ThrottleLimit $limit -ArgumentList (Join-Path $PSScriptRoot $suite.File) -ScriptBlock {
-            param($File)
-            $watch = [Diagnostics.Stopwatch]::StartNew()
-            $out = @(& pwsh -NoProfile -File $File 2>&1 | ForEach-Object { [string]$_ })
-            [pscustomobject]@{ Code = $LASTEXITCODE; Output = $out; Seconds = $watch.Elapsed.TotalSeconds }
-        }
-    })
-    $failed = @()
-    for ($i = 0; $i -lt $Suites.Count; $i++) {
-        try {
-            $result = $jobs[$i] | Receive-Job -Wait -AutoRemoveJob
-            if($null -eq $result -or $null -eq $result.Code){throw 'Sub-suite worker returned no process result.'}
-            Write-SubSuiteResult $Suites[$i] $result.Output $result.Code $result.Seconds
-        } catch {
-            $problem=$_.Exception.Message
-            if(!@($script:suiteResults|Where-Object key -eq $Suites[$i].Key).Count){try{Write-SubSuiteResult $Suites[$i] @($problem) 1 0}catch{}}
-            $failed += $problem
-        }
-    }
-    if ($failed.Count) { throw ($failed -join '; ') }
-}
-function Invoke-SubSuites([string[]]$Keys) {
-    $suites = @($Keys | ForEach-Object { $key = $_; $script:SubSuites | Where-Object { $_.Key -eq $key } })
-    if ($script:Full) {
-        foreach ($suite in $suites) {
-            Invoke-SubSuiteTimed $suite
-        }
-    } elseif ($script:Timing -or $Sequential -or $suites.Count -lt 2) {
-        foreach ($suite in $suites) { Invoke-SubSuiteTimed $suite }
-    } else {
-        Invoke-SubSuitePool $suites
-    }
-}
-function Write-SlowestSections {
-    if (!$script:Timing -or !$script:laps.Count) { return }
-    Write-Output 'Sezioni piu lente (tempo fino alla riga indicata):'
-    $script:laps | Where-Object { $_.Line -match '^PASS' } | Sort-Object Seconds -Descending | Select-Object -First 15 | ForEach-Object {
-        Write-Output ('  {0,7}  {1,-14} {2}' -f (Format-Seconds $_.Seconds), $_.Suite, $_.Line)
-    }
-}
-function Throws([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert $caught $Message}
-function Put([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
-function Git([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
-# Ordinary sub-suites inherit this run; nested runners use siblings, linked by run.json.
-$runDirectory=$runState.directory
-$root=Join-Path (Get-SBTestRoot) ('secondbrain-test-'+[guid]::NewGuid().ToString('N'))
-$backup=Join-Path (Get-SBTestRoot) ('secondbrain-test-backup-'+[guid]::NewGuid().ToString('N'))
-[IO.Directory]::CreateDirectory($root)|Out-Null
-$runWatch = [Diagnostics.Stopwatch]::StartNew()
-try {
+    $run=New-SBTestRun $brain $level $PSBoundParameters
+    $run.noGit=$pure;$run.budgetSeconds=$budget
+    $run.inputsBefore=Get-SBTestInputSnapshot $brain -NoGit:$pure
+    $run.environment=Get-SBTestEvidenceEnvironment -NoGit:$pure
+    Save-SBTestRunRecord $run
+    $env:SECONDBRAIN_TEST_ROOT=$run.directory;$env:SECONDBRAIN_TEST_RUN_CONTEXT=$run.report;$env:SECONDBRAIN_TEST_KEEP='1'
+    if(!$pure){$gitEnvironment=Enter-SBTestGitEnvironment}
     & {
-        $backup = Join-Path $root 'directive-backups'
-        [IO.Directory]::CreateDirectory($backup) | Out-Null
-        $prev = $script:passed
-        . (Join-Path $PSScriptRoot 'test-secondbrain-directives.ps1')
-        $diff = $script:passed - $prev
-        if (!$script:Full) {
-            Write-Output "SUCCESS DIRECTIVES: $diff verifiche"
+        function Invoke-MinimalSuite([string]$Key,[scriptblock]$Body){
+            $watch=[Diagnostics.Stopwatch]::StartNew();$code=0
+            try{$output=@(& $Body)}catch{$output=@(($_|Out-String),$_.ScriptStackTrace);$code=1}
+            $watch.Stop()
+            $log=Join-Path $run.directory ('suite-'+$Key+'.log')
+            [IO.File]::WriteAllLines($log,[string[]]@($output|ForEach-Object {[string]$_}),[Text.UTF8Encoding]::new($false))
+            $results.Add(@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;status=$(if($code){'failed'}else{'passed'});log=$log})
+            if($code){$output|Write-Output;throw ('Suite failed: '+$Key)}
+            $summary=@($output|Where-Object {$_ -match '^SUCCESS'})
+            Write-Output (($summary -join '; ')+' ['+$Key+', '+[math]::Round($watch.Elapsed.TotalSeconds,2)+' s]')
+            if($Full){$output|Write-Output}
         }
-    }
-    if ($script:Level -in 'Fast','Full') {
-    $brain=Join-Path $root 'brain'
-    [IO.Directory]::CreateDirectory((Join-Path $brain 'scripts'))|Out-Null
-    Get-ChildItem $PSScriptRoot -File | Where-Object Name -ne 'test-secondbrain.ps1' | Copy-Item -Destination (Join-Path $brain 'scripts')
-    # CLI workflows use production code, files, Git and actual isolated processes.
-    Put (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git','node_modules')})
-    Assert ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'
-    $path=Join-Path $root 'file con spazi.md';Put $path "originale`n"
-    $hash=Get-SBFileHash $path
-    Throws {Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes('lost')) 'wrong' $backup} 'scrittura concorrente rifiutata'
-    Assert ((Get-SBFileHash $path) -eq $hash) 'file intatto dopo rifiuto'
-    Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes('nuovo')) $hash $backup|Out-Null
-    $metadata=Get-ChildItem $backup -Filter '*.json'|Select-Object -First 1
-    $record=Read-SBJson $metadata.FullName @{}
-    Assert ((Get-SBFileHash $record.backup) -eq $hash) 'backup verificato anche fra volumi'
-    $restoreRuntime=Get-SBLocalRoot $brain 'restore'
-    $restoreConfig=Join-Path $restoreRuntime 'workstation.json'
-    Put $restoreConfig (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='restore';runtimeRoot=$restoreRuntime;backupRoot=(Join-Path $restoreRuntime 'backups');bindings=@();ides=@()})
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig | Out-Null
-    Assert ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino esatto'
-    & pwsh -NoProfile -File (Join-Path $brain 'scripts/restore-managed.ps1') -MetadataPath $metadata.FullName -ConfigPath $restoreConfig *> $null
-    Assert ($LASTEXITCODE -ne 0 -and (Get-SBFileHash $path) -eq $hash) 'CLI ripristino rifiuta destinazione cambiata'
-    # Git preserves tracked files: clean = no .bin (commit and blob recorded), dirty = refused, untracked = .bin unchanged.
-    $gitRepo=Join-Path $root 'git repo';[IO.Directory]::CreateDirectory($gitRepo)|Out-Null
-    Git $gitRepo @('init','-q')|Out-Null
-    Git $gitRepo @('config','user.email','test@example.invalid')|Out-Null
-    Git $gitRepo @('config','user.name','Test')|Out-Null
-    $tracked=Join-Path $gitRepo 'tracked.md';Put $tracked "uno`n"
-    $untracked=Join-Path $gitRepo 'untracked.md';Put $untracked "uno`n"
-    Git $gitRepo @('add','tracked.md')|Out-Null
-    Git $gitRepo @('commit','-q','-m','base')|Out-Null
-    $gitBackup=Join-Path $root 'git-backups'
-    $trackedHash=Get-SBFileHash $tracked
-    Assert ((Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("due`n")) $trackedHash $gitBackup) -eq $true) 'file tracciato pulito riscritto'
-    Assert (@(Get-ChildItem $gitBackup -Filter '*.bin' -ErrorAction SilentlyContinue).Count -eq 0) 'file tracciato pulito: nessun .bin'
-    $gitRecord=Read-SBJson (Get-ChildItem $gitBackup -Filter '*.git.json'|Select-Object -First 1).FullName @{}
-    Assert ($gitRecord.gitCommit -eq (Git $gitRepo @('rev-parse','HEAD')|Select-Object -First 1) -and $gitRecord.gitBlob -and $gitRecord.previousHash -eq $trackedHash) 'record Git con commit e blob'
-    Assert (@(Get-ChildItem $gitRepo -Force -Filter '.secondbrain-*').Count -eq 0) 'nessun residuo accanto al file tracciato'
-    $dirtyHash=Get-SBFileHash $tracked
-    Throws {Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup} 'file tracciato sporco rifiutato'
-    Assert ((Get-SBFileHash $tracked) -eq $dirtyHash) 'file tracciato sporco intatto dopo rifiuto'
-    $dirtyMessage='';try{Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup|Out-Null}catch{$dirtyMessage=Test-SBError $_ 'core.tracked.dirty'}
-    Assert ($dirtyMessage -eq $true) 'rifiuto con istruzioni chiare'
-    Assert ((Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes("tre`n")) $dirtyHash $gitBackup -BackupDirty) -eq $true -and @(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 1) 'rigenerato sporco con -BackupDirty conserva il .bin'
-    Write-SBFile $untracked ([Text.Encoding]::UTF8.GetBytes("due`n")) (Get-SBFileHash $untracked) $gitBackup|Out-Null
-    Assert (@(Get-ChildItem $gitBackup -Filter '*.bin').Count -eq 2) 'file non tracciato: .bin invariato'
-    $managedOutput=@(Set-SBManagedContent $tracked 'regola' 'gitdirty' @{} $false $gitBackup 3>&1)
-    Assert ($managedOutput -contains 'conflict' -and @($managedOutput|Where-Object {$_ -is [Management.Automation.WarningRecord]}).Count -ge 1) 'blocco gestito su file tracciato sporco: conflitto con avviso'
-    $pruneRoot=Join-Path $root 'prune-brain';$pruneBackups=Join-Path $pruneRoot '.runtime/hosts/h1/backups';[IO.Directory]::CreateDirectory($pruneBackups)|Out-Null
-    $pruneFile=Join-Path $gitRepo 'prune.md';Put $pruneFile "uno`n";Git $gitRepo @('add','prune.md')|Out-Null;Git $gitRepo @('commit','-q','-m','prune')|Out-Null
-    $oldBin=Join-Path $pruneBackups 'old.bin';[IO.File]::WriteAllText($oldBin,"uno`n");[IO.File]::WriteAllText($oldBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash=(Get-SBFileHash $oldBin);deployedHash='y';backup=$oldBin}))
-    $lostBin=Join-Path $pruneBackups 'lost.bin';[IO.File]::WriteAllText($lostBin,"mai committato`n");[IO.File]::WriteAllText($lostBin+'.json',(ConvertTo-SBJson @{path=$pruneFile;previousHash=(Get-SBFileHash $lostBin);deployedHash='y';backup=$lostBin}))
-    $proposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
-    $binCandidates=@($proposal.candidates|Where-Object {$_.path -like '*backups/*.bin'})
-    Assert ($binCandidates.Count -eq 1 -and $binCandidates[0].files -eq 1 -and $proposal.applied -eq $false -and (Test-Path $oldBin) -and (Test-Path $lostBin)) 'proposta di potatura dei soli .bin con blob in Git, senza eseguirla (il .bin senza blob e escluso)'
-    foreach($runtimeCase in @('work-20261102-prova','evidence-20261102-prova','report-20261102-prova','t77')){$caseDir=Join-Path $pruneRoot (Join-Path '.runtime' $runtimeCase);[IO.Directory]::CreateDirectory($caseDir)|Out-Null;[IO.File]::WriteAllText((Join-Path $caseDir 'x.txt'),'x')}
-    [IO.Directory]::CreateDirectory((Join-Path $pruneRoot '.runtime/trace/h1'))|Out-Null;[IO.File]::WriteAllText((Join-Path $pruneRoot '.runtime/trace/h1/2026-11-02.jsonl'),'{}')
-    $runtimeBefore=@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object)
-    $runtimeIndex=Get-SBRuntimeIndex $pruneRoot @() 90
-    $categoryOf=@{};foreach($entry in $runtimeIndex.entries){$categoryOf[$entry.name]=$entry.category}
-    Assert ($categoryOf['work-20261102-prova'] -eq 'working' -and $categoryOf['evidence-20261102-prova'] -eq 'evidence' -and $categoryOf['report-20261102-prova'] -eq 'evidence' -and $categoryOf['trace'] -eq 'evidence' -and $categoryOf['t77'] -eq 'working') 'indice .runtime: i prefissi della convenzione e trace sono classificati'
-    # Main table: rows before the first "##" section (nested levels and legacy have separate tables).
-    $indexRows=@((($runtimeIndex.markdown -split "`n## ")[0]) -split "`n"|Where-Object {$_ -match '^\| `'})
-    $categoryRank=@{protected=0;evidence=1;backup=2;working=3;regenerable=4};$ranks=@($indexRows|ForEach-Object {$categoryRank[(($_ -split '\|')[2]).Trim()]})
-    Assert ($indexRows.Count -eq @($runtimeIndex.entries).Count -and (@($ranks|Sort-Object) -join ',') -eq ($ranks -join ',') -and $runtimeIndex.markdown -match 'nome conforme') 'indice .runtime: righe ordinate per categoria e nomi conformi segnalati'
-    Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($runtimeBefore -join '|')) 'indice .runtime: sola lettura, nessun file creato o rimosso'
-    foreach($nestedCase in @('hosts/h1/repos/prova-1234abcd/work/20261103-uno','hosts/h1/repos/prova-1234abcd/evidence/20261103-due','hosts/h1/repos/prova-1234abcd/temp','hosts/h1/repositories/abc/root/default')){$caseDir=Join-Path $pruneRoot (Join-Path '.runtime' $nestedCase);[IO.Directory]::CreateDirectory($caseDir)|Out-Null;[IO.File]::WriteAllText((Join-Path $caseDir 'x.txt'),'x')}
-    $nestedBefore=@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object)
-    $nestedIndex=Get-SBRuntimeIndex $pruneRoot @() 90
-    $nestedCategory=@{};foreach($item in $nestedIndex.nested){$nestedCategory[$item.path]=$item.category}
-    Assert (@($nestedIndex.nested).Count -eq 3 -and $nestedCategory['hosts/h1/repos/prova-1234abcd/work/20261103-uno'] -eq 'working' -and $nestedCategory['hosts/h1/repos/prova-1234abcd/evidence/20261103-due'] -eq 'evidence' -and $nestedCategory['hosts/h1/repos/prova-1234abcd/temp'] -eq 'working') 'indice .runtime: livelli annidati hosts/<id>/repos letti e classificati'
-    $legacyPaths=@($nestedIndex.legacy|ForEach-Object path)
-    Assert (($legacyPaths -contains 't77/') -and ($legacyPaths -contains 'work-20261102-prova/') -and ($legacyPaths -contains 'hosts/h1/repositories/abc/root/default/') -and !($legacyPaths -contains 'trace/') -and !($legacyPaths -contains 'hosts/') -and $nestedIndex.markdown -match 'Cartelle legacy' -and $nestedIndex.markdown -match 'Livelli annidati') 'indice .runtime: cartelle legacy e annidate segnalate, trace e hosts esclusi'
-    $legacyFlat=@($nestedIndex.legacy|Where-Object {$_.path -eq 'work-20261102-prova/'})[0]
-    Assert ($legacyFlat.suggestedPath -eq 'hosts/<id>/repos/<repo>/work/20261102-prova' -and $legacyFlat.action -match 'non eseguito') 'legacy: destinazione proposta nel nuovo layout, senza spostamento'
-    $nestedProposal=Get-SBRuntimeCleanupProposal $pruneRoot @() 90 5
-    Assert (@($nestedProposal.legacy).Count -eq @($nestedIndex.legacy).Count -and @($nestedProposal.candidates|Where-Object {$_.path -like 'hosts/h1/repos/*'}).Count -eq 0) 'proposta .runtime: legacy elencate, nessuna cartella annidata recente proposta'
-    Assert ((@(Get-ChildItem (Join-Path $pruneRoot '.runtime') -Recurse -File|ForEach-Object FullName|Sort-Object) -join '|') -eq ($nestedBefore -join '|') -and (Test-Path (Join-Path $pruneRoot '.runtime/work-20261102-prova/x.txt'))) 'layout annidato e legacy: sola lettura, nessuno spostamento'
-    # Report with stable code and text in the selected language: SECONDBRAIN_LANG does not change the code.
-    $previousLang=$env:SECONDBRAIN_LANG
-    try{
-        $env:SECONDBRAIN_LANG='en';$retentionEn=@((Get-SBRuntimeRetention $pruneRoot @() 90).entries|Where-Object name -eq 'hosts')[0]
-        $env:SECONDBRAIN_LANG='it';$retentionIt=@((Get-SBRuntimeRetention $pruneRoot @() 90).entries|Where-Object name -eq 'hosts')[0]
-    }finally{$env:SECONDBRAIN_LANG=$previousLang}
-    Assert ($retentionEn.protectedReasonCode -ceq 'runtime-hosts' -and $retentionIt.protectedReasonCode -ceq 'runtime-hosts' -and $retentionEn.protectedReason -ceq 'workstation configuration and backups' -and $retentionIt.protectedReason -ceq 'configurazione e backup delle postazioni') 'report .runtime: protectedReasonCode stabile, protectedReason in it e en'
-    $state=@{}
-    Assert ((Set-SBManagedContent $path 'regola' 'test' $state $true $backup) -eq 'pending') 'Check rileva blocco mancante'
-    Assert ((Get-SBFileHash $path) -eq $hash -and $state.Count -eq 0) 'Check senza scritture o adozione'
-    $whitespacePath=Join-Path $root 'whitespace.md';Put $whitespacePath "`n`nistruzioni  `n`n"
-    Set-SBManagedContent $whitespacePath 'regola' 'test' @{} $false $backup|Out-Null
-    Assert ((Read-SBText $whitespacePath).StartsWith("`n`nistruzioni  `n`n")) 'whitespace del testo utente preservato'
-    Assert ((Set-SBManagedContent $path 'regola' 'test' $state $false $backup) -eq 'updated') 'aggiunta blocco'
-    $managedHash=Get-SBFileHash $path
-    Assert ((Set-SBManagedContent $path 'regola' 'test' $state $false $backup) -eq 'aligned') 'seconda applicazione idempotente'
-    Assert ((Get-SBFileHash $path) -eq $managedHash) 'contenuto stabile'
-    Put $path ((Read-SBText $path)+"testo personale`n")
-    Set-SBManagedContent $path 'regola nuova' 'test' $state $false $backup|Out-Null
-    Assert ((Read-SBText $path).Contains('testo personale')) 'testo esterno al blocco preservato'
-    Put $path ((Read-SBText $path).Replace('regola nuova','modifica utente'))
-    Assert ((Set-SBManagedContent $path 'regola terza' 'test' $state $false $backup) -eq 'conflict') 'drift nel blocco conservato'
-    Assert ((Read-SBText $path).Contains('modifica utente')) 'conflitto non sovrascritto'
-    Throws {Get-SBManagedContent '<!-- secondbrain:test:begin -->broken' 'test'} 'blocco incompleto rifiutato'
-    $whole=Join-Path $root 'whole.md';Put $whole 'utente'
-    Assert ((Set-SBManagedContent $whole 'generated' 'file' @{} $false $backup -WholeFile) -eq 'conflict') 'file non gestito non adottato'
-    $brain=Join-Path $root 'brain'
-    $commonFixture = "# common`n`nRevisione 3.0 — 2026-10-19."
-    Put (Join-Path $brain 'direttive/AGENTS.global_ide.md') $commonFixture
-    Put (Join-Path $brain 'direttive/workstation.template.md') 'workstation'
-    $approval=@{authorization='test';files=@{'direttive/AGENTS.global_ide.md'=Get-SBFileHash (Join-Path $brain 'direttive/AGENTS.global_ide.md');'direttive/workstation.template.md'=Get-SBFileHash (Join-Path $brain 'direttive/workstation.template.md')}}
-    Put (Join-Path $brain 'direttive/approved.json') (ConvertTo-SBJson $approval)
-    Assert (Test-SBApproval $brain) 'revisione approvata valida'
-    Put (Join-Path $brain 'direttive/AGENTS.global_ide.md') 'unapproved'
-    Assert (!(Test-SBApproval $brain)) 'modifica non approvata blocca distribuzione'
-    $profile=Join-Path $root 'profile';[IO.Directory]::CreateDirectory($profile)|Out-Null
-    $oldCodexHome=$env:CODEX_HOME
-    try {
-        $env:CODEX_HOME=Join-Path $profile '.codex'
-        $prev = $script:passed
-        . (Join-Path $PSScriptRoot 'test-secondbrain-integration.ps1')
-        $diff = $script:passed - $prev
-        if (!$script:Full) {
-            Write-Output "SUCCESS INTEGRATION: $diff verifiche"
+        if(!$Only -or 'quick' -in $Only){Invoke-MinimalSuite 'quick' {& (Join-Path $PSScriptRoot 'test-secondbrain-quick.ps1')}}
+        if(!$pure){
+            $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
+            if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit')})}elseif($Full){@('trace','concurrency','sources','external-audit')}else{@()}
+            foreach($extra in $extras){
+                $suiteFile=Join-Path $PSScriptRoot ('test-secondbrain-'+$extra+'.ps1')
+                Invoke-MinimalSuite $extra {
+                    # The external transport harness closes over script-local mock functions.
+                    # A child process gives those functions the same scope as its direct entry point.
+                    if($extra -eq 'external-audit'){
+                        & pwsh -NoProfile -File $suiteFile
+                        if($LASTEXITCODE){throw ('External audit failed with code '+$LASTEXITCODE)}
+                    }else{& $suiteFile}
+                }
+            }
         }
-    }
-    finally {$env:CODEX_HOME=$oldCodexHome}
-    }
-
-    Invoke-SubSuites (Get-SubSuiteKeys)
-
-    if ($script:Level -ne 'Only') {
-        foreach($script in Get-ChildItem $PSScriptRoot -File|Where-Object Extension -in @('.ps1','.psm1')){
-            $tokens=$null;$errors=$null;[Management.Automation.Language.Parser]::ParseFile($script.FullName,[ref]$tokens,[ref]$errors)|Out-Null
-            Assert ($errors.Count -eq 0) ('parser '+$script.Name)
-        }
-        if (!$script:Full) {
-            Write-Output "SUCCESS PARSER: tutti gli script analizzati senza errori di sintassi"
-        }
-    }
-    Write-SlowestSections
-    $script:runSucceeded=$true
-    "SUCCESS: $script:passed verifiche in $(Format-Seconds $runWatch.Elapsed.TotalSeconds) [$($script:Level)]; nessun accesso a dati applicativi o remote di rete."
-} finally {
-    Write-Output ('Fixture conservata: '+$runDirectory)
-}
-} *>&1 | Tee-Object -FilePath $runState.log
-$success=[bool]$script:runSucceeded
+    } *>&1 | Tee-Object -FilePath $run.log
+    $checks=$results.Count
+    if($budget -gt 0 -and $run.watch.Elapsed.TotalSeconds -gt $budget){throw ('Profile exceeds '+$budget+' seconds: '+[math]::Round($run.watch.Elapsed.TotalSeconds,2))}
+    $success=$true
 } catch {
-    if($runState){$runState.error=$_.Exception.Message;[IO.File]::AppendAllText($runState.log,("`nERROR: "+$_+"`n"))}
+    if($run){$run.error=$_.Exception.Message;[IO.File]::AppendAllText($run.log,("`nERROR: "+$_+"`n"))}
     throw
 } finally {
-    try {
-        if($runState){Complete-SBTestRun $runState $success $script:passed $script:suiteResults.ToArray() ([bool]($KeepFixtures -or $savedRunEnvironment['SECONDBRAIN_TEST_KEEP'] -eq '1'))}
-    } finally {
+    try{if($run){Complete-SBTestRun $run $success $checks $results.ToArray() ([bool]$KeepFixtures)}}finally{
         if($gitEnvironment){Exit-SBTestGitEnvironment $gitEnvironment}
-        foreach($name in $savedRunEnvironment.Keys){
-            if($null -eq $savedRunEnvironment[$name]){Remove-Item -LiteralPath ('Env:\'+$name) -ErrorAction SilentlyContinue}
-            else{[Environment]::SetEnvironmentVariable($name,$savedRunEnvironment[$name],'Process')}
-        }
+        foreach($name in $saved.Keys){[Environment]::SetEnvironmentVariable($name,$saved[$name],'Process')}
     }
 }
+'SUCCESS '+$level+': '+[math]::Round($run.durationSeconds,2)+' s; groups='+$checks+'; retained report: '+$run.report
