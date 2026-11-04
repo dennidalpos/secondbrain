@@ -1,7 +1,7 @@
 #requires -Version 7.5
 # Concurrent writes (Write-SBFile, tracker -NewTask, trace, access queue, PARA transactions, backups) and edge cases
 # (paths beyond 260 characters, Unicode, case differences, locked files). Fixtures under Get-SBTestRoot; no writes to the real .runtime.
-# On success, remove the fixture; results (duration, size, fixture status) remain in esito-concurrency.json next to the test root.
+# Fixtures are always retained; results (duration, size, fixture status) remain in this run's esito-concurrency.json.
 $ErrorActionPreference='Stop'
 foreach($module in @('Core','Access','Host','Para','Tracker','Trace')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$module+'.psm1')) -Force}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
@@ -47,17 +47,9 @@ function Invoke-Race([int]$Count,[scriptblock]$Work,[object[]]$Arguments=@()){
         @($jobs|ForEach-Object {if($_.State -ne 'Completed'){@{index=0;ok=$false;code=$null;type='JobState';message=('job '+$_.State)}}else{Receive-Job $_}}|Sort-Object {$_.index})
     }finally{$jobs|Remove-Job -Force -ErrorAction SilentlyContinue;$gate.Dispose();$ready.Dispose()}
 }
-function Remove-Fixture([string]$Path){
-    $full=[IO.Path]::GetFullPath($Path);$boundary=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
-    if(!$full.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){throw 'Fixture concurrency fuori dal perimetro di prova'}
-    if(!(Test-Path -LiteralPath $full)){return}
-    foreach($entry in @(Get-ChildItem -LiteralPath $full -Force -Recurse)){if($entry.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'Fixture concurrency non confinata'}}
-    # The \\?\ prefix also allows removal of paths beyond 260 characters.
-    [IO.Directory]::Delete('\\?\'+$full,$true)
-}
 $testRoot=Get-SBTestRoot
 $root=Join-Path $testRoot ('secondbrain-concurrency-'+[guid]::NewGuid().ToString('N').Substring(0,12))
-$esitoDirectory=if((Split-Path $testRoot -Leaf) -match '^run-[0-9a-f]{8}$'){Split-Path $testRoot}else{$testRoot}
+$esitoDirectory=if($env:SECONDBRAIN_TEST_RUN_CONTEXT){$testRoot}else{[IO.Directory]::CreateDirectory($root).FullName}
 $esitoPath=Join-Path $esitoDirectory 'esito-concurrency.json'
 $suiteWatch=[Diagnostics.Stopwatch]::StartNew();$suiteStatus='failed';$removed=$false
 try {
@@ -214,8 +206,6 @@ try {
 } finally {
     $suiteWatch.Stop()
     $leftover=Get-FixtureSize $root
-    $keep=($env:SECONDBRAIN_TEST_KEEP -eq '1')
-    if($suiteStatus -eq 'passed' -and !$keep){Remove-Fixture $root;$removed=!(Test-Path -LiteralPath $root)}
     $esito=[ordered]@{schemaVersion=1;suite='concurrency';status=$suiteStatus;durationMs=[int]$suiteWatch.ElapsedMilliseconds;checks=$script:checks;observedAt=[DateTimeOffset]::UtcNow.ToString('o')
         fixture=[ordered]@{path=$root;removed=$removed;kept=!$removed;files=$leftover.files;bytes=$leftover.bytes};cases=@($script:cases)}
     [IO.File]::WriteAllText($esitoPath,(ConvertTo-SBJson $esito),[Text.UTF8Encoding]::new($false))

@@ -26,7 +26,12 @@ function New-AuditFixture([string]$Name){
     Put-Audit (Join-Path $dir 'para.json') (ConvertTo-SBJson @{schemaVersion=1;id='repo-area';kind='area';title='Repo';status='active'})
     foreach($name in @('context.md','memory.md','brief.md')){Put-Audit (Join-Path $dir $name) '# Dossier'}
     Put-Audit (Join-Path $checkout 'AGENTS.md') '# Repo'
-    [void](Invoke-SBGit $checkout @('init','-q'));[void](Invoke-SBGit $checkout @('remote','add','origin','https://github.com/test/repo.git'))
+    $gitInit=Invoke-SBGit $checkout @('init','-q')
+    if($gitInit.code -ne 0){throw ('Audit fixture Git init failed: '+$gitInit.error)}
+    $gitTop=Invoke-SBGit $checkout @('rev-parse','--show-toplevel')
+    if($gitTop.code -ne 0 -or !(Test-SBSamePath (@($gitTop.output)[0]) $checkout)){throw 'Audit fixture resolves a different repository; metadata may exceed MAX_PATH.'}
+    $gitRemote=Invoke-SBGit $checkout @('remote','add','origin','https://github.com/test/repo.git')
+    if($gitRemote.code -ne 0){throw ('Audit fixture Git remote failed: '+$gitRemote.error)}
     $runtime=Get-SBLocalRoot $brain 'fixture';$cfg=Join-Path $runtime 'workstation.json'
     Put-Audit $cfg (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId='fixture';runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');ides=@();
         bindings=@(@{path=$checkout;identity='github.com/test/repo';remoteIdentity='github.com/test/repo';status='managed'})})
@@ -34,7 +39,8 @@ function New-AuditFixture([string]$Name){
     $config.brainRoot=$brain;$config.configPath=$cfg;$config.repositoryRoot=$brain;$config.coordinationRoot=Join-Path $brain '.runtime/access';$config.allowedOwners=@('test');$config.excludedDirectories=@('.git');$config.sessionTimeoutMinutes=30
     @{config=$config;brain=$brain;dir=$dir;checkout=$checkout;identity='github.com/test/repo';source=(Join-Path $checkout 'legacy-tasks.json')}
 }
-$root=Join-Path (Get-SBTestRoot) ('secondbrain-tracker-audit-'+[guid]::NewGuid().ToString('N'))
+# Short synthetic name keeps Git metadata discoverable at the actual runtime root; long payload tests are separate.
+$root=Join-Path (Get-SBTestRoot) ('tracker-audit-'+[guid]::NewGuid().ToString('N').Substring(0,12))
 $success=$false
 try {
     if($Case -in @('All','Source')){

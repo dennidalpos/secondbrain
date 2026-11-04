@@ -1,6 +1,6 @@
 #requires -Version 7.5
 # Levels: -Quick (pure checks, a few seconds), default Fast (parallel sub-suites, concise output), -Full (sequential, complete output).
-# -Only <key> runs one sub-suite; -KeepFixtures (or SECONDBRAIN_TEST_KEEP=1) retains fixtures even after success;
+# -Only <key> runs one sub-suite; fixtures and unique run reports are always retained.
 # SECONDBRAIN_TEST_TIMING=1 runs sequentially and prints the slowest sections.
 [CmdletBinding()]
 param([switch]$Full,[switch]$Quick,[ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,[switch]$KeepFixtures,[switch]$Sequential)
@@ -8,12 +8,25 @@ $script:Full = [bool]$Full
 $script:Quick = [bool]$Quick
 $script:Timing = ($env:SECONDBRAIN_TEST_TIMING -eq '1')
 $script:Level = if($Only){ 'Only' }elseif($script:Quick){ 'Quick' }elseif($script:Full){ 'Full' }else{ 'Fast' }
-Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + ' [Modalità '+$script:Level+']')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 . (Join-Path $PSScriptRoot 'test-git-environment.ps1')
-$gitEnvironment = Enter-SBTestGitEnvironment
+. (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
+$runState=$null;$gitEnvironment=$null
+$savedRunEnvironment=@{}
+foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR')){$savedRunEnvironment[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
+$success=$false;$script:runSucceeded=$false;$script:passed=0;$script:suiteResults=[Collections.Generic.List[object]]::new()
 try {
+$runState=New-SBTestRun -BrainRoot ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))) -Level $script:Level -Parameters $PSBoundParameters
+$runState.inputsBefore=Get-SBTestInputSnapshot $runState.brainRoot
+$runState.environment=Get-SBTestEvidenceEnvironment
+Save-SBTestRunRecord $runState
+$env:SECONDBRAIN_TEST_ROOT=$runState.directory
+$env:SECONDBRAIN_TEST_RUN_CONTEXT=$runState.report
+$env:SECONDBRAIN_TEST_KEEP='1'
+$gitEnvironment = Enter-SBTestGitEnvironment
+& {
+Write-Output ('Runtime suite: '+$PSVersionTable.PSVersion+'; pwsh figli: '+(Get-Command pwsh).Source + ' [Modalità '+$script:Level+']')
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:passed=0
 function Assert($Condition,[string]$Message){
@@ -44,6 +57,9 @@ function Get-SubSuiteKeys {
 }
 function Format-Seconds([double]$Seconds) { ('{0:N1} s' -f $Seconds) }
 function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
+    $log=Join-Path $runState.directory ('suite-'+$Suite.Key+'.log')
+    [IO.File]::WriteAllLines($log,[string[]]@($Output|ForEach-Object {[string]$_}),[Text.UTF8Encoding]::new($false))
+    $script:suiteResults.Add([ordered]@{key=$Suite.Key;name=$Suite.Name;seconds=[Math]::Round($Seconds,1);exitCode=$Code;status=$(if($Code -eq 0){'passed'}else{'failed'});log=$log})
     if ($Code -ne 0) {
         Write-Host ("ERRORE IN SUB-SUITE " + $Suite.Name + " (exit code " + $Code + "):") -ForegroundColor Red
         $Output | ForEach-Object { Write-Output ([string]$_) }
@@ -52,7 +68,8 @@ function Write-SubSuiteResult($Suite, $Output, [int]$Code, [double]$Seconds) {
     $summary = @($Output | ForEach-Object { [string]$_ } | Where-Object { $_ -match '^(?:SUCCESS|PASS:)\s*' })
     $line = if ($summary.Count) { $summary[-1] } else { "SUCCESS $($Suite.Name): verifiche superate (exit code 0)" }
     Write-Output ($line + ' [' + $Suite.Key + ', ' + (Format-Seconds $Seconds) + ']')
-    $script:suiteResults.Add([ordered]@{ key = $Suite.Key; name = $Suite.Name; seconds = [Math]::Round($Seconds, 1); result = $line })
+    $script:suiteResults[$script:suiteResults.Count-1].result=$line
+    if($script:Full){$Output|ForEach-Object {Write-Output ([string]$_)}}
     $script:passed++
 }
 function Invoke-SubSuiteTimed($Suite) {
@@ -79,8 +96,15 @@ function Invoke-SubSuitePool($Suites) {
     })
     $failed = @()
     for ($i = 0; $i -lt $Suites.Count; $i++) {
-        $result = $jobs[$i] | Receive-Job -Wait -AutoRemoveJob
-        try { Write-SubSuiteResult $Suites[$i] $result.Output $result.Code $result.Seconds } catch { $failed += $_.Exception.Message }
+        try {
+            $result = $jobs[$i] | Receive-Job -Wait -AutoRemoveJob
+            if($null -eq $result -or $null -eq $result.Code){throw 'Sub-suite worker returned no process result.'}
+            Write-SubSuiteResult $Suites[$i] $result.Output $result.Code $result.Seconds
+        } catch {
+            $problem=$_.Exception.Message
+            if(!@($script:suiteResults|Where-Object key -eq $Suites[$i].Key).Count){try{Write-SubSuiteResult $Suites[$i] @($problem) 1 0}catch{}}
+            $failed += $problem
+        }
     }
     if ($failed.Count) { throw ($failed -join '; ') }
 }
@@ -88,8 +112,7 @@ function Invoke-SubSuites([string[]]$Keys) {
     $suites = @($Keys | ForEach-Object { $key = $_; $script:SubSuites | Where-Object { $_.Key -eq $key } })
     if ($script:Full) {
         foreach ($suite in $suites) {
-            & pwsh -NoProfile -File (Join-Path $PSScriptRoot $suite.File)
-            Assert ($LASTEXITCODE -eq 0) $suite.Name
+            Invoke-SubSuiteTimed $suite
         }
     } elseif ($script:Timing -or $Sequential -or $suites.Count -lt 2) {
         foreach ($suite in $suites) { Invoke-SubSuiteTimed $suite }
@@ -104,30 +127,14 @@ function Write-SlowestSections {
         Write-Output ('  {0,7}  {1,-14} {2}' -f (Format-Seconds $_.Seconds), $_.Suite, $_.Line)
     }
 }
-function Remove-TestRun([string]$RunDirectory, [string]$BaseRoot) {
-    # Remove only this run's directory: a direct child of the test root named run-<8 hex characters>.
-    $resolved = [IO.Path]::GetFullPath($RunDirectory).TrimEnd('\','/')
-    $base = [IO.Path]::GetFullPath($BaseRoot).TrimEnd('\','/')
-    if ((Split-Path $resolved -Parent) -ine $base -or (Split-Path $resolved -Leaf) -cnotmatch '^run-[0-9a-f]{8}$') { return $false }
-    if (!(Test-Path -LiteralPath $resolved)) { return $true }
-    try { Remove-Item -LiteralPath ('\\?\' + $resolved) -Recurse -Force -ErrorAction Stop; return $true }
-    catch { Write-Warning ('Fixture non rimosse: ' + $_.Exception.Message); return $false }
-}
 function Throws([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Assert $caught $Message}
 function Put([string]$Path,[string]$Text){[IO.Directory]::CreateDirectory((Split-Path $Path))|Out-Null;[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
 function Git([string]$Path,[string[]]$Arguments){$r=Invoke-SBGit $Path $Arguments;if($r.code -ne 0){throw $r.error};$r.output}
-# Each run uses its own run-<id> directory under the test root; sub-suites inherit it through SECONDBRAIN_TEST_ROOT.
-# Remove the directory on success (user authorization limited to this run's artifacts); retain it on failure.
-$keepFixtures = $KeepFixtures -or $env:SECONDBRAIN_TEST_KEEP -eq '1'
-$testBase = Get-SBTestRoot
-$savedTestRoot = $env:SECONDBRAIN_TEST_ROOT
-$runDirectory = Join-Path $testBase ('run-'+[guid]::NewGuid().ToString('N').Substring(0,8))
-[IO.Directory]::CreateDirectory($runDirectory)|Out-Null
-$env:SECONDBRAIN_TEST_ROOT = $runDirectory
+# Ordinary sub-suites inherit this run; nested runners use siblings, linked by run.json.
+$runDirectory=$runState.directory
 $root=Join-Path (Get-SBTestRoot) ('secondbrain-test-'+[guid]::NewGuid().ToString('N'))
 $backup=Join-Path (Get-SBTestRoot) ('secondbrain-test-backup-'+[guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($root)|Out-Null
-$success=$false
 $runWatch = [Diagnostics.Stopwatch]::StartNew()
 try {
     & {
@@ -279,23 +286,24 @@ try {
         }
     }
     Write-SlowestSections
-    $success=$true
+    $script:runSucceeded=$true
     "SUCCESS: $script:passed verifiche in $(Format-Seconds $runWatch.Elapsed.TotalSeconds) [$($script:Level)]; nessun accesso a dati applicativi o remote di rete."
 } finally {
-    $env:SECONDBRAIN_TEST_ROOT = $savedTestRoot
-    $fixturesRemoved = $false
-    if ($success -and !$keepFixtures) {
-        if (Remove-TestRun $runDirectory $testBase) { $fixturesRemoved = $true; Write-Output 'Fixture di questa esecuzione rimosse (esito verde; -KeepFixtures le conserva).' }
-        else { Write-Output ('Fixture conservata: '+$runDirectory) }
-    } else { Write-Output ('Fixture conservata: '+$runDirectory) }
-    # esito.json: run summary (durations, checks, fixture status) beside the test root, surviving removal of run-<id>.
-    try {
-        $detail = Join-Path $testBase 'esito-concurrency.json'
-        $esito = [ordered]@{ schemaVersion = 1; level = $script:Level; observedAt = [DateTimeOffset]::UtcNow.ToString('o'); durationSeconds = [Math]::Round($runWatch.Elapsed.TotalSeconds, 1)
-            status = $(if ($success) { 'passed' } else { 'failed' }); checks = $script:passed
-            fixtures = [ordered]@{ run = (Split-Path $runDirectory -Leaf); removed = $fixturesRemoved; kept = !$fixturesRemoved; keepRequested = [bool]$keepFixtures }
-            suites = @($script:suiteResults); details = @($(if ((Test-Path -LiteralPath $detail -PathType Leaf) -and (Get-Item -LiteralPath $detail).LastWriteTimeUtc -ge [DateTime]::UtcNow.AddSeconds(-$runWatch.Elapsed.TotalSeconds - 5)) { 'esito-concurrency.json' })) }
-        [IO.File]::WriteAllText((Join-Path $testBase 'esito.json'), (ConvertTo-SBJson $esito), [Text.UTF8Encoding]::new($false))
-    } catch { Write-Warning ('esito.json non scritto: ' + $_.Exception.Message) }
+    Write-Output ('Fixture conservata: '+$runDirectory)
 }
-} finally { Exit-SBTestGitEnvironment $gitEnvironment }
+} *>&1 | Tee-Object -FilePath $runState.log
+$success=[bool]$script:runSucceeded
+} catch {
+    if($runState){$runState.error=$_.Exception.Message;[IO.File]::AppendAllText($runState.log,("`nERROR: "+$_+"`n"))}
+    throw
+} finally {
+    try {
+        if($runState){Complete-SBTestRun $runState $success $script:passed $script:suiteResults.ToArray() ([bool]($KeepFixtures -or $savedRunEnvironment['SECONDBRAIN_TEST_KEEP'] -eq '1'))}
+    } finally {
+        if($gitEnvironment){Exit-SBTestGitEnvironment $gitEnvironment}
+        foreach($name in $savedRunEnvironment.Keys){
+            if($null -eq $savedRunEnvironment[$name]){Remove-Item -LiteralPath ('Env:\'+$name) -ErrorAction SilentlyContinue}
+            else{[Environment]::SetEnvironmentVariable($name,$savedRunEnvironment[$name],'Process')}
+        }
+    }
+}

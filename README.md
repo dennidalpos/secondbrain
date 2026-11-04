@@ -88,7 +88,7 @@ The guides are written in Italian.
 
 ## Development checks
 
-Run these commands from the repository root with PowerShell 7.5+ and Git. Fast runs before a commit; Full runs before publication. Fixtures stay in the local runtime with `-KeepFixtures`.
+Run these commands from the repository root with PowerShell 7.5+ and Git. For a change without commit or publication, run a final Quick and the relevant sub-suites. Fast runs before a commit; Full runs before publication. Fixtures, logs and a unique `run.json` report stay in the local runtime after success or failure; `-KeepFixtures` remains accepted for compatibility. `esito.json` links the latest report. Reuse evidence only after checking matching inputs and environment; changed inputs invalidate it. See [run evidence and limits](docs/riferimento/runtime-maintenance.md#suite-di-test-livelli-e-fixture).
 
 ```powershell
 pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick -KeepFixtures

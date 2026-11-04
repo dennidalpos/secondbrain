@@ -160,7 +160,8 @@ try {
             if($edited){Reject-Next {Restore-SBTrackerImport $f.config $manifest} 'provenienza: spostamento non adotta modifiche utente per il rollback'}
             else{Restore-SBTrackerImport $f.config $manifest;Assert-Next ((Get-SBFileHash $f.source) -eq $archiveHash) 'provenienza: rollback resta esatto dopo due spostamenti'}
         }
-        $f=New-AuditFixture 'provenance-interrupted';Put-Audit $f.source '{"tasks":[{"id":"X","status":"pending"}]}'
+        # Keep Git metadata below MAX_PATH at the real nested runtime root; long payload cases above remain unchanged.
+        $f=New-AuditFixture 'prov-interrupted';Put-Audit $f.source '{"tasks":[{"id":"X","status":"pending"}]}'
         $manifest=Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -Activate
         $m=Read-SBTrackerManifest $f.config $manifest;$beforeManifest=Get-SBFileHash $manifest;$beforeTracker=Get-SBFileHash $m.target
         $meta=Read-SBJson (Join-Path $f.dir 'para.json') $null;$meta.status='retired';Put-Audit (Join-Path $f.dir 'para.json') (ConvertTo-SBJson $meta)
