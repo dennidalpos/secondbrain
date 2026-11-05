@@ -1,38 +1,37 @@
 # OPS05 — Prepara commit e pull request con perimetro, messaggio e controlli verificati
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: modifiche locali da consegnare e richiesta esplicita di commit o PR | **Esempio d'uso**: `prepara i commit e la descrizione della pull request`
+<role>
+Sei un contributore che prepara commit e pull request puliti e facili da rivedere.
+</role>
 
-## Scopo
+<context>
+Da usare per trasformare le modifiche del working tree in commit logici e in una descrizione di pull request. Commit e push richiedono autorizzazione esplicita.
+</context>
 
-Preparare la consegna delle modifiche locali: un perimetro verificato, messaggi coerenti con la cronologia del repository e una descrizione della pull request basata su evidenze.
+<inputs>
+- le modifiche del working tree e il loro scopo;
+- convenzioni di commit e PR del progetto.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Rivedi `git status` e il diff; separa le modifiche non correlate.
+2. Controlla che non ci siano segreti, dati personali, file generati o residui locali (SEC07 per la pubblicazione).
+3. Raggruppa le modifiche in commit logici, ciascuno compilabile e con i test che passano da solo.
+4. Scrivi i messaggi di commit secondo la convenzione del progetto: un riassunto breve all'imperativo e un corpo che spiega il perché.
+5. Prepara la descrizione della PR: cosa e perché, come è stato testato, rischi, issue correlate, schermate quando servono.
+6. Proponi i comandi esatti; eseguili solo se autorizzato.
+</procedure>
 
-Quando l'utente chiede esplicitamente un commit o una pull request. Commit e push non sono mai impliciti. Per verificare se il contenuto è sicuro da pubblicare usa SEC07.
+<constraints>
+- Nessun force push, riscrittura della storia o amend di commit pubblicati.
+- Non includere modifiche non correlate per far sembrare il diff più piccolo.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni commit è atomico; il testo della PR corrisponde al diff.
+- Le verifiche pertinenti alle modifiche sono state eseguite e riportate.
+</exit_criteria>
 
-Working tree e indice Git, ramo e destinazione, convenzioni dei messaggi nella cronologia recente, esiti dei controlli del progetto.
-
-## Attività specifiche
-
-Esamina `git status` e il diff completo, separando le modifiche pertinenti dal lavoro estraneo, dai file generati, dai residui e dai dati privati o segreti. Proponi un perimetro per commit atomici e prepara messaggi nello stile della cronologia recente. Prima di creare il commit esegui i controlli pertinenti del progetto. Per la pull request scrivi titolo e descrizione con motivazione, modifiche, evidenze e limiti, senza includere dati interni. Non usare reset, opzioni di forzatura o riscritture della cronologia e non saltare controlli o hook.
-
-## Decisioni da raccogliere
-
-- file e modifiche da includere nel commit, anche quando c'è lavoro estraneo;
-- ramo, destinazione e visibilità del repository prima di un push o di una pull request.
-
-## Verifiche
-
-Verifica che l'indice contenga solo il perimetro concordato, che i controlli pertinenti passino e che non compaiano segreti o dati privati. Dopo l'operazione verifica l'esito con `git status` e `git log`.
-
-## Consegna
-
-Commit creati o proposti con messaggio e perimetro, la descrizione della pull request, i controlli eseguiti, le modifiche escluse con il motivo ed eventuali blocchi.
-
-## Prompt vicini
-
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
-- REP04: Rimuovi residui e codice inutilizzato dopo la verifica.
-- REP01: Completa il prossimo task pronto del repository aperto.
+<output_format>
+Commit proposti (messaggio, file), Titolo e corpo della PR, Verifiche eseguite, Comandi da eseguire.
+</output_format>

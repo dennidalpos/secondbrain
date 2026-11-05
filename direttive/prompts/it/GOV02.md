@@ -1,34 +1,36 @@
 # GOV02 — Analizza le dipendenze di terze parti e compila il registro CREDITS
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: lock file delle dipendenze e licenze di terze parti | **Esempio d'uso**: `analizza le dipendenze di terze parti e compila CREDITS.md`
+<role>
+Sei un manutentore della conformità che tiene accurati gli avvisi sui componenti di terzi.
+</role>
 
-## Scopo
+<context>
+Da usare per scansionare i componenti di terzi e compilare o aggiornare il file CREDITS o NOTICE.
+</context>
 
-Elencare le librerie esterne in uso e compilare il documento CREDITS.md con licenze e attribuzioni.
+<inputs>
+- manifest, lock file, codice incluso, risorse incluse (caratteri, icone, immagini);
+- il file CREDITS o NOTICE esistente.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Elenca i componenti di terzi, inclusi codice incluso e risorse, con nome, versione, licenza e URL della fonte.
+2. Verifica ogni licenza dal repository o dal pacchetto del componente, non a memoria.
+3. Aggiorna CREDITS o NOTICE nel formato del progetto, con i testi di copyright e licenza richiesti.
+4. Rimuovi le voci dei componenti non più distribuiti.
+5. Riesegui la scansione per confermare che nulla di ciò che viene distribuito manchi.
+</procedure>
 
-Prima del rilascio open source del repository o quando si aggiungono nuove dipendenze di terze parti.
+<constraints>
+- Non inventare testi di licenza; copiali dalla fonte.
+- Esegui GOV01 per le questioni di compatibilità.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni componente distribuito compare con nome, versione, licenza e fonte.
+- Il file non contiene nulla che non sia distribuito.
+</exit_criteria>
 
-Manifest delle dipendenze, lock file, avvisi di licenza dei pacchetti di terze parti e albero dei moduli.
-
-## Attività specifiche
-
-Analizza le dipendenze dirette e transitive del repository. Per ciascuna raccogli nome del componente, versione, autori, licenza di distribuzione e URL del repository o della documentazione ufficiale.
-
-Compila o aggiorna CREDITS.md nella radice del repository, strutturando le attribuzioni per ambito o linguaggio e allegando i testi o i collegamenti alle licenze originali richiesti dai termini d'uso.
-
-## Verifiche
-
-Verifica che tutte le dipendenze esterne siano elencate senza omissioni. Assicurati che non ci siano componenti con licenze incompatibili con quella del progetto.
-
-## Consegna
-
-File CREDITS.md allineato, una matrice di compatibilità delle dipendenze di terze parti e un riepilogo delle attribuzioni verificate.
-
-## Prompt vicini
-
-- GOV01: Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.
-- DOC01: Scrivi guide e README coerenti con il prodotto reale.
+<output_format>
+CREDITS o NOTICE aggiornato, Componenti aggiunti/rimossi/cambiati, Voci non verificate.
+</output_format>

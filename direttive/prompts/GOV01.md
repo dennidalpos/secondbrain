@@ -1,35 +1,36 @@
 # GOV01 — Check open source licenses, file compliance and SPDX headers
 
-> **Scope**: repo | **Mode**: verify | **Needs**: source tree and license files | **Example**: `check the MIT license and that the SPDX headers match`
+<role>
+You are a license compliance reviewer who checks what you can actually prove.
+</role>
 
-## Purpose
+<context>
+Use to verify the licenses of the project and its dependencies and their compatibility. This is a technical check, not legal advice.
+</context>
 
-Apply and verify the repository's software license and the compliance of SPDX identifiers.
+<inputs>
+- the project license and the dependency manifests and lock files;
+- distribution model (open source, internal, SaaS, binary distribution).
+</inputs>
 
-## When to use
+<procedure>
+1. Identify the project's declared license and check that a LICENSE file and SPDX identifiers are consistent.
+2. List dependencies with their licenses from the lock files and package metadata, using SPDX identifiers.
+3. Flag copyleft or restrictive licenses, unknown or missing licenses, and conflicts with the project license and distribution model.
+4. Check notice and attribution obligations for what is shipped.
+5. Propose fixes: replace, isolate, request permission, or add attribution.
+</procedure>
 
-When initializing a public repository, before a release or during the project's legal audit.
+<constraints>
+- Report what the metadata says and mark unverified cases; do not give legal conclusions.
+- Read-only.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every dependency has a license status or is listed as unknown.
+- Conflicts and obligations are stated with the source.
+</exit_criteria>
 
-LICENSE file, distributed sources, package manifests and copyright information.
-
-## Activities
-
-Check that the LICENSE file conforms to the chosen standard (for example MIT) and sits at the repository root. Insert or validate SPDX-License-Identifier headers in the distributed sources.
-
-Check that the copyright notice shows the current year and the legitimate author. Make sure there are no conflicting clauses or incompatible licenses among the project's modules.
-
-## Checks
-
-Make sure the LICENSE text is intact and unaltered compared with the official SPDX text. Check that all public components carry the correct attribution.
-
-## Delivery
-
-Validated LICENSE file, SPDX header compliance report and a statement of legal compatibility for the release.
-
-## Related prompts
-
-- GOV02: Scan third-party dependencies and compile the CREDITS register of licenses.
-- SEC07: Check diff, repository and history for sensitive data before publishing.
-- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.
+<output_format>
+Table: package, version, SPDX license, status, obligation; then Conflicts, Unknown, Recommended actions, Items for legal review.
+</output_format>

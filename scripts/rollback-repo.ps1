@@ -7,7 +7,7 @@ Without -Apply, previews only and changes nothing.
 Requires a write session (Enter-SBOperation, optional -SessionId) and refuses the brain's own dossier.
 1. Copies the entire dossier (including history/, snapshots/ and tracker.md) to <TargetRepo>/.secondbrain/ and verifies its hashes. Without a checkout (-Force), saves the dossier in backupRoot (rollback-<id>) before removal.
 2. Updates workstation.json (binding removed, repository added to forbiddenRepositories with -Forbid) and state.json.
-3. Removes the managed SecondBrain block from the target repository's AGENTS.md.
+3. Removes the managed SecondBrain blocks from the target repository's AGENTS.md and, where present, the CLAUDE.md and GEMINI.md pointers.
 4. Only then removes the dossier and runtime cache, then regenerates para-index.json and PARA.md.
 An error in steps 1-3 leaves the dossier intact: rollback can be repeated.
 .EXAMPLE
@@ -218,11 +218,13 @@ try {
     $statePath = Join-Path $workstationConfig.runtimeRoot 'state.json'
     if ($checkoutPath -and (Test-Path -LiteralPath $statePath)) {
         $state = Read-SBJson $statePath @{ managed = @{} }
-        $key = [IO.Path]::GetFullPath((Join-Path $checkoutPath 'AGENTS.md')) + '|repository'
-        if ($state.managed.ContainsKey($key)) {
-            $state.managed.Remove($key)
-            Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $config.backupRoot | Out-Null
-            Write-Host (Get-SBMessage 'rollback.out.state' @($key)) -ForegroundColor Green
+        $keys = @([IO.Path]::GetFullPath((Join-Path $checkoutPath 'AGENTS.md')) + '|repository') + @('CLAUDE.md', 'GEMINI.md' | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $checkoutPath $_)) + '|pointer' })
+        foreach ($key in $keys) {
+            if ($state.managed.ContainsKey($key)) {
+                $state.managed.Remove($key)
+                Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $config.backupRoot | Out-Null
+                Write-Host (Get-SBMessage 'rollback.out.state' @($key)) -ForegroundColor Green
+            }
         }
     }
 
@@ -238,6 +240,21 @@ try {
                 Write-SBFile $agentsPath ([Text.UTF8Encoding]::new($false).GetBytes($newContent)) (Get-SBFileHash $agentsPath) $config.backupRoot -BackupDirty | Out-Null
                 Write-Host (Get-SBMessage 'rollback.out.block' @($agentsPath)) -ForegroundColor Green
             }
+        }
+        # Pointer files (CLAUDE.md, GEMINI.md): remove only the managed block; the file goes only if nothing else remains.
+        foreach ($pointer in @('CLAUDE.md', 'GEMINI.md')) {
+            $pointerPath = Join-Path $checkoutPath $pointer
+            if (!(Test-Path -LiteralPath $pointerPath)) { continue }
+            $content = [IO.File]::ReadAllText($pointerPath, [Text.UTF8Encoding]::new($false))
+            $pointerPattern = '(?s)\r?\n?<!-- secondbrain:pointer:begin -->.*?<!-- secondbrain:pointer:end -->\r?\n?'
+            if ($content -notmatch $pointerPattern) { continue }
+            $remaining = ($content -replace $pointerPattern, "`n").Trim()
+            if ($remaining) {
+                Write-SBFile $pointerPath ([Text.UTF8Encoding]::new($false).GetBytes($remaining + "`n")) (Get-SBFileHash $pointerPath) $config.backupRoot -BackupDirty | Out-Null
+            } else {
+                Remove-SBFile $pointerPath $checkoutPath (Get-SBFileHash $pointerPath) $config.backupRoot | Out-Null
+            }
+            Write-Host (Get-SBMessage 'rollback.out.block' @($pointerPath)) -ForegroundColor Green
         }
     }
 

@@ -11,7 +11,7 @@ Every agent restarts from what it already knows: context, decisions and tasks. Y
 ```mermaid
 flowchart LR
     T["You"] --> A["Agent<br/>Claude, Codex, Antigravity"]
-    A <--> S["SecondBrain<br/>memory, rules, 65 prompts"]
+    A <--> S["SecondBrain<br/>memory, rules, 91 prompts"]
     A --> P["Your projects"]
 ```
 
@@ -35,7 +35,7 @@ Then, in the agent chat, type `sb prompt`. Step by step: [getting-started guide]
 |---|---|
 | Memory | Context, decisions and tasks of every project, always at hand |
 | Common rules | The same instructions for every agent and project |
-| 65 ready-made prompts | Development, testing, security, documentation, release; in Italian and English (plus 17 maintenance prompts: `sb prompt maintenance`) |
+| 91 ready-made prompts | One list covering understanding, design, development, testing, security, audit, documentation, release and SecondBrain upkeep; written in English with an Italian counterpart |
 | Pre-publish check | Blocks private data and secrets before the push |
 | Backup | Every replaced file stays recoverable |
 
@@ -46,14 +46,14 @@ flowchart LR
     subgraph PARA["PARA: where things live"]
         P1["Projects"] --- P2["Areas"] --- P3["Resources"] --- P4["Archives"]
     end
-    subgraph COSTAR["CO-STAR: how to ask"]
-        C1["Context"] --- C2["Objective"] --- C3["Style"] --- C4["Tone"] --- C5["Audience"] --- C6["Response"]
+    subgraph CARD["Prompt card: how to ask"]
+        C1["Role"] --- C2["Context"] --- C3["Inputs"] --- C4["Procedure"] --- C5["Constraints"] --- C6["Exit criteria"] --- C7["Output format"]
     end
-    PARA --> COSTAR --> R["Clear work for the agent"]
+    PARA --> CARD --> R["Clear work for the agent"]
 ```
 
 - **PARA** sorts information into four folders. [How to use it](docs/uso-quotidiano.md) (in Italian).
-- **CO-STAR** gives every prompt composed by SecondBrain the same structure. [How it works](docs/prompt.md) (in Italian).
+- **Prompt cards** give every prompt composed by SecondBrain the same XML-tagged structure (role, context, inputs, procedure, constraints, exit criteria, output format), following the prompting guides of Anthropic, OpenAI and Google, and the CO-STAR framework. [How it works](docs/prompt.md) (in Italian).
 - **Progressive Summarization** (same author as PARA) names the layered loading: the agent starts from an essential summary and goes down to details only when needed. [How it loads](docs/riferimento/runtime-maintenance.md) (in Italian).
 
 ## Configured integrations
@@ -126,14 +126,14 @@ Servono Windows, Git 2.42+ e PowerShell 7.5+. Prima leggi [cosa viene modificato
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 65 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio; in italiano e in inglese (più 17 di manutenzione: `sb prompt maintenance`) |
+| 91 prompt pronti | Un'unica lista: comprensione, progettazione, sviluppo, test, sicurezza, audit, documentazione, rilascio e manutenzione di SecondBrain; scritti in inglese con la controparte italiana |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 
 ### Due metodi e un criterio di lettura
 
 - **PARA** ordina le informazioni in quattro cartelle. [Come si usa](docs/uso-quotidiano.md).
-- **CO-STAR** dà a ogni prompt composto da SecondBrain la stessa struttura. [Come funziona](docs/prompt.md).
+- **Schede prompt**: ogni prompt composto da SecondBrain ha la stessa struttura con tag XML (ruolo, contesto, input, procedura, vincoli, criteri di uscita, formato), secondo le guide di Anthropic, OpenAI e Google e il framework CO-STAR. [Come funziona](docs/prompt.md).
 - **Progressive Summarization** (stesso autore di PARA) dà il nome al caricamento a strati: l'agente parte da un riassunto essenziale e scende ai dettagli solo se servono. [Come si carica](docs/riferimento/runtime-maintenance.md).
 
 ### Integrazioni configurate

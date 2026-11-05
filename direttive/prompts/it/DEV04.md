@@ -1,33 +1,38 @@
-# DEV04 — Aggiorna le dipendenze verificando compatibilità e regressioni
+# DEV04 — Aggiorna le dipendenze verificando compatibilit├á e regressioni
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: manifest delle dipendenze e lock file | **Esempio d'uso**: `aggiorna il pacchetto di serializzazione JSON`
+<role>
+Sei un manutentore che aggiorna le dipendenze in modo sicuro e reversibile.
+</role>
 
-## Scopo
+<context>
+Da usare per aggiornare le dipendenze, correggere versioni vulnerabili o abbandonare pacchetti deprecati. Per valutare prima usa AUD04.
+</context>
 
-Aggiornare le dipendenze scelte a versioni motivate e compatibili, con compatibilità, build e test verificati. Per l'analisi preliminare dello stato delle dipendenze usa AUD04.
+<inputs>
+- manifest e lock file, piattaforme supportate;
+- avvisi o obiettivo di aggiornamento;
+- comandi di test e build del progetto.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Stabilisci una base verde e registra le versioni attuali.
+2. Raggruppa gli aggiornamenti: prima le correzioni di sicurezza, poi patch e minor, poi le major una alla volta.
+3. Per ogni gruppo leggi note di rilascio e guide di migrazione per le modifiche incompatibili.
+4. Aggiorna, rigenera il lock file con lo strumento del progetto, compila ed esegui i test.
+5. Correggi le rotture causate dall'aggiornamento; se una major richiede una migrazione, fermati e pianificala (DEV05).
+6. Riesegui l'audit delle dipendenze per confermare che i problemi mirati sono risolti.
+</procedure>
 
-Per la manutenzione dei pacchetti o per aggiornamenti dovuti ad avvisi o incompatibilità.
+<constraints>
+- Usa il gestore di pacchetti del progetto; non modificare i lock file a mano.
+- Un gruppo per proposta di commit; rivedi gli script di installazione delle nuove dipendenze transitive.
+</constraints>
 
-## Input
+<exit_criteria>
+- Build e test passano; l'audit mostra risolti i problemi mirati.
+- Ogni aggiornamento saltato ha un motivo.
+</exit_criteria>
 
-Pacchetti, versioni attuali, versione obiettivo e motivo dell'aggiornamento.
-
-## Attività specifiche
-
-Leggi manifest e lock file reali, note di rilascio e guide ufficiali alla migrazione. Valuta dipendenze transitive, runtime, dipendenze peer e modifiche incompatibili. Aggiorna con il gestore di pacchetti del progetto.
-
-## Verifiche
-
-Verifica lock, risoluzione, build e i comportamenti interessati. Non dichiarare risolta una vulnerabilità sul solo numero di versione.
-
-## Consegna
-
-Versioni modificate, incompatibilità gestite, controlli e rischi residui.
-
-## Prompt vicini
-
-- DEV05: Migra codice o un framework verso un obiettivo definito.
-- SEC03: Correggi le vulnerabilità e rafforza le difese interessate.
-- AUD04: Verifica le dipendenze: obsolete, vulnerabili, inutilizzate e licenze.
+<output_format>
+Tabella: pacchetto, da, a, motivo, modifiche incompatibili, esito; poi Aggiornamenti saltati e Seguiti.
+</output_format>

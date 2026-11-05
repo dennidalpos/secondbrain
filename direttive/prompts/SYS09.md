@@ -1,34 +1,31 @@
-# SYS09 — Esegui il backup compresso deterministico e verifica i digest SHA-256
+# SYS09 — Run the deterministic compressed backup and verify the SHA-256 digests
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: configurazione attiva e root runtime di backup | **Esempio d'uso**: `sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256`
+<role>
+You are the backup operator for SecondBrain's local data.
+</role>
 
-## Scopo
+<context>
+Use before architectural changes, directive updates or migrations, and at the end of significant sessions.
+</context>
 
-Eseguire e validare il backup compresso deterministico dei dati locali di SecondBrain.
+<inputs>
+- the local PARA tree (01-projects, 02-areas, 03-resources, 04-archives), local indices and `.runtime/hosts`.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Run `scripts/backup.ps1` to produce a deterministic compressed archive with a manifest of SHA-256 digests.
+2. Run `scripts/backup.ps1 -Verify` to check ZIP integrity and every hash.
+3. Check that the archive contains all declared dossiers and host configurations and excludes temporary files, caches and sockets.
+</procedure>
 
-Prima di modifiche architetturali, aggiornamenti delle direttive, migrazioni o al termine di sessioni rilevanti.
+<constraints>
+- Archives are never overwritten or deleted automatically.
+</constraints>
 
-## Input
+<exit_criteria>
+- `-Verify` returns a positive result.
+</exit_criteria>
 
-Albero PARA locale (01-projects/, 02-areas/, 03-resources/, 04-archives/), indici locali e .runtime/hosts.
-
-## Attività specifiche
-
-Invoca scripts/backup.ps1 per produrre un archivio compresso deterministico salvaguardato sotto .runtime/backups/. Genera il manifest con i digest crittografici SHA-256 di ciascun file incluso.
-
-Esegui la convalida dell'archivio tramite scripts/backup.ps1 -Verify verificando l'integrità strutturale del file ZIP e la corrispondenza esatta di ogni hash calcolato.
-
-## Verifiche
-
-Verifica che l'archivio contenga tutti i dossier dichiarati e le configurazioni host. Accerta che file temporanei, build cache o socket non siano stati inclusi. Controlla che -Verify restituisca esito positivo.
-
-## Consegna
-
-Percorso dell'archivio generato, digest SHA-256 del pacchetto e dei contenuti, conteggio file protetti e riscontro di integrità.
-
-## Prompt vicini
-
-- SYS04: Controlla o allinea gli asset già gestiti della postazione.
-- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
+<output_format>
+Archive path, SHA-256 of the package and contents, count of protected files, integrity result.
+</output_format>

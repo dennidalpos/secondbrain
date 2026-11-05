@@ -1,38 +1,38 @@
-# SYS05 — Compatta il dossier preservando originali, fatti e TOC
+# SYS05 — Compact the dossier preserving originals, facts and TOC
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: dossier da compattare e storico verificabile | **Esempio d'uso**: `sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc`
+<role>
+You are a careful editor who shrinks the startup context without losing originals, decisions or the way back.
+</role>
 
-## Scopo
+<context>
+Use on explicit request (`sb compatta`) or during `sb allinea` for dossiers over budget.
+</context>
 
-Ridurre il contesto iniziale senza perdere originali, decisioni e possibilità di approfondimento.
+<inputs>
+- the dossier (identified by PARA), current sources, open tasks and the 30,000-character cap.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- dossier to compact and budget to reach;
+- information to keep and confirmation of the candidate before `-Apply`.
+</decisions>
 
-Su richiesta esplicita sb compatta oppure durante sb allinea per dossier oltre budget.
+<procedure>
+1. Read `index.md` and the sources; apply the minimal-summary rule: key operations, active decisions, constraints, open problems and next step; do not renew historical authorizations.
+2. Move details to knowledge or history and update links.
+3. Prepare in `.runtime` a JSON candidate (schema 1): repository, sources (SHA-256 of `context.md` and `memory.md`), summaries (full text of both), openTaskIds, `reviewed=true` and a reasoned reviewNote. The context needs the sections "Stato corrente", "Vincoli", "Problemi aperti", "Prossimo passo".
+4. Preview with `knowledge.ps1 -Compact -Dossier ... -CandidatePath ...`, then run with `-Apply` after confirmation.
+</procedure>
 
-## Input
+<constraints>
+- Originals are kept by hash; do not truncate to meet the budget and do not delete archives.
+- Measure characters; do not present an estimate as an exact token count.
+</constraints>
 
-Dossier identificato da PARA, fonti attuali, task aperti e tetto di 30.000 caratteri per l'avvio snello.
+<exit_criteria>
+- Essential facts match before and after; originals verified byte for byte; open tasks, schema, links and TOC are intact; details on request remain reachable.
+</exit_criteria>
 
-## Attività specifiche
-
-Leggi index.md e le fonti necessarie. Applica la regola di sintesi minima registrando solo operazioni chiave, decisioni attive, vincoli, problemi aperti e prossimo passo; non rinnovare autorizzazioni storiche. Sposta dettagli in knowledge o history e aggiorna collegamenti. Se l'ambiente supporta Function Calling o Tool Use (es. `ask_question`), usalo per sottoporre all'utente la conferma del perimetro e delle opzioni di compattazione. Prepara in .runtime un candidato JSON schema 1 con repository, sources (context.md e memory.md: SHA-256), summaries (testo completo per entrambi), openTaskIds, reviewed=true e reviewNote motivata. Il contesto deve avere sezioni Stato corrente, Vincoli, Problemi aperti, Prossimo passo. Usa knowledge.ps1 -Compact -Dossier -CandidatePath prima in anteprima e poi -Apply. Gli originali sono conservati per hash. Non troncare per rispettare il budget e non cancellare archivi.
-
-## Decisioni da raccogliere
-
-- dossier da compattare (scelta multipla) e budget da raggiungere;
-- informazioni da conservare in sintesi e conferma del candidato prima di `-Apply`.
-
-## Verifiche
-
-Confronta fatti essenziali prima/dopo; verifica originali byte per byte, task aperti, schema, link e TOC. Misura caratteri, non presentare una stima come conteggio esatto dei token. I dettagli su richiesta devono restare raggiungibili.
-
-## Consegna
-
-Sintesi e TOC, manifest degli originali, dimensione prima/dopo e eventuale budget non raggiunto.
-
-## Prompt vicini
-
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
-- SYS04: Controlla o allinea gli asset già gestiti della postazione.
+<output_format>
+Summary and TOC, manifest of originals, size before/after, any budget not reached.
+</output_format>

@@ -56,7 +56,7 @@ if($HookStatus){
     exit 0
 }
 if(!$Apply){
-    $result=Set-SBTraceHook $brain (Join-Path $brain '.runtime/backup/trace') -Remove:$UninstallHook -SettingsPath $SettingsPath
+    $result=Set-SBTraceHook $brain (Join-Path $brain '.runtime/backups/trace') -Remove:$UninstallHook -SettingsPath $SettingsPath
     ConvertTo-SBJson $result
     exit 0
 }

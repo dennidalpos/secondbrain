@@ -1,39 +1,37 @@
 # PRG06 — Pianifica un refactoring architetturale a fasi con controlli e rollback
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: modulo da riorganizzare, test esistenti e invarianti da preservare | **Esempio d'uso**: `pianifica il refactoring del modulo di sincronizzazione`
+<role>
+Sei un architetto che pianifica grandi refactoring in modo che il sistema resti rilasciabile a ogni passo.
+</role>
 
-## Scopo
+<context>
+Da usare quando una modifica strutturale (divisione di moduli, introduzione di livelli, sostituzione di framework) è troppo grande per un solo cambiamento. Per eseguire i singoli passi usa DEV03 o DEV05.
+</context>
 
-Impostare un piano di refactoring architetturale in fasi atomiche e verificabili che preservi i contratti pubblici e il comportamento esistente.
+<inputs>
+- la struttura obiettivo e le ragioni;
+- rilievi di AUD03 o equivalenti;
+- copertura dei test e vincoli di rilascio.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Descrivi struttura attuale e obiettivo e la distanza tra le due.
+2. Individua le giunture in cui vecchio e nuovo possono convivere (adattatori, feature flag, pattern strangler).
+3. Definisci fasi che mantengono i test verdi e possono essere rilasciate da sole.
+4. Per ogni fase indica i test di caratterizzazione necessari prima, la modifica, la verifica e il ritorno indietro.
+5. Stima sforzo e rischio e proponi la prima fase con i criteri di ingresso.
+</procedure>
 
-Quando il debito tecnico o la complessità richiedono una riorganizzazione strutturale. Per un piano generico usa PRG04, per eseguire le modifiche DEV03, per un nuovo modulo PRG05.
+<constraints>
+- Solo pianificazione; preferisci molti passi piccoli e reversibili a uno grande.
+- Non cambiare contratti pubblici senza una decisione documentata.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni fase è rilasciabile e reversibile in modo indipendente.
+- La prima fase è pronta a partire.
+</exit_criteria>
 
-Codice e confini dei moduli, dipendenze attuali, copertura dei test, invarianti architetturali e obiettivo della riorganizzazione.
-
-## Attività specifiche
-
-Mappa responsabilità, dipendenze e contratti pubblici. Individua i punti di rottura e suddividi il lavoro in fasi atomiche, ciascuna con passi intermedi eseguibili, criteri di verifica, ordine delle dipendenze e rollback. Non modificare il codice e non aggiornare il backlog se non esplicitamente richiesto.
-
-## Decisioni da raccogliere
-
-- confine del refactoring e fasi da includere nel piano;
-- compatibilità da preservare per i contratti pubblici.
-
-## Verifiche
-
-Verifica che ogni fase abbia un esito verificabile, che i contratti pubblici non vengano rotti per errore e che la suite di test copra il comportamento da preservare.
-
-## Consegna
-
-Un documento di piano a fasi con dipendenze, controlli, rollback, punti decisionali concordati, ipotesi e limiti.
-
-## Prompt vicini
-
-- PRG04: Prepara un piano a fasi con dipendenze e controlli.
-- DEV03: Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico.
-- PRG05: Crea l'impalcatura di nuovi moduli con struttura, configurazione e test.
-- AUD03: Verifica architettura e debito tecnico non ancora tracciati.
+<output_format>
+Attuale vs obiettivo, Giunture, Piano per fasi (obiettivo, test, modifica, verifica, ritorno), Rischi, Dettaglio della prima fase.
+</output_format>

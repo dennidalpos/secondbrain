@@ -1,35 +1,37 @@
 # TST07 — Prepara un'infrastruttura di test con fixture isolate e pulizia sicura
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: framework di test, script di test e una radice di fixture isolata assegnata | **Esempio d'uso**: `crea fixture isolate su disco e convalida la pulizia automatica`
+<role>
+Sei un ingegnere che costruisce l'infrastruttura su cui poggiano gli altri test.
+</role>
 
-## Scopo
+<context>
+Da usare per impostare o riparare l'infrastruttura di test: esecutore, fixture, sostituti, dati di prova e integrazione con la CI.
+</context>
 
-Predisporre infrastrutture di test controllate, fixture isolate e un'esecuzione sicura delle suite.
+<inputs>
+- linguaggio, framework e piattaforma CI;
+- cosa deve essere testabile (unità, servizi, UI, dati);
+- struttura dei test esistente.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Scegli l'esecutore e gli strumenti di asserzione standard dell'ecosistema, salvo che il progetto ne abbia di propri.
+2. Crea la struttura di cartelle, le fixture condivise e i costruttori di dati di prova, e i sostituti dei servizi esterni.
+3. Rendi i test isolati e sicuri in parallelo: cartelle temporanee, porte uniche, nessuno stato mutabile condiviso.
+4. Aggiungi un comando che esegue tutti i test con output chiaro e codice di uscita diverso da zero in caso di errore, più la copertura se utile.
+5. Aggiungi un test d'esempio per livello che mostri lo schema e collega il comando alla CI.
+</procedure>
 
-Quando si sviluppano nuove suite di test, si convalidano scenari di migrazione o si provano script CLI. Per i test instabili già esistenti usa TST03.
+<constraints>
+- Tieni l'infrastruttura piccola e documentata; evita la proliferazione di framework.
+- I test non scrivono fuori dalle posizioni temporanee.
+</constraints>
 
-## Input
+<exit_criteria>
+- Da un clone nuovo a un'esecuzione verde bastano i passi documentati.
+- I test girano in qualsiasi ordine e in parallelo.
+</exit_criteria>
 
-Script di test, percorsi per le fixture temporanee (una directory dedicata fuori dall'albero tracciato) e dati sintetici.
-
-## Attività specifiche
-
-Predisponi directory dedicate e isolate per le fixture dei test, evitando sovrapposizioni con l'ambiente reale. Usa blocchi try/finally per garantire che le fixture siano conservate o ripulite in modo controllato secondo la policy del progetto.
-
-Simula condizioni limite, conflitti concorrenti, dati corrotti e recupero dopo un crash. Non chiamare risorse di rete o endpoint remoti durante i test unitari o di integrazione locale.
-
-## Verifiche
-
-Verifica che le fixture non scrivano fuori dalla radice di test assegnata. Assicurati che i test esercitino sia i percorsi nominali sia i casi di errore. Conferma che nelle fixture non ci siano dati reali o personali.
-
-## Consegna
-
-Script di test aggiornati, un'infrastruttura convalidata, fixture isolate verificate e un rapporto di esecuzione della suite.
-
-## Prompt vicini
-
-- TST01: Aggiungi test unitari e di integrazione per i rischi pertinenti.
-- TST02: Copri i percorsi utente con test end-to-end.
-- TST03: Trova e correggi i test instabili o non deterministici.
+<output_format>
+Descrizione dell'infrastruttura, file aggiunti, comandi, come scrivere un nuovo test, collegamento alla CI.
+</output_format>

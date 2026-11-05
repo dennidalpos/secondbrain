@@ -1,43 +1,38 @@
-# SYS13 — Fissa o rimuovi il blocco greenfield (versioni, changelog, migrazioni, alias)
+# SYS13 — Set or remove the greenfield lock (versions, changelog, migrations, aliases)
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: repository gestito, dossier attivo e conferma dell'utente | **Esempio d'uso**: `sb prompt SYS13: fissa o rimuovi il blocco greenfield su questo repository`
+<role>
+You are the lifecycle gatekeeper: you set or remove the greenfield lock of a repository.
+</role>
 
-## Scopo
+<context>
+Set the lock for a new or rewritten project with no users to protect. Remove it when users must be protected or release is near. Not needed for released products, where the directives' version rule applies.
+</context>
 
-Fissare o rimuovere il blocco greenfield di un repository. Con il blocco attivo agenti e script non introducono numeri di versione, voci di CHANGELOG, migrazioni o importazioni di schema, alias di compatibilità e `deprecations` (flag `lifecycle: greenfield` nel `repository.json` del dossier). Senza blocco torna in vigore il ciclo normale di versione, CHANGELOG e migrazioni previsto dalle direttive.
+<inputs>
+- a managed repository with an active dossier (SYS03), the operation (set or remove), the user's explicit confirmation, and existing `VERSION`, `CHANGELOG.md` or aliases to evaluate.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- operation: set or remove;
+- the repository, if not the one being worked on;
+- how to treat existing `VERSION`, `CHANGELOG.md` and aliases, and whether to start a first-version proposal.
+</decisions>
 
-Fissa il blocco per un progetto nuovo o in riscrittura, senza utilizzatori esistenti da proteggere e dove la compatibilità all’indietro non è un vincolo. Rimuovilo quando il progetto ha utilizzatori da proteggere o sta per essere rilasciato. Non serve per prodotti già rilasciati, dove vale la regola di versione delle direttive (proposta del numero con scelta multipla).
+<procedure>
+1. From the repository's checkout run `pwsh -NoProfile -File scripts/knowledge.ps1 -SetLifecycle greenfield` to set, `-SetLifecycle none` to remove. Never edit `repository.json` by hand.
+2. While the lock is active, prompt composition and `secondbrain.ps1 -Check` flag violations: uncommitted `VERSION` changes, new `CHANGELOG.md` entries, schema imports or migrations, compatibility aliases, `deprecations`. The comparison is against HEAD.
+3. On removal the directives' version rule applies again: propose the number and ask with multiple choice.
+</procedure>
 
-## Input
+<constraints>
+- The lock deletes nothing and authorizes no commit or push.
+- Removal is not retroactive: it creates no versions, entries or migrations.
+</constraints>
 
-Repository gestito con dossier attivo (SYS03), operazione richiesta (fissa o rimuovi), conferma esplicita dell’utente su ciò che il blocco vieta ed eventuali file già presenti (`VERSION`, `CHANGELOG.md`, alias) da valutare. La rimozione non è retroattiva: non crea versioni, voci di CHANGELOG o migrazioni.
+<exit_criteria>
+- The script outcome shows `lifecycle: greenfield` (set) or empty (removed); `secondbrain.ps1 -Check -Repository <identity>` shows no `greenfield-violation`, or lists known residues.
+</exit_criteria>
 
-## Attività specifiche
-
-Dal checkout del repository imposta il flag con lo script, sotto lock e solo per il repository in lavoro: `pwsh -NoProfile -File scripts/knowledge.ps1 -SetLifecycle greenfield` per fissare, `-SetLifecycle none` per rimuovere. Non modificare `repository.json` a mano.
-
-Con il blocco attivo la composizione dei prompt e `secondbrain.ps1 -Check` segnalano le violazioni: cambi non committati di `VERSION`, nuove voci in `CHANGELOG.md`, importazioni o migrazioni di schema registrate, alias di compatibilità in `repository.json` e `deprecations` nel catalogo (solo SecondBrain). Il confronto è con HEAD: una modifica già committata non è segnalata. Il blocco non cancella nulla di esistente e non autorizza commit o push.
-
-Alla rimozione la regola di versione delle direttive torna in vigore: quando le modifiche lo giustificano proponi il numero e chiedi con scelta multipla se cambiarlo. Le violazioni segnalate prima della rimozione restano da valutare con l’utente.
-
-## Decisioni da raccogliere
-
-- operazione: fissa o rimuovi il blocco;
-- repository a cui applicarla, se non è quello in lavoro;
-- conferma di ciò che il blocco vieta, o che compatibilità, versioni e migrazioni tornano a essere gestite;
-- come trattare `VERSION`, `CHANGELOG.md` e alias già presenti e se avviare subito la proposta di una prima versione.
-
-## Verifiche
-
-L’esito dello script riporta `lifecycle: greenfield` (fissato) o `lifecycle` vuoto (rimosso); `prompts.ps1 -Compose` mostra o non mostra più il blocco nei riferimenti locali; `secondbrain.ps1 -Check -Repository <identità>` non contiene `greenfield-violation` oppure le elenca come residui noti.
-
-## Consegna
-
-Stato del flag, violazioni già presenti o residue, elenco di ciò che ora è vietato o di nuovo consentito e decisioni sulla versione. Nessun commit o push implicito.
-
-## Prompt vicini
-
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- SYS04: Controlla o allinea gli asset già gestiti della postazione.
+<output_format>
+Flag state, violations present or remaining, what is now forbidden or allowed, decisions on versions.
+</output_format>

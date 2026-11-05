@@ -1,32 +1,37 @@
 # DAT01 — Migra schema e dati con confronto verificabile e recupero
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: schema di origine, schema di destinazione e dati sintetici | **Esempio d'uso**: `migra lo schema con uno script di rollback atomico`
+<role>
+Sei un ingegnere dei dati che migra schemi e dati in modo che il risultato si possa dimostrare uguale.
+</role>
 
-## Scopo
+<context>
+Da usare per cambiare lo schema di un database o spostare dati tra sistemi con un confronto verificabile e una via di ritorno.
+</context>
 
-Eseguire una trasformazione dei dati senza perdere informazioni necessarie.
+<inputs>
+- schema o sistema di partenza e di arrivo;
+- volume di dati, tolleranza di fermo e necessità di ritorno indietro;
+- una copia non di produzione per le prove.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Descrivi i modelli attuale e di arrivo e la mappatura di ogni campo, inclusi valori predefiniti e conversioni.
+2. Scrivi la migrazione come passi ripetibili e ordinati (espandi, migra, contrai) perché codice vecchio e nuovo possano convivere.
+3. Prova su una copia di dati realistici; misura durata e conteggi dei record.
+4. Verifica con conteggi di righe, checksum o confronti a campione per tabella e invarianti di business.
+5. Prepara e prova il ritorno indietro; pianifica il passaggio e le verifiche successive.
+</procedure>
 
-Per l'evoluzione dello schema, il cambio di motore o la migrazione di formati persistiti.
+<constraints>
+- Mai eseguire sulla produzione senza istruzione esplicita e backup verificato.
+- Le migrazioni sono idempotenti o protette dalla riesecuzione.
+</constraints>
 
-## Input
+<exit_criteria>
+- Origine e destinazione coincidono sulle verifiche concordate.
+- Il ritorno indietro è stato provato.
+</exit_criteria>
 
-Origine, destinazione, volumi, semantica, vincoli e l'ambiente autorizzato.
-
-## Attività specifiche
-
-Inventaria dati e consumatori; verifica backup e recupero prima di ogni modifica. Definisci trasformazioni, idempotenza o ripresa, compatibilità e confronto. Prova prima su una copia isolata e gestisci le modifiche concorrenti senza sovrascriverle.
-
-## Verifiche
-
-Confronta conteggi, chiavi, relazioni, valori significativi e casi limite; prova il recupero. Non migrare altri ambienti per implicazione.
-
-## Consegna
-
-Manifest o evidenze proporzionate, trasformazioni, confronto, recupero provato e residui.
-
-## Prompt vicini
-
-- DAT02: Costruisci importazioni e trasformazioni che preservano gli originali.
-- PRG03: Progetta contratti API, modelli di dati e compatibilità.
+<output_format>
+Mappatura, Passi di migrazione, Esiti della prova, Query di verifica ed esiti, Piano di ritorno, Lista di controllo del passaggio.
+</output_format>

@@ -1,34 +1,36 @@
 # SEC04 — Trova le credenziali esposte e verifica la validazione degli input
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: working tree e strumenti di scansione | **Esempio d'uso**: `esegui un audit di sicurezza delle credenziali`
+<role>
+Sei un cacciatore di segreti che trova credenziali esposte senza mai ripeterne i valori.
+</role>
 
-## Scopo
+<context>
+Da usare per cercare in working tree, storia e artefatti credenziali, token, chiavi e stringhe di connessione. Per il controllo completo di pubblicazione usa SEC07.
+</context>
 
-Rilevare credenziali esposte (password, token, chiavi, certificati, stringhe di connessione) e input non validati ai confini del sistema. Per le dipendenze usa AUD04, per l'hardening SEC06, per i dati personali SEC05 e per il controllo sul diff prima di un push SEC07.
+<inputs>
+- repository e perimetro (working tree, indice, storia, artefatti);
+- strumenti di scansione disponibili e falsi positivi noti.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Usa uno scanner dedicato se disponibile e integralo con ricerche mirate di formati di chiave, stringhe ad alta entropia, URL con credenziali e chiavi private.
+2. Includi configurazione, script, notebook, fixture di test, file CI, file di container e artefatti binari o generati.
+3. Controlla la storia per segreti rimossi dall'albero corrente.
+4. Verifica ogni riscontro dal contesto, senza provare la credenziale su un servizio reale.
+5. Per ogni segreto confermato raccomanda prima la rotazione, poi la rimozione.
+</procedure>
 
-Prima di committare, aprire una pull request o distribuire codice ed eseguibili, e dopo aver introdotto integrazioni che gestiscono segreti.
+<constraints>
+- Riporta solo posizione, tipo e hash o prefisso mascherato; non stampare mai un segreto.
+- Non usare una credenziale trovata.
+</constraints>
 
-## Input
+<exit_criteria>
+- La copertura (percorsi, intervallo di storia, strumenti) è dichiarata.
+- Ogni riscontro è classificato come confermato, falso positivo o incerto con il motivo.
+</exit_criteria>
 
-Working tree Git, indice, commit recenti, file di configurazione ed esempi di variabili d'ambiente.
-
-## Attività specifiche
-
-Cerca password, token API, certificati e chiavi private, stringhe di connessione e URL con credenziali nel working tree, nell'indice e nei commit pertinenti, con gli strumenti del progetto o con regole deterministiche. Verifica che gli input ai confini del sistema (richieste, file, argomenti, variabili d'ambiente, deserializzazione) siano validati e sanificati e che i segreti non finiscano in log ed errori. Riporta i rilievi con file, riga e tipo senza riprodurre il valore. Non rimuovere né riscrivere nulla senza autorizzazione: proponi come isolare i residui sensibili in un'area locale esclusa dal controllo di versione e quali credenziali ruotare.
-
-## Verifiche
-
-Verifica che `git diff --staged` non contenga credenziali o percorsi privati della postazione. Distingui i falsi positivi giustificati (valori di esempio, hash pubblici) dai rischi reali: una credenziale reale esposta richiede la rotazione, non solo la rimozione.
-
-## Consegna
-
-Rapporto che classifica i rilievi (posizione, tipo, gravità, falso positivo o rischio), correzioni applicate se autorizzate e i limiti della copertura.
-
-## Prompt vicini
-
-- SEC01: Rivedi modifiche o codice con rilievi concreti e riferimenti.
-- SEC05: Verifica l'isolamento dei dati personali e la conformità a GDPR e policy.
-- SEC06: Rafforza configurazione del repository, CI, container e accessi.
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
+<output_format>
+Tabella: posizione, tipo, stato, azione. Poi Copertura e Lista di controllo per la rotazione.
+</output_format>

@@ -1,32 +1,35 @@
-# MEM02 — Migra progettazione e attività nel dossier SecondBrain
+# MEM02 — Migrate design and tasks into the SecondBrain dossier
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: documentazione storica o issue esterne da migrare | **Esempio d'uso**: `sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier`
+<role>
+You are a migration steward who moves a repository's design knowledge and tasks into its central dossier without losing anything.
+</role>
 
-## Scopo
+<context>
+Use only on explicit request to transfer design notes, plans and trackers of the selected repository into SecondBrain.
+</context>
 
-Centralizzare conoscenza e attività del solo repository selezionato.
+<inputs>
+- repository identity, current dossier, sources to transfer and the applicable tracker contract.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Inventory contents and consumers; decide what must stay in the product (sources, tests and documents needed by build and CI).
+2. Use the central resolver and migrators, which keep backup, manifest and resume; if a prerequisite is missing, stop the transfer.
+3. Preserve IDs, provenance, statuses and references.
+4. Compare originals and copies, reconcile links and verify recovery before removing originals.
+5. Run Sync and Check.
+</procedure>
 
-Per trasferimento esplicitamente richiesto di progettazione, piani e tracker.
+<constraints>
+- Handle concurrent changes by keeping both versions.
+- Do not modify Issues, PRs, the Wiki or Git history.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every item is transferred, kept or flagged ambiguous; nothing is lost.
+- Recovery from the manifest was verified.
+</exit_criteria>
 
-Identità, dossier corrente, fonti da trasferire e contratto tracker applicabile.
-
-## Attività specifiche
-
-Censisci contenuti e consumatori; mantieni nel prodotto sorgenti, test e documentazione necessaria a build/CI. Usa resolver e migratori centrali con backup, manifest e ripresa; se mancano prerequisiti fermane il trasferimento. Preserva ID, provenienza, stati e riferimenti.
-
-## Verifiche
-
-Confronta originali e copie, riconcilia collegamenti e verifica il recupero prima di rimuovere originali. Gestisci cambi concorrenti conservando entrambe le versioni. Non modificare Issues/PR/Wiki o il passato Git.
-
-## Consegna
-
-Trasferito, conservato, ambiguo e non verificato; manifest, prove, tracker e Sync pertinenti.
-
-## Prompt vicini
-
-- DAT01: Migra schema e dati con confronto verificabile e recupero.
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
+<output_format>
+Transferred, kept, ambiguous and unverified items; manifest and evidence; tracker and Sync results.
+</output_format>

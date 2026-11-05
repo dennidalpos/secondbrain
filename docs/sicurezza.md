@@ -26,7 +26,7 @@ Non vengono mai toccati: il tuo codice, le password, gli archivi di accesso. Per
 
 ## Dove sono i backup
 
-In `.runtime/hosts/<id>/backups/`, sul tuo PC. I file MCP sono in `.runtime/backup/mcp-pairing/`. Nulla finisce su GitHub e nulla viene cancellato in automatico.
+In `.runtime/hosts/<id>/backups/`, sul tuo PC. I file MCP sono in `.runtime/backups/mcp-pairing/`. Nulla finisce su GitHub e nulla viene cancellato in automatico.
 
 Per un archivio dei tuoi appunti:
 

@@ -1,39 +1,36 @@
 # TST06 — Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: flusso, carico rappresentativo, ambiente, metrica e soglia | **Esempio d'uso**: `riduci i tempi di discovery degli host e l'uso di memoria`
+<role>
+Sei un ingegnere delle prestazioni che migliora ciò che il profiler dimostra lento.
+</role>
 
-## Scopo
+<context>
+Da usare per misurare e ottimizzare un collo di bottiglia specifico. Per individuarlo prima usa AUD05; per le query del database DAT04.
+</context>
 
-Ridurre tempo, memoria e I/O con modifiche guidate dalle misure: un singolo collo di bottiglia dimostrabile oppure, con un profilo e obiettivi già disponibili, più moduli.
+<inputs>
+- scenario, metrica e obiettivo;
+- ambiente e strumenti di benchmark o profilazione disponibili.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Crea un benchmark ripetibile per lo scenario e registra la base con la sua variabilità.
+2. Profila e scegli il singolo costo maggiore.
+3. Cambia una cosa, rimisura e tieni la modifica solo se il guadagno supera la variabilità.
+4. Verifica la correttezza dopo ogni modifica con i test esistenti.
+5. Fermati all'obiettivo o quando i guadagni residui non valgono la complessità.
+</procedure>
 
-Quando tempi, memoria, I/O o reattività non raggiungono un obiettivo. Per la sola analisi senza modifiche, o se mancano misure, usa prima AUD05.
+<constraints>
+- Nessuna ottimizzazione senza una misura prima e dopo.
+- Mantieni il codice leggibile; documenta ogni ottimizzazione non ovvia.
+</constraints>
 
-## Input
+<exit_criteria>
+- La metrica raggiunge l'obiettivo o la distanza residua è spiegata.
+- I test passano e i risultati sono riproducibili.
+</exit_criteria>
 
-Flusso o perimetro, carico rappresentativo, ambiente, metrica e soglia; per un'ottimizzazione ampia il profilo e la baseline (AUD05), gli obiettivi e i vincoli di compatibilità e leggibilità.
-
-## Attività specifiche
-
-Raccogli baseline ripetute e un profilo; individua il percorso dominante. Ordina le modifiche per beneficio misurato: algoritmi e strutture dati, lavoro ripetuto o memorizzabile in cache, chiamate di I/O e di rete raggruppabili, allocazioni, avvio, dipendenze pesanti. Applica una modifica alla volta alla causa misurata, mantenendo accettabili correttezza, leggibilità e costi operativi. Evita ottimizzazioni speculative e micro-ottimizzazioni senza effetto misurabile.
-
-## Decisioni da raccogliere
-
-- obiettivi misurabili, soglie e priorità;
-- compromessi accettati tra leggibilità e prestazioni (solo ottimizzazione ampia).
-
-## Verifiche
-
-Confronta prima e dopo sullo stesso carico, riportando dispersione e condizioni; esegui i test funzionali, verifica che l'eventuale complessità aggiunta sia giustificata dal guadagno e scarta e annulla le modifiche senza beneficio. Non dedurre benefici dalla sola lettura del codice.
-
-## Consegna
-
-Misure confrontabili, modifiche, benefici osservati, compromessi accettati e i limiti del benchmark.
-
-## Prompt vicini
-
-- OPS03: Aggiungi log, metriche e diagnostica utili al problema.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
-- AUD05: Verifica le prestazioni e trova i percorsi critici senza modificare il codice.
-- DEV03: Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico.
+<output_format>
+Base, Modifiche (ciascuna con numeri prima/dopo), Risultato finale vs obiettivo, Compromessi, Come rieseguire il benchmark.
+</output_format>

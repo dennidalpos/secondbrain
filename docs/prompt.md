@@ -1,45 +1,36 @@
 # Prompt
 
-65 prompt generici in 12 aree, più 17 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+91 prompt in un'unica lista, in 14 aree. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list
-sb prompt maintenance
+sb prompt ambito test
 sb prompt mostra DEV01
 sb prompt DEV01: aggiungi l'esportazione in PDF
 ```
 
-Elenco completo: [catalogo generico](../direttive/prompts/README.it.md) ([English](../direttive/prompts/README.md)) e [prompt di manutenzione](../direttive/prompts/README.maintenance.it.md) ([English](../direttive/prompts/README.maintenance.md)); da chat `sb prompt maintenance`.
+Elenco completo: [catalogo](../direttive/prompts/README.it.md) ([English](../direttive/prompts/README.md)). I prompt che gestiscono SecondBrain stesso (memoria `MEM`, sistema `SYS`) sono nella stessa lista.
 
-## Come è fatto: CO-STAR
+## Come è fatta una scheda
 
-Ogni prompt composto da SecondBrain ha sempre sei parti, nello stesso ordine.
+Le schede sono scritte in inglese (lingua di riferimento), con la traduzione italiana in `direttive/prompts/it/` a tuo comodo. Ogni scheda ha le stesse sezioni, delimitate da tag XML, come raccomandato dalle guide di prompt engineering di Anthropic, OpenAI e Google.
 
-```mermaid
-flowchart LR
-    C["Context<br/>la situazione"] --> O["Objective<br/>cosa vuoi"]
-    O --> S["Style<br/>come lavorare"]
-    S --> T["Tone<br/>come scrivere"]
-    T --> A["Audience<br/>per chi"]
-    A --> R["Response<br/>cosa consegnare"]
-```
-
-| Parte | Da dove viene |
+| Tag | Cosa contiene |
 |---|---|
-| Context | Progetto, cartelle, quando usare il prompt |
-| Objective | La tua richiesta e lo scopo del prompt |
-| Style | Attività, verifiche, come fare domande |
-| Tone | Diretto e fattuale |
-| Audience | Chi legge il risultato, secondo l'area |
-| Response | Cosa consegnare, quando il lavoro è completo (stessa definizione per tutti i prompt) e come chiuderlo |
+| `role` | Chi è l'agente per questo compito |
+| `context` | Quando usare il prompt e con quali limiti |
+| `inputs` | Cosa serve prima di iniziare |
+| `decisions` | Scelte da chiedere all'utente (solo dove servono) |
+| `procedure` | Passi numerati |
+| `constraints` | Cosa non fare |
+| `exit_criteria` | Quando il lavoro è finito, in termini verificabili |
+| `output_format` | Come riportare il risultato |
 
-Vale per i prompt composti (`sb prompt CODICE: obiettivo`). `sb prompt mostra` fa vedere la scheda sorgente, con le sue sezioni.
+Il prompt composto (`sb prompt CODICE: obiettivo`) riunisce il tuo obiettivo, il contesto del repository e la scheda in un unico testo XML con `task`, `context`, le sezioni della scheda, `operating_rules` e `next_steps`. Nel framework CO-STAR: `task` = Objective, `context` = Context, `role` = Audience e Style, `constraints` = Style e Tone, `output_format` = Response. La chiusura cambia con la modalità: un prompt di sola lettura riporta senza modificare nulla, uno di scrittura verifica e aggiorna il dossier solo per i prompt di memoria e sistema.
 
-Ogni scheda esiste in italiano e in inglese. La lingua di visualizzazione segue `-Language` (`prompts.ps1`), `SECONDBRAIN_LANG` o la lingua del sistema; il tool MCP accetta `language` (`en|it`) su `list_prompts`, `get_prompt_home` e `get_prompt`. Le schede core nascono in inglese (traduzione in `direttive/prompts/it/`), quelle maintenance in italiano (traduzione in `direttive/prompts/en/`); titolo, intestazione e prompt vicini ripetono i valori `i18n` del catalogo. La chiusura dei prompt core è neutra (criteri verificati, documentazione aggiornata, residui dichiarati, nessun riferimento a SecondBrain); quella dei prompt maintenance aggiorna tracker, `memory.md` e `context.md` del dossier. Gli indici sono generati per lingua e pacchetto con `scripts/build-prompts.ps1`.
+`sb prompt mostra` fa vedere la scheda sorgente. La lingua di visualizzazione segue `-Language` (`prompts.ps1`), `SECONDBRAIN_LANG` o la lingua del sistema; il tool MCP accetta `language` (`en|it`). Gli indici sono generati per lingua con `scripts/build-prompts.ps1`.
 
 ## Le aree
-
-Pacchetto core (generico, schede in inglese, valido per qualunque repository):
 
 | Codice | Area |
 |---|---|
@@ -55,8 +46,10 @@ Pacchetto core (generico, schede in inglese, valido per qualunque repository):
 | DOC | Documentazione |
 | REP | Igiene del repository |
 | GOV | Licenze e conformità |
+| MEM | Memoria e continuità di SecondBrain |
+| SYS | Sistema e manutenzione centrale |
 
-Pacchetto maintenance (`sb prompt maintenance`): MEM (memoria e continuità) e SYS (sistema e manutenzione centrale), per gestire SecondBrain stesso.
+I codici sono stabili e non vengono riutilizzati: dopo un accorpamento restano dei vuoti nella numerazione (per esempio non esiste `SEC08`, confluito in `SEC07`).
 
 ## Le icone
 

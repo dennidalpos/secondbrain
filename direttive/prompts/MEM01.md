@@ -1,42 +1,43 @@
-# MEM01 — Allinea istruzioni locali, contesto, memoria e tracker
+# MEM01 — Align local instructions, context, memory and tracker
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: decisioni o modifiche recenti non registrate | **Esempio d'uso**: `sb prompt MEM01: allinea context.md e memory.md dopo completamento task`
+<role>
+You are a documentation steward for a managed repository: you make operational sources consistent with the verified code.
+</role>
 
-## Scopo
+<context>
+Use to realign the dossier (context, memory, tracker) and local instructions with the repository as it really is.
+</context>
 
-Rendere le fonti operative coerenti con il repository verificato.
+<inputs>
+- the repository, its applicable instructions, the current dossier and the authoritative tracker.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- documents to align (context, memory, tracker, local instructions);
+- news to record as a decision, gotcha or leftover;
+- compaction with SYS05 when the startup package exceeds the budget.
+</decisions>
 
-Per riallineamento documentale e delle informazioni durevoli del prodotto.
+<procedure>
+1. Compare code, manifests and commands with the documents; list discrepancies.
+2. Record each lasting decision in `memory.md` on one line in the literal format "Decisione: … — Motivo: …", gotchas next to it.
+3. Update architecture and status in `context.md` and tasks in the existing tracker; do not duplicate tasks.
+4. Edit local instructions only outside managed blocks; propose new common rules separately.
+5. Update the TOC in `index.md` and keep the startup package lean (30,000 characters, a cap on the first load only) without truncating; compact with SYS05 if needed.
+6. After relevant changes run `secondbrain.ps1 -Sync` and `-Check` with a write session.
+</procedure>
 
-## Input
+<constraints>
+- Minimal-summary rule: record only key operations and verified news, no chronicles.
+- Do not run application tasks, builds or tests of products from central maintenance.
+- Working output stays in `SecondBrain/.runtime`.
+</constraints>
 
-Repository, istruzioni applicabili, dossier corrente e tracker autorevole.
+<exit_criteria>
+- Documents, tracker and code tell the same story; links and schema are valid.
+- Anything only documented, not verified, is not declared verified.
+</exit_criteria>
 
-## Attività specifiche
-
-Confronta codice, manifest e comandi con i documenti. Registra decisioni/gotcha in memoria, ogni decisione durevole in una riga «Decisione: … — Motivo: …», architettura/stato nel contesto e attività nel tracker esistente. Modifica istruzioni locali fuori dai blocchi gestiti; proponi separatamente nuove regole comuni. Applica tassativamente la regola di sintesi minima: sintetizza memorie, contesti e dossier al minimo indispensabile registrando soltanto le operazioni chiave effettuate.
-
-Aggiorna il TOC index.md e mantieni il pacchetto iniziale snello entro 30.000 caratteri (tetto del solo primo caricamento) senza troncare. Carica tracker e storico in modo selettivo; per la sintesi revisionata usa SYS05. Tutti gli output di lavoro, incluse build/cache dove supportato e verificato, risiedono in SecondBrain/.runtime.
-
-## Decisioni da raccogliere
-
-- documenti e fonti da allineare (scelta multipla: contesto, memoria, tracker, istruzioni locali);
-- novità da registrare come decisione, gotcha o residuo;
-- compattazione con SYS05 quando il pacchetto supera il budget.
-
-## Verifiche
-
-Verifica veridicità, link, schema e storico; evita cronache ridondanti. Non eseguire task applicativi dalla manutenzione centrale. Dopo modifiche pertinenti esegui Sync e Check con sessione di scrittura.
-
-## Consegna
-
-Informazioni riconciliate, evidenze e discrepanze residue senza dichiarare verificato ciò che è soltanto documentato.
-
-## Prompt vicini
-
-- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
-- MEM04: Elenca e descrivi le attività del tracker e i problemi che risolvono.
-- DOC01: Scrivi guide e README coerenti con il prodotto reale.
-- SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
+<output_format>
+Reconciled information, evidence, remaining discrepancies, Sync/Check results.
+</output_format>

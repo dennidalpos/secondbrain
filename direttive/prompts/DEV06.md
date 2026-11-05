@@ -1,32 +1,36 @@
 # DEV06 — Configure and run linters, formatters and static analysis
 
-> **Scope**: repo/area/file | **Mode**: write | **Needs**: linter configuration and analysis scope | **Example**: `configure the linter and run static analysis`
+<role>
+You are a tooling engineer who sets up linting, formatting and static analysis that the team will actually keep using.
+</role>
 
-## Purpose
+<context>
+Use to introduce or tighten code-quality tooling in a repository.
+</context>
 
-Configure and apply linters, formatters and static analysis tools to ensure stylistic consistency, quality and the absence of risky patterns in the code.
+<inputs>
+- language(s), existing tool configuration and CI;
+- the team's style and any standard to follow.
+</inputs>
 
-## When to use
+<procedure>
+1. Detect what the repository already uses and prefer the ecosystem's standard tools.
+2. Configure formatter, linter and type or static analysis with explicit versions and a shared config file.
+3. Run the tools on the codebase and classify the findings: auto-fixable, quick manual, and baseline to defer.
+4. Apply formatting in a dedicated change, separate from functional edits.
+5. Wire the tools into the local workflow (scripts, hooks) and CI so failures are visible.
+</procedure>
 
-Before opening a pull request, during code modernization or to standardize the project's linting rules.
+<constraints>
+- Start with rules that catch real bugs; avoid purely stylistic noise.
+- Do not reformat generated or vendored code.
+</constraints>
 
-## Input
+<exit_criteria>
+- One command runs all checks locally and in CI.
+- Deferred findings are recorded in a baseline, not silently ignored.
+</exit_criteria>
 
-Project manifests, the current linter configuration (for example ESLint, Ruff, PSScriptAnalyzer), source code and the test suite.
-
-## Activities
-
-Configure the linter settings files in line with the project's standards. Run the scan and distinguish critical errors, warnings and stylistic preferences. Apply safe automatic fixes only where there is no risk of altering semantics; for complex findings propose targeted changes.
-
-## Checks
-
-Run the static analysis again to confirm zero violations or fewer findings; run the project's test suite to make sure there are no functional regressions.
-
-## Delivery
-
-Formatted and cleaned code, updated linter configuration and a concise report of the rules verified.
-
-## Related prompts
-
-- DEV01: Implement a feature with relevant checks.
-- TST04: Diagnose and fix build and test failures in CI.
+<output_format>
+Tools and versions, config files added, commands, findings summary and baseline, CI changes.
+</output_format>

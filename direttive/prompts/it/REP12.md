@@ -1,39 +1,41 @@
 # REP12 — Consolida i branch con merge --no-ff ed elimina quelli integrati
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: branch locali e remoti, ramo base e working tree pulito | **Esempio d'uso**: `consolida i branch conclusi in master`
+<role>
+Sei un ingegnere di rilascio che integra nel branch base i branch laterali conclusi con una storia tracciabile.
+</role>
 
-## Scopo
+<context>
+Da usare quando branch laterali, worktree o fork si sono accumulati e il branch base deve raccoglierli prima di un rilascio o di una pulizia.
+</context>
 
-Portare il lavoro concluso dei branch laterali nel ramo base con un merge commit tracciabile e rimuovere i branch interamente integrati, senza perdere lavoro unico.
+<inputs>
+- `git branch -a -vv`, `git worktree list`, il branch base e l'ordine di unione;
+- regole di protezione e revisione dei branch del remoto.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- branch da unire e il loro ordine;
+- branch da eliminare, locali e remoti;
+- come risolvere i conflitti.
+</decisions>
 
-Quando si sono accumulati branch laterali, worktree o diramazioni del lavoro e il ramo base deve raccoglierli prima di un rilascio o di una pulizia.
+<procedure>
+1. Registra lo stato: albero pulito, branch corrente, `git fetch`, divergenza di ogni branch (`git rev-list --left-right --count`), commit unici e se già uniti.
+2. Esegui le verifiche del progetto su ogni branch da unire.
+3. Unisci un branch alla volta con `git merge --no-ff` nell'ordine concordato; fermati al primo conflitto e risolvilo con l'utente.
+4. Dopo ogni unione esegui le verifiche e confronta con lo stato registrato.
+5. Elimina un branch solo dopo conferma e solo quando `git branch --merged` dimostra che è integrato.
+</procedure>
 
-## Input
+<constraints>
+- Nessun rebase, squash o force push di tua iniziativa; nulla viene inviato senza richiesta specifica.
+- I branch con lavoro unico, o i worktree in uso, vengono tenuti e segnalati.
+</constraints>
 
-`git branch -a -vv`, `git worktree list`, il ramo base, l'ordine di merge richiesto e le regole di protezione o revisione del remoto.
+<exit_criteria>
+- Il branch base contiene ogni commit di unione; le verifiche passano; nessun commit unico è perso.
+</exit_criteria>
 
-## Attività specifiche
-
-Prima di unire registra lo stato: working tree e indice puliti, branch corrente, `git fetch`, divergenza di ogni branch dal ramo base (`git rev-list --left-right --count`), commit unici di ciascuno e se è già contenuto (`git branch --merged`). Esegui i controlli del progetto su ogni branch che intendi unire. Unisci un branch alla volta con `git merge --no-ff`, nell'ordine concordato, fermandoti al primo conflitto per risolverlo con l'utente; mai rebase, squash o force push di tua iniziativa. Dopo ogni merge esegui i controlli pertinenti e confronta il risultato con lo stato registrato prima. Elimina un branch (`git branch -d`, sul remoto `git push --delete`) solo dopo conferma e solo se `git branch --merged` prova che è integrato; un branch con lavoro unico o con un worktree in uso resta e va segnalato.
-
-## Decisioni da raccogliere
-
-- branch da unire e relativo ordine;
-- branch da eliminare, locali e remoti, dopo il merge;
-- come risolvere un conflitto.
-
-## Verifiche
-
-Controlla prima e dopo il merge che il working tree sia pulito, che il ramo base contenga ogni merge commit, che i controlli del progetto passino, che nessun commit unico sia andato perso (`git log` rispetto alla punta precedente) e che i branch eliminati fossero integrati. Nulla viene inviato con push senza richiesta specifica.
-
-## Consegna
-
-I merge commit creati, i branch eliminati e quelli conservati con il motivo, i controlli eseguiti e quanto resta all'utente.
-
-## Prompt vicini
-
-- OPS05: Prepara commit e pull request con perimetro, messaggio e controlli verificati.
-- REP04: Rimuovi residui e codice inutilizzato dopo la verifica.
-- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+<output_format>
+Commit di unione creati, branch eliminati e tenuti con il motivo, verifiche eseguite, residui per l'utente.
+</output_format>

@@ -1,34 +1,33 @@
-# MEM04 — Elenca e descrivi le attività del tracker e i problemi che risolvono
+# MEM04 — List and describe the tracker tasks and the problems they solve
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: tracker del dossier di repository | **Esempio d'uso**: `sb prompt MEM04: elenca attivita e problemi del tracker`
+<role>
+You are a project analyst who presents the tracker clearly.
+</role>
 
-## Scopo
+<context>
+Use at the start of a batch, in a status review or before picking the next task. It describes the tracker as it is; to compare with the code use REP08, to execute a task REP01.
+</context>
 
-Esporre in modo strutturato e comprensibile le attività tracciate nel tracker del repository, evidenziando il problema reale che ciascuna risolve, le dipendenze e lo stato. Descrive il tracker così com'è: per confrontarlo con il codice reale usa REP08, per eseguire un task REP01.
+<inputs>
+- the dossier of the current repository with a verified `tracker.json`, `context.md` and the brief.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Read the tracker declared by `repository.json`, with no fallback.
+2. Group tasks by status (open, in progress, blocked, done).
+3. For each task summarize the goal, the real problem it solves, acceptance criteria and blocking dependencies.
+4. Order by priority and show which tasks are ready and which wait to be unblocked.
+</procedure>
 
-All'avvio di un lotto di lavoro, durante il punto della situazione con l'utente o prima di selezionare il prossimo task da affrontare.
+<constraints>
+- Read-only; do not duplicate tasks or treat hypotheses as facts.
+- Identifiers must match the tracker schema; cited dependencies must exist.
+</constraints>
 
-## Input
+<exit_criteria>
+- Blocked tasks give the real reason; ready tasks are clearly marked.
+</exit_criteria>
 
-Dossier del repository corrente con tracker.json verificato, context.md e brief o task description.
-
-## Attività specifiche
-
-Leggi il tracker dichiarato da repository.json senza fallback. Raggruppa i task per stato (aperti, in corso, bloccati, conclusi). Per ciascun task sintetizza l'obiettivo, il problema pratico risolto, i criteri di accettazione e le dipendenze bloccanti. Non duplicare compiti né interpretare ipotesi come fatti.
-
-## Verifiche
-
-Accerta che gli identificatori corrispondano allo schema del tracker, che le dipendenze citate esistano e che i task bloccati riportino il motivo reale.
-
-## Consegna
-
-Prospetto chiaro e ordinato per priorità delle attività, con indicazione immediata di quali sono pronte all'esecuzione e quali attendono sblocco.
-
-## Prompt vicini
-
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
-- REP08: Ispeziona il repo e trova i task residui rispetto al codice reale.
-- REP01: Completa il prossimo task pronto del repository aperto.
+<output_format>
+Overview by status ordered by priority: ID, goal, problem solved, dependencies; Ready now; Waiting.
+</output_format>

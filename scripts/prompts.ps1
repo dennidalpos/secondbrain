@@ -9,7 +9,7 @@ pwsh -NoProfile -File scripts/prompts.ps1 -List -Compact
 .EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1 -List -Category TST
 .EXAMPLE
-pwsh -NoProfile -File scripts/prompts.ps1 -List -Compact -Pack maintenance
+pwsh -NoProfile -File scripts/prompts.ps1 -Show -Prompt TST04
 .EXAMPLE
 pwsh -NoProfile -File scripts/prompts.ps1 -Compose -Prompt TST04 -Objective 'Diagnostica il job Windows'
 #>
@@ -24,7 +24,6 @@ param(
     [Parameter(Mandatory,ParameterSetName='Show')]
     [Parameter(Mandatory,ParameterSetName='Compose')][ValidatePattern('^([A-Z]{2,4}[0-9]{2}|pmt-[0-9a-f]{8})$')][string]$Prompt,
     [Parameter(ParameterSetName='List')][string]$Category,
-    [Parameter(ParameterSetName='List')][ValidateSet('core','maintenance','all')][string]$Pack='core',
     [Parameter(ParameterSetName='Compose')][string]$Objective,
     [Parameter(ParameterSetName='Compose')][string]$OutputPath,
     [Parameter(ParameterSetName='Home')][Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
@@ -68,13 +67,11 @@ try {
         $homeState=if($RepositoryPath){Get-SBWorkflowState $brain $RepositoryPath}else{$null}
         Format-SBWorkflowHome $brain $catalog $homeState
     } elseif($PSCmdlet.ParameterSetName -eq 'List'){
-        Format-SBWorkflowList $catalog $Category -Compact:$Compact -Pack $Pack
+        Format-SBWorkflowList $catalog $Category -Compact:$Compact
     } elseif($Show){
         $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
         if($resolution.warning){Write-Warning $resolution.warning}
         $selected=@($resolution.prompt)
-        $showText=Get-SBWorkflowText $selected[0]
-        $showText.catalog+' — '+$showText.mode.ToLowerInvariant()+' '+$selected[0].mode+'; '+$showText.target+' '+$selected[0].target+'; ID '+$selected[0].id
         $showBody=Read-SBWorkflowPrompt $brain $selected[0] $catalog
         Format-SBWorkflowCard $selected[0] $showBody
         $showBody

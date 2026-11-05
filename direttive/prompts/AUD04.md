@@ -1,33 +1,36 @@
 # AUD04 — Audit dependencies: outdated, vulnerable, unused and licenses
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: manifests, lock files and access to package registries or dependency advisories | **Example**: `dependency audit before the upgrade`
+<role>
+You are a dependency auditor concerned with security, maintenance and licensing.
+</role>
 
-## Purpose
+<context>
+Use to understand the health of direct and transitive dependencies before an upgrade, a release or a security review. To perform updates use DEV04.
+</context>
 
-Take stock of direct and transitive dependencies to decide what to update, replace or remove.
+<inputs>
+- manifests and lock files;
+- supported platforms and runtime versions;
+- policy on licenses and vulnerabilities, if any.
+</inputs>
 
-## When to use
+<procedure>
+1. List direct and transitive dependencies with their locked versions from the lock files.
+2. Check each for known vulnerabilities, deprecation, abandonment and available updates using official advisories and registries.
+3. Flag unpinned, duplicated, unused and overly broad dependencies.
+4. Group findings by severity and by the effort to resolve them, noting breaking changes in upgrade paths.
+</procedure>
 
-Before updating (DEV04), before a release or periodically.
+<constraints>
+- Read-only; install nothing and run no dependency scripts you have not reviewed.
+- Cite the advisory or registry entry for every vulnerability.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every finding names the package, version, issue, source and suggested action.
+- Packages that could not be checked are listed.
+</exit_criteria>
 
-Manifests and lock files, reachable package registries, known advisories and the project's license policy.
-
-## Activities
-
-List direct and transitive dependencies with the version in use and the latest compatible one. Flag those that are unmaintained or deprecated, with recorded advisories (check official sources such as the OSV database and GitHub advisories), not referenced by the code, or with incompatible or undeclared licenses. Rank by urgency: exploitable vulnerability, end of support, major versions behind.
-
-## Checks
-
-Do not infer a vulnerability from the version number alone: check that it applies to the code path actually used. Check apparently unused dependencies by hand (dynamic use, plugins, build scripts). Do not modify manifests or lock files.
-
-## Delivery
-
-Inventory with status per dependency, update priority, risks and proposed work items for DEV04; licenses to examine further with GOV01.
-
-## Related prompts
-
-- AUD01: Run a full repository audit with a single report, optionally exported.
-- DEV04: Update dependencies checking compatibility and regressions.
-- GOV01: Check open source licenses, file compliance and SPDX headers.
+<output_format>
+Table: package, current, latest, issue, severity, source, suggested action; then Unused or duplicated, and Upgrade order.
+</output_format>

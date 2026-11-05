@@ -1,34 +1,35 @@
 # REP08 — Inspect the repo and find leftover tasks against the real code
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: working tree, recent history and any backlog or notes | **Example**: `inspect the repo and detect leftover tasks`
+<role>
+You are an auditor who compares what the tracker says with what the code does.
+</role>
 
-## Purpose
+<context>
+Use to inspect the repository and find leftover tasks, drift between the backlog and reality, and unfinished work.
+</context>
 
-Find unfinished tasks, half-done work, untracked technical debt and discrepancies between what the notes or backlog declare and the repository's real code. It does not just list the backlog nor load context: it compares what is declared with what exists.
+<inputs>
+- the tracker and context (MEM04, MEM06);
+- the repository code, TODO/FIXME markers and tests.
+</inputs>
 
-## When to use
+<procedure>
+1. Read the tracker and list open, done and blocked items with their acceptance criteria.
+2. For done items check the code, tests and documents actually satisfy the criteria.
+3. For open items check whether the work already exists or has been partly done.
+4. Search code and docs for TODO, FIXME, skipped tests, stubs and commented-out blocks.
+5. Propose new tasks for confirmed leftovers (no duplicates) and corrections for wrong statuses.
+</procedure>
 
-At the start of a new session, before planning a batch of work, during a handover or when earlier work is suspected to have been interrupted.
+<constraints>
+- Read-only; propose tracker changes, do not apply them.
+- Separate confirmed findings from suspicions.
+</constraints>
 
-## Input
+<exit_criteria>
+- Each proposed change cites code or test evidence.
+</exit_criteria>
 
-Working tree and Git index, recent commit history, the backlog and any notes or project documentation, and any transient files or leftover notes.
-
-## Activities
-
-Inspect the Git state: working tree, staged but uncommitted files, untracked files or orphaned local branches. Search the source for traces of work left half-done, such as `TODO`, `FIXME`, `HACK`, `XXX` markers, unimplemented exceptions (`NotImplementedException`), empty stubs, disabled tests (`@Ignore`, `[Ignore]`, `Skip`, `.skip()`) or temporary mocks.
-
-Read the backlog and any notes: cross-check each open item, technical promise or known pitfall against the real files, classes and tests. Check whether a task was partly done without being documented, or completed without the backlog being updated. Distinguish rigorously facts verified in the code from mere statements.
-
-## Checks
-
-Check that the files or symbols reported as unfinished really exist and in what state; find out whether partial changes break the build or the test suite. Check that the leftovers found are not already in the backlog under another identifier, to avoid duplicates.
-
-## Delivery
-
-A structured report with: work in progress or half done, leftovers and technical debt in the code (with paths and lines), discrepancies with the notes and backlog, and a concrete proposal of prioritized work items to record.
-
-## Related prompts
-
-- COM01: Explore the repository and identify main components and commands.
-- REP01: Complete the next ready task of the open repository.
+<output_format>
+Status mismatches, Confirmed leftovers (location, evidence, proposed task), Suspicions, Summary.
+</output_format>

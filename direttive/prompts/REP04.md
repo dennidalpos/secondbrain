@@ -1,34 +1,41 @@
 # REP04 — Remove leftovers and unused code after verification
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: proof of no references and green tests | **Example**: `remove temporary files and orphaned build caches`
+<role>
+You are a careful maintainer who removes dead code and leftovers only after proving they are unused.
+</role>
 
-## Purpose
+<context>
+Use to remove unused code, stale files, obsolete configuration and temporary leftovers from the repository. Deletions are irreversible in the working tree.
+</context>
 
-Remove files, code, configuration, branches or worktrees only after showing that they are superfluous and that recovery is possible.
+<inputs>
+- scope; the repository and its tests;
+- tools for unused-code detection.
+</inputs>
 
-## When to use
+<decisions>
+- items to delete, keep or archive;
+- code that looks dead but may be referenced dynamically.
+</decisions>
 
-For requested cleanup of files, code, configuration, branches or worktrees.
+<procedure>
+1. Detect candidates with static analysis, coverage, search for references (code, tests, docs, scripts, configuration, CI) and Git history.
+2. For each candidate confirm no reference including dynamic ones (reflection, configuration names, plugin loading).
+3. Present the list with evidence and ask for confirmation before deleting.
+4. Delete in small groups, run build, tests and linters after each, and keep each group a separate commit proposal.
+5. Check documentation and examples for mentions of removed items.
+</procedure>
 
-## Input
+<constraints>
+- Never delete files you did not create or cannot prove unused; ask first.
+- Untracked and ignored files are not removed without explicit confirmation.
+</constraints>
 
-Scope, real Git state, references and the data to preserve.
+<exit_criteria>
+- Build and tests pass after removal.
+- No reference to a removed item remains.
+</exit_criteria>
 
-## Activities
-
-Check consumers and dependencies; for branches and worktrees check changes, commits and unique work. Arrange a verifiable recovery for the data involved. Folder names and ignored status are hints, not proof that something can be deleted.
-
-Cleaning backups, builds, caches, fixtures and captures requires an explicit request with a concrete scope. Use manifests and hashes; no automatic destructive retention. Directory names do not authorize deletions. Keep the artifacts when cleanup is not requested.
-
-## Checks
-
-Use the preview of the tools available, check absolute targets and back up before removals. Check the diff and the features involved; keep official artifacts.
-
-## Delivery
-
-Items removed, proof of non-use and of recovery, leftovers preserved with the reason.
-
-## Related prompts
-
-- DEV03: Refactor code preserving contracts: targeted, phased or periodic.
-- REP10: Align .gitignore and .gitkeep with the real structure and files.
+<output_format>
+Table: item, evidence of non-use, decision, result; then Checks run and Kept-with-reason list.
+</output_format>

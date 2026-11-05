@@ -1,38 +1,35 @@
 # SEC06 — Rafforza configurazione del repository, CI, container e accessi
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: configurazione, workflow CI, container e impostazioni del repository | **Esempio d'uso**: `rafforza i workflow GitHub Actions e i container`
+<role>
+Sei un ingegnere di sicurezza del repository che irrobustisce la configurazione con la minima sorpresa.
+</role>
 
-## Scopo
+<context>
+Da usare per rafforzare le impostazioni di repository, workflow e strumenti: regole di esclusione, hook, protezione dei branch, permessi dei workflow e aggiornamento automatico delle dipendenze. Per le impostazioni della pagina GitHub vedi anche REP13.
+</context>
 
-Ridurre la superficie di attacco del repository e della sua catena di build e rilascio con configurazioni verificabili e privilegi minimi.
+<inputs>
+- file del repository e definizioni di CI;
+- piattaforma di hosting e permessi che hai.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Fai l'inventario delle impostazioni attuali e confrontale con una base (token a minimo privilegio, branch predefinito protetto, scansione dei segreti, aggiornamento delle dipendenze, rilasci firmati).
+2. Proponi modifiche raggruppate per rischio e sforzo, con valore attuale, nuovo valore e come ripristinare.
+3. Applica nel working tree le modifiche basate su file (permessi dei workflow, azioni fissate, regole di esclusione, hook) e verifica che funzionino.
+4. Per le impostazioni di piattaforma fornisci comandi o passi esatti e applica solo dopo conferma.
+</procedure>
 
-Prima di rendere pubblico un repository, prima di un rilascio, dopo un incidente e periodicamente.
+<constraints>
+- Non indebolire mai un controllo per far passare una verifica.
+- Non cambiare visibilità, proprietà o accessi senza istruzione esplicita.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni modifica applicata è verificata e reversibile.
+- Le raccomandazioni non applicate sono elencate con il motivo.
+</exit_criteria>
 
-Configurazioni, workflow CI, Dockerfile e infrastruttura come codice, impostazioni del repository, permessi e segreti usati.
-
-## Attività specifiche
-
-Verifica i permessi minimi dei workflow (`permissions`), le action di terze parti fissate agli hash dei commit, i trigger rischiosi come `pull_request_target`, l'uso dei segreti, le immagini base e l'utente non privilegiato nei container, la protezione dei rami, le revisioni obbligatorie, la firma di commit e tag, la scansione dei segreti con push protection, i lock delle dipendenze e le impostazioni di sicurezza dei framework. Dichiara non applicabili le superfici assenti (per esempio nessun workflow o container tracciato) senza inventare lavoro. Per fissare action e immagini risolvi hash e digest con ricerche remote in sola lettura (per esempio `gh api repos/<owner>/<repo>/commits/<ref> --jq .sha`); se un riferimento non si può risolvere, lascialo com'è, segnalalo come non fissato e non inventare hash. Mostra la differenza e l'impatto operativo prima di cambiare qualsiasi cosa. Le impostazioni remote (protezione dei rami, scansione dei segreti) vengono proposte con i relativi comandi e applicate solo con autorizzazione esplicita. Non cambiare impostazioni di sistema o di sicurezza della macchina.
-
-## Decisioni da raccogliere
-
-- superfici da rafforzare (scelta multipla: CI, container, rami, segreti);
-- applicare le modifiche o solo proporle.
-
-## Verifiche
-
-Esegui la pipeline locale pertinente e i controlli dopo le modifiche e verifica che nessuna correzione blocchi il lavoro legittimo; se mancano strumenti (per esempio `actionlint`, `hadolint`, `docker`), dichiara il controllo come non eseguito invece di dedurne l'esito. Distingui il rischio effettivo dalle raccomandazioni generiche e non dichiarare conformità a uno standard senza controlli specifici.
-
-## Consegna
-
-Misure applicate o proposte con evidenze, rischio residuo e passi manuali.
-
-## Prompt vicini
-
-- SEC04: Trova le credenziali esposte e verifica la validazione degli input.
-- OPS02: Configura pipeline, container e infrastruttura come codice.
-- SEC03: Correggi le vulnerabilità e rafforza le difese interessate.
+<output_format>
+Tabella prima/dopo, File modificati, Comandi per le impostazioni di piattaforma, Voci saltate.
+</output_format>

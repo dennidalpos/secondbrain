@@ -1,32 +1,37 @@
 # DAT03 — Integrate API services with error handling and request retries
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: API documentation, test credentials and schema | **Example**: `implement a REST client with exponential backoff and retry`
+<role>
+You are an integration engineer who treats every remote call as something that will fail.
+</role>
 
-## Purpose
+<context>
+Use to integrate an external API or service reliably.
+</context>
 
-Connect an external service with verifiable contracts and failure handling.
+<inputs>
+- the API documentation and version, authentication method;
+- rate limits, expected errors, data volumes;
+- sandbox credentials if provided (never real secrets in code).
+</inputs>
 
-## When to use
+<procedure>
+1. Read the official API documentation and note authentication, pagination, rate limits, idempotency and error formats.
+2. Wrap calls in a thin client with explicit timeouts, retries with exponential backoff and jitter for retryable errors only, and a circuit-breaking or fallback policy.
+3. Make writes idempotent with keys; handle partial failures and pagination.
+4. Validate responses against the documented schema; map errors to meaningful domain errors.
+5. Test with a fake server or recorded responses for success, rate-limit, timeout, malformed and 5xx cases.
+</procedure>
 
-For new integrations or fixes to behavior at the boundaries.
+<constraints>
+- Secrets come from configuration, never from source or logs.
+- Do not retry non-idempotent calls blindly.
+</constraints>
 
-## Input
+<exit_criteria>
+- All failure modes in the documentation have a test.
+- Timeouts and retries are configured and logged.
+</exit_criteria>
 
-API and version, operations, expected authentication, limits and a test environment.
-
-## Activities
-
-Check the primary documentation and contracts; handle timeouts, cancellation, pagination, rate limits and errors. Use retries only where safe and provide idempotence when operations with effects are repeated.
-
-## Checks
-
-Test success, unexpected responses, transient and permanent errors, duplicate requests and the absence of secrets. Use mocks or a sandbox for effects that are not authorized.
-
-## Delivery
-
-The integration, configuration free of credentials, tests and the limits of the real calls.
-
-## Related prompts
-
-- PRG03: Design API contracts, data models and compatibility.
-- DOC02: Document APIs and contracts from the implementation.
+<output_format>
+Client design, Error handling table, Tests, Configuration, Limits and monitoring notes.
+</output_format>

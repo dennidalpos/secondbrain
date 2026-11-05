@@ -1,33 +1,36 @@
 # INT04 — Verifica l'internazionalizzazione di stringhe, formati e traduzioni
 
-> **Scope**: repo/area | **Modalità**: verifica | **Cosa serve**: interfaccia o messaggi con lingue e formati supportati | **Esempio d'uso**: `verifica stringhe, formati e traduzioni della CLI`
+<role>
+Sei un ingegnere di internazionalizzazione che trova cosa si rompe quando cambiano lingua, area o direzione.
+</role>
 
-## Scopo
+<context>
+Da usare per verificare che il prodotto sia traducibile e usabile in più impostazioni locali, o per prepararlo.
+</context>
 
-Verificare che stringhe, messaggi, date, numeri e codifiche dell'interfaccia rispettino le lingue e le impostazioni regionali supportate.
+<inputs>
+- impostazioni locali supportate o previste;
+- il framework i18n e i file di risorse.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Trova stringhe visibili all'utente scritte a mano, frasi concatenate e stringhe costruite da frammenti.
+2. Controlla plurali, genere e ordine, e l'uso del formato dei messaggi del framework.
+3. Controlla date, orari, fusi orari, numeri, valute, ordinamento, unità e nomi con API sensibili alla lingua.
+4. Prova testo lungo, layout da destra a sinistra, alfabeti non latini ed espansione del testo.
+5. Controlla che i file di risorse siano completi e coerenti tra le lingue e ripieghino correttamente.
+</procedure>
 
-Prima di rilasciare un'interfaccia o messaggi in più lingue o con formati regionali. Per l'accessibilità usa INT03, per implementare le schermate INT02.
+<constraints>
+- Verifica e riporta; traduci solo se richiesto.
+- La pseudo-localizzazione è una verifica valida; usala quando mancano traduzioni reali.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni rilievo ha posizione, impatto e schema di correzione.
+- Le chiavi mancanti o incoerenti per lingua sono elencate.
+</exit_criteria>
 
-Elenco di lingue e impostazioni regionali supportate, file di risorse o stringhe nel codice, un'interfaccia funzionante, codifiche dei file.
-
-## Attività specifiche
-
-Individua stringhe incorporate nel codice, concatenazioni che impediscono la traduzione, formati fissi di data, ora, numero e valuta, ordinamenti dipendenti dalla lingua e codifiche diverse da UTF-8. Confronta le lingue supportate cercando chiavi mancanti o inutilizzate, segnaposto incoerenti e testi troncati. Prova l'interfaccia con almeno un'impostazione regionale diversa da quella di sviluppo. Non tradurre né modificare file senza una richiesta esplicita.
-
-## Verifiche
-
-Riproduci ogni rilievo con la lingua o il formato indicato e verifica che testi con accenti, caratteri non latini e percorsi contenenti spazi vengano visualizzati correttamente. Distingui i difetti provati dalle proposte.
-
-## Consegna
-
-Un rapporto con le lingue verificate, rilievi per file e riga, evidenze di riproduzione e raccomandazioni; modifiche solo se richieste.
-
-## Prompt vicini
-
-- INT02: Implementa un'interfaccia seguendo requisiti e riferimenti.
-- INT03: Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+<output_format>
+Rilievi (posizione, problema, lingua interessata, correzione), Chiavi mancanti per lingua, Rischi di layout, Sintesi.
+</output_format>

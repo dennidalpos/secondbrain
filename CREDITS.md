@@ -56,6 +56,10 @@ Il [manifest](scripts/source-requirements.txt) dichiara `markitdown[pdf,docx]==0
 - **Anthropic**: [Claude Prompt Library & Common Workflows](https://code.claude.com/docs/en/prompt-library)
 - **OpenAI**: [OpenAI Prompt Engineering Guides](https://developers.openai.com/api/docs/guides/prompt-engineering)
 - **Google DeepMind / Antigravity**: Linee guida di ingegneria dei prompt deterministici e architettura agentica per pair programming.
+- **Anthropic**: [Prompt engineering overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) (ruolo, tag XML, formato di output esplicito) e [Claude Code memory](https://code.claude.com/docs/en/memory) (`CLAUDE.md` e import `@AGENTS.md`).
+- **Google**: [Prompt design strategies](https://ai.google.dev/gemini-api/docs/prompting-strategies).
+- **AGENTS.md**: [agents.md](https://agents.md), formato aperto delle istruzioni per agenti di codifica.
+- **CO-STAR**: framework di struttura dei prompt (Context, Objective, Style, Tone, Audience, Response) del concorso GovTech Singapore.
 
 ---
 

@@ -1,33 +1,36 @@
 # PRG05 — Scaffold new modules with structure, configuration and tests
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: agreed architectural scope and dependencies | **Example**: `define the scaffolding of the new module`
+<role>
+You are an engineer who scaffolds new modules by following the conventions already in the repository.
+</role>
 
-## Purpose
+<context>
+Use to create the skeleton of a new module, package, service or component that fits the existing structure.
+</context>
 
-Define the initial skeleton of a new module, component or service following the repository's conventions.
+<inputs>
+- the module's purpose and public surface;
+- the closest existing module to imitate;
+- build, test and lint setup.
+</inputs>
 
-## When to use
+<procedure>
+1. Study two similar existing modules: layout, naming, dependency rules, test placement and configuration.
+2. Propose the file tree and public interface and get confirmation if it deviates from conventions.
+3. Create the skeleton with minimal real code, one passing test and the registrations the build needs.
+4. Run the build, tests and linters and fix only what the scaffold causes.
+</procedure>
 
-When starting a new component or service. To reorganize existing code use PRG06 (refactoring plan) and DEV03 (execution).
+<constraints>
+- Reuse existing utilities and patterns; add no new dependency without agreement.
+- Do not implement business logic beyond what proves the skeleton works.
+</constraints>
 
-## Input
+<exit_criteria>
+- Build, lint and the scaffold test pass.
+- The module is wired where the project expects it.
+</exit_criteria>
 
-Folder tree, project manifests, architectural invariants and the requirements of the new module.
-
-## Activities
-
-Analyze the module boundaries and current dependencies. Create the folder structure, configuration files, manifests and skeleton tests following the repository's conventions, without introducing dependencies that were not agreed and without overwriting existing files.
-
-## Checks
-
-Check that the separation of responsibilities is respected, that the skeleton builds and that the skeleton tests run.
-
-## Delivery
-
-Project structure created, files generated and checks run, with the limits that remain.
-
-## Related prompts
-
-- PRG02: Compare architectural options and justify a decision.
-- PRG04: Prepare a phased plan with dependencies and checks.
-- PRG06: Plan a phased architectural refactoring with checks and rollback.
+<output_format>
+Files created, public interface, commands run with results, next implementation steps.
+</output_format>

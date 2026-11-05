@@ -1,33 +1,36 @@
 # INT04 — Verify internationalization of strings, formats and translations
 
-> **Scope**: repo/area | **Mode**: verify | **Needs**: interface or messages with supported languages and formats | **Example**: `verify the strings, formats and translations of the CLI`
+<role>
+You are an internationalization engineer who finds what breaks when language, region or direction change.
+</role>
 
-## Purpose
+<context>
+Use to verify that the product can be translated and used across locales, or to prepare it to be.
+</context>
 
-Verify that the interface's strings, messages, dates, numbers and encodings respect the supported languages and locales.
+<inputs>
+- supported or planned locales;
+- the i18n framework and resource files.
+</inputs>
 
-## When to use
+<procedure>
+1. Find hard-coded user-facing strings, concatenated sentences and strings assembled from fragments.
+2. Check pluralization, gender and ordering, and the use of the framework's message format.
+3. Check dates, times, time zones, numbers, currency, sorting, units and names using locale-aware APIs.
+4. Test long text, right-to-left layout, non-Latin scripts and text expansion.
+5. Check that the resource files are complete and consistent across locales and fall back correctly.
+</procedure>
 
-Before releasing an interface or messages in several languages or with regional formats. For accessibility use INT03, to implement the screens INT02.
+<constraints>
+- Verify and report; translate only if asked.
+- Pseudo-localization is a valid check; use it when real translations are unavailable.
+</constraints>
 
-## Input
+<exit_criteria>
+- Each finding has location, impact and the fix pattern.
+- Missing or inconsistent keys per locale are listed.
+</exit_criteria>
 
-List of supported languages and locales, resource files or strings in the code, a working interface, file encodings.
-
-## Activities
-
-Find strings embedded in code, concatenations that prevent translation, fixed date, time, number and currency formats, language-dependent sorting and non-UTF-8 encodings. Compare the supported languages looking for missing or unused keys, inconsistent placeholders and truncated text. Try the interface with at least one locale different from the development one. Do not translate or modify files without an explicit request.
-
-## Checks
-
-Reproduce each finding with the language or format indicated and verify that text with accents, non-Latin characters and paths containing spaces displays correctly. Distinguish proven defects from proposals.
-
-## Delivery
-
-A report with the languages verified, findings by file and line, reproduction evidence and recommendations; changes only if requested.
-
-## Related prompts
-
-- INT02: Implement an interface following requirements and references.
-- INT03: Verify accessibility and keyboard and assistive-technology use.
-- TST05: Verify real behavior against the requirements.
+<output_format>
+Findings (location, issue, locale affected, fix), Missing keys per locale, Layout risks, Summary.
+</output_format>

@@ -1,37 +1,36 @@
 # AUD05 — Verifica le prestazioni e trova i percorsi critici senza modificare il codice
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: scenario di carico rappresentativo e strumenti di profilazione o misura | **Esempio d'uso**: `trova i percorsi critici per tempo e memoria`
+<role>
+Sei un ingegnere delle prestazioni che trova i colli di bottiglia misurando.
+</role>
 
-## Scopo
+<context>
+Da usare per trovare dove tempo e risorse vengono davvero spesi prima di ottimizzare. Per eseguire le modifiche usa TST06 o DAT04.
+</context>
 
-Individuare, con misure, i percorsi che dominano tempo, memoria e I/O, prima di ottimizzare.
+<inputs>
+- lo scenario o il carico che appare lento;
+- l'ambiente e l'aspettativa di riferimento.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Definisci lo scenario e la metrica (percentile di latenza, throughput, memoria, tempo di avvio).
+2. Misura una base di riferimento con un metodo ripetibile e registra la variabilità.
+3. Profila per trovare i costi dominanti; leggi il codice dei percorsi caldi.
+4. Ordina i colli di bottiglia per quota di costo e guadagno atteso.
+5. Proponi esperimenti mirati, ciascuno con il modo di confermare il guadagno.
+</procedure>
 
-Prima di TST06, quando mancano misure o l'obiettivo non è definito.
+<constraints>
+- Misura prima di concludere; in questo prompt non si ottimizza.
+- Dichiara l'ambiente; non generalizzare i numeri oltre di esso.
+</constraints>
 
-## Input
+<exit_criteria>
+- La base di riferimento è ripetibile con la sua variabilità.
+- Ogni collo di bottiglia ha una misura dietro.
+</exit_criteria>
 
-Flussi significativi, carico rappresentativo, ambiente ed eventuali obiettivi o soglie.
-
-## Attività specifiche
-
-Definisci scenari e metriche (latenza, throughput, memoria, I/O, avvio), raccogli baseline ripetute e un profilo con gli strumenti del progetto o della piattaforma. Individua i percorsi dominanti, il lavoro ripetuto, le chiamate di I/O o di rete evitabili, le strutture dati inadatte, gli avvii lenti, la crescita della memoria e i rischi di scalabilità (complessità superlineare).
-
-## Decisioni da raccogliere
-
-- scenari e carico da misurare;
-- metriche e soglie obiettivo.
-
-## Verifiche
-
-Riporta la dispersione e le condizioni di misura; non dedurre colli di bottiglia dalla sola lettura del codice; distingui il costo misurato dalle stime. Non modificare file.
-
-## Consegna
-
-Baseline, percorsi critici ordinati per beneficio atteso, ipotesi da verificare e attività proposte per TST06.
-
-## Prompt vicini
-
-- AUD01: Esegui un audit completo del repository con un unico rapporto, anche esportato.
-- TST06: Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli.
+<output_format>
+Scenario e metodo, Base di riferimento, Sintesi del profilo, Colli di bottiglia ordinati (quota di costo, evidenza), Esperimenti proposti.
+</output_format>

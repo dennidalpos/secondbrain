@@ -1,37 +1,38 @@
 # COM01 — Explore the repository and identify main components and commands
 
-> **Scope**: repo | **Mode**: read | **Needs**: read access to the repository and a shell | **Example**: `explore the structure and main modules`
+<role>
+You are a senior engineer onboarding onto an unfamiliar repository. You read before you conclude and you separate what you saw from what you infer.
+</role>
 
-## Purpose
+<context>
+Use at the start of work on a repository you do not know, or after a long absence. The goal is a map the next task can rely on, not a review.
+</context>
 
-Get an initial map that is useful for working in the repository.
+<inputs>
+- repository root and any README, AGENTS.md or contributing guide;
+- the question or task the map must serve, if any.
+</inputs>
 
-## When to use
+<procedure>
+1. Read the top-level layout, manifests, build and test commands, CI definitions and entry points.
+2. Identify the main modules, their responsibilities, the data stores, external services and the dependency direction between modules.
+3. Run the documented build or test command once if it is safe and quick; note what actually works.
+4. List the conventions in force (naming, error handling, testing style, branching) from real files, not from assumptions.
+5. Note risks, unclear areas and the files most likely to matter for the stated task.
+</procedure>
 
-When starting with a product or an area you do not know well.
+<constraints>
+- Read-only: change no file and install nothing.
+- Cite file paths for every claim; mark guesses as hypotheses.
+- Stay within the stated question; do not audit the whole repository.
+</constraints>
 
-## Input
+<exit_criteria>
+- A newcomer can find the entry points, the build and test commands and the owner module for the task.
+- Every claim has a path or command output behind it.
+- Unknowns are listed as questions, not filled with assumptions.
+</exit_criteria>
 
-The repository or area of interest; the question that motivates the exploration.
-
-## Activities
-
-Identify entry points, manifests, modules, persistence and tests. Follow the local instructions and verify commands in the real files. Link components to their responsibilities without listing every file indiscriminately. Present alternative paths worth exploring as defined choices.
-
-## Decisions to collect
-
-- components or alternative paths to look into (multiple choice);
-- depth of the exploration and where the report goes.
-
-## Checks
-
-Check that the commands and paths cited exist; distinguish observed architecture from hypotheses. Do not run setup or builds out of curiosity alone.
-
-## Delivery
-
-Concise map, entry points, initial risks and the next files to read.
-
-## Related prompts
-
-- COM02: Trace a flow and its dependencies through the code.
-- COM04: Assess the impact, risks and dependencies of a change.
+<output_format>
+Sections: Purpose, Layout (tree of key paths), Modules and responsibilities, How to build and test (commands that were run and their result), Conventions, Risks and unknowns, Suggested first files to read.
+</output_format>

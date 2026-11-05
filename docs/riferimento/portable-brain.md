@@ -117,7 +117,7 @@ Conoscenza e memorie personali viaggiano nel clone Git privato. Account, percors
 
 work.ps1 restituisce un piano di ambiente isolato per repository/progetto/runtime (o, con -Category e -Slug, per hosts/<id>/repos/<repo>/<categoria>/<data>-<slug>, con l'area temp del repository per TEMP/TMP); con -Run richiede eseguibile, argomenti e working directory approvata. Non usa una shell e non modifica impostazioni globali. TEMP/TMP e cache riconosciute sono reindirizzate; gli output intermedi specifici del tool richiedono configurazione e prova nel prodotto. Per esempio .NET/MSBuild, Gradle e bundler non condividono un unico flag di output. Non dichiarare output centralizzati sulla sola base delle variabili. Tutte le eccezioni rimangono esplicite.
 
-Gli artefatti sono conservati anche dopo esito positivo; la fixture di `test-secondbrain.ps1` (`tests/run-<id>`) è rimossa a esito verde e conservata a esito rosso, le sub-suite lanciate da sole conservano la propria. REP04 e cleanup.ps1 richiedono richiesta esplicita e manifest per pulire dati portabili. Non riutilizzare residui di operazioni precedenti senza verificarli. Solo staging transazionale adiacente alla destinazione è eliminato alla conclusione della transazione; un errore preserva le prove di recupero.
+Gli artefatti sono conservati anche dopo esito positivo; le fixture di `test-secondbrain.ps1` restano in `hosts/<id>/repos/tests-<hash>/fixture/fixture-<data>-minimal/run-<id>` con un `run.json` (anche a esito verde) finché non chiedi la pulizia con `cleanup.ps1 -Regenerable`. REP04 e cleanup.ps1 richiedono richiesta esplicita e manifest per pulire dati portabili. Non riutilizzare residui di operazioni precedenti senza verificarli. Solo staging transazionale adiacente alla destinazione è eliminato alla conclusione della transazione; un errore preserva le prove di recupero.
 
 ## TOC e compattazione
 
@@ -147,9 +147,9 @@ Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2025-03-26`, con com
 - `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 30.000 caratteri, solo primo caricamento) o `full` senza tetto.
 - `get_ready_tasks`: restituisce la lista delle sole attività sbloccate con dipendenze soddisfatte (`-ReadyOnly`).
 - `search_knowledge`: ricerca nel dossier del repository in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio e rapporti) con tetto predefinito di 20 riscontri e 10.000 caratteri; `allDossiers`, `includeOriginals`, `limit=0` e `budget=0` ampliano o tolgono il tetto.
-- `list_prompts`: elenca il catalogo dei prompt organizzati nelle aree tematiche (parametro `pack`: `core` predefinito, `maintenance`, `all`); con `compact` una riga per prompt, con `category` filtra per id o prefisso.
+- `list_prompts`: elenca la lista unica dei prompt organizzati nelle aree tematiche; con `compact` una riga per prompt, con `category` filtra per id o prefisso.
 - `get_prompt_home`: schermata iniziale di `sb prompt` (link al catalogo e comandi `sb`).
-- `get_prompt`: restituisce la scheda Markdown completa del prompt specificato (es. SYS03, SEC07).
+- `get_prompt`: restituisce il prompt composto (XML) del codice o ID specificato (es. SYS03, SEC07); `objective` ne imposta il compito.
 - `check_publication`: esegue la verifica di pubblicabilità SEC07 sul repository indicato.
 
 Configurazione JSON (Claude Desktop, Cursor, Antigravity, VS Code):

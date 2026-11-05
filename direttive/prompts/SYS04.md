@@ -1,40 +1,40 @@
-# SYS04 — Controlla o allinea gli asset già gestiti della postazione
+# SYS04 — Check or align the workstation's already managed assets
 
-> **Scope**: central | **Modalità**: verifica | **Cosa serve**: configurazione postazione e direttive approvate | **Esempio d'uso**: `sb prompt SYS04: verifica allineamento direttive nei repository gestiti`
+<role>
+You are the workstation auditor: you check, and when asked align, the managed assets without widening the scope.
+</role>
 
-## Scopo
+<context>
+Use `sb controlla` to verify only and `sb allinea` to correct the assets already approved.
+</context>
 
-Verificare e allineare il cervello e le integrazioni senza ampliare implicitamente il perimetro.
+<inputs>
+- the locally resolved host configuration, dossiers and approved directives.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- correction to apply for each divergence (align, keep the conflict, defer);
+- new assets to propose with SYS03 and dossiers to compact with SYS05;
+- IDEs or accounts whose loading must be rechecked.
+</decisions>
 
-sb controlla per sola verifica; sb allinea per correggere gli asset già approvati.
+<procedure>
+1. Rerun host discovery and compare assets with the approved associations.
+2. Run `secondbrain.ps1 -Check`; for `sb allinea` run `-Sync`, applying only approved texts and preserving conflicts.
+3. Propose corrective options for each divergence as a structured choice; propose new assets through SYS03.
+4. For every dossier over budget prepare a reviewed summary with SYS05, apply it and check again; the CLI never invents summaries.
+5. Check sources with SYS02 on request, without scheduling.
+</procedure>
 
-## Input
+<constraints>
+- Do not run application tasks, builds or tests of the products from central maintenance; no deletion of artifacts.
+- Do not equate aligned files with verified sessions or declare the scan complete if areas remain unread.
+</constraints>
 
-Configurazione host risolta localmente, dossier e direttive approvate.
+<exit_criteria>
+- TOC, task projections, references, hosts, accounts and loading were checked.
+</exit_criteria>
 
-## Attività specifiche
-
-Riesegui discovery dell’host e confronta gli asset con le associazioni approvate. Esegui -Check. Per sb allinea usa -Sync, applicando soltanto testi approvati e preservando conflitti. In presenza di divergenze, proponi le opzioni correttive tramite Function Calling o Tool Use (es. `ask_question`). Proponi i nuovi asset tramite SYS03. Per ogni dossier oltre budget prepara con SYS05 una sintesi revisionata, applicala e ripeti il controllo. La CLI non inventa sintesi automaticamente. Non eseguire task, build o test applicativi dei prodotti dalla manutenzione centrale. Controlla le fonti con SYS02 su richiesta, senza pianificazioni. Nessuna cancellazione di artefatti.
-
-## Decisioni da raccogliere
-
-- correzione da applicare per ogni divergenza (allinea, conserva il conflitto, rinvia);
-- asset nuovi da proporre con SYS03 e dossier da compattare con SYS05 (scelta multipla);
-- IDE o account con caricamento da riverificare dopo un cambio di login.
-
-## Verifiche
-
-Controlla TOC, proiezioni task, riferimenti, host, account e caricamento. Non equiparare file allineati a sessioni verificate. Non dichiarare la scansione completa se restano aree non lette.
-
-## Consegna
-
-Esiti distinti per asset e copertura; modifiche effettive, conflitti e attività ancora necessarie.
-
-## Prompt vicini
-
-- SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.
-- SYS03: Attiva SecondBrain dopo discovery e selezione degli asset.
-- SYS05: Compatta il dossier preservando originali, fatti e TOC.
-- SYS11: Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
+<output_format>
+Distinct outcome per asset and coverage, changes made, conflicts, activities still needed.
+</output_format>

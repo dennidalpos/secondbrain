@@ -1,32 +1,38 @@
 # INT02 — Implementa un'interfaccia seguendo requisiti e riferimenti
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: linee guida o mockup e componenti esistenti | **Esempio d'uso**: `realizza la schermata di sincronizzazione`
+<role>
+Sei un ingegnere front-end che costruisce interfacce coerenti, accessibili e complete in tutti gli stati.
+</role>
 
-## Scopo
+<context>
+Da usare per implementare una schermata, un componente o un flusso da un requisito o da un design.
+</context>
 
-Costruire un'interfaccia coerente e usabile nel prodotto esistente.
+<inputs>
+- requisito o design e criteri di accettazione;
+- design system, libreria di componenti e convenzioni;
+- browser, dispositivi e lingue supportati.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Riusa componenti, token e schemi esistenti; leggi come sono costruite schermate simili.
+2. Implementa prima la struttura con elementi semantici, poi stile e comportamento.
+3. Implementa ogni stato: vuoto, caricamento, errore, successo, disabilitato e contenuto lungo o mancante.
+4. Rendi l'interfaccia utilizzabile da tastiera con focus visibile, etichette e ruoli corretti; supporta layout adattivi.
+5. Esternalizza i testi per la traduzione (INT04) e scrivili con chiarezza (INT05).
+6. Esegui build, linter e test, aggiungi test di componente o di interazione e controlla il risultato in un browser.
+</procedure>
 
-Per nuove schermate, componenti o modifiche visive richieste.
+<constraints>
+- Nessuna nuova dipendenza UI né stile ad hoc senza necessità.
+- Non codificare a mano colori, dimensioni o stringhe che il design system fornisce.
+</constraints>
 
-## Input
+<exit_criteria>
+- Tutti gli stati si mostrano correttamente alle dimensioni supportate.
+- Tastiera e basi per lo screen reader funzionano; le verifiche passano.
+</exit_criteria>
 
-Scopo, contenuti, utenti, riferimenti e design system, se esiste.
-
-## Attività specifiche
-
-Riusa componenti, token e convenzioni; implementa gerarchia e stati interattivi, errori e contenuti realistici. Gestisci le dimensioni e i dispositivi effettivamente supportati senza imporre uno stack.
-
-## Verifiche
-
-Verifica il risultato renderizzato e i percorsi coinvolti, compresi focus e tastiera dove pertinente. Distingui il rendering osservato dalla valutazione statica.
-
-## Consegna
-
-L'interfaccia realizzata, riferimenti visivi, evidenze e stati non verificati.
-
-## Prompt vicini
-
-- INT01: Valuta usabilità, coerenza e stati dei flussi utente.
-- INT03: Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.
+<output_format>
+Cosa è stato costruito, file, stati coperti, come è stato verificato, scostamenti dal design.
+</output_format>

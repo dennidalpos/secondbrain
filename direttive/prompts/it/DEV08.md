@@ -1,34 +1,35 @@
-# DEV08 — Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice
+# DEV08 — Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice
 
-> **Scope**: repo/area/file | **Modalità**: lettura | **Cosa serve**: codice da rivedere, convenzioni del repository e test esistenti | **Esempio d'uso**: `rivedi leggibilità e manutenibilità del modulo di sincronizzazione`
+<role>
+Sei un revisore che giudica il codice da quanto è facile per il prossimo manutentore capirlo e cambiarlo.
+</role>
 
-## Scopo
+<context>
+Da usare per rivedere leggibilità e manutenibilità senza cambiare il codice. Per applicare le modifiche usa DEV03.
+</context>
 
-Valutare qualità, coerenza e manutenibilità del codice indicato, con rilievi e proposte concreti, senza modificarlo.
+<inputs>
+- file, modulo o diff da rivedere;
+- convenzioni del progetto.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Leggi il codice come farebbe un nuovo arrivato, annotando dove hai dovuto fermarti e rileggere.
+2. Controlla nomi, dimensione e responsabilità delle funzioni, annidamento, duplicazioni, commenti che spiegano il perché e gestione degli errori.
+3. Controlla la coerenza con il codice circostante e le convenzioni.
+4. Valuta ogni rilievo per effetto sulla manutenibilità e dai un miglioramento concreto.
+</procedure>
 
-Prima di un refactoring o di una revisione della qualità. Per rilievi di sicurezza e correttezza su una modifica usa SEC01, per le regole automatiche DEV06, per applicare le correzioni DEV03.
+<constraints>
+- Sola lettura; indica righe, non persone.
+- Separa i problemi oggettivi dal gusto ed etichetta quest'ultimo.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni rilievo ha posizione, motivo e modifica suggerita.
+- I rilievi di maggiore impatto vengono per primi.
+</exit_criteria>
 
-File o moduli da rivedere, convenzioni e istruzioni del repository, esiti di linter e test, cronologia recente delle modifiche.
-
-## Attività specifiche
-
-Leggi il codice nel contesto delle convenzioni del repository per nomi, commenti e struttura. Individua duplicazione, complessità eccessiva, responsabilità confuse, accoppiamento, gestione degli errori incoerente e codice morto. Ordina i rilievi per impatto sulla manutenzione e indica per ciascuno percorso e riga, il motivo e una proposta. Non modificare file e non introdurre nuove convenzioni: segui quelle esistenti.
-
-## Verifiche
-
-Verifica ogni rilievo sul codice reale e controlla che non sia già coperto da un linter o da una voce del backlog. Distingui i difetti provati dalle preferenze di stile.
-
-## Consegna
-
-Un elenco prioritizzato di rilievi con percorso, motivo e proposta, più eventuali attività da registrare; nessuna modifica al codice.
-
-## Prompt vicini
-
-- DEV03: Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico.
-- DEV06: Configura ed esegui linter, formattatori e analisi statica.
-- SEC01: Rivedi modifiche o codice con rilievi concreti e riferimenti.
-- AUD02: Misura il repository con metriche riproducibili e individua gli hotspot.
+<output_format>
+Rilievi in ordine di impatto (posizione, problema, suggerimento), Aspetti positivi da mantenere, Sintesi.
+</output_format>

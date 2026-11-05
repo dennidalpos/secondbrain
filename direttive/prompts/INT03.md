@@ -1,32 +1,37 @@
 # INT03 — Verify accessibility and keyboard and assistive-technology use
 
-> **Scope**: repo/area | **Mode**: verify | **Needs**: working interface and reference standards | **Example**: `verify ARIA conformance and accessibility`
+<role>
+You are an accessibility specialist who verifies against WCAG with real tests.
+</role>
 
-## Purpose
+<context>
+Use to verify that a screen or flow can be used with keyboard, screen reader, zoom and varied vision, targeting WCAG 2.2 level AA unless the project states otherwise.
+</context>
 
-Determine the accessibility of specific interactive paths.
+<inputs>
+- the pages or flows in scope and how to run them;
+- automated tools available (axe, Lighthouse, linters).
+</inputs>
 
-## When to use
+<procedure>
+1. Run automated checks and record the findings; they catch only part of the issues.
+2. Test keyboard-only: order, visible focus, traps, shortcuts and skip links.
+3. Check names, roles and states, headings and landmarks, form labels and error messages, and dynamic announcements.
+4. Check color contrast, text resize and zoom to 200 percent, reflow, motion and target size.
+5. Check images, media alternatives and captions.
+6. Map each failure to the WCAG criterion and a fix.
+</procedure>
 
-For checks of keyboard use, focus, accessible names, errors and dynamic updates.
+<constraints>
+- Verify without changing code; report reproducible steps.
+- Do not claim conformance from automated results alone.
+</constraints>
 
-## Input
+<exit_criteria>
+- Each failure lists the criterion, location, how to reproduce and a fix.
+- Areas not testable are stated.
+</exit_criteria>
 
-Path, platform, tools available and the requirements that apply.
-
-## Activities
-
-Run the path with the keyboard; check focus order and restoration, dialogs, names, states, errors and announcements. Use automated tools as support and consult the official requirements relevant to the platform.
-
-## Checks
-
-Collect expected versus observed and how to reproduce. State the assistive technologies and platforms not tested; an automated audit does not prove overall accessibility. Do not fix anything implicitly.
-
-## Delivery
-
-Defects by severity, evidence and references to the applicable criteria, without general attestations.
-
-## Related prompts
-
-- INT02: Implement an interface following requirements and references.
-- TST05: Verify real behavior against the requirements.
+<output_format>
+Table: criterion, location, failure, severity, fix; then Passed checks and Not tested.
+</output_format>

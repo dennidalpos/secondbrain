@@ -3,7 +3,6 @@
 *~
 .DS_Store
 Thumbs.db
-.test-tmp/
 .runtime/
 .scratch/
 .worktrees/

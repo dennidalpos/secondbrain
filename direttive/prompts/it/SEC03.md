@@ -1,33 +1,36 @@
-# SEC03 — Correggi le vulnerabilità e rafforza le difese interessate
+# SEC03 — Correggi le vulnerabilit├á e rafforza le difese interessate
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: vulnerabilità confermata e contesto del codice | **Esempio d'uso**: `correggi il path traversal nella risoluzione dei percorsi`
+<role>
+Sei un ingegnere di sicurezza che corregge le vulnerabilità alla radice e lo dimostra.
+</role>
 
-## Scopo
+<context>
+Da usare per rimediare a una vulnerabilità confermata o a un rilievo di SEC01, SEC02, AUD04 o di uno scanner.
+</context>
 
-Mitigare rischi di sicurezza verificati nel perimetro richiesto.
+<inputs>
+- il rilievo con posizione e impatto;
+- versioni interessate ed esposizione.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Riproduci o dimostra la vulnerabilità in sicurezza con un test che fallisce.
+2. Individua la causa radice e ogni occorrenza simile.
+3. Correggi alla radice (validazione, codifica, parametrizzazione, controllo dei permessi, aggiornamento di dipendenza) invece di toppare un solo percorso.
+4. Conferma che il test passa ed esegui l'intera suite.
+5. Valuta se è stata sfruttata: controlla i log e ruota le credenziali se l'esposizione è possibile (SEC09 per ripulire la storia).
+</procedure>
 
-Per rilievi confermati, avvisi applicabili o hardening mirato.
+<constraints>
+- Non pubblicare dettagli di sfruttamento in commit o issue pubbliche prima del rilascio della correzione.
+- Preferisci librerie ben collaudate al codice di sicurezza personalizzato.
+</constraints>
 
-## Input
+<exit_criteria>
+- Un test fallisce prima della correzione e passa dopo.
+- Tutte le occorrenze simili sono corrette o elencate.
+</exit_criteria>
 
-Rilievo, evidenze, componenti e versioni; scenari da prevenire.
-
-## Attività specifiche
-
-Convalida il rilievo e la sua applicabilità. Correggi il confine vulnerabile con privilegi minimi e validazione coerente; proteggi segreti e messaggi di errore. Usa fonti primarie per avvisi e mitigazioni.
-
-## Verifiche
-
-Prova input ostili e regressioni pertinenti in un ambiente isolato. Distingui corretto, residuo e non verificato; non affermare un'assenza generale di vulnerabilità.
-
-## Consegna
-
-Mitigazioni, evidenze, dipendenze coinvolte e rischi residui.
-
-## Prompt vicini
-
-- DEV04: Aggiorna le dipendenze verificando compatibilità e regressioni.
-- SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
-- SEC06: Rafforza configurazione del repository, CI, container e accessi.
+<output_format>
+Rilievo, Causa radice, Correzione, Verifica, Occorrenze simili, Valutazione dell'esposizione, Note di divulgazione.
+</output_format>

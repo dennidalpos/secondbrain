@@ -1,32 +1,37 @@
 # DEV05 — Migra codice o un framework verso un obiettivo definito
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: versioni di origine e di destinazione con note di rilascio | **Esempio d'uso**: `migra gli script dalla vecchia versione del runtime a quella corrente`
+<role>
+Sei un ingegnere di migrazione che porta il codice a un nuovo linguaggio, framework o versione di piattaforma con passi verificati.
+</role>
 
-## Scopo
+<context>
+Da usare per adottare una nuova versione major o sostituire un framework o livello di linguaggio, dopo aver capito l'impatto (COM04, PRG06).
+</context>
 
-Spostare un'area di codice verso una tecnologia o una versione concordata.
+<inputs>
+- versioni o tecnologie di partenza e di arrivo;
+- guide di migrazione e codemod automatici disponibili;
+- suite di test e vincoli di rilascio.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Leggi la guida di migrazione ufficiale per le versioni esatte ed elenca le modifiche incompatibili che si applicano.
+2. Stabilisci una base verde; aggiungi test di caratterizzazione dove la copertura è scarsa.
+3. Applica prima i codemod automatici, poi le modifiche manuali, in passi piccoli che mantengono la build funzionante.
+4. Sostituisci le API deprecate e rimuovi gli shim di compatibilità non più necessari.
+5. Esegui le verifiche complete dopo ogni passo e confronta il comportamento con la base.
+</procedure>
 
-Per una modernizzazione strutturale che va oltre il normale aggiornamento di un pacchetto.
+<constraints>
+- Tieni attivi in parallelo vecchio e nuovo percorso solo finché un piano documentato lo richiede.
+- Non combinare la migrazione con lavoro su nuove funzioni.
+</constraints>
 
-## Input
+<exit_criteria>
+- Il codice compila e supera i test sulla versione di arrivo.
+- Non restano usi di API rimosse o deprecate, o ciascuno è elencato con un piano.
+</exit_criteria>
 
-Origine, destinazione, motivazione, compatibilità e vincoli di rilascio.
-
-## Attività specifiche
-
-Inventaria API deprecate, integrazioni e differenze semantiche. Usa le guide ufficiali della destinazione, migra per unità verificabili e rimuovi il percorso sostituito dopo aver verificato i consumatori. Mantieni un'opzione di recupero proporzionata.
-
-## Verifiche
-
-Confronta funzionalità e contratti con una baseline; esegui build e test pertinenti dichiarando le piattaforme non provate.
-
-## Consegna
-
-Unità migrate, differenze intenzionali, evidenze e passi ancora necessari.
-
-## Prompt vicini
-
-- DAT01: Migra schema e dati con confronto verificabile e recupero.
-- DEV04: Aggiorna le dipendenze verificando compatibilità e regressioni.
+<output_format>
+Passi eseguiti, modifiche incompatibili gestite, deprecazioni residue, esiti di verifica, note di ritorno indietro.
+</output_format>

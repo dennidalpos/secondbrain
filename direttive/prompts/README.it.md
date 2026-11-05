@@ -2,9 +2,7 @@
 
 Indice generato da catalog.json e dalle schede Markdown con scripts/build-prompts.ps1. Non modificarlo a mano.
 
-In chat: `sb prompt`, `sb prompt list`, `sb prompt maintenance`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: descrizione`. Ogni prompt ha un ID immutabile (`pmt-` e 8 cifre esadecimali) e uno o più alias (codice incluso): ID e alias risolvono allo stesso prompt.
-
-Questo indice elenca i prompt generici (pacchetto core). I prompt di manutenzione di SecondBrain (memoria, dossier, postazione) sono separati: `sb prompt maintenance`; sono elencati nell'indice [README.maintenance.it.md](README.maintenance.it.md).
+In chat: `sb prompt`, `sb prompt list`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: descrizione`. Ogni prompt ha un ID immutabile (`pmt-` e 8 cifre esadecimali) e un codice stabile mai riutilizzato: ID e codice risolvono allo stesso prompt.
 
 La CLI compone il testo; il task è svolto dall'agente nei permessi e nella modalità della sessione. [Come usare e modificare i prompt](../../docs/prompt.md). Lingua: [English](README.md) · [Italiano](README.it.md).
 
@@ -43,6 +41,12 @@ COMPRENSIONE E RICERCA
   • Cosa serve: log, errori o sintomi, finestra temporale e accesso in lettura
   • Esempio d'uso: trova la causa radice degli errori di ieri nei log
 
+🔭 COM06 | Spiega codice o concetti a chi è nuovo del progetto
+  • ID: pmt-fe04425a
+  • Ambito: repo/file | Modalità: read
+  • Cosa serve: Codice, modulo o concetto da spiegare e il livello di partenza del lettore
+  • Esempio d'uso: COM06: spiega il flusso dei retry dei pagamenti a un nuovo collega
+
 
 REQUISITI E PROGETTAZIONE
 🔭 PRG01 | Trasforma una richiesta in requisiti e criteri di accettazione.
@@ -57,7 +61,7 @@ REQUISITI E PROGETTAZIONE
   • Cosa serve: alternative da valutare e vincoli del progetto
   • Esempio d'uso: confronta SQLite e JSON per la persistenza locale
 
-🔭 PRG03 | Progetta contratti API, modelli di dati e compatibilità.
+🔭 PRG03 | Progetta contratti API, modelli di dati e compatibilit├á.
   • ID: pmt-83764c0d
   • Ambito: repo/area | Modalità: read
   • Cosa serve: requisiti o schema attuale con la sua versione
@@ -81,9 +85,15 @@ REQUISITI E PROGETTAZIONE
   • Cosa serve: modulo da riorganizzare, test esistenti e invarianti da preservare
   • Esempio d'uso: pianifica il refactoring del modulo di sincronizzazione
 
+🔥 PRG07 | Registra una decisione architetturale (ADR)
+  • ID: pmt-c61c598b
+  • Ambito: repo | Modalità: write
+  • Cosa serve: La decisione presa o da prendere, il contesto, i vincoli, le opzioni considerate e chi decide
+  • Esempio d'uso: PRG07: registra perché abbiamo scelto PostgreSQL al posto di MongoDB
+
 
 SVILUPPO E MODERNIZZAZIONE
-🔥 DEV01 | Implementa una funzionalità con i controlli pertinenti.
+🔥 DEV01 | Implementa una funzionalit├á con i controlli pertinenti.
   • ID: pmt-83df1685
   • Ambito: repo/area/file | Modalità: write
   • Cosa serve: requisiti o criteri di accettazione verificati
@@ -101,7 +111,7 @@ SVILUPPO E MODERNIZZAZIONE
   • Cosa serve: codice da migliorare, test esistenti e perimetro dell'intervento
   • Esempio d'uso: estrai la gestione delle transazioni in un modulo dedicato
 
-🔥 DEV04 | Aggiorna le dipendenze verificando compatibilità e regressioni.
+🔥 DEV04 | Aggiorna le dipendenze verificando compatibilit├á e regressioni.
   • ID: pmt-e2405036
   • Ambito: repo/area/file | Modalità: write
   • Cosa serve: manifest delle dipendenze e lock file
@@ -125,11 +135,17 @@ SVILUPPO E MODERNIZZAZIONE
   • Cosa serve: testo della segnalazione, ambiente e accesso in lettura al codice
   • Esempio d'uso: fai il triage e riproduci la segnalazione sul parsing dei percorsi
 
-🔭 DEV08 | Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice.
+🔭 DEV08 | Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice.
   • ID: pmt-b16674bd
   • Ambito: repo/area/file | Modalità: read
   • Cosa serve: codice da rivedere, convenzioni del repository e test esistenti
-  • Esempio d'uso: rivedi leggibilità e manutenibilità del modulo di sincronizzazione
+  • Esempio d'uso: rivedi leggibilit├á e manutenibilit├á del modulo di sincronizzazione
+
+🔥 DEV12 | Sviluppa o rivedi una funzione LLM con valutazioni
+  • ID: pmt-0715c64b
+  • Ambito: repo | Modalità: write
+  • Cosa serve: La funzione LLM o agente, modello e provider, comportamento atteso, casi di errore e input di esempio
+  • Esempio d'uso: DEV12: aggiungi un set di valutazione al bot di supporto prima di cambiarne il prompt
 
 
 TEST E VERIFICA
@@ -149,7 +165,7 @@ TEST E VERIFICA
   • ID: pmt-91021b67
   • Ambito: repo/area | Modalità: write
   • Cosa serve: log dei fallimenti intermittenti e suite di test
-  • Esempio d'uso: correggi l'instabilità dei test asincroni della suite
+  • Esempio d'uso: correggi l'instabilit├á dei test asincroni della suite
 
 🔥 TST04 | Diagnostica e correggi i fallimenti di build e test in CI.
   • ID: pmt-bd98736f
@@ -175,6 +191,12 @@ TEST E VERIFICA
   • Cosa serve: framework di test, script di test e una radice di fixture isolata assegnata
   • Esempio d'uso: crea fixture isolate su disco e convalida la pulizia automatica
 
+🔭 TST08 | Valuta la qualità dei test e individua le lacune
+  • ID: pmt-de5f1d8d
+  • Ambito: repo | Modalità: read
+  • Cosa serve: Suite di test, report di copertura se esistono, percorsi critici e difetti recenti
+  • Esempio d'uso: TST08: valuta i test del modulo fatturazione: lacune e asserzioni deboli
+
 
 REVISIONE E SICUREZZA
 🔭 SEC01 | Rivedi modifiche o codice con rilievi concreti e riferimenti.
@@ -189,10 +211,10 @@ REVISIONE E SICUREZZA
   • Cosa serve: architettura e flussi di dati verso l'esterno
   • Esempio d'uso: modello delle minacce dei flussi stdio e del file system locale
 
-🔥 SEC03 | Correggi le vulnerabilità e rafforza le difese interessate.
+🔥 SEC03 | Correggi le vulnerabilit├á e rafforza le difese interessate.
   • ID: pmt-b4cb6659
   • Ambito: repo/area/file | Modalità: write
-  • Cosa serve: vulnerabilità confermata e contesto del codice
+  • Cosa serve: vulnerabilit├á confermata e contesto del codice
   • Esempio d'uso: correggi il path traversal nella risoluzione dei percorsi
 
 ✅ SEC04 | Trova le credenziali esposte e verifica la validazione degli input.
@@ -201,11 +223,11 @@ REVISIONE E SICUREZZA
   • Cosa serve: working tree e strumenti di scansione
   • Esempio d'uso: esegui un audit di sicurezza delle credenziali
 
-✅ SEC05 | Verifica l'isolamento dei dati personali e la conformità a GDPR e policy.
+✅ SEC05 | Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy.
   • ID: pmt-24189cb6
   • Ambito: repo | Modalità: verify
-  • Cosa serve: mappatura dei dati e policy di conformità
-  • Esempio d'uso: verifica i dati personali e la conformità privacy GDPR
+  • Cosa serve: mappatura dei dati e policy di conformit├á
+  • Esempio d'uso: verifica i dati personali e la conformit├á privacy GDPR
 
 🔥 SEC06 | Rafforza configurazione del repository, CI, container e accessi.
   • ID: pmt-c356eede
@@ -213,17 +235,11 @@ REVISIONE E SICUREZZA
   • Cosa serve: configurazione, workflow CI, container e impostazioni del repository
   • Esempio d'uso: rafforza i workflow GitHub Actions e i container
 
-✅ SEC07 | Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
+✅ SEC07 | Verifica dati sensibili prima della pubblicazione, in locale e sul remoto
   • ID: pmt-058c474f
   • Ambito: repo | Modalità: verify
-  • Cosa serve: commit, indice, working tree e cronologia da pubblicare; destinazione
-  • Esempio d'uso: verifica che sia sicuro pubblicare prima del push
-
-✅ SEC08 | Verifica se dati sensibili sono ancora raggiungibili sul remoto GitHub.
-  • ID: pmt-55186b10
-  • Ambito: repo | Modalità: verify
-  • Cosa serve: accesso in sola lettura al remoto GitHub e impronte o pattern da cercare
-  • Esempio d'uso: verifica quali run, cache e link sono ancora accessibili
+  • Cosa serve: Commit, indice, working tree e storia da pubblicare; destinazione e visibilità del remoto; strumenti di scansione disponibili
+  • Esempio d'uso: SEC07: verifica i commit in uscita, e il remoto, alla ricerca di dati sensibili
 
 ⛔ SEC09 | Cancella cronologia e artefatti del remoto GitHub dopo un'esposizione di dati.
   • ID: pmt-7fc91f08
@@ -263,13 +279,19 @@ AUDIT E METRICHE
   • Cosa serve: scenario di carico rappresentativo e strumenti di profilazione o misura
   • Esempio d'uso: trova i percorsi critici per tempo e memoria
 
+🔭 AUD07 | Audit della pipeline CI/CD e della catena di fornitura
+  • ID: pmt-6b494996
+  • Ambito: repo | Modalità: read
+  • Cosa serve: Definizioni della pipeline, permessi dei workflow, gestione dei segreti, azioni di terzi e processo di rilascio
+  • Esempio d'uso: AUD07: verifica i workflow GitHub Actions: azioni non fissate e permessi eccessivi
+
 
 INTERFACCIA ED ESPERIENZA UTENTE
-🔭 INT01 | Valuta usabilità, coerenza e stati dei flussi utente.
+🔭 INT01 | Valuta usabilit├á, coerenza e stati dei flussi utente.
   • ID: pmt-33216f62
   • Ambito: repo/area | Modalità: read
   • Cosa serve: applicazione eseguibile e flussi da esaminare
-  • Esempio d'uso: valuta l'usabilità della procedura guidata di configurazione
+  • Esempio d'uso: valuta l'usabilit├á della procedura guidata di configurazione
 
 🔥 INT02 | Implementa un'interfaccia seguendo requisiti e riferimenti.
   • ID: pmt-db55c30d
@@ -277,17 +299,23 @@ INTERFACCIA ED ESPERIENZA UTENTE
   • Cosa serve: linee guida o mockup e componenti esistenti
   • Esempio d'uso: realizza la schermata di sincronizzazione
 
-✅ INT03 | Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.
+✅ INT03 | Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive.
   • ID: pmt-2ea0c993
   • Ambito: repo/area | Modalità: verify
   • Cosa serve: interfaccia funzionante e standard di riferimento
-  • Esempio d'uso: verifica la conformità ARIA e l'accessibilità
+  • Esempio d'uso: verifica la conformit├á ARIA e l'accessibilit├á
 
 ✅ INT04 | Verifica l'internazionalizzazione di stringhe, formati e traduzioni.
   • ID: pmt-805ca095
   • Ambito: repo/area | Modalità: verify
   • Cosa serve: interfaccia o messaggi con lingue e formati supportati
   • Esempio d'uso: verifica stringhe, formati e traduzioni della CLI
+
+🔥 INT05 | Scrivi o rivedi testi dell'interfaccia e messaggi d'errore
+  • ID: pmt-f3614e6a
+  • Ambito: repo/file | Modalità: write
+  • Cosa serve: Schermate o flussi, destinatari, tono, terminologia esistente e lingue supportate
+  • Esempio d'uso: INT05: riscrivi gli errori del checkout in modo che ognuno dica cosa fare dopo
 
 
 DATI E INTEGRAZIONI
@@ -308,6 +336,12 @@ DATI E INTEGRAZIONI
   • Ambito: repo/area | Modalità: write
   • Cosa serve: documentazione dell'API, credenziali di prova e schema
   • Esempio d'uso: implementa un client REST con backoff esponenziale e nuovi tentativi
+
+🔥 DAT04 | Ottimizza query e indici del database
+  • ID: pmt-6b6c2ade
+  • Ambito: repo | Modalità: write
+  • Cosa serve: Query o endpoint lenti, schema, indici, piani di esecuzione e un database di prova sicuro
+  • Esempio d'uso: DAT04: velocizza la query dell'elenco ordini senza cambiare i risultati
 
 
 RILASCIO E OPERATIVITÀ
@@ -336,7 +370,7 @@ RILASCIO E OPERATIVITÀ
   • Esempio d'uso: compila le note di rilascio della v1.1 da commit e segnalazioni
 
 🔥 OPS05 | Prepara commit e pull request con perimetro, messaggio e controlli verificati.
-  • ID: pmt-3e3728b6 | Alias: REP09
+  • ID: pmt-3e3728b6
   • Ambito: repo | Modalità: write
   • Cosa serve: modifiche locali da consegnare e richiesta esplicita di commit o PR
   • Esempio d'uso: prepara i commit e la descrizione della pull request
@@ -347,25 +381,37 @@ RILASCIO E OPERATIVITÀ
   • Cosa serve: rilascio difettoso, versione precedente nota e criteri per tornare indietro
   • Esempio d'uso: prepara l'hotfix e il rollback per il rilascio 2.3.1
 
+🔥 OPS07 | Scrivi un postmortem dell'incidente senza attribuire colpe
+  • ID: pmt-28f4fbf5
+  • Ambito: repo | Modalità: write
+  • Cosa serve: Cronologia dell'incidente, impatto, log o allarmi, correzione applicata e persone coinvolte
+  • Esempio d'uso: OPS07: scrivi il postmortem del blocco del checkout di ieri notte
+
 
 DOCUMENTAZIONE
 🔥 DOC01 | Scrivi guide e README coerenti con il prodotto reale.
-  • ID: pmt-07430e8c | Alias: REP02
+  • ID: pmt-07430e8c
   • Ambito: repo | Modalità: write
-  • Cosa serve: funzionalità implementate, comandi verificati e screenshot approvati
+  • Cosa serve: funzionalit├á implementate, comandi verificati e screenshot approvati
   • Esempio d'uso: aggiorna le guide e aggiungi diagrammi di flusso Mermaid
 
 🔥 DOC02 | Documenta API e contratti a partire dall'implementazione.
-  • ID: pmt-6e82e3a9 | Alias: REP03
+  • ID: pmt-6e82e3a9
   • Ambito: repo/area | Modalità: write
   • Cosa serve: codice sorgente dei contratti e degli endpoint
   • Esempio d'uso: documenta i parametri e gli schemi di risposta degli endpoint
 
 🔥 DOC03 | Cattura screenshot reali e prepara asset pubblici.
-  • ID: pmt-75786fd6 | Alias: REP07
+  • ID: pmt-75786fd6
   • Ambito: repo | Modalità: write
   • Cosa serve: interfaccia funzionante con dati sintetici
   • Esempio d'uso: cattura screenshot autentici dall'interfaccia reale
+
+🔥 DOC04 | Scrivi o aggiorna un runbook operativo
+  • ID: pmt-4b88488d
+  • Ambito: repo | Modalità: write
+  • Cosa serve: La procedura, i sistemi coinvolti, gli accessi necessari, i guasti possibili e un operatore che la validi
+  • Esempio d'uso: DOC04: scrivi un runbook per ripristinare il database da backup
 
 
 IGIENE DEL REPOSITORY
@@ -373,7 +419,7 @@ IGIENE DEL REPOSITORY
   • ID: pmt-4cc383ba
   • Ambito: repo | Modalità: write
   • Cosa serve: task pianificato e criteri di accettazione
-  • Esempio d'uso: esegui il prossimo task prioritario che si può fare in autonomia
+  • Esempio d'uso: esegui il prossimo task prioritario che si pu├▓ fare in autonomia
 
 ⛔ REP04 | Rimuovi residui e codice inutilizzato dopo la verifica.
   • ID: pmt-40772e6e
@@ -411,9 +457,15 @@ IGIENE DEL REPOSITORY
   • Cosa serve: `gh` con diritti di amministratore ed esito di SEC07
   • Esempio d'uso: rendi trovabile questo repository e applica la sicurezza standard
 
+🔭 REP14 | Smista le issue e le pull request aperte
+  • ID: pmt-f8dd6843
+  • Ambito: repo | Modalità: read
+  • Cosa serve: Repository GitHub con gh autenticato, etichette, regole del progetto, età e attività di issue e PR
+  • Esempio d'uso: REP14: smista issue e PR aperte e proponi etichette e chiusure
+
 
 GOVERNANCE, LICENZE E CONFORMITÀ
-✅ GOV01 | Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.
+✅ GOV01 | Verifica le licenze open source, la conformit├á dei file e le intestazioni SPDX.
   • ID: pmt-313da996
   • Ambito: repo | Modalità: verify
   • Cosa serve: albero dei sorgenti e file di licenza
@@ -424,5 +476,111 @@ GOVERNANCE, LICENZE E CONFORMITÀ
   • Ambito: repo | Modalità: write
   • Cosa serve: lock file delle dipendenze e licenze di terze parti
   • Esempio d'uso: analizza le dipendenze di terze parti e compila CREDITS.md
+
+
+MEMORIA E CONTINUITÀ
+🔥 MEM01 | Allinea istruzioni locali, contesto, memoria e tracker.
+  • ID: pmt-f02db9d0
+  • Ambito: repo/area | Modalità: write
+  • Cosa serve: decisioni o modifiche recenti non registrate
+  • Esempio d'uso: sb prompt MEM01: allinea context.md e memory.md dopo completamento task
+
+🔥 MEM02 | Migra progettazione e attivit├á nel dossier SecondBrain.
+  • ID: pmt-64dfa49f
+  • Ambito: repo/area | Modalità: write
+  • Cosa serve: documentazione storica o issue esterne da migrare
+  • Esempio d'uso: sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier
+
+🔥 MEM03 | Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
+  • ID: pmt-76604e4a
+  • Ambito: repo/area | Modalità: write
+  • Cosa serve: stato del lavoro svolto, task successivi definiti e destinazione di consegna
+  • Esempio d'uso: sb prompt MEM03: chiudi la sessione e chiedi commit e push
+
+🔭 MEM04 | Elenca e descrivi le attivit├á del tracker e i problemi che risolvono.
+  • ID: pmt-23c3d2be
+  • Ambito: repo/area | Modalità: read
+  • Cosa serve: tracker del dossier di repository
+  • Esempio d'uso: sb prompt MEM04: elenca attivita e problemi del tracker
+
+🔥 MEM05 | Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.
+  • ID: pmt-4e1b7c52
+  • Ambito: central | Modalità: write
+  • Cosa serve: obiettivo dell'entit├á PARA e sessione di scrittura sul clone SecondBrain
+  • Esempio d'uso: sb prompt MEM05: archivia la risorsa conclusa res-guida
+
+🔭 MEM06 | Leggi memoria attiva, contesto e tracker del repository corrente.
+  • ID: pmt-821f7dec
+  • Ambito: repo | Modalità: read
+  • Cosa serve: checkout del repository aperto
+  • Esempio d'uso: sb prompt MEM06: carica contesto e memoria del repository nel budget
+
+
+SISTEMA E MANUTENZIONE CENTRALE
+✅ SYS01 | Verifica gli IDE; mappa, registra account o riallinea su richiesta.
+  • ID: pmt-26817a61
+  • Ambito: central | Modalità: verify
+  • Cosa serve: installazioni IDE e autorizzazioni locali; per registrare account anche postazione attivata e consenso
+  • Esempio d'uso: sb prompt SYS01: registra un ide con due account o due radici
+
+✅ SYS02 | Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.
+  • ID: pmt-5b593404
+  • Ambito: central | Modalità: verify
+  • Cosa serve: registro PARA resource-authoritative-sources
+  • Esempio d'uso: sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti
+
+🔥 SYS03 | Attiva SecondBrain dopo discovery e selezione degli asset.
+  • ID: pmt-5f9f93e0
+  • Ambito: central | Modalità: write
+  • Cosa serve: volume SecondBrain e consenso utente sugli asset
+  • Esempio d'uso: sb prompt SYS03: attiva secondbrain selezionando repository e ide locali
+
+✅ SYS04 | Controlla o allinea gli asset gi├á gestiti della postazione.
+  • ID: pmt-677a10ab
+  • Ambito: central | Modalità: verify
+  • Cosa serve: configurazione postazione e direttive approvate
+  • Esempio d'uso: sb prompt SYS04: verifica allineamento direttive nei repository gestiti
+
+🔥 SYS05 | Compatta il dossier preservando originali, fatti e TOC.
+  • ID: pmt-77d7bf7a
+  • Ambito: central | Modalità: write
+  • Cosa serve: dossier da compattare e storico verificabile
+  • Esempio d'uso: sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc
+
+🔥 SYS09 | Esegui il backup compresso deterministico e verifica i digest SHA-256.
+  • ID: pmt-e498353a
+  • Ambito: central | Modalità: write
+  • Cosa serve: configurazione attiva e root runtime di backup
+  • Esempio d'uso: sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256
+
+⛔ SYS10 | Esegui rollback e dismissione repository restituendo i dati per privacy.
+  • ID: pmt-b98acaaa
+  • Ambito: central | Modalità: write
+  • Cosa serve: dossier del repository, checkout di destinazione e consenso utente
+  • Esempio d'uso: sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati
+
+🔥 SYS11 | Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.
+  • ID: pmt-364616bb
+  • Ambito: central | Modalità: write
+  • Cosa serve: catalogo valido, area di destinazione e sessione di scrittura
+  • Esempio d'uso: sb prompt SYS11: aggiungi un prompt al catalogo nell'area test
+
+🔥 SYS13 | Fissa o rimuovi il blocco greenfield (versioni, changelog, migrazioni, alias).
+  • ID: pmt-29b3278f
+  • Ambito: repo/area | Modalità: write
+  • Cosa serve: repository gestito, dossier attivo e conferma dell'utente
+  • Esempio d'uso: sb prompt SYS13: fissa o rimuovi il blocco greenfield su questo repository
+
+🔥 SYS15 | Installa il server MCP SecondBrain negli IDE e verifica l'handshake.
+  • ID: pmt-2d3c1d51
+  • Ambito: central | Modalità: write
+  • Cosa serve: radice SecondBrain, IDE di destinazione e conferma prima di scrivere
+  • Esempio d'uso: sb prompt SYS15: installa il server mcp in vscode e claude code
+
+🔥 SYS16 | Aggiorna una skill da fonti autorevoli e verifica il diff.
+  • ID: pmt-9ef61b3d
+  • Ambito: central | Modalità: write
+  • Cosa serve: skill identificata, agente e versione di destinazione, fonti ufficiali
+  • Esempio d'uso: sb prompt SYS16: aggiorna la skill locale dalle fonti ufficiali
 
 ```

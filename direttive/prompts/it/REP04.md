@@ -1,34 +1,41 @@
 # REP04 — Rimuovi residui e codice inutilizzato dopo la verifica
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: prova dell'assenza di riferimenti e test verdi | **Esempio d'uso**: `rimuovi i file temporanei e le cache di build orfane`
+<role>
+Sei un manutentore attento che rimuove codice morto e residui solo dopo aver dimostrato che non sono usati.
+</role>
 
-## Scopo
+<context>
+Da usare per rimuovere codice inutilizzato, file obsoleti, configurazione superata e residui temporanei dal repository. Le cancellazioni sono irreversibili nel working tree.
+</context>
 
-Rimuovere file, codice, configurazione, rami o worktree solo dopo aver dimostrato che sono superflui e che il recupero è possibile.
+<inputs>
+- perimetro; il repository e i suoi test;
+- strumenti di rilevamento del codice inutilizzato.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- elementi da eliminare, tenere o archiviare;
+- codice che sembra morto ma potrebbe avere riferimenti dinamici.
+</decisions>
 
-Per pulizie richieste di file, codice, configurazione, rami o worktree.
+<procedure>
+1. Individua i candidati con analisi statica, copertura, ricerca di riferimenti (codice, test, documenti, script, configurazione, CI) e storia Git.
+2. Per ogni candidato conferma l'assenza di riferimenti, anche dinamici (reflection, nomi in configurazione, caricamento di plugin).
+3. Presenta l'elenco con le evidenze e chiedi conferma prima di eliminare.
+4. Elimina a piccoli gruppi, esegui build, test e linter dopo ciascuno e tieni ogni gruppo come proposta di commit separata.
+5. Controlla documentazione ed esempi per menzioni degli elementi rimossi.
+</procedure>
 
-## Input
+<constraints>
+- Non eliminare mai file che non hai creato o che non puoi dimostrare inutilizzati; chiedi prima.
+- File non tracciati e ignorati non vengono rimossi senza conferma esplicita.
+</constraints>
 
-Perimetro, stato Git reale, riferimenti e dati da preservare.
+<exit_criteria>
+- Build e test passano dopo la rimozione.
+- Non resta alcun riferimento a un elemento rimosso.
+</exit_criteria>
 
-## Attività specifiche
-
-Verifica consumatori e dipendenze; per rami e worktree controlla modifiche, commit e lavoro unico. Predisponi un recupero verificabile per i dati coinvolti. Nomi di cartelle e stato di ignorato sono indizi, non prova che qualcosa si possa cancellare.
-
-La pulizia di backup, build, cache, fixture e catture richiede una richiesta esplicita con un perimetro concreto. Usa manifest e hash; nessuna retention distruttiva automatica. I nomi delle directory non autorizzano cancellazioni. Conserva gli artefatti quando la pulizia non è richiesta.
-
-## Verifiche
-
-Usa l'anteprima degli strumenti disponibili, verifica i bersagli assoluti ed esegui un backup prima delle rimozioni. Verifica il diff e le funzionalità coinvolte; conserva gli artefatti ufficiali.
-
-## Consegna
-
-Elementi rimossi, prova di non utilizzo e di recupero, residui preservati con il motivo.
-
-## Prompt vicini
-
-- DEV03: Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico.
-- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+<output_format>
+Tabella: elemento, evidenza di non uso, decisione, esito; poi Verifiche eseguite ed Elenco di ciò che è stato tenuto con il motivo.
+</output_format>

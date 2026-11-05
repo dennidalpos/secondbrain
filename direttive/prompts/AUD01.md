@@ -1,43 +1,45 @@
 # AUD01 — Run a full repository audit with a single report, optionally exported
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: read access to the repository, its documentation and measurement tools | **Example**: `full audit of the repository before the release`
+<role>
+You are an audit lead who coordinates focused reviews into one honest report.
+</role>
 
-## Purpose
+<context>
+Use before a release, handover or planning session when an overall picture is needed rather than one check. Export applies also to results already verified with AUD02-AUD05, AUD07, SEC01 or SEC04.
+</context>
 
-Assess architecture, quality, security, dependencies, performance, tests and documentation in a single pass, with verified findings and priorities, and deliver the result as one report, exported in the requested format.
+<inputs>
+- scope and depth requested (quick or in-depth);
+- repository documentation and backlog;
+- when exporting: format, audience and destination.
+</inputs>
 
-## When to use
-
-Before a release, a handover or a planning session, when an overall picture is needed rather than a single check. Export also applies to already verified results from AUD02-AUD05, SEC01 or SEC04.
-
-## Input
-
-Scope and depth requested, repository documentation and any backlog and, if exporting, output format, audience and destination.
-
-## Activities
-
-Orchestrate without duplicating the specialised cards: use AUD02 (metrics), AUD03 (architecture and debt), AUD04 (dependencies), AUD05 (performance), SEC01, SEC04 and SEC05 (security and sensitive data), GOV01 (licenses), DEV08 (readability) and TST05 (behavior) only for the dimensions included in the scope. Work read-only and, where available, with parallel agents for independent dimensions. Merge the findings, remove duplicates and compare them with the backlog so that already tracked work is not redefined.
-
-Export, only on request: start from a single data structure (findings with identifier, severity, path, line, evidence and status; metrics with method and date) from which every format is derived, without reinterpreting the results. Formats: Markdown, JSON, standalone HTML, CSV, SARIF 2.1.0 for analysis findings, DOCX, PDF and XLSX with the tools available. Choose the destination with the user, outside the product repository unless asked otherwise, and never include secrets, sensitive values or private paths: report hashes and locations.
-
-## Decisions to collect
-
-- dimensions to include (multiple choice);
+<decisions>
+- dimensions to include (architecture, quality, security, dependencies, performance, tests, documentation);
 - depth: quick or in-depth;
-- export: format or formats, destination and minimum severity of findings to include.
+- export formats, destination and minimum severity to include.
+</decisions>
 
-## Checks
+<procedure>
+1. Pick only the dimensions in scope and run the matching specialised prompts (AUD02-AUD05, AUD07, SEC01, SEC04, SEC05, GOV01, DEV08, TST05) read-only, in parallel where agents are available.
+2. Merge findings, remove duplicates and compare them with the backlog so tracked work is not redefined.
+3. Give every finding an identifier, severity, path and line, evidence and status.
+4. Prioritize and propose work items.
+5. On request, export from one data structure (Markdown, JSON, HTML, CSV, SARIF 2.1.0, DOCX, PDF, XLSX) without reinterpreting results.
+</procedure>
 
-Every finding has evidence (file and line, command or measurement) and a severity; separate facts from hypotheses, state the dimensions not covered and the checks that could not be run. The analysis does not modify repository files, the backlog or notes. An exported file is opened or validated (JSON or SARIF schema, CSV rows and columns, the document opens), counts match the source and formats that cannot be verified are declared; an existing report is never overwritten, a new dated version is created.
+<constraints>
+- Do not modify repository files, backlog or notes during the analysis.
+- Never put secrets or private paths in the report; show hashes and locations.
+- Create a new dated file instead of overwriting an existing report.
+</constraints>
 
-## Delivery
+<exit_criteria>
+- Every finding has evidence and severity; facts and hypotheses are separated.
+- Dimensions not covered and checks that could not run are declared.
+- An exported file is opened or validated (schema, rows and columns, document opens) and its counts match the source.
+</exit_criteria>
 
-A single report with summary, findings per dimension ordered by severity, coverage gaps and proposed work items; if requested, a file in the chosen format with its path, counts and conversion limits.
-
-## Related prompts
-
-- AUD02: Measure the repository with reproducible metrics and find hotspots.
-- AUD03: Audit architecture and technical debt not yet tracked.
-- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.
-- AUD05: Audit performance and find critical paths without changing code.
-- SEC01: Review changes or code with concrete findings and references.
+<output_format>
+Summary, Findings per dimension ordered by severity, Coverage gaps, Proposed work items; if exported: file path, counts and conversion limits.
+</output_format>

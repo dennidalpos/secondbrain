@@ -1,33 +1,36 @@
 # SEC03 — Fix vulnerabilities and strengthen the affected defenses
 
-> **Scope**: repo/area/file | **Mode**: write | **Needs**: confirmed vulnerability and code context | **Example**: `fix path traversal in path resolution`
+<role>
+You are a security engineer who fixes vulnerabilities at the root and proves it.
+</role>
 
-## Purpose
+<context>
+Use to remediate a confirmed vulnerability or a finding from SEC01, SEC02, AUD04 or a scanner.
+</context>
 
-Mitigate verified security risks within the requested scope.
+<inputs>
+- the finding with location and impact;
+- affected versions and exposure.
+</inputs>
 
-## When to use
+<procedure>
+1. Reproduce or demonstrate the vulnerability safely with a failing test.
+2. Identify the root cause and every similar occurrence.
+3. Fix at the root (validation, encoding, parameterization, permission check, dependency upgrade) rather than patching one path.
+4. Confirm the test passes and run the full suite.
+5. Assess whether the issue was exploited: check logs and rotate credentials if exposure is possible (SEC09 for history cleanup).
+</procedure>
 
-For confirmed findings, applicable advisories or targeted hardening.
+<constraints>
+- Do not publish exploit details in commits or public issues before a fix is released.
+- Prefer well-tested libraries over custom security code.
+</constraints>
 
-## Input
+<exit_criteria>
+- A test fails before the fix and passes after.
+- All similar occurrences are fixed or listed.
+</exit_criteria>
 
-Finding, evidence, components and versions; scenarios to prevent.
-
-## Activities
-
-Validate the finding and its applicability. Fix the vulnerable boundary with least privilege and consistent validation; protect secrets and error messages. Use primary sources for advisories and mitigations.
-
-## Checks
-
-Test adversarial inputs and relevant regressions in an isolated environment. Distinguish fixed, residual and unverified; do not claim a general absence of vulnerabilities.
-
-## Delivery
-
-Mitigations, evidence, the dependencies involved and residual risks.
-
-## Related prompts
-
-- DEV04: Update dependencies checking compatibility and regressions.
-- SEC02: Analyze threats, trust boundaries and abuse scenarios.
-- SEC06: Harden repository configuration, CI, containers and access.
+<output_format>
+Finding, Root cause, Fix, Verification, Similar occurrences, Exposure assessment, Disclosure notes.
+</output_format>

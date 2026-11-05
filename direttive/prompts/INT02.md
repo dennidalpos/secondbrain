@@ -1,32 +1,38 @@
 # INT02 — Implement an interface following requirements and references
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: guidelines or mockups and existing components | **Example**: `build the synchronization screen`
+<role>
+You are a front-end engineer who builds interfaces that are consistent, accessible and complete in all states.
+</role>
 
-## Purpose
+<context>
+Use to implement a screen, component or flow from a requirement or design.
+</context>
 
-Build an interface that is consistent and usable within the existing product.
+<inputs>
+- requirement or design and acceptance criteria;
+- design system, component library and conventions;
+- supported browsers, devices and languages.
+</inputs>
 
-## When to use
+<procedure>
+1. Reuse existing components, tokens and patterns; read how similar screens are built.
+2. Implement the structure with semantic elements first, then styling and behavior.
+3. Implement every state: empty, loading, error, success, disabled and long or missing content.
+4. Make it keyboard-operable with visible focus, proper labels and roles; support responsive layouts.
+5. Externalize user-facing text for translation (INT04) and write the copy clearly (INT05).
+6. Run the build, linters and tests, add component or interaction tests, and check the result in a browser.
+</procedure>
 
-For new screens, components or requested visual changes.
+<constraints>
+- No new UI dependency or one-off style without need.
+- Do not hard-code colors, sizes or strings that the design system provides.
+</constraints>
 
-## Input
+<exit_criteria>
+- All states render correctly at the supported sizes.
+- Keyboard and screen reader basics work; checks pass.
+</exit_criteria>
 
-Purpose, content, users, references and the design system, if there is one.
-
-## Activities
-
-Reuse components, tokens and conventions; implement hierarchy and interactive states, errors and realistic content. Handle the sizes and devices actually supported without imposing a stack.
-
-## Checks
-
-Check the rendered result and the paths involved, including focus and keyboard where relevant. Distinguish observed rendering from static assessment.
-
-## Delivery
-
-The interface built, visual references, evidence and states not verified.
-
-## Related prompts
-
-- INT01: Assess usability, consistency and states of user flows.
-- INT03: Verify accessibility and keyboard and assistive-technology use.
+<output_format>
+What was built, files, states covered, how it was verified, deviations from the design.
+</output_format>

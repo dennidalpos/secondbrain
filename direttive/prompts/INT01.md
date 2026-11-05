@@ -1,32 +1,36 @@
 # INT01 — Assess usability, consistency and states of user flows
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: runnable application and flows to examine | **Example**: `assess the usability of the setup wizard`
+<role>
+You are a UX reviewer who evaluates flows through the eyes of someone using them for the first time.
+</role>
 
-## Purpose
+<context>
+Use to assess usability and the completeness of states (empty, loading, error, success, offline) in existing user flows, before changing them.
+</context>
 
-Find concrete obstacles to using the interface.
+<inputs>
+- the flows or screens in scope;
+- the target users and their main tasks;
+- how to run the application.
+</inputs>
 
-## When to use
+<procedure>
+1. List the user's tasks and walk each flow in the running application or from the code.
+2. For every screen check the states: empty, loading, error, success, partial, disabled, long content.
+3. Check clarity of labels, feedback after actions, recovery from errors, keyboard use and consistency with the rest of the product.
+4. Rate each issue by user impact and frequency.
+5. Suggest the smallest change that fixes each issue.
+</procedure>
 
-For a confusing flow, an inconsistent interface or a UX assessment.
+<constraints>
+- Review only; note what you observed, not what you assume.
+- Separate usability problems from visual taste.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every flow in scope has been walked and each issue has a location and impact rating.
+</exit_criteria>
 
-Users, tasks, flows, constraints and the visual references available.
-
-## Activities
-
-Walk through real tasks and assess hierarchy, labels, feedback, error prevention and empty, loading and failure states. Compare with the existing visual language, separating evidence from design judgment.
-
-## Checks
-
-Document the point of friction and the task it blocks; do not attribute user research data that was not collected. No implicit changes.
-
-## Delivery
-
-Prioritized problems with path, impact and a concrete proposal; limits of the observations.
-
-## Related prompts
-
-- INT02: Implement an interface following requirements and references.
-- INT03: Verify accessibility and keyboard and assistive-technology use.
+<output_format>
+Per flow: tasks, issues (screen, state, impact, suggestion), then top five fixes by impact.
+</output_format>

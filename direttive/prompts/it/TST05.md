@@ -1,32 +1,36 @@
 # TST05 — Verifica il comportamento reale rispetto ai requisiti
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: criteri di accettazione e un ambiente funzionante | **Esempio d'uso**: `verifica che l'output sia conforme alle specifiche`
+<role>
+Sei un verificatore che controlla il comportamento reale rispetto a ciò che era richiesto, non a ciò che è stato codificato.
+</role>
 
-## Scopo
+<context>
+Da usare dopo l'implementazione per dimostrare che il comportamento consegnato soddisfa i requisiti nell'applicazione reale.
+</context>
 
-Stabilire che cosa funziona davvero nel perimetro indicato.
+<inputs>
+- i requisiti o criteri di accettazione;
+- la build o l'ambiente da verificare;
+- dati di prova e modo di eseguire l'applicazione.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Trasforma ogni requisito in una o più verifiche concrete con risultati attesi.
+2. Esegui le verifiche sull'applicazione reale (UI, API, CLI), inclusi i principali percorsi d'errore.
+3. Registra i risultati effettivi con evidenze: output di comandi, risposte, descrizione di schermate, log.
+4. Segna ogni requisito come soddisfatto, non soddisfatto o non verificabile, e spiega perché.
+</procedure>
 
-Per i test di accettazione, per confermare una correzione o per verificare una consegna.
+<constraints>
+- Verifica; non correggere in questo prompt. Riporta le discrepanze con i passi di riproduzione.
+- Usa dati sintetici e non toccare la produzione.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni requisito ha uno stato con evidenza.
+- Le voci non verificabili indicano cosa manca.
+</exit_criteria>
 
-Criteri di accettazione, la build o l'applicazione da provare, ambiente e dati di prova.
-
-## Attività specifiche
-
-Associa i criteri a percorsi osservabili. Esegui i test positivi, negativi e limite pertinenti; raccogli esiti e riferimenti. Usa copie o fixture isolate per non modificare dati reali.
-
-## Verifiche
-
-Distingui ispezione statica, test automatici e interazione reale. Non correggere il codice né aggiornare le note per una richiesta di sola verifica.
-
-## Consegna
-
-Matrice di criterio, esito ed evidenza, difetti riproducibili e le parti non raggiungibili.
-
-## Prompt vicini
-
-- SEC01: Rivedi modifiche o codice con rilievi concreti e riferimenti.
-- TST02: Copri i percorsi utente con test end-to-end.
+<output_format>
+Tabella: requisito, verifica, atteso, effettivo, stato, evidenza. Poi Discrepanze e Non verificato.
+</output_format>

@@ -1,48 +1,43 @@
-# MEM03 — Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push
+# MEM03 — Close the session: memories, tracker, handoff and commit and push request
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: stato del lavoro svolto, task successivi definiti e destinazione di consegna | **Esempio d'uso**: `sb prompt MEM03: chiudi la sessione e chiedi commit e push`
+<role>
+You are a handover engineer: you leave the repository so that a later agent can resume without reconstructing the work.
+</role>
 
-## Scopo
+<context>
+Use at the end of a batch, before switching session or handing over partial work.
+</context>
 
-Consentire a un agente successivo di riprendere senza ricostruire il lavoro: memorie e tracker aggiornati, handoff verificabile, stato Git chiaro e richiesta esplicita di commit e push.
+<inputs>
+- goal, current authorizations, Git state (branch, remote, unpublished commits), changes, evidence, blockers and the user's decisions.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- commit: yes, no, or only some files;
+- push: yes or no, remote and target branch;
+- tasks to close, keep partial or block, and leftovers to track;
+- information to save in memory as a decision or gotcha.
+</decisions>
 
-A fine lotto, prima di cambiare sessione o consegnare lavoro parziale.
+<procedure>
+1. Reconcile the real state with the acceptance criteria.
+2. Memories: update `context.md` (state, constraints, open problems, next step) and `memory.md` (lasting decisions and gotchas) with the minimal-summary rule.
+3. Tracker: close only what is complete and proven, keep partial and blocked items with status and reason, track confirmed leftovers without duplicates; done and cancelled tasks go to the archive.
+4. Handoff: save in `history/` a report with work done, decisions, commands and outcomes, useful files, leftovers and the first step; link it from the TOC without duplicating chronicles.
+5. Run `secondbrain.ps1 -Sync` and `-Check`.
+6. Show `git status --ignored`, the diff, branch, remote and unpublished commits. If commit and push are not already authorized, ask; do what was approved, in sequence. Before pushing verify destination, visibility, branch, scope and checks (SEC07).
+</procedure>
 
-## Input
+<constraints>
+- A handoff neither renews permissions nor amounts to a commit or publication.
+- No force push, reset or deletions to obtain a clean tree; no artifact cleanup without an explicit request and concrete scope.
+</constraints>
 
-Obiettivo, autorizzazioni attuali, stato Git (branch, remoto, commit non pubblicati), modifiche, prove, impedimenti e decisioni dell'utente.
+<exit_criteria>
+- Context, memory and tracker tell the same state; closed tasks have proven criteria.
+- The first step for the next session is reproducible.
+</exit_criteria>
 
-## Attività specifiche
-
-Riconcilia stato effettivo e criteri di accettazione, poi nell'ordine:
-
-1. **Memorie.** Aggiorna `context.md` (stato, vincoli, problemi aperti, prossimo passo) e `memory.md` (decisioni durevoli e gotcha) con la regola di sintesi minima: solo operazioni chiave e novità verificate, senza cronache ridondanti né autorizzazioni storiche rinnovate.
-2. **Tracker.** Imposta lo stato dei task dopo aver verificato i criteri: chiudi solo ciò che è completo e provato, mantieni parziali e bloccati con stato e motivo, traccia i residui confermati senza duplicati. Verifica che done e cancelled siano nello storico, con il record completo, e che il tracker attivo contenga le sole attività rimanenti. Una richiesta accodata resta in attesa finché la ricevuta non conferma l'applicazione.
-3. **Handoff.** Salva nel dossier (`history/`) un rapporto con lavoro svolto, decisioni, comandi ed esiti, file utili, residui e primo passo; collega lo storico e il TOC senza duplicare cronache nell'avvio.
-4. **Allineamento.** Esegui Sync e Check con la sessione di scrittura; riporta artefatti conservati e configurazione di output, senza pulizie non richieste.
-5. **Stato Git.** Mostra `git status --ignored`, diff, branch, remoto e commit non pubblicati.
-6. **Consegna.** Se commit e push non sono già autorizzati, chiedili esplicitamente; esegui solo ciò che l'utente ha approvato, in sequenza e senza ulteriore conferma finale quando entrambi sono stati richiesti. Prima del push verifica destinazione, visibilità, branch, perimetro e controlli (SEC07); niente force push, reset o cancellazioni per ottenere un working tree pulito.
-
-## Decisioni da raccogliere
-
-- commit: sì, no o solo alcuni file (scelta multipla sul perimetro);
-- push: sì o no, remoto e branch di destinazione;
-- task da chiudere, mantenere parziali o bloccare, e nuovi residui da tracciare (scelta multipla);
-- informazioni da salvare in memoria come decisione o gotcha (scelta multipla);
-- pulizie di artefatti: mai senza richiesta esplicita e perimetro concreto.
-
-## Verifiche
-
-Verifica percorsi, diff e attività incomplete; accerta che context, memory e tracker dicano lo stesso stato e che i criteri dei task chiusi siano provati. Distingui autorizzazioni attuali e cronologia: un handoff non rinnova permessi né costituisce commit o pubblicazione.
-
-## Consegna
-
-Handoff nel dossier, memorie e tracker aggiornati, stato dei controlli, esito di commit e push (o richiesta in sospeso) e primo passo riproducibile per la ripresa in una nuova sessione.
-
-## Prompt vicini
-
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- PRG04: Prepara un piano a fasi con dipendenze e controlli.
-- SYS04: Controlla o allinea gli asset già gestiti della postazione.
+<output_format>
+Handoff location, updated memories and tracker, checks status, commit and push outcome (or pending request), first step to resume.
+</output_format>

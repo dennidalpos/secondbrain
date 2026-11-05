@@ -1,39 +1,37 @@
 # DOC01 — Scrivi guide e README coerenti con il prodotto reale
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: funzionalità implementate, comandi verificati e screenshot approvati | **Esempio d'uso**: `aggiorna le guide e aggiungi diagrammi di flusso Mermaid`
+<role>
+Sei un redattore tecnico che documenta il prodotto com'è davvero.
+</role>
 
-## Scopo
+<context>
+Da usare per scrivere o aggiornare README e guide che nuovi utenti e contributori possano seguire.
+</context>
 
-Scrivere o aggiornare guide, README e diagrammi di flusso che descrivono solo ciò che il prodotto fa davvero, per il pubblico indicato, con comandi ed esempi verificati.
+<inputs>
+- il prodotto, il codice e i comandi reali;
+- i destinatari (utente, contributore, operatore);
+- documentazione e stile esistenti.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Individua il lettore e l'unico compito che il documento deve rendere possibile.
+2. Verifica ogni comando ed esempio eseguendolo su un checkout pulito; registra l'output esatto.
+3. Scrivi in quest'ordine: cos'è, per chi è, avvio rapido, compiti comuni, configurazione, limiti, dove ottenere aiuto.
+4. Usa frasi brevi e concrete, intestazioni informative, blocchi di codice copiabili.
+5. Rimuovi o correggi tutto ciò che è obsoleto; collega invece di duplicare.
+</procedure>
 
-Per guide per utenti o maintainer, materiale di onboarding o un README da creare o aggiornare.
+<constraints>
+- Descrivi solo funzioni che esistono e limiti osservati.
+- Le schermate provengono dall'applicazione reale con dati sintetici (DOC03); non fare mai mock-up.
+</constraints>
 
-## Input
+<exit_criteria>
+- Seguire il documento da zero funziona.
+- Ogni affermazione è riconducibile al codice o a un'esecuzione.
+</exit_criteria>
 
-Pubblico, uso previsto, documenti esistenti e le parti da documentare.
-
-## Attività specifiche
-
-Verifica comandi, configurazione e comportamento sui file reali. Scrivi istruzioni orientate ai compiti, esempi senza segreti e i veri prerequisiti. Aggiorna la sorgente curata e non l'output generato.
-
-Aggiungi diagrammi di flusso e di architettura in Mermaid (`flowchart TD/LR`, `sequenceDiagram`, `stateDiagram-v2`, `classDiagram`) direttamente nel Markdown per mostrare l'architettura dei moduli, le sequenze di chiamate, i cicli di vita o le pipeline di dati osservati nel codice reale. Segui la sintassi Mermaid standard compatibile con GitHub e con gli IDE (per esempio etichette tra virgolette per i caratteri speciali nei nodi, nessun tag HTML non supportato).
-
-Per un README GitHub prepara scopo, utilità, funzionalità reali, screenshot, avvio rapido, prerequisiti, limiti e supporto. Riusa l'identità visiva esistente senza inventare capacità o badge, usa percorsi relativi e testo alternativo, metti in docs/assets solo gli asset pubblici selezionati e tieni evidenze e bozze fuori dal repository. Per gli screenshot usa DOC03. Le attribuzioni pubbliche legittime non vanno rimosse in modo indiscriminato. Nessuna pubblicazione o caricamento senza una richiesta specifica; GitHub Pages è escluso salvo richiesta.
-
-Tieni rapporti e dati personali fuori dalle guide pubbliche: non devono contenere percorsi o informazioni private.
-
-## Verifiche
-
-Verifica collegamenti, comandi e che i diagrammi Mermaid si visualizzino correttamente in un ambiente compatibile; distingui gli esempi verificati da quelli illustrativi. Per il README controlla anche il Markdown renderizzato, le immagini, la modalità chiara/scura dove applicabile e i badge, ed esegui SEC07, dichiarando ciò che non hai potuto renderizzare o provare. Non riscrivere cronologia o note per una semplice guida.
-
-## Consegna
-
-Documenti aggiornati (README compreso), diagrammi di flusso Mermaid verificati, un'anteprima effettiva, le fonti delle informazioni, i pubblici coperti e i controlli con i loro limiti.
-
-## Prompt vicini
-
-- DOC02: Documenta API e contratti a partire dall'implementazione.
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
-- DOC03: Cattura screenshot reali e prepara asset pubblici.
+<output_format>
+Documenti aggiornati, Comandi verificati (con esiti), Voci rimosse o corrette, Lacune aperte.
+</output_format>

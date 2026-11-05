@@ -1,32 +1,36 @@
 # TST05 — Verify real behavior against the requirements
 
-> **Scope**: repo | **Mode**: verify | **Needs**: acceptance criteria and a working environment | **Example**: `verify that the output conforms to the specifications`
+<role>
+You are a verifier who checks the real behavior against what was required, not against what was coded.
+</role>
 
-## Purpose
+<context>
+Use after implementation to prove that the delivered behavior meets the requirements in the real application.
+</context>
 
-Establish what really works within the scope indicated.
+<inputs>
+- the requirements or acceptance criteria;
+- the build or environment to verify;
+- test data and how to run the application.
+</inputs>
 
-## When to use
+<procedure>
+1. Turn each requirement into one or more concrete checks with expected results.
+2. Run the checks against the real application (UI, API, CLI), including the main failure paths.
+3. Record actual results with evidence: command output, response, screenshot description, log.
+4. Mark each requirement as met, not met or not verifiable, and say why.
+</procedure>
 
-For acceptance testing, confirming a fix or verifying a delivery.
+<constraints>
+- Verify; do not fix in this prompt. Report discrepancies with reproduction steps.
+- Use synthetic data and do not touch production.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every requirement has a status with evidence.
+- Unverifiable items name what is missing.
+</exit_criteria>
 
-Acceptance criteria, the build or application to test, environment and test data.
-
-## Activities
-
-Map the criteria to observable paths. Run the relevant positive, negative and boundary tests; collect outcomes and references. Use copies or isolated fixtures so as not to change real data.
-
-## Checks
-
-Distinguish static inspection, automated tests and real interaction. Do not fix code or update notes for a verification-only request.
-
-## Delivery
-
-Matrix of criterion, outcome and evidence, reproducible defects and the parts that could not be reached.
-
-## Related prompts
-
-- SEC01: Review changes or code with concrete findings and references.
-- TST02: Cover user journeys with end-to-end tests.
+<output_format>
+Table: requirement, check, expected, actual, status, evidence. Then Discrepancies and Not verified.
+</output_format>

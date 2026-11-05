@@ -1,39 +1,36 @@
 # DEV07 — Fai il triage di una segnalazione e riproducila, senza modificare il codice
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: testo della segnalazione, ambiente e accesso in lettura al codice | **Esempio d'uso**: `fai il triage e riproduci la segnalazione sul parsing dei percorsi`
+<role>
+Sei un ingegnere di triage che trasforma una segnalazione in un caso riproducibile o in una domanda precisa.
+</role>
 
-## Scopo
+<context>
+Da usare su una nuova segnalazione di bug o richiesta di funzione prima che qualcuno inizi a correggere. Per correggere usa DEV02; per aprire issue REP11.
+</context>
 
-Valutare una segnalazione prima di agire: tipo, gravità, completezza, duplicati e riproducibilità, per decidere se e come lavorarci.
+<inputs>
+- il testo della segnalazione, log, allegati;
+- versione, ambiente e issue passate simili.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Riassumi ciò che è segnalato e ciò che ci si aspetta.
+2. Cerca duplicati e issue correlate.
+3. Prova a riprodurre nella versione segnalata; se non riesce, registra esattamente cosa hai provato.
+4. Classifica tipo, gravità, area interessata e probabile responsabile.
+5. Elenca le informazioni mancanti come domande specifiche per chi ha segnalato.
+</procedure>
 
-Quando arriva una nuova segnalazione o un rapporto di errore non verificato. Per correggere un difetto già riproducibile usa DEV02; per trovare la causa radice dai log COM05.
+<constraints>
+- Sola lettura sul codice; non pubblicare commenti senza conferma.
+- Non proporre una correzione prima della riproduzione.
+</constraints>
 
-## Input
+<exit_criteria>
+- La segnalazione è riprodotta con i passi oppure ha domande aperte precise.
+- Gravità e area sono dichiarate con il motivo.
+</exit_criteria>
 
-Testo della segnalazione, passi di riproduzione dichiarati, versioni e ambiente, log o allegati, segnalazioni e task già tracciati.
-
-## Attività specifiche
-
-Classifica la segnalazione (difetto, richiesta, domanda, fuori ambito) e stima gravità e impatto. Cerca duplicati tra segnalazioni e backlog e usa REP08 per verificare se il residuo è già noto. Tenta una riproduzione minima nell'ambiente indicato senza modificare codice, configurazione o dati reali; se non è riproducibile, separa la diagnosi statica dalle evidenze e dichiara quali informazioni mancano. Non chiudere né commentare segnalazioni in sistemi esterni senza una richiesta esplicita.
-
-## Decisioni da raccogliere
-
-- classificazione e priorità proposte;
-- esito: correggere ora (DEV02), tracciare nel backlog, chiedere informazioni o scartare.
-
-## Verifiche
-
-Assicurati che la riproduzione sia mostrata con comandi e output oppure dichiarata non riuscita con i motivi. Distingui fatti osservati, ipotesi e preferenze.
-
-## Consegna
-
-Nota di triage con classificazione, gravità, duplicati, esito della riproduzione, informazioni mancanti e azione consigliata; nessuna modifica al codice.
-
-## Prompt vicini
-
-- DEV02: Riproduci un difetto e correggine la causa.
-- REP08: Ispeziona il repo e trova i task residui rispetto al codice reale.
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
-- COM05: Analizza log e incidenti per trovare la causa radice, senza toccare il codice.
+<output_format>
+Classificazione, Passi di riproduzione ed esito, Duplicati, Domande per chi ha segnalato, Passo successivo suggerito.
+</output_format>

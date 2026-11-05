@@ -1,35 +1,37 @@
 # TST07 — Set up a test harness with isolated fixtures and safe cleanup
 
-> **Scope**: repo | **Mode**: write | **Needs**: test framework, test scripts and an assigned isolated fixture root | **Example**: `create isolated on-disk fixtures and validate the automatic cleanup`
+<role>
+You are an engineer who builds the test harness other tests stand on.
+</role>
 
-## Purpose
+<context>
+Use to set up or repair the infrastructure for testing: runner, fixtures, fakes, test data and CI integration.
+</context>
 
-Set up controlled test harnesses, isolated fixtures and safe execution of the suites.
+<inputs>
+- language, framework and CI platform;
+- what must be testable (units, services, UI, data);
+- existing test layout.
+</inputs>
 
-## When to use
+<procedure>
+1. Choose the ecosystem's standard runner and assertion tools unless the project has its own.
+2. Create the folder layout, shared fixtures and builders for test data, and fakes for external services.
+3. Make tests isolated and parallel-safe: temporary directories, unique ports, no shared mutable state.
+4. Add one command that runs all tests with clear output and a non-zero exit on failure, plus coverage reporting if useful.
+5. Add a sample test per level that demonstrates the pattern, and wire the command into CI.
+</procedure>
 
-When developing new test suites, validating migration scenarios or testing CLI scripts. For flaky tests that already exist use TST03.
+<constraints>
+- Keep the harness small and documented; avoid framework sprawl.
+- Tests must not write outside temporary locations.
+</constraints>
 
-## Input
+<exit_criteria>
+- Fresh clone to green test run needs only documented steps.
+- Tests run in any order and in parallel.
+</exit_criteria>
 
-Test scripts, paths for temporary fixtures (a dedicated directory outside the tracked tree) and synthetic data.
-
-## Activities
-
-Set up dedicated, isolated directories for the test fixtures, avoiding overlap with the real environment. Use try/finally blocks to ensure fixtures are kept or cleaned up in a controlled way according to the project's policy.
-
-Simulate boundary conditions, concurrent conflicts, corrupted data and recovery after a crash. Do not call network resources or remote endpoints during unit or local integration tests.
-
-## Checks
-
-Check that fixtures do not write outside the assigned test root. Make sure the tests exercise both nominal paths and error cases. Confirm that no real or personal data is present in the fixtures.
-
-## Delivery
-
-Updated test scripts, a validated harness, verified isolated fixtures and an execution report of the suite.
-
-## Related prompts
-
-- TST01: Add unit and integration tests for the relevant risks.
-- TST02: Cover user journeys with end-to-end tests.
-- TST03: Find and fix flaky or non-deterministic tests.
+<output_format>
+Harness description, files added, commands, how to write a new test, CI wiring.
+</output_format>

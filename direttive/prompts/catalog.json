@@ -1,242 +1,146 @@
 {
+  "schemaVersion": 1,
   "catalogVersion": 1,
   "categories": [
     {
+      "id": "understand",
+      "title": "Understanding and research",
       "i18n": {
         "it": {
           "title": "Comprensione e ricerca"
         }
-      },
-      "id": "comprensione",
-      "title": "Understanding and research"
+      }
     },
     {
+      "id": "design",
+      "title": "Requirements and design",
       "i18n": {
         "it": {
           "title": "Requisiti e progettazione"
         }
-      },
-      "id": "progettazione",
-      "title": "Requirements and design"
+      }
     },
     {
+      "id": "develop",
+      "title": "Development and modernization",
       "i18n": {
         "it": {
           "title": "Sviluppo e modernizzazione"
         }
-      },
-      "id": "sviluppo",
-      "title": "Development and modernization"
+      }
     },
     {
+      "id": "test",
+      "title": "Testing and verification",
       "i18n": {
         "it": {
           "title": "Test e verifica"
         }
-      },
-      "id": "test",
-      "title": "Testing and verification"
+      }
     },
     {
+      "id": "security",
+      "title": "Review and security",
       "i18n": {
         "it": {
           "title": "Revisione e sicurezza"
         }
-      },
-      "id": "sicurezza",
-      "title": "Review and security"
+      }
     },
     {
+      "id": "audit",
+      "title": "Audit and metrics",
       "i18n": {
         "it": {
           "title": "Audit e metriche"
         }
-      },
-      "id": "audit",
-      "title": "Audit and metrics"
+      }
     },
     {
+      "id": "interface",
+      "title": "Interface and user experience",
       "i18n": {
         "it": {
           "title": "Interfaccia ed esperienza utente"
         }
-      },
-      "id": "interfaccia",
-      "title": "Interface and user experience"
+      }
     },
     {
+      "id": "data",
+      "title": "Data and integrations",
       "i18n": {
         "it": {
           "title": "Dati e integrazioni"
         }
-      },
-      "id": "dati",
-      "title": "Data and integrations"
+      }
     },
     {
+      "id": "operations",
+      "title": "Release and operations",
       "i18n": {
         "it": {
           "title": "Rilascio e operatività"
         }
-      },
-      "id": "operativita",
-      "title": "Release and operations"
+      }
     },
     {
+      "id": "docs",
+      "title": "Documentation",
       "i18n": {
         "it": {
           "title": "Documentazione"
         }
-      },
-      "id": "documentazione",
-      "title": "Documentation"
+      }
     },
     {
+      "id": "repository",
+      "title": "Repository hygiene",
       "i18n": {
         "it": {
           "title": "Igiene del repository"
         }
-      },
-      "id": "repository",
-      "title": "Repository hygiene"
+      }
     },
     {
+      "id": "governance",
+      "title": "Governance, licensing and compliance",
       "i18n": {
         "it": {
           "title": "Governance, licenze e conformità"
         }
-      },
-      "id": "governance",
-      "title": "Governance, licensing and compliance"
+      }
     },
     {
+      "id": "memory",
+      "title": "Memory and continuity",
       "i18n": {
-        "en": {
-          "title": "Memory and continuity"
+        "it": {
+          "title": "Memoria e continuità"
         }
-      },
-      "id": "memoria",
-      "title": "Memoria e continuità"
+      }
     },
     {
+      "id": "system",
+      "title": "Central system and maintenance",
       "i18n": {
-        "en": {
-          "title": "Central system and maintenance"
+        "it": {
+          "title": "Sistema e manutenzione centrale"
         }
-      },
-      "id": "sistema",
-      "title": "Sistema e manutenzione centrale"
-    }
-  ],
-  "deprecations": [
-    {
-      "alias": "AUD06",
-      "supersededBy": "pmt-ccbf18b8"
-    },
-    {
-      "alias": "DEV09",
-      "supersededBy": "pmt-2b07a693"
-    },
-    {
-      "alias": "DEV10",
-      "supersededBy": "pmt-9de57e24"
-    },
-    {
-      "alias": "DEV11",
-      "supersededBy": "pmt-2b07a693"
-    },
-    {
-      "alias": "REP05",
-      "supersededBy": "pmt-058c474f"
-    },
-    {
-      "alias": "REP06",
-      "supersededBy": "pmt-07430e8c"
-    },
-    {
-      "alias": "SYS07",
-      "supersededBy": "pmt-821f7dec"
-    },
-    {
-      "alias": "SYS08",
-      "supersededBy": "pmt-821f7dec"
-    },
-    {
-      "alias": "SYS12",
-      "supersededBy": "pmt-26817a61"
-    },
-    {
-      "alias": "SYS14",
-      "supersededBy": "pmt-29b3278f"
-    },
-    {
-      "alias": "pmt-3a875788",
-      "supersededBy": "pmt-26817a61"
-    },
-    {
-      "alias": "pmt-6055dd39",
-      "supersededBy": "pmt-058c474f"
-    },
-    {
-      "alias": "pmt-60dba781",
-      "supersededBy": "pmt-07430e8c"
-    },
-    {
-      "alias": "pmt-61ef1616",
-      "supersededBy": "pmt-9de57e24"
-    },
-    {
-      "alias": "pmt-672f52fc",
-      "supersededBy": "pmt-2b07a693"
-    },
-    {
-      "alias": "pmt-9a32f4e4",
-      "supersededBy": "pmt-821f7dec"
-    },
-    {
-      "alias": "pmt-ac962f79",
-      "supersededBy": "pmt-ccbf18b8"
-    },
-    {
-      "alias": "pmt-b799f469",
-      "supersededBy": "pmt-29b3278f"
-    },
-    {
-      "alias": "pmt-be2533c9",
-      "supersededBy": "pmt-2b07a693"
-    },
-    {
-      "alias": "pmt-f0cb4572",
-      "supersededBy": "pmt-821f7dec"
+      }
     }
   ],
   "prompts": [
     {
-      "aliases": [],
-      "category": "audit",
+      "id": "pmt-ccbf18b8",
       "code": "AUD01",
+      "category": "audit",
+      "summary": "Run a full repository audit with a single report, optionally exported.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "read access to the repository, its documentation and measurement tools",
       "example": "full audit of the repository before the release",
       "file": "AUD01.md",
-      "i18n": {
-        "it": {
-          "example": "audit completo del repository prima del rilascio",
-          "requires": "accesso in lettura a repository, documentazione e strumenti di misura",
-          "summary": "Esegui un audit completo del repository con un unico rapporto, anche esportato."
-        }
-      },
-      "id": "pmt-ccbf18b8",
-      "mode": "read",
-      "next": [
-        "pmt-4a9a4b4f",
-        "pmt-c692cc23",
-        "pmt-7dc63766"
-      ],
-      "pack": "core",
-      "references": [
-        "https://owasp.org/www-project-top-ten/",
-        "https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html",
-        "https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning"
-      ],
       "related": [
         "pmt-4a9a4b4f",
         "pmt-c692cc23",
@@ -244,509 +148,431 @@
         "pmt-4efbc54f",
         "pmt-27896824"
       ],
-      "requires": "read access to the repository, its documentation and measurement tools",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Run a full repository audit with a single report, optionally exported.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Esegui un audit completo del repository con un unico rapporto, anche esportato.",
+          "requires": "accesso in lettura a repository, documentazione e strumenti di misura",
+          "example": "audit completo del repository prima del rilascio"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "audit",
+      "id": "pmt-4a9a4b4f",
       "code": "AUD02",
+      "category": "audit",
+      "summary": "Measure the repository with reproducible metrics and find hotspots.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "read access to the repository, its Git history and measurement tools",
       "example": "metrics and hotspots of the repository",
       "file": "AUD02.md",
-      "i18n": {
-        "it": {
-          "example": "metriche e hotspot del repository",
-          "requires": "accesso in lettura a repository, cronologia Git e strumenti di misura",
-          "summary": "Misura il repository con metriche riproducibili e individua gli hotspot."
-        }
-      },
-      "id": "pmt-4a9a4b4f",
-      "mode": "read",
-      "next": [
-        "pmt-ccbf18b8",
-        "pmt-b16674bd"
-      ],
-      "pack": "core",
-      "references": [
-        "https://git-scm.com/docs/git-log"
-      ],
       "related": [
         "pmt-ccbf18b8",
         "pmt-b16674bd"
       ],
-      "requires": "read access to the repository, its Git history and measurement tools",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Measure the repository with reproducible metrics and find hotspots.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Misura il repository con metriche riproducibili e individua gli hotspot.",
+          "requires": "accesso in lettura a repository, cronologia Git e strumenti di misura",
+          "example": "metriche e hotspot del repository"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "audit",
+      "id": "pmt-c692cc23",
       "code": "AUD03",
+      "category": "audit",
+      "summary": "Audit architecture and technical debt not yet tracked.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "read access to the code, the backlog and architecture documentation",
       "example": "audit of architecture and technical debt of the repository",
       "file": "AUD03.md",
-      "i18n": {
-        "it": {
-          "example": "audit di architettura e debito tecnico del repository",
-          "requires": "accesso in lettura a codice, backlog e documentazione di architettura",
-          "summary": "Verifica architettura e debito tecnico non ancora tracciati."
-        }
-      },
-      "id": "pmt-c692cc23",
-      "mode": "read",
-      "next": [
-        "pmt-ccbf18b8",
-        "pmt-179b9acc",
-        "pmt-3731bb7d"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
       "related": [
         "pmt-ccbf18b8",
         "pmt-179b9acc",
         "pmt-3731bb7d"
       ],
-      "requires": "read access to the code, the backlog and architecture documentation",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Audit architecture and technical debt not yet tracked.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica architettura e debito tecnico non ancora tracciati.",
+          "requires": "accesso in lettura a codice, backlog e documentazione di architettura",
+          "example": "audit di architettura e debito tecnico del repository"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "audit",
+      "id": "pmt-7dc63766",
       "code": "AUD04",
+      "category": "audit",
+      "summary": "Audit dependencies: outdated, vulnerable, unused and licenses.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "manifests, lock files and access to package registries or dependency advisories",
       "example": "dependency audit before the upgrade",
       "file": "AUD04.md",
-      "i18n": {
-        "it": {
-          "example": "audit delle dipendenze prima dell'aggiornamento",
-          "requires": "manifest, lock file e accesso ai registri dei pacchetti o agli avvisi",
-          "summary": "Verifica le dipendenze: obsolete, vulnerabili, inutilizzate e licenze."
-        }
-      },
-      "id": "pmt-7dc63766",
-      "mode": "read",
-      "next": [
-        "pmt-ccbf18b8",
-        "pmt-e2405036",
-        "pmt-313da996"
-      ],
-      "pack": "core",
-      "references": [
-        "https://osv.dev/",
-        "https://docs.github.com/en/code-security/dependabot",
-        "https://owasp.org/www-project-top-ten/"
-      ],
       "related": [
         "pmt-ccbf18b8",
         "pmt-e2405036",
-        "pmt-313da996"
+        "pmt-313da996",
+        "pmt-6b494996"
       ],
-      "requires": "manifests, lock files and access to package registries or dependency advisories",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Audit dependencies: outdated, vulnerable, unused and licenses.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica le dipendenze: obsolete, vulnerabili, inutilizzate e licenze.",
+          "requires": "manifest, lock file e accesso ai registri dei pacchetti o agli avvisi",
+          "example": "audit delle dipendenze prima dell'aggiornamento"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "audit",
+      "id": "pmt-4efbc54f",
       "code": "AUD05",
+      "category": "audit",
+      "summary": "Audit performance and find critical paths without changing code.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "representative load scenario and profiling or measurement tools",
       "example": "find the critical paths for time and memory",
       "file": "AUD05.md",
-      "i18n": {
-        "it": {
-          "example": "trova i percorsi critici per tempo e memoria",
-          "requires": "scenario di carico rappresentativo e strumenti di profilazione o misura",
-          "summary": "Verifica le prestazioni e trova i percorsi critici senza modificare il codice."
-        }
-      },
-      "id": "pmt-4efbc54f",
-      "mode": "read",
-      "next": [
-        "pmt-ccbf18b8",
-        "pmt-9de57e24"
-      ],
-      "pack": "core",
-      "references": [
-        "https://scorecard.dev/"
-      ],
       "related": [
         "pmt-ccbf18b8",
         "pmt-9de57e24"
       ],
-      "requires": "representative load scenario and profiling or measurement tools",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Audit performance and find critical paths without changing code.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica le prestazioni e trova i percorsi critici senza modificare il codice.",
+          "requires": "scenario di carico rappresentativo e strumenti di profilazione o misura",
+          "example": "trova i percorsi critici per tempo e memoria"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "comprensione",
+      "id": "pmt-6b494996",
+      "code": "AUD07",
+      "category": "audit",
+      "summary": "Audit the CI/CD pipeline and supply chain",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "Pipeline definitions, workflow permissions, secrets handling, third-party actions and release process",
+      "example": "AUD07: audit the GitHub Actions workflows for unpinned actions and excess permissions",
+      "file": "AUD07.md",
+      "related": [
+        "pmt-7dc63766",
+        "pmt-c356eede",
+        "pmt-ce00f261",
+        "pmt-adb9bfc0"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Audit della pipeline CI/CD e della catena di fornitura",
+          "requires": "Definizioni della pipeline, permessi dei workflow, gestione dei segreti, azioni di terzi e processo di rilascio",
+          "example": "AUD07: verifica i workflow GitHub Actions: azioni non fissate e permessi eccessivi"
+        }
+      }
+    },
+    {
+      "id": "pmt-a709a792",
       "code": "COM01",
+      "category": "understand",
+      "summary": "Explore the repository and identify main components and commands.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "read access to the repository and a shell",
       "example": "explore the structure and main modules",
       "file": "COM01.md",
-      "i18n": {
-        "it": {
-          "example": "esplora la struttura e i moduli principali",
-          "requires": "accesso in lettura al repository e una shell",
-          "summary": "Esplora il repository e individua componenti principali e comandi."
-        }
-      },
-      "id": "pmt-a709a792",
-      "mode": "read",
-      "next": [
-        "pmt-e0fd59da",
-        "pmt-179b9acc"
-      ],
-      "pack": "core",
-      "references": [
-        "https://sre.google/sre-book/effective-troubleshooting/"
-      ],
       "related": [
         "pmt-e0fd59da",
-        "pmt-179b9acc"
+        "pmt-179b9acc",
+        "pmt-fe04425a"
       ],
-      "requires": "read access to the repository and a shell",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Explore the repository and identify main components and commands.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Esplora il repository e individua componenti principali e comandi.",
+          "requires": "accesso in lettura al repository e una shell",
+          "example": "esplora la struttura e i moduli principali"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "comprensione",
+      "id": "pmt-e0fd59da",
       "code": "COM02",
+      "category": "understand",
+      "summary": "Trace a flow and its dependencies through the code.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "entry point or scenario to trace",
       "example": "trace the authentication and session flow",
       "file": "COM02.md",
-      "i18n": {
-        "it": {
-          "example": "segui il flusso di autenticazione e sessione",
-          "requires": "punto di ingresso o scenario da seguire",
-          "summary": "Segui un flusso e le sue dipendenze attraverso il codice."
-        }
-      },
-      "id": "pmt-e0fd59da",
-      "mode": "read",
-      "next": [
-        "pmt-a709a792",
-        "pmt-25ac264e"
-      ],
-      "pack": "core",
-      "references": [
-        "https://sre.google/sre-book/effective-troubleshooting/"
-      ],
       "related": [
         "pmt-a709a792",
         "pmt-25ac264e"
       ],
-      "requires": "entry point or scenario to trace",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Trace a flow and its dependencies through the code.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Segui un flusso e le sue dipendenze attraverso il codice.",
+          "requires": "punto di ingresso o scenario da seguire",
+          "example": "segui il flusso di autenticazione e sessione"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "comprensione",
+      "id": "pmt-25c97d58",
       "code": "COM03",
+      "category": "understand",
+      "summary": "Find official sources that fit the technical problem.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "technical problem or library with its version",
       "example": "find the official documentation for the runtime version in use",
       "file": "COM03.md",
-      "i18n": {
-        "it": {
-          "example": "trova la documentazione ufficiale per la versione di runtime in uso",
-          "requires": "problema tecnico o libreria con la sua versione",
-          "summary": "Trova le fonti ufficiali adatte al problema tecnico."
-        }
-      },
-      "id": "pmt-25c97d58",
-      "mode": "read",
-      "next": [
-        "pmt-3e0ad55e"
-      ],
-      "pack": "core",
-      "references": [
-        "https://sre.google/sre-book/effective-troubleshooting/"
-      ],
       "related": [
         "pmt-3e0ad55e"
       ],
-      "requires": "technical problem or library with its version",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Find official sources that fit the technical problem.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Trova le fonti ufficiali adatte al problema tecnico.",
+          "requires": "problema tecnico o libreria con la sua versione",
+          "example": "trova la documentazione ufficiale per la versione di runtime in uso"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "comprensione",
+      "id": "pmt-179b9acc",
       "code": "COM04",
+      "category": "understand",
+      "summary": "Assess the impact, risks and dependencies of a change.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "proposed change or defect to fix",
       "example": "assess the impact of isolating runtime logs",
       "file": "COM04.md",
-      "i18n": {
-        "it": {
-          "example": "valuta l'impatto dell'isolamento dei log di runtime",
-          "requires": "modifica proposta o difetto da correggere",
-          "summary": "Valuta impatto, rischi e dipendenze di una modifica."
-        }
-      },
-      "id": "pmt-179b9acc",
-      "mode": "read",
-      "next": [
-        "pmt-83764c0d",
-        "pmt-8541aed1",
-        "pmt-c692cc23"
-      ],
-      "pack": "core",
-      "references": [
-        "https://sre.google/sre-book/effective-troubleshooting/"
-      ],
       "related": [
         "pmt-83764c0d",
         "pmt-8541aed1",
         "pmt-c692cc23"
       ],
-      "requires": "proposed change or defect to fix",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Assess the impact, risks and dependencies of a change.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "comprensione",
-      "code": "COM05",
-      "example": "find the root cause of yesterday's errors in the logs",
-      "file": "COM05.md",
       "i18n": {
         "it": {
-          "example": "trova la causa radice degli errori di ieri nei log",
-          "requires": "log, errori o sintomi, finestra temporale e accesso in lettura",
-          "summary": "Analizza log e incidenti per trovare la causa radice, senza toccare il codice."
+          "summary": "Valuta impatto, rischi e dipendenze di una modifica.",
+          "requires": "modifica proposta o difetto da correggere",
+          "example": "valuta l'impatto dell'isolamento dei log di runtime"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-1839927a",
+      "code": "COM05",
+      "category": "understand",
+      "summary": "Analyze logs and incidents to find the root cause, without changing code.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-25ac264e",
-        "pmt-c2785b9c"
-      ],
-      "pack": "core",
-      "references": [
-        "https://sre.google/sre-book/effective-troubleshooting/",
-        "https://owasp.org/www-project-proactive-controls/"
-      ],
+      "scope": "repo/area",
+      "requires": "logs, errors or symptoms of the incident, time window and read access",
+      "example": "find the root cause of yesterday's errors in the logs",
+      "file": "COM05.md",
       "related": [
         "pmt-25ac264e",
         "pmt-c2785b9c",
-        "pmt-9bd26aad"
+        "pmt-9bd26aad",
+        "pmt-28f4fbf5"
       ],
-      "requires": "logs, errors or symptoms of the incident, time window and read access",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Analyze logs and incidents to find the root cause, without changing code.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Analizza log e incidenti per trovare la causa radice, senza toccare il codice.",
+          "requires": "log, errori o sintomi, finestra temporale e accesso in lettura",
+          "example": "trova la causa radice degli errori di ieri nei log"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "dati",
+      "id": "pmt-fe04425a",
+      "code": "COM06",
+      "category": "understand",
+      "summary": "Explain code or a concept to someone new to the project",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/file",
+      "requires": "The code, module or concept to explain and the reader's starting level",
+      "example": "COM06: explain how the payment retry flow works to a new teammate",
+      "file": "COM06.md",
+      "related": [
+        "pmt-a709a792",
+        "pmt-e0fd59da",
+        "pmt-07430e8c"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Spiega codice o concetti a chi è nuovo del progetto",
+          "requires": "Codice, modulo o concetto da spiegare e il livello di partenza del lettore",
+          "example": "COM06: spiega il flusso dei retry dei pagamenti a un nuovo collega"
+        }
+      }
+    },
+    {
+      "id": "pmt-32e3cf59",
       "code": "DAT01",
+      "category": "data",
+      "summary": "Migrate schema and data with verifiable comparison and recovery.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "source schema, target schema and synthetic data",
       "example": "migrate the schema with an atomic rollback script",
       "file": "DAT01.md",
-      "i18n": {
-        "it": {
-          "example": "migra lo schema con uno script di rollback atomico",
-          "requires": "schema di origine, schema di destinazione e dati sintetici",
-          "summary": "Migra schema e dati con confronto verificabile e recupero."
-        }
-      },
-      "id": "pmt-32e3cf59",
-      "mode": "write",
-      "next": [
-        "pmt-3ddd1df9",
-        "pmt-83764c0d"
-      ],
-      "pack": "core",
-      "references": [
-        "https://json-schema.org/understanding-json-schema"
-      ],
       "related": [
         "pmt-3ddd1df9",
-        "pmt-83764c0d"
+        "pmt-83764c0d",
+        "pmt-6b6c2ade"
       ],
-      "requires": "source schema, target schema and synthetic data",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Migrate schema and data with verifiable comparison and recovery.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Migra schema e dati con confronto verificabile e recupero.",
+          "requires": "schema di origine, schema di destinazione e dati sintetici",
+          "example": "migra lo schema con uno script di rollback atomico"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "dati",
+      "id": "pmt-3ddd1df9",
       "code": "DAT02",
+      "category": "data",
+      "summary": "Build imports and transformations that preserve the originals.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "source files, target model and validation rules",
       "example": "import the catalog from CSV to JSON preserving the originals",
       "file": "DAT02.md",
-      "i18n": {
-        "it": {
-          "example": "importa il catalogo da CSV a JSON preservando gli originali",
-          "requires": "file di origine, modello di destinazione e regole di validazione",
-          "summary": "Costruisci importazioni e trasformazioni che preservano gli originali."
-        }
-      },
-      "id": "pmt-3ddd1df9",
-      "mode": "write",
-      "next": [
-        "pmt-32e3cf59",
-        "pmt-6b7b0e8d"
-      ],
-      "pack": "core",
-      "references": [
-        "https://json-schema.org/understanding-json-schema"
-      ],
       "related": [
         "pmt-32e3cf59",
         "pmt-6b7b0e8d"
       ],
-      "requires": "source files, target model and validation rules",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Build imports and transformations that preserve the originals.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Costruisci importazioni e trasformazioni che preservano gli originali.",
+          "requires": "file di origine, modello di destinazione e regole di validazione",
+          "example": "importa il catalogo da CSV a JSON preservando gli originali"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "dati",
+      "id": "pmt-6b7b0e8d",
       "code": "DAT03",
+      "category": "data",
+      "summary": "Integrate API services with error handling and request retries.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "API documentation, test credentials and schema",
       "example": "implement a REST client with exponential backoff and retry",
       "file": "DAT03.md",
-      "i18n": {
-        "it": {
-          "example": "implementa un client REST con backoff esponenziale e nuovi tentativi",
-          "requires": "documentazione dell'API, credenziali di prova e schema",
-          "summary": "Integra servizi API con gestione degli errori e nuovi tentativi delle richieste."
-        }
-      },
-      "id": "pmt-6b7b0e8d",
-      "mode": "write",
-      "next": [
-        "pmt-83764c0d",
-        "pmt-6e82e3a9"
-      ],
-      "pack": "core",
-      "references": [
-        "https://json-schema.org/understanding-json-schema"
-      ],
       "related": [
         "pmt-83764c0d",
         "pmt-6e82e3a9"
       ],
-      "requires": "API documentation, test credentials and schema",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Integrate API services with error handling and request retries.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Integra servizi API con gestione degli errori e nuovi tentativi delle richieste.",
+          "requires": "documentazione dell'API, credenziali di prova e schema",
+          "example": "implementa un client REST con backoff esponenziale e nuovi tentativi"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sviluppo",
+      "id": "pmt-6b6c2ade",
+      "code": "DAT04",
+      "category": "data",
+      "summary": "Optimize database queries and indexes",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "Slow queries or endpoints, schema, indexes, execution plans and a safe test database",
+      "example": "DAT04: speed up the orders listing query without changing its results",
+      "file": "DAT04.md",
+      "related": [
+        "pmt-32e3cf59",
+        "pmt-4efbc54f",
+        "pmt-9de57e24"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Ottimizza query e indici del database",
+          "requires": "Query o endpoint lenti, schema, indici, piani di esecuzione e un database di prova sicuro",
+          "example": "DAT04: velocizza la query dell'elenco ordini senza cambiare i risultati"
+        }
+      }
+    },
+    {
+      "id": "pmt-83df1685",
       "code": "DEV01",
+      "category": "develop",
+      "summary": "Implement a feature with relevant checks.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area/file",
+      "requires": "verified requirements or acceptance criteria",
       "example": "implement the export command with hash validation",
       "file": "DEV01.md",
-      "i18n": {
-        "it": {
-          "example": "implementa il comando di esportazione con validazione dell'hash",
-          "requires": "requisiti o criteri di accettazione verificati",
-          "summary": "Implementa una funzionalità con i controlli pertinenti."
-        }
-      },
-      "id": "pmt-83df1685",
-      "mode": "write",
-      "next": [
-        "pmt-f3082c1b",
-        "pmt-98071f85",
-        "pmt-ef96dea5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
       "related": [
         "pmt-f3082c1b",
         "pmt-98071f85",
-        "pmt-ef96dea5"
+        "pmt-ef96dea5",
+        "pmt-0715c64b"
       ],
-      "requires": "verified requirements or acceptance criteria",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Implement a feature with relevant checks.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sviluppo",
-      "code": "DEV02",
-      "example": "fix the parsing error for paths containing spaces",
-      "file": "DEV02.md",
       "i18n": {
         "it": {
-          "example": "correggi l'errore di parsing per i percorsi contenenti spazi",
-          "requires": "segnalazione o comportamento atteso e osservato",
-          "summary": "Riproduci un difetto e correggine la causa."
+          "summary": "Implementa una funzionalit├á con i controlli pertinenti.",
+          "requires": "requisiti o criteri di accettazione verificati",
+          "example": "implementa il comando di esportazione con validazione dell'hash"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-25ac264e",
+      "code": "DEV02",
+      "category": "develop",
+      "summary": "Reproduce a defect and fix its cause.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-91021b67",
-        "pmt-bd98736f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
+      "scope": "repo/area/file",
+      "requires": "report or expected and actual behavior",
+      "example": "fix the parsing error for paths containing spaces",
+      "file": "DEV02.md",
       "related": [
         "pmt-91021b67",
         "pmt-bd98736f",
         "pmt-1839927a",
         "pmt-b377d5f0"
       ],
-      "requires": "report or expected and actual behavior",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Reproduce a defect and fix its cause.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sviluppo",
-      "code": "DEV03",
-      "example": "extract transaction handling into its own module",
-      "file": "DEV03.md",
       "i18n": {
         "it": {
-          "example": "estrai la gestione delle transazioni in un modulo dedicato",
-          "requires": "codice da migliorare, test esistenti e perimetro dell'intervento",
-          "summary": "Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico."
+          "summary": "Riproduci un difetto e correggine la causa.",
+          "requires": "segnalazione o comportamento atteso e osservato",
+          "example": "correggi l'errore di parsing per i percorsi contenenti spazi"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-2b07a693",
+      "code": "DEV03",
+      "category": "develop",
+      "summary": "Refactor code preserving contracts: targeted, phased or periodic.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-22863973",
-        "pmt-40772e6e"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
+      "scope": "repo/area",
+      "requires": "code to improve, existing tests and scope (targeted, phased or periodic)",
+      "example": "extract transaction handling into its own module",
+      "file": "DEV03.md",
       "related": [
         "pmt-22863973",
         "pmt-40772e6e",
@@ -754,1726 +580,1300 @@
         "pmt-b16674bd",
         "pmt-3731bb7d"
       ],
-      "requires": "code to improve, existing tests and scope (targeted, phased or periodic)",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Refactor code preserving contracts: targeted, phased or periodic.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Rifattorizza il codice preservando i contratti: mirato, a fasi o periodico.",
+          "requires": "codice da migliorare, test esistenti e perimetro dell'intervento",
+          "example": "estrai la gestione delle transazioni in un modulo dedicato"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sviluppo",
+      "id": "pmt-e2405036",
       "code": "DEV04",
+      "category": "develop",
+      "summary": "Update dependencies checking compatibility and regressions.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area/file",
+      "requires": "dependency manifests and lock files",
       "example": "update the JSON serialization package",
       "file": "DEV04.md",
-      "i18n": {
-        "it": {
-          "example": "aggiorna il pacchetto di serializzazione JSON",
-          "requires": "manifest delle dipendenze e lock file",
-          "summary": "Aggiorna le dipendenze verificando compatibilità e regressioni."
-        }
-      },
-      "id": "pmt-e2405036",
-      "mode": "write",
-      "next": [
-        "pmt-22863973",
-        "pmt-b4cb6659",
-        "pmt-7dc63766"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
       "related": [
         "pmt-22863973",
         "pmt-b4cb6659",
         "pmt-7dc63766"
       ],
-      "requires": "dependency manifests and lock files",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Update dependencies checking compatibility and regressions.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Aggiorna le dipendenze verificando compatibilit├á e regressioni.",
+          "requires": "manifest delle dipendenze e lock file",
+          "example": "aggiorna il pacchetto di serializzazione JSON"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sviluppo",
+      "id": "pmt-22863973",
       "code": "DEV05",
+      "category": "develop",
+      "summary": "Migrate code or a framework to a defined target.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "source and target versions with release notes",
       "example": "migrate the scripts from the old runtime version to the current one",
       "file": "DEV05.md",
-      "i18n": {
-        "it": {
-          "example": "migra gli script dalla vecchia versione del runtime a quella corrente",
-          "requires": "versioni di origine e di destinazione con note di rilascio",
-          "summary": "Migra codice o un framework verso un obiettivo definito."
-        }
-      },
-      "id": "pmt-22863973",
-      "mode": "write",
-      "next": [
-        "pmt-32e3cf59",
-        "pmt-e2405036"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
       "related": [
         "pmt-32e3cf59",
         "pmt-e2405036"
       ],
-      "requires": "source and target versions with release notes",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Migrate code or a framework to a defined target.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Migra codice o un framework verso un obiettivo definito.",
+          "requires": "versioni di origine e di destinazione con note di rilascio",
+          "example": "migra gli script dalla vecchia versione del runtime a quella corrente"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sviluppo",
+      "id": "pmt-f3082c1b",
       "code": "DEV06",
+      "category": "develop",
+      "summary": "Configure and run linters, formatters and static analysis.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area/file",
+      "requires": "linter configuration and analysis scope",
       "example": "configure the linter and run static analysis",
       "file": "DEV06.md",
-      "i18n": {
-        "it": {
-          "example": "configura il linter ed esegui l'analisi statica",
-          "requires": "configurazione del linter e perimetro dell'analisi",
-          "summary": "Configura ed esegui linter, formattatori e analisi statica."
-        }
-      },
-      "id": "pmt-f3082c1b",
-      "mode": "write",
-      "next": [
-        "pmt-83df1685",
-        "pmt-bd98736f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
       "related": [
         "pmt-83df1685",
         "pmt-bd98736f"
       ],
-      "requires": "linter configuration and analysis scope",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Configure and run linters, formatters and static analysis.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sviluppo",
-      "code": "DEV07",
-      "example": "triage and reproduce the path parsing issue",
-      "file": "DEV07.md",
       "i18n": {
         "it": {
-          "example": "fai il triage e riproduci la segnalazione sul parsing dei percorsi",
-          "requires": "testo della segnalazione, ambiente e accesso in lettura al codice",
-          "summary": "Fai il triage di una segnalazione e riproducila, senza modificare il codice."
+          "summary": "Configura ed esegui linter, formattatori e analisi statica.",
+          "requires": "configurazione del linter e perimetro dell'analisi",
+          "example": "configura il linter ed esegui l'analisi statica"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-9bd26aad",
+      "code": "DEV07",
+      "category": "develop",
+      "summary": "Triage and reproduce an issue before fixing it, without changing code.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-25ac264e",
-        "pmt-cc2c5f5a",
-        "pmt-98071f85"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues"
-      ],
+      "scope": "repo/area",
+      "requires": "issue text, environment and read access to the code",
+      "example": "triage and reproduce the path parsing issue",
+      "file": "DEV07.md",
       "related": [
         "pmt-25ac264e",
         "pmt-cc2c5f5a",
         "pmt-98071f85",
         "pmt-1839927a"
       ],
-      "requires": "issue text, environment and read access to the code",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Triage and reproduce an issue before fixing it, without changing code.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sviluppo",
-      "code": "DEV08",
-      "example": "review readability and maintainability of the sync module",
-      "file": "DEV08.md",
       "i18n": {
         "it": {
-          "example": "rivedi leggibilità e manutenibilità del modulo di sincronizzazione",
-          "requires": "codice da rivedere, convenzioni del repository e test esistenti",
-          "summary": "Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice."
+          "summary": "Fai il triage di una segnalazione e riproducila, senza modificare il codice.",
+          "requires": "testo della segnalazione, ambiente e accesso in lettura al codice",
+          "example": "fai il triage e riproduci la segnalazione sul parsing dei percorsi"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-b16674bd",
+      "code": "DEV08",
+      "category": "develop",
+      "summary": "Review readability, consistency and maintainability without changing code.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-2b07a693",
-        "pmt-f3082c1b",
-        "pmt-27896824"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/"
-      ],
+      "scope": "repo/area/file",
+      "requires": "code to review, repository conventions and existing tests",
+      "example": "review readability and maintainability of the sync module",
+      "file": "DEV08.md",
       "related": [
         "pmt-2b07a693",
         "pmt-f3082c1b",
         "pmt-27896824",
         "pmt-4a9a4b4f"
       ],
-      "requires": "code to review, repository conventions and existing tests",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Review readability, consistency and maintainability without changing code.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice.",
+          "requires": "codice da rivedere, convenzioni del repository e test esistenti",
+          "example": "rivedi leggibilit├á e manutenibilit├á del modulo di sincronizzazione"
+        }
+      }
     },
     {
-      "aliases": [
-        "REP02"
+      "id": "pmt-0715c64b",
+      "code": "DEV12",
+      "category": "develop",
+      "summary": "Build or review an LLM feature with evaluations",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "The LLM or agent feature, model and provider, expected behavior, failure cases and sample inputs",
+      "example": "DEV12: add an evaluation set for the support bot before changing its prompt",
+      "file": "DEV12.md",
+      "related": [
+        "pmt-83df1685",
+        "pmt-08bff671",
+        "pmt-deb7d01a"
       ],
-      "category": "documentazione",
+      "i18n": {
+        "it": {
+          "summary": "Sviluppa o rivedi una funzione LLM con valutazioni",
+          "requires": "La funzione LLM o agente, modello e provider, comportamento atteso, casi di errore e input di esempio",
+          "example": "DEV12: aggiungi un set di valutazione al bot di supporto prima di cambiarne il prompt"
+        }
+      }
+    },
+    {
+      "id": "pmt-07430e8c",
       "code": "DOC01",
+      "category": "docs",
+      "summary": "Write guides and READMEs consistent with the real product.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "implemented features, verified commands and approved screenshots",
       "example": "update the guides and add Mermaid flow diagrams",
       "file": "DOC01.md",
-      "i18n": {
-        "it": {
-          "example": "aggiorna le guide e aggiungi diagrammi di flusso Mermaid",
-          "requires": "funzionalità implementate, comandi verificati e screenshot approvati",
-          "summary": "Scrivi guide e README coerenti con il prodotto reale."
-        }
-      },
-      "id": "pmt-07430e8c",
-      "mode": "write",
-      "next": [
-        "pmt-6e82e3a9",
-        "pmt-058c474f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://www.writethedocs.org/guide/"
-      ],
       "related": [
         "pmt-6e82e3a9",
         "pmt-058c474f",
-        "pmt-75786fd6"
+        "pmt-75786fd6",
+        "pmt-4b88488d"
       ],
-      "requires": "implemented features, verified commands and approved screenshots",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Write guides and READMEs consistent with the real product.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Scrivi guide e README coerenti con il prodotto reale.",
+          "requires": "funzionalit├á implementate, comandi verificati e screenshot approvati",
+          "example": "aggiorna le guide e aggiungi diagrammi di flusso Mermaid"
+        }
+      }
     },
     {
-      "aliases": [
-        "REP03"
-      ],
-      "category": "documentazione",
+      "id": "pmt-6e82e3a9",
       "code": "DOC02",
+      "category": "docs",
+      "summary": "Document APIs and contracts from the implementation.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "source code of the contracts and endpoints",
       "example": "document the parameters and response schemas of the endpoints",
       "file": "DOC02.md",
-      "i18n": {
-        "it": {
-          "example": "documenta i parametri e gli schemi di risposta degli endpoint",
-          "requires": "codice sorgente dei contratti e degli endpoint",
-          "summary": "Documenta API e contratti a partire dall'implementazione."
-        }
-      },
-      "id": "pmt-6e82e3a9",
-      "mode": "write",
-      "next": [
-        "pmt-83764c0d",
-        "pmt-07430e8c"
-      ],
-      "pack": "core",
-      "references": [
-        "https://www.writethedocs.org/guide/"
-      ],
       "related": [
         "pmt-83764c0d",
         "pmt-07430e8c"
       ],
-      "requires": "source code of the contracts and endpoints",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Document APIs and contracts from the implementation.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Documenta API e contratti a partire dall'implementazione.",
+          "requires": "codice sorgente dei contratti e degli endpoint",
+          "example": "documenta i parametri e gli schemi di risposta degli endpoint"
+        }
+      }
     },
     {
-      "aliases": [
-        "REP07"
-      ],
-      "category": "documentazione",
+      "id": "pmt-75786fd6",
       "code": "DOC03",
+      "category": "docs",
+      "summary": "Capture real screenshots and prepare public assets.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "working interface with synthetic data",
       "example": "capture authentic screenshots from the real interface",
       "file": "DOC03.md",
-      "i18n": {
-        "it": {
-          "example": "cattura screenshot autentici dall'interfaccia reale",
-          "requires": "interfaccia funzionante con dati sintetici",
-          "summary": "Cattura screenshot reali e prepara asset pubblici."
-        }
-      },
-      "id": "pmt-75786fd6",
-      "mode": "write",
-      "next": [
-        "pmt-058c474f",
-        "pmt-07430e8c",
-        "pmt-ef96dea5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files"
-      ],
       "related": [
         "pmt-058c474f",
         "pmt-07430e8c",
         "pmt-ef96dea5"
       ],
-      "requires": "working interface with synthetic data",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Capture real screenshots and prepare public assets.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Cattura screenshot reali e prepara asset pubblici.",
+          "requires": "interfaccia funzionante con dati sintetici",
+          "example": "cattura screenshot autentici dall'interfaccia reale"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "governance",
+      "id": "pmt-4b88488d",
+      "code": "DOC04",
+      "category": "docs",
+      "summary": "Write or update an operational runbook",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "The procedure, systems involved, access needed, failure modes and an operator who can validate it",
+      "example": "DOC04: write a runbook for restoring the database from backup",
+      "file": "DOC04.md",
+      "related": [
+        "pmt-07430e8c",
+        "pmt-c2785b9c",
+        "pmt-b377d5f0"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Scrivi o aggiorna un runbook operativo",
+          "requires": "La procedura, i sistemi coinvolti, gli accessi necessari, i guasti possibili e un operatore che la validi",
+          "example": "DOC04: scrivi un runbook per ripristinare il database da backup"
+        }
+      }
+    },
+    {
+      "id": "pmt-313da996",
       "code": "GOV01",
+      "category": "governance",
+      "summary": "Check open source licenses, file compliance and SPDX headers.",
+      "target": "repository",
+      "mode": "verify",
+      "scope": "repo",
+      "requires": "source tree and license files",
       "example": "check the MIT license and that the SPDX headers match",
       "file": "GOV01.md",
-      "i18n": {
-        "it": {
-          "example": "verifica la licenza MIT e che le intestazioni SPDX corrispondano",
-          "requires": "albero dei sorgenti e file di licenza",
-          "summary": "Verifica le licenze open source, la conformità dei file e le intestazioni SPDX."
-        }
-      },
-      "id": "pmt-313da996",
-      "mode": "verify",
-      "next": [
-        "pmt-adb9bfc0",
-        "pmt-058c474f",
-        "pmt-7dc63766"
-      ],
-      "pack": "core",
-      "references": [
-        "https://spdx.dev/learn/handling-license-info/",
-        "https://opensource.org/licenses/MIT"
-      ],
       "related": [
         "pmt-adb9bfc0",
         "pmt-058c474f",
         "pmt-7dc63766"
       ],
-      "requires": "source tree and license files",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Check open source licenses, file compliance and SPDX headers.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica le licenze open source, la conformit├á dei file e le intestazioni SPDX.",
+          "requires": "albero dei sorgenti e file di licenza",
+          "example": "verifica la licenza MIT e che le intestazioni SPDX corrispondano"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "governance",
+      "id": "pmt-adb9bfc0",
       "code": "GOV02",
+      "category": "governance",
+      "summary": "Scan third-party dependencies and compile the CREDITS register of licenses.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "dependency lock files and third-party licenses",
       "example": "scan third-party dependencies and compile CREDITS.md",
       "file": "GOV02.md",
-      "i18n": {
-        "it": {
-          "example": "analizza le dipendenze di terze parti e compila CREDITS.md",
-          "requires": "lock file delle dipendenze e licenze di terze parti",
-          "summary": "Analizza le dipendenze di terze parti e compila il registro CREDITS."
-        }
-      },
-      "id": "pmt-adb9bfc0",
-      "mode": "write",
-      "next": [
-        "pmt-313da996",
-        "pmt-07430e8c"
-      ],
-      "pack": "core",
-      "references": [
-        "https://spdx.dev/learn/handling-license-info/"
-      ],
       "related": [
         "pmt-313da996",
         "pmt-07430e8c"
       ],
-      "requires": "dependency lock files and third-party licenses",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Scan third-party dependencies and compile the CREDITS register of licenses.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Analizza le dipendenze di terze parti e compila il registro CREDITS.",
+          "requires": "lock file delle dipendenze e licenze di terze parti",
+          "example": "analizza le dipendenze di terze parti e compila CREDITS.md"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "interfaccia",
+      "id": "pmt-33216f62",
       "code": "INT01",
+      "category": "interface",
+      "summary": "Assess usability, consistency and states of user flows.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "runnable application and flows to examine",
       "example": "assess the usability of the setup wizard",
       "file": "INT01.md",
-      "i18n": {
-        "it": {
-          "example": "valuta l'usabilità della procedura guidata di configurazione",
-          "requires": "applicazione eseguibile e flussi da esaminare",
-          "summary": "Valuta usabilità, coerenza e stati dei flussi utente."
-        }
-      },
-      "id": "pmt-33216f62",
-      "mode": "read",
-      "next": [
-        "pmt-db55c30d",
-        "pmt-2ea0c993"
-      ],
-      "pack": "core",
-      "references": [
-        "https://www.w3.org/WAI/standards-guidelines/wcag/"
-      ],
       "related": [
         "pmt-db55c30d",
         "pmt-2ea0c993"
       ],
-      "requires": "runnable application and flows to examine",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Assess usability, consistency and states of user flows.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Valuta usabilit├á, coerenza e stati dei flussi utente.",
+          "requires": "applicazione eseguibile e flussi da esaminare",
+          "example": "valuta l'usabilit├á della procedura guidata di configurazione"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "interfaccia",
+      "id": "pmt-db55c30d",
       "code": "INT02",
+      "category": "interface",
+      "summary": "Implement an interface following requirements and references.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "guidelines or mockups and existing components",
       "example": "build the synchronization screen",
       "file": "INT02.md",
-      "i18n": {
-        "it": {
-          "example": "realizza la schermata di sincronizzazione",
-          "requires": "linee guida o mockup e componenti esistenti",
-          "summary": "Implementa un'interfaccia seguendo requisiti e riferimenti."
-        }
-      },
-      "id": "pmt-db55c30d",
-      "mode": "write",
-      "next": [
-        "pmt-33216f62",
-        "pmt-2ea0c993"
-      ],
-      "pack": "core",
-      "references": [
-        "https://www.w3.org/WAI/standards-guidelines/wcag/"
-      ],
       "related": [
         "pmt-33216f62",
-        "pmt-2ea0c993"
+        "pmt-2ea0c993",
+        "pmt-f3614e6a"
       ],
-      "requires": "guidelines or mockups and existing components",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Implement an interface following requirements and references.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Implementa un'interfaccia seguendo requisiti e riferimenti.",
+          "requires": "linee guida o mockup e componenti esistenti",
+          "example": "realizza la schermata di sincronizzazione"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "interfaccia",
+      "id": "pmt-2ea0c993",
       "code": "INT03",
+      "category": "interface",
+      "summary": "Verify accessibility and keyboard and assistive-technology use.",
+      "target": "repository",
+      "mode": "verify",
+      "scope": "repo/area",
+      "requires": "working interface and reference standards",
       "example": "verify ARIA conformance and accessibility",
       "file": "INT03.md",
-      "i18n": {
-        "it": {
-          "example": "verifica la conformità ARIA e l'accessibilità",
-          "requires": "interfaccia funzionante e standard di riferimento",
-          "summary": "Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive."
-        }
-      },
-      "id": "pmt-2ea0c993",
-      "mode": "verify",
-      "next": [
-        "pmt-db55c30d",
-        "pmt-ef96dea5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://www.w3.org/WAI/standards-guidelines/wcag/"
-      ],
       "related": [
         "pmt-db55c30d",
         "pmt-ef96dea5"
       ],
-      "requires": "working interface and reference standards",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Verify accessibility and keyboard and assistive-technology use.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive.",
+          "requires": "interfaccia funzionante e standard di riferimento",
+          "example": "verifica la conformit├á ARIA e l'accessibilit├á"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "interfaccia",
+      "id": "pmt-805ca095",
       "code": "INT04",
+      "category": "interface",
+      "summary": "Verify internationalization of strings, formats and translations.",
+      "target": "repository",
+      "mode": "verify",
+      "scope": "repo/area",
+      "requires": "interface or messages with supported languages and formats",
       "example": "verify the strings, formats and translations of the CLI",
       "file": "INT04.md",
-      "i18n": {
-        "it": {
-          "example": "verifica stringhe, formati e traduzioni della CLI",
-          "requires": "interfaccia o messaggi con lingue e formati supportati",
-          "summary": "Verifica l'internazionalizzazione di stringhe, formati e traduzioni."
-        }
-      },
-      "id": "pmt-805ca095",
-      "mode": "verify",
-      "next": [
-        "pmt-db55c30d",
-        "pmt-2ea0c993",
-        "pmt-ef96dea5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/globalization/"
-      ],
       "related": [
         "pmt-db55c30d",
         "pmt-2ea0c993",
         "pmt-ef96dea5"
       ],
-      "requires": "interface or messages with supported languages and formats",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Verify internationalization of strings, formats and translations.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica l'internazionalizzazione di stringhe, formati e traduzioni.",
+          "requires": "interfaccia o messaggi con lingue e formati supportati",
+          "example": "verifica stringhe, formati e traduzioni della CLI"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "memoria",
-      "code": "MEM01",
-      "example": "sb prompt MEM01: allinea context.md e memory.md dopo completamento task",
-      "file": "MEM01.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM01: align context.md and memory.md after completing a task",
-          "requires": "recent decisions or changes not yet recorded",
-          "summary": "Align local instructions, context, memory and tracker."
-        }
-      },
-      "id": "pmt-f02db9d0",
+      "id": "pmt-f3614e6a",
+      "code": "INT05",
+      "category": "interface",
+      "summary": "Write or review interface copy and error messages",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-76604e4a",
-        "pmt-23c3d2be",
-        "pmt-07430e8c"
+      "scope": "repo/file",
+      "requires": "Screens or flows, audience, tone, existing terminology and supported languages",
+      "example": "INT05: rewrite the checkout error messages so each says what to do next",
+      "file": "INT05.md",
+      "related": [
+        "pmt-33216f62",
+        "pmt-db55c30d",
+        "pmt-805ca095"
       ],
-      "pack": "maintenance",
-      "references": [
-        "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
-        "https://code.claude.com/docs/en/prompt-library"
-      ],
+      "i18n": {
+        "it": {
+          "summary": "Scrivi o rivedi testi dell'interfaccia e messaggi d'errore",
+          "requires": "Schermate o flussi, destinatari, tono, terminologia esistente e lingue supportate",
+          "example": "INT05: riscrivi gli errori del checkout in modo che ognuno dica cosa fare dopo"
+        }
+      }
+    },
+    {
+      "id": "pmt-f02db9d0",
+      "code": "MEM01",
+      "category": "memory",
+      "summary": "Align local instructions, context, memory and tracker.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "recent decisions or changes not yet recorded",
+      "example": "sb prompt MEM01: align context.md and memory.md after completing a task",
+      "file": "MEM01.md",
       "related": [
         "pmt-76604e4a",
         "pmt-23c3d2be",
         "pmt-07430e8c",
         "pmt-364616bb"
       ],
-      "requires": "decisioni o modifiche recenti non registrate",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Allinea istruzioni locali, contesto, memoria e tracker.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Allinea istruzioni locali, contesto, memoria e tracker.",
+          "requires": "decisioni o modifiche recenti non registrate",
+          "example": "sb prompt MEM01: allinea context.md e memory.md dopo completamento task"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "memoria",
-      "code": "MEM02",
-      "example": "sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier",
-      "file": "MEM02.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM02: migrate scattered todos into the dossier's central tracker",
-          "requires": "historical documentation or external issues to migrate",
-          "summary": "Migrate design and tasks into the SecondBrain dossier."
-        }
-      },
       "id": "pmt-64dfa49f",
+      "code": "MEM02",
+      "category": "memory",
+      "summary": "Migrate design and tasks into the SecondBrain dossier.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-32e3cf59",
-        "pmt-f02db9d0"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
-        "https://code.claude.com/docs/en/prompt-library"
-      ],
+      "scope": "repo/area",
+      "requires": "historical documentation or external issues to migrate",
+      "example": "sb prompt MEM02: migrate scattered todos into the dossier's central tracker",
+      "file": "MEM02.md",
       "related": [
         "pmt-32e3cf59",
         "pmt-f02db9d0"
       ],
-      "requires": "documentazione storica o issue esterne da migrare",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Migra progettazione e attività nel dossier SecondBrain.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Migra progettazione e attivit├á nel dossier SecondBrain.",
+          "requires": "documentazione storica o issue esterne da migrare",
+          "example": "sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "memoria",
-      "code": "MEM03",
-      "example": "sb prompt MEM03: chiudi la sessione e chiedi commit e push",
-      "file": "MEM03.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM03: close the session and ask for commit and push",
-          "requires": "state of the work done, defined next tasks and delivery destination",
-          "summary": "Close the session: memories, tracker, handoff and commit and push request."
-        }
-      },
       "id": "pmt-76604e4a",
+      "code": "MEM03",
+      "category": "memory",
+      "summary": "Close the session: memories, tracker, handoff and commit and push request.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-f02db9d0",
-        "pmt-8541aed1",
-        "pmt-677a10ab"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://developers.openai.com/cookbook/examples/codex/iterating-development-workflows-with-codex",
-        "https://code.claude.com/docs/en/prompt-library"
-      ],
+      "scope": "repo/area",
+      "requires": "state of the work done, defined next tasks and delivery destination",
+      "example": "sb prompt MEM03: close the session and ask for commit and push",
+      "file": "MEM03.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-8541aed1",
         "pmt-677a10ab"
       ],
-      "requires": "stato del lavoro svolto, task successivi definiti e destinazione di consegna",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.",
+          "requires": "stato del lavoro svolto, task successivi definiti e destinazione di consegna",
+          "example": "sb prompt MEM03: chiudi la sessione e chiedi commit e push"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "memoria",
-      "code": "MEM04",
-      "example": "sb prompt MEM04: elenca attivita e problemi del tracker",
-      "file": "MEM04.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM04: list the tracker tasks and problems",
-          "requires": "repository dossier tracker",
-          "summary": "List and describe the tracker tasks and the problems they solve."
-        }
-      },
       "id": "pmt-23c3d2be",
+      "code": "MEM04",
+      "category": "memory",
+      "summary": "List and describe the tracker tasks and the problems they solve.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-f02db9d0",
-        "pmt-821f7dec",
-        "pmt-cc2c5f5a"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://learn.microsoft.com/en-us/powershell/scripting/overview"
-      ],
+      "scope": "repo/area",
+      "requires": "repository dossier tracker",
+      "example": "sb prompt MEM04: list the tracker tasks and problems",
+      "file": "MEM04.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-821f7dec",
         "pmt-cc2c5f5a",
         "pmt-4cc383ba"
       ],
-      "requires": "tracker del dossier di repository",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Elenca e descrivi le attività del tracker e i problemi che risolvono.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Elenca e descrivi le attivit├á del tracker e i problemi che risolvono.",
+          "requires": "tracker del dossier di repository",
+          "example": "sb prompt MEM04: elenca attivita e problemi del tracker"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "memoria",
-      "code": "MEM05",
-      "example": "sb prompt MEM05: archivia la risorsa conclusa res-guida",
-      "file": "MEM05.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM05: archive the finished resource res-guida",
-          "requires": "goal of the PARA entity and a write session on the SecondBrain clone",
-          "summary": "Create, update and archive projects, areas and resources of the central PARA."
-        }
-      },
       "id": "pmt-4e1b7c52",
+      "code": "MEM05",
+      "category": "memory",
+      "summary": "Create, update and archive projects, areas and resources of the central PARA.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-821f7dec",
-        "pmt-76604e4a"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://learn.microsoft.com/en-us/powershell/scripting/overview"
-      ],
+      "scope": "central",
+      "requires": "goal of the PARA entity and a write session on the SecondBrain clone",
+      "example": "sb prompt MEM05: archive the finished resource res-guida",
+      "file": "MEM05.md",
       "related": [
         "pmt-821f7dec",
         "pmt-77d7bf7a",
         "pmt-76604e4a"
       ],
-      "requires": "obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain",
-      "scope": "central",
-      "status": "active",
-      "summary": "Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.",
+          "requires": "obiettivo dell'entit├á PARA e sessione di scrittura sul clone SecondBrain",
+          "example": "sb prompt MEM05: archivia la risorsa conclusa res-guida"
+        }
+      }
     },
     {
-      "aliases": [
-        "SYS06"
-      ],
-      "category": "memoria",
-      "code": "MEM06",
-      "example": "sb prompt MEM06: carica contesto e memoria del repository nel budget",
-      "file": "MEM06.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt MEM06: load the repository context and memory within budget",
-          "requires": "checkout of the open repository",
-          "summary": "Read active memory, context and tracker of the current repository."
-        }
-      },
       "id": "pmt-821f7dec",
+      "code": "MEM06",
+      "category": "memory",
+      "summary": "Read active memory, context and tracker of the current repository.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-f02db9d0",
-        "pmt-23c3d2be",
-        "pmt-cc2c5f5a"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/prompt-library",
-        "https://developers.openai.com/api/docs/guides/prompt-engineering"
-      ],
+      "scope": "repo",
+      "requires": "checkout of the open repository",
+      "example": "sb prompt MEM06: load the repository context and memory within budget",
+      "file": "MEM06.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-23c3d2be",
         "pmt-cc2c5f5a"
       ],
-      "requires": "checkout del repository aperto",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Leggi memoria attiva, contesto e tracker del repository corrente.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "operativita",
-      "code": "OPS01",
-      "example": "build a deterministic zip archive and compute its SHA-256",
-      "file": "OPS01.md",
       "i18n": {
         "it": {
-          "example": "costruisci un archivio zip deterministico e calcola il suo SHA-256",
-          "requires": "istruzioni di build e requisiti del pacchetto",
-          "summary": "Prepara e verifica pacchetti e artefatti distribuibili."
+          "summary": "Leggi memoria attiva, contesto e tracker del repository corrente.",
+          "requires": "checkout del repository aperto",
+          "example": "sb prompt MEM06: carica contesto e memoria del repository nel budget"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-a5c78cc6",
+      "code": "OPS01",
+      "category": "operations",
+      "summary": "Prepare and verify distributable packages and artifacts.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-ce00f261",
-        "pmt-0618969e"
-      ],
-      "pack": "core",
-      "references": [
-        "https://semver.org/"
-      ],
+      "scope": "repo",
+      "requires": "build instructions and package requirements",
+      "example": "build a deterministic zip archive and compute its SHA-256",
+      "file": "OPS01.md",
       "related": [
         "pmt-ce00f261",
         "pmt-0618969e",
         "pmt-b377d5f0"
       ],
-      "requires": "build instructions and package requirements",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Prepare and verify distributable packages and artifacts.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "operativita",
-      "code": "OPS02",
-      "example": "configure a multi-stage Dockerfile for a reproducible build",
-      "file": "OPS02.md",
       "i18n": {
         "it": {
-          "example": "configura un Dockerfile multi-stage per una build riproducibile",
-          "requires": "requisiti di distribuzione e ambiente di destinazione",
-          "summary": "Configura pipeline, container e infrastruttura come codice."
+          "summary": "Prepara e verifica pacchetti e artefatti distribuibili.",
+          "requires": "istruzioni di build e requisiti del pacchetto",
+          "example": "costruisci un archivio zip deterministico e calcola il suo SHA-256"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-ce00f261",
+      "code": "OPS02",
+      "category": "operations",
+      "summary": "Configure pipelines, containers and infrastructure as code.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-a5c78cc6",
-        "pmt-bd98736f",
-        "pmt-c356eede"
-      ],
-      "pack": "core",
-      "references": [
-        "https://semver.org/"
-      ],
+      "scope": "repo",
+      "requires": "deployment requirements and target environment",
+      "example": "configure a multi-stage Dockerfile for a reproducible build",
+      "file": "OPS02.md",
       "related": [
         "pmt-a5c78cc6",
         "pmt-bd98736f",
         "pmt-c356eede"
       ],
-      "requires": "deployment requirements and target environment",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Configure pipelines, containers and infrastructure as code.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "operativita",
-      "code": "OPS03",
-      "example": "add structured JSON logging",
-      "file": "OPS03.md",
       "i18n": {
         "it": {
-          "example": "aggiungi il logging JSON strutturato",
-          "requires": "scenario da monitorare e standard di logging",
-          "summary": "Aggiungi log, metriche e diagnostica utili al problema."
+          "summary": "Configura pipeline, container e infrastruttura come codice.",
+          "requires": "requisiti di distribuzione e ambiente di destinazione",
+          "example": "configura un Dockerfile multi-stage per una build riproducibile"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-c2785b9c",
+      "code": "OPS03",
+      "category": "operations",
+      "summary": "Add logs, metrics and diagnostics useful for the problem.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-25ac264e",
-        "pmt-9de57e24"
-      ],
-      "pack": "core",
-      "references": [
-        "https://semver.org/"
-      ],
+      "scope": "repo/area/file",
+      "requires": "scenario to monitor and logging standards",
+      "example": "add structured JSON logging",
+      "file": "OPS03.md",
       "related": [
         "pmt-25ac264e",
         "pmt-9de57e24",
         "pmt-1839927a"
       ],
-      "requires": "scenario to monitor and logging standards",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Add logs, metrics and diagnostics useful for the problem.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "operativita",
-      "code": "OPS04",
-      "example": "compile the v1.1 release notes from commits and issues",
-      "file": "OPS04.md",
       "i18n": {
         "it": {
-          "example": "compila le note di rilascio della v1.1 da commit e segnalazioni",
-          "requires": "commit, segnalazioni o task completati dal rilascio precedente",
-          "summary": "Prepara note di rilascio e controlli di consegna."
+          "summary": "Aggiungi log, metriche e diagnostica utili al problema.",
+          "requires": "scenario da monitorare e standard di logging",
+          "example": "aggiungi il logging JSON strutturato"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-0618969e",
+      "code": "OPS04",
+      "category": "operations",
+      "summary": "Prepare release notes and delivery checks.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-a5c78cc6"
-      ],
-      "pack": "core",
-      "references": [
-        "https://semver.org/"
-      ],
+      "scope": "repo",
+      "requires": "commits, issues or tasks completed since the previous release",
+      "example": "compile the v1.1 release notes from commits and issues",
+      "file": "OPS04.md",
       "related": [
         "pmt-a5c78cc6",
         "pmt-b377d5f0"
       ],
-      "requires": "commits, issues or tasks completed since the previous release",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Prepare release notes and delivery checks.",
-      "target": "repository"
-    },
-    {
-      "aliases": [
-        "REP09"
-      ],
-      "category": "operativita",
-      "code": "OPS05",
-      "example": "prepare the commits and the pull request description",
-      "file": "OPS05.md",
       "i18n": {
         "it": {
-          "example": "prepara i commit e la descrizione della pull request",
-          "requires": "modifiche locali da consegnare e richiesta esplicita di commit o PR",
-          "summary": "Prepara commit e pull request con perimetro, messaggio e controlli verificati."
+          "summary": "Prepara note di rilascio e controlli di consegna.",
+          "requires": "commit, segnalazioni o task completati dal rilascio precedente",
+          "example": "compila le note di rilascio della v1.1 da commit e segnalazioni"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-3e3728b6",
+      "code": "OPS05",
+      "category": "operations",
+      "summary": "Prepare commits and pull requests with verified scope, message and checks.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-058c474f",
-        "pmt-40772e6e",
-        "pmt-4cc383ba"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests",
-        "https://www.conventionalcommits.org/en/v1.0.0/"
-      ],
+      "scope": "repo",
+      "requires": "local changes to deliver and an explicit request for a commit or pull request",
+      "example": "prepare the commits and the pull request description",
+      "file": "OPS05.md",
       "related": [
         "pmt-058c474f",
         "pmt-40772e6e",
         "pmt-4cc383ba"
       ],
-      "requires": "local changes to deliver and an explicit request for a commit or pull request",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Prepare commits and pull requests with verified scope, message and checks.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "operativita",
-      "code": "OPS06",
-      "example": "prepare the hotfix and rollback for release 2.3.1",
-      "file": "OPS06.md",
       "i18n": {
         "it": {
-          "example": "prepara l'hotfix e il rollback per il rilascio 2.3.1",
-          "requires": "rilascio difettoso, versione precedente nota e criteri per tornare indietro",
-          "summary": "Prepara hotfix e rollback di un rilascio con verifica e comunicazione."
+          "summary": "Prepara commit e pull request con perimetro, messaggio e controlli verificati.",
+          "requires": "modifiche locali da consegnare e richiesta esplicita di commit o PR",
+          "example": "prepara i commit e la descrizione della pull request"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-b377d5f0",
+      "code": "OPS06",
+      "category": "operations",
+      "summary": "Prepare a release hotfix and rollback with verification and communication.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-0618969e",
-        "pmt-3e3728b6"
-      ],
-      "pack": "core",
-      "references": [
-        "https://semver.org/",
-        "https://git-scm.com/docs/git-revert"
-      ],
+      "scope": "repo",
+      "requires": "faulty release, known previous version and criteria for going back",
+      "example": "prepare the hotfix and rollback for release 2.3.1",
+      "file": "OPS06.md",
       "related": [
         "pmt-0618969e",
         "pmt-a5c78cc6",
         "pmt-25ac264e",
         "pmt-3e3728b6"
       ],
-      "requires": "faulty release, known previous version and criteria for going back",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Prepare a release hotfix and rollback with verification and communication.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Prepara hotfix e rollback di un rilascio con verifica e comunicazione.",
+          "requires": "rilascio difettoso, versione precedente nota e criteri per tornare indietro",
+          "example": "prepara l'hotfix e il rollback per il rilascio 2.3.1"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "progettazione",
+      "id": "pmt-28f4fbf5",
+      "code": "OPS07",
+      "category": "operations",
+      "summary": "Write a blameless incident postmortem",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "Incident timeline, impact, logs or alerts, the fix applied and the people involved",
+      "example": "OPS07: write the postmortem for last night's checkout outage",
+      "file": "OPS07.md",
+      "related": [
+        "pmt-1839927a",
+        "pmt-b377d5f0",
+        "pmt-25ac264e"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Scrivi un postmortem dell'incidente senza attribuire colpe",
+          "requires": "Cronologia dell'incidente, impatto, log o allarmi, correzione applicata e persone coinvolte",
+          "example": "OPS07: scrivi il postmortem del blocco del checkout di ieri notte"
+        }
+      }
+    },
+    {
+      "id": "pmt-98071f85",
       "code": "PRG01",
+      "category": "design",
+      "summary": "Turn a request into requirements and acceptance criteria.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "user request and existing documentation",
       "example": "define acceptance criteria for full-text search",
       "file": "PRG01.md",
-      "i18n": {
-        "it": {
-          "example": "definisci i criteri di accettazione per la ricerca full-text",
-          "requires": "richiesta dell'utente e documentazione esistente",
-          "summary": "Trasforma una richiesta in requisiti e criteri di accettazione."
-        }
-      },
-      "id": "pmt-98071f85",
-      "mode": "read",
-      "next": [
-        "pmt-3e0ad55e",
-        "pmt-8541aed1"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
       "related": [
         "pmt-3e0ad55e",
         "pmt-8541aed1"
       ],
-      "requires": "user request and existing documentation",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Turn a request into requirements and acceptance criteria.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Trasforma una richiesta in requisiti e criteri di accettazione.",
+          "requires": "richiesta dell'utente e documentazione esistente",
+          "example": "definisci i criteri di accettazione per la ricerca full-text"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "progettazione",
+      "id": "pmt-3e0ad55e",
       "code": "PRG02",
+      "category": "design",
+      "summary": "Compare architectural options and justify a decision.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "alternatives to evaluate and project constraints",
       "example": "compare SQLite and JSON for local persistence",
       "file": "PRG02.md",
-      "i18n": {
-        "it": {
-          "example": "confronta SQLite e JSON per la persistenza locale",
-          "requires": "alternative da valutare e vincoli del progetto",
-          "summary": "Confronta le opzioni architetturali e motiva una decisione."
-        }
-      },
-      "id": "pmt-3e0ad55e",
-      "mode": "read",
-      "next": [
-        "pmt-179b9acc",
-        "pmt-83764c0d",
-        "pmt-884419a5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
       "related": [
         "pmt-179b9acc",
         "pmt-83764c0d",
-        "pmt-884419a5"
+        "pmt-884419a5",
+        "pmt-c61c598b"
       ],
-      "requires": "alternatives to evaluate and project constraints",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Compare architectural options and justify a decision.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Confronta le opzioni architetturali e motiva una decisione.",
+          "requires": "alternative da valutare e vincoli del progetto",
+          "example": "confronta SQLite e JSON per la persistenza locale"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "progettazione",
+      "id": "pmt-83764c0d",
       "code": "PRG03",
+      "category": "design",
+      "summary": "Design API contracts, data models and compatibility.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "requirements or current schema with its version",
       "example": "design the JSON schema and API contracts for the task list",
       "file": "PRG03.md",
-      "i18n": {
-        "it": {
-          "example": "progetta lo schema JSON e i contratti API per l'elenco dei task",
-          "requires": "requisiti o schema attuale con la sua versione",
-          "summary": "Progetta contratti API, modelli di dati e compatibilità."
-        }
-      },
-      "id": "pmt-83764c0d",
-      "mode": "read",
-      "next": [
-        "pmt-32e3cf59",
-        "pmt-6e82e3a9"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
       "related": [
         "pmt-32e3cf59",
         "pmt-6e82e3a9"
       ],
-      "requires": "requirements or current schema with its version",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Design API contracts, data models and compatibility.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "progettazione",
-      "code": "PRG04",
-      "example": "plan the migration in three atomic releases",
-      "file": "PRG04.md",
       "i18n": {
         "it": {
-          "example": "pianifica la migrazione in tre rilasci atomici",
-          "requires": "requisiti concordati e perimetro del lavoro",
-          "summary": "Prepara un piano a fasi con dipendenze e controlli."
+          "summary": "Progetta contratti API, modelli di dati e compatibilit├á.",
+          "requires": "requisiti o schema attuale con la sua versione",
+          "example": "progetta lo schema JSON e i contratti API per l'elenco dei task"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-8541aed1",
+      "code": "PRG04",
+      "category": "design",
+      "summary": "Prepare a phased plan with dependencies and checks.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-98071f85",
-        "pmt-884419a5",
-        "pmt-4cc383ba"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
+      "scope": "repo/area",
+      "requires": "agreed requirements and scope of the work",
+      "example": "plan the migration in three atomic releases",
+      "file": "PRG04.md",
       "related": [
         "pmt-98071f85",
         "pmt-884419a5",
         "pmt-4cc383ba",
         "pmt-3731bb7d"
       ],
-      "requires": "agreed requirements and scope of the work",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Prepare a phased plan with dependencies and checks.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "progettazione",
-      "code": "PRG05",
-      "example": "define the scaffolding of the new module",
-      "file": "PRG05.md",
       "i18n": {
         "it": {
-          "example": "definisci l'impalcatura del nuovo modulo",
-          "requires": "perimetro architetturale concordato e dipendenze",
-          "summary": "Crea l'impalcatura di nuovi moduli con struttura, configurazione e test."
+          "summary": "Prepara un piano a fasi con dipendenze e controlli.",
+          "requires": "requisiti concordati e perimetro del lavoro",
+          "example": "pianifica la migrazione in tre rilasci atomici"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-884419a5",
+      "code": "PRG05",
+      "category": "design",
+      "summary": "Scaffold new modules with structure, configuration and tests.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-3e0ad55e",
-        "pmt-8541aed1",
-        "pmt-3731bb7d"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
+      "scope": "repo/area",
+      "requires": "agreed architectural scope and dependencies",
+      "example": "define the scaffolding of the new module",
+      "file": "PRG05.md",
       "related": [
         "pmt-3e0ad55e",
         "pmt-8541aed1",
         "pmt-3731bb7d"
       ],
-      "requires": "agreed architectural scope and dependencies",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Scaffold new modules with structure, configuration and tests.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "progettazione",
-      "code": "PRG06",
-      "example": "plan the refactoring of the synchronization module",
-      "file": "PRG06.md",
       "i18n": {
         "it": {
-          "example": "pianifica il refactoring del modulo di sincronizzazione",
-          "requires": "modulo da riorganizzare, test esistenti e invarianti da preservare",
-          "summary": "Pianifica un refactoring architetturale a fasi con controlli e rollback."
+          "summary": "Crea l'impalcatura di nuovi moduli con struttura, configurazione e test.",
+          "requires": "perimetro architetturale concordato e dipendenze",
+          "example": "definisci l'impalcatura del nuovo modulo"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-3731bb7d",
+      "code": "PRG06",
+      "category": "design",
+      "summary": "Plan a phased architectural refactoring with checks and rollback.",
+      "target": "repository",
       "mode": "read",
-      "next": [
-        "pmt-8541aed1",
-        "pmt-2b07a693",
-        "pmt-884419a5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles"
-      ],
+      "scope": "repo/area",
+      "requires": "module to reorganize, existing tests and invariants to preserve",
+      "example": "plan the refactoring of the synchronization module",
+      "file": "PRG06.md",
       "related": [
         "pmt-8541aed1",
         "pmt-2b07a693",
         "pmt-884419a5",
         "pmt-c692cc23"
       ],
-      "requires": "module to reorganize, existing tests and invariants to preserve",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Plan a phased architectural refactoring with checks and rollback.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Pianifica un refactoring architetturale a fasi con controlli e rollback.",
+          "requires": "modulo da riorganizzare, test esistenti e invarianti da preservare",
+          "example": "pianifica il refactoring del modulo di sincronizzazione"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "repository",
+      "id": "pmt-c61c598b",
+      "code": "PRG07",
+      "category": "design",
+      "summary": "Record an architecture decision (ADR)",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "The decision made or to make, its context, constraints, options considered and who decides",
+      "example": "PRG07: record why we chose PostgreSQL over MongoDB",
+      "file": "PRG07.md",
+      "related": [
+        "pmt-3e0ad55e",
+        "pmt-83764c0d",
+        "pmt-07430e8c"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Registra una decisione architetturale (ADR)",
+          "requires": "La decisione presa o da prendere, il contesto, i vincoli, le opzioni considerate e chi decide",
+          "example": "PRG07: registra perché abbiamo scelto PostgreSQL al posto di MongoDB"
+        }
+      }
+    },
+    {
+      "id": "pmt-4cc383ba",
       "code": "REP01",
+      "category": "repository",
+      "summary": "Complete the next ready task of the open repository.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "planned task and acceptance criteria",
       "example": "run the next priority task that can be done autonomously",
       "file": "REP01.md",
-      "i18n": {
-        "it": {
-          "example": "esegui il prossimo task prioritario che si può fare in autonomia",
-          "requires": "task pianificato e criteri di accettazione",
-          "summary": "Completa il prossimo task pronto del repository aperto."
-        }
-      },
-      "id": "pmt-4cc383ba",
-      "mode": "write",
-      "next": [
-        "pmt-83df1685",
-        "pmt-8541aed1",
-        "pmt-cc2c5f5a"
-      ],
-      "pack": "core",
-      "references": [
-        "https://git-scm.com/docs/gitignore"
-      ],
       "related": [
         "pmt-83df1685",
         "pmt-8541aed1",
         "pmt-cc2c5f5a"
       ],
-      "requires": "planned task and acceptance criteria",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Complete the next ready task of the open repository.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Completa il prossimo task pronto del repository aperto.",
+          "requires": "task pianificato e criteri di accettazione",
+          "example": "esegui il prossimo task prioritario che si pu├▓ fare in autonomia"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "repository",
+      "id": "pmt-40772e6e",
       "code": "REP04",
+      "category": "repository",
+      "summary": "Remove leftovers and unused code after verification.",
+      "target": "repository",
+      "mode": "write",
       "destructive": true,
+      "scope": "repo/area",
+      "requires": "proof of no references and green tests",
       "example": "remove temporary files and orphaned build caches",
       "file": "REP04.md",
-      "i18n": {
-        "it": {
-          "example": "rimuovi i file temporanei e le cache di build orfane",
-          "requires": "prova dell'assenza di riferimenti e test verdi",
-          "summary": "Rimuovi residui e codice inutilizzato dopo la verifica."
-        }
-      },
-      "id": "pmt-40772e6e",
-      "mode": "write",
-      "next": [
-        "pmt-2b07a693",
-        "pmt-f1df8757"
-      ],
-      "pack": "core",
-      "references": [
-        "https://git-scm.com/docs/gitignore"
-      ],
       "related": [
         "pmt-2b07a693",
         "pmt-f1df8757"
       ],
-      "requires": "proof of no references and green tests",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Remove leftovers and unused code after verification.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Rimuovi residui e codice inutilizzato dopo la verifica.",
+          "requires": "prova dell'assenza di riferimenti e test verdi",
+          "example": "rimuovi i file temporanei e le cache di build orfane"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "repository",
+      "id": "pmt-cc2c5f5a",
       "code": "REP08",
+      "category": "repository",
+      "summary": "Inspect the repo and find leftover tasks against the real code.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo/area",
+      "requires": "working tree, recent history and any backlog or notes",
       "example": "inspect the repo and detect leftover tasks",
       "file": "REP08.md",
-      "i18n": {
-        "it": {
-          "example": "ispeziona il repo e rileva i task residui",
-          "requires": "working tree, cronologia recente ed eventuale backlog o note",
-          "summary": "Ispeziona il repo e trova i task residui rispetto al codice reale."
-        }
-      },
-      "id": "pmt-cc2c5f5a",
-      "mode": "read",
-      "next": [
-        "pmt-a709a792",
-        "pmt-4cc383ba"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/about-repository-insights"
-      ],
       "related": [
         "pmt-a709a792",
         "pmt-4cc383ba"
       ],
-      "requires": "working tree, recent history and any backlog or notes",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Inspect the repo and find leftover tasks against the real code.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Ispeziona il repo e trova i task residui rispetto al codice reale.",
+          "requires": "working tree, cronologia recente ed eventuale backlog o note",
+          "example": "ispeziona il repo e rileva i task residui"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "repository",
+      "id": "pmt-f1df8757",
       "code": "REP10",
+      "category": "repository",
+      "summary": "Align .gitignore and .gitkeep with the real structure and files.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "Git state, exclusion rules and folders to preserve in the repository",
       "example": "align gitignore and gitkeep before publishing",
       "file": "REP10.md",
-      "i18n": {
-        "it": {
-          "example": "allinea gitignore e gitkeep prima di pubblicare",
-          "requires": "stato Git, regole di esclusione e cartelle da preservare nel repository",
-          "summary": "Allinea .gitignore e .gitkeep alla struttura e ai file reali."
-        }
-      },
-      "id": "pmt-f1df8757",
-      "mode": "write",
-      "next": [
-        "pmt-40772e6e",
-        "pmt-058c474f",
-        "pmt-24189cb6"
-      ],
-      "pack": "core",
-      "references": [
-        "https://git-scm.com/docs/gitignore"
-      ],
       "related": [
         "pmt-40772e6e",
         "pmt-058c474f",
         "pmt-24189cb6"
       ],
-      "requires": "Git state, exclusion rules and folders to preserve in the repository",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Align .gitignore and .gitkeep with the real structure and files.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "repository",
-      "code": "REP11",
-      "example": "report this build error as a GitHub issue",
-      "file": "REP11.md",
       "i18n": {
         "it": {
-          "example": "segnala questo errore di build come issue GitHub",
-          "requires": "errore osservato, passi di riproduzione, versione e `gh` autenticato",
-          "summary": "Segnala un errore come issue GitHub nel formato del form, dopo conferma."
+          "summary": "Allinea .gitignore e .gitkeep alla struttura e ai file reali.",
+          "requires": "stato Git, regole di esclusione e cartelle da preservare nel repository",
+          "example": "allinea gitignore e gitkeep prima di pubblicare"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-fe68329a",
+      "code": "REP11",
+      "category": "repository",
+      "summary": "Report an error as GitHub issues in the form format, after confirmation.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-25ac264e",
-        "pmt-9bd26aad"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms",
-        "https://cli.github.com/manual/gh_issue_create"
-      ],
+      "scope": "repo",
+      "requires": "observed error, reproduction steps, version and `gh` authenticated",
+      "example": "report this build error as a GitHub issue",
+      "file": "REP11.md",
       "related": [
         "pmt-9bd26aad",
         "pmt-1839927a",
-        "pmt-058c474f"
+        "pmt-058c474f",
+        "pmt-f8dd6843"
       ],
-      "requires": "observed error, reproduction steps, version and `gh` authenticated",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Report an error as GitHub issues in the form format, after confirmation.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "repository",
-      "code": "REP12",
-      "example": "consolidate the finished branches into master",
-      "file": "REP12.md",
       "i18n": {
         "it": {
-          "example": "consolida i branch conclusi in master",
-          "requires": "branch locali e remoti, ramo base e working tree pulito",
-          "summary": "Consolida i branch con merge --no-ff ed elimina quelli integrati."
+          "summary": "Segnala un errore come issue GitHub nel formato del form, dopo conferma.",
+          "requires": "errore osservato, passi di riproduzione, versione e `gh` autenticato",
+          "example": "segnala questo errore di build come issue GitHub"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-fabd3439",
+      "code": "REP12",
+      "category": "repository",
+      "summary": "Consolidate branches with a --no-ff merge and delete the integrated ones.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-3e3728b6",
-        "pmt-0618969e"
-      ],
-      "pack": "core",
-      "references": [
-        "https://git-scm.com/docs/git-merge",
-        "https://git-scm.com/docs/git-branch"
-      ],
+      "scope": "repo",
+      "requires": "local and remote branches, the base branch and a clean working tree",
+      "example": "consolidate the finished branches into master",
+      "file": "REP12.md",
       "related": [
         "pmt-3e3728b6",
         "pmt-40772e6e",
         "pmt-f1df8757"
       ],
-      "requires": "local and remote branches, the base branch and a clean working tree",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Consolidate branches with a --no-ff merge and delete the integrated ones.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "repository",
-      "code": "REP13",
-      "example": "make this repository discoverable and apply standard security",
-      "file": "REP13.md",
       "i18n": {
         "it": {
-          "example": "rendi trovabile questo repository e applica la sicurezza standard",
-          "requires": "`gh` con diritti di amministratore ed esito di SEC07",
-          "summary": "Allinea pagina GitHub, file della community e sicurezza, dopo conferma."
+          "summary": "Consolida i branch con merge --no-ff ed elimina quelli integrati.",
+          "requires": "branch locali e remoti, ramo base e working tree pulito",
+          "example": "consolida i branch conclusi in master"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-3e2e75f6",
+      "code": "REP13",
+      "category": "repository",
+      "summary": "Align the GitHub page, community files and security, after confirmation.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-058c474f",
-        "pmt-3e3728b6"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics",
-        "https://docs.github.com/en/code-security/getting-started/securing-your-repository",
-        "https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions",
-        "https://cli.github.com/manual/gh_repo_edit"
-      ],
+      "scope": "repo",
+      "requires": "`gh` authenticated with admin rights and a SEC07 result",
+      "example": "make this repository discoverable and apply standard security",
+      "file": "REP13.md",
       "related": [
         "pmt-058c474f",
         "pmt-c356eede",
         "pmt-fe68329a",
         "pmt-07430e8c"
       ],
-      "requires": "`gh` authenticated with admin rights and a SEC07 result",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Align the GitHub page, community files and security, after confirmation.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Allinea pagina GitHub, file della community e sicurezza, dopo conferma.",
+          "requires": "`gh` con diritti di amministratore ed esito di SEC07",
+          "example": "rendi trovabile questo repository e applica la sicurezza standard"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-f8dd6843",
+      "code": "REP14",
+      "category": "repository",
+      "summary": "Triage open issues and pull requests",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "GitHub repository with gh authenticated, labels, project rules, age and activity of issues and PRs",
+      "example": "REP14: triage open issues and PRs and propose labels and closures",
+      "file": "REP14.md",
+      "related": [
+        "pmt-fe68329a",
+        "pmt-fabd3439",
+        "pmt-3e2e75f6"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Smista le issue e le pull request aperte",
+          "requires": "Repository GitHub con gh autenticato, etichette, regole del progetto, età e attività di issue e PR",
+          "example": "REP14: smista issue e PR aperte e proponi etichette e chiusure"
+        }
+      }
+    },
+    {
+      "id": "pmt-27896824",
       "code": "SEC01",
+      "category": "security",
+      "summary": "Review changes or code with concrete findings and references.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "diff, commit or files to analyze",
       "example": "review the pull request for data leaks",
       "file": "SEC01.md",
-      "i18n": {
-        "it": {
-          "example": "rivedi la pull request alla ricerca di fughe di dati",
-          "requires": "diff, commit o file da analizzare",
-          "summary": "Rivedi modifiche o codice con rilievi concreti e riferimenti."
-        }
-      },
-      "id": "pmt-27896824",
-      "mode": "read",
-      "next": [
-        "pmt-deb7d01a",
-        "pmt-ef96dea5",
-        "pmt-ccbf18b8"
-      ],
-      "pack": "core",
-      "references": [
-        "https://owasp.org/www-project-top-ten/"
-      ],
       "related": [
         "pmt-deb7d01a",
         "pmt-ef96dea5",
         "pmt-ccbf18b8"
       ],
-      "requires": "diff, commit or files to analyze",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Review changes or code with concrete findings and references.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Rivedi modifiche o codice con rilievi concreti e riferimenti.",
+          "requires": "diff, commit o file da analizzare",
+          "example": "rivedi la pull request alla ricerca di fughe di dati"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-deb7d01a",
       "code": "SEC02",
+      "category": "security",
+      "summary": "Analyze threats, trust boundaries and abuse scenarios.",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "architecture and data flows toward the outside",
       "example": "threat model of the stdio and local file system flows",
       "file": "SEC02.md",
-      "i18n": {
-        "it": {
-          "example": "modello delle minacce dei flussi stdio e del file system locale",
-          "requires": "architettura e flussi di dati verso l'esterno",
-          "summary": "Analizza minacce, confini di fiducia e scenari di abuso."
-        }
-      },
-      "id": "pmt-deb7d01a",
-      "mode": "read",
-      "next": [
-        "pmt-179b9acc",
-        "pmt-b4cb6659"
-      ],
-      "pack": "core",
-      "references": [
-        "https://owasp.org/www-project-top-ten/"
-      ],
       "related": [
         "pmt-179b9acc",
         "pmt-b4cb6659"
       ],
-      "requires": "architecture and data flows toward the outside",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Analyze threats, trust boundaries and abuse scenarios.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Analizza minacce, confini di fiducia e scenari di abuso.",
+          "requires": "architettura e flussi di dati verso l'esterno",
+          "example": "modello delle minacce dei flussi stdio e del file system locale"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-b4cb6659",
       "code": "SEC03",
+      "category": "security",
+      "summary": "Fix vulnerabilities and strengthen the affected defenses.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area/file",
+      "requires": "confirmed vulnerability and code context",
       "example": "fix path traversal in path resolution",
       "file": "SEC03.md",
-      "i18n": {
-        "it": {
-          "example": "correggi il path traversal nella risoluzione dei percorsi",
-          "requires": "vulnerabilità confermata e contesto del codice",
-          "summary": "Correggi le vulnerabilità e rafforza le difese interessate."
-        }
-      },
-      "id": "pmt-b4cb6659",
-      "mode": "write",
-      "next": [
-        "pmt-e2405036",
-        "pmt-deb7d01a",
-        "pmt-c356eede"
-      ],
-      "pack": "core",
-      "references": [
-        "https://owasp.org/www-project-top-ten/"
-      ],
       "related": [
         "pmt-e2405036",
         "pmt-deb7d01a",
         "pmt-c356eede"
       ],
-      "requires": "confirmed vulnerability and code context",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Fix vulnerabilities and strengthen the affected defenses.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sicurezza",
-      "code": "SEC04",
-      "example": "run a credentials security audit",
-      "file": "SEC04.md",
       "i18n": {
         "it": {
-          "example": "esegui un audit di sicurezza delle credenziali",
-          "requires": "working tree e strumenti di scansione",
-          "summary": "Trova le credenziali esposte e verifica la validazione degli input."
+          "summary": "Correggi le vulnerabilit├á e rafforza le difese interessate.",
+          "requires": "vulnerabilit├á confermata e contesto del codice",
+          "example": "correggi il path traversal nella risoluzione dei percorsi"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-73fb4547",
+      "code": "SEC04",
+      "category": "security",
+      "summary": "Find exposed credentials and verify input validation.",
+      "target": "repository",
       "mode": "verify",
-      "next": [
-        "pmt-27896824",
-        "pmt-24189cb6",
-        "pmt-c356eede"
-      ],
-      "pack": "core",
-      "references": [
-        "https://owasp.org/www-project-top-ten/",
-        "https://owasp.org/www-project-application-security-verification-standard/"
-      ],
+      "scope": "repo",
+      "requires": "working tree and scanning tools",
+      "example": "run a credentials security audit",
+      "file": "SEC04.md",
       "related": [
         "pmt-27896824",
         "pmt-24189cb6",
         "pmt-c356eede",
         "pmt-058c474f"
       ],
-      "requires": "working tree and scanning tools",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Find exposed credentials and verify input validation.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Trova le credenziali esposte e verifica la validazione degli input.",
+          "requires": "working tree e strumenti di scansione",
+          "example": "esegui un audit di sicurezza delle credenziali"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-24189cb6",
       "code": "SEC05",
+      "category": "security",
+      "summary": "Verify personal data isolation and compliance with GDPR and policies.",
+      "target": "repository",
+      "mode": "verify",
+      "scope": "repo",
+      "requires": "data mapping and compliance policy",
       "example": "check for personal data and GDPR privacy compliance",
       "file": "SEC05.md",
-      "i18n": {
-        "it": {
-          "example": "verifica i dati personali e la conformità privacy GDPR",
-          "requires": "mappatura dei dati e policy di conformità",
-          "summary": "Verifica l'isolamento dei dati personali e la conformità a GDPR e policy."
-        }
-      },
-      "id": "pmt-24189cb6",
-      "mode": "verify",
-      "next": [
-        "pmt-27896824",
-        "pmt-73fb4547",
-        "pmt-058c474f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://gdpr-info.eu/",
-        "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
-      ],
       "related": [
         "pmt-27896824",
         "pmt-73fb4547",
         "pmt-058c474f"
       ],
-      "requires": "data mapping and compliance policy",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Verify personal data isolation and compliance with GDPR and policies.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy.",
+          "requires": "mappatura dei dati e policy di conformit├á",
+          "example": "verifica i dati personali e la conformit├á privacy GDPR"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-c356eede",
       "code": "SEC06",
+      "category": "security",
+      "summary": "Harden repository configuration, CI, containers and access.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "configuration, CI workflows, containers and repository settings",
       "example": "harden the GitHub Actions workflows and containers",
       "file": "SEC06.md",
-      "i18n": {
-        "it": {
-          "example": "rafforza i workflow GitHub Actions e i container",
-          "requires": "configurazione, workflow CI, container e impostazioni del repository",
-          "summary": "Rafforza configurazione del repository, CI, container e accessi."
-        }
-      },
-      "id": "pmt-c356eede",
-      "mode": "write",
-      "next": [
-        "pmt-73fb4547",
-        "pmt-ce00f261",
-        "pmt-b4cb6659"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/actions/reference/security/secure-use",
-        "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
-        "https://scorecard.dev/"
-      ],
       "related": [
         "pmt-73fb4547",
         "pmt-ce00f261",
         "pmt-b4cb6659"
       ],
-      "requires": "configuration, CI workflows, containers and repository settings",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Harden repository configuration, CI, containers and access.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sicurezza",
-      "code": "SEC07",
-      "example": "check that it is safe to publish before the push",
-      "file": "SEC07.md",
       "i18n": {
         "it": {
-          "example": "verifica che sia sicuro pubblicare prima del push",
-          "requires": "commit, indice, working tree e cronologia da pubblicare; destinazione",
-          "summary": "Controlla diff, repository e cronologia per dati sensibili prima di pubblicare."
+          "summary": "Rafforza configurazione del repository, CI, container e accessi.",
+          "requires": "configurazione, workflow CI, container e impostazioni del repository",
+          "example": "rafforza i workflow GitHub Actions e i container"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-058c474f",
+      "code": "SEC07",
+      "category": "security",
+      "summary": "Check for sensitive data before publishing, locally and on the remote",
+      "target": "repository",
       "mode": "verify",
-      "next": [
-        "pmt-73fb4547",
-        "pmt-24189cb6"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
-        "https://docs.github.com/en/code-security/secret-scanning/introduction/about-secret-scanning"
-      ],
+      "scope": "repo",
+      "requires": "Commits, index, working tree and history to publish; remote destination and visibility; scanning tools available",
+      "example": "SEC07: check the commits about to be pushed, and the remote, for sensitive data",
+      "file": "SEC07.md",
       "related": [
         "pmt-73fb4547",
         "pmt-24189cb6",
-        "pmt-55186b10",
         "pmt-a5c78cc6",
         "pmt-07430e8c",
         "pmt-deb7d01a",
-        "pmt-7fc91f08",
-        "pmt-f1df8757"
+        "pmt-7fc91f08"
       ],
-      "requires": "commits, index, working tree and history to publish; destination",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Check diff, repository and history for sensitive data before publishing.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "sicurezza",
-      "code": "SEC08",
-      "example": "check which runs, caches and links are still accessible",
-      "file": "SEC08.md",
       "i18n": {
         "it": {
-          "example": "verifica quali run, cache e link sono ancora accessibili",
-          "requires": "accesso in sola lettura al remoto GitHub e impronte o pattern da cercare",
-          "summary": "Verifica se dati sensibili sono ancora raggiungibili sul remoto GitHub."
+          "summary": "Verifica dati sensibili prima della pubblicazione, in locale e sul remoto",
+          "requires": "Commit, indice, working tree e storia da pubblicare; destinazione e visibilità del remoto; strumenti di scansione disponibili",
+          "example": "SEC07: verifica i commit in uscita, e il remoto, alla ricerca di dati sensibili"
         }
-      },
-      "id": "pmt-55186b10",
-      "mode": "verify",
-      "next": [
-        "pmt-058c474f",
-        "pmt-7fc91f08"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
-        "https://docs.github.com/en/rest/actions/cache",
-        "https://cli.github.com/manual/gh_run_delete"
-      ],
-      "related": [
-        "pmt-058c474f",
-        "pmt-7fc91f08"
-      ],
-      "requires": "read-only access to the GitHub remote and fingerprints or patterns to look for",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Check whether sensitive data is still reachable on the GitHub remote.",
-      "target": "repository"
+      }
     },
     {
-      "aliases": [],
-      "category": "sicurezza",
+      "id": "pmt-7fc91f08",
       "code": "SEC09",
+      "category": "security",
+      "summary": "Wipe remote GitHub history and artifacts after a data exposure.",
+      "target": "repository",
+      "mode": "write",
       "destructive": true,
+      "scope": "repo",
+      "requires": "explicit request, verified backup and administrative access to the remote",
       "example": "wipe the remote history, runs and caches after the exposure",
       "file": "SEC09.md",
+      "related": [
+        "pmt-058c474f",
+        "pmt-73fb4547"
+      ],
       "i18n": {
         "it": {
-          "example": "cancella cronologia, run e cache del remoto dopo l'esposizione",
+          "summary": "Cancella cronologia e artefatti del remoto GitHub dopo un'esposizione di dati.",
           "requires": "richiesta esplicita, backup verificato e accesso amministrativo al remoto",
-          "summary": "Cancella cronologia e artefatti del remoto GitHub dopo un'esposizione di dati."
+          "example": "cancella cronologia, run e cache del remoto dopo l'esposizione"
         }
-      },
-      "id": "pmt-7fc91f08",
-      "mode": "write",
-      "next": [
-        "pmt-55186b10",
-        "pmt-058c474f",
-        "pmt-73fb4547"
-      ],
-      "pack": "core",
-      "references": [
-        "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository",
-        "https://cli.github.com/manual/gh_run_delete",
-        "https://cli.github.com/manual/gh_cache_delete",
-        "https://github.com/newren/git-filter-repo"
-      ],
-      "related": [
-        "pmt-55186b10",
-        "pmt-058c474f",
-        "pmt-73fb4547"
-      ],
-      "requires": "explicit request, verified backup and administrative access to the remote",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Wipe remote GitHub history and artifacts after a data exposure.",
-      "target": "repository"
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS01",
-      "example": "sb prompt SYS01: registra un ide con due account o due radici",
-      "file": "SYS01.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS01: register an ide with two accounts or two roots",
-          "requires": "IDE installations and local authorizations; to register accounts also an activated workstation and consent",
-          "summary": "Check the IDEs; map, register accounts or realign on request."
-        }
-      },
       "id": "pmt-26817a61",
+      "code": "SYS01",
+      "category": "system",
+      "summary": "Check the IDEs; map, register accounts or realign on request.",
+      "target": "central",
       "mode": "verify",
-      "next": [
-        "pmt-f02db9d0",
-        "pmt-5b593404"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/common-workflows",
-        "https://code.claude.com/docs/en/prompt-library",
-        "https://code.claude.com/docs/en/memory",
-        "https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features"
-      ],
+      "scope": "central",
+      "requires": "IDE installations and local authorizations; to register accounts also an activated workstation and consent",
+      "example": "sb prompt SYS01: register an ide with two accounts or two roots",
+      "file": "SYS01.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-5b593404",
@@ -2481,598 +1881,441 @@
         "pmt-677a10ab",
         "pmt-2d3c1d51"
       ],
-      "requires": "installazioni IDE e autorizzazioni locali; per registrare account anche postazione attivata e consenso",
-      "scope": "central",
-      "status": "active",
-      "summary": "Verifica gli IDE; mappa, registra account o riallinea su richiesta.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Verifica gli IDE; mappa, registra account o riallinea su richiesta.",
+          "requires": "installazioni IDE e autorizzazioni locali; per registrare account anche postazione attivata e consenso",
+          "example": "sb prompt SYS01: registra un ide con due account o due radici"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS02",
-      "example": "sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti",
-      "file": "SYS02.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS02: check regulatory updates in the sources registry",
-          "requires": "PARA resource-authoritative-sources registry",
-          "summary": "Check authoritative sources; acquire or update on request."
-        }
-      },
       "id": "pmt-5b593404",
+      "code": "SYS02",
+      "category": "system",
+      "summary": "Check authoritative sources; acquire or update on request.",
+      "target": "central",
       "mode": "verify",
-      "next": [
-        "pmt-25c97d58",
-        "pmt-26817a61"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://developers.openai.com/api/docs/guides/prompt-engineering",
-        "https://code.claude.com/docs/en/prompt-library"
-      ],
+      "scope": "central",
+      "requires": "PARA resource-authoritative-sources registry",
+      "example": "sb prompt SYS02: check regulatory updates in the sources registry",
+      "file": "SYS02.md",
       "related": [
         "pmt-25c97d58",
         "pmt-26817a61",
         "pmt-9ef61b3d"
       ],
-      "requires": "registro PARA resource-authoritative-sources",
-      "scope": "central",
-      "status": "active",
-      "summary": "Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Verifica le fonti autorevoli; acquisisci o aggiorna su richiesta.",
+          "requires": "registro PARA resource-authoritative-sources",
+          "example": "sb prompt SYS02: verifica aggiornamenti normativi nel registro fonti"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS03",
-      "example": "sb prompt SYS03: attiva secondbrain selezionando repository e ide locali",
-      "file": "SYS03.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS03: activate secondbrain selecting local repositories and ides",
-          "requires": "SecondBrain volume and user consent on the assets",
-          "summary": "Activate SecondBrain after discovery and asset selection."
-        }
-      },
       "id": "pmt-5f9f93e0",
+      "code": "SYS03",
+      "category": "system",
+      "summary": "Activate SecondBrain after discovery and asset selection.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-26817a61",
-        "pmt-677a10ab"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://git-scm.com/docs/git-rev-parse"
-      ],
+      "scope": "central",
+      "requires": "SecondBrain volume and user consent on the assets",
+      "example": "sb prompt SYS03: activate secondbrain selecting local repositories and ides",
+      "file": "SYS03.md",
       "related": [
         "pmt-26817a61",
         "pmt-677a10ab",
         "pmt-2d3c1d51"
       ],
-      "requires": "volume SecondBrain e consenso utente sugli asset",
-      "scope": "central",
-      "status": "active",
-      "summary": "Attiva SecondBrain dopo discovery e selezione degli asset.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Attiva SecondBrain dopo discovery e selezione degli asset.",
+          "requires": "volume SecondBrain e consenso utente sugli asset",
+          "example": "sb prompt SYS03: attiva secondbrain selezionando repository e ide locali"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS04",
-      "example": "sb prompt SYS04: verifica allineamento direttive nei repository gestiti",
-      "file": "SYS04.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS04: check directive alignment in the managed repositories",
-          "requires": "workstation configuration and approved directives",
-          "summary": "Check or align the workstation's already managed assets."
-        }
-      },
       "id": "pmt-677a10ab",
+      "code": "SYS04",
+      "category": "system",
+      "summary": "Check or align the workstation's already managed assets.",
+      "target": "central",
       "mode": "verify",
-      "next": [
-        "pmt-26817a61",
-        "pmt-5f9f93e0",
-        "pmt-77d7bf7a"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://git-scm.com/docs/git-config"
-      ],
+      "scope": "central",
+      "requires": "workstation configuration and approved directives",
+      "example": "sb prompt SYS04: check directive alignment in the managed repositories",
+      "file": "SYS04.md",
       "related": [
         "pmt-26817a61",
         "pmt-5f9f93e0",
         "pmt-77d7bf7a",
         "pmt-364616bb"
       ],
-      "requires": "configurazione postazione e direttive approvate",
-      "scope": "central",
-      "status": "active",
-      "summary": "Controlla o allinea gli asset già gestiti della postazione.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Controlla o allinea gli asset gi├á gestiti della postazione.",
+          "requires": "configurazione postazione e direttive approvate",
+          "example": "sb prompt SYS04: verifica allineamento direttive nei repository gestiti"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS05",
-      "example": "sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc",
-      "file": "SYS05.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS05: compact the dossier history preserving facts and toc",
-          "requires": "dossier to compact and verifiable history",
-          "summary": "Compact the dossier preserving originals, facts and TOC."
-        }
-      },
       "id": "pmt-77d7bf7a",
+      "code": "SYS05",
+      "category": "system",
+      "summary": "Compact the dossier preserving originals, facts and TOC.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-f02db9d0",
-        "pmt-76604e4a",
-        "pmt-677a10ab"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/memory"
-      ],
+      "scope": "central",
+      "requires": "dossier to compact and verifiable history",
+      "example": "sb prompt SYS05: compact the dossier history preserving facts and toc",
+      "file": "SYS05.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-76604e4a",
         "pmt-677a10ab"
       ],
-      "requires": "dossier da compattare e storico verificabile",
-      "scope": "central",
-      "status": "active",
-      "summary": "Compatta il dossier preservando originali, fatti e TOC.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Compatta il dossier preservando originali, fatti e TOC.",
+          "requires": "dossier da compattare e storico verificabile",
+          "example": "sb prompt SYS05: compatta cronologia del dossier preservando fatti e toc"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS09",
-      "example": "sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256",
-      "file": "SYS09.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS09: run a deterministic backup and validate the sha-256 manifest",
-          "requires": "active configuration and backup runtime root",
-          "summary": "Run the deterministic compressed backup and verify the SHA-256 digests."
-        }
-      },
       "id": "pmt-e498353a",
+      "code": "SYS09",
+      "category": "system",
+      "summary": "Run the deterministic compressed backup and verify the SHA-256 digests.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-677a10ab",
-        "pmt-821f7dec"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/prompt-library",
-        "https://developers.openai.com/api/docs/guides/prompt-engineering"
-      ],
+      "scope": "central",
+      "requires": "active configuration and backup runtime root",
+      "example": "sb prompt SYS09: run a deterministic backup and validate the sha-256 manifest",
+      "file": "SYS09.md",
       "related": [
         "pmt-677a10ab",
         "pmt-821f7dec"
       ],
-      "requires": "configurazione attiva e root runtime di backup",
-      "scope": "central",
-      "status": "active",
-      "summary": "Esegui il backup compresso deterministico e verifica i digest SHA-256.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Esegui il backup compresso deterministico e verifica i digest SHA-256.",
+          "requires": "configurazione attiva e root runtime di backup",
+          "example": "sb prompt SYS09: esegui backup deterministico e valida il manifest sha-256"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS10",
-      "destructive": true,
-      "example": "sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati",
-      "file": "SYS10.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS10: roll back the decommissioned repository and clean up the data",
-          "requires": "repository dossier, target checkout and user consent",
-          "summary": "Roll back and decommission a repository, returning its data for privacy."
-        }
-      },
       "id": "pmt-b98acaaa",
+      "code": "SYS10",
+      "category": "system",
+      "summary": "Roll back and decommission a repository, returning its data for privacy.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-5f9f93e0",
-        "pmt-677a10ab",
-        "pmt-77d7bf7a"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/prompt-library",
-        "https://developers.openai.com/api/docs/guides/prompt-engineering"
-      ],
+      "destructive": true,
+      "scope": "central",
+      "requires": "repository dossier, target checkout and user consent",
+      "example": "sb prompt SYS10: roll back the decommissioned repository and clean up the data",
+      "file": "SYS10.md",
       "related": [
         "pmt-5f9f93e0",
         "pmt-677a10ab",
         "pmt-77d7bf7a"
       ],
-      "requires": "dossier del repository, checkout di destinazione e consenso utente",
-      "scope": "central",
-      "status": "active",
-      "summary": "Esegui rollback e dismissione repository restituendo i dati per privacy.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Esegui rollback e dismissione repository restituendo i dati per privacy.",
+          "requires": "dossier del repository, checkout di destinazione e consenso utente",
+          "example": "sb prompt SYS10: esegui rollback del repository dismesso e pulisci i dati"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS11",
-      "example": "sb prompt SYS11: aggiungi un prompt al catalogo nell'area test",
-      "file": "SYS11.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS11: add a prompt to the catalog in the test area",
-          "requires": "valid catalog, target area and a write session",
-          "summary": "Add, change or remove a prompt of the centralized catalog."
-        }
-      },
       "id": "pmt-364616bb",
+      "code": "SYS11",
+      "category": "system",
+      "summary": "Add, change or remove a prompt of the centralized catalog.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-677a10ab",
-        "pmt-f02db9d0",
-        "pmt-adb9bfc0"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/prompt-library",
-        "https://docs.github.com/en/copilot/tutorials/customization-library/prompt-files"
-      ],
-      "related": [
-        "pmt-677a10ab",
-        "pmt-f02db9d0",
-        "pmt-adb9bfc0"
-      ],
-      "requires": "catalogo valido, area di destinazione e sessione di scrittura",
       "scope": "central",
-      "status": "active",
-      "summary": "Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.",
-      "target": "central"
+      "requires": "valid catalog, target area and a write session",
+      "example": "sb prompt SYS11: add a prompt to the catalog in the test area",
+      "file": "SYS11.md",
+      "related": [
+        "pmt-677a10ab",
+        "pmt-f02db9d0",
+        "pmt-adb9bfc0"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato.",
+          "requires": "catalogo valido, area di destinazione e sessione di scrittura",
+          "example": "sb prompt SYS11: aggiungi un prompt al catalogo nell'area test"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS13",
-      "example": "sb prompt SYS13: fissa o rimuovi il blocco greenfield su questo repository",
-      "file": "SYS13.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS13: set or remove the greenfield lock on this repository",
-          "requires": "managed repository, active dossier and user confirmation",
-          "summary": "Set or remove the greenfield lock (versions, changelog, migrations, aliases)."
-        }
-      },
       "id": "pmt-29b3278f",
+      "code": "SYS13",
+      "category": "system",
+      "summary": "Set or remove the greenfield lock (versions, changelog, migrations, aliases).",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-677a10ab",
-        "pmt-f02db9d0"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://keepachangelog.com/it-IT/1.1.0/",
-        "https://semver.org/lang/it/"
-      ],
+      "scope": "repo/area",
+      "requires": "managed repository, active dossier and user confirmation",
+      "example": "sb prompt SYS13: set or remove the greenfield lock on this repository",
+      "file": "SYS13.md",
       "related": [
         "pmt-f02db9d0",
         "pmt-677a10ab"
       ],
-      "requires": "repository gestito, dossier attivo e conferma dell'utente",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Fissa o rimuovi il blocco greenfield (versioni, changelog, migrazioni, alias).",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Fissa o rimuovi il blocco greenfield (versioni, changelog, migrazioni, alias).",
+          "requires": "repository gestito, dossier attivo e conferma dell'utente",
+          "example": "sb prompt SYS13: fissa o rimuovi il blocco greenfield su questo repository"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS15",
-      "example": "sb prompt SYS15: installa il server mcp in vscode e claude code",
-      "file": "SYS15.md",
-      "i18n": {
-        "en": {
-          "example": "sb prompt SYS15: install the mcp server in vscode and claude code",
-          "requires": "SecondBrain root, target IDEs and confirmation before writing",
-          "summary": "Install the SecondBrain MCP server in the IDEs and verify the handshake."
-        }
-      },
       "id": "pmt-2d3c1d51",
+      "code": "SYS15",
+      "category": "system",
+      "summary": "Install the SecondBrain MCP server in the IDEs and verify the handshake.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-26817a61",
-        "pmt-677a10ab"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://code.claude.com/docs/en/mcp",
-        "https://code.visualstudio.com/docs/agents/reference/mcp-configuration"
-      ],
+      "scope": "central",
+      "requires": "SecondBrain root, target IDEs and confirmation before writing",
+      "example": "sb prompt SYS15: install the mcp server in vscode and claude code",
+      "file": "SYS15.md",
       "related": [
         "pmt-5f9f93e0",
         "pmt-26817a61",
         "pmt-677a10ab"
       ],
-      "requires": "radice SecondBrain, IDE di destinazione e conferma prima di scrivere",
-      "scope": "central",
-      "status": "active",
-      "summary": "Installa il server MCP SecondBrain negli IDE e verifica l'handshake.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Installa il server MCP SecondBrain negli IDE e verifica l'handshake.",
+          "requires": "radice SecondBrain, IDE di destinazione e conferma prima di scrivere",
+          "example": "sb prompt SYS15: installa il server mcp in vscode e claude code"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "sistema",
-      "code": "SYS16",
-      "example": "sb prompt SYS16: aggiorna la skill locale dalle fonti ufficiali",
-      "file": "SYS16.md",
-      "i18n": {
-        "en": {
-          "summary": "Update a skill from authoritative sources and verify the diff.",
-          "requires": "identified skill, target agent and version, official sources",
-          "example": "sb prompt SYS16: update the local skill from official sources"
-        }
-      },
       "id": "pmt-9ef61b3d",
+      "code": "SYS16",
+      "category": "system",
+      "summary": "Update a skill from authoritative sources and verify the diff.",
+      "target": "central",
       "mode": "write",
-      "next": [
-        "pmt-5b593404"
-      ],
-      "pack": "maintenance",
-      "references": [
-        "https://agentskills.io/specification",
-        "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
-      ],
+      "scope": "central",
+      "requires": "identified skill, target agent and version, official sources",
+      "example": "sb prompt SYS16: update the local skill from official sources",
+      "file": "SYS16.md",
       "related": [
         "pmt-5b593404"
       ],
-      "requires": "skill identificata, agente e versione di destinazione, fonti ufficiali",
-      "scope": "central",
-      "status": "active",
-      "summary": "Aggiorna una skill da fonti autorevoli e verifica il diff.",
-      "target": "central"
+      "i18n": {
+        "it": {
+          "summary": "Aggiorna una skill da fonti autorevoli e verifica il diff.",
+          "requires": "skill identificata, agente e versione di destinazione, fonti ufficiali",
+          "example": "sb prompt SYS16: aggiorna la skill locale dalle fonti ufficiali"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "test",
+      "id": "pmt-08bff671",
       "code": "TST01",
+      "category": "test",
+      "summary": "Add unit and integration tests for the relevant risks.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "test harness and the behavior to verify",
       "example": "add boundary tests for the budget calculation",
       "file": "TST01.md",
-      "i18n": {
-        "it": {
-          "example": "aggiungi test dei casi limite per il calcolo del budget",
-          "requires": "infrastruttura di test e comportamento da verificare",
-          "summary": "Aggiungi test unitari e di integrazione per i rischi pertinenti."
-        }
-      },
-      "id": "pmt-08bff671",
-      "mode": "write",
-      "next": [
-        "pmt-286c3225",
-        "pmt-91021b67"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
       "related": [
         "pmt-286c3225",
-        "pmt-91021b67"
+        "pmt-91021b67",
+        "pmt-de5f1d8d"
       ],
-      "requires": "test harness and the behavior to verify",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Add unit and integration tests for the relevant risks.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Aggiungi test unitari e di integrazione per i rischi pertinenti.",
+          "requires": "infrastruttura di test e comportamento da verificare",
+          "example": "aggiungi test dei casi limite per il calcolo del budget"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "test",
+      "id": "pmt-286c3225",
       "code": "TST02",
+      "category": "test",
+      "summary": "Cover user journeys with end-to-end tests.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "test environment and agreed user flows",
       "example": "create an end-to-end test for the backup and restore cycle",
       "file": "TST02.md",
-      "i18n": {
-        "it": {
-          "example": "crea un test end-to-end per il ciclo di backup e ripristino",
-          "requires": "ambiente di test e flussi utente concordati",
-          "summary": "Copri i percorsi utente con test end-to-end."
-        }
-      },
-      "id": "pmt-286c3225",
-      "mode": "write",
-      "next": [
-        "pmt-08bff671",
-        "pmt-ef96dea5"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
       "related": [
         "pmt-08bff671",
         "pmt-ef96dea5"
       ],
-      "requires": "test environment and agreed user flows",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Cover user journeys with end-to-end tests.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Copri i percorsi utente con test end-to-end.",
+          "requires": "ambiente di test e flussi utente concordati",
+          "example": "crea un test end-to-end per il ciclo di backup e ripristino"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "test",
+      "id": "pmt-91021b67",
       "code": "TST03",
+      "category": "test",
+      "summary": "Find and fix flaky or non-deterministic tests.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area",
+      "requires": "logs of the intermittent failures and the test suite",
       "example": "fix the instability in the async tests of the suite",
       "file": "TST03.md",
-      "i18n": {
-        "it": {
-          "example": "correggi l'instabilità dei test asincroni della suite",
-          "requires": "log dei fallimenti intermittenti e suite di test",
-          "summary": "Trova e correggi i test instabili o non deterministici."
-        }
-      },
-      "id": "pmt-91021b67",
-      "mode": "write",
-      "next": [
-        "pmt-25ac264e",
-        "pmt-bd98736f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
       "related": [
         "pmt-25ac264e",
         "pmt-bd98736f"
       ],
-      "requires": "logs of the intermittent failures and the test suite",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Find and fix flaky or non-deterministic tests.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Trova e correggi i test instabili o non deterministici.",
+          "requires": "log dei fallimenti intermittenti e suite di test",
+          "example": "correggi l'instabilit├á dei test asincroni della suite"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "test",
+      "id": "pmt-bd98736f",
       "code": "TST04",
+      "category": "test",
+      "summary": "Diagnose and fix build and test failures in CI.",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo/area/file",
+      "requires": "CI logs and pipeline configuration",
       "example": "fix the GitHub Actions runner failure on Windows",
       "file": "TST04.md",
-      "i18n": {
-        "it": {
-          "example": "correggi il fallimento del runner GitHub Actions su Windows",
-          "requires": "log della CI e configurazione della pipeline",
-          "summary": "Diagnostica e correggi i fallimenti di build e test in CI."
-        }
-      },
-      "id": "pmt-bd98736f",
-      "mode": "write",
-      "next": [
-        "pmt-f3082c1b",
-        "pmt-ce00f261",
-        "pmt-91021b67"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
       "related": [
         "pmt-f3082c1b",
         "pmt-ce00f261",
         "pmt-91021b67"
       ],
-      "requires": "CI logs and pipeline configuration",
-      "scope": "repo/area/file",
-      "status": "active",
-      "summary": "Diagnose and fix build and test failures in CI.",
-      "target": "repository"
+      "i18n": {
+        "it": {
+          "summary": "Diagnostica e correggi i fallimenti di build e test in CI.",
+          "requires": "log della CI e configurazione della pipeline",
+          "example": "correggi il fallimento del runner GitHub Actions su Windows"
+        }
+      }
     },
     {
-      "aliases": [],
-      "category": "test",
+      "id": "pmt-ef96dea5",
       "code": "TST05",
+      "category": "test",
+      "summary": "Verify real behavior against the requirements.",
+      "target": "repository",
+      "mode": "verify",
+      "scope": "repo",
+      "requires": "acceptance criteria and a working environment",
       "example": "verify that the output conforms to the specifications",
       "file": "TST05.md",
-      "i18n": {
-        "it": {
-          "example": "verifica che l'output sia conforme alle specifiche",
-          "requires": "criteri di accettazione e un ambiente funzionante",
-          "summary": "Verifica il comportamento reale rispetto ai requisiti."
-        }
-      },
-      "id": "pmt-ef96dea5",
-      "mode": "verify",
-      "next": [
-        "pmt-27896824",
-        "pmt-286c3225"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
       "related": [
         "pmt-27896824",
         "pmt-286c3225"
       ],
-      "requires": "acceptance criteria and a working environment",
-      "scope": "repo",
-      "status": "active",
-      "summary": "Verify real behavior against the requirements.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "test",
-      "code": "TST06",
-      "example": "reduce host discovery time and memory use",
-      "file": "TST06.md",
       "i18n": {
         "it": {
-          "example": "riduci i tempi di discovery degli host e l'uso di memoria",
-          "requires": "flusso, carico rappresentativo, ambiente, metrica e soglia",
-          "summary": "Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli."
+          "summary": "Verifica il comportamento reale rispetto ai requisiti.",
+          "requires": "criteri di accettazione e un ambiente funzionante",
+          "example": "verifica che l'output sia conforme alle specifiche"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-9de57e24",
+      "code": "TST06",
+      "category": "test",
+      "summary": "Measure and optimize performance and resources: one bottleneck or many modules.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-c2785b9c",
-        "pmt-ef96dea5",
-        "pmt-4efbc54f"
-      ],
-      "pack": "core",
-      "references": [
-        "https://refactoring.com/catalog/"
-      ],
+      "scope": "repo/area",
+      "requires": "flow, representative load, environment, metric and threshold",
+      "example": "reduce host discovery time and memory use",
+      "file": "TST06.md",
       "related": [
         "pmt-c2785b9c",
         "pmt-ef96dea5",
         "pmt-4efbc54f",
         "pmt-2b07a693"
       ],
-      "requires": "flow, representative load, environment, metric and threshold",
-      "scope": "repo/area",
-      "status": "active",
-      "summary": "Measure and optimize performance and resources: one bottleneck or many modules.",
-      "target": "repository"
-    },
-    {
-      "aliases": [],
-      "category": "test",
-      "code": "TST07",
-      "example": "create isolated on-disk fixtures and validate the automatic cleanup",
-      "file": "TST07.md",
       "i18n": {
         "it": {
-          "example": "crea fixture isolate su disco e convalida la pulizia automatica",
-          "requires": "framework di test, script di test e una radice di fixture isolata assegnata",
-          "summary": "Prepara un'infrastruttura di test con fixture isolate e pulizia sicura."
+          "summary": "Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli.",
+          "requires": "flusso, carico rappresentativo, ambiente, metrica e soglia",
+          "example": "riduci i tempi di discovery degli host e l'uso di memoria"
         }
-      },
+      }
+    },
+    {
       "id": "pmt-37c695fe",
+      "code": "TST07",
+      "category": "test",
+      "summary": "Set up a test harness with isolated fixtures and safe cleanup.",
+      "target": "repository",
       "mode": "write",
-      "next": [
-        "pmt-08bff671",
-        "pmt-286c3225",
-        "pmt-91021b67"
-      ],
-      "pack": "core",
-      "references": [
-        "https://martinfowler.com/articles/practical-test-pyramid.html"
-      ],
+      "scope": "repo",
+      "requires": "test framework, test scripts and an assigned isolated fixture root",
+      "example": "create isolated on-disk fixtures and validate the automatic cleanup",
+      "file": "TST07.md",
       "related": [
         "pmt-08bff671",
         "pmt-286c3225",
         "pmt-91021b67"
       ],
-      "requires": "test framework, test scripts and an assigned isolated fixture root",
+      "i18n": {
+        "it": {
+          "summary": "Prepara un'infrastruttura di test con fixture isolate e pulizia sicura.",
+          "requires": "framework di test, script di test e una radice di fixture isolata assegnata",
+          "example": "crea fixture isolate su disco e convalida la pulizia automatica"
+        }
+      }
+    },
+    {
+      "id": "pmt-de5f1d8d",
+      "code": "TST08",
+      "category": "test",
+      "summary": "Review test quality and find coverage gaps",
+      "target": "repository",
+      "mode": "read",
       "scope": "repo",
-      "status": "active",
-      "summary": "Set up a test harness with isolated fixtures and safe cleanup.",
-      "target": "repository"
+      "requires": "Test suite, coverage reports if any, critical paths and recent defects",
+      "example": "TST08: review the billing module tests for gaps and weak assertions",
+      "file": "TST08.md",
+      "related": [
+        "pmt-08bff671",
+        "pmt-91021b67",
+        "pmt-ef96dea5"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Valuta la qualità dei test e individua le lacune",
+          "requires": "Suite di test, report di copertura se esistono, percorsi critici e difetti recenti",
+          "example": "TST08: valuta i test del modulo fatturazione: lacune e asserzioni deboli"
+        }
+      }
     }
-  ],
-  "schemaVersion": 1
+  ]
 }

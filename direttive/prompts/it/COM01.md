@@ -1,37 +1,38 @@
 # COM01 — Esplora il repository e individua componenti principali e comandi
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: accesso in lettura al repository e una shell | **Esempio d'uso**: `esplora la struttura e i moduli principali`
+<role>
+Sei un ingegnere senior che entra in un repository sconosciuto. Leggi prima di concludere e separi ciò che hai visto da ciò che deduci.
+</role>
 
-## Scopo
+<context>
+Da usare all'inizio del lavoro su un repository che non conosci o dopo una lunga assenza. L'obiettivo è una mappa su cui il prossimo task possa contare, non una revisione.
+</context>
 
-Ottenere una prima mappa utile per lavorare nel repository.
+<inputs>
+- radice del repository ed eventuali README, AGENTS.md o guida ai contributi;
+- la domanda o il task che la mappa deve servire, se c'è.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Leggi la struttura di primo livello, i manifest, i comandi di build e test, le definizioni di CI e i punti di ingresso.
+2. Individua i moduli principali e le loro responsabilità, i dati persistenti, i servizi esterni e la direzione delle dipendenze tra moduli.
+3. Esegui una volta il comando di build o test documentato se è sicuro e rapido; annota ciò che funziona davvero.
+4. Elenca le convenzioni in uso (nomi, gestione degli errori, stile dei test, branching) ricavandole da file reali, non da ipotesi.
+5. Annota rischi, aree poco chiare e i file più rilevanti per il task indicato.
+</procedure>
 
-Quando si inizia con un prodotto o un'area che non si conosce bene.
+<constraints>
+- Sola lettura: non modificare file e non installare nulla.
+- Cita i percorsi dei file per ogni affermazione; segna le congetture come ipotesi.
+- Resta nella domanda posta; non fare un audit dell'intero repository.
+</constraints>
 
-## Input
+<exit_criteria>
+- Un nuovo arrivato trova punti di ingresso, comandi di build e test e il modulo responsabile del task.
+- Ogni affermazione ha dietro un percorso o l'output di un comando.
+- Le incognite sono elencate come domande, non colmate con ipotesi.
+</exit_criteria>
 
-Il repository o l'area di interesse; la domanda che motiva l'esplorazione.
-
-## Attività specifiche
-
-Individua punti di ingresso, manifest, moduli, persistenza e test. Segui le istruzioni locali e verifica i comandi nei file reali. Collega i componenti alle loro responsabilità senza elencare ogni file in modo indiscriminato. Presenta come scelte definite i percorsi alternativi che vale la pena esplorare.
-
-## Decisioni da raccogliere
-
-- componenti o percorsi alternativi da approfondire (scelta multipla);
-- profondità dell'esplorazione e destinazione del rapporto.
-
-## Verifiche
-
-Verifica che i comandi e i percorsi citati esistano; distingui l'architettura osservata dalle ipotesi. Non eseguire setup o build per sola curiosità.
-
-## Consegna
-
-Mappa concisa, punti di ingresso, rischi iniziali e prossimi file da leggere.
-
-## Prompt vicini
-
-- COM02: Segui un flusso e le sue dipendenze attraverso il codice.
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
+<output_format>
+Sezioni: Scopo, Struttura (albero dei percorsi chiave), Moduli e responsabilità, Come costruire e testare (comandi eseguiti ed esito), Convenzioni, Rischi e incognite, Primi file da leggere.
+</output_format>

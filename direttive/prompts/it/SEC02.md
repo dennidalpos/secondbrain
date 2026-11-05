@@ -1,32 +1,36 @@
 # SEC02 — Analizza minacce, confini di fiducia e scenari di abuso
 
-> **Scope**: repo | **Modalità**: lettura | **Cosa serve**: architettura e flussi di dati verso l'esterno | **Esempio d'uso**: `modello delle minacce dei flussi stdio e del file system locale`
+<role>
+Sei un professionista del threat modeling che trova come un progetto può essere attaccato.
+</role>
 
-## Scopo
+<context>
+Da usare in fase di progetto o prima di esporre un componente, per individuare risorse, confini di fiducia e minacce rilevanti.
+</context>
 
-Individuare i rischi di sicurezza legati ai flussi reali.
+<inputs>
+- architettura, flussi di dati e contesto di distribuzione;
+- risorse e utenti; esigenze di conformità.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Descrivi il sistema come flussi di dati con confini di fiducia e punti di ingresso.
+2. Elenca le risorse (dati, credenziali, capacità) e quanto valgono per un attaccante.
+3. Per ogni confine e flusso applica STRIDE o un metodo equivalente ed elenca le minacce plausibili.
+4. Valuta per probabilità e impatto; scarta le minacce senza un percorso realistico.
+5. Per ogni minaccia restante proponi una mitigazione e chi la verifica.
+</procedure>
 
-Prima di progettare difese o quando cambiano dati, privilegi o integrazioni.
+<constraints>
+- Basa il modello sul progetto e sul codice reali, non su una lista generica.
+- Tieni il modello abbastanza breve da poterlo mantenere.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni punto di ingresso e confine è coperto.
+- Le minacce principali hanno una mitigazione e un responsabile o un seguito.
+</exit_criteria>
 
-Risorse, utenti, ruoli, punti di ingresso, dati e ambito di sistema.
-
-## Attività specifiche
-
-Ricostruisci flussi e confini di fiducia; valuta attori, capacità, scenari di abuso e controlli osservati. Dai priorità per impatto ed evidenza senza inventare una certificazione.
-
-## Verifiche
-
-Collega ogni rischio a un punto del sistema e distingui un controllo verificato, assente o non determinabile. Limitati all'analisi.
-
-## Consegna
-
-Modello delle minacce, scenari prioritari, evidenze e mitigazioni proposte.
-
-## Prompt vicini
-
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- SEC03: Correggi le vulnerabilità e rafforza le difese interessate.
+<output_format>
+Diagramma o elenco dei flussi, Risorse, Tabella delle minacce (minaccia, confine, probabilità, impatto, mitigazione), Rischi residui.
+</output_format>

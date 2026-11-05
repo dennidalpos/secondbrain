@@ -113,7 +113,8 @@ Add-SBMessages @{
     'core.backup.unverified'    = @{ it = 'Backup non verificato; recupero locale: {0}'; en = 'Backup not verified; local recovery: {0}' }
     'core.readback.destination' = @{ it = 'Readback destinazione fallito: {0}'; en = 'Destination readback failed: {0}' }
     'core.staging.kept'         = @{ it = 'Staging transazionale conservato: {0}'; en = 'Transactional staging kept: {0}' }
-    'core.olderthan.min'        = @{ it = 'OlderThanDays deve essere almeno 1'; en = 'OlderThanDays must be at least 1' }
+    'core.migrate.destination'  = @{ it = 'Destinazione già esistente: {0}'; en = 'Destination already exists: {0}' }
+    'core.olderthan.min'        =@{ it = 'OlderThanDays deve essere almeno 1'; en = 'OlderThanDays must be at least 1' }
     'core.runtime.outside'      = @{ it = 'Percorso fuori da .runtime'; en = 'Path outside .runtime' }
     'core.runtime.reparse'      = @{ it = 'Reparse point non rimovibile con questo passo'; en = 'Reparse point cannot be removed by this step' }
     'core.checkout.ambiguous'   = @{ it = 'Associazione checkout ambigua'; en = 'Ambiguous checkout binding' }

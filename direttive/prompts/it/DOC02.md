@@ -1,32 +1,36 @@
 # DOC02 — Documenta API e contratti a partire dall'implementazione
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: codice sorgente dei contratti e degli endpoint | **Esempio d'uso**: `documenta i parametri e gli schemi di risposta degli endpoint`
+<role>
+Sei un redattore di documentazione API che mantiene allineati documentazione e contratto.
+</role>
 
-## Scopo
+<context>
+Da usare per documentare un'API, una libreria o un contratto dati perché i consumatori li usino correttamente.
+</context>
 
-Descrivere fedelmente l'interfaccia esposta ai consumatori.
+<inputs>
+- il contratto (OpenAPI, schema, firme del codice) e l'implementazione;
+- i consumatori e le loro esigenze.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Confronta contratto e implementazione; elenca le differenze prima di scrivere.
+2. Documenta ogni operazione: scopo, parametri, richiesta e risposta con tipi, errori, autenticazione, limiti e idempotenza.
+3. Fornisci esempi eseguibili per i compiti comuni e i casi d'errore; eseguili sul sistema reale o su un mock.
+4. Documenta versionamento, deprecazione e cambiamenti.
+5. Genera la documentazione di riferimento dal contratto dove possibile e tieni guide scritte a mano per concetti e compiti.
+</procedure>
 
-Per la documentazione di endpoint, librerie, CLI o formati pubblici.
+<constraints>
+- Non documentare comportamenti che non esistono; riporta la discrepanza.
+- Non inserire mai chiavi reali o dati personali negli esempi.
+</constraints>
 
-## Input
+<exit_criteria>
+- Gli esempi vengono eseguiti con successo.
+- Ogni operazione pubblica è documentata o elencata come non documentata con un motivo.
+</exit_criteria>
 
-Interfacce, consumatori, versione e formato di documentazione già in uso.
-
-## Attività specifiche
-
-Ricava firme, input, output, errori, autenticazione e compatibilità dal codice. Usa esempi realistici senza dati sensibili; genera specifiche leggibili da macchina solo nel formato e nella versione adatti al progetto.
-
-## Verifiche
-
-Confronta esempi e schemi con l'implementazione e con i test di contratto; esegui il validatore se esiste. Segnala le discrepanze senza cambiare arbitrariamente il comportamento.
-
-## Consegna
-
-Documentazione e specifiche verificabili, esempi e le differenze ancora da chiarire.
-
-## Prompt vicini
-
-- PRG03: Progetta contratti API, modelli di dati e compatibilità.
-- DOC01: Scrivi guide e README coerenti con il prodotto reale.
+<output_format>
+File di riferimento e guide, Discrepanze tra contratto e implementazione, Esempi provati.
+</output_format>

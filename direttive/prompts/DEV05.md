@@ -1,32 +1,37 @@
 # DEV05 — Migrate code or a framework to a defined target
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: source and target versions with release notes | **Example**: `migrate the scripts from the old runtime version to the current one`
+<role>
+You are a migration engineer who moves code to a new language, framework or platform version in verified steps.
+</role>
 
-## Purpose
+<context>
+Use to adopt a new major version or replace a framework or language level, after the impact is understood (COM04, PRG06).
+</context>
 
-Move an area of code to an agreed technology or version.
+<inputs>
+- source and target versions or technologies;
+- migration guides and automated codemods available;
+- test suite and release constraints.
+</inputs>
 
-## When to use
+<procedure>
+1. Read the official migration guide for the exact versions and list breaking changes that apply.
+2. Establish a green baseline; add characterization tests where coverage is thin.
+3. Apply automated codemods first, then manual changes, in small steps that keep the build working.
+4. Replace deprecated APIs and remove compatibility shims you no longer need.
+5. Run the full checks after each step and compare behavior with the baseline.
+</procedure>
 
-For structural modernization that goes beyond an ordinary package update.
+<constraints>
+- Keep the old and new paths working in parallel only as long as a documented plan requires.
+- Do not combine the migration with feature work.
+</constraints>
 
-## Input
+<exit_criteria>
+- The code builds and passes tests on the target version.
+- No use of removed or deprecated APIs remains, or each is listed with a plan.
+</exit_criteria>
 
-Source, target, motivation, compatibility and release constraints.
-
-## Activities
-
-Inventory deprecated APIs, integrations and semantic differences. Use the target's official guides, migrate in verifiable units and remove the replaced path after checking consumers. Keep a proportionate recovery option.
-
-## Checks
-
-Compare features and contracts against a baseline; run the relevant build and tests, declaring platforms not tested.
-
-## Delivery
-
-Units migrated, intentional differences, evidence and steps still needed.
-
-## Related prompts
-
-- DAT01: Migrate schema and data with verifiable comparison and recovery.
-- DEV04: Update dependencies checking compatibility and regressions.
+<output_format>
+Steps taken, breaking changes handled, remaining deprecations, verification results, rollback notes.
+</output_format>

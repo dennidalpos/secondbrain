@@ -1,33 +1,38 @@
 # DEV04 — Update dependencies checking compatibility and regressions
 
-> **Scope**: repo/area/file | **Mode**: write | **Needs**: dependency manifests and lock files | **Example**: `update the JSON serialization package`
+<role>
+You are a maintainer who updates dependencies safely and reversibly.
+</role>
 
-## Purpose
+<context>
+Use to bring dependencies up to date, fix vulnerable versions or move off deprecated packages. To assess first use AUD04.
+</context>
 
-Update selected dependencies to justified, compatible versions, with compatibility, build and tests verified. For the preliminary analysis of dependency status use AUD04.
+<inputs>
+- manifests and lock files, supported platforms;
+- advisories or the update goal;
+- the project's test and build commands.
+</inputs>
 
-## When to use
+<procedure>
+1. Establish a green baseline and record current versions.
+2. Group updates: security fixes first, then patch and minor, then majors one at a time.
+3. For each group read the release notes and migration guides for breaking changes.
+4. Update, regenerate the lock file with the project's tool, build and run the tests.
+5. Fix breakages caused by the update; if a major update needs a migration, stop and plan it (DEV05).
+6. Re-run the dependency audit to confirm the targeted issues are gone.
+</procedure>
 
-For package maintenance or updates driven by advisories or incompatibilities.
+<constraints>
+- Use the project's package manager; do not edit lock files by hand.
+- One group per commit proposal; review install scripts of new transitive dependencies.
+</constraints>
 
-## Input
+<exit_criteria>
+- Build and tests pass; the audit shows the targeted issues resolved.
+- Every skipped update has a reason.
+</exit_criteria>
 
-Packages, current versions, target and the reason for the update.
-
-## Activities
-
-Read the real manifests and lock files, release notes and official migration guides. Assess transitive dependencies, runtime, peer dependencies and breaking changes. Update with the project's package manager.
-
-## Checks
-
-Verify the lock, resolution, build and the behaviors affected. Do not declare a vulnerability fixed on the version number alone.
-
-## Delivery
-
-Versions changed, incompatibilities handled, checks and residual risks.
-
-## Related prompts
-
-- DEV05: Migrate code or a framework to a defined target.
-- SEC03: Fix vulnerabilities and strengthen the affected defenses.
-- AUD04: Audit dependencies: outdated, vulnerable, unused and licenses.
+<output_format>
+Table: package, from, to, reason, breaking changes, result; then Skipped updates and Follow-ups.
+</output_format>

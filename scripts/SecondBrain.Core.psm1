@@ -381,15 +381,17 @@ function Get-SBRuntimeCategory([string]$Name,[bool]$IsProtected) {
     if($key -eq 'tests'){return @{category='regenerable';recovery='si ricrea rieseguendo le suite test-secondbrain*.ps1'}}
     if($key -eq 'index.md'){return @{category='regenerable';recovery='vista derivata: si rigenera con cleanup.ps1 -RuntimeReport'}}
     if($key -eq 'mcp-handshake'){return @{category='regenerable';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'}}
+    if($key -eq 'logs'){return @{category='regenerable';recovery='log di esecuzione: si ricreano a ogni esecuzione'}}
+    if($key -eq 'install-backups'){return @{category='backup';recovery='copie di configurazioni prima di un intervento: rimuovere solo dopo verifica e con manifest revisionato'}}
     if($key -in @('cleanup','captures','publication','directives-activation','trace')){return @{category='evidence';recovery='prova o provenienza: non si rigenera identica'}}
     # Agent folder convention <category>-<yyyyMMdd>-<slug>: the prefix declares the type of work.
     if($key -match '^(evidence|report)-'){return @{category='evidence';recovery='prova o rapporto: non si rigenera identico'}}
     if($key -match '^(work|fixture|tmp)-'){return @{category='working';recovery='lavoro temporaneo dichiarato dal prefisso: verificare riferimenti e proprietà prima di valutarlo'}}
-    if($key -in @('backups','backup','workstations')){return @{category='backup';recovery='recupero di file gestiti: rimuovere solo con manifest revisionato (cleanup.ps1)'}}
+    if($key -in @('backups','workstations')){return @{category='backup';recovery='recupero di file gestiti: rimuovere solo con manifest revisionato (cleanup.ps1)'}}
     @{category='working';recovery='lavoro temporaneo: verificare riferimenti e proprietà prima di valutarlo'}
 }
 # Code-managed top-level entries are never legacy. All other .runtime entries predate hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>.
-$script:SBRuntimeManagedTopLevel = @('access','hosts','cleanup','state.json','para-transaction.json','tests','mcp-handshake','captures','publication','directives-activation','trace','backups','backup','workstations','mcp-package','index.md')
+$script:SBRuntimeManagedTopLevel = @('access','hosts','cleanup','state.json','para-transaction.json','tests','mcp-handshake','captures','publication','directives-activation','trace','backups','logs','workstations','mcp-package','index.md')
 # Read-only inventory of hosts/<id>/repos/<repo>/<area>[/<folder>] (area = category or temp). Does not follow reparse points.
 function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
@@ -410,7 +412,7 @@ function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
                     if($newest -eq [DateTime]::MinValue){$newest=$target.LastWriteTimeUtc}
                     $classification=if($areaIsCategory){Get-SBRuntimeCategory ($areaDir.Name+'-x') $false}elseif($areaDir.Name -eq 'temp'){@{category='working';recovery='area TEMP/TMP del repository: si ricrea a ogni esecuzione'}}else{Get-SBRuntimeCategory 'x' $false}
                     $relative=$target.FullName.Substring($runtime.Length+1).Replace('\','/')
-                    $entries+=@{path=$relative;host=$hostDir.Name;repo=$repoDir.Name;area=$areaDir.Name;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(([DateTime]::UtcNow-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);category=$classification.category;recovery=$classification.recovery;conventional=($areaIsCategory -and $target.Name -cmatch '^\d{8}-[a-z0-9][a-z0-9-]*$') -or $areaDir.Name -eq 'temp'}
+                    $entries+=@{path=$relative;host=$hostDir.Name;repo=$repoDir.Name;area=$areaDir.Name;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(([DateTime]::UtcNow-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);category=$classification.category;recovery=$classification.recovery;conventional=($areaIsCategory -and $target.Name -cmatch '^\d{8}-[a-z0-9][a-z0-9-]*$') -or $areaDir.Name -eq 'temp';manifest=[bool]($areaIsCategory -and (Test-Path -LiteralPath (Join-Path $target.FullName 'MANIFEST.json') -PathType Leaf))}
                 }
             }
         }
@@ -457,7 +459,7 @@ function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
 function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
     $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
-    $writers=@{access='access.ps1 / Enter-SBOperation';hosts='secondbrain.ps1 -Setup/-Activate/-Sync, backup';backups='host legacy (registro accessi)';workstations='host legacy (registro accessi)';tests='test-secondbrain*.ps1';'mcp-handshake'='test-secondbrain-mcp-handshake.ps1';cleanup='cleanup.ps1';publication='publication.ps1';captures='assets.ps1 / REP07';'directives-activation'='agente (SYS03)';backup='mcp-server.ps1 -Pair';'mcp-package'='mcp-server.ps1 -Package';trace='trace.ps1';'state.json'='secondbrain.ps1';'para-transaction.json'='para.ps1';'index.md'='cleanup.ps1 -RuntimeReport'}
+    $writers=@{access='access.ps1 / Enter-SBOperation';hosts='secondbrain.ps1 -Setup/-Activate/-Sync, backup';backups='mcp-server.ps1 -Pair, trace.ps1, publication.ps1, tracker';logs='cleanup.ps1 -Migrate (log delle esecuzioni)';workstations='host legacy (registro accessi)';tests='test-secondbrain*.ps1';'mcp-handshake'='test-secondbrain-mcp-handshake.ps1';cleanup='cleanup.ps1';publication='publication.ps1';captures='assets.ps1 / REP07';'directives-activation'='agente (SYS03)';'mcp-package'='mcp-server.ps1 -Package';trace='trace.ps1';'state.json'='secondbrain.ps1';'para-transaction.json'='para.ps1';'index.md'='cleanup.ps1 -RuntimeReport'}
     $order=@{protected=0;evidence=1;backup=2;working=3;regenerable=4}
     $format={param([long]$Bytes) if($Bytes -ge 1GB){('{0:N1} GB' -f ($Bytes/1GB))}elseif($Bytes -ge 1MB){('{0:N1} MB' -f ($Bytes/1MB))}else{('{0:N0} KB' -f ($Bytes/1KB))}}
     $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
@@ -485,10 +487,10 @@ function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[in
         ('Totale: '+(& $format $report.totalBytes)+' in '+@($report.entries).Count+' voci. Ordine: categoria (protected, evidence, backup, working, regenerable), poi dimensione. Soglia di età: '+$OlderThanDays+' giorni.'),'',
         '| Voce | Categoria | Dimensione | File | Ultima scrittura | Rif. | Chi la scrive | Recupero |','|---|---|---:|---:|---|---:|---|---|')
     $lines+=$rows
-    $lines+=@('','Per le nuove cartelle degli agenti usare `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work`, `evidence`, `fixture`, `tmp` o `report` (`work.ps1 -Category -Slug`); TEMP e TMP stanno in `hosts/<id>/repos/<repo>/temp`. Le cartelle esistenti non vengono spostate né rinominate.')
+    $lines+=@('','Per le nuove cartelle degli agenti usare `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work`, `evidence`, `fixture`, `tmp` o `report` (`work.ps1 -Category -Slug -Init`, che scrive `MANIFEST.json`); TEMP e TMP stanno in `hosts/<id>/repos/<repo>/temp`. Le cartelle piatte e non conformi si riordinano con `cleanup.ps1 -Migrate` (anteprima, poi `-Apply -Authorization`).')
     if(@($report.nested).Count){
         $lines+=@('','## Livelli annidati (hosts/<id>/repos)','','| Cartella | Categoria | Dimensione | File | Ultima scrittura | Nome |','|---|---|---:|---:|---|---|')
-        foreach($n in @($report.nested|Sort-Object path)){$lines+='| `'+$n.path+'/` | '+$n.category+' | '+(& $format $n.bytes)+' | '+$n.files+' | '+$n.newestWriteUtc.Substring(0,10)+' | '+$(if($n.conventional){'conforme'}else{'non conforme'})+' |'}
+        foreach($n in @($report.nested|Sort-Object path)){$lines+='| `'+$n.path+'/` | '+$n.category+' | '+(& $format $n.bytes)+' | '+$n.files+' | '+$n.newestWriteUtc.Substring(0,10)+' | '+$(if($n.conventional){'conforme'}else{'non conforme'})+$(if($n.manifest){' + manifest'}elseif($n.area -in @('work','evidence','report')){' (senza manifest)'})+' |'}
     }
     if(@($report.legacy).Count){
         $lines+=@('','## Cartelle legacy (spostamento proposto, non eseguito)','','Precedono il layout annidato. Questa vista non sposta, non rinomina e non rimuove nulla: `<id>` e `<repo>` vanno risolti prima di un eventuale spostamento deciso dall''utente.','','| Cartella | Tipo | Dimensione | File | Ultima scrittura | Destinazione proposta |','|---|---|---:|---:|---|---|')
@@ -581,7 +583,24 @@ function Get-SBRegenerableRuntimeTargets([string]$BrainRoot,[string[]]$Protected
         foreach($hostDir in @(Get-ChildItem -LiteralPath $hostsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
             $python=Join-Path $hostDir.FullName 'sources/python'
             if(Test-Path -LiteralPath $python -PathType Container){$candidates+=@{path=[IO.Path]::GetFullPath($python);kind='python-sources';recovery='si ricrea con sources.ps1 dal lock delle dipendenze'}}
+            # Nested fixture/tmp folders: keep the latest N per repository and category, the rest is recreated by the suites.
+            foreach($repoDir in @(Get-ChildItem -LiteralPath (Join-Path $hostDir.FullName 'repos') -Directory -Force -ErrorAction SilentlyContinue|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
+                foreach($category in @('fixture','tmp')){
+                    $categoryDir=Join-Path $repoDir.FullName $category
+                    if(!(Test-Path -LiteralPath $categoryDir -PathType Container)){continue}
+                    $folders=@(Get-ChildItem -LiteralPath $categoryDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object LastWriteTimeUtc -Descending)
+                    foreach($folder in @($folders|Select-Object -Skip $KeepFixtures)){$candidates+=@{path=$folder.FullName;kind=('nested-'+$category);recovery='si ricrea rieseguendo le suite o il comando che l''ha creata'}}
+                }
+            }
         }
+    }
+    # Flat legacy fixture/tmp folders (<fixture|tmp>-<yyyyMMdd>-<slug>), the handshake reports and empty top-level folders are regenerable by definition.
+    foreach($top in @(Get-ChildItem -LiteralPath $runtime -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
+        $name=$top.Name.ToLowerInvariant()
+        if($name -cmatch '^(fixture|tmp)-\d{8}-[a-z0-9][a-z0-9-]*$'){$candidates+=@{path=$top.FullName;kind='fixture-flat';recovery='si ricrea rieseguendo le suite o il comando che l''ha creata'};continue}
+        if($name -eq 'mcp-handshake'){$candidates+=@{path=$top.FullName;kind='handshake-reports';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'};continue}
+        if($name -in $script:SBRuntimeManagedTopLevel -or $name -in @('backup','backups')){continue}
+        if(!(Get-ChildItem -LiteralPath $top.FullName -Recurse -File -Force -ErrorAction SilentlyContinue|Select-Object -First 1)){$candidates+=@{path=$top.FullName;kind='empty-folder';recovery='cartella vuota: nessun contenuto da recuperare'}}
     }
     $targets=@();$skipped=@()
     foreach($candidate in $candidates){
@@ -600,6 +619,111 @@ function Get-SBRegenerableRuntimeTargets([string]$BrainRoot,[string[]]$Protected
     }
     $totalBytes=0L;$totalFiles=0L;foreach($target in $targets){$totalBytes+=$target.bytes;$totalFiles+=$target.files}
     @{targets=@($targets);skipped=@($skipped);keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;bytes=$totalBytes;files=$totalFiles}
+}
+# Normalizes a runtime folder name to <yyyyMMdd>-<slug>: strips repeated category prefixes and duplicate dates, keeps the original date (or the last write date).
+function ConvertTo-SBRuntimeFolderName([string]$Name,[DateTime]$Newest) {
+    $n=$Name.ToLowerInvariant();$date=$null
+    for($i=0;$i -lt 6;$i++){
+        if($n -match '^(?:work|evidence|report|fixture|tmp|backup)-(.+)$'){$n=$Matches[1];continue}
+        if($n -match '^(\d{8})-(.+)$'){if(!$date){$date=$Matches[1]};$n=$Matches[2];continue}
+        break
+    }
+    if(!$date){$date=$Newest.ToString('yyyyMMdd')}
+    $slug=(($n -replace '[^a-z0-9]+','-').Trim('-'));if(!$slug){$slug='cartella'}
+    if($slug.Length -gt 50){$slug=$slug.Substring(0,50).Trim('-')}
+    $date+'-'+$slug
+}
+# Read-only plan that reorders .runtime into the nested layout. Flat fixture/tmp folders are not migrated (regenerable: removed by cleanup -Regenerable).
+# Moves: flat work/evidence/report folders, host-level evidence/report folders, duplicate repository segments, non-conforming nested names,
+# flat backup-<date>-* folders (hosts/<id>/install-backups), backup/* into backups/*, root *.log into logs/.
+function Get-SBRuntimeMigrationPlan([string]$BrainRoot,[string]$HostId,[string]$Segment,[int]$MinAgeMinutes=10) {
+    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
+    $hostRoot=Join-Path $runtime ('hosts/'+$HostId)
+    $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
+    $moves=@();$skipped=@();$taken=@{}
+    $newestOf={param([string]$Path) $t=[DateTime]::MinValue;foreach($f in ([IO.DirectoryInfo]::new($Path)).EnumerateFiles('*',$options)){if($f.LastWriteTimeUtc -gt $t){$t=$f.LastWriteTimeUtc}};if($t -eq [DateTime]::MinValue){$t=(Get-Item -LiteralPath $Path -Force).LastWriteTimeUtc};$t}
+    $sizeOf={param([string]$Path) $n=0;$b=0L;foreach($f in ([IO.DirectoryInfo]::new($Path)).EnumerateFiles('*',$options)){$n++;$b+=$f.Length};@{files=$n;bytes=$b}}
+    $rel={param([string]$Path) $Path.Substring($runtime.Length+1).Replace('\','/')}
+    $dirs={param([string]$Path) if(Test-Path -LiteralPath $Path -PathType Container){@(Get-ChildItem -LiteralPath $Path -Directory -Force|Sort-Object Name)}else{@()}}
+    $add={param($Item,[string]$Kind,[string]$Destination,[string]$Category)
+        if($Item.Attributes -band [IO.FileAttributes]::ReparsePoint){$script:skippedLocal+=@{from=(& $rel $Item.FullName);reason='reparse-point'};return}
+        $isDir=[bool]($Item.Attributes -band [IO.FileAttributes]::Directory)
+        $newest=if($isDir){& $newestOf $Item.FullName}else{$Item.LastWriteTimeUtc}
+        if($MinAgeMinutes -gt 0 -and $newest -gt [DateTime]::UtcNow.AddMinutes(-$MinAgeMinutes)){$script:skippedLocal+=@{from=(& $rel $Item.FullName);reason='recently-written'};return}
+        $target=$Destination;$i=1
+        while($taken.ContainsKey($target.ToLowerInvariant()) -or (Test-Path -LiteralPath $target)){$i++;$target=$Destination+'-'+$i}
+        if($target -ieq $Item.FullName){return}
+        $taken[$target.ToLowerInvariant()]=$true
+        $m=if($isDir){& $sizeOf $Item.FullName}else{@{files=1;bytes=$Item.Length}}
+        $script:movesLocal+=@{from=$Item.FullName;to=$target;fromRelative=(& $rel $Item.FullName);toRelative=(& $rel $target);kind=$Kind;category=$Category;directory=$isDir;files=$m.files;bytes=$m.bytes;newestWriteUtc=$newest.ToString('o')}
+    }
+    $script:movesLocal=@();$script:skippedLocal=@()
+    $repoRoot=Join-Path $hostRoot ('repos/'+$Segment)
+    # 1. Flat work/evidence/report at the top level of .runtime.
+    foreach($d in (& $dirs $runtime)){
+        if($d.Name -cmatch '^(?<c>work|evidence|report)-\d{8}-'){$c=$Matches.c;& $add $d ('flat-'+$c) (Join-Path $repoRoot ($c+'/'+(ConvertTo-SBRuntimeFolderName $d.Name (& $newestOf $d.FullName)))) $c}
+        elseif($d.Name -cmatch '^backup-\d{8}-'){& $add $d 'install-backup' (Join-Path $hostRoot ('install-backups/'+(ConvertTo-SBRuntimeFolderName $d.Name (& $newestOf $d.FullName)))) 'install-backup'}
+    }
+    # 2. backup/* into backups/*.
+    foreach($child in @(Get-ChildItem -LiteralPath (Join-Path $runtime 'backup') -Force -ErrorAction SilentlyContinue)){& $add $child 'backup-merge' (Join-Path $runtime ('backups/'+$child.Name)) 'backup'}
+    # 3. Root logs.
+    foreach($f in @(Get-ChildItem -LiteralPath $runtime -File -Force -Filter '*.log')){& $add $f 'log' (Join-Path $runtime ('logs/'+$f.Name)) 'log'}
+    # 4. Host-level evidence/report/work folders.
+    foreach($d in (& $dirs $hostRoot)){
+        if($d.Name -cmatch '^(?<c>work|evidence|report)-\d{8}-'){$c=$Matches.c;& $add $d ('host-'+$c) (Join-Path $repoRoot ($c+'/'+(ConvertTo-SBRuntimeFolderName $d.Name (& $newestOf $d.FullName)))) $c}
+    }
+    # 5. Repository segments of this host: merge segments without hash into the canonical one, normalize non-conforming names.
+    foreach($seg in (& $dirs (Join-Path $hostRoot 'repos'))){
+        $canonical=($seg.Name -ceq $Segment);$hasHash=($seg.Name -cmatch '-[0-9a-f]{8}$')
+        foreach($category in @('work','evidence','report')){
+            foreach($d in (& $dirs (Join-Path $seg.FullName $category))){
+                $name=ConvertTo-SBRuntimeFolderName $d.Name (& $newestOf $d.FullName)
+                if(!$hasHash -or $canonical){
+                    if($canonical -and $d.Name -ceq $name){continue}
+                    $kind=if($canonical){'rename'}else{'merge-segment'}
+                    & $add $d $kind (Join-Path $repoRoot ($category+'/'+$name)) $category
+                }elseif($d.Name -cne $name){& $add $d 'rename' (Join-Path $seg.FullName ($category+'/'+$name)) $category}
+            }
+        }
+    }
+    $totalFiles=0L;$totalBytes=0L;foreach($m in $script:movesLocal){$totalFiles+=[long]$m.files;$totalBytes+=[long]$m.bytes}
+    @{hostId=$HostId;segment=$Segment;minAgeMinutes=$MinAgeMinutes;moves=@($script:movesLocal);skipped=@($script:skippedLocal);files=$totalFiles;bytes=$totalBytes}
+}
+# Applies the moves of Get-SBRuntimeMigrationPlan (same volume, no copies): rename/move only, writes MANIFEST.json for work/evidence/report folders, removes emptied sources.
+function Invoke-SBRuntimeMigration([string]$BrainRoot,$Plan) {
+    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
+    $inside={param([string]$Path) $full=[IO.Path]::GetFullPath($Path);$full.StartsWith($runtime+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)}
+    $done=@();$failed=@();$parents=@{}
+    foreach($move in @($Plan.moves)){
+        try{
+            if(!(& $inside $move.from) -or !(& $inside $move.to)){throw (New-SBError 'core.runtime.outside')}
+            if(Test-Path -LiteralPath $move.to){throw (New-SBError 'core.migrate.destination' @($move.toRelative))}
+            [IO.Directory]::CreateDirectory((Split-Path $move.to))|Out-Null
+            if($move.directory){[IO.Directory]::Move($move.from,$move.to)}else{[IO.File]::Move($move.from,$move.to)}
+            $parents[(Split-Path $move.from)]=$true
+            if($move.directory -and $move.category -in @('work','evidence','report')){
+                $manifest=Join-Path $move.to 'MANIFEST.json'
+                if(!(Test-Path -LiteralPath $manifest)){
+                    $leaf=Split-Path $move.to -Leaf
+                    $created=if($leaf -match '^(\d{4})(\d{2})(\d{2})-'){"$($Matches[1])-$($Matches[2])-$($Matches[3])"}else{$null}
+                    $record=@{schemaVersion=1;category=$move.category;name=$leaf;created=$created;hostId=$Plan.hostId;repository=$Plan.segment;sessionId=$null;task=$null;status='migrated';expires=$null;migratedFrom=$move.fromRelative;migratedAt=[DateTimeOffset]::Now.ToString('o')}
+                    [IO.File]::WriteAllText($manifest,(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
+                }
+            }
+            $done+=@{from=$move.fromRelative;to=$move.toRelative;kind=$move.kind;files=$move.files;bytes=$move.bytes}
+        }catch{$failed+=@{from=$move.fromRelative;to=$move.toRelative;error=$_.Exception.Message}}
+    }
+    # Remove only emptied sources (never a non-empty folder, never a protected top-level one).
+    $removed=@()
+    foreach($parent in @($parents.Keys|Sort-Object {$_.Length} -Descending)){
+        $p=$parent
+        while($p -and (& $inside $p) -and (Test-Path -LiteralPath $p -PathType Container) -and !(Get-ChildItem -LiteralPath $p -Force|Select-Object -First 1)){
+            $leaf=Split-Path $p -Leaf
+            if($leaf -in @('hosts','repos','access','backups','logs','trace','publication','cleanup') -or $leaf -like 'ws-*'){break}
+            [IO.Directory]::Delete($p);$removed+=$p.Substring($runtime.Length+1).Replace('\','/');$p=Split-Path $p
+        }
+    }
+    @{moved=@($done);failed=@($failed);removedEmpty=@($removed)}
 }
 function Remove-SBRuntimeTree([string]$Path,[string]$BrainRoot) {
     # Remove a folder under .runtime without following junctions/symlinks (unlink only), clearing read-only attributes (Git objects).
@@ -998,6 +1122,9 @@ Export-ModuleMember -Function @(
     'Get-SBRuntimeIndex',
     'Get-SBRuntimeCleanupProposal',
     'Get-SBRegenerableRuntimeTargets',
+    'ConvertTo-SBRuntimeFolderName',
+    'Get-SBRuntimeMigrationPlan',
+    'Invoke-SBRuntimeMigration',
     'Remove-SBRuntimeTree',
     'Invoke-SBGit',
     'Get-SBGitObjectInfo',

@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
     [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
     [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
-    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment')][string[]]$Only,
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment','runtime','prompts')][string[]]$Only,
     [switch]$KeepFixtures,[switch]$Sequential
 )
 $profileWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -45,7 +45,7 @@ try {
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
             if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit')})}elseif($Full){@('trace','concurrency','sources','external-audit')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit','runtime','prompts')})}elseif($Full){@('trace','concurrency','sources','external-audit','runtime','prompts')}else{@()}
             foreach($extra in $extras){
                 $suiteFile=Join-Path $PSScriptRoot ('test-secondbrain-'+$extra+'.ps1')
                 Invoke-MinimalSuite $extra {

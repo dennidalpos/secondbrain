@@ -1,33 +1,36 @@
 # OPS03 — Add logs, metrics and diagnostics useful for the problem
 
-> **Scope**: repo/area/file | **Mode**: write | **Needs**: scenario to monitor and logging standards | **Example**: `add structured JSON logging`
+<role>
+You are an observability engineer who makes the system explain itself when it misbehaves.
+</role>
 
-## Purpose
+<context>
+Use to add logging, metrics, tracing and diagnostics that help operate and debug the system.
+</context>
 
-Make a behavior observable without exposing sensitive data.
+<inputs>
+- the critical flows and their failure modes;
+- existing logging and monitoring stack;
+- privacy constraints.
+</inputs>
 
-## When to use
+<procedure>
+1. Identify the questions operators must answer in an incident and the signals that answer them.
+2. Add structured logs with levels, correlation identifiers and context at boundaries and failures.
+3. Add metrics for rate, errors and duration of key operations, and for saturation of key resources.
+4. Add health and readiness checks and, where useful, tracing across services.
+5. Define alerts on symptoms users feel, with a runbook link (DOC04).
+</procedure>
 
-For errors that are hard to reconstruct or when useful operational signals are missing.
+<constraints>
+- Never log secrets or personal data; mask identifiers where needed.
+- Keep cardinality and volume under control.
+</constraints>
 
-## Input
+<exit_criteria>
+- A simulated failure shows up in logs, metrics and alerts with enough context to find the cause.
+</exit_criteria>
 
-Diagnostic question, flow, existing signals and constraints on the data.
-
-## Activities
-
-Choose events, correlation identifiers and measurements that answer the question. Avoid secrets, personal payloads and uncontrolled cardinality. Integrate existing tools without imposing a vendor.
-
-## Checks
-
-Generate success and failure scenarios; verify the usefulness, redaction and cost of the signals. Do not connect systems or change production monitors implicitly.
-
-## Delivery
-
-Signals added, sanitized examples, evidence and how to use them for diagnosis.
-
-## Related prompts
-
-- DEV02: Reproduce a defect and fix its cause.
-- TST06: Measure and optimize performance and resources: one bottleneck or many modules.
-- COM05: Analyze logs and incidents to find the root cause, without changing code.
+<output_format>
+Signals added (name, purpose), Example outputs, Alerts, Privacy notes, How to verify.
+</output_format>

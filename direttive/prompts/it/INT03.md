@@ -1,32 +1,37 @@
-# INT03 — Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive
+# INT03 — Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive
 
-> **Scope**: repo/area | **Modalità**: verifica | **Cosa serve**: interfaccia funzionante e standard di riferimento | **Esempio d'uso**: `verifica la conformità ARIA e l'accessibilità`
+<role>
+Sei uno specialista di accessibilità che verifica rispetto alle WCAG con test reali.
+</role>
 
-## Scopo
+<context>
+Da usare per verificare che una schermata o un flusso siano utilizzabili con tastiera, screen reader, zoom e visione variabile, con riferimento a WCAG 2.2 livello AA salvo diversa indicazione del progetto.
+</context>
 
-Determinare l'accessibilità di specifici percorsi interattivi.
+<inputs>
+- pagine o flussi nel perimetro e come eseguirli;
+- strumenti automatici disponibili (axe, Lighthouse, linter).
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Esegui le verifiche automatiche e registra i rilievi; ne coprono solo una parte.
+2. Prova con la sola tastiera: ordine, focus visibile, trappole, scorciatoie e collegamenti di salto.
+3. Controlla nomi, ruoli e stati, intestazioni e punti di riferimento, etichette dei campi e messaggi d'errore, annunci dinamici.
+4. Controlla contrasto dei colori, ridimensionamento del testo e zoom al 200 per cento, riflusso, movimento e dimensione dei bersagli.
+5. Controlla immagini, alternative per i contenuti multimediali e sottotitoli.
+6. Collega ogni difetto al criterio WCAG e a una correzione.
+</procedure>
 
-Per verifiche di uso da tastiera, focus, nomi accessibili, errori e aggiornamenti dinamici.
+<constraints>
+- Verifica senza cambiare il codice; riporta passi riproducibili.
+- Non dichiarare conformità sulla sola base degli esiti automatici.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni difetto riporta criterio, posizione, come riprodurlo e una correzione.
+- Le aree non testabili sono dichiarate.
+</exit_criteria>
 
-Percorso, piattaforma, strumenti disponibili e requisiti applicabili.
-
-## Attività specifiche
-
-Esegui il percorso con la tastiera; verifica ordine e ripristino del focus, finestre di dialogo, nomi, stati, errori e annunci. Usa gli strumenti automatici come supporto e consulta i requisiti ufficiali pertinenti alla piattaforma.
-
-## Verifiche
-
-Raccogli atteso e osservato e come riprodurre. Dichiara le tecnologie assistive e le piattaforme non provate; un audit automatico non dimostra l'accessibilità complessiva. Non correggere nulla in modo implicito.
-
-## Consegna
-
-Difetti per gravità, evidenze e riferimenti ai criteri applicabili, senza attestazioni generali.
-
-## Prompt vicini
-
-- INT02: Implementa un'interfaccia seguendo requisiti e riferimenti.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+<output_format>
+Tabella: criterio, posizione, difetto, gravità, correzione; poi Verifiche superate e Non testato.
+</output_format>

@@ -2,9 +2,7 @@
 
 Index generated from catalog.json and the Markdown cards with scripts/build-prompts.ps1. Do not edit this index by hand.
 
-In the chat: `sb prompt`, `sb prompt list`, `sb prompt maintenance`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: description`. Every prompt has an immutable ID (`pmt-` and 8 hex digits) and one or more aliases (code included): ID and aliases resolve to the same prompt.
-
-This index lists the generic prompts (core package). The SecondBrain maintenance prompts (memory, dossier, workstation) are kept separate: `sb prompt maintenance`; they are listed in the index [README.maintenance.md](README.maintenance.md).
+In the chat: `sb prompt`, `sb prompt list`, `sb prompt ambito test`, `sb prompt mostra TST04`, `sb prompt TST04: description`. Every prompt has an immutable ID (`pmt-` and 8 hex digits) and a stable code that is never reused: ID and code resolve to the same prompt.
 
 The CLI composes text; the task is carried out by the agent within the permissions and mode of the session. [How to use and edit the prompts](../../docs/prompt.md). Language: [English](README.md) · [Italiano](README.it.md).
 
@@ -43,6 +41,12 @@ UNDERSTANDING AND RESEARCH
   • Needs: logs, errors or symptoms of the incident, time window and read access
   • Example: find the root cause of yesterday's errors in the logs
 
+🔭 COM06 | Explain code or a concept to someone new to the project
+  • ID: pmt-fe04425a
+  • Scope: repo/file | Mode: read
+  • Needs: The code, module or concept to explain and the reader's starting level
+  • Example: COM06: explain how the payment retry flow works to a new teammate
+
 
 REQUIREMENTS AND DESIGN
 🔭 PRG01 | Turn a request into requirements and acceptance criteria.
@@ -80,6 +84,12 @@ REQUIREMENTS AND DESIGN
   • Scope: repo/area | Mode: read
   • Needs: module to reorganize, existing tests and invariants to preserve
   • Example: plan the refactoring of the synchronization module
+
+🔥 PRG07 | Record an architecture decision (ADR)
+  • ID: pmt-c61c598b
+  • Scope: repo | Mode: write
+  • Needs: The decision made or to make, its context, constraints, options considered and who decides
+  • Example: PRG07: record why we chose PostgreSQL over MongoDB
 
 
 DEVELOPMENT AND MODERNIZATION
@@ -131,6 +141,12 @@ DEVELOPMENT AND MODERNIZATION
   • Needs: code to review, repository conventions and existing tests
   • Example: review readability and maintainability of the sync module
 
+🔥 DEV12 | Build or review an LLM feature with evaluations
+  • ID: pmt-0715c64b
+  • Scope: repo | Mode: write
+  • Needs: The LLM or agent feature, model and provider, expected behavior, failure cases and sample inputs
+  • Example: DEV12: add an evaluation set for the support bot before changing its prompt
+
 
 TESTING AND VERIFICATION
 🔥 TST01 | Add unit and integration tests for the relevant risks.
@@ -175,6 +191,12 @@ TESTING AND VERIFICATION
   • Needs: test framework, test scripts and an assigned isolated fixture root
   • Example: create isolated on-disk fixtures and validate the automatic cleanup
 
+🔭 TST08 | Review test quality and find coverage gaps
+  • ID: pmt-de5f1d8d
+  • Scope: repo | Mode: read
+  • Needs: Test suite, coverage reports if any, critical paths and recent defects
+  • Example: TST08: review the billing module tests for gaps and weak assertions
+
 
 REVIEW AND SECURITY
 🔭 SEC01 | Review changes or code with concrete findings and references.
@@ -213,17 +235,11 @@ REVIEW AND SECURITY
   • Needs: configuration, CI workflows, containers and repository settings
   • Example: harden the GitHub Actions workflows and containers
 
-✅ SEC07 | Check diff, repository and history for sensitive data before publishing.
+✅ SEC07 | Check for sensitive data before publishing, locally and on the remote
   • ID: pmt-058c474f
   • Scope: repo | Mode: verify
-  • Needs: commits, index, working tree and history to publish; destination
-  • Example: check that it is safe to publish before the push
-
-✅ SEC08 | Check whether sensitive data is still reachable on the GitHub remote.
-  • ID: pmt-55186b10
-  • Scope: repo | Mode: verify
-  • Needs: read-only access to the GitHub remote and fingerprints or patterns to look for
-  • Example: check which runs, caches and links are still accessible
+  • Needs: Commits, index, working tree and history to publish; remote destination and visibility; scanning tools available
+  • Example: SEC07: check the commits about to be pushed, and the remote, for sensitive data
 
 ⛔ SEC09 | Wipe remote GitHub history and artifacts after a data exposure.
   • ID: pmt-7fc91f08
@@ -263,6 +279,12 @@ AUDIT AND METRICS
   • Needs: representative load scenario and profiling or measurement tools
   • Example: find the critical paths for time and memory
 
+🔭 AUD07 | Audit the CI/CD pipeline and supply chain
+  • ID: pmt-6b494996
+  • Scope: repo | Mode: read
+  • Needs: Pipeline definitions, workflow permissions, secrets handling, third-party actions and release process
+  • Example: AUD07: audit the GitHub Actions workflows for unpinned actions and excess permissions
+
 
 INTERFACE AND USER EXPERIENCE
 🔭 INT01 | Assess usability, consistency and states of user flows.
@@ -289,6 +311,12 @@ INTERFACE AND USER EXPERIENCE
   • Needs: interface or messages with supported languages and formats
   • Example: verify the strings, formats and translations of the CLI
 
+🔥 INT05 | Write or review interface copy and error messages
+  • ID: pmt-f3614e6a
+  • Scope: repo/file | Mode: write
+  • Needs: Screens or flows, audience, tone, existing terminology and supported languages
+  • Example: INT05: rewrite the checkout error messages so each says what to do next
+
 
 DATA AND INTEGRATIONS
 🔥 DAT01 | Migrate schema and data with verifiable comparison and recovery.
@@ -308,6 +336,12 @@ DATA AND INTEGRATIONS
   • Scope: repo/area | Mode: write
   • Needs: API documentation, test credentials and schema
   • Example: implement a REST client with exponential backoff and retry
+
+🔥 DAT04 | Optimize database queries and indexes
+  • ID: pmt-6b6c2ade
+  • Scope: repo | Mode: write
+  • Needs: Slow queries or endpoints, schema, indexes, execution plans and a safe test database
+  • Example: DAT04: speed up the orders listing query without changing its results
 
 
 RELEASE AND OPERATIONS
@@ -336,7 +370,7 @@ RELEASE AND OPERATIONS
   • Example: compile the v1.1 release notes from commits and issues
 
 🔥 OPS05 | Prepare commits and pull requests with verified scope, message and checks.
-  • ID: pmt-3e3728b6 | Aliases: REP09
+  • ID: pmt-3e3728b6
   • Scope: repo | Mode: write
   • Needs: local changes to deliver and an explicit request for a commit or pull request
   • Example: prepare the commits and the pull request description
@@ -347,25 +381,37 @@ RELEASE AND OPERATIONS
   • Needs: faulty release, known previous version and criteria for going back
   • Example: prepare the hotfix and rollback for release 2.3.1
 
+🔥 OPS07 | Write a blameless incident postmortem
+  • ID: pmt-28f4fbf5
+  • Scope: repo | Mode: write
+  • Needs: Incident timeline, impact, logs or alerts, the fix applied and the people involved
+  • Example: OPS07: write the postmortem for last night's checkout outage
+
 
 DOCUMENTATION
 🔥 DOC01 | Write guides and READMEs consistent with the real product.
-  • ID: pmt-07430e8c | Aliases: REP02
+  • ID: pmt-07430e8c
   • Scope: repo | Mode: write
   • Needs: implemented features, verified commands and approved screenshots
   • Example: update the guides and add Mermaid flow diagrams
 
 🔥 DOC02 | Document APIs and contracts from the implementation.
-  • ID: pmt-6e82e3a9 | Aliases: REP03
+  • ID: pmt-6e82e3a9
   • Scope: repo/area | Mode: write
   • Needs: source code of the contracts and endpoints
   • Example: document the parameters and response schemas of the endpoints
 
 🔥 DOC03 | Capture real screenshots and prepare public assets.
-  • ID: pmt-75786fd6 | Aliases: REP07
+  • ID: pmt-75786fd6
   • Scope: repo | Mode: write
   • Needs: working interface with synthetic data
   • Example: capture authentic screenshots from the real interface
+
+🔥 DOC04 | Write or update an operational runbook
+  • ID: pmt-4b88488d
+  • Scope: repo | Mode: write
+  • Needs: The procedure, systems involved, access needed, failure modes and an operator who can validate it
+  • Example: DOC04: write a runbook for restoring the database from backup
 
 
 REPOSITORY HYGIENE
@@ -411,6 +457,12 @@ REPOSITORY HYGIENE
   • Needs: `gh` authenticated with admin rights and a SEC07 result
   • Example: make this repository discoverable and apply standard security
 
+🔭 REP14 | Triage open issues and pull requests
+  • ID: pmt-f8dd6843
+  • Scope: repo | Mode: read
+  • Needs: GitHub repository with gh authenticated, labels, project rules, age and activity of issues and PRs
+  • Example: REP14: triage open issues and PRs and propose labels and closures
+
 
 GOVERNANCE, LICENSING AND COMPLIANCE
 ✅ GOV01 | Check open source licenses, file compliance and SPDX headers.
@@ -424,5 +476,111 @@ GOVERNANCE, LICENSING AND COMPLIANCE
   • Scope: repo | Mode: write
   • Needs: dependency lock files and third-party licenses
   • Example: scan third-party dependencies and compile CREDITS.md
+
+
+MEMORY AND CONTINUITY
+🔥 MEM01 | Align local instructions, context, memory and tracker.
+  • ID: pmt-f02db9d0
+  • Scope: repo/area | Mode: write
+  • Needs: recent decisions or changes not yet recorded
+  • Example: sb prompt MEM01: align context.md and memory.md after completing a task
+
+🔥 MEM02 | Migrate design and tasks into the SecondBrain dossier.
+  • ID: pmt-64dfa49f
+  • Scope: repo/area | Mode: write
+  • Needs: historical documentation or external issues to migrate
+  • Example: sb prompt MEM02: migrate scattered todos into the dossier's central tracker
+
+🔥 MEM03 | Close the session: memories, tracker, handoff and commit and push request.
+  • ID: pmt-76604e4a
+  • Scope: repo/area | Mode: write
+  • Needs: state of the work done, defined next tasks and delivery destination
+  • Example: sb prompt MEM03: close the session and ask for commit and push
+
+🔭 MEM04 | List and describe the tracker tasks and the problems they solve.
+  • ID: pmt-23c3d2be
+  • Scope: repo/area | Mode: read
+  • Needs: repository dossier tracker
+  • Example: sb prompt MEM04: list the tracker tasks and problems
+
+🔥 MEM05 | Create, update and archive projects, areas and resources of the central PARA.
+  • ID: pmt-4e1b7c52
+  • Scope: central | Mode: write
+  • Needs: goal of the PARA entity and a write session on the SecondBrain clone
+  • Example: sb prompt MEM05: archive the finished resource res-guida
+
+🔭 MEM06 | Read active memory, context and tracker of the current repository.
+  • ID: pmt-821f7dec
+  • Scope: repo | Mode: read
+  • Needs: checkout of the open repository
+  • Example: sb prompt MEM06: load the repository context and memory within budget
+
+
+CENTRAL SYSTEM AND MAINTENANCE
+✅ SYS01 | Check the IDEs; map, register accounts or realign on request.
+  • ID: pmt-26817a61
+  • Scope: central | Mode: verify
+  • Needs: IDE installations and local authorizations; to register accounts also an activated workstation and consent
+  • Example: sb prompt SYS01: register an ide with two accounts or two roots
+
+✅ SYS02 | Check authoritative sources; acquire or update on request.
+  • ID: pmt-5b593404
+  • Scope: central | Mode: verify
+  • Needs: PARA resource-authoritative-sources registry
+  • Example: sb prompt SYS02: check regulatory updates in the sources registry
+
+🔥 SYS03 | Activate SecondBrain after discovery and asset selection.
+  • ID: pmt-5f9f93e0
+  • Scope: central | Mode: write
+  • Needs: SecondBrain volume and user consent on the assets
+  • Example: sb prompt SYS03: activate secondbrain selecting local repositories and ides
+
+✅ SYS04 | Check or align the workstation's already managed assets.
+  • ID: pmt-677a10ab
+  • Scope: central | Mode: verify
+  • Needs: workstation configuration and approved directives
+  • Example: sb prompt SYS04: check directive alignment in the managed repositories
+
+🔥 SYS05 | Compact the dossier preserving originals, facts and TOC.
+  • ID: pmt-77d7bf7a
+  • Scope: central | Mode: write
+  • Needs: dossier to compact and verifiable history
+  • Example: sb prompt SYS05: compact the dossier history preserving facts and toc
+
+🔥 SYS09 | Run the deterministic compressed backup and verify the SHA-256 digests.
+  • ID: pmt-e498353a
+  • Scope: central | Mode: write
+  • Needs: active configuration and backup runtime root
+  • Example: sb prompt SYS09: run a deterministic backup and validate the sha-256 manifest
+
+⛔ SYS10 | Roll back and decommission a repository, returning its data for privacy.
+  • ID: pmt-b98acaaa
+  • Scope: central | Mode: write
+  • Needs: repository dossier, target checkout and user consent
+  • Example: sb prompt SYS10: roll back the decommissioned repository and clean up the data
+
+🔥 SYS11 | Add, change or remove a prompt of the centralized catalog.
+  • ID: pmt-364616bb
+  • Scope: central | Mode: write
+  • Needs: valid catalog, target area and a write session
+  • Example: sb prompt SYS11: add a prompt to the catalog in the test area
+
+🔥 SYS13 | Set or remove the greenfield lock (versions, changelog, migrations, aliases).
+  • ID: pmt-29b3278f
+  • Scope: repo/area | Mode: write
+  • Needs: managed repository, active dossier and user confirmation
+  • Example: sb prompt SYS13: set or remove the greenfield lock on this repository
+
+🔥 SYS15 | Install the SecondBrain MCP server in the IDEs and verify the handshake.
+  • ID: pmt-2d3c1d51
+  • Scope: central | Mode: write
+  • Needs: SecondBrain root, target IDEs and confirmation before writing
+  • Example: sb prompt SYS15: install the mcp server in vscode and claude code
+
+🔥 SYS16 | Update a skill from authoritative sources and verify the diff.
+  • ID: pmt-9ef61b3d
+  • Scope: central | Mode: write
+  • Needs: identified skill, target agent and version, official sources
+  • Example: sb prompt SYS16: update the local skill from official sources
 
 ```

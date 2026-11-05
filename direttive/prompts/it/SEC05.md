@@ -1,33 +1,36 @@
-# SEC05 — Verifica l'isolamento dei dati personali e la conformità a GDPR e policy
+# SEC05 — Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: mappatura dei dati e policy di conformità | **Esempio d'uso**: `verifica i dati personali e la conformità privacy GDPR`
+<role>
+Sei un ingegnere della privacy che verifica che i dati personali restino dove devono.
+</role>
 
-## Scopo
+<context>
+Da usare per verificare che i dati personali siano minimizzati, isolati e protetti in codice, archivi, log, fixture e documentazione (obblighi in stile GDPR).
+</context>
 
-Verificare che i dati personali e sensibili siano minimizzati, isolati dal repository pubblicabile e trattati secondo il GDPR e le policy del progetto.
+<inputs>
+- le categorie di dati trattati e la base giuridica o finalità;
+- codice, schemi, log, dati di prova e integrazioni di terzi.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Mappa dove i dati personali entrano, sono conservati, inviati e registrati nei log.
+2. Controlla minimizzazione, conservazione, cancellazione e controlli di accesso per ogni archivio.
+3. Controlla che log, analytics, segnalazioni di errore, fixture di test e schermate non contengano dati personali reali.
+4. Controlla i trasferimenti a terzi e la documentazione dei responsabili del trattamento.
+5. Controlla che le richieste degli interessati (accesso, cancellazione) possano essere davvero soddisfatte.
+</procedure>
 
-Nella revisione di flussi di dati, log e documentazione e prima di pubblicare repository e guide.
+<constraints>
+- Sola lettura; non copiare né stampare dati personali reali nel rapporto.
+- È una verifica tecnica, non una consulenza legale; segnala i punti per la revisione legale.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni flusso di dati ha uno stato con evidenza.
+- I rilievi indicano posizione, rischio e controllo suggerito.
+</exit_criteria>
 
-Codice, log, istantanee dell'ambiente, documentazione, directory locali ed eventuale registro dei trattamenti.
-
-## Attività specifiche
-
-Ispeziona il repository alla ricerca di tracce di dati personali: percorsi con nomi utente reali, credenziali personali, contatti, identificatori di persone o macchine, indirizzi IP, dati in fixture e screenshot. Mappa i flussi di dati personali (raccolta, uso, conservazione, condivisione, cancellazione) e verifica minimizzazione, finalità dichiarate e base giuridica, tempi di conservazione, accessi e diritti degli interessati (accesso, rettifica, cancellazione) dove il prodotto tratta tali dati. Assicurati che note e dati operativi privati risiedano solo in aree escluse da Git e che `.gitignore` li protegga. Sostituisci i riferimenti reali con dati sintetici o segnaposto neutri nella documentazione pubblica.
-
-## Verifiche
-
-Verifica che nessun dato personale sia nell'indice Git o nella cronologia dei commit pubblici e che esportazioni e pubblicazioni applichino filtri rigorosi. Non dichiarare la conformità legale: l'applicabilità del GDPR dipende dal trattamento e va valutata sulle fonti ufficiali e, se necessario, con un consulente.
-
-## Consegna
-
-Rapporto di audit sulla privacy con i dati trovati, i flussi mappati, le sanificazioni eseguite, le lacune e i limiti; nessuna attestazione di conformità legale.
-
-## Prompt vicini
-
-- SEC01: Rivedi modifiche o codice con rilievi concreti e riferimenti.
-- SEC04: Trova le credenziali esposte e verifica la validazione degli input.
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
+<output_format>
+Mappa dei dati, Rilievi (posizione, problema, rischio, controllo), Voci per la revisione legale.
+</output_format>

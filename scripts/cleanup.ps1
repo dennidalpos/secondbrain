@@ -15,19 +15,25 @@ protection (configuration, workstation registry, access), category (protected, e
 It is not an executable manifest and removes nothing. -ProposalPath saves the proposal (a new file under .runtime, never overwritten).
 -RuntimeReport (read-only) produces a readable Markdown index of .runtime: entries sorted by category and size, their writers, references and recovery instructions.
 -ReportPath saves it to a new .md file under .runtime (never overwritten) or regenerates .runtime/INDEX.md, a derived view with no independent data. Removes nothing.
+-Migrate previews (without -Apply) or applies (with -Apply and -Authorization) the move into the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>:
+flat work/evidence/report folders, host-level evidence/report folders, duplicate repository segments, non-conforming names, backup-<date>-* folders (hosts/<id>/install-backups),
+backup/* into backups/*, root *.log into logs/. Rename on the same volume only (no copies, no content deletion); writes MANIFEST.json for work/evidence/report folders;
+-Repository is the repository identity of the destination segment (default github.com/dennidalpos/secondbrain). Journal in .runtime/cleanup/migrate-*.json.
 -Regenerable previews (without -Apply) or removes (with -Apply and -Authorization quoting the user's explicit request) only regenerable .runtime folders:
-test fixtures beyond the latest -KeepFixtures and the source Python environment (hosts/<id>/sources/python). Fixed scope, no name-based selection; skips folders
+test fixtures beyond the latest -KeepFixtures (tests/, hosts/<id>/repos/<repo>/fixture|tmp), flat fixture-*/tmp-* folders, MCP handshake reports, empty top-level folders
+and the source Python environment (hosts/<id>/sources/python). Fixed scope, no name-based selection; skips folders
 written within the latest -MinAgeMinutes, containing configuration paths or reparse points; refuses pending transactions or active access sessions; does not follow
 junctions/symlinks; no backup (recreated with the suites or sources.ps1), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
 #>
 [CmdletBinding()]
-param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
+param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'cleanup.regenerable.exclusive' = @{ it = 'Regenerable non e combinabile con ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime o RuntimeReport'; en = 'Regenerable cannot be combined with ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime or RuntimeReport' }
+    'cleanup.regenerable.exclusive' = @{ it = 'Regenerable e Migrate non sono combinabili con ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime, RuntimeReport o tra loro'; en = 'Regenerable and Migrate cannot be combined with ManifestPath, ListStageRecords, ListRuntime, ProposeRuntime, RuntimeReport or each other' }
     'cleanup.sessions.active' = @{ it = 'Sessioni di accesso attive o non verificabili: pulizia sospesa ({0})'; en = 'Access sessions active or not verifiable: cleanup suspended ({0})' }
     'cleanup.modes.exclusive' = @{ it = 'ListStageRecords, ListRuntime, ProposeRuntime e RuntimeReport non sono combinabili'; en = 'ListStageRecords, ListRuntime, ProposeRuntime and RuntimeReport cannot be combined' }
     'cleanup.readonly.modes' = @{ it = 'ListStageRecords e ListRuntime sono in sola lettura: non combinabili con Apply o ManifestPath'; en = 'ListStageRecords and ListRuntime are read-only: not combinable with Apply or ManifestPath' }
@@ -45,6 +51,29 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 $config=Read-SBConfiguration $ConfigPath
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {
+    if($Migrate){
+        if($Regenerable -or $ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
+        $segment=Get-SBRuntimeRepoSegment $Repository
+        $plan=Get-SBRuntimeMigrationPlan $config.brainRoot $config.workstationId $segment $MinAgeMinutes
+        $summary=@{applied=$false;scope='runtime-migrate';hostId=$config.workstationId;segment=$segment;moves=@($plan.moves);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
+        if(!$Apply){$summary.note='Anteprima: nessuna cartella spostata. Con -Apply e -Authorization si eseguono solo gli spostamenti elencati (rename sullo stesso volume, nessuna copia, nessuna cancellazione di contenuti).';ConvertTo-SBJson $summary;exit 0}
+        if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
+        if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
+        $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
+        if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
+        $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
+        $registryPath=Join-Path $registryDir ('migrate-'+[DateTimeOffset]::Now.ToString('yyyyMMddTHHmmss')+'.json')
+        $record=@{schemaVersion=1;executedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;scope='runtime-migrate';status='started';hostId=$config.workstationId;segment=$segment;planned=@($plan.moves|ForEach-Object {@{from=$_.fromRelative;to=$_.toRelative;kind=$_.kind;files=$_.files;bytes=$_.bytes}});skipped=@($plan.skipped)}
+        $stream=[IO.FileStream]::new($registryPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+        try{$stream.Write([Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $record)));$stream.Flush($true)}finally{$stream.Dispose()}
+        $result=Invoke-SBRuntimeMigration $config.brainRoot $plan
+        $record.moved=@($result.moved);$record.failed=@($result.failed);$record.removedEmpty=@($result.removedEmpty);$record.status=if($result.failed.Count){'partial'}else{'completed'}
+        [IO.File]::WriteAllText($registryPath,(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
+        $summary.applied=[bool]($result.moved.Count -gt 0 -and !$result.failed.Count);$summary.moved=@($result.moved);$summary.failed=@($result.failed);$summary.removedEmpty=@($result.removedEmpty);$summary.registry=$registryPath;$summary.authorization=$Authorization
+        if($result.failed.Count){$summary.status='partial'}
+        ConvertTo-SBJson $summary
+        exit $(if($result.failed.Count){1}else{0})
+    }
     if($Regenerable){
         if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
         $protectedRoots=@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)

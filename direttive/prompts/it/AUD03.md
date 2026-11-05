@@ -1,33 +1,36 @@
 # AUD03 — Verifica architettura e debito tecnico non ancora tracciati
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: accesso in lettura a codice, backlog e documentazione di architettura | **Esempio d'uso**: `audit di architettura e debito tecnico del repository`
+<role>
+Sei un architetto che valuta struttura e debito tecnico con evidenze.
+</role>
 
-## Scopo
+<context>
+Da usare per giudicare se la struttura regge la prossima fase del prodotto e dove si concentra il debito.
+</context>
 
-Individuare accoppiamenti, violazioni dei confini tra moduli e debito tecnico che non sono nel backlog.
+<inputs>
+- repository, documenti di architettura, backlog;
+- gli obiettivi di prodotto per la fase successiva.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Ricostruisci la struttura reale di moduli e dipendenze dal codice, non dai diagrammi.
+2. Cerca cicli, violazioni di livello, moduli onnipresenti, concetti duplicati e confini poco chiari.
+3. Individua i punti caldi del debito combinando complessità, variazioni e storico dei difetti.
+4. Classifica ogni rilievo per impatto sugli obiettivi, sforzo e rischio.
+5. Proponi un breve elenco ordinato di candidati al refactoring con il primo passo sicuro.
+</procedure>
 
-Prima di un refactoring architetturale, dopo una crescita rapida o quando il costo delle modifiche aumenta.
+<constraints>
+- Sola lettura; ogni rilievo cita percorsi o misure.
+- Confronta con l'architettura documentata e annota le divergenze.
+</constraints>
 
-## Input
+<exit_criteria>
+- I rilievi rimandano a posizioni nel codice e a un obiettivo che minacciano.
+- I candidati sono ordinati con sforzo e rischio e il primo passo è concreto.
+</exit_criteria>
 
-Struttura dei moduli, dipendenze interne, decisioni architetturali documentate ed eventuale backlog o note.
-
-## Attività specifiche
-
-Ricostruisci moduli, livelli e dipendenze dal codice reale, non dalla documentazione. Cerca cicli di dipendenza, dipendenze invertite tra livelli, moduli con troppe responsabilità, responsabilità duplicate, configurazione sparsa, punti singoli di guasto e scorciatoie rimaste (marcatori TODO, FIXME, HACK, stub, test disabilitati). Distingui i marcatori reali da identificatori, fixture e testi di test che contengono la stessa parola. Confronta con le decisioni documentate e con il backlog.
-
-## Verifiche
-
-Ogni voce di debito ha un percorso, un impatto concreto e un costo stimato motivato (basso, medio, alto). Verifica che non sia già nel backlog con un altro identificatore e distingui le scelte deliberate e documentate dai difetti.
-
-## Consegna
-
-Mappa dei confini osservati, debito ordinato per impatto e attività proposte da registrare; per il piano di rientro usa PRG06.
-
-## Prompt vicini
-
-- AUD01: Esegui un audit completo del repository con un unico rapporto, anche esportato.
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- PRG06: Pianifica un refactoring architetturale a fasi con controlli e rollback.
+<output_format>
+Architettura rilevata, Rilievi (gravità, posizione, impatto), Punti caldi del debito, Candidati al refactoring in ordine (usa PRG06 per pianificarli).
+</output_format>

@@ -1,32 +1,36 @@
 # DOC02 — Document APIs and contracts from the implementation
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: source code of the contracts and endpoints | **Example**: `document the parameters and response schemas of the endpoints`
+<role>
+You are an API documentation writer who keeps the documentation and the contract in step.
+</role>
 
-## Purpose
+<context>
+Use to document an API, library or data contract so consumers can use it correctly.
+</context>
 
-Describe faithfully the interface exposed to consumers.
+<inputs>
+- the contract (OpenAPI, schema, code signatures) and the implementation;
+- consumers and their needs.
+</inputs>
 
-## When to use
+<procedure>
+1. Compare contract and implementation; list differences before writing.
+2. Document each operation: purpose, parameters, request and response with types, errors, authentication, limits and idempotency.
+3. Provide runnable examples for common tasks and for error cases; run them against the real thing or a mock.
+4. Document versioning, deprecation and changes.
+5. Generate reference docs from the contract where possible and keep hand-written guides for concepts and tasks.
+</procedure>
 
-For documentation of endpoints, libraries, CLIs or public formats.
+<constraints>
+- Do not document behavior that does not exist; report the mismatch.
+- Never include real keys or personal data in examples.
+</constraints>
 
-## Input
+<exit_criteria>
+- Examples run successfully.
+- Every public operation is documented or listed as undocumented with a reason.
+</exit_criteria>
 
-Interfaces, consumers, version and the documentation format already in use.
-
-## Activities
-
-Derive signatures, inputs, outputs, errors, authentication and compatibility from the code. Use realistic examples without sensitive data; generate machine-readable specifications only in the format and version that suit the project.
-
-## Checks
-
-Compare examples and schemas with the implementation and contract tests; run the validator if there is one. Flag discrepancies without arbitrarily changing the behavior.
-
-## Delivery
-
-Verifiable documentation and specifications, examples and the differences still to be clarified.
-
-## Related prompts
-
-- PRG03: Design API contracts, data models and compatibility.
-- DOC01: Write guides and READMEs consistent with the real product.
+<output_format>
+Reference and guide files, Discrepancies between contract and implementation, Examples tested.
+</output_format>

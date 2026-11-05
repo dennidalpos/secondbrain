@@ -1,33 +1,38 @@
-# DEV01 — Implementa una funzionalità con i controlli pertinenti
+# DEV01 — Implementa una funzionalit├á con i controlli pertinenti
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: requisiti o criteri di accettazione verificati | **Esempio d'uso**: `implementa il comando di esportazione con validazione dell'hash`
+<role>
+Sei un ingegnere del software attento che consegna una funzione da un capo all'altro nel perimetro concordato.
+</role>
 
-## Scopo
+<context>
+Da usare per implementare una capacità richiesta attraverso interfaccia, logica, dati ed errori.
+</context>
 
-Consegnare una capacità richiesta che funziona nel perimetro concordato.
+<inputs>
+- il requisito e i criteri di accettazione (PRG01 se mancano);
+- convenzioni del repository, comandi di build e test.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Leggi codice e test correlati e riformula i criteri di accettazione.
+2. Fai un breve piano e individua la fetta più piccola che porta valore.
+3. Implementa seguendo le convenzioni esistenti e riusando gli helper presenti.
+4. Gestisci errori, casi limite e validazione degli input ai confini.
+5. Aggiungi o aggiorna i test per ogni criterio di accettazione, incluso un caso di fallimento.
+6. Esegui build, test e linter; correggi ciò che hai rotto.
+</procedure>
 
-Quando requisiti e risultato desiderato sono sufficientemente definiti.
+<constraints>
+- Resta nel perimetro; elenca come seguiti i miglioramenti adiacenti.
+- Non aggiungere dipendenze, astrazioni o configurazione senza un bisogno concreto.
+- Cambia contratti pubblici solo se il requisito lo richiede.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni criterio di accettazione è dimostrato da un test o da un'esecuzione osservata.
+- Build, test e linter passano, o i fallimenti sono spiegati.
+</exit_criteria>
 
-Funzionalità, criteri di accettazione, vincoli e riferimenti esistenti.
-
-## Attività specifiche
-
-Segui l'intero flusso tra interfaccia, logica, dati ed errori. Riusa convenzioni e strumenti del progetto; implementa per passi verificabili. Gestisci input rilevanti, stati vuoti e guasti.
-
-## Verifiche
-
-Esegui i controlli obbligatori e quelli significativi degli scenari coinvolti; distingui i risultati dei test dal comportamento reale.
-
-## Consegna
-
-Comportamento implementato, evidenze, percorsi utili e criteri rimasti non verificati.
-
-## Prompt vicini
-
-- DEV06: Configura ed esegui linter, formattatori e analisi statica.
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+<output_format>
+Sintesi della modifica, file toccati, come è stato verificato ogni criterio (comandi ed esiti), limiti e seguiti.
+</output_format>

@@ -10,11 +10,11 @@ Guida operativa per usare il catalogo dei prompt (chat e CLI), estenderlo con nu
 
 Percorso unico per aggiungere, modificare o ritirare un prompt (da chat: `sb prompt SYS11: …`, che guida le scelte):
 
-1. scheda `direttive/prompts/<CODICE>.md` e voce in `direttive/prompts/catalog.json` (ID `pmt-…` immutabile, codice libero dell'area, `summary` entro 88 caratteri): sezioni 1 e 4 sotto;
-2. `pwsh -NoProfile -File scripts/build-prompts.ps1` rigenera `direttive/prompts/README.md` (mai a mano); `-Check` verifica senza scrivere;
-3. `pwsh -NoProfile -File scripts/test-secondbrain-workflows.ps1` controlla schede, ID, alias e conteggi.
+1. scheda inglese `direttive/prompts/<CODICE>.md`, controparte italiana `direttive/prompts/it/<CODICE>.md` e voce in `direttive/prompts/catalog.json` (ID `pmt-…` immutabile, codice libero dell'area, `summary` entro 82 caratteri): sezioni 1 e 4 sotto;
+2. `pwsh -NoProfile -File scripts/build-prompts.ps1` rigenera `direttive/prompts/README.md` e `README.it.md` (mai a mano); `-Check` verifica senza scrivere;
+3. `pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Only prompts` controlla schede, ID, direttive e conteggi.
 
-Un prompt si ritira (con sostituto), non si cancella, salvo richiesta esplicita. Il catalogo è dati del progetto: non tocca i tuoi file fuori dal clone.
+Un prompt superato si rimuove con la sua voce, le due schede e i riferimenti nei `related`; il codice non si riusa. Il catalogo è dati del progetto: non tocca i tuoi file fuori dal clone.
 
 ## Modifica delle direttive
 
@@ -35,59 +35,61 @@ flowchart LR
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 82 schede operative attive (65 del pacchetto `core`, 17 del pacchetto `maintenance`) in 14 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
+I prompt di SecondBrain sono una lista unica: metadati in `catalog.json`, una scheda Markdown inglese per prompt (`direttive/prompts/<CODICE>.md`), la traduzione italiana in `direttive/prompts/it/<CODICE>.md` e due indici generati (`README.md`, `README.it.md`). Il catalogo conta 91 prompt in 14 aree tematiche; le aree `memory` (MEM) e `system` (SYS) contengono i prompt che gestiscono SecondBrain stesso. Non esistono pacchetti, alias, deprecazioni o stati: i codici sono identificatori stabili, mai riusati, e un prompt superato si rimuove (restano vuoti nella numerazione).
 
-Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta, evitando sovraccarichi di contesto nel prompt dell'agente. La build valida tutte le schede prima di generare l'indice. Una riga logica dell'elenco è lunga al massimo 88 caratteri; finestre molto strette possono applicare il wrapping dell'IDE.
+Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta. La build valida tutte le schede prima di generare gli indici. Una riga dell'elenco è lunga al massimo 88 caratteri.
 
-Un prompt si richiama per ID (`pmt-a709a792`), codice (`COM01`) o alias, con `prompts.ps1 -Show|-Compose -Prompt <chiave>` e dagli strumenti MCP `get_prompt`/`prompts/get`: tutte le chiavi risolvono allo stesso prompt. Un alias ritirato o un prompt deprecato risolve al sostituto con un avviso.
+Un prompt si richiama per ID (`pmt-a709a792`) o codice (`COM01`), con `prompts.ps1 -Show|-Compose -Prompt <chiave>` e dagli strumenti MCP `get_prompt`/`prompts/get`: entrambe le chiavi risolvono allo stesso prompt. `-Compose` e `get_prompt` accettano `-Objective`/`objective` per impostare il compito.
 
 ### Struttura di una Scheda Prompt
-Ogni scheda deve iniziare con `# CODICE — <Titolo>` (es. `DEV01`, `SYS03`) e contenere esattamente le **7 sezioni canoniche obbligatorie**:
+Ogni scheda inizia con `# CODICE — <sommario>` (il sommario è identico a quello del catalogo) e contiene i tag XML seguenti, ciascuno su una riga propria e nell'ordine indicato. Fonti di riferimento: le guide di prompt engineering di Anthropic (ruolo, tag XML, istruzioni positive, formato di output esplicito), OpenAI e Google, e il framework CO-STAR.
 
 ```markdown
-# DEV99 — Titolo del workflow
+# DEV99 — Summary of the workflow
 
-## Scopo
-Sintesi dell'obiettivo operativo in 1-2 frasi.
-
-## Quando usarlo
-Casi d'uso e condizioni in cui attivare questo specifico workflow.
-
-## Input
-File, contesti, repository o argomenti necessari all'agente.
-
-## Attività specifiche
-Istruzioni operative passo-passo senza ambiguità. Nessun segnaposto {{...}} non risolto.
-
-## Verifiche
-Asserzioni e controlli per validare il completamento del task.
-
-## Consegna
-Formato e contenuto dell'output finale atteso dall'agente.
-
-## Prompt vicini
-- DEV01: Descrizione breve del workflow correlato.
-- DEV02: Descrizione breve del workflow correlato.
+<role>
+Who the agent is for this task.
+</role>
+<context>
+When to use the prompt and its limits.
+</context>
+<inputs>
+- what is needed before starting.
+</inputs>
+<decisions>
+- (optional) choices to put to the user with a structured multiple-choice question;
+</decisions>
+<procedure>
+1. Numbered, unambiguous steps (at least two).
+2. ...
+</procedure>
+<constraints>
+- What not to do.
+</constraints>
+<exit_criteria>
+- Verifiable conditions that say the work is done.
+</exit_criteria>
+<output_format>
+How to report the result.
+</output_format>
 ```
+
+I tag obbligatori sono `role`, `context`, `inputs`, `procedure` (almeno due passi numerati), `constraints`, `exit_criteria`, `output_format`; `decisions` è facoltativo e, se presente, è un elenco puntato di scelte. Fuori dai tag non c'è altro testo. Una scheda sta in circa una pagina.
 
 ### Registrazione in `catalog.json`
 Ogni prompt deve essere censito in `direttive/prompts/catalog.json`:
-- `id`: identificatore opaco e immutabile `pmt-` + 8 esadecimali minuscoli, generato una sola volta (`New-SBWorkflowPromptId`) e mai riusato, anche dopo rimozione. Le relazioni (`related`, `supersededBy`, `deprecations`) usano solo ID.
-- `code`: alias primario conforme al pattern per area tematica (es. `COM01`, `DEV01`, `SYS01`); dà il nome alla scheda (`<CODE>.md`) e compare nell'indice.
-- `aliases`: array (anche vuoto) di ulteriori codici che risolvono allo stesso prompt, per esempio il vecchio codice dopo una rinomina. ID, codici, alias e alias ritirati condividono un solo spazio di nomi: un duplicato fa fallire la validazione.
-- `category`: identificativo di una delle 14 aree tematiche registrate in `categories`.
-- `summary`: descrizione sintetica (massimo 82 caratteri; `code + ' | ' + summary` non deve superare 88 caratteri).
-- `target`: `repository` (eseguibile nei repository prodotto) o `central` (riservato alla manutenzione di SecondBrain: si compone solo per SecondBrain; SYS03 dispone del bootstrap senza configurazione).
-- `mode`: `read`, `write` o `verify`. Le modalità descrivono il workflow e non aumentano i permessi né superano la modalità Plan.
-- `file`: nome del file corrispondente (es. `DEV99.md`).
-- `references`: array di URL HTTPS ufficiali compatibili.
-- `next`: facoltativo, da 1 a 4 ID di prompt da proporre a fine task (esistenti, diversi dal prompt, non ritirati). La composizione chiude con la «Proposta del prompt successivo»: i candidati (fuori da SecondBrain senza prompt centrali) e i task pronti del repository, da offrire all'utente a scelta multipla senza avviare nulla. Ogni scheda attiva ne ha almeno uno.
-- `related`: array di ID di prompt vicini; deve contenere almeno un ID esistente e il codice di ciascun prompt vicino deve comparire nel testo della scheda (sezione *Prompt vicini*).
-- Sono obbligatori anche `scope`, `requires`, `status` (`active` o `deprecated`) ed `example`; il codice segue `^[A-Z]{2,4}[0-9]{2}$` e la scheda deve iniziare con `# <CODE> — ` e contenere le sezioni *Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna, Prompt vicini*. Il modo più rapido è copiare una scheda esistente e la sua voce.
-- Il catalogo è `catalog.json` schema 1 (catalogo 2), con categorie ordinate, `deprecations` facoltative (alias ritirati verso l'ID sostituto) e i prompt.
-- Il validatore controlla schema, unicità di ID, codici e alias in un solo spazio di nomi, categorie, percorsi confinati, sezioni e riferimenti ai prompt vicini (per ID). Titolo, intestazione (scope, modalità, «Cosa serve», esempio) e voci di «Prompt vicini» della scheda devono ripetere i valori del catalogo (`summary`, `scope`, `mode`, `requires`, `example` e `summary` dei prompt correlati): una divergenza o un testo segnaposto fa fallire la build.
-- La sezione opzionale «Decisioni da raccogliere» (se presente: unica, non vuota, con rimando a Function Calling o Tool Use) elenca le scelte da sottoporre all'utente; la procedura per aggiungere, modificare o ritirare un prompt è SYS11.
-- La risoluzione delle memorie con `-Context` funziona anche se il catalogo dei prompt è assente o non valido. Il resolver confronta indice PARA e metadati reali del dossier; dossier archiviati o ritirati, identità escluse, tracker dichiarati mancanti o invalidi e ambiguità non producono fallback. I riferimenti ad AGENTS, contesto, memoria e fonte tracker sono assoluti. Le istruzioni annidate del repository restano applicabili all'area su cui l'agente lavora.
+- `id`: identificatore opaco e immutabile `pmt-` + 8 esadecimali minuscoli, generato una sola volta (`New-SBWorkflowPromptId`) e mai riusato. Le relazioni (`related`) usano solo ID.
+- `code`: pattern `^[A-Z]{2,4}[0-9]{2}$` per area tematica (es. `COM01`, `DEV01`, `SYS01`); dà il nome alla scheda (`<CODE>.md`).
+- `category`: una delle 14 aree registrate in `categories` (ciascuna con titolo italiano in `i18n.it.title`).
+- `summary`: descrizione sintetica in inglese (massimo 82 caratteri; `code + ' | ' + summary` non supera 88).
+- `target`: `repository` (eseguibile nei repository prodotto) o `central` (manutenzione di SecondBrain: si compone solo per SecondBrain; SYS03 dispone del bootstrap senza configurazione).
+- `mode`: `read`, `write` o `verify`; descrive il workflow e non aumenta i permessi né supera la modalità Plan. `destructive` (facoltativo) segna le scritture irreversibili.
+- `scope`, `requires`, `example`: ambito, prerequisiti ed esempio d'uso.
+- `file`: nome della scheda (es. `DEV99.md`).
+- `related`: da 1 a 6 ID di prompt vicini, esistenti e diversi dal prompt; la composizione li propone a fine task insieme ai task pronti del repository, senza avviare nulla.
+- `i18n.it`: `summary`, `requires` ed `example` in italiano.
+- Il validatore controlla schema, unicità di ID e codici, categorie, percorsi confinati, tag, titolo della scheda (uguale al `summary`) e riferimenti dei `related`, per entrambe le lingue. La procedura per aggiungere, modificare o rimuovere un prompt è SYS11.
+- La risoluzione delle memorie con `-Context` funziona anche se il catalogo dei prompt è assente o non valido. Il resolver confronta indice PARA e metadati reali del dossier; dossier archiviati o ritirati, identità escluse, tracker dichiarati mancanti o invalidi e ambiguità non producono fallback.
 
 ### Rigenerazione e Validazione con `build-prompts.ps1`
 Dopo aver modificato o aggiunto una scheda:
@@ -108,27 +110,19 @@ Metadati in `catalog.json` e singole schede Markdown sono le sorgenti; `README.m
 
 SecondBrain supporta un modello ibrido che distingue tra **file di configurazione su disco** e **superfici manuali/account web**.
 
-### VS Code & Continue
-- **File di Progetto**: `.vscode/settings.json` e `AGENTS.md` nella radice del checkout.
-- **Configurazione Continue**: `~/.continue/config.json`.
-- **Procedura di allineamento**:
-  1. Includi il blocco gestito di SecondBrain in `AGENTS.md`.
-  2. In Continue, aggiungi `AGENTS.md` tra i file di contesto di sistema o usa il slash command di lettura memoria.
+AGENTS.md è la fonte unica nel repository (standard aperto [agents.md](https://agents.md)). Lo leggono direttamente Codex, Cursor, Windsurf, GitHub Copilot (VS Code e coding agent), JetBrains Junie, Zed, Roo Code, Kilo Code, Warp, goose e altri; non lo leggono per nome Claude Code (usa `CLAUDE.md`), Gemini CLI (usa `GEMINI.md` o `context.fileName`) e Aider (`read: AGENTS.md` in `.aider.conf.yml`). Per questo `secondbrain.ps1 -Sync` mantiene in ogni repository gestito, oltre al blocco in `AGENTS.md`, due puntatori sottili `CLAUDE.md` e `GEMINI.md` con un blocco gestito `secondbrain:pointer` che contiene soltanto `@AGENTS.md`: il testo dell'utente nel file resta intatto e `rollback-repo.ps1` rimuove i blocchi.
 
-### Cursor & Windsurf
-- **File di Progetto**: `.cursorrules` / `.windsurfrules` o `AGENTS.md`.
-- **Procedura di allineamento**:
-  1. `scripts/secondbrain.ps1 -Sync` inietta il router comune in `AGENTS.md`.
-  2. Configura le impostazioni di Cursor/Windsurf per indicizzare `AGENTS.md` e il dossier locale associato.
+| Strumento | Istruzioni di repository | Istruzioni globali |
+|---|---|---|
+| Codex | `AGENTS.md` | file `AGENTS.md` nella cartella Codex dell'utente (gestito) |
+| Claude Code | `CLAUDE.md` → `@AGENTS.md` (gestito) | `CLAUDE.md` nella cartella di configurazione (gestito) |
+| Claude Desktop e account Anthropic | — | *Custom Instructions*: incolla il testo approvato (superficie manuale) |
+| Antigravity / Gemini CLI | `GEMINI.md` → `@AGENTS.md` (gestito) | file `GEMINI.md` (gestito per Antigravity) |
+| VS Code (Copilot) e Continue | `AGENTS.md` (Copilot lo legge; Continue: aggiungilo ai file di contesto) | superficie manuale |
+| Cursor, Windsurf | `AGENTS.md` | superficie manuale (impostazioni dell'account) |
+| JetBrains Junie, Zed, Cline, Roo, Kiro, Aider | `AGENTS.md` o la propria cartella di regole; Aider con `read: AGENTS.md` | non gestite: nessun percorso globale documentato per file |
 
-### Claude Code (CLI) & Claude Desktop
-- **Claude Code CLI**: legge automaticamente `CLAUDE.md` o `AGENTS.md` nella directory di lavoro corrente.
-- **Istruzioni Account / Web**: copia il testo approvato da `direttive/AGENTS.global_ide.md` nelle impostazioni *Custom Instructions* dell'account Anthropic.
-- **Verifica**: `scripts/ide-map.ps1 -Verify` non scrive nulla: confronta i file mappati con il testo approvato. Il caricamento nell'account o nella sessione si dimostra solo con una ricevuta di osservazione locale passata con `-ObservationPath`.
-
-### Google Antigravity & Gemini
-- **File di Progetto**: `AGENTS.md` e regole `.gemini/antigravity`.
-- **Istruzioni Globali**: SecondBrain allinea il blocco gestito nelle regole di workspace. Le slash command (es. `/goal`, `/plan`, `/learn`) interagiscono con i 78 workflow attivi del catalogo.
+Le superfici manuali non si scrivono: `ide-map.ps1 -Verify` non scrive nulla e confronta i file mappati con il testo approvato; il caricamento nell'account o nella sessione si dimostra solo con una ricevuta di osservazione locale passata con `-ObservationPath` (SYS01).
 
 ---
 
@@ -187,14 +181,12 @@ Le modifiche personali fuori dal blocco gestito e le impostazioni specifiche del
 
 ## 4. Gestione del Catalogo: Rimozione, Deprecazione e Nuove Aree
 
-- **Con l'agente**: il prompt `SYS11` guida aggiunta, modifica, ritiro ed eliminazione con scelte a Function Calling / Tool Use; i passi sotto sono la procedura manuale equivalente. Le schede che chiedono scelte hanno la sezione opzionale «Decisioni da raccogliere» (unica, non vuota, con rimando a Function Calling o Tool Use).
-- **Aggiungere una scheda**: genera l'ID con `Import-Module scripts/SecondBrain.Prompts.psm1; New-SBWorkflowPromptId (Read-SBWorkflowCatalog $PWD.Path)` dalla radice di SecondBrain, copia una scheda esistente e registra la voce con `id`, `code` e `aliases: []`.
-- **Rinominare un codice**: cambia `code` e `file` (e l'intestazione `# <CODE> — ` della scheda), sposta il vecchio codice in `aliases`. L'ID non cambia, quindi `related`, docs e dossier che citano il vecchio codice continuano a risolvere.
-- **Deprecare una scheda**: in `catalog.json` imposta `"status": "deprecated"` e `"supersededBy": "<ID sostituto>"`. La scheda resta nel file ma viene esclusa dagli elenchi; `prompts.ps1` e MCP la risolvono comunque, mostrando un avviso che indica il sostituto. Il codice ancora presente nel catalogo non va aggiunto a `deprecations` (conflitto di nomi).
-- **Alias**: gli alias sono dichiarati in `catalog.json` accanto all'ID immutabile di ogni prompt (`pmt-` e 8 esadecimali).
-- **Rimuovere una scheda**: elimina la voce da `prompts` e il relativo `<CODE>.md`, togli il suo ID dai `related` delle altre schede e aggiungi in `deprecations` un elemento `{"alias": "<CODE>", "supersededBy": "<ID sostituto>"}` per ogni codice da mantenere risolvibile; poi esegui `build-prompts.ps1`. L'ID rimosso non va riutilizzato.
+- **Con l'agente**: il prompt `SYS11` guida aggiunta, modifica e rimozione con scelte strutturate; i passi sotto sono la procedura manuale equivalente. Le schede che chiedono scelte hanno il tag opzionale `decisions`.
+- **Aggiungere una scheda**: genera l'ID con `Import-Module scripts/SecondBrain.Prompts.psm1; New-SBWorkflowPromptId (Read-SBWorkflowCatalog $PWD.Path)` dalla radice di SecondBrain, scrivi le due schede (EN e IT) e registra la voce con `id`, `code`, `related` e `i18n.it`.
+- **Modificare una scheda**: cambia il testo; se cambia il `summary`, aggiornalo nel catalogo e nel titolo di entrambe le schede.
+- **Rimuovere una scheda**: elimina la voce da `prompts`, le due schede e il suo ID dai `related` degli altri prompt; poi esegui `build-prompts.ps1`. Codice e ID rimossi non vanno riutilizzati.
 - **Creare una nuova area**: aggiungi `{ "id": "cloud", "title": "Cloud e infrastruttura" }` a `categories`. Un'area deve contenere almeno un prompt, altrimenti `build-prompts.ps1 -Check` fallisce ("Categoria senza prompt"). Registra quindi la prima scheda con `"category": "cloud"`.
-- Dopo ogni modifica: `build-prompts.ps1` (rigenera `direttive/prompts/README.md`) e `build-prompts.ps1 -Check` (exit 0 se allineato).
+- Dopo ogni modifica: `build-prompts.ps1` (rigenera `direttive/prompts/README.md` e `README.it.md`) e `build-prompts.ps1 -Check` (exit 0 se allineato).
 
 ## 5. Repository su Percorsi e Dischi Arbitrari
 
@@ -237,13 +229,12 @@ Con le direttive comuni caricate nella sessione:
 ```text
 sb prompt
 sb prompt list
-sb prompt maintenance
 sb prompt ambito test
 sb prompt mostra TST04
 sb prompt TST04: analizza e correggi il fallimento del job Windows
 ```
 
-La chat è l’interfaccia comune: non è uno slash command nativo né un alias installato nella shell. `sb prompt` mostra il link al file Markdown del catalogo completo e la tabella dei comandi `sb`; `sb prompt tutti` riporta l’elenco compatto integrale (una riga per prompt, mai riassunto). L’agente esegue la CLI centrale e riporta l’output senza riassumerlo. Per applicare il modello carica solo la scheda scelta, risolve il repository corrente e svolge il task nei permessi della conversazione. In modalità Plan prepara il piano senza implementarlo. Se manca un input sostanziale, cerca prima nei file e nella conversazione, poi chiede un chiarimento mirato.
+La chat è l’interfaccia comune: non è uno slash command nativo né un alias installato nella shell. `sb prompt` mostra il link al file Markdown del catalogo completo e la tabella dei comandi `sb`; `sb prompt list` riporta l’elenco compatto integrale (una riga per prompt, mai riassunto). L’agente esegue la CLI centrale e riporta l’output senza riassumerlo. Per applicare il modello carica solo la scheda scelta, risolve il repository corrente e svolge il task nei permessi della conversazione. In modalità Plan prepara il piano senza implementarlo. Se manca un input sostanziale, cerca prima nei file e nella conversazione, poi chiede un chiarimento mirato.
 
 Flusso delle cinque forme (percorso verificato sui set di parametri di `scripts/prompts.ps1`):
 
@@ -251,7 +242,7 @@ Flusso delle cinque forme (percorso verificato sui set di parametri di `scripts/
 flowchart TD
     A["Chat: sb prompt ..."] --> B{"Forma del comando"}
     B -->|"senza argomenti"| C["prompts.ps1 oppure MCP get_prompt_home"]
-    B -->|"tutti"| D["prompts.ps1 -List -Compact"]
+    B -->|"list"| D["prompts.ps1 -List -Compact"]
     B -->|"ambito AREA"| E["prompts.ps1 -List -Category AREA"]
     B -->|"mostra CHIAVE"| F["prompts.ps1 -Show -Prompt CHIAVE"]
     B -->|"CHIAVE: obiettivo"| G["prompts.ps1 -Compose -Prompt CHIAVE -Objective ..."]
@@ -294,12 +285,11 @@ $cfg = '.runtime/hosts/<id>/workstation.json'
 ./scripts/prompts.ps1 -Compose -Prompt SEC01 -Objective 'Revisionare le modifiche locali' -ConfigPath $cfg
 ```
 
-## 8. Interazione Strutturata e Tool Use (Function Calling)
+## 8. Interazione Strutturata e Scelta Multipla
 
-I prompt e il compositore centrale integrano il supporto a **Function Calling / Tool Use** (es. strumento `ask_question`) per gestire dubbi, chiarimenti architetturali e scelte tra opzioni predefinite:
-- Quando l'agente deve raccogliere una decisione sostanziale non desumibile dal codice (es. in `COM01`, `COM02`, `PRG01`, `PRG02`, `SYS03`, `SYS04`, `SYS05`, `SEC07`), adotta prioritariamente il tool use (`ask_question`) per visualizzare una finestra di selezione a scelta multipla nell'interfaccia utente.
-- Viene indicata la scelta raccomandata con prefisso `(Recommended)` e opzioni atomiche e non numerate.
-- Si evitano domande a testo libero ripetute o continue richieste di conferma per operazioni già autorizzate nel perimetro del task.
+Le direttive e i prompt non nominano uno strumento specifico: quando serve una decisione sostanziale non desumibile dal codice (per esempio in `COM01`, `PRG01`, `SYS03`, `SYS04`, `SYS05`, `SEC07`), l'agente usa lo strumento di domanda strutturata a scelta multipla del proprio client, se esiste (in Claude Code `AskUserQuestion`, in altri client l'equivalente), altrimenti pone una sola domanda concisa con opzioni.
+- Indica la scelta raccomandata come prima opzione, con opzioni atomiche e non numerate.
+- Evita domande a testo libero ripetute o richieste di conferma per operazioni già autorizzate nel perimetro del task.
 
 ## 9. Fonti e scelte
 

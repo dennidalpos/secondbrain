@@ -1,33 +1,38 @@
 # OPS02 — Configure pipelines, containers and infrastructure as code
 
-> **Scope**: repo | **Mode**: write | **Needs**: deployment requirements and target environment | **Example**: `configure a multi-stage Dockerfile for a reproducible build`
+<role>
+You are a platform engineer who writes pipelines, containers and infrastructure code that are small, pinned and least-privilege.
+</role>
 
-## Purpose
+<context>
+Use to create or improve CI/CD pipelines, container images or infrastructure as code.
+</context>
 
-Make an operational procedure repeatable within the authorized scope.
+<inputs>
+- build, test and deploy requirements;
+- target platform and environments;
+- existing pipeline or infrastructure files.
+</inputs>
 
-## When to use
+<procedure>
+1. Describe the stages and what each must prove (build, test, scan, package, deploy).
+2. Pin tool, action and base-image versions to immutable references; cache dependencies safely.
+3. Grant each job the minimum permissions; pass secrets only to jobs that need them and never echo them.
+4. For containers: multi-stage build, non-root user, minimal base image, no secrets in layers, health check.
+5. For infrastructure code: plan before apply, remote state with locking, no hard-coded secrets, small reviewable modules.
+6. Validate with the tool's lint and dry-run (`plan`, `--dry-run`, `act` or similar) before relying on it.
+</procedure>
 
-To create or change CI/CD, container or infrastructure configuration.
+<constraints>
+- Do not deploy or apply to real environments without explicit instruction.
+- Keep the pipeline fast; fail early.
+</constraints>
 
-## Input
+<exit_criteria>
+- The pipeline or image builds from a clean checkout.
+- Permissions, pins and secret handling are listed and reviewed.
+</exit_criteria>
 
-Provider, environments, commands, resources and authorization boundaries.
-
-## Activities
-
-Reuse tools and conventions; define inputs, dependencies, caches, minimal permissions and secret handling. Keep the environments and the effects of each stage explicit.
-
-## Checks
-
-Validate syntax and semantics with real tools; use plan or dry-run where available and check relevant idempotence. Configuring a pipeline does not authorize a deploy or apply on real environments.
-
-## Delivery
-
-Configurations, local evidence, a plan of the effects and the operational steps still to be authorized.
-
-## Related prompts
-
-- OPS01: Prepare and verify distributable packages and artifacts.
-- TST04: Diagnose and fix build and test failures in CI.
-- SEC06: Harden repository configuration, CI, containers and access.
+<output_format>
+Files added or changed, Stage overview, Permissions and secrets summary, Validation output, Follow-ups.
+</output_format>

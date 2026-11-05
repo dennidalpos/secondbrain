@@ -20,7 +20,7 @@ Leggi questa pagina prima di lanciare gli script. SecondBrain non installa softw
 | `secondbrain.ps1 -Sync` | Blocco `repository` in `AGENTS.md` dei repository gestiti; blocco `global` in `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/GEMINI.md` | Indici dei dossier, `state.json`, `inventory.json`, `ide-map.json`, `istruzioni-globali.md` | No: usa `-Check` |
 | `secondbrain.ps1 -Setup -Unbind …` | No | Solo `workstation.json` | Sì, senza `-Apply` |
 | `mcp-server.ps1 -Pair` | No | No | È l'anteprima |
-| `mcp-server.ps1 -Pair -Apply` | File MCP degli IDE scelti (tabella sotto) | Backup in `.runtime/backup/mcp-pairing/` | Senza `-Apply` |
+| `mcp-server.ps1 -Pair -Apply` | File MCP degli IDE scelti (tabella sotto) | Backup in `.runtime/backups/mcp-pairing/` | Senza `-Apply` |
 | `approve-revision.ps1` | No | `direttive/approved.json` e, con `-ProposalPath`, `direttive/*.md` | No |
 | `rollback-repo.ps1 … -Apply` | `AGENTS.md` del repository dismesso (rimuove il blocco); copia del dossier in `<repo>/.secondbrain/` | Elimina il dossier, aggiorna `workstation.json` | Senza `-Apply` |
 | `publication.ps1 -InstallHook -Apply` / `-UninstallHook -Apply` | `.git/hooks/pre-push` (o `core.hooksPath`); la rimozione rifiuta hook non creati da SecondBrain | No | Senza `-Apply` |
@@ -54,7 +54,7 @@ Ogni file esistente **fuori da Git** (dossier, file degli IDE, configurazione MC
 | `.runtime/hosts/<id>/backups/<guid>.bin.json` | Metadati: `path` originale, `previousHash`, `deployedHash`, `backup` |
 | `.runtime/hosts/<id>/backups/<guid>.stage` | Record della scrittura (`writing`, `completed`, `interrupted`) |
 | `.runtime/hosts/<id>/backups/<guid>.git.json` | Solo per file tracciati da Git e puliti: `path`, `previousHash`, `deployedHash`, `gitCommit`, `gitBlob` (nessuna copia `.bin`) |
-| `.runtime/backup/mcp-pairing/` | Come sopra, per i file MCP |
+| `.runtime/backups/mcp-pairing/` | Come sopra, per i file MCP |
 | `.runtime/hosts/<id>/backups/para-<guid>/manifest.json` | Transazioni sui dossier |
 | `.runtime/hosts/<id>/backups/rollback-<guid>/` | Dossier salvato da `rollback-repo.ps1 -Force` senza checkout |
 

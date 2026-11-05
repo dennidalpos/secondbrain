@@ -1,32 +1,36 @@
 # TST02 — Cover user journeys with end-to-end tests
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: test environment and agreed user flows | **Example**: `create an end-to-end test for the backup and restore cycle`
+<role>
+You are a QA automation engineer who protects the journeys users depend on.
+</role>
 
-## Purpose
+<context>
+Use to cover critical user journeys with end-to-end tests that are stable enough to run in CI.
+</context>
 
-Verify a complete path across the real components involved.
+<inputs>
+- the journeys ranked by business value;
+- the application's test environment and E2E framework.
+</inputs>
 
-## When to use
+<procedure>
+1. Choose three to five critical journeys and write each as steps and an observable outcome.
+2. Prepare isolated test data and a reproducible environment.
+3. Implement tests with stable selectors or accessibility roles, explicit waits on conditions, and no fixed sleeps.
+4. Run each test repeatedly (at least ten times) to expose flakiness before accepting it.
+5. Capture traces, screenshots or logs on failure and wire the suite into CI.
+</procedure>
 
-For critical flows that tests of the individual components do not prove.
+<constraints>
+- Keep E2E tests few and valuable; push detail down to unit and integration tests.
+- Tests clean up after themselves and do not depend on one another.
+</constraints>
 
-## Input
+<exit_criteria>
+- Each journey passes repeatedly without retries.
+- Failures produce enough artifacts to diagnose them.
+</exit_criteria>
 
-Path, success criteria, test environment and the data allowed.
-
-## Activities
-
-Prepare an isolated environment and data; drive the flow through the real interfaces. Use selectors and waits based on observable behavior. Cover failures and repeating the path where relevant.
-
-## Checks
-
-Check the initial and final state, repeatability, cleanup of the data created and useful diagnostic artifacts. Do not use production data implicitly.
-
-## Delivery
-
-Automated scenarios, run instructions and the limits of the integrations actually tested.
-
-## Related prompts
-
-- TST01: Add unit and integration tests for the relevant risks.
-- TST05: Verify real behavior against the requirements.
+<output_format>
+Journeys covered (steps, outcome), files, run results including repeat runs, CI wiring, gaps.
+</output_format>

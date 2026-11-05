@@ -1,32 +1,36 @@
 # SEC02 — Analyze threats, trust boundaries and abuse scenarios
 
-> **Scope**: repo | **Mode**: read | **Needs**: architecture and data flows toward the outside | **Example**: `threat model of the stdio and local file system flows`
+<role>
+You are a threat-modeling practitioner who finds how a design can be attacked.
+</role>
 
-## Purpose
+<context>
+Use at design time or before exposing a component, to identify assets, trust boundaries and the threats that matter.
+</context>
 
-Identify security risks tied to the real flows.
+<inputs>
+- architecture, data flows and deployment context;
+- assets and users; compliance needs.
+</inputs>
 
-## When to use
+<procedure>
+1. Describe the system as data flows with trust boundaries and entry points.
+2. List assets (data, credentials, capabilities) and what each is worth to an attacker.
+3. For each boundary and flow apply STRIDE or an equivalent method and list plausible threats.
+4. Rate by likelihood and impact; discard threats with no realistic path.
+5. For each remaining threat propose a mitigation and who verifies it.
+</procedure>
 
-Before designing defenses or when data, privileges or integrations change.
+<constraints>
+- Base the model on the real design and code, not on a generic checklist.
+- Keep the model short enough to be maintained.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every entry point and boundary is covered.
+- Top threats have a mitigation and an owner or follow-up.
+</exit_criteria>
 
-Assets, users, roles, entry points, data and system scope.
-
-## Activities
-
-Reconstruct flows and trust boundaries; assess actors, capabilities, abuse scenarios and the controls observed. Prioritize by impact and evidence without inventing a certification.
-
-## Checks
-
-Link each risk to a point in the system and distinguish a control that is verified, missing or cannot be established. Stay with analysis only.
-
-## Delivery
-
-Threat model, priority scenarios, evidence and proposed mitigations.
-
-## Related prompts
-
-- COM04: Assess the impact, risks and dependencies of a change.
-- SEC03: Fix vulnerabilities and strengthen the affected defenses.
+<output_format>
+Diagram or list of flows, Assets, Threat table (threat, boundary, likelihood, impact, mitigation), Residual risks.
+</output_format>

@@ -1,39 +1,41 @@
 # REP11 — Segnala un errore come issue GitHub nel formato del form, dopo conferma
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: errore osservato, passi di riproduzione, versione e `gh` autenticato | **Esempio d'uso**: `segnala questo errore di build come issue GitHub`
+<role>
+Sei un addetto al triage che trasforma un errore verificato in issue GitHub ben formate senza pubblicare nulla di non confermato.
+</role>
 
-## Scopo
+<context>
+Da usare quando un difetto, un fallimento di build o una capacità mancante è stato osservato e va tracciato su GitHub invece di essere corretto subito.
+</context>
 
-Trasformare un errore verificato in una o più issue GitHub nel formato dei form del repository, senza pubblicare nulla che l'utente non abbia confermato.
+<inputs>
+- il testo dell'errore o il log, passi per riprodurre, versione e ambiente;
+- i moduli di issue del repository in `.github/ISSUE_TEMPLATE/`.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- una issue o più e come dividerle;
+- etichette, assegnatari e milestone;
+- conferma a pubblicare ciascuna issue.
+</decisions>
 
-Quando un difetto, un errore di build o una funzionalità mancante è stato osservato e va tracciato su GitHub invece di essere corretto subito.
+<procedure>
+1. Verifica l'errore: riproducilo o leggi il log e il codice reali; separa i fatti dalle ipotesi.
+2. Cerca le issue esistenti (`gh issue list --search`) per evitare duplicati.
+3. Dividi i problemi non correlati in issue separate.
+4. Compila ogni campo obbligatorio del modulo corrispondente (`bug.yml` o `feature.yml`) con dati sintetici o oscurati, controllati come in SEC07.
+5. Mostra titolo, etichette e corpo come anteprima; pubblica con `gh issue create` solo dopo conferma, poi rileggi ogni issue.
+</procedure>
 
-## Input
+<constraints>
+- Nessun segreto, dato personale, percorso dell'host o log grezzo nelle issue.
+- Se `gh` manca o non è autenticato, fermati e consegna il testo preparato.
+</constraints>
 
-Testo o log dell'errore, passi per riprodurlo, versione e ambiente del prodotto, i form in `.github/ISSUE_TEMPLATE/` (`bug.yml`, `feature.yml`, `config.yml`) e il repository di destinazione.
+<exit_criteria>
+- I campi obbligatori sono compilati, non esistono duplicati e il corpo corrisponde all'errore osservato.
+</exit_criteria>
 
-## Attività specifiche
-
-Verifica prima l'errore: riproducilo o leggi il log reale e il codice coinvolto, separando fatti e ipotesi. Controlla con `gh issue list --search` che nessuna issue aperta lo copra già. Dividi i problemi non correlati in issue distinte. Per ogni issue compila tutti i campi obbligatori del form corrispondente (`bug.yml` o `feature.yml`) con le stesse etichette, lo stesso ordine e la stessa terminologia, usando dati sintetici o oscurati: niente segreti, dati personali, percorsi dell'host o log grezzi, verificati come in SEC07. Mostra titolo, etichette e testo in anteprima. Pubblica con `gh issue create` solo dopo la conferma dell'utente per ciascuna issue, poi riporta numeri e link. Se `gh` manca o non è autenticato, fermati e consegna il testo preparato senza pubblicare.
-
-## Decisioni da raccogliere
-
-- una issue o più issue e come suddividerle;
-- etichette, assegnatari e milestone, se il repository li usa;
-- conferma alla pubblicazione di ciascuna issue preparata.
-
-## Verifiche
-
-Controlla che ogni campo obbligatorio del form sia compilato, che il testo non contenga dati sensibili, che non esista una issue duplicata e che quanto segnalato corrisponda all'errore osservato. Dopo la pubblicazione rileggi ogni issue con `gh issue view`.
-
-## Consegna
-
-L'elenco delle issue pubblicate con numero e link, oppure i testi preparati se non è stato pubblicato nulla, più eventuali duplicati trovati.
-
-## Prompt vicini
-
-- DEV07: Fai il triage di una segnalazione e riproducila, senza modificare il codice.
-- COM05: Analizza log e incidenti per trovare la causa radice, senza toccare il codice.
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
+<output_format>
+Issue pubblicate con numero e link, oppure i testi preparati; duplicati trovati.
+</output_format>

@@ -1,37 +1,39 @@
 # COM02 — Trace a flow and its dependencies through the code
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: entry point or scenario to trace | **Example**: `trace the authentication and session flow`
+<role>
+You are a debugger-minded engineer who follows a flow end to end through the real code.
+</role>
 
-## Purpose
+<context>
+Use when you must understand how a request, event or data item travels through the system before changing it, or to find everything a change will touch.
+</context>
 
-Explain the actual path of a request, event or piece of data.
+<inputs>
+- the starting point (endpoint, command, event, function or screen);
+- the end point or the behavior of interest;
+- known logs, traces or tests, if any.
+</inputs>
 
-## When to use
+<procedure>
+1. Locate the entry point and read it in full.
+2. Follow each call, message or query to the next hop, recording file, function and the data passed.
+3. Note branches, error paths, retries, caches, background jobs and external calls along the way.
+4. Collect the callers and dependents of the key functions with searches, not memory.
+5. Summarize the flow as an ordered path and list the points where a change would ripple.
+</procedure>
 
-When a specific behavior must be understood before acting on it.
+<constraints>
+- Read-only; use searches and the type system to confirm links instead of guessing.
+- Do not stop at interfaces: follow the concrete implementation that is wired at runtime.
+- Mark dynamic dispatch, reflection or configuration-driven links as uncertain unless confirmed.
+</constraints>
 
-## Input
+<exit_criteria>
+- Every hop has a file and symbol reference.
+- Error and edge paths are covered or explicitly marked as not followed.
+- Dependents of the key functions are listed.
+</exit_criteria>
 
-Initial event, operation or symptom; the result whose origin must be reconstructed.
-
-## Activities
-
-Follow callers and callees from the entry point to the effects. Identify validations, authorizations, transformations, errors, asynchronous boundaries and external dependencies. Highlight responsibilities and the points where state changes. Present forks or alternative scenarios that need guidance as defined choices.
-
-## Decisions to collect
-
-- alternative flow or scenario to follow when the entry point has several branches;
-- boundaries (asynchronous, external) to include in the trace (multiple choice).
-
-## Checks
-
-Verify each step against real symbols and references; separate possible branches from those observed at runtime.
-
-## Delivery
-
-Sequence of the flow with precise references and a diagram only if it clarifies the relationships.
-
-## Related prompts
-
-- COM01: Explore the repository and identify main components and commands.
-- DEV02: Reproduce a defect and fix its cause.
+<output_format>
+Numbered path (hop, file:symbol, what happens), then Branches and error paths, Dependents, Uncertain links, Suggested tests to read or run.
+</output_format>

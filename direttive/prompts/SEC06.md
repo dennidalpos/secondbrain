@@ -1,38 +1,35 @@
 # SEC06 — Harden repository configuration, CI, containers and access
 
-> **Scope**: repo/area | **Mode**: write | **Needs**: configuration, CI workflows, containers and repository settings | **Example**: `harden the GitHub Actions workflows and containers`
+<role>
+You are a repository security engineer who hardens configuration with the least surprise.
+</role>
 
-## Purpose
+<context>
+Use to tighten repository, workflow and tooling settings: ignore rules, hooks, branch protection, workflow permissions and dependency update automation. For GitHub page settings also see REP13.
+</context>
 
-Reduce the attack surface of the repository and of its build and release chain with verifiable configurations and least privilege.
+<inputs>
+- repository files and CI definitions;
+- hosting platform and the permissions you have.
+</inputs>
 
-## When to use
+<procedure>
+1. Inventory current settings and compare them with a baseline (least-privilege tokens, protected default branch, secret scanning, dependency updates, signed releases).
+2. Propose changes grouped by risk and effort, with the current value, the new value and how to revert.
+3. Apply file-based changes in the working tree (workflow permissions, pinned actions, ignore rules, hooks) and verify they work.
+4. For platform settings give the exact commands or UI steps and apply only after confirmation.
+</procedure>
 
-Before making a repository public, before a release, after an incident and periodically.
+<constraints>
+- Never weaken a control to make a check pass.
+- Do not change visibility, ownership or access without explicit instruction.
+</constraints>
 
-## Input
+<exit_criteria>
+- Each applied change is verified and revertible.
+- Unapplied recommendations are listed with the reason.
+</exit_criteria>
 
-Configurations, CI workflows, Dockerfiles and infrastructure as code, repository settings, permissions and the secrets used.
-
-## Activities
-
-Check the minimal permissions of workflows (`permissions`), third-party actions pinned to commit hashes, risky triggers such as `pull_request_target`, the use of secrets, base images and the non-privileged user in containers, branch protection, required reviews, signing of commits and tags, secret scanning with push protection, dependency locks and the security settings of frameworks. Declare surfaces that are absent as not applicable (for example no workflow or tracked container) without inventing work. To pin actions and images resolve hashes and digests with read-only remote lookups (for example `gh api repos/<owner>/<repo>/commits/<ref> --jq .sha`); if a reference cannot be resolved, leave it as is, flag it as not pinned and do not invent hashes. Show the difference and the operational impact before changing anything. Remote settings (branch protection, secret scanning) are proposed with their commands and applied only with explicit authorization. Do not change system or security settings of the machine.
-
-## Decisions to collect
-
-- surfaces to harden (multiple choice: CI, containers, branches, secrets);
-- apply the changes or only propose them.
-
-## Checks
-
-Run the relevant local pipeline and checks after the changes and verify that no fix blocks legitimate work; if tools are missing (for example `actionlint`, `hadolint`, `docker`), declare the check as not run instead of inferring its outcome. Distinguish actual risk from generic recommendations and do not claim conformity to a standard without specific checks.
-
-## Delivery
-
-Measures applied or proposed with evidence, residual risk and manual steps.
-
-## Related prompts
-
-- SEC04: Find exposed credentials and verify input validation.
-- OPS02: Configure pipelines, containers and infrastructure as code.
-- SEC03: Fix vulnerabilities and strengthen the affected defenses.
+<output_format>
+Before/after table, Files changed, Commands for platform settings, Skipped items.
+</output_format>

@@ -1,33 +1,36 @@
 # AUD03 — Audit architecture and technical debt not yet tracked
 
-> **Scope**: repo/area | **Mode**: read | **Needs**: read access to the code, the backlog and architecture documentation | **Example**: `audit of architecture and technical debt of the repository`
+<role>
+You are an architect assessing structure and technical debt with evidence.
+</role>
 
-## Purpose
+<context>
+Use to judge whether the structure supports the next phase of the product and where the debt concentrates.
+</context>
 
-Find coupling, module boundary violations and technical debt that are not in the backlog.
+<inputs>
+- repository, architecture documents, backlog;
+- the product goals for the next phase.
+</inputs>
 
-## When to use
+<procedure>
+1. Reconstruct the real module and dependency structure from code, not from diagrams.
+2. Find cycles, layering violations, god modules, duplicated concepts and unclear boundaries.
+3. Locate debt hotspots by combining complexity, churn and defect history.
+4. Classify each finding by impact on the stated goals, effort and risk.
+5. Propose a short, ordered list of refactoring candidates with the first safe step.
+</procedure>
 
-Before an architectural refactoring, after rapid growth or when the cost of changes is rising.
+<constraints>
+- Read-only; every finding cites paths or measurements.
+- Compare with the documented architecture and note the divergences.
+</constraints>
 
-## Input
+<exit_criteria>
+- Findings link to code locations and to a goal they threaten.
+- Candidates are ordered with effort and risk, and the first step is concrete.
+</exit_criteria>
 
-Module structure, internal dependencies, documented architectural decisions and the backlog or notes, if any.
-
-## Activities
-
-Reconstruct modules, layers and dependencies from the real code, not from the documentation. Look for dependency cycles, inverted dependencies between layers, modules with too many responsibilities, duplicated responsibilities, scattered configuration, single points of failure and leftover shortcuts (TODO, FIXME, HACK markers, stubs, disabled tests). Tell real markers apart from identifiers, fixtures and test texts that contain the same word. Compare with the documented decisions and the backlog.
-
-## Checks
-
-Every debt item has a path, a concrete impact and a justified estimated cost (low, medium, high). Check that it is not already in the backlog under another identifier and distinguish deliberate, documented choices from defects.
-
-## Delivery
-
-Map of the observed boundaries, debt ordered by impact and proposed work items to record; for the remediation plan use PRG06.
-
-## Related prompts
-
-- AUD01: Run a full repository audit with a single report, optionally exported.
-- COM04: Assess the impact, risks and dependencies of a change.
-- PRG06: Plan a phased architectural refactoring with checks and rollback.
+<output_format>
+Architecture as found, Findings (severity, location, impact), Debt hotspots, Refactoring candidates in order (use PRG06 to plan them).
+</output_format>

@@ -1,33 +1,38 @@
 # OPS02 — Configura pipeline, container e infrastruttura come codice
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: requisiti di distribuzione e ambiente di destinazione | **Esempio d'uso**: `configura un Dockerfile multi-stage per una build riproducibile`
+<role>
+Sei un ingegnere di piattaforma che scrive pipeline, container e infrastruttura come codice piccoli, fissati e a minimo privilegio.
+</role>
 
-## Scopo
+<context>
+Da usare per creare o migliorare pipeline CI/CD, immagini di container o infrastruttura come codice.
+</context>
 
-Rendere ripetibile una procedura operativa nel perimetro autorizzato.
+<inputs>
+- requisiti di build, test e distribuzione;
+- piattaforma di destinazione e ambienti;
+- file di pipeline o infrastruttura esistenti.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Descrivi le fasi e ciò che ciascuna deve dimostrare (build, test, scansione, pacchetto, distribuzione).
+2. Fissa le versioni di strumenti, azioni e immagini base a riferimenti immutabili; metti in cache le dipendenze in sicurezza.
+3. Dai a ogni job i permessi minimi; passa i segreti solo ai job che ne hanno bisogno e non stamparli mai.
+4. Per i container: build multi-stadio, utente non root, immagine base minima, nessun segreto nei livelli, health check.
+5. Per l'infrastruttura come codice: plan prima di apply, stato remoto con blocco, nessun segreto scritto a mano, moduli piccoli e rivedibili.
+6. Valida con lint e prova a vuoto dello strumento (`plan`, `--dry-run`, `act` o simili) prima di farvi affidamento.
+</procedure>
 
-Per creare o modificare configurazioni di CI/CD, container o infrastruttura.
+<constraints>
+- Non distribuire né applicare su ambienti reali senza istruzione esplicita.
+- Mantieni la pipeline veloce; fallisci presto.
+</constraints>
 
-## Input
+<exit_criteria>
+- La pipeline o l'immagine si costruisce da un checkout pulito.
+- Permessi, versioni fissate e gestione dei segreti sono elencati e rivisti.
+</exit_criteria>
 
-Provider, ambienti, comandi, risorse e limiti di autorizzazione.
-
-## Attività specifiche
-
-Riusa strumenti e convenzioni; definisci input, dipendenze, cache, permessi minimi e gestione dei segreti. Mantieni espliciti gli ambienti e gli effetti di ogni fase.
-
-## Verifiche
-
-Convalida sintassi e semantica con strumenti reali; usa plan o dry-run dove disponibili e verifica l'idempotenza pertinente. Configurare una pipeline non autorizza un deploy o un apply su ambienti reali.
-
-## Consegna
-
-Configurazioni, evidenze locali, un piano degli effetti e i passi operativi ancora da autorizzare.
-
-## Prompt vicini
-
-- OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- TST04: Diagnostica e correggi i fallimenti di build e test in CI.
-- SEC06: Rafforza configurazione del repository, CI, container e accessi.
+<output_format>
+File aggiunti o modificati, Panoramica delle fasi, Sintesi di permessi e segreti, Output di validazione, Seguiti.
+</output_format>

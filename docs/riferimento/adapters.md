@@ -25,7 +25,7 @@ SYS01 verifica senza scrivere per impostazione predefinita. «Mappa» autorizza 
 | Continue | Regole del progetto/pannello; icona penna per le regole caricate |
 | Android Studio Gemini | `AGENTS.md` del progetto e regole IDE; Context > AGENTS.md Files |
 
-Il file Claude Code e le istruzioni dell'account Claude sono separati. Nei repository SecondBrain mantiene il blocco in `AGENTS.md`; i precedenti collegamenti per IDE non vanno ricreati.
+Il file Claude Code e le istruzioni dell'account Claude sono separati. Nei repository SecondBrain mantiene il blocco in `AGENTS.md` (fonte unica, letta direttamente da Codex, Cursor, Windsurf, Copilot, Junie, Zed e altri) e due puntatori sottili `CLAUDE.md` e `GEMINI.md` con il solo import `@AGENTS.md` per Claude Code e Gemini CLI, che non leggono `AGENTS.md` per nome. Nessun altro collegamento per IDE (`.cursorrules`, `.windsurfrules` e simili, ormai superati dalle regole native) va ricreato.
 
 ## Superfici manuali secondarie (Claude app, Continue, Android Studio)
 

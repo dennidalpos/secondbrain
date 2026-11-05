@@ -54,15 +54,14 @@ Add-SBMessages @{
     'mcp.description.search_knowledge.mode' = @{ it = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza'; en = 'literal (default): exact substring; relevance: multiple terms ranked by relevance' }
     'mcp.description.search_knowledge.offset' = @{ it = 'Numero di riscontri da saltare (paginazione, default 0)'; en = 'Matches to skip (pagination, default 0)' }
     'mcp.description.search_knowledge.limit' = @{ it = 'Numero massimo di riscontri (default 20; 0 = tutti)'; en = 'Maximum matches (default 20; 0 = all)' }
-    'mcp.description.list_prompts' = @{ it = 'Elenca il catalogo dei prompt e workflow ingegneristici generici (pacchetto core), per area tematica; con pack=maintenance elenca i prompt di manutenzione di SecondBrain. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'; en = 'List the generic engineering prompt and workflow catalog (core pack) by category; pack=maintenance lists SecondBrain maintenance prompts. Each entry has a mode icon. compact=true returns one line per prompt (code, mode, summary): report the complete list without summarizing.' }
-    'mcp.description.list_prompts.category' = @{ it = 'Filtra per area: id (sistema, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole; cerca in tutti i pacchetti'; en = 'Filter by category ID (sistema, test, governance...) or code prefix (SYS, TST, GOV...), case-insensitive; searches all packs' }
-    'mcp.description.list_prompts.pack' = @{ it = 'Pacchetto da elencare (predefinito core)'; en = 'Pack to list (default core)' }
+    'mcp.description.list_prompts' = @{ it = 'Elenca il catalogo unico dei prompt (ingegneria e manutenzione di SecondBrain), per area tematica. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'; en = 'List the single prompt catalog (engineering and SecondBrain maintenance) by category. Each entry has a mode icon. compact=true returns one line per prompt (code, mode, summary): report the complete list without summarizing.' }
+    'mcp.description.list_prompts.category' = @{ it = 'Filtra per area: id (system, test, governance...) o prefisso dei codici (SYS, TST, GOV...), senza distinguere le maiuscole'; en = 'Filter by category ID (system, test, governance...) or code prefix (SYS, TST, GOV...), case-insensitive' }
     'mcp.description.list_prompts.compact' = @{ it = 'Se true, una riga per prompt invece della scheda sintetica'; en = 'If true, return one line per prompt instead of its summary card' }
     'mcp.description.list_prompts.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
     'mcp.description.get_prompt_home' = @{ it = 'Schermata iniziale di `sb prompt`: link al catalogo completo, tabella dei comandi sb (chat) con l''equivalente da script. Con repositoryPath (checkout corrente) aggiunge stato, prossimo passo e flusso per prodotto.'; en = 'Initial sb prompt screen: full catalog link and sb chat commands with script equivalents. repositoryPath (working checkout) adds current state, next step and product workflow.' }
     'mcp.description.get_prompt_home.repositoryPath' = @{ it = 'Percorso del checkout corrente; facoltativo'; en = 'Working checkout path (optional)' }
     'mcp.description.get_prompt_home.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
-    'mcp.description.get_prompt' = @{ it = 'Restituisce la scheda completa di un prompt o workflow ingegneristico (es. SYS03, SEC07, DEV01).'; en = 'Return the full card for a prompt or engineering workflow (e.g. SYS03, SEC07, DEV01).' }
+    'mcp.description.get_prompt' = @{ it = 'Restituisce il prompt composto (ruolo, procedura, vincoli, criteri di uscita, formato di output) per un codice o ID (es. SYS03, SEC07, DEV01); con objective indica l''obiettivo. Senza contesto di repository.'; en = 'Return the composed prompt (role, procedure, constraints, exit criteria, output format) for a code or ID (e.g. SYS03, SEC07, DEV01); objective sets the goal. No repository context.' }
     'mcp.description.get_prompt.prompt' = @{ it = 'Codice (SYS03, COM01...), ID immutabile (pmt-...) o alias del prompt'; en = 'Code (SYS03, COM01...), immutable ID (pmt-...) or prompt alias' }
     'mcp.description.get_prompt.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
     'mcp.description.check_publication' = @{ it = 'Esegue una verifica di sola lettura della pubblicabilità del working tree, indice e storia del repository specificato. Restituisce un riepilogo (conteggi per regola e primi 20 riscontri); detail=true il rapporto integro.'; en = 'Read-only publication check of the specified Git working tree, index and history. Returns a summary (counts by rule and the first 20 findings); detail=true returns the complete report.' }
@@ -83,7 +82,6 @@ Add-SBMessages @{
     'mcp.mode.invalid' = @{ it = 'Modalità non valida: usare literal o relevance'; en = 'Invalid mode: use literal or relevance' }
     'mcp.search.invalid' = @{ it = 'offset, limit e budget devono essere interi non negativi'; en = 'offset, limit and budget must be non-negative integers' }
     'mcp.startup.invalid' = @{ it = 'budget deve essere un intero non negativo e taskIds un array di ID'; en = 'budget must be a non-negative integer and taskIds an array of IDs' }
-    'mcp.pack.invalid' = @{ it = 'Pacchetto non valido: core, maintenance o all'; en = 'Invalid pack: core, maintenance or all' }
     'mcp.prompt.required' = @{ it = 'Il parametro prompt è obbligatorio per get_prompt'; en = 'The prompt parameter is required for get_prompt' }
     'mcp.path.required' = @{ it = 'Il parametro repositoryPath è obbligatorio per check_publication'; en = 'The repositoryPath parameter is required for check_publication' }
     'mcp.tool.deprecated' = @{ it = 'Alias deprecato {0}: usare {1}. Lʼalias sarà rimosso in una versione futura.'; en = 'Deprecated alias {0}: use {1}. The alias will be removed in a future version.' }
@@ -183,7 +181,6 @@ function Get-SBMcpToolDefinitions {
                 type = 'object'
                 properties = @{
                     category = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.list_prompts.category') }
-                    pack = @{ type = 'string'; enum = @('core', 'maintenance', 'all'); description = (Get-SBMessage 'mcp.description.list_prompts.pack') }
                     compact = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.list_prompts.compact') }
                     language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.list_prompts.language') }
                 }
@@ -208,6 +205,7 @@ function Get-SBMcpToolDefinitions {
                 required = @('prompt')
                 properties = @{
                     prompt = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_prompt.prompt') }
+                    objective = @{ type = 'string'; description = (Get-SBMessage 'mcp.prompt.objective') }
                     language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.get_prompt.language') }
                 }
             }
@@ -356,9 +354,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $category = if ($Arguments.ContainsKey('category')) { [string]$Arguments.category } else { $null }
             $compact = $Arguments.ContainsKey('compact') -and [bool]$Arguments.compact
-            $pack = if ($Arguments.ContainsKey('pack')) { [string]$Arguments.pack } else { 'core' }
-            if ($pack -notin @('core', 'maintenance', 'all')) { throw (New-SBError 'mcp.pack.invalid') }
-            return Format-SBWorkflowList $catalog $category -Compact:$compact -Pack $pack
+            return Format-SBWorkflowList $catalog $category -Compact:$compact
         }
         'get_prompt_home' {
             $homeState = if ($Arguments.ContainsKey('repositoryPath') -and $Arguments.repositoryPath) { Get-SBWorkflowState $BrainRoot ([string]$Arguments.repositoryPath) } else { $null }
@@ -370,9 +366,8 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             }
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $resolution = Resolve-SBWorkflowPrompt $catalog ([string]$Arguments.prompt)
-            $body = Read-SBWorkflowPrompt $BrainRoot $resolution.prompt $catalog
-            $card = (Format-SBWorkflowCard $resolution.prompt $body) + "`n" + $body
-            return $(if ($resolution.warning) { "Avviso: $($resolution.warning)`n`n$card" } else { $card })
+            $objective = if ($Arguments.ContainsKey('objective')) { [string]$Arguments.objective } else { '' }
+            return New-SBWorkflowComposition $BrainRoot $catalog $resolution.prompt @{repositories=@();project=$null;sourceRegistry=$null} $objective -Standalone
         }
         'check_publication' {
             if (!$Arguments.ContainsKey('repositoryPath') -or !$Arguments.repositoryPath) {
@@ -519,7 +514,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
             }
             'prompts/list' {
                 $catalog = Read-SBWorkflowCatalog $BrainRoot
-                $promptsList = @($catalog.prompts | Where-Object status -ne 'deprecated' | ForEach-Object {
+                $promptsList = @($catalog.prompts | ForEach-Object {
                     @{
                         name = $_.code
                         title = (Get-SBWorkflowField $_ 'summary')
@@ -546,9 +541,9 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 $catalog = Read-SBWorkflowCatalog $BrainRoot
                 $resolution = Resolve-SBWorkflowPrompt $catalog $promptName
                 $match = @($resolution.prompt)
-                $text = Read-SBWorkflowPrompt $BrainRoot $match[0] $catalog
-                $text = (Format-SBWorkflowCard $match[0] $text) + "`n" + $text
-                if ($resolution.warning) { $text = (Get-SBMessage 'mcp.notice' @($resolution.warning)) + "`n`n$text" }
+                $promptArguments = if ($params.ContainsKey('arguments') -and $params.arguments -is [System.Collections.IDictionary]) { $params.arguments } else { @{} }
+                $objective = if ($promptArguments.ContainsKey('objective')) { [string]$promptArguments.objective } else { '' }
+                $text = New-SBWorkflowComposition $BrainRoot $catalog $match[0] @{repositories=@();project=$null;sourceRegistry=$null} $objective -Standalone
                 return ConvertTo-SBMcpJson @{
                     jsonrpc = '2.0'
                     id = $id
@@ -1161,7 +1156,7 @@ function Set-SBMcpConfiguration {
         [switch]$ApproveAllTools,[scriptblock]$CliInvoker
     )
     if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
-    $backupDir=if($BackupRoot){$BackupRoot}else{Join-Path $BrainRoot '.runtime/backup/mcp-pairing'}
+    $backupDir=if($BackupRoot){$BackupRoot}else{Join-Path $BrainRoot '.runtime/backups/mcp-pairing'}
     if($ApproveReadTools -and $ApproveAllTools){throw (New-SBError 'mcp.pair.permissions.scope')}
     $approvePermissions=$ApproveReadTools -or $ApproveAllTools
     $options=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath;ApproveAllTools=$ApproveAllTools;ConfigFile=$ConfigFile}

@@ -1,37 +1,35 @@
 # AUD02 — Misura il repository con metriche riproducibili e individua gli hotspot
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: accesso in lettura a repository, cronologia Git e strumenti di misura | **Esempio d'uso**: `metriche e hotspot del repository`
+<role>
+Sei un tecnico delle misure: riporti numeri che altri possono riprodurre.
+</role>
 
-## Scopo
+<context>
+Da usare per dimensionare e caratterizzare un repository (volume di codice, complessità, variazioni, rapporto test) per pianificare o seguire l'andamento.
+</context>
 
-Quantificare dimensione, complessità, duplicazione, evoluzione nel tempo e copertura del repository con misure riproducibili.
+<inputs>
+- perimetro (intero repository o percorsi) ed esclusioni (generati, di terzi);
+- strumenti già usati dal progetto.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Definisci ogni metrica, il comando che la produce e le esclusioni, prima di misurare.
+2. Raccogli dimensione, complessità, duplicazione, numero di dipendenze, rapporto test/codice e frequenza di modifica con gli strumenti disponibili.
+3. Registra versioni degli strumenti, data e commit perché la misura sia ripetibile.
+4. Confronta con misure precedenti, se esistono, e segnala i valori anomali.
+</procedure>
 
-Per ottenere una base di riferimento oggettiva prima di refactoring, ottimizzazione o pianificazione, e per confrontare due momenti nel tempo.
+<constraints>
+- Sola lettura; i file generati e di terzi sono esclusi ed elencati.
+- Riporta misure, non giudizi; interpreta solo dove esiste una soglia documentata.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni numero ha comando, perimetro e commit.
+- Rieseguendo i comandi si riproducono i valori.
+</exit_criteria>
 
-Perimetro (percorsi e linguaggi), intervallo della cronologia Git e strumenti di misura già usati dal progetto.
-
-## Attività specifiche
-
-Usa gli strumenti del progetto oppure `git` e le utilità standard già presenti; non installare dipendenze senza autorizzazione. Misura file e righe per linguaggio, complessità ciclomatica e funzioni lunghe, duplicazione, variazioni per file (churn) e hotspot (modifiche frequenti in codice complesso), contributori per area, copertura dei test, numero ed età delle dipendenze, dimensione di binari e artefatti tracciati. Registra comando, versione dello strumento e data di ogni misura.
-
-## Decisioni da raccogliere
-
-- perimetro e linguaggi;
-- intervallo della cronologia da analizzare.
-
-## Verifiche
-
-Ripeti ogni misura per verificarne la stabilità; escludi file generati, codice di terze parti e fixture dichiarandolo; non confrontare valori ottenuti con strumenti o soglie diversi.
-
-## Consegna
-
-Tabella delle metriche con metodo e perimetro, hotspot ordinati, soglie proposte (da confermare) e limiti; esportabile con AUD01.
-
-## Prompt vicini
-
-- AUD01: Esegui un audit completo del repository con un unico rapporto, anche esportato.
-- DEV08: Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice.
+<output_format>
+Tabella: metrica, valore, comando, perimetro, commit e data; poi Valori anomali e Note sui limiti.
+</output_format>

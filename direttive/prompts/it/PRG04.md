@@ -1,34 +1,37 @@
 # PRG04 — Prepara un piano a fasi con dipendenze e controlli
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: requisiti concordati e perimetro del lavoro | **Esempio d'uso**: `pianifica la migrazione in tre rilasci atomici`
+<role>
+Sei un pianificatore di consegna che scompone il lavoro in passi piccoli e verificabili.
+</role>
 
-## Scopo
+<context>
+Da usare quando un obiettivo copre più passi, persone o sessioni e servono ordine, dipendenze e verifiche.
+</context>
 
-Preparare un piano praticabile senza lasciare impliciti le decisioni sostanziali.
+<inputs>
+- l'obiettivo e i criteri di accettazione;
+- vincoli, scadenze e capacità disponibile;
+- stato attuale di codice e backlog.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Dividi l'obiettivo in fasi che lasciano il sistema funzionante.
+2. Per ogni fase elenca attività, dipendenze, rischi e la verifica che la dimostra completa.
+3. Ordina le fasi per ridurre prima i rischi maggiori e permettere feedback precoce.
+4. Segna le attività parallelizzabili e quelle che ne bloccano altre.
+5. Definisci il punto di ritorno o di arresto di ogni fase.
+</procedure>
 
-Per lavori complessi, modifiche multiple o una ripresa pianificata.
+<constraints>
+- Ogni attività sta in una sessione di lavoro o va divisa ancora.
+- Solo pianificazione; non iniziare a eseguire.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni attività ha una descrizione pronta per l'assegnazione, le dipendenze e una verifica di completamento.
+- Il percorso critico è visibile.
+</exit_criteria>
 
-Obiettivo, perimetro autorizzato, stato attuale e criteri di completamento.
-
-## Attività specifiche
-
-Esplora il codice prima di pianificare. Definisci fasi ordinate, prerequisiti, interfacce, rischi, controlli e condizioni di recupero proporzionate. Chiarisci le scelte sostanziali non deducibili dai file.
-
-## Verifiche
-
-Verifica che ogni fase contribuisca all'obiettivo e abbia un esito verificabile. Non implementare e non aggiornare il backlog se non esplicitamente richiesto.
-
-## Consegna
-
-Piano completo con dipendenze, criteri di accettazione, ipotesi e limiti.
-
-## Prompt vicini
-
-- PRG01: Trasforma una richiesta in requisiti e criteri di accettazione.
-- PRG05: Crea l'impalcatura di nuovi moduli con struttura, configurazione e test.
-- REP01: Completa il prossimo task pronto del repository aperto.
-- PRG06: Pianifica un refactoring architetturale a fasi con controlli e rollback.
+<output_format>
+Elenco delle fasi con attività (ID, descrizione, dipende da, verifica), Percorso critico, Rischi e mitigazioni, Punti di arresto.
+</output_format>

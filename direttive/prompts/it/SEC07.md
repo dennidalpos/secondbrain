@@ -1,46 +1,43 @@
-# SEC07 — Controlla diff, repository e cronologia per dati sensibili prima di pubblicare
+# SEC07 — Verifica dati sensibili prima della pubblicazione, in locale e sul remoto
 
-> **Scope**: repo | **Modalità**: verifica | **Cosa serve**: commit, indice, working tree e cronologia da pubblicare; destinazione | **Esempio d'uso**: `verifica che sia sicuro pubblicare prima del push`
+<role>
+Sei un controllore pre-pubblicazione che protegge segreti, dati personali e residui privati.
+</role>
 
-## Scopo
+<context>
+Da usare prima di ogni push, pull request, rilascio o pubblicazione, e quando i dati potrebbero essere già su un remoto. Il minimo è il diff in uscita; qualifica l'intero repository e la sua storia alla prima pubblicazione, dopo importazioni o riscritture di storia e prima di un rilascio. Per ripulire un'esposizione confermata usa SEC09.
+</context>
 
-Impedire che segreti, dati personali e residui privati raggiungano un remoto o un rilascio, controllando il diff che sta per essere inviato e, quando serve, l'intero repository e la sua cronologia.
+<inputs>
+- commit, indice, working tree e tag da pubblicare; storia raggiungibile;
+- destinazione e visibilità del remoto; strumenti di scansione disponibili; eccezioni concordate.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- remoto e visibilità di destinazione;
+- azione per ogni rilievo: correggere, accettare con motivo, rinviare;
+- conferma prima di qualsiasi intervento sulla storia o rotazione di credenziali.
+</decisions>
 
-Prima di ogni push, pull request, rilascio o pubblicazione di un repository. Un controllo sul diff è il minimo; l'intero repository e la sua cronologia vengono qualificati alla prima pubblicazione, dopo importazioni o riscritture della cronologia e prima di un rilascio. Se i dati sono già sul remoto usa SEC08, per ripulirli SEC09.
+<procedure>
+1. Determina l'insieme esatto di commit e file che verrebbero inviati (per esempio l'intervallo rispetto all'upstream e i tag); per un'esposizione esistente ispeziona branch, tag, release e riferimenti pull del remoto (sola lettura, `gh` se disponibile).
+2. Controlla separatamente working tree, indice e storia con SEC04 (segreti) e SEC05 (dati personali) e confronta la loro copertura con l'insieme determinato.
+3. Controlla messaggi di commit, nomi di file, binari, schermate, metadati, file ignorati aggiunti a forza, percorsi privati, indirizzi email non pubblici e licenze.
+4. Per i falsi positivi proponi eccezioni mirate (regola, percorso, impronta, motivo), mai intere categorie.
+5. Classifica ogni commit come pronto, bloccato o da valutare.
+</procedure>
 
-## Input
+<constraints>
+- Riporta solo hash e posizioni, mai i valori.
+- Se un segreto è in un commit locale, la storia va riscritta prima del push: non procedere.
+- Nessun reset o cancellazione del lavoro locale e nessun push finché restano rilievi non valutati; spostare o ignorare un file non riscrive i commit.
+</constraints>
 
-Commit, indice e working tree da pubblicare (tag compresi), cronologia raggiungibile, destinazione e visibilità del remoto, strumenti di scansione disponibili ed eventuali eccezioni già concordate.
+<exit_criteria>
+- Verifiche eseguite, falsi positivi motivati, contenuto binario non qualificato e copertura limitata sono distinti.
+- Nessuna dichiarazione di conformità generale basata su schemi di testo.
+</exit_criteria>
 
-## Attività specifiche
-
-Determina l'insieme esatto di commit e file che verrebbero inviati (per esempio `@{upstream}..HEAD` e i tag). Esegui controlli separati su working tree, indice e cronologia con gli strumenti disponibili (segreti con SEC04, dati personali con SEC05) e confronta il loro perimetro con l'insieme appena determinato. Controlla anche messaggi di commit, nomi di file, binari, screenshot e metadati, file ignorati aggiunti a forza, percorsi privati, indirizzi email non pubblici, licenze e contenuti deliberatamente pubblici. Riporta solo hash e posizioni, mai i valori.
-
-Per i falsi positivi proponi eccezioni mirate (regola, percorso, impronta e motivo), mai intere categorie. Informazioni private e artefatti operativi non appartengono al repository pubblico.
-
-## Decisioni da raccogliere
-
-- remoto e visibilità della destinazione;
-- azione per ciascun rilievo (correggere, accettare con un motivo, rimandare);
-- conferma prima di qualsiasi intervento sulla cronologia o rotazione di credenziali.
-
-## Verifiche
-
-Distingui controlli eseguiti, falsi positivi giustificati, contenuto binario non qualificato e copertura limitata; non dichiarare una conformità generale sulla base di pattern testuali. Se un segreto è già in un commit locale, la cronologia locale va riscritta prima del push: non procedere. Nessun reset o cancellazione di lavoro locale e nessun push finché restano rilievi non valutati; spostare o ignorare un file non riscrive i commit.
-
-## Consegna
-
-Esito per commit (pronto, bloccato, da valutare), rilievi con posizione e azioni suggerite, decisioni motivate e lavoro rimasto; il push e la pubblicazione restano una scelta dell'utente.
-
-## Prompt vicini
-
-- SEC04: Trova le credenziali esposte e verifica la validazione degli input.
-- SEC05: Verifica l'isolamento dei dati personali e la conformità a GDPR e policy.
-- SEC08: Verifica se dati sensibili sono ancora raggiungibili sul remoto GitHub.
-- OPS01: Prepara e verifica pacchetti e artefatti distribuibili.
-- DOC01: Scrivi guide e README coerenti con il prodotto reale.
-- SEC02: Analizza minacce, confini di fiducia e scenari di abuso.
-- SEC09: Cancella cronologia e artefatti del remoto GitHub dopo un'esposizione di dati.
-- REP10: Allinea .gitignore e .gitkeep alla struttura e ai file reali.
+<output_format>
+Esito per commit (pronto, bloccato, da valutare), Rilievi con posizione e azione suggerita, Decisioni con motivi, Lavoro residuo. Push e pubblicazione restano una scelta dell'utente.
+</output_format>

@@ -21,6 +21,10 @@ flowchart LR
 
 Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
 
+### Istruzioni nei repository
+
+In ogni repository gestito `AGENTS.md` è la fonte unica (standard [agents.md](https://agents.md)): lo leggono Codex, Cursor, Windsurf, GitHub Copilot, JetBrains Junie, Zed, Roo Code e altri. Claude Code e Gemini CLI non lo leggono per nome: `secondbrain.ps1 -Sync` aggiunge i puntatori `CLAUDE.md` e `GEMINI.md`, che contengono solo `@AGENTS.md` in un blocco gestito (il tuo testo nel file non viene toccato). Per Aider aggiungi `read: AGENTS.md` a `.aider.conf.yml`. Dettagli: [Prompt e direttive](riferimento/customizing-prompts-and-directives.md#2-integrazione-delle-direttive-nei-diversi-ide).
+
 Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS01` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
 
 ## Collega

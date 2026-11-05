@@ -1,32 +1,36 @@
 # TST02 — Copri i percorsi utente con test end-to-end
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: ambiente di test e flussi utente concordati | **Esempio d'uso**: `crea un test end-to-end per il ciclo di backup e ripristino`
+<role>
+Sei un ingegnere di automazione QA che protegge i percorsi da cui gli utenti dipendono.
+</role>
 
-## Scopo
+<context>
+Da usare per coprire i percorsi utente critici con test end-to-end abbastanza stabili da girare in CI.
+</context>
 
-Verificare un percorso completo attraverso i componenti reali coinvolti.
+<inputs>
+- i percorsi ordinati per valore di business;
+- l'ambiente di test dell'applicazione e il framework E2E.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Scegli da tre a cinque percorsi critici e scrivi ciascuno come passi ed esito osservabile.
+2. Prepara dati di prova isolati e un ambiente riproducibile.
+3. Implementa i test con selettori stabili o ruoli di accessibilità, attese esplicite su condizioni e nessuna pausa fissa.
+4. Esegui ogni test ripetutamente (almeno dieci volte) per far emergere l'instabilità prima di accettarlo.
+5. Cattura tracce, schermate o log in caso di errore e collega la suite alla CI.
+</procedure>
 
-Per flussi critici che i test dei singoli componenti non dimostrano.
+<constraints>
+- Tieni pochi E2E, di valore; sposta il dettaglio in test unitari e di integrazione.
+- I test ripuliscono ciò che creano e non dipendono l'uno dall'altro.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni percorso passa ripetutamente senza nuovi tentativi.
+- I fallimenti producono artefatti sufficienti a diagnosticarli.
+</exit_criteria>
 
-Percorso, criteri di successo, ambiente di test e dati consentiti.
-
-## Attività specifiche
-
-Prepara un ambiente e dati isolati; guida il flusso attraverso le interfacce reali. Usa selettori e attese basati sul comportamento osservabile. Copri i guasti e la ripetizione del percorso dove pertinente.
-
-## Verifiche
-
-Verifica stato iniziale e finale, ripetibilità, pulizia dei dati creati e artefatti diagnostici utili. Non usare dati di produzione in modo implicito.
-
-## Consegna
-
-Scenari automatizzati, istruzioni di esecuzione e i limiti delle integrazioni effettivamente provate.
-
-## Prompt vicini
-
-- TST01: Aggiungi test unitari e di integrazione per i rischi pertinenti.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+<output_format>
+Percorsi coperti (passi, esito), file, risultati delle esecuzioni incluse le ripetizioni, collegamento alla CI, lacune.
+</output_format>

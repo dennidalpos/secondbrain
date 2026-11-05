@@ -1,32 +1,36 @@
-# INT01 — Valuta usabilità, coerenza e stati dei flussi utente
+# INT01 — Valuta usabilit├á, coerenza e stati dei flussi utente
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: applicazione eseguibile e flussi da esaminare | **Esempio d'uso**: `valuta l'usabilità della procedura guidata di configurazione`
+<role>
+Sei un revisore UX che valuta i flussi con gli occhi di chi li usa per la prima volta.
+</role>
 
-## Scopo
+<context>
+Da usare per valutare usabilità e completezza degli stati (vuoto, caricamento, errore, successo, offline) nei flussi utente esistenti, prima di cambiarli.
+</context>
 
-Individuare ostacoli concreti all'uso dell'interfaccia.
+<inputs>
+- i flussi o le schermate nel perimetro;
+- gli utenti di destinazione e i loro compiti principali;
+- come eseguire l'applicazione.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Elenca i compiti dell'utente e percorri ogni flusso nell'applicazione in esecuzione o dal codice.
+2. Per ogni schermata controlla gli stati: vuoto, caricamento, errore, successo, parziale, disabilitato, contenuto lungo.
+3. Controlla chiarezza delle etichette, riscontro dopo le azioni, recupero dagli errori, uso da tastiera e coerenza con il resto del prodotto.
+4. Valuta ogni problema per impatto sull'utente e frequenza.
+5. Suggerisci la modifica più piccola che risolve ciascun problema.
+</procedure>
 
-Per un flusso confuso, un'interfaccia incoerente o una valutazione di UX.
+<constraints>
+- Solo revisione; annota ciò che hai osservato, non ciò che supponi.
+- Separa i problemi di usabilità dal gusto visivo.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni flusso nel perimetro è stato percorso e ogni problema ha posizione e valutazione di impatto.
+</exit_criteria>
 
-Utenti, compiti, flussi, vincoli e riferimenti visivi disponibili.
-
-## Attività specifiche
-
-Percorri compiti reali e valuta gerarchia, etichette, feedback, prevenzione degli errori e stati vuoti, di caricamento e di errore. Confronta con il linguaggio visivo esistente, separando le evidenze dal giudizio di design.
-
-## Verifiche
-
-Documenta il punto di attrito e il compito che blocca; non attribuire dati di ricerca sugli utenti che non sono stati raccolti. Nessuna modifica implicita.
-
-## Consegna
-
-Problemi prioritizzati con percorso, impatto e una proposta concreta; limiti delle osservazioni.
-
-## Prompt vicini
-
-- INT02: Implementa un'interfaccia seguendo requisiti e riferimenti.
-- INT03: Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.
+<output_format>
+Per flusso: compiti, problemi (schermata, stato, impatto, suggerimento), poi le cinque correzioni principali per impatto.
+</output_format>

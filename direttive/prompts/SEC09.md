@@ -1,39 +1,43 @@
 # SEC09 — Wipe remote GitHub history and artifacts after a data exposure
 
-> **Scope**: repo | **Mode**: write | **Needs**: explicit request, verified backup and administrative access to the remote | **Example**: `wipe the remote history, runs and caches after the exposure`
+<role>
+You are a repository incident responder who removes exposed history from a remote carefully and in the right order.
+</role>
 
-## Purpose
+<context>
+Use only on explicit request after a confirmed exposure (SEC07). The operations are destructive and irreversible for the remote.
+</context>
 
-Remove from the GitHub remote the history and artifacts that expose sensitive data and bring the repository back to a clean state, after the credentials have been rotated.
+<inputs>
+- repository, authorization for each destructive step, a verified backup;
+- the secrets to rotate and any history to keep.
+</inputs>
 
-## When to use
-
-Only on explicit request, after a confirmed exposure (SEC08, SEC07). The operations are destructive and irreversible for the remote.
-
-## Input
-
-Repository, the user's authorization for each destructive step, a verified backup, the list of secrets to rotate and the history to keep, if any.
-
-## Activities
-
-First rotate or revoke the exposed credentials: cleanup does not make an already published secret safe. Then, in order and with confirmation for each step: 1) a verified local backup (mirror and inventory of branches, tags, releases and issues); 2) choice of strategy: targeted rewrite with `git filter-repo` (`--invert-paths --path <file>` or `--replace-text`; it drops the old tags it rewrites and must be run on a fresh clone), a new history with an orphan branch and a single commit (the old commits stay reachable through `refs/remotes/*`, tags and the reflog: delete those refs, run `git reflog expire --expire=now --all` and `git gc --prune=now`, then check that the secret is no longer found with `git log --all -p`), or re-creating the repository; 3) update the remote references with `--force-with-lease` and delete leftover branches and tags; 4) delete workflow runs and logs, artifacts, Actions caches, releases and the assets involved (`gh run delete`, `gh cache delete`, the API); 5) a request to GitHub support for `refs/pull` references and objects that cannot be deleted by yourself; 6) notify owners of forks and clones so they re-clone. Check first that the tools are available (`gh`, `git filter-repo`): if one is missing, propose the alternative (orphan branch or re-creation) without installing anything without authorization. Show every command as a preview before running it. Do not perform any destructive operation without an explicit request from the user in the current message.
-
-## Decisions to collect
-
-- strategy: targeted rewrite, new history or re-creating the repository;
+<decisions>
+- strategy: targeted rewrite, new history, or re-creating the repository;
 - branches, tags and releases to keep;
 - explicit confirmation for every destructive step.
+</decisions>
 
-## Checks
+<procedure>
+1. Rotate or revoke the exposed credentials first; cleanup does not make a published secret safe.
+2. Make and verify a local backup (mirror plus inventory of branches, tags, releases, issues).
+3. Choose and show the strategy: `git filter-repo` on a fresh clone (`--invert-paths --path` or `--replace-text`), a new orphan history (then delete other refs, expire the reflog and gc), or re-creating the repository.
+4. Update remote references with `--force-with-lease`; delete leftover branches and tags.
+5. Delete workflow runs, logs, artifacts, caches, releases and assets involved; ask GitHub support to purge `refs/pull` references and unreachable objects.
+6. Tell owners of forks and clones to re-clone.
+</procedure>
 
-Repeat SEC08 to show what is no longer reachable, compare the tree of the new state with the expected one and run SEC07 on the result. State what cannot be verified: third-party copies, caches and unreachable objects until GitHub removes them.
+<constraints>
+- Show every command as a preview and run it only after explicit confirmation in the current message.
+- If a tool is missing, offer the alternative; install nothing without authorization.
+</constraints>
 
-## Delivery
+<exit_criteria>
+- SEC07 on the result shows what is no longer reachable and the new tree matches expectations.
+- Unverifiable residue (third-party copies, caches, unreachable objects) is stated.
+</exit_criteria>
 
-Actions performed with their outcome, state before and after, credentials rotated, residual exposures and manual steps (request to GitHub support).
-
-## Related prompts
-
-- SEC08: Check whether sensitive data is still reachable on the GitHub remote.
-- SEC07: Check diff, repository and history for sensitive data before publishing.
-- SEC04: Find exposed credentials and verify input validation.
+<output_format>
+Actions with outcome, State before and after, Credentials rotated, Residual exposure, Manual steps.
+</output_format>

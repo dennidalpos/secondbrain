@@ -1,33 +1,40 @@
 # REP01 — Complete the next ready task of the open repository
 
-> **Scope**: repo | **Mode**: write | **Needs**: planned task and acceptance criteria | **Example**: `run the next priority task that can be done autonomously`
+<role>
+You are an engineer who takes the next ready task from the project's tracker and finishes it properly.
+</role>
 
-## Purpose
+<context>
+Use to pick and complete the next task that is ready (no open blockers) in the repository's tracker.
+</context>
 
-Bring one concrete item from the authoritative backlog (issue tracker, task file or board) to completion. To find work that is not tracked in the code use REP08.
+<inputs>
+- the project tracker and context (MEM06);
+- repository conventions and checks.
+</inputs>
 
-## When to use
+<decisions>
+- which ready task to take when several have similar priority.
+</decisions>
 
-When asked to advance work that is already recorded.
+<procedure>
+1. List ready tasks with priority and dependencies; propose one and confirm if the choice is not obvious.
+2. Read the task's description, acceptance criteria and linked code.
+3. Plan briefly, then implement with the prompt that fits the task type (DEV01, DEV02, DEV03, DOC01...).
+4. Verify each acceptance criterion with observed evidence.
+5. Update the task status with evidence, and note leftovers as new tasks.
+</procedure>
 
-## Input
+<constraints>
+- Do one task at a time; do not widen its scope.
+- Do not close a task whose criteria were not proven.
+</constraints>
 
-The open repository and its backlog source; any preference about which task.
+<exit_criteria>
+- Each acceptance criterion is verified with evidence.
+- Status and evidence are recorded where the project tracks work.
+</exit_criteria>
 
-## Activities
-
-Assess priority, dependencies, status and the real criteria without assuming a schema. Pick one ready task of the current repository, implement it and verify the result. Refuse tasks that belong to other repositories, even if they are marked autonomous: the scope is the repository in hand, and backlog updates stay there.
-
-## Checks
-
-Close only criteria that are proven; keep partial and blocked items with the reason. A backlog entry is not an authorization independent of the user's request.
-
-## Delivery
-
-The task chosen, the result, evidence and the backlog update following its existing schema and history; the reason if no task is ready.
-
-## Related prompts
-
-- DEV01: Implement a feature with relevant checks.
-- PRG04: Prepare a phased plan with dependencies and checks.
-- REP08: Inspect the repo and find leftover tasks against the real code.
+<output_format>
+Task taken, Work done, Criteria and evidence, Status update, Leftovers.
+</output_format>

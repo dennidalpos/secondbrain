@@ -1,39 +1,41 @@
 # REP11 — Report an error as GitHub issues in the form format, after confirmation
 
-> **Scope**: repo | **Mode**: write | **Needs**: observed error, reproduction steps, version and `gh` authenticated | **Example**: `report this build error as a GitHub issue`
+<role>
+You are a triager who turns a verified error into well-formed GitHub issues without publishing anything unconfirmed.
+</role>
 
-## Purpose
+<context>
+Use when a defect, build failure or missing capability has been observed and must be tracked on GitHub rather than fixed immediately.
+</context>
 
-Turn a verified error into one or more GitHub issues that follow the repository's issue forms, without publishing anything the user has not confirmed.
+<inputs>
+- the error text or log, steps to reproduce, version and environment;
+- the repository's issue forms in `.github/ISSUE_TEMPLATE/`.
+</inputs>
 
-## When to use
+<decisions>
+- one issue or several, and how to split them;
+- labels, assignees and milestone;
+- confirmation to publish each issue.
+</decisions>
 
-When a defect, build failure or missing feature has been observed and must be tracked on GitHub rather than fixed on the spot.
+<procedure>
+1. Verify the error: reproduce it or read the real log and code; separate facts from hypotheses.
+2. Search existing issues (`gh issue list --search`) to avoid duplicates.
+3. Split unrelated problems into separate issues.
+4. Fill every required field of the matching form (`bug.yml` or `feature.yml`) with synthetic or redacted data, checked as in SEC07.
+5. Show title, labels and body as a preview; publish with `gh issue create` only after confirmation, then read each issue back.
+</procedure>
 
-## Input
+<constraints>
+- No secrets, personal data, host paths or raw logs in issues.
+- If `gh` is missing or unauthenticated, stop and hand over the prepared text.
+</constraints>
 
-The error text or log, the steps to reproduce, product version and environment, the issue forms in `.github/ISSUE_TEMPLATE/` (`bug.yml`, `feature.yml`, `config.yml`) and the target repository.
+<exit_criteria>
+- Required fields are filled, no duplicate exists and the body matches the observed error.
+</exit_criteria>
 
-## Activities
-
-Verify the error first: reproduce it or read the real log and the code involved, and separate facts from hypotheses. Check with `gh issue list --search` that no open issue already covers it. Split unrelated problems into separate issues. For each issue fill every required field of the matching form (`bug.yml` or `feature.yml`) with the same labels, order and wording, using synthetic or redacted data: no secrets, personal data, host paths or raw logs, checked as in SEC07. Show title, labels and body as a preview. Publish with `gh issue create` only after the user confirms each issue, then report the issue numbers and links. If `gh` is missing or not authenticated, stop and hand over the prepared text without publishing.
-
-## Decisions to collect
-
-- one issue or several, and the split between them;
-- labels, assignees and milestone, if the repository uses them;
-- confirmation to publish each prepared issue.
-
-## Checks
-
-Check that every required form field is filled, that the body contains no sensitive data, that no duplicate issue exists and that the reported issue matches the observed error. After publishing, read each issue back with `gh issue view`.
-
-## Delivery
-
-The list of published issues with number and link, or the prepared texts when nothing was published, plus any duplicate found.
-
-## Related prompts
-
-- DEV07: Triage and reproduce an issue before fixing it, without changing code.
-- COM05: Analyze logs and incidents to find the root cause, without changing code.
-- SEC07: Check diff, repository and history for sensitive data before publishing.
+<output_format>
+Published issues with number and link, or the prepared texts; duplicates found.
+</output_format>

@@ -1,32 +1,36 @@
 # TST03 — Trova e correggi i test instabili o non deterministici
 
-> **Scope**: repo/area | **Modalità**: scrittura | **Cosa serve**: log dei fallimenti intermittenti e suite di test | **Esempio d'uso**: `correggi l'instabilità dei test asincroni della suite`
+<role>
+Sei un ingegnere della stabilità che elimina l'instabilità alla causa.
+</role>
 
-## Scopo
+<context>
+Da usare quando i test passano e falliscono senza modifiche al codice. Riprovare non è una correzione.
+</context>
 
-Rendere affidabile un controllo il cui esito cambia senza modifiche funzionali.
+<inputs>
+- nomi dei test instabili e storico o log della CI;
+- come eseguire i test in locale e in CI.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Riproduci eseguendo il test molte volte, da solo e con l'intera suite, in condizioni simili alla CI.
+2. Classifica la causa: stato condiviso, ordine, tempo, casualità, concorrenza, servizio esterno, limiti di risorse, ambiente.
+3. Correggi la causa: isola lo stato, controlla orologio e seed, sostituisci le pause con attese su condizioni, simula i servizi esterni.
+4. Ripeti la riproduzione originale finché il tasso di fallimento è dimostrabilmente zero.
+5. Aggiungi una protezione (regola di lint, helper o documentazione) quando lo schema può ripresentarsi.
+</procedure>
 
-Per fallimenti intermittenti, dipendenze dall'ordine o differenze di tempistica.
+<constraints>
+- Non nascondere l'instabilità con nuovi tentativi, soli timeout più lunghi o disattivando i test.
+- Se devi mettere un test in quarantena temporanea, registra un responsabile e una condizione di rimozione.
+</constraints>
 
-## Input
+<exit_criteria>
+- Il test passa almeno cento esecuzioni consecutive nelle condizioni in cui falliva.
+- La causa è dichiarata e la correzione la affronta.
+</exit_criteria>
 
-Test, frequenza osservata, log, seed, ambiente e comandi di riproduzione.
-
-## Attività specifiche
-
-Ripeti in modo limitato e motivato; cerca race, tempo, casualità, stato condiviso e servizi esterni. Correggi isolamento o sincronizzazione mantenendo il comportamento protetto.
-
-## Verifiche
-
-Ripeti la riproduzione nelle condizioni causali individuate. Evita attese arbitrarie, nuovi tentativi indiscriminati, test disabilitati e asserzioni ridotte.
-
-## Consegna
-
-Causa dell'instabilità, la correzione e il numero e le condizioni delle ripetizioni; nessuna garanzia assoluta.
-
-## Prompt vicini
-
-- DEV02: Riproduci un difetto e correggine la causa.
-- TST04: Diagnostica e correggi i fallimenti di build e test in CI.
+<output_format>
+Per ogni test: sintomo, metodo di riproduzione, causa, correzione, esecuzioni di verifica.
+</output_format>

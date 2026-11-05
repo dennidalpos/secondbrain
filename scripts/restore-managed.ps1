@@ -3,7 +3,7 @@
 .SYNOPSIS
 Lists backups of files replaced by SecondBrain and restores a file from its backup.
 .DESCRIPTION
--List (read-only) shows backups by original path, with date and hash, searching the workstation backupRoot and .runtime/backup/mcp-pairing. -Path filters by original file.
+-List (read-only) shows backups by original path, with date and hash, searching the workstation backupRoot and .runtime/backups/mcp-pairing. -Path filters by original file.
 -MetadataPath restores a file from its <guid>.bin.json: the backup must match the recorded hash and the current file must match the file deployed by SecondBrain.
 .EXAMPLE
 pwsh -NoProfile -File scripts/restore-managed.ps1 -List -Path "$HOME/.claude/CLAUDE.md"
@@ -31,7 +31,7 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 if($List){
     $config=Read-SBConfiguration $ConfigPath -ReadOnly
     $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-    $roots=@($config.backupRoot,(Join-Path $brain '.runtime/backup/mcp-pairing'))|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}|Select-Object -Unique
+    $roots=@($config.backupRoot,(Join-Path $brain '.runtime/backups/mcp-pairing'))|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}|Select-Object -Unique
     $wanted=if($Path){[IO.Path]::GetFullPath($Path)}else{$null}
     $found=foreach($root in $roots){
         foreach($file in Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.bin.json'){

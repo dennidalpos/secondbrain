@@ -1,54 +1,43 @@
-# MEM05 — Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale
+# MEM05 — Create, update and archive projects, areas and resources of the central PARA
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain | **Esempio d'uso**: `sb prompt MEM05: archivia la risorsa conclusa res-guida`
+<role>
+You are the PARA steward: you create, update, archive and restore PARA entities only through the sanctioned script.
+</role>
 
-## Scopo
+<context>
+Use when work needs a new project or resource, an entity changes status (completed, cancelled, retired) or must be archived or restored. Never infer placement from the file system or move folders by hand.
+</context>
 
-Dare a ogni agente una regola unica su dove inserire, aggiornare e archiviare le entità PARA, senza dedurla dal filesystem né spostare cartelle a mano.
+<inputs>
+- entity type (project, area, resource), identifier (`^[a-z][a-z0-9-]{0,95}$`), title, objective, completion criteria for projects, linked areas, desired status;
+- the SecondBrain root with `para-index.json` and each entity's `para.json`.
+</inputs>
 
-## Quando usarlo
+<decisions>
+- entity type and identifier;
+- areas linked to a project;
+- archive now or only propose (`-SuggestArchive`).
+</decisions>
 
-Quando un lavoro richiede un nuovo progetto o una nuova risorsa, quando un'entità cambia stato (conclusa, annullata, ritirata) o quando va archiviata o ripristinata.
+<procedure>
+1. Layout: areas in `02-areas/products/<name>--<hash>` (one dossier per repository, created only by SYS03), projects in `01-projects/<id>`, resources in `03-resources/<id>`, archive in `04-archives/{areas,projects,resources}/<id>`. `PARA.md` and `para-index.json` are generated views.
+2. Read first: `scripts/para.ps1 -Check` and `-SuggestArchive`.
+3. Insert: `-NewProject -Id -Title -Areas -Objective -Acceptance` (existing active areas) or `-NewResource -Id -Title -Objective`. The identifier must be free.
+4. Update: `-SetStatus -EntityId -Status` (project `active|completed|cancelled`; area and resource `active|retired`); update `brief.md`, `context.md`, `memory.md` with the minimal-summary rule.
+5. Archive only completed, cancelled or retired entities, and areas with no active linked projects: `-Archive -EntityId`. Restore with `-Restore -EntityId`.
+6. After every write run `secondbrain.ps1 -Sync` and `-Check`, and `para.ps1 -Check`.
+</procedure>
 
-## Input
+<constraints>
+- Writes use the `-SessionId` of a write session.
+- Do not delete or overwrite entities, edit generated views or touch `.runtime/para-transaction.json`; an interrupted transaction is restored with `recover.ps1`.
+- An archived dossier is never reactivated implicitly.
+</constraints>
 
-Tipo di entità (progetto, area o risorsa), identificatore (`^[a-z][a-z0-9-]{0,95}$`), titolo, obiettivo, criteri di completamento per i progetti, Aree collegate e stato desiderato. Radice SecondBrain con `para-index.json` e `para.json` delle entità.
+<exit_criteria>
+- `para.ps1 -Check` and `secondbrain.ps1 -Check` are clean; the entity appears in `para-index.json` at the expected path; no leftover remains in the source folder.
+</exit_criteria>
 
-## Attività specifiche
-
-Dove sta ogni cosa:
-
-- **Area** (`02-areas/products/<nome>--<hash>`): un dossier per repository, creato solo da `sb attiva` (SYS03). Non crearlo né spostarlo a mano.
-- **Progetto** (`01-projects/<id>`): lavoro con obiettivo e criteri di completamento, legato a una o più Aree attive.
-- **Risorsa** (`03-resources/<id>`): conoscenza di riferimento non legata a un repository.
-- **Archivio** (`04-archives/{areas,projects,resources}/<id>`): destinazione delle entità concluse o ritirate. `PARA.md` e `para-index.json` sono viste generate: non modificarle.
-
-Comandi di `scripts/para.ps1` (scritture con `-SessionId` di una sessione Write; leggi prima con `-Check` e `-SuggestArchive`):
-
-1. **Inserire.** `-NewProject -Id -Title -Areas -Objective -Acceptance` (Aree attive esistenti, non repository) oppure `-NewResource -Id -Title -Objective`. L'identificatore deve essere libero. Il progetto nasce senza tracker: collega un tracker solo con riferimento valido (area e percorso) e verifica con `-Check`.
-2. **Aggiornare.** `-SetStatus -EntityId -Status`: progetto `active|completed|cancelled`, area e risorsa `active|retired`. Cambia solo `status` in `para.json`, dentro una transazione con backup. Per il resto aggiorna `brief.md`, `context.md` e `memory.md` con la regola di sintesi minima (MEM01).
-3. **Archiviare.** Solo entità `completed`, `cancelled` o `retired`, e Aree senza progetti attivi collegati: `-Archive -EntityId`. Il comando sposta la cartella in `04-archives/<categoria>/<id>` e aggiorna riferimenti e manifest tracker nella stessa transazione. Il dossier archiviato non si riattiva implicitamente.
-4. **Ripristinare.** `-Restore -EntityId` riporta l'entità attiva in `02-areas/products/<id>`, `01-projects/<id>` o `03-resources/<id>`: un'Area torna con il suo identificatore, non con il nome di cartella originale.
-5. **Dopo ogni scrittura.** Esegui `secondbrain.ps1 -Sync` e `-Check`; `para.ps1 -Check` conferma la coerenza di indice e metadati.
-
-Non cancellare né sovrascrivere entità esistenti, non toccare `.runtime/para-transaction.json`: una transazione interrotta si ripristina con `recover.ps1` e il manifest indicato.
-
-## Decisioni da raccogliere
-
-- tipo di entità e identificatore;
-- Aree collegate al progetto;
-- archiviare ora o solo proporre (`-SuggestArchive`).
-
-## Verifiche
-
-`para.ps1 -Check` e `secondbrain.ps1 -Check` senza problemi; l'entità compare in `para-index.json` con il percorso atteso; nessun file residuo nella cartella di origine dopo l'archiviazione.
-
-## Consegna
-
-Entità create, spostate o con stato cambiato (identificatore, percorso, stato prima e dopo), esito dei controlli ed eventuali manifest di recupero.
-
-## Prompt vicini
-
-- MEM06: Leggi memoria attiva, contesto e tracker del repository corrente.
-- SYS05: Compatta il dossier preservando originali, fatti e TOC.
-- MEM03: Chiudi la sessione: memorie, tracker, handoff e richiesta di commit e push.
+<output_format>
+Entities created, moved or changed (id, path, status before/after), check results, recovery manifests.
+</output_format>

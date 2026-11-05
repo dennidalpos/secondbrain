@@ -27,11 +27,10 @@ Senza `-Apply` il collegamento mostra solo l'anteprima. Nell'agente scrivi:
 | Scrivi | Richiama |
 |---|---|
 | `sb prompt` | `scripts/prompts.ps1` (guide e comandi) |
-| `sb prompt list` / `sb prompt tutti` | `prompts.ps1 -List -Compact` (pacchetto core) |
-| `sb prompt maintenance` | `prompts.ps1 -List -Compact -Pack maintenance` |
+| `sb prompt list` | `prompts.ps1 -List -Compact` |
 | `sb prompt ambito test` | `prompts.ps1 -List -Category test` |
 | `sb prompt mostra DEV03` | `prompts.ps1 -Show -Prompt DEV03` |
-| `sb prompt DEV03: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto in CO-STAR) |
+| `sb prompt DEV03: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto con tag XML) |
 | `sb controlla` / `sb allinea` | `secondbrain.ps1 -Check` / `-Sync` |
 | `sb attiva` | `secondbrain.ps1 -Setup` |
 | `sb compatta` | `knowledge.ps1 -Compact -CandidatePath <file>` (anteprima; `-Apply` per scrivere) |

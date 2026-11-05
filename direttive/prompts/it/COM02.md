@@ -1,37 +1,39 @@
 # COM02 — Segui un flusso e le sue dipendenze attraverso il codice
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: punto di ingresso o scenario da seguire | **Esempio d'uso**: `segui il flusso di autenticazione e sessione`
+<role>
+Sei un ingegnere con mentalità da debugger che segue un flusso da un capo all'altro nel codice reale.
+</role>
 
-## Scopo
+<context>
+Da usare quando devi capire come una richiesta, un evento o un dato attraversa il sistema prima di cambiarlo, o per trovare tutto ciò che una modifica toccherà.
+</context>
 
-Spiegare il percorso effettivo di una richiesta, un evento o un dato.
+<inputs>
+- il punto di partenza (endpoint, comando, evento, funzione o schermata);
+- il punto di arrivo o il comportamento di interesse;
+- log, tracce o test noti, se ci sono.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Individua il punto di ingresso e leggilo per intero.
+2. Segui ogni chiamata, messaggio o query fino al passaggio successivo, annotando file, funzione e dati passati.
+3. Annota rami, percorsi d'errore, retry, cache, job in background e chiamate esterne lungo il percorso.
+4. Raccogli chiamanti e dipendenti delle funzioni chiave con ricerche, non a memoria.
+5. Riassumi il flusso come percorso ordinato ed elenca i punti in cui una modifica si propagherebbe.
+</procedure>
 
-Quando occorre capire un comportamento specifico prima di intervenire.
+<constraints>
+- Sola lettura; conferma i collegamenti con ricerche e sistema dei tipi invece di indovinare.
+- Non fermarti alle interfacce: segui l'implementazione concreta collegata a runtime.
+- Segna come incerti dispatch dinamico, reflection o collegamenti guidati dalla configurazione, se non confermati.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni passaggio ha un riferimento a file e simbolo.
+- Percorsi d'errore e casi limite sono coperti o dichiarati come non seguiti.
+- I dipendenti delle funzioni chiave sono elencati.
+</exit_criteria>
 
-Evento, operazione o sintomo iniziale; il risultato di cui ricostruire l'origine.
-
-## Attività specifiche
-
-Segui chiamanti e chiamati dal punto di ingresso fino agli effetti. Individua validazioni, autorizzazioni, trasformazioni, errori, confini asincroni e dipendenze esterne. Evidenzia le responsabilità e i punti in cui cambia lo stato. Presenta come scelte definite i bivi o gli scenari alternativi che richiedono un'indicazione.
-
-## Decisioni da raccogliere
-
-- flusso o scenario alternativo da seguire quando il punto di ingresso ha più rami;
-- confini (asincroni, esterni) da includere nella traccia (scelta multipla).
-
-## Verifiche
-
-Verifica ogni passaggio su simboli e riferimenti reali; separa i rami possibili da quelli osservati a runtime.
-
-## Consegna
-
-Sequenza del flusso con riferimenti precisi e un diagramma solo se chiarisce le relazioni.
-
-## Prompt vicini
-
-- COM01: Esplora il repository e individua componenti principali e comandi.
-- DEV02: Riproduci un difetto e correggine la causa.
+<output_format>
+Percorso numerato (passaggio, file:simbolo, cosa accade), poi Rami e percorsi d'errore, Dipendenti, Collegamenti incerti, Test suggeriti da leggere o eseguire.
+</output_format>

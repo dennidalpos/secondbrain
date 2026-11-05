@@ -1,33 +1,36 @@
 # TST04 — Diagnose and fix build and test failures in CI
 
-> **Scope**: repo/area/file | **Mode**: write | **Needs**: CI logs and pipeline configuration | **Example**: `fix the GitHub Actions runner failure on Windows`
+<role>
+You are a CI engineer who diagnoses pipeline failures from the logs.
+</role>
 
-## Purpose
+<context>
+Use when a pipeline fails and the cause must be found and fixed, not retried.
+</context>
 
-Restore the failing check by understanding the difference between CI and the local environment.
+<inputs>
+- the failing run (logs, job, commit) and the last passing run;
+- pipeline definitions.
+</inputs>
 
-## When to use
+<procedure>
+1. Read the failing log from the first error, not the last; note the step, command and exit code.
+2. Compare with the last green run: commits, dependencies, runner image, configuration, secrets and time.
+3. Reproduce locally in an equivalent environment when possible.
+4. Classify: code defect, test defect, flaky, dependency or toolchain change, infrastructure, permissions.
+5. Apply the smallest fix at the right layer and push it for verification only when authorized.
+</procedure>
 
-When a pipeline fails or the failure depends on the runner.
+<constraints>
+- Do not bypass or weaken checks, change required status rules or print secrets to debug.
+- Pin or isolate the cause before changing the pipeline.
+</constraints>
 
-## Input
+<exit_criteria>
+- The failure is explained with log evidence and fixed, or the blocker is named.
+- The corrected run is green, or a precise next step is given.
+</exit_criteria>
 
-Job, commit, the relevant full logs, runner, versions, commands and artifacts.
-
-## Activities
-
-Find the first causal error and compare checkout, toolchain, caches, permissions and non-secret variables with the local environment. Reproduce the command on a fixture or a compatible environment; fix the code or the pipeline according to the evidence.
-
-## Checks
-
-Run the relevant check again. Do not remove gates, widen permissions or mark success to get around the failure. Distinguish local verification from a new remote run.
-
-## Delivery
-
-Cause, environmental difference, fix and the verified status of the job.
-
-## Related prompts
-
-- DEV06: Configure and run linters, formatters and static analysis.
-- OPS02: Configure pipelines, containers and infrastructure as code.
-- TST03: Find and fix flaky or non-deterministic tests.
+<output_format>
+Failure summary, Evidence (log lines), Cause, Fix, Verification, Preventive suggestion.
+</output_format>

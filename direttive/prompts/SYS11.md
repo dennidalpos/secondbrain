@@ -1,50 +1,42 @@
-# SYS11 — Aggiungi, modifica o rimuovi un prompt del catalogo centralizzato
+# SYS11 — Add, change or remove a prompt of the centralized catalog
 
-> **Scope**: central | **Modalità**: scrittura | **Cosa serve**: catalogo valido, area di destinazione e sessione di scrittura | **Esempio d'uso**: `sb prompt SYS11: aggiungi un prompt al catalogo nell'area test`
+<role>
+You are the catalog maintainer for the prompt library: you add, change or remove prompts so that the catalog, the cards and the generated indexes stay consistent.
+</role>
 
-## Scopo
+<context>
+Use to add, change or remove a prompt of the single catalog. Codes are stable identifiers and are never reused; there are no aliases or deprecation lists.
+</context>
 
-Aggiungere, modificare o ritirare un prompt del catalogo centralizzato mantenendo ID immutabili, alias risolvibili, schede uniformi, indice generato e riferimenti coerenti.
+<inputs>
+- the prompt's purpose, category, mode (read, write, verify), target (repository or central), scope and examples;
+- the nearest existing prompts (to avoid duplicates).
+</inputs>
 
-## Quando usarlo
+<decisions>
+- add a new prompt, change an existing one, or remove one;
+- the category and related prompts.
+</decisions>
 
-Quando un workflow manca, va corretto o non serve più. Non per cambiare il testo delle direttive comuni (SYS04 e approvazione esplicita) né per le schede di un solo repository.
+<procedure>
+1. Check that no existing prompt already covers the need; prefer improving a prompt to adding a near-duplicate.
+2. Add: pick the next free code in the category prefix, generate an ID with `New-SBWorkflowPromptId`, and add the entry to `direttive/prompts/catalog.json` (summary of at most 82 characters, requires, example, scope, mode, target, related, Italian `i18n.it`).
+3. Write the English card `direttive/prompts/<CODE>.md` and the Italian one `direttive/prompts/it/<CODE>.md`: title line equal to the catalog summary, then the tags `role`, `context`, `inputs`, optional `decisions`, `procedure` (numbered), `constraints`, `exit_criteria`, `output_format`, in that order.
+4. Change: edit the card and, if the summary changed, the catalog and both titles.
+5. Remove: delete the catalog entry, both cards and every reference in other prompts' `related`; the code is not reused.
+6. Run `scripts/build-prompts.ps1` to validate and regenerate the indexes, then `scripts/build-prompts.ps1 -Check` and the quick test suite.
+</procedure>
 
-## Input
+<constraints>
+- Write instructions in positive terms with verifiable exit criteria; keep a card to about one page.
+- Do not edit the generated `README*.md` by hand.
+- Update docs that count or list prompts.
+</constraints>
 
-Operazione richiesta (aggiungi, modifica, rimuovi), codice o ID del prompt, area, modalità, scope, testo della scheda e prompt collegati. Catalogo `direttive/prompts/catalog.json`, schede `direttive/prompts/*.md`, schema `config/prompt-catalog.schema.json`.
+<exit_criteria>
+- The build validates catalog and cards; `-Check` reports no drift; the quick suite passes.
+</exit_criteria>
 
-## Attività specifiche
-
-Leggi catalogo e schede senza modificarli e individua l'operazione. Lavora in una sessione di scrittura (`scripts/access.ps1 -Start -Mode Write`, `-End` nello stesso script).
-
-**Aggiungi.** Scegli il codice libero della sua area (`^[A-Z]{2,4}[0-9]{2}$`, numerazione successiva, nessun riuso di codici ritirati), genera un ID `pmt-` con 8 esadecimali non presente tra ID, alias e `deprecations`, scrivi la scheda `CODICE.md` con intestazione standardizzata e tutte le sezioni (Scopo, Quando usarlo, Input, Attività specifiche, Verifiche, Consegna, Prompt vicini; «Decisioni da raccogliere» se il prompt chiede scelte) e aggiungi la voce a `catalog.json` con `file`, `summary` (codice e titolo entro 88 caratteri), `example`, `requires`, `references`, `related`. Aggiungi anche la traduzione: la scheda in `direttive/prompts/en/CODICE.md` (per un prompt core in `it/`) e la voce `i18n` della lingua non d'origine con `summary`, `requires` ed `example` tradotti (stessi limiti); titolo, intestazione e «Prompt vicini» della traduzione ripetono i valori `i18n` e, per i vicini, il loro sommario nella stessa lingua. Titolo, intestazione (scope, modalità, «Cosa serve», esempio) e voci di «Prompt vicini» della scheda ripetono parola per parola `summary`, `scope`, `mode`, `requires`, `example` e il `summary` dei prompt in `related` (il controllo li rifiuta se divergono). Ogni prompt collegato deve comparire con il suo codice nella scheda, in entrambe le direzioni.
-
-**Modifica.** L'ID e gli alias esistenti non cambiano mai. Un cambio di corpo, titolo, modalità o scope aggiorna scheda e voce insieme. Se il codice cambia, il vecchio codice resta come alias oppure in `deprecations` verso lo stesso ID; i collegamenti `related` usano ID e restano validi.
-
-**Rimuovi.** Per impostazione predefinita ritira, non cancellare (ritiro morbido): imposta `status: deprecated` con `supersededBy` (un ID attivo diverso) e lascia voce, scheda e ID come storico. Il codice resta nel catalogo e continua a risolvere al sostituto con avviso: non registrarlo in `deprecations`, perché un codice ancora presente occupa già il nome e il validatore rifiuta il conflitto. L'eliminazione definitiva (voce e scheda) o la rinomina del codice avviene solo su richiesta esplicita: togli l'ID dai `related` delle altre schede, aggiungi in `deprecations` il vecchio codice verso il sostituto (ora non più nel catalogo) e non riusare mai l'ID. Prima verifica dove il codice compare: `README`, guide, test, MCP, esempi e dossier. Un prompt non può essere ritirato né eliminato senza sostituto.
-
-Dopo ogni operazione rigenera l'indice con `scripts/build-prompts.ps1` (non modificare `direttive/prompts/README.md` a mano), aggiorna i conteggi dichiarati (README, guide, test, descrizione MCP) e riesegui Sync e Check con la sessione di scrittura. Non modificare il testo delle direttive comuni: ogni nuova regola comune richiede proposta concreta e approvazione esplicita.
-
-## Decisioni da raccogliere
-
-- operazione: aggiungi, modifica, rimuovi (anche più operazioni in un lotto: scelta multipla);
-- area e codice proposto tra i primi codici liberi;
-- modalità (lettura, scrittura, verifica) e scope (repo, area, file, central) del prompt;
-- prompt collegati da documentare in entrambe le direzioni;
-- ritiro (predefinito) o eliminazione definitiva, e sostituto quando più prompt attivi sono compatibili;
-- conferma finale del perimetro prima di scrivere.
-
-## Verifiche
-
-`scripts/build-prompts.ps1 -Check` deve uscire 0: ID unici, nessun conflitto tra ID, codici e alias, categoria esistente, traduzione obbligatoria nell'altra lingua per ogni prompt attivo (voce `i18n` e scheda tradotta), `related` validi e documentati, nessun segnaposto irrisolto, sezioni presenti e non vuote. Controlla con `scripts/prompts.ps1 -Show -Prompt <codice>` che la scheda uniforme si componga, che un alias ritirato risolva al sostituto con avviso e che `scripts/test-secondbrain-workflows.ps1` resti verde. Verifica che nessun conteggio dichiarato sia rimasto vecchio.
-
-## Consegna
-
-Voce di catalogo e scheda nuove o modificate, ID e alias coinvolti, indice rigenerato, riferimenti aggiornati, esito di Check e test, e l'elenco di ciò che non è stato toccato (direttive comuni, schede non pertinenti). Commit e push solo su richiesta esplicita.
-
-## Prompt vicini
-
-- SYS04: Controlla o allinea gli asset già gestiti della postazione.
-- MEM01: Allinea istruzioni locali, contesto, memoria e tracker.
-- GOV02: Analizza le dipendenze di terze parti e compila il registro CREDITS.
+<output_format>
+Files changed, catalog diff, validation output, docs updated.
+</output_format>

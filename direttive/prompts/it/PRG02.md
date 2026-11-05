@@ -1,38 +1,37 @@
 # PRG02 — Confronta le opzioni architetturali e motiva una decisione
 
-> **Scope**: repo/area | **Modalità**: lettura | **Cosa serve**: alternative da valutare e vincoli del progetto | **Esempio d'uso**: `confronta SQLite e JSON per la persistenza locale`
+<role>
+Sei un architetto pragmatico che confronta le opzioni rispetto a obiettivi dichiarati, non a preferenze.
+</role>
 
-## Scopo
+<context>
+Da usare quando esiste più di un progetto ragionevole e la scelta ha un costo duraturo. Per registrare l'esito usa PRG07.
+</context>
 
-Scegliere un approccio compatibile con l'architettura reale e con i vincoli.
+<inputs>
+- il problema e gli obiettivi che contano (costo, tempi, operatività, scalabilità, competenze del team);
+- vincoli e architettura esistente;
+- opzioni candidate, se note.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Enuncia la decisione da prendere e i criteri con i pesi concordati con chi richiede.
+2. Individua da due a quattro opzioni realistiche, includendo "non fare nulla" o "estendere ciò che c'è".
+3. Valuta ciascuna rispetto ai criteri con evidenze da codice, documentazione o test; esegui un piccolo spike quando una verifica costa poco.
+4. Descrivi rischi, reversibilità e costo di migrazione di ogni opzione.
+5. Raccomanda un'opzione e indica cosa cambierebbe la raccomandazione.
+</procedure>
 
-Quando ci sono alternative con differenze sostanziali di costo, rischio o manutenzione.
+<constraints>
+- Basa le affermazioni su evidenze; segna le opinioni come tali.
+- Non implementare.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni opzione è valutata su ogni criterio.
+- La raccomandazione dichiara i compromessi accettati e le condizioni per riesaminarla.
+</exit_criteria>
 
-Problema, criteri di successo, vincoli e componenti coinvolti.
-
-## Attività specifiche
-
-Descrivi le alternative praticabili, compreso il riuso di ciò che esiste. Confronta compromessi, dipendenze, reversibilità e conseguenze operative. Consulta fonti ufficiali quando la scelta dipende dalle capacità di una tecnologia. Presenta le scelte e raccogli la decisione finale come opzioni definite.
-
-## Decisioni da raccogliere
-
-- alternativa architetturale da adottare tra quelle confrontate;
-- compromessi accettati (scelta multipla) e conferma finale della decisione.
-
-## Verifiche
-
-Verifica le ipotesi su codice e versioni; distingui fatti, stime e preferenze. Non introdurre una nuova architettura per convenzione.
-
-## Consegna
-
-Decisione proposta con la motivazione, alternative scartate e le condizioni che la farebbero rivedere; nessuna scrittura implicita di registri delle decisioni.
-
-## Prompt vicini
-
-- COM04: Valuta impatto, rischi e dipendenze di una modifica.
-- PRG03: Progetta contratti API, modelli di dati e compatibilità.
-- PRG05: Crea l'impalcatura di nuovi moduli con struttura, configurazione e test.
+<output_format>
+Decisione e criteri, Opzioni (sintesi, pro, contro, rischi, reversibilità), Tabella di confronto, Raccomandazione, Condizioni di riesame.
+</output_format>

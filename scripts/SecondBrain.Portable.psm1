@@ -87,6 +87,8 @@ Add-SBMessages @{
 
 # SECONDBRAIN_HOME target: 'User' in production; tests redirect it to 'Process' to preserve the user's environment.
 $script:SBEnvironmentScope='User'
+# Thin pointer files for agents that do not read AGENTS.md (Claude Code, Gemini CLI); the managed block only imports AGENTS.md.
+$script:SBRepositoryPointerFiles=@('CLAUDE.md','GEMINI.md')
 
 function New-SBPortableConfiguration([string]$BrainRoot,[string]$WorkstationId=(Get-SBHostId)) {
     $root=Get-SBLocalRoot $BrainRoot $WorkstationId
@@ -127,6 +129,12 @@ function New-SBPortableRepositoryBody($Revision,[string]$BrainRoot,[string]$Doss
     }
     if($body -match '(?im)<!--\s*secondbrain:|(?<![A-Za-z0-9+.-])[A-Z]:[\\/]|(?<![\w/])/(?:Users|home)/|\{\{'){throw (New-SBError 'portable.directives.nonportable')}
     @($stamp)+@($body.Trim()) -join "`n"
+}
+# AGENTS.md is the single source. Claude Code reads CLAUDE.md and Gemini CLI GEMINI.md, not AGENTS.md: thin managed pointers import it.
+function Set-SBRepositoryPointers([string]$Checkout,[hashtable]$State,[bool]$Check,[string]$BackupRoot) {
+    foreach($pointer in $script:SBRepositoryPointerFiles){
+        @{file=$pointer;result=(Set-SBManagedContent (Join-Path $Checkout $pointer) '@AGENTS.md' 'pointer' $State $Check $BackupRoot)}
+    }
 }
 function Invoke-SBHostActivation {
     param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment)
@@ -738,6 +746,11 @@ function Invoke-SBPortableSync {
                     if($result -eq 'conflict'){$issues+=@{kind='directive-conflict';repository=$binding.identity}}
                     elseif($result -eq 'pending'){$issues+=@{kind='directive-pending';repository=$binding.identity}}
                     elseif($result -eq 'updated'){$changes+='directive:'+ $binding.identity}
+                    foreach($pointer in @(Set-SBRepositoryPointers $binding.path $state.managed $Check $Config.backupRoot)){
+                        if($pointer.result -eq 'conflict'){$issues+=@{kind='pointer-conflict';repository=$binding.identity;file=$pointer.file}}
+                        elseif($pointer.result -eq 'pending'){$issues+=@{kind='pointer-pending';repository=$binding.identity;file=$pointer.file}}
+                        elseif($pointer.result -eq 'updated'){$changes+='pointer:'+$pointer.file+':'+$binding.identity}
+                    }
                 }
             }catch{if(!$Check -and (Test-SBWriteDeniedError $_)){throw};$issues+=@{kind='repository-unverified';repository=$binding.identity;reason=$_.Exception.Message}}
         }
@@ -799,7 +812,7 @@ function Invoke-SBPortableSync {
         }
         foreach($drift in @(Get-SBWorkflowDrift $Config.brainRoot)){$issues+=@{kind='prompt-index-drift';path=$drift.path}}
         }
-        $fileIssueKinds=@('directive-pending','directive-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','agent-view-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
+        $fileIssueKinds=@('directive-pending','directive-conflict','pointer-pending','pointer-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','agent-view-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
         # Reads do not block writers: an active writer or pending transaction makes the snapshot potentially intermediate.
@@ -813,6 +826,7 @@ function Invoke-SBPortableSync {
 Export-ModuleMember -Function @(
     'New-SBPortableConfiguration',
     'Get-SBPortableGlobal',
+    'Set-SBRepositoryPointers',
     'Invoke-SBHostActivation',
     'Get-SBSetupPaths',
     'Assert-SBIDEInstructionsPath',

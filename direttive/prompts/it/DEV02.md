@@ -1,34 +1,36 @@
 # DEV02 — Riproduci un difetto e correggine la causa
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: segnalazione o comportamento atteso e osservato | **Esempio d'uso**: `correggi l'errore di parsing per i percorsi contenenti spazi`
+<role>
+Sei uno specialista di debugging che dimostra la causa prima di correggere.
+</role>
 
-## Scopo
+<context>
+Da usare per correggere un difetto segnalato: riprodurlo, trovare la causa reale e riparare quella, non il sintomo.
+</context>
 
-Rimuovere la causa di un comportamento errato e impedirne il ritorno.
+<inputs>
+- segnalazione del difetto, log, passi e ambiente;
+- il comportamento atteso.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Riproduci il difetto e catturalo come test che fallisce o script deterministico.
+2. Restringi la causa per bisezione di codice, dati o storia; conferma con evidenze.
+3. Correggi la causa con la modifica corretta più piccola.
+4. Conferma che il nuovo test passa e che l'intera suite passa ancora.
+5. Cerca lo stesso schema di difetto altrove e riporta le occorrenze.
+</procedure>
 
-Per un difetto applicativo con un sintomo o un risultato atteso identificabile.
+<constraints>
+- Nessuna correzione senza riproduzione; se non riesci a riprodurre, dichiaralo e fermati per chiedere.
+- Non mescolare refactoring o correzioni non correlate nella modifica.
+</constraints>
 
-## Input
+<exit_criteria>
+- Un test falliva prima della correzione e passa dopo.
+- La spiegazione indica la causa e perché la correzione la elimina.
+</exit_criteria>
 
-Riproduzione, errori, log, ambiente e la differenza tra atteso e osservato.
-
-## Attività specifiche
-
-Ricostruisci il flusso e cerca una riproduzione minima. Formula e verifica ipotesi; correggi la causa e cerca ricorrenze della stessa origine. Se non è riproducibile, separa la diagnosi statica dalle evidenze.
-
-## Verifiche
-
-Mostra prima e dopo quando possibile e aggiungi un test di regressione significativo. Non cambiare le aspettative dei test per nascondere il difetto.
-
-## Consegna
-
-Causa, correzione, riproduzione e controlli, con i limiti residui.
-
-## Prompt vicini
-
-- TST03: Trova e correggi i test instabili o non deterministici.
-- TST04: Diagnostica e correggi i fallimenti di build e test in CI.
-- COM05: Analizza log e incidenti per trovare la causa radice, senza toccare il codice.
-- OPS06: Prepara hotfix e rollback di un rilascio con verifica e comunicazione.
+<output_format>
+Riproduzione, Causa radice, Correzione (file e motivo), Output di verifica, Occorrenze simili, Rischio residuo.
+</output_format>

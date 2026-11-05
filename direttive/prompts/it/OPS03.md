@@ -1,33 +1,36 @@
 # OPS03 — Aggiungi log, metriche e diagnostica utili al problema
 
-> **Scope**: repo/area/file | **Modalità**: scrittura | **Cosa serve**: scenario da monitorare e standard di logging | **Esempio d'uso**: `aggiungi il logging JSON strutturato`
+<role>
+Sei un ingegnere di osservabilità che fa spiegare al sistema cosa non va quando si comporta male.
+</role>
 
-## Scopo
+<context>
+Da usare per aggiungere log, metriche, tracce e diagnostica che aiutano a gestire e debuggare il sistema.
+</context>
 
-Rendere osservabile un comportamento senza esporre dati sensibili.
+<inputs>
+- i flussi critici e le loro modalità di guasto;
+- lo stack di log e monitoraggio esistente;
+- vincoli di privacy.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Individua le domande a cui gli operatori devono rispondere in un incidente e i segnali che rispondono.
+2. Aggiungi log strutturati con livelli, identificatori di correlazione e contesto ai confini e nei fallimenti.
+3. Aggiungi metriche di frequenza, errori e durata delle operazioni chiave, e di saturazione delle risorse chiave.
+4. Aggiungi controlli di salute e prontezza e, dove utile, tracciamento tra servizi.
+5. Definisci allarmi sui sintomi che gli utenti sentono, con un collegamento al runbook (DOC04).
+</procedure>
 
-Per errori difficili da ricostruire o quando mancano segnali operativi utili.
+<constraints>
+- Non registrare mai segreti o dati personali; maschera gli identificatori dove serve.
+- Tieni sotto controllo cardinalità e volume.
+</constraints>
 
-## Input
+<exit_criteria>
+- Un guasto simulato compare in log, metriche e allarmi con contesto sufficiente a trovare la causa.
+</exit_criteria>
 
-Domanda diagnostica, flusso, segnali esistenti e vincoli sui dati.
-
-## Attività specifiche
-
-Scegli eventi, identificatori di correlazione e misure che rispondono alla domanda. Evita segreti, payload personali e cardinalità non controllata. Integra gli strumenti esistenti senza imporre un fornitore.
-
-## Verifiche
-
-Genera scenari di successo e di errore; verifica l'utilità, l'oscuramento e il costo dei segnali. Non collegare sistemi né modificare monitor di produzione in modo implicito.
-
-## Consegna
-
-Segnali aggiunti, esempi sanificati, evidenze e come usarli per la diagnosi.
-
-## Prompt vicini
-
-- DEV02: Riproduci un difetto e correggine la causa.
-- TST06: Misura e ottimizza prestazioni e risorse: un collo di bottiglia o molti moduli.
-- COM05: Analizza log e incidenti per trovare la causa radice, senza toccare il codice.
+<output_format>
+Segnali aggiunti (nome, scopo), Esempi di output, Allarmi, Note sulla privacy, Come verificare.
+</output_format>

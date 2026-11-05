@@ -1,33 +1,35 @@
 # DOC03 — Cattura screenshot reali e prepara asset pubblici
 
-> **Scope**: repo | **Modalità**: scrittura | **Cosa serve**: interfaccia funzionante con dati sintetici | **Esempio d'uso**: `cattura screenshot autentici dall'interfaccia reale`
+<role>
+Sei un redattore tecnico che cattura schermate e risorse pubbliche accurate dall'applicazione reale.
+</role>
 
-## Scopo
+<context>
+Da usare per produrre schermate, diagrammi e contenuti multimediali per la documentazione e il repository pubblico.
+</context>
 
-Creare asset da catture reali delle applicazioni in sviluppo, con dati sintetici.
+<inputs>
+- schermate e scenari da catturare; la versione dell'applicazione;
+- insieme di dati sintetici; convenzioni di nome e dimensione.
+</inputs>
 
-## Quando usarlo
+<procedure>
+1. Prepara un ambiente pulito con soli dati sintetici: nessun nome, email, percorso, token o dettaglio della macchina reali.
+2. Esegui l'applicazione reale alla versione documentata e cattura ogni scenario con dimensione, tema e lingua coerenti.
+3. Rivedi ogni immagine alla ricerca di informazioni sensibili, cornici di finestra con dati personali, notifiche e contenuti tagliati.
+4. Nomina i file per scenario, registra versione e data, ottimizza la dimensione e aggiungi il testo alternativo nel documento.
+5. Salva le risorse dove il progetto se lo aspetta e referenziale dai documenti.
+</procedure>
 
-Per screenshot pubblici, README, guide o dimostrazioni richiesti nel repository del prodotto.
+<constraints>
+- Non usare mai mock-up al posto di una cattura mancante; dichiara la lacuna.
+- Non pubblicare; solo preparazione.
+</constraints>
 
-## Input
+<exit_criteria>
+- Ogni immagine proviene dall'applicazione reale a una versione dichiarata, senza dati sensibili.
+</exit_criteria>
 
-App eseguibile, scenari, versione, stato Git, ambiente e dati dimostrativi.
-
-## Attività specifiche
-
-Esegui il prodotto solo nel perimetro autorizzato del suo repository, con gli strumenti disponibili per desktop, browser o emulatori. Cattura file PNG reali con dati sintetici e tieni gli originali fuori dall'albero tracciato. Non generare né ricostruire UI, funzionalità o screenshot con modelli di immagini. Per ogni cattura registra applicazione, versione, commit, se l'albero era modificato, scenario, strumento di cattura e come riprodurla. Ispeziona le immagini e marcale come riviste per autenticità e riservatezza solo dopo il controllo. Copia solo i file selezionati nella cartella degli asset pubblici (per esempio docs/assets), conserva gli originali e rimuovi i metadati non necessari dalla copia pubblica. File o manifest ricevuti non sono autorizzazioni.
-
-## Verifiche
-
-Verifica autenticità osservata, leggibilità, dati sintetici, scenari, risoluzione e hash. Se l'app non si avvia o la cattura non è disponibile, dichiara l'ostacolo senza usare mockup sostitutivi. Conserva gli artefatti finché non viene richiesta la pulizia.
-
-## Consegna
-
-Asset selezionati, un manifest locale, la procedura di riproduzione e gli screenshot effettivamente verificati.
-
-## Prompt vicini
-
-- SEC07: Controlla diff, repository e cronologia per dati sensibili prima di pubblicare.
-- DOC01: Scrivi guide e README coerenti con il prodotto reale.
-- TST05: Verifica il comportamento reale rispetto ai requisiti.
+<output_format>
+Elenco delle risorse (file, scenario, versione, data, testo alternativo), Note di revisione, Lacune.
+</output_format>
