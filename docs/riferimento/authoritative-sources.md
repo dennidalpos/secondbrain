@@ -1,50 +1,44 @@
-# Fonti autorevoli
+# Authoritative sources
 
-Il registro e una Risorsa PARA con identita `resource-authoritative-sources`. Risolvere il percorso dall'indice PARA e verificare `para.json`; il percorso iniziale e `03-resources/authoritative-sources`. Schede e versioni sono autorevoli, `catalog.json` e `README.md` sono viste generate.
+[Retained Italian source; use this English page for current behavior](authoritative-sources.it.md)
 
-## Dati, versioni e applicabilita
+Resolve the resource-authoritative-sources identity through PARA and validate para.json. Source cards and version manifests are authoritative; catalog.json and README are generated views. Folder names alone do not establish identity.
 
-Le schede rispettano `config/source.schema.json`. Ogni fonte ha identita, classificazione, ente, giurisdizione, lingua, diritti, endpoint HTTPS registrati, relazioni e decorrenze. Gli originali conservano i byte acquisiti e gli hash SHA-256; ciascuna versione ha manifest, trascrizione e diagnostica. `acceptedVersion` richiede una versione verificata con `review.json`: revisore, data, fingerprint, hash della trascrizione e riscontri su struttura, numeri/tabelle e passaggi citati. La verifica riguarda la trascrizione, non la conformita dei prodotti o la vigenza completa del documento.
+## Source versions and applicability
 
-Per i PDF la conversione usa MarkItDown e una passata locale pdfplumber che conserva pagine e posizioni delle tabelle in blocchi di testo. Il PDF nativo rimane il riferimento per grafici, impaginazione e immagini. Le pagine di scansione non riconosciute vengono segnalate. HTML, DOCX, testo, CSV e JSON mantengono la propria diagnostica; i valori numerici dei dataset non vengono convertiti in floating point.
+Cards follow source.schema.json and identify issuer, jurisdiction, language, rights, registered HTTPS endpoints, relationships and effective dates. Original bytes retain SHA-256 hashes; every version has a manifest, transcription and diagnostics.
 
-Le schede `authoritative-sources.json` dei dossier rispettano `config/source-applicability.schema.json`: applicabilita motivata e attuazione hanno stati distinti. Una citazione lessicale non prova applicabilita o comportamento. Il censimento conserva percorsi, righe, hash e copertura; esclude segreti, dipendenze, storico e snapshot. Dossier archiviati e checkout esclusi restano preservati.
+acceptedVersion requires a verified review.json with reviewer/date, fingerprint, transcription hash and checks of structure, tables/numbers and cited passages. This qualifies transcription, not product compliance or complete current legal validity.
 
-I profili versionati del registro sono consultivi. Le prescrizioni comuni seguono proposta, approvazione dei testi concreti, registrazione degli hash, Sync e SYS01.
+Dossier authoritative-sources.json follows source-applicability.schema.json. Applicability and implementation have separate states; a lexical citation proves neither. Inventories preserve locations/hashes/coverage and exclude secrets, dependencies, history and snapshots.
 
-## CLI
+Registry profiles are advisory. New common instructions still require concrete text approval, hashes, Sync and SYS01.
 
-Comandi dalla radice SecondBrain, PowerShell 7.5+:
+## Commands and writes
 
-```powershell
-$cfg = '.runtime/hosts/<id>/workstation.json'
-./scripts/sources.ps1 -Check -ConfigPath $cfg
-./scripts/sources.ps1 -Probe -ConfigPath $cfg
-./scripts/sources.ps1 -Probe -SaveReport -ConfigPath $cfg
-./scripts/sources.ps1 -Collect -SourceId nist-ssdf -ConfigPath $cfg -SessionId $sessionId
-./scripts/sources.ps1 -BuildIndex -ConfigPath $cfg -SessionId $sessionId
-```
+~~~powershell
+pwsh -NoProfile -File scripts/sources.ps1 -Check
+pwsh -NoProfile -File scripts/sources.ps1 -Probe
+~~~
 
-Check e Probe senza SaveReport non scrivono; solo Probe accede alla rete. Collect conserva una candidata e non accetta versioni o direttive. Una riesecuzione con gli stessi originali non crea altre versioni; una directory di versione interrotta viene preservata e richiede revisione. Riprendere una conversione candidata producendo un nuovo file e aggiornando il manifest con backup e precondizioni hash; preservare originali e precedenti trascrizioni come alternative con hash. Non aggiornare a mano hash per nascondere modifiche sconosciute.
+Run from the brain checkout. Check is local; Probe accesses the network and does not save unless SaveReport is requested. Collect stores a candidate, not an accepted version or directive. BuildIndex regenerates views. Writing operations require the authorized session.
 
-Scritture con sessione Write e operation lock, senza forzature; Start/End nello stesso script con try/finally. Backup nel backupRoot. Il Probe rilascia il lock durante la rete e vincola il rapporto agli hash delle schede lette. Una scheda cambiata invalida la freschezza del relativo rapporto.
+Repeated identical originals do not create another version. Preserve interrupted directories. Resume conversion into a new file with manifest preconditions and verified backups; retain originals and alternative transcriptions by hash.
 
-Exit code: 0 regolare; 1 variazioni o revisioni pendenti; 2 errore o copertura incompleta; 3 contesa. Il Check generale comprende i riscontri locali quando la Risorsa e presente. Gli impedimenti dichiarati restano segnalazioni: non vengono trasformati in controlli superati.
+Probe releases coordination while networking and binds the report to source-card hashes. Changing a card invalidates freshness. Exit codes: 0 regular, 1 changes/reviews pending, 2 error/incomplete coverage, 3 contention.
 
-## Convertitore locale
+## Conversion
 
-Python 3.13; ambiente dedicato nel runtime della postazione, sottocartella `sources/python`. Installare dal lock `scripts/source-requirements.lock.txt`; `source-requirements.txt` documenta la dipendenza diretta `markitdown[pdf,docx]==0.1.9`. Nessuna dipendenza viene introdotta nelle build dei prodotti.
+The dedicated runtime Python environment is installed from source-requirements.lock.txt; it is not a product-build dependency. Local streams are converted with plugins/cloud services disabled.
 
-Il convertitore riceve file locali tramite stream, con plugin e servizi cloud disabilitati. Limite download 50 MiB, timeout 30 secondi, massimo cinque redirect con host registrati e indirizzi pubblici. Nessuna autenticazione o aggiramento di blocchi; endpoint non verificabili e file incompatibili richiedono un esito esplicito.
+PDF conversion combines MarkItDown with pdfplumber page/table diagnostics. The original PDF remains authoritative for layout/graphics/images; unsupported scans are reported. Other supported formats retain their own diagnostics. Dataset numbers are not silently converted to floating point.
 
-## Pianificazione
+Downloads are limited to 50 MiB, 30 seconds and five redirects through registered hosts with public addresses. Authentication bypass is not attempted. Unavailable endpoints and unsupported formats receive explicit outcomes.
 
-Non esiste alcun task pianificato: il Probe (rete) e la raccolta sono comandi espliciti, da lanciare su richiesta con `sources.ps1 -Probe -SaveReport`. L'esecuzione non modifica corpus, direttive, tracker o schede dei prodotti.
+## Reports and verification
 
-Rapporti in `runtimeRoot/sources/reports`; ultimo esito in `runtimeRoot/sources/latest.json`. Conservazione 90 giorni; Check segnala rapporti assenti, incompatibili con le schede o piu vecchi di 14 giorni, variazioni e copertura incompleta. La consultazione dell'archivio funziona offline. Le segnalazioni si consultano nel rapporto e nel Check, senza invii esterni.
+Probe and collection are explicit; no source-monitor schedule is installed. Reports live under runtimeRoot/sources/reports, with latest.json as a view. Check flags missing/incompatible results, results older than 14 days, changes and incomplete coverage. Retention remains subject to authorized cleanup.
 
-## Verifiche
+Offline consultation is supported. test-secondbrain-sources.ps1 covers fixtures; PythonPath adds real converter checks. Stored sources and fixture results do not certify general regulatory compliance.
 
-`test-secondbrain-sources.ps1` e incluso nella suite principale; con `-PythonPath` esegue anche le prove reali del convertitore. Nessuna prova di pianificazione: lo scheduler è stato ritirato.
-
-Fonti tecniche: [MarkItDown](https://github.com/microsoft/markitdown), [PyPI](https://pypi.org/project/markitdown/), [HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient), [Task Scheduler](https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/new-scheduledtasksettingsset?view=windowsserver2025-ps).
+See [CLI](../../scripts/sources.ps1), [schema](../../config/source.schema.json) and [MarkItDown](https://github.com/microsoft/markitdown).

@@ -1,98 +1,72 @@
-# Guida unica
+# Installation and operations guide
 
-Installazione, uso con e senza IDE, variabili, concorrenza e casi limite in una pagina. Ogni comando qui sotto è quello reale degli script; i dettagli sono nelle [guide](../README.md#guides) e nel [riferimento](riferimento/operations.md).
+[Retained Italian source; use this English page for current behavior](guida.it.md)
 
-## Installa e attiva
+This guide connects installation, everyday commands, environment settings and recovery. Start with [getting started](inizia.md); use the [technical reference](riferimento/operations.md) for detailed procedures.
 
-```powershell
-git clone https://github.com/dennidalpos/SecondBrain.git C:/Progetti/SecondBrain
-cd C:/Progetti/SecondBrain
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Check                 # sola lettura; prima dell'attivazione esce con 2
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive    # scegli progetti e agenti, poi CONFERMO e APPLICA
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync                  # distribuisce le regole approvate
-```
+## Install and activate
 
-Servono Windows, Git 2.42+ e PowerShell 7.5+. Il preflight rifiuta Git assente, non eseguibile, precedente a 2.42 o con versione non riconoscibile. Il passo `-Setup` non scrive la variabile utente `SECONDBRAIN_HOME` se non lo confermi (vedi [Variabili](#variabili)).
+Use Windows, PowerShell 7.5+ and Git 2.42+.
 
-## Agenti (IDE) e comandi `sb`
+~~~powershell
+git clone https://github.com/dennidalpos/secondbrain.git C:/Projects/SecondBrain
+cd C:/Projects/SecondBrain
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Projects -Interactive
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
+~~~
 
-| Strumento | Regole | Collegamento MCP (opzionale) |
-|---|---|---|
-| Claude per Windows | `~/.claude/CLAUDE.md` | `scripts/mcp-server.ps1 -Pair -Target claude` |
-| ChatGPT Codex per Windows | `~/.codex/AGENTS.md` | `-Target codex` |
-| Antigravity per Windows | `~/.gemini/GEMINI.md` | `-Target antigravity` |
+Before activation, Check exits with 2. Setup presents choices and confirmation before applying workstation configuration. Sync distributes approved managed instructions immediately; preserve conflicts rather than forcing them. Check and prompt lookups may process already-authorized pending dossier writes.
 
-Senza `-Apply` il collegamento mostra solo l'anteprima. Nell'agente scrivi:
+## Connect an agent or use the CLI
 
-| Scrivi | Richiama |
+~~~powershell
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
+pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
+~~~
+
+MCP is optional. Preview before Apply, then test a new client session. File alignment, account/profile declaration, stdio handshake and live loading are distinct evidence. See [agents and MCP](ide-e-mcp.md).
+
+From the SecondBrain checkout:
+
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -NoRecovery -CheckoutPath C:/Projects/MyProduct
+pwsh -NoProfile -File scripts/knowledge.ps1 -Tasks -ReadyOnly -NoRecovery -CheckoutPath C:/Projects/MyProduct
+pwsh -NoProfile -File scripts/knowledge.ps1 -Search "search terms" -NoRecovery -CheckoutPath C:/Projects/MyProduct
+pwsh -NoProfile -File scripts/publication.ps1 -RepositoryPath C:/Projects/MyProduct
+~~~
+
+The product path is explicit so the scripts resolve the correct identity and dossier. `-All` opts into the read-only global task projection. Task writes require the working repository and its declared tracker; never use another tracker as fallback.
+
+Chat commands such as `sb prompt`, `sb controlla`, `sb allinea` and `sb compatta` are conventions, not installed executables. The [per-repository flow](flusso-prodotto.md) maps them to scripts.
+
+## Environment
+
+| Variable | Purpose |
 |---|---|
-| `sb prompt` | `scripts/prompts.ps1` (guide e comandi) |
-| `sb prompt list` | `prompts.ps1 -List -Compact` |
-| `sb prompt ambito test` | `prompts.ps1 -List -Category test` |
-| `sb prompt mostra DEV03` | `prompts.ps1 -Show -Prompt DEV03` |
-| `sb prompt DEV03: <obiettivo>` | `prompts.ps1 -Compose` (prompt composto con tag XML) |
-| `sb controlla` / `sb allinea` | `secondbrain.ps1 -Check` / `-Sync` |
-| `sb attiva` | `secondbrain.ps1 -Setup` |
-| `sb compatta` | `knowledge.ps1 -Compact -CandidatePath <file>` (anteprima; `-Apply` per scrivere) |
+| `SECONDBRAIN_HOME` | User-local clone location. Confirmed Setup application registers it unless `-NoRegisterEnvironment` is used; lower-level Activate uses explicit `-RegisterEnvironment`. Restart open IDEs afterward. |
+| `SECONDBRAIN_LANG` | Message language; explicit `-Language` takes precedence, then environment/configuration/system fallback. Some legacy diagnostics remain untranslated. |
+| `SECONDBRAIN_LOCK_WAIT_SECONDS` | Writer-lock wait, default 60 seconds, also controlled by `-WaitSeconds` where supported. |
+| `SECONDBRAIN_SKIP_PRE_PUSH` | Explicit one-push hook bypass; it does not qualify the publication or resolve findings. |
 
-I passi in ordine per ogni repository, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
+Scripts can bootstrap from the checkout without the environment variable. A configured pre-push hook fails closed if its runtime or brain root cannot be resolved. Do not copy workstation paths into public instructions.
 
-Le impostazioni dell'account Claude non hanno un file: incolla `.runtime/hosts/<id>/istruzioni-globali.md`. Un file aggiornato non prova il caricamento: apri una sessione nuova e scrivi `sb prompt`; `scripts/ide-map.ps1 -Verify` riepiloga lo stato.
+## Coordination and backups
 
-## Solo riga di comando
+~~~powershell
+pwsh -NoProfile -File scripts/access.ps1 -Status
+pwsh -NoProfile -File scripts/access.ps1 -Queue
+~~~
 
-MCP è facoltativo: gli stessi contenuti arrivano dalla CLI (un test confronta i due percorsi su tutti e 8 gli strumenti).
+Knowledge reads avoid blocking locks, but default reads may process queued writes. Writers serialize through a FIFO queue and return exit 3 when the wait limit expires. Do not remove lock files or incomplete-transaction markers.
 
-| Cosa | Comando |
-|---|---|
-| Contesto di un progetto | `scripts/knowledge.ps1 -Startup` (`-Profile Full` per tutto) |
-| Task pronti / un task | `knowledge.ps1 -Tasks -ReadyOnly` / `knowledge.ps1 -Task <id o #seq>` |
-| Cerca negli appunti | `knowledge.ps1 -Search <testo> [-Mode Relevance]` |
-| Prompt | `prompts.ps1 -List -Compact`, `prompts.ps1 -Show -Prompt <CHIAVE>` |
-| Chiudere o creare un task | `knowledge.ps1 -UpdateTaskId <id> -Status done` / `knowledge.ps1 -NewTask <titolo> ...` |
-| Prima del push | `scripts/publication.ps1 -RepositoryPath <repo>` |
+Longer writes use Start/End in the same script with try/finally and pass SessionId to the invoked CLIs. Operational folders are initialized with `work.ps1 -Category <category> -Slug <slug> -Init` and a manifest; verify each tool's output redirection. Environment variables alone do not redirect every build artifact.
 
-Dal checkout di un repository gestito `knowledge.ps1` trova da solo il dossier; altrove usa `-Repository` o `-CheckoutPath`. La vista di tutti i repository esiste solo con `-All` ed è in sola lettura.
+Clean tracked files are recoverable by recorded Git commit/blob; local files use verified backups. Dirty tracked files are protected from overwrite. See [safe writes](riferimento/safety-backups.md) and [recovery](riferimento/recovery.md).
 
-## Variabili
+## Lifecycle and limits
 
-| Variabile | Uso |
-|---|---|
-| `SECONDBRAIN_HOME` | Variabile utente col percorso del clone. `-Setup -Apply` la scrive solo con `-RegisterEnvironment` (o risposta `SI` in `-Interactive`); `-NoRegisterEnvironment` la esclude, anche da `-Activate -Apply`. Gli IDE aperti vanno riavviati. |
-| `SECONDBRAIN_LANG` | Lingua dei messaggi (`it` o `en`). Ordine: `-Language` (su `knowledge.ps1`, `prompts.ps1`, `secondbrain.ps1`, `trace.ps1`), questa variabile, la chiave `language` in `workstation.json`, la lingua del sistema, `en`. I messaggi dei moduli già convertiti seguono la lingua, come la vista `sb prompt` (home, elenchi e schede dei prompt, anche via MCP con `language`); gli altri restano in italiano. |
-| `SECONDBRAIN_SKIP_PRE_PUSH=1` | Salta l'hook pre-push per un solo push consapevole. |
-| `SECONDBRAIN_LOCK_WAIT_SECONDS` | Attesa del lock di scrittura (predefinita 60); equivale a `-WaitSeconds`. |
+Greenfield state is declared in dossier `repository.json`; Check reports incompatible version/changelog/schema changes. Changing lifecycle is a separate SYS13 decision.
 
-L'hook pre-push (`publication.ps1 -InstallHook -Apply`) è fail-closed: senza `pwsh` o con `SECONDBRAIN_HOME` assente o errata il push si ferma con istruzioni.
-
-## Coda e concorrenza
-
-Le letture non prendono lock. Le scritture entrano in una coda FIFO su un solo lock: chi arriva dopo attende fino a `-WaitSeconds` (60 s) ed esce con codice **3**; non cancellare mai i lock.
-
-```powershell
-pwsh -NoProfile -File scripts/access.ps1 -Status    # sessioni attive
-pwsh -NoProfile -File scripts/access.ps1 -Queue     # writer in coda (-Purge toglie solo i ticket orfani)
-```
-
-Una scrittura prolungata usa `access.ps1 -Start -Mode Write` e `-End` nello stesso script, con `try/finally`.
-
-## Greenfield
-
-`knowledge.ps1 -SetLifecycle greenfield` fissa nel `repository.json` del dossier che il repository si presenta come nuovo: `secondbrain.ps1 -Check` segnala `greenfield-violation` se compaiono `VERSION` modificato, `CHANGELOG.md` nuovo o con voci aggiunte, importazioni di schema o alias. `-SetLifecycle none` toglie il blocco (prompt SYS13).
-
-## Git e backup
-
-Git salva i file tracciati: se un file tracciato è pulito, SecondBrain lo riscrive senza copia `.bin` e registra commit e blob; se ha modifiche non committate si ferma con istruzioni (committa o `git stash`). Per i file fuori da Git resta la copia in `.runtime/hosts/<id>/backups/`. Ripristino: `scripts/restore-managed.ps1 -List -Path <file>`. Dettagli: [sicurezza e backup](riferimento/safety-backups.md).
-
-## Casi limite
-
-| Caso | Comportamento |
-|---|---|
-| `SECONDBRAIN_HOME` assente | Gli script funzionano dal clone; l'hook pre-push si ferma con istruzioni |
-| Clone spostato | Rilancia `-Setup ... -RegisterEnvironment` dal nuovo percorso e riavvia gli IDE |
-| Postazione non attivata | `-Check` esce con 2: esegui `-Setup` |
-| Percorsi con spazi | Supportati; scrivi i percorsi tra virgolette |
-| File tracciato sporco | La scrittura si ferma; in `-Sync` il blocco risulta `conflict` |
-| Lock occupato | Exit 3 dopo l'attesa; guarda `access.ps1 -Status` e `-Queue` |
-
-Altro: [portabilità](riferimento/portable-brain.md), [recupero](riferimento/recovery.md), [manutenzione di `.runtime`](riferimento/runtime-maintenance.md).
+Dossiers, backups and evidence are not covered by a Git push. Account login is manual. Product builds/tests belong to product agents. Shared-brain and SMB behavior requires its own real-host qualification. See [portable configuration](riferimento/portable-brain.md), [shared brain](riferimento/shared-brain.md) and [runtime maintenance](riferimento/runtime-maintenance.md).

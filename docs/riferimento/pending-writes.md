@@ -1,49 +1,47 @@
-# Scritture differite senza bloccare le sessioni
+# Deferred dossier writes
 
-Task, memoria, contesto e rapporti possono essere salvati anche quando un altro agente occupa SecondBrain. I comandi di conoscenza conservano prima una richiesta JSON, poi tentano l'integrazione con attesa del lock pari a zero. Il risultato distingue `applied`, `deferred`, `conflict` e `invalid`: `deferred` conferma il salvataggio della richiesta, non l'aggiornamento del dossier.
+[Retained Italian source; use this English page for current behavior](pending-writes.it.md)
 
-## Cosa usare
+Supported changes are saved as requests before integration. A zero-wait central transaction then returns applied, deferred, conflict or invalid. Deferred means the request is retained, not that the dossier changed.
 
-Per task nuovi e cambi di stato restano disponibili `knowledge.ps1 -NewTask` e `-UpdateTaskId`. Il risultato comprende `requestId` e `requestPath`; la numerazione di un task nuovo viene assegnata soltanto quando viene integrato.
+## Submit and inspect
 
-Per memoria, contesto e rapporti:
+Task operations use NewTask and UpdateTaskId. Results include requestId and requestPath; a new task receives its sequence only when integrated.
 
-```powershell
-# Il contenuto e gia preparato in un file operativo sotto .runtime.
-pwsh -NoProfile -File scripts/knowledge.ps1 -AppendFile memory.md -ContentPath $contentPath
-pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile context.md -ContentPath $contentPath -ExpectedHash $baseHash
-pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile history/2026-11-03-sessione/report.md -ContentPath $contentPath -ExpectedHash absent
+File requests accept memory.md, context.md and history/<slug>/report.md in the active identity-resolved dossier:
 
-pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites
-pwsh -NoProfile -File scripts/knowledge.ps1 -FlushPending
-```
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -AppendFile memory.md -ContentPath $contentPath -CheckoutPath $checkout
+pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile context.md -ContentPath $contentPath -ExpectedHash $baseHash -CheckoutPath $checkout
+pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -NoRecovery
+~~~
 
-Il repository segue il checkout corrente; usare `-CheckoutPath` se il comando parte da un'altra cartella. `-SaveFile` richiede l'hash SHA-256 della base effettivamente letta, oppure `absent` per un file nuovo. `-AppendFile` aggiunge testo in fondo al file corrente e conserva le aggiunte altrui: non riorganizza le sezioni della memoria. I percorsi ammessi sono `memory.md`, `context.md` e `history/<slug>/report.md` nel dossier attivo risolto per identita. Il limite e 2 MiB per richiesta, inclusi metadati JSON.
+Prepare content inside the managed runtime. Use the SHA-256 of the base actually read, or absent for a new target. Save replaces the expected base; Append preserves additions but does not reorganize memory. The request, including metadata, is limited to 2 MiB.
 
-Configurazioni, direttive, operazioni PARA e allegati generici non entrano nella coda. Per le API personalizzate, ogni modifica centrale resta protetta da `Enter-SBOperation` / `Exit-SBOperation` e dagli hash; una sessione aperta non protegge modifiche dirette effettuate con un editor o con API del filesystem.
+Configuration, directives, PARA operations and arbitrary attachments are outside this queue. Session ownership does not replace operation locks or hash preconditions.
 
-## Recupero automatico
+## Automatic integration
 
-L'avvio MCP, le richieste MCP di consultazione, `knowledge.ps1` in lettura, `prompts.ps1` e `secondbrain.ps1 -Check` tentano l'integrazione di massimo 10 richieste per utilizzo. Ogni richiesta usa una transazione breve. Se il centro e ancora occupato, resta pendente e la consultazione prosegue. Non ci sono servizi residenti o monitor periodici aggiuntivi.
+Default MCP startup/lookups, knowledge reads, prompts.ps1 and Check attempt up to 10 requests per invocation. Each uses a short transaction. Busy centers leave requests pending while lookup continues. No extra periodic polling service is installed.
 
-I JSON originali sono in `.runtime/access/pending-writes/`; le ricevute sono in `.runtime/access/pending-receipts/`. Sono metadati operativi della stessa cartella SecondBrain condivisa: ogni postazione li raggiunge attraverso il proprio alias della radice. I percorsi di destinazione sono risolti dal repository e dal dossier; non si riusano percorsi assoluti del PC produttore. Cloni Git separati non condividono questi file, esclusi da Git.
+Strict no-write policy also forbids persistence, queues and recovery. Use knowledge NoRecovery or start the server with NoRecovery. Per-call noRecovery cannot undo startup recovery.
 
-I cambi di stato compatibili usano `task.status` nella directory originaria. Gli aggiornamenti estesi nuovi usano `task.update` nella sottocartella `task-update/`, invisibile ai consumer precedenti. I consumer aggiornati integrano entrambe le directory, incluse le richieste estese già presenti nella directory originaria, con le stesse ricevute e lo stesso lock. Durante il rollout un consumer precedente può integrare richieste compatibili mentre quelle estese attendono un consumer aggiornato.
+Requests and receipts remain under .runtime/access/pending-writes and pending-receipts. Extended task.update requests use a task-update subdirectory; updated consumers also recognize compatible earlier layouts. Older consumers cannot apply the new extended operations. Separate Git clones do not share these ignored files.
 
-La modifica centrale e la ricevuta entrano nello stesso journal di recupero. Due importatori non applicano due volte la stessa richiesta. Originali, ricevute, conflitti e prove restano conservati fino a una pulizia esplicitamente richiesta.
+Destinations resolve through repository identity and the current brain alias rather than producer-host absolute paths. The destination change and receipt share a journal; duplicate importers do not apply one request twice.
 
-## Conflitti e interruzioni
+## Conflicts and interruption
 
-Per un cambio di stato si confronta il singolo task: modifiche a task diversi possono convivere. Una modifica concorrente allo stesso task o una sostituzione di file con base cambiata produce `conflict`; il dato corrente resta intatto. Un agente puo leggere richiesta e stato corrente, preparare una riconciliazione e inviare una nuova richiesta autorizzata. Il conflitto precedente resta consultabile.
+Expected hashes apply at task or file scope. Independent tasks may change concurrently; an edit to the same task/base produces conflict and preserves current data. Reconciliation is a new authorized request, not modification of the old evidence.
 
-Se il grafo esistente del tracker è invalido, una modifica al task con hash verificabile può essere accodata e resta pendente fino alla riparazione. L'integrazione riesamina l'hash del task e il grafo riparato. Se il tracker non permette di determinare con certezza l'hash, l'invio restituisce un errore. Le ricevute legacy `invalid` restano conservate per revisione e riconciliazione esplicita.
+An invalid tracker graph can defer a request whose task hash remains verifiable; an unknown hash is an error. Invalid requests/receipts do not suppress independent valid work. Access errors are not successful receipts.
 
-JSON invalidi e ricevute incoerenti sono segnalati; non impediscono l'integrazione delle altre richieste indipendenti. Errori di accesso non producono ricevute di successo. Una transazione centrale interrotta mantiene il normale gate di recupero: le nuove richieste restano salvate e le letture continuano, mentre il journal va recuperato con `recover.ps1`. Non si forzano lock o marker.
+Interrupted transactions retain the normal recovery gate. Preserve manifests and use recover.ps1 after review; never delete markers or alter hashes to hide changed evidence.
 
-## Contratto MCP e sessioni gia aperte
+## MCP contract
 
-I tool MCP possono applicare le richieste gia autorizzate prima di rispondere. Sono quindi dichiarati con `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`. Le descrizioni e `initialize.instructions` espongono questo comportamento; l'output aggiunge il riepilogo dell'integrazione quando necessario.
+Tools advertise readOnlyHint=false, destructiveHint=true, idempotentHint=false and openWorldHint=false. These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.
 
-Il server negozia `2025-03-26`, mantenendo `2024-11-05` se richiesto da un client precedente. Le annotazioni sono indicazioni per il client, non autorizzazioni. Le regole nominative si preparano con `-ApproveKnowledgeTools` (alias storico `-ApproveReadTools`); `check_publication` conserva la richiesta di consenso. Non vengono aggiunti tool per eseguire comandi arbitrari o nuove scritture MCP.
+ApproveKnowledgeTools prepares named knowledge-tool consent; ApproveReadTools remains an alias. check_publication requires separate consent. No arbitrary shell or additional dossier-writing MCP tool is introduced.
 
-I processi MCP gia aperti mantengono il codice caricato: la nuova versione viene usata al loro prossimo avvio. Non si riavviano automaticamente sessioni di altri agenti. Il comportamento e verificato con processi locali e fixture; la qualificazione su due PC fisici e SMB reale resta distinta, come descritto in [shared-brain.md](shared-brain.md).
+Running servers keep loaded code until restarted. Do not restart another agent's session automatically. Fixture qualification and real shared-host qualification remain distinct; see [shared brain](shared-brain.md).

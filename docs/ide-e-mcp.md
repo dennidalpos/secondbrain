@@ -1,108 +1,68 @@
-# Agenti e MCP
+# Agents and MCP
 
-Ogni agente riceve due cose: le **regole** e il **collegamento MCP**, che gli permette di leggere memoria e prompt.
+[Retained Italian source; use this English page for current behavior](ide-e-mcp.it.md)
 
-```mermaid
-flowchart LR
-    S["SecondBrain"] -->|"regole"| F["File dell'agente"]
-    S -->|"MCP, solo lettura"| A["Agente"]
-    F --> A
-```
+SecondBrain distributes approved instructions and can configure a local stdio MCP connection. Configuration support does not prove that an IDE loaded those instructions or that every profile has been qualified.
 
-## Strumenti convalidati
+## Instruction and configuration targets
 
-| Strumento | File di regole | Comando MCP |
-|---|---|---|
-| Claude per Windows | `~/.claude/CLAUDE.md` | `-Target claude` |
-| ChatGPT Codex per Windows | `~/.codex/AGENTS.md` | `-Target codex` |
-| Antigravity per Windows | `~/.gemini/GEMINI.md` | `-Target antigravity` |
-| Claude Code | `~/.claude/CLAUDE.md` | `-Target claude-code` (utente), oppure `-WorkspacePath <progetto>` |
-| VS Code | (nessun file di regole) | `-Target vscode` (profilo) o `-Target vscode -WorkspacePath <progetto>` |
+| Target | Instructions / configuration scope |
+|---|---|
+| Claude | `~/.claude/CLAUDE.md`; MCP `-Target claude` |
+| Codex | `~/.codex/AGENTS.md`; MCP `-Target codex` |
+| Antigravity | `~/.gemini/GEMINI.md`; MCP `-Target antigravity` |
+| Claude Code | User CLI registration with `-Target claude-code`, or project `-WorkspacePath` |
+| VS Code | User/profile MCP, or `-WorkspacePath` for project configuration |
 
-Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
+Other adapters exist in the implementation; consult [adapter qualification](riferimento/adapters.md) for their actual scope. Do not label an adapter live-qualified from file inspection or a synthetic handshake alone.
 
-### Istruzioni nei repository
+In managed repositories, `AGENTS.md` is the common source. Sync manages `CLAUDE.md` and `GEMINI.md` pointers using `@AGENTS.md`. Existing text outside managed blocks is preserved. IDE-specific support and account-level settings require separate checks. SecondBrain does not inspect credential stores or automate login.
 
-In ogni repository gestito `AGENTS.md` è la fonte unica (standard [agents.md](https://agents.md)): lo leggono Codex, Cursor, Windsurf, GitHub Copilot, JetBrains Junie, Zed, Roo Code e altri. Claude Code e Gemini CLI non lo leggono per nome: `secondbrain.ps1 -Sync` aggiunge i puntatori `CLAUDE.md` e `GEMINI.md`, che contengono solo `@AGENTS.md` in un blocco gestito (il tuo testo nel file non viene toccato). Per Aider aggiungi `read: AGENTS.md` a `.aider.conf.yml`. Dettagli: [Prompt e direttive](riferimento/customizing-prompts-and-directives.md#2-integrazione-delle-direttive-nei-diversi-ide).
+## Preview, pair and verify
 
-Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS01` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
-
-## Collega
-
-```powershell
+~~~powershell
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
-```
-
-Per installare il server in più IDE, con anteprima e verifica guidate, usa `sb prompt SYS15`.
-
-Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente. Poi riavvia l'agente.
-
-## Cosa può fare l'agente con MCP
-
-| Strumento | A cosa serve |
-|---|---|
-| `get_startup_context` | Leggere contesto e memoria del progetto |
-| `get_ready_tasks` | Vedere i task pronti |
-| `get_task` | Leggere un task per intero (criteri, evidenze), anche archiviato |
-| `search_knowledge` | Cercare negli appunti (archivio e report inclusi, a pagine) |
-| `list_prompts`, `get_prompt`, `get_prompt_home` | Consultare i prompt |
-| `check_publication` | Controllare un progetto prima del push |
-
-Il server gira solo sul tuo PC e non apre porte di rete. All'avvio e durante le letture può integrare scritture di dossier già autorizzate e accodate; gli strumenti lo dichiarano con `readOnlyHint=false`.
-
-## Con o senza MCP
-
-| | Con MCP | Senza MCP (riga di comando) |
-|---|---|---|
-| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 11.027 caratteri in italiano e 10.280 in inglese (misurazione del 2026-11-05, parametri `noRecovery` e `previousRevision` inclusi; il solo `result` misura 10.993/10.246). Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
-
-Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
-
-### Se MCP non funziona
-
-1. **Il collegamento è corretto?** `scripts/mcp-server.ps1 -Pair -Target <agente>` mostra l'anteprima di percorso e configurazione.
-2. **Il server risponde?** `scripts/test-secondbrain-mcp-handshake.ps1` simula l'avvio e le chiamate. Se passa, il problema sta nell'agente o nella sua configurazione.
-3. **L'agente lo vede?** In Claude Code apri `/mcp`; in Codex usa `codex mcp list`. Riavvia l'agente dopo ogni modifica.
-4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente per gli strumenti di conoscenza: possono integrare solo richieste pendenti già autorizzate; `check_publication` conserva il consenso separato.
-
-Limite: la verifica nelle interfacce grafiche degli IDE non è ancora provata dal vivo.
-
-Per una sessione rigorosamente senza scritture avvia il server con `mcp-server.ps1 -NoRecovery`; il solo `noRecovery=true` di una chiamata non annulla il recupero gia avvenuto all'avvio. L'equivalente CLI e `knowledge.ps1 -NoRecovery`. Registro dei turni, allegati e adattatori sono descritti nel [ciclo memorie per repository](riferimento/memory-cycle.md); le prove su fixture non attestano la cattura live.
-
-## Senza MCP
-
-MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dalla riga di comando: un test confronta i due percorsi sugli stessi input per tutti gli 8 strumenti (la CLI aggiunge solo l'intestazione `CATALOGO PROMPT` in `-Show`).
-
-| Strumento MCP | Comando CLI | Comando `sb` nell'IDE |
-|---|---|---|
-| `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` | — |
-| `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` (`-All` per la vista globale paginata, con `-Offset` e `-Limit`; risposta `total`, `nextOffset`, `tasks`) | — |
-| `get_task` | `knowledge.ps1 -Task <id o #seq>` | — |
-| `search_knowledge` | `knowledge.ps1 -Search <testo> [-Mode Relevance]` | — |
-| `get_prompt_home` | `prompts.ps1` | `sb prompt` |
-| `list_prompts` | `prompts.ps1 -List -Compact` | `sb prompt list` |
-| `get_prompt` | `prompts.ps1 -Show -Prompt <CHIAVE>` | `sb prompt mostra CHIAVE` |
-| `check_publication` | `publication.ps1 -RepositoryPath <repo>` | `sb prompt SEC07` |
-| — (nessuno strumento MCP: il tracker si scrive solo da CLI) | `knowledge.ps1 -UpdateTaskId <id> -Status done`, `knowledge.ps1 -NewTask <titolo>` | `sb prompt MEM03` |
-| — (compattazione) | `knowledge.ps1 -Compact -CandidatePath <file>` | `sb compatta` |
-
-Dal checkout di un repository gestito i comandi `knowledge.ps1` risolvono da soli il dossier; altrove indica `-Repository` o `-CheckoutPath`. `sb controlla` e `sb allinea` corrispondono a `secondbrain.ps1 -Check` e `-Sync`.
-## Controlla
-
-```powershell
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
-```
+~~~
 
-Un file aggiornato non basta: apri una nuova sessione e scrivi `sb prompt`.
+Preview first; Apply changes the selected configuration with backup. Restart the client and inspect its MCP connection in a new session. SYS15 guides multi-client installation; SYS01 handles profile/account evidence. For workspace targets, inspect the explicit destination before applying.
 
-Le descrizioni degli strumenti MCP e dei loro parametri seguono la lingua della sessione server (`SECONDBRAIN_LANG` oppure `mcp-server.ps1 -Language it|en`). Il catalogo dei prompt usa le traduzioni già registrate. Gli argomenti `language` delle singole chiamate continuano a controllare il contenuto della risposta; per aggiornare le descrizioni memorizzate dal client occorre riavviare la sessione server.
+## Exposed tools
 
-Il pacchetto generato da `-ExportPackage` include il modulo dei messaggi necessario a `install-all-ides.ps1`. Il launcher accetta `-Language it|en` e segnala una radice mancante con il codice `mcp.package.root` anche quando il clone non è disponibile. Conservare insieme i file del pacchetto. Le verifiche stdio non attestano il caricamento nelle GUI degli IDE.
+| Tool | CLI equivalent |
+|---|---|
+| `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` |
+| `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` |
+| `get_task` | `knowledge.ps1 -Task <id or sequence>` |
+| `search_knowledge` | `knowledge.ps1 -Search <text> [-Mode Relevance]` |
+| `get_prompt_home` | `prompts.ps1` |
+| `list_prompts` | `prompts.ps1 -List -Compact` |
+| `get_prompt` | `prompts.ps1 -Show -Prompt <code>` |
+| `check_publication` | `publication.ps1 -RepositoryPath <checkout>` |
 
-## Altri strumenti
+Tracker writes and compaction are CLI operations, not extra MCP write tools. Use `-CheckoutPath` or `-Repository` when the current working directory does not resolve the product. The global task view is opt-in with `-All`, paginated by `-Offset` and `-Limit` (default 50).
 
-Il codice riconosce anche VS Code, Cursor, Windsurf, Continue, JetBrains e Android Studio. Sono presenti ma **non convalidati**.
+## Reads may have side effects
 
-Dettagli: [agenti](riferimento/adapters.md), [MCP](riferimento/mcp-setup.md).
+The server runs over stdio and does not listen on a network port. At startup and during lookups it can apply already-authorized queued dossier writes; the tools therefore advertise `readOnlyHint=false`. Knowledge tools and the publication gate have distinct consent requirements.
+
+For a strict no-recovery session start `mcp-server.ps1 -NoRecovery`. Per-call `noRecovery=true` only prevents recovery during that call, not startup recovery. The CLI equivalent for knowledge reads is `knowledge.ps1 -NoRecovery`.
+
+Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle](riferimento/memory-cycle.md).
+
+## Language and packages
+
+Use `SECONDBRAIN_LANG` or server `-Language en|it` for tool descriptions. Individual `language` arguments control content. Restart a client/server session when cached tool descriptions need updating.
+
+`-ExportPackage` creates a launcher and required modules for importing the connection elsewhere; keep the package together and review its destination. A package or a successful handshake does not prove live client loading. See [MCP setup](riferimento/mcp-setup.md).
+
+## Troubleshooting
+
+1. Inspect `-Pair -Target <client>` for the intended path and scope.
+2. Run the repository's MCP handshake checks to distinguish protocol failures from client configuration.
+3. Inspect the connection in the real client; Claude Code provides `/mcp`, while Codex CLI provides `codex mcp list`.
+4. Check named tool permissions without granting broader access than the current workflow needs.
+5. Record account/profile, instruction revision and observed loading separately.
+
+Use the shell when MCP is unavailable. CLI access has the same data model, while shell permissions remain those of the session. Detailed procedures: [adapters](riferimento/adapters.md), [MCP setup](riferimento/mcp-setup.md), [deferred writes](riferimento/pending-writes.md).

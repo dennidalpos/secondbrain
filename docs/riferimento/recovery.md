@@ -1,90 +1,53 @@
-# Pulizia e recupero
+# Cleanup and recovery
 
-Per il rapporto per categoria, la proposta di pulizia di `.runtime` e la routine mensile vedi [manutenzione di .runtime](runtime-maintenance.md).
+[Retained Italian source; use this English page for current behavior](recovery.it.md)
 
-## Conservazione ordinaria
+Preserve backups, reports, builds, caches, captures and fixtures after success or failure. The current test runner retains unique runs and run.json; older descriptions of automatic successful-fixture deletion are superseded.
 
-Backup, rapporti, build, cache e catture restano sotto `.runtime` nel clone SecondBrain, anche dopo esito positivo. Fa eccezione la sola fixture di `test-secondbrain.ps1` (`.runtime/tests/run-<id>`): è rimossa a esito verde e conservata a esito rosso (`-KeepFixtures` o `SECONDBRAIN_TEST_KEEP=1` la conservano sempre); le sub-suite lanciate da sole conservano la propria. Non esiste altra retention distruttiva automatica. Dati storici conservati altrove non vengono spostati o cancellati implicitamente.
+## Inspect before cleanup
 
-Gli unici file adiacenti alla destinazione sono lo staging tecnico e l'eventuale recupero di una transazione atomica. Il writer ne registra percorso e stato; lo staging viene rimosso alla conclusione, mentre un'interruzione conserva le prove necessarie.
-
-## Pulizia esplicita
-
-Richiedere la pulizia indicando un perimetro concreto. REP04 prepara un manifest sotto `.runtime`, con `schemaVersion: 1`, `reviewed: true`, `referencesChecked: true`, `reason` e `files` con `path` assoluto e `sha256`. Questi dati descrivono una selezione; l'autorizzazione deve provenire dall'utente.
-
-```powershell
-pwsh -NoProfile -File scripts/cleanup.ps1 -ManifestPath <manifest-locale>
-pwsh -NoProfile -File scripts/cleanup.ps1 -ManifestPath <manifest-locale> -Apply -Authorization <richiesta-esplicita>
-```
-
-Prima esaminare l'anteprima. Apply ricontrolla i byte, i confini, le destinazioni protette e le transazioni pendenti e conserva backup verificati delle rimozioni. Non cancella checkout né decide in base a età o nomi delle directory. Con un manifest senza file `applied` resta `false`; se una rimozione fallisce a metà il riepilogo JSON elenca i file già rimossi (`removed`) e il guasto (`failed`, `status: partial`) ed esce con 1. Le configurazioni di origine mantengono il percorso di recupero precedente, non una pulizia automatica dei dati portabili.
-
-### Record `.stage`
-
-Ogni scrittura protetta lascia in `backupRoot` un record `.stage` che documenta il backup precedente. Per valutarne la crescita, in sola lettura:
-
-```powershell
-pwsh -NoProfile -File scripts/cleanup.ps1 -ListStageRecords -OlderThanDays 90
-```
-
-L'elenco comprende i soli record `completed` più vecchi della soglia (default 90, intervallo 1–3650) trovati, anche nelle sottocartelle, nel `backupRoot` corrente e in quelli delle postazioni registrate sotto `.runtime`. Backup `.bin`, staging interrotti e record illeggibili non sono mai candidati. Nessun file viene eliminato: la rimozione richiede un manifest revisionato con quell'elenco e il comando `-Apply` sopra.
-
-### Inventario di `.runtime`
-
-Per decidere cosa rivedere prima di una pulizia, in sola lettura:
-
-```powershell
+~~~powershell
 pwsh -NoProfile -File scripts/cleanup.ps1 -ListRuntime -OlderThanDays 90
-```
+pwsh -NoProfile -File scripts/cleanup.ps1 -ListStageRecords -OlderThanDays 90
+pwsh -NoProfile -File scripts/access.ps1 -Status
+~~~
 
-Per ogni voce di primo livello sotto `.runtime` il rapporto JSON indica numero di file, dimensione, ultima scrittura (`ageDays`, `olderThanThreshold`), riferimenti testuali a `.runtime/<voce>` in README, docs, script, direttive, configurazioni e dossier (`references.mentions` con fino a 5 file d'esempio) e protezione (`protected`, `protectedReason`): sono protette `hosts`, `access`, `cleanup`, i file di stato e i percorsi della configurazione o del registro postazioni; un reparse point non viene seguito. `reviewable` elenca le voci non protette più vecchie della soglia, solo come indicazione da valutare insieme ai riferimenti. Non è combinabile con `-Apply` o `-ManifestPath`, non seleziona né elimina nulla: la rimozione resta possibile solo con un manifest revisionato di file con hash (sezione precedente).
+ListRuntime reports age, size, references and protection without following reparse points. Reviewable means investigate, not remove. ListStageRecords selects readable completed records older than the threshold; interrupted staging and binary backups are not automatic candidates.
 
-## Rollback di un repository
+A reviewed cleanup manifest identifies schemaVersion, reviewed/referencesChecked, reason and exact absolute file paths/SHA-256. It describes selection; user authorization remains separate. Preview with ManifestPath; Apply additionally requires Authorization and rechecks bytes, paths, protected data and pending transactions.
 
-`rollback-repo.ps1` restituisce un repository dismesso o vietato e rimuove il suo dossier da SecondBrain. **Senza `-Apply` mostra solo l'anteprima e non modifica nulla**; con `-Apply` esegue davvero e il dossier privato viene copiato in `<repo>/.secondbrain/` dentro il tuo repository (escluso da Git solo se esiste `.git/info/exclude`). Richiede una sessione di scrittura (`-SessionId` opzionale), rifiuta il dossier e il checkout di SecondBrain stesso e l'identità ambigua (confronti sensibili alle maiuscole). Ordine delle operazioni:
+Cleanup does not decide from age alone or delete checkouts. Partial failure reports removed/failed entries; preserve recovery records. No cleanup belongs to an ordinary documentation task.
 
-1. copia dell'intero dossier (inclusi `history/`, `snapshots/`, `tracker.md`) in `<repo>/.secondbrain/` con hash verificati; senza checkout (`-Force`) il dossier è salvato in `backupRoot/rollback-<id>/dossier`;
-2. aggiornamento di `workstation.json` (binding rimosso, `forbiddenRepositories` con `-Forbid`) e `state.json`;
-3. pulizia del blocco gestito in `AGENTS.md` del repository (scrittura con controllo dell'hash e backup, ripristinabile con `restore-managed.ps1`);
-4. solo dopo, eliminazione del dossier e della cache di runtime e rigenerazione di `para-index.json`.
+## Restore a file
 
-Un errore nei passi 1–3 lascia il dossier intatto e il comando è ripetibile.
+~~~powershell
+pwsh -NoProfile -File scripts/restore-managed.ps1 -List -Path "$HOME/.claude/CLAUDE.md"
+~~~
 
-L'anteprima (senza `-Apply`, oppure `-WhatIf`) non modifica nulla:
+Select the verified metadata record, then pass MetadataPath to restore-managed. Previous/deployed hashes and payload are checked. Later target edits are refused. Clean tracked originals are recoverable from recorded commit/blob; local originals use binary backups. Do not reset current work to make a restore succeed.
 
-![Output reale di rollback-repo.ps1 -WhatIf su un repository demo di una fixture sintetica](../assets/cli-rollback-preview.png)
+## Interrupted transactions
 
-*Output reale dell'anteprima su una fixture sintetica (percorsi abbreviati, id postazione oscurati).*
+.runtime/para-transaction.json identifies an unfinished transaction and blocks central writes. Status reports owner, time and manifest. Another host can recover only when it reaches the validated manifest through a verified brain alias.
 
-## Recuperare un file gestito
+~~~powershell
+pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath $manifestPath
+~~~
 
-`restore-managed.ps1 -List [-Path <file>]` elenca i backup per percorso originale (sola lettura); `restore-managed.ps1 -MetadataPath` usa i metadati di backup creati dal writer. Controlla payload, SHA-256 e hash distribuito; rifiuta una destinazione modificata successivamente. Conservare insieme payload e metadati nel runtime centrale.
+Apply only after reviewing the preview under the relevant authorization. Recovery validates every destination before writes, reverses recorded operations and preserves originals. Later edits are not overwritten. It does not rewrite SECONDBRAIN_HOME.
 
-## Transazioni interrotte
+Tracker imports have a separate import-tracker RollbackManifest procedure. A verified preparation is not yet the authoritative committed tracker.
 
-Il marker `.runtime/para-transaction.json` indica il manifest di una transazione incompleta (con host, utente e data di avvio, riportati da `access.ps1 -Status` e dal messaggio di errore). Blocca le scritture di tutti gli host e si recupera da qualunque PC che raggiunga il manifest, anche tramite un alias diverso dello stesso percorso (vedere [shared-brain.md](shared-brain.md)). Non forzare lock o cancellare il marker. Il recupero funziona anche quando la configurazione della postazione non è stata applicata interamente:
+## Repository retirement
 
-```powershell
-pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath <manifest-centrale>
-pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath <manifest-centrale> -Apply
-# Con configurazione di postazione valida (manifest nel suo backupRoot):
-pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath <manifest> -ConfigPath .runtime/hosts/<id>/workstation.json -Apply
-```
+rollback-repo previews by default. Apply exports the dossier to the product's .secondbrain area, or central backup when explicitly forced without checkout; it updates associations/state/instructions before removing central data. The brain's own checkout/dossier and ambiguous identities are rejected.
 
-Il ripristino verifica tutte le destinazioni prima delle scritture, procede nel verso inverso e conserva journal e originali. Cambiamenti successivi non vengono sovrascritti. Verificare `SECONDBRAIN_HOME` dopo il recupero: il comando non riscrive l'ambiente utente.
+This is a separate destructive workflow. Check that private exports cannot be published. Unbind, which preserves dossiers, is different.
 
-Le importazioni tracker hanno un journal specifico e si recuperano tramite `import-tracker.ps1 -RollbackManifest`, prima in anteprima e poi con Apply. Una preparazione `verified` non è ancora una nuova fonte autorevole.
+## Errors and qualification limits
 
-## Garanzie e limiti
+core.write.denied returns CLI exit 4 preserving the original exception. A destination write may precede a failed final receipt: inspect target, hashes and journal before retrying. Restore access and follow normal recovery; do not delete markers/staging.
 
-Su Windows la rimozione protetta mantiene un handle READ/DELETE che esclude scritture e rinomine; writer già aperti o perdita della sessione impediscono l'operazione. [CreateFile e condivisione](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew), [File.Replace e vincolo dei volumi](https://learn.microsoft.com/en-us/dotnet/api/system.io.file.replace?view=net-10.0).
+Windows protected removal normalizes ordinary local/UNC paths before native extended-path access. Existing writers, lost sessions and unsupported filesystems may prevent it. Local Unicode/long-path/loopback fixtures do not certify two-PC SMB or another host's long-path policy.
 
-`FileRemoval.Open` normalizza i percorsi ordinari prima di passare a `CreateFileW` la forma estesa: `\\?\` per i percorsi locali e `\\?\UNC\` per quelli UNC. I percorsi già estesi restano letterali. La conversione avviene solo all'apertura nativa: metadati, controlli degli hash, backup e recupero conservano i percorsi registrati. Vedere i [limiti dei percorsi Windows](https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation).
-
-La suite `audit2` copre percorsi oltre 260 caratteri con Unicode e spazi, apertura senza rimozione, contesa, interruzione e recupero transazionale, compreso il rifiuto di sovrascrivere modifiche successive. Le prove UNC usano la share amministrativa di loopback, quando accessibile, con esclusione esplicita negli altri ambienti: non qualificano SMB fra postazioni diverse né un host con `LongPathsEnabled=0`. `SECONDBRAIN_TEST_KEEP=1` conserva anche le fixture di questa suite; un'esecuzione fallita le conserva sempre.
-
-Un backup verificato non autorizza da solo la cancellazione. Il collaudo delle fixture non certifica un ripristino su un altro PC o su filesystem non verificati.
-
-### Accesso negato durante una transazione
-
-`core.write.denied` (uscita CLI 4) conserva l'eccezione originale. Se la transazione era iniziata, il manifest e il marker pendente restano disponibili: ripristinare l'accesso e seguire il recupero già previsto. Non cancellare marker o staging per sbloccare l'operazione. Un errore nella registrazione finale viene segnalato separatamente e non sostituisce l'errore primario. La scrittura può essere stata applicata prima che fallisse il salvataggio dell'esito: controllare manifest, hash e destinazione prima di ripetere un comando.
+Verified backup does not authorize deletion. See [safe writes](safety-backups.md), [runtime](runtime-maintenance.md), [shared brain](shared-brain.md).

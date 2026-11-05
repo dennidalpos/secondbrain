@@ -1,145 +1,52 @@
-# Istruzioni negli IDE
+# IDE adapters and live qualification
 
-> Tool portabile: [procedura corrente](portable-brain.md). Nessun monitor; output operativi sotto .runtime e pulizia solo su richiesta.
+[Retained Italian source; use this English page for current behavior](adapters.it.md)
 
-## Verifica SYS01
+SecondBrain distinguishes file configuration, installed client, profile, environment, account and actual loaded instructions. Evidence on one surface does not certify the others. SYS01 guides verification after setup and after login/profile changes.
 
-```powershell
-./scripts/ide-map.ps1 -Verify -ConfigPath .runtime/hosts/<id>/workstation.json
-```
+## Inspect the map
 
-La mappa locale è `runtimeRoot/ide-map.json`; il testo approvato generato è `runtimeRoot/istruzioni-globali.md`. Il comando confronta i blocchi dei file mappati e riporta gli stati manuali registrati. Exit 0 prova l'allineamento dei file verificati, non il caricamento nelle chat o nelle impostazioni account.
-
-La mappa è generata da `secondbrain.ps1 -Sync` e usa `schemaVersion: 1`, `workstationId` e `ides[]`. Ogni voce ha `name` e `mode` (`file` o `manual`) e, se selezionata, `selected`; le voci file richiedono `instructions` assoluto, quelle manuali usano `accountAlias`, `profile`, `environment` e la ricevuta di osservazione. Conservare fonte e data dei riscontri manuali.
-
-SYS01 verifica senza scrivere per impostazione predefinita. «Mappa» autorizza l'aggiornamento della mappa; «riallinea» autorizza la distribuzione del testo approvato, con backup SHA-256 e conservazione del testo personale. `ide-map.ps1` non rileva IDE e non scrive nei loro file. Non esiste uno switch di riallineamento in `ide-map.ps1`.
-
-## Superfici distinte
-
-| Superficie | Istruzioni / verifica |
-|---|---|
-| Claude Code | `~/.claude/CLAUDE.md`; controllare `/context` o `/memory` nella sessione |
-| Claude app | Impostazioni account, campo Instructions for Claude; verificare il testo salvato nell'interfaccia |
-| Codex desktop / CLI | `CODEX_HOME/AGENTS.md` o `~/.codex/AGENTS.md`; controllare eventuali override e fonti caricate |
-| Antigravity | `~/.gemini/GEMINI.md`; App 2.26.0+: Customizations > Installed > Skills & Rules; controllare fonte, contenuto e nuova sessione |
-| Continue | Regole del progetto/pannello; icona penna per le regole caricate |
-| Android Studio Gemini | `AGENTS.md` del progetto e regole IDE; Context > AGENTS.md Files |
-
-Il file Claude Code e le istruzioni dell'account Claude sono separati. Nei repository SecondBrain mantiene il blocco in `AGENTS.md` (fonte unica, letta direttamente da Codex, Cursor, Windsurf, Copilot, Junie, Zed e altri) e due puntatori sottili `CLAUDE.md` e `GEMINI.md` con il solo import `@AGENTS.md` per Claude Code e Gemini CLI, che non leggono `AGENTS.md` per nome. Nessun altro collegamento per IDE (`.cursorrules`, `.windsurfrules` e simili, ormai superati dalle regole native) va ricreato.
-
-## Superfici manuali secondarie (Claude app, Continue, Android Studio)
-
-Le interfacce secondarie prive di file di configurazione globale standard rilevabili in modo deterministico dal filesystem sono censite nella mappa `runtimeRoot/ide-map.json` con `mode: manual`.
-
-### 1. Analisi delle superfici prive di file locali
-
-- **Claude app (impostazioni account)**:
-  - *Collocazione*: Impostazioni personali del profilo account Anthropic (*Settings > Personalization > Instructions for Claude*).
-  - *Caratteristiche*: Le direttive sono memorizzate nel cloud del provider e applicate a tutte le sessioni web e desktop associate all'account. Non esiste alcun file locale sincronizzabile.
-  - *Confini di sicurezza*: L'accesso automatizzato alle impostazioni web/browser è escluso per preservare le credenziali dell'utente e non violare le policy di autenticazione.
-- **VS Code + Continue**:
-  - *Collocazione*: Cartella globale `~/.continue/` (`config.json`, `config.yaml`, `prompts/`) ed estensione VS Code (`~/.vscode/extensions/continue.continue-*`).
-  - *Caratteristiche*: Continue supporta molteplici provider di modelli e carica le istruzioni da regole di repository (`.continue/rules/`), dal pannello dell'estensione o inserite all'inizio della sessione. Non esiste un unico file globale Markdown standard di fallback valido per tutti i workspace.
-- **Android Studio (Gemini)**:
-  - *Collocazione*: Installazione IDE (`AppData\Roaming\Google\AndroidStudio*` e chiavi di registro), cassetto *Context > AGENTS.md Files* o configurazioni di progetto in `.idea/project.prompts.xml`.
-  - *Caratteristiche*: A differenza di Google Antigravity (che legge `~/.gemini/GEMINI.md`), il plugin Gemini integrato in Android Studio non prevede un file utente globale di istruzioni Markdown, ma consuma il file `AGENTS.md` del progetto aperto o regole contestuali specifiche.
-
-### 2. Procedura di verifica e qualificazione (SYS01)
-
-L'esecuzione predefinita in sola lettura:
-
-```powershell
+~~~powershell
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
-```
+~~~
 
-segnala per ciascuna superficie manuale:
-`manuale, account/profilo e caricamento non verificati o disallineati`
+The verifier compares selected instruction files with the expected generated global block. Manual integrations require an observation receipt. Exit codes are 0 aligned/verified within scope, 1 pending alignment/qualification or missing map, 2 error.
 
-Questo stato indica che la superficie non dispone di un file locale autoverificante e richiede un'attestazione di osservazione della sessione recente:
+The host map is generated from active bindings/discovery. Do not manually mark a client/account verified. A file can be aligned while account/loading remains unverified; record both outcomes.
 
-1. **Allineamento manuale**:
-   - *Claude app*: Copiare il testo approvato da `runtimeRoot/istruzioni-globali.md` e incollarlo nel campo *Instructions for Claude* nelle impostazioni account.
-   - *Continue*: Verificare l'icona penna sopra la barra degli strumenti di Continue; inserire le direttive globali o referenziare `AGENTS.md` nel prompt di avvio o nelle regole di progetto.
-   - *Android Studio*: Verificare nel cassetto *Context* la presenza del file `AGENTS.md` del repository o inserire le regole comuni nella chat iniziale.
-2. **Attestazione con ricevuta di osservazione**:
-   Per certificare l'allineamento nelle verifiche automatizzate senza esporre credenziali, l'utente o l'agente registra una ricevuta JSON di osservazione conforme alla funzione `Test-SBIDEObservation` contenente:
-   - `ideId`: ID univoco dell'IDE registrato in `ide-map.json`.
-   - `workstationId`: identificativo host della postazione.
-   - `observedHash`: SHA-256 esatto del testo delle istruzioni globali osservato.
-   - `loadingVerified`: boolean `true` comprovante l'effettiva applicazione.
-   - `observedAt`: timestamp ISO 8601 recente (validità entro 15 minuti).
-   - `evidencePath` e `evidenceSha256`: riferimento al report di verifica e relativo hash crittografico.
-   Invocando `scripts/ide-map.ps1 -Verify -ObservationPath <path>` la verifica ha esito 0.
+## Surface-specific workflow
 
-### 3. Rilevamento presenza nel modello host (`Get-SBIDEAssets`)
+| Surface | Required evidence |
+|---|---|
+| Repository instructions | Correct AGENTS source and generated adapter pointers |
+| User file | Actual selected configuration root and approved block hash |
+| Project/profile | Workspace/profile identity and the configuration really used |
+| Account setting | User-declared account alias and manually observed instruction text |
+| Running client | New-session observation with revision/hash and evidence |
+| Write capability | Actual permitted roots and observed command/denial, not a guessed sandbox model |
 
-Il modulo host (`scripts/SecondBrain.Host.psm1`) rileva la presenza degli ambienti sulla macchina anche per le superfici manuali:
-- **Continue**: scansione dell'esistenza della cartella `~/.continue` e delle estensioni VS Code con pattern `continue.continue*` in `~/.vscode/extensions/`.
-- **Android Studio**: verifica degli eseguibili (`studio64.exe`, `studio.cmd`), delle voci di disinstallazione nel registro Windows e delle cartelle di configurazione Google in `%APPDATA%\Google\AndroidStudio*`.
-- **Claude app**: verifica di eventuale client desktop in `%LOCALAPPDATA%\Programs\Claude\Claude.exe` o cartella dati `%APPDATA%\Claude`.
-- **Cursor, Windsurf, JetBrains AI**: sola presenza delle cartelle di configurazione (`~/.cursor`, `%APPDATA%\Cursor`; `~/.windsurf`, `~/.codeium`, `%APPDATA%\Windsurf`; `%APPDATA%\JetBrains` con i nomi dei prodotti) come `installationEvidence`. Restano `mode: manual`: la presenza non prova né il login né il caricamento delle istruzioni.
+No credential/authentication archive is read to discover accounts. Multiple accounts/config roots need distinct declared entries; login is manual. Treat changed account/profile/environment identity as ide-context-changed and requalify it.
 
-### 4. Cambio di login, profilo o configurazione (`ide-context-changed`)
+## File and manual integrations
 
-Ogni voce IDE registra un `environmentFingerprint` (SHA-256) calcolato da `Get-SBIDEContext` con: nome, percorso delle istruzioni, radice di configurazione e origine dell'override (`CLAUDE_CONFIG_DIR`, `CODEX_HOME`: variabile utente, di processo o predefinita) e cartelle di configurazione presenti tra quelle note. Non legge archivi di autenticazione, token o sessioni.
+Claude-family, Codex and Antigravity have supported file/registration paths in the implementation. Additional adapters can be discovered without being live-qualified. A running executable or directory is evidence of presence only.
 
-`secondbrain.ps1 -Check` confronta il contesto corrente con quello registrato (nella configurazione o, per le attivazioni precedenti, nella base che `-Sync` salva in `state.json` alla prima esecuzione) e segnala `ide-context-changed`. Il rilievo abbassa `liveLoadingVerified` e non cambia `filesAligned`. `-Setup -Status` espone `contextStatus` (`unchanged`, `changed`, `unrecorded` o `unknown`), `sha256`, `installationEvidence` e il fingerprint senza scrivere.
+Manual account surfaces, including app settings and integrations without an instruction file, require the user to apply the generated text and provide a real observation. Do not infer account instructions from a generic help page or another profile.
 
-Limite: un cambio di account nella stessa radice di configurazione non è rilevabile senza credenziali. Resta coperto da `accountAlias` e dalla ricevuta di osservazione (valida 15 minuti, vincolata a profilo, account, ambiente e hash).
+The repository common source is AGENTS.md. Sync manages CLAUDE.md/GEMINI.md import pointers for adapters needing them; other clients may require their own supported configuration. Preserve unrelated content and report conflicts instead of editing generated blocks by hand.
 
-Procedura per un nuovo accesso (nuovo account, profilo o radice):
+## MCP is a separate check
 
-1. Verifica lo stato: `scripts/secondbrain.ps1 -Setup -Status` (cerca `contextStatus: changed`).
-2. Riattiva l'IDE con una nuova selezione: `-Discover` e `-Activate -SelectionPath` con `accountAlias`, `profile` ed `environment` nella voce IDE (`-Setup -Ides` registra l'IDE con il profilo predefinito e senza alias). L'id è derivato da profilo, alias e ambiente, quindi un nuovo accesso crea una nuova integrazione e registra il fingerprint corrente; riattivare con gli stessi valori sostituisce la voce e aggiorna il fingerprint.
-3. Ritira l'accesso precedente: `scripts/secondbrain.ps1 -Setup -Unbind <id-precedente> -Yes -Apply`. I file dell'IDE non vengono modificati.
-4. In una sessione nuova dell'IDE registra la ricevuta di osservazione e rilancia `scripts/ide-map.ps1 -Verify -ObservationPath <path>`: l'allineamento dei file non dimostra il caricamento.
+Pair preview inspects target/scope/path; Apply changes selected configuration after authorization. Codex/Claude Code user registration and workspace configuration are different scopes. A successful stdio handshake proves protocol behavior in that run, not live instruction loading or account state.
 
-### 5. Più account o più radici dello stesso IDE (`sb prompt SYS01`)
+Use [MCP setup](mcp-setup.md) for target/permission/package details. Restart only the intended owned client session when configuration changes require it.
 
-Un IDE usato con più account (per esempio l'app Claude con due login) o con più radici di configurazione (`CLAUDE_CONFIG_DIR`, `CODEX_HOME` diversi) va registrato come più integrazioni, una per account o radice. Il prompt di sistema SYS01 guida la procedura: mostra il disclaimer, raccoglie le scelte con una domanda a scelta multipla per decisione, registra e verifica.
+## Observation receipts and limits
 
-> **Disclaimer.** SecondBrain non rileva gli account e non legge archivi di autenticazione: l'account è dichiarato dall'utente (`accountAlias`) e provato da una ricevuta di osservazione. Un file allineato o una ricevuta non provano il caricamento nelle chat. Nessuna automazione del login. L'aggiornamento del testo nelle impostazioni account è assistito e richiede il login e l'autorizzazione dell'utente. `.runtime` contiene dati locali e non si pubblica.
+ObservationPath supplies a schema-validated receipt bound to the intended host/client/account/profile, expected text hash and real evidence. Freshness/current context and source revision matter. A fabricated receipt or a fixture cannot qualify a live client.
 
-Registrazione guidata (l'agente non scrive `selection.json` a mano):
+Write access is also observed, not assumed. core.write.denied/CLI exit 4 differs from lock contention (exit 3). Preserve original diagnostics and recovery markers; do not automatically widen writable roots or modify private IDE instructions as a shortcut.
 
-```powershell
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Status
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude account instructions|personale;Claude account instructions|lavoro" -Yes -Apply
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude Code|lavoro|profile=current-user|environment=prod|path=<percorso-assoluto-sotto-il-profilo>/.claude-lavoro/CLAUDE.md" -Yes -Apply
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "Claude account instructions|personale|revision=1.0|hash=<sha256 del testo letto dalle impostazioni>" -Yes -Apply
-```
+Sources in local fixtures demonstrate parser/adaptor behavior. They do not prove every installed client version, GUI permission dialog, account setting, native collector or multi-host filesystem condition. Report unavailable observations as pending.
 
-- Formato: `id-o-nome|alias[|chiave=valore...]`; più voci separate da `;`. Chiavi: `profile`, `environment`, `path`, `revision`, `hash`. Profilo, ambiente e percorso definiscono, con l'alias, l'id dell'integrazione.
-- Il percorso alternativo è ammesso solo per gli IDE di tipo file (Claude Code, Codex, Antigravity): assoluto, sotto il profilo utente, con il nome file atteso (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) e fuori da cartelle di credenziali. La voce ha percorso, hash e fingerprint propri e il blocco `global` viene distribuito anche in quel file da `-Sync`.
-- Voci con stesso profilo, alias, ambiente e percorso sono duplicati e vengono rifiutate. Senza `-Yes -Apply` il comando mostra solo l'anteprima.
-- Per le superfici manuali (impostazioni account) `revision` e `hash` (insieme, solo IDE manuali) registrano nella voce la revisione e l'hash SHA-256 del testo letto dalle impostazioni (`observedRevision`, `observedHash`), dichiarati dall'utente: dopo una nuova revisione delle direttive `-Sync`, `-Check` e `ide-map.ps1 -Verify` segnalano `ide-directive-stale` con revisione osservata e attesa, finché il testo dell'account non viene riallineato e riosservato.
-- `ide-map.ps1 -Verify` riporta id e alias di ogni integrazione. Ritira un accesso superato con `-Unbind <id>`.
-
-## Integrazione Server MCP con OpenAI Codex
-
-Per OpenAI Codex (CLI e Desktop), SecondBrain offre il server MCP stdio locale (`scripts/mcp-server.ps1`).
-
-- **Configurazione TOML** in `~/.codex/config.toml` (o `%CODEX_HOME%\config.toml`):
-  ```toml
-  [mcp_servers.secondbrain]
-  command = "pwsh"
-  args = ["-NoProfile", "-File", "C:\\Progetti\\SecondBrain\\scripts\\mcp-server.ps1"]
-  ```
-- **Comando CLI equivalente**:
-  ```bash
-  codex mcp add secondbrain -- pwsh -NoProfile -File "C:\Progetti\SecondBrain\scripts\mcp-server.ps1"
-  ```
-- **Accoppiamento guidato**:
-  ```powershell
-  pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
-  ```
-
-L'inventario della postazione (`scripts/SecondBrain.Host.psm1`) rileva automaticamente la presenza di `config.toml` e lo stato configurato del server MCP.
-
-Fonti ufficiali: [Claude Code](https://code.claude.com/docs/en/memory), [account Claude](https://support.claude.com/en/articles/10185728-understanding-claude-s-personalization-features), [Codex AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md), [Antigravity](https://www.antigravity.google/docs/rules/), [Continue](https://docs.continue.dev/customize/deep-dives/rules), [Android Studio](https://developer.android.com/studio/gemini/agent-files). Contratto del comando: [ide-map.ps1](../../scripts/ide-map.ps1).
-
-### Capability di scrittura osservate
-
-Ogni voce della mappa IDE generata da Sync contiene anche `writeScope`: `status` (`unverified`, `verified` o `denied`), `roots` (array delle radici) ed `evidence` (riferimento della prova). Voci precedenti o incomplete equivalgono a `{ "status": "unverified", "roots": [], "evidence": null }`. Per uno stato osservato servono radici ed evidenza; una configurazione di permessi non è una prova della sessione.
-
-Check segnala `ide-write-scope-unverified` o `ide-write-scope-denied` senza tentare scritture. Questi rilievi sono distinti dall'allineamento dei file e dal caricamento delle istruzioni. La discovery non attribuisce automaticamente una capability verificata, e i risultati su fixture non vengono trasferiti ai profili reali. La configurazione delle radici per gli IDE è un'attività successiva.
+See [safe writes](safety-backups.md), [access](access.md), [memory cycle](memory-cycle.md) and [operations](operations.md).

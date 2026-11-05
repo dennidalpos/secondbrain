@@ -1,37 +1,35 @@
-# Flusso per prodotto
+# Per-repository workflow
 
-SecondBrain si usa in due modi con lo stesso risultato: **in chat**, scrivendo `sb ...` nell'agente (Claude, ChatGPT Codex o Antigravity per Windows), oppure **da script**, con PowerShell. Per ogni repository i passi sono gli stessi e vanno in quest'ordine.
+[Retained Italian source; use this English page for current behavior](flusso-prodotto.it.md)
 
-| # | Passo | In chat | Da script |
-|---|---|---|---|
-| 1 | Attiva il repository (una volta per postazione) | `sb attiva` | `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive` |
-| 2 | Distribuisci direttive e dossier | `sb allinea` | `pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync` |
-| 3 | Collega e verifica l'IDE | `sb prompt SYS01` | `pwsh -NoProfile -File scripts/ide-map.ps1 -Verify` |
-| 4 | Carica il contesto iniziale (profilo snello) | `sb prompt MEM06` | `pwsh -NoProfile -File scripts/knowledge.ps1 -Startup` |
-| 5 | Scegli il prossimo task pronto | `sb prompt REP01` | `pwsh -NoProfile -File scripts/knowledge.ps1 -Tasks -ReadyOnly` |
-| 6 | Lavora nel repository | l'agente, nei permessi della sessione | — |
-| 7 | Prima del push: verifica di pubblicabilità | `sb prompt SEC07` | `pwsh -NoProfile -File scripts/publication.ps1 -RepositoryPath .` |
-| 8 | Chiudi il task: stato nel tracker, memoria e contesto, poi Sync e Check | `sb prompt MEM03` | `pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTaskId ID -Status done` |
-| 9 | Se Check chiede la compattazione: anteprima, poi applica | `sb compatta` | `pwsh -NoProfile -File scripts/knowledge.ps1 -Compact -CandidatePath FILE` |
+Use chat conventions or the same PowerShell scripts. Run central scripts from the SecondBrain checkout and identify the product checkout explicitly when needed.
 
-I passi 1–3 si fanno una volta; 4–8 a ogni lavoro; 9 solo quando serve. Nuovi task: `knowledge.ps1 -NewTask` (non si modifica il tracker a mano).
-
-## Dove sei e cosa fare ora
-
-`sb prompt` è il menu iniziale. Con il percorso del repository aggiunge lo stato della postazione, il repository corrente (gestito o no) e il prossimo passo:
-
-```powershell
-pwsh -NoProfile -File scripts/prompts.ps1 -RepositoryPath .
-```
-
-Da MCP è lo strumento `get_prompt_home` con `repositoryPath`. Senza percorso la schermata è generica (comandi, primi passi e guide). In chat l'agente deve passare il checkout corrente: la schermata non lo ricava da sola.
-
-## Chat o script?
-
-| | In chat | Da script |
+| Step | Chat | CLI or action |
 |---|---|---|
-| Quando | Lavori già con un agente supportato | Senza agente, per diagnosi o automazione |
-| Permessi | Quelli della sessione dell'agente | Quelli del tuo terminale |
-| Risultato | Lo stesso: i comandi `sb` richiamano gli stessi script | Lo stesso |
+| Activate once per workstation | `sb attiva` | `scripts/secondbrain.ps1 -Setup -Interactive` |
+| Sync approved instructions | `sb allinea` | `scripts/secondbrain.ps1 -Sync` |
+| Verify the IDE integration | `sb prompt SYS01` | `scripts/ide-map.ps1 -Verify` plus live client evidence |
+| Load essential context | `sb prompt MEM06` | `scripts/knowledge.ps1 -Startup -CheckoutPath <product>` |
+| Choose ready work | `sb prompt REP01` | `scripts/knowledge.ps1 -Tasks -ReadyOnly -CheckoutPath <product>` |
+| Implement authorized work | Agent in the product repository | Follow repository instructions and session permissions |
+| Check before any authorized push | `sb prompt SEC07` | `scripts/publication.ps1 -RepositoryPath <product>` |
+| Close authorized work | `sb prompt MEM03` | Update permitted tracker/context/memory, then Sync and Check |
+| Compact only when necessary | `sb compatta` | `knowledge.ps1 -Compact -CandidatePath <file>`; inspect before Apply |
 
-Limiti: i comandi `sb` sono una convenzione scritta nelle direttive, non un programma installato; un file di regole aggiornato non prova che l'agente lo abbia caricato (controlla in una sessione nuova). Dettagli: [agenti e MCP](ide-e-mcp.md), [uso quotidiano](uso-quotidiano.md).
+Add `-NoRecovery` to knowledge lookups when writes are prohibited. Without it, lookups may process previously authorized pending writes. Audits that propose tracker changes leave the tracker unchanged; do not close a task simply because some code exists.
+
+## Show the current next step
+
+~~~powershell
+pwsh -NoProfile -File scripts/prompts.ps1 -RepositoryPath C:/Projects/MyProduct
+~~~
+
+The MCP equivalent is `get_prompt_home` with `repositoryPath`. Without a checkout argument the menu is generic. The chat agent must supply the actual checkout rather than infer it from a dossier folder name.
+
+## Chat and CLI boundaries
+
+`sb` commands are conventions written in managed instructions, not shell executables. The CLI and MCP expose the same knowledge operations, but permissions and client approvals are separate. Installing an instruction file, registering an account/profile, successful stdio communication and proving live loading are separate checks.
+
+Product builds, tests and screenshots belong to the product's repository agent. Central maintenance collects their evidence; it does not qualify products by running only central fixtures. Operational work and retained evidence belong in the managed SecondBrain runtime, with tool-specific output redirection verified.
+
+See [daily use](uso-quotidiano.md), [agents and MCP](ide-e-mcp.md), [trackers](riferimento/trackers.md) and [runtime maintenance](riferimento/runtime-maintenance.md).

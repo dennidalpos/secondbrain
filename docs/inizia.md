@@ -1,80 +1,71 @@
-# Inizia
+# Getting started
 
-Dieci minuti per attivare SecondBrain. Niente viene scritto senza la tua conferma.
+[Retained Italian source; use this English page for current behavior](inizia.it.md)
 
-```mermaid
+Activate SecondBrain on a Windows workstation, choose the repositories it may manage, and connect an agent. Installing configuration files and proving that an IDE loaded them are separate steps.
+
+~~~mermaid
 flowchart LR
-    A["1. Scarica"] --> B["2. Controlla"]
-    B --> C["3. Attiva"]
-    C --> D["4. Distribuisci le regole"]
-    D --> E["5. Collega l'agente"]
-    E --> F["6. Scrivi: sb prompt"]
-```
+    A[Clone] --> B[Inspect]
+    B --> C[Choose and activate]
+    C --> D[Sync approved rules]
+    D --> E[Pair an agent]
+    E --> F[Verify in a new session]
+~~~
 
-Servono Windows, Git 2.42+ e PowerShell 7.5+. Il preflight rifiuta Git assente, non eseguibile, precedente a 2.42 o con versione non riconoscibile.
+## Prerequisites
 
-## 1. Scarica
+Use Windows, PowerShell 7.5+ and Git 2.42+. Setup rejects missing, unrecognizable or older Git versions. Choose a checkout location you control. Dossiers and runtime files are ignored by Git; cloning or pushing this repository does not back them up.
 
-```powershell
-git clone https://github.com/dennidalpos/SecondBrain.git C:/Progetti/SecondBrain
-cd C:/Progetti/SecondBrain
-```
+~~~powershell
+git clone https://github.com/dennidalpos/secondbrain.git C:/Projects/SecondBrain
+cd C:/Projects/SecondBrain
+~~~
 
-Meglio un tuo repository privato: le note restano sul PC, ma così puoi salvarle.
+The paths below are examples, not workstation settings.
 
-## 2. Controlla
+## Inspect and activate
 
-```powershell
+~~~powershell
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
-```
-
-Non scrive nulla. La prima volta dice `Postazione non attivata`: è normale, si risolve al passo 3.
-
-## 3. Attiva
-
-```powershell
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive
-```
+~~~
 
-Elenca i progetti e gli agenti trovati. Scegli i tuoi, poi conferma scrivendo `CONFERMO` e `APPLICA`.
+Before activation, Check reports that the workstation is not activated and exits with code 2. Setup discovers repositories and IDEs, presents a selection and asks for confirmation before applying it. Limit discovery to known roots when scanning every drive would be slow:
 
-## 4. Distribuisci le regole
+~~~powershell
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Projects -Interactive
+~~~
 
-```powershell
+Read [security and side effects](sicurezza.md) first. Check can process previously authorized pending dossier writes; it is not a strict no-write command. For a strictly read-only knowledge lookup, use `knowledge.ps1 -NoRecovery`.
+
+## Sync and pair
+
+~~~powershell
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
-```
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
+~~~
 
-Aggiunge un breve testo in `AGENTS.md` dei progetti e nel file di regole di ogni agente. Il resto del file non cambia.
+Sync applies the approved managed blocks. Pair without Apply previews the configuration; Apply changes the selected client's configuration with backup. Use `claude`, `claude-code` or `antigravity` when appropriate; consult [agents and MCP](ide-e-mcp.md) for user and workspace targets.
 
-## 5. Collega l'agente
+## Verify the integration
 
-```powershell
-pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude
-pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude -Apply
-```
+Restart the agent, open a new session and type `sb prompt`. This is a chat convention defined by the instructions, not an installed shell command.
 
-Il primo comando mostra cosa farà, il secondo lo fa. Al posto di `claude` puoi usare `codex` o `antigravity`.
-
-## 6. Prova
-
-Riavvia l'agente e scrivi in chat:
-
-```text
-sb prompt
-```
-
-Se vedi l'elenco dei comandi, è tutto pronto. Per controllare in ogni momento:
-
-```powershell
+~~~powershell
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
-```
+~~~
 
-## Se qualcosa non va
+An aligned file, successful protocol handshake and observed loading in a live client are different forms of evidence. A successful file check alone does not qualify the client's account, permissions or loaded context.
 
-| Sintomo | Cosa fare |
+## Troubleshooting
+
+| Symptom | Next step |
 |---|---|
-| L'agente non conosce `sb prompt` | Riavvialo e apri una nuova sessione |
-| Dopo l'attivazione `-Check` termina con codice 1 | Leggi le voci in `issues`: spesso sono solo promemoria |
-| Vuoi tornare indietro | [Ripristina un file](sicurezza.md#ripristina-un-file) |
+| The agent does not understand `sb prompt` | Check the selected integration and test a new session |
+| Check exits with 1 | Read the individual issues; do not treat reminders as passed checks |
+| A tracked instructions file is modified | Preserve the changes and review the conflict; do not force Sync |
+| A configuration must be restored | Use [backup and recovery](sicurezza.md) |
 
-Prossimo passo: [uso quotidiano](uso-quotidiano.md). Tutte le opzioni: [configurazione](riferimento/portable-brain.md#configurazione-e-prerequisiti).
+Continue with [daily use](uso-quotidiano.md) or the [configuration reference](riferimento/portable-brain.md).

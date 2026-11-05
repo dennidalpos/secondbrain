@@ -1,40 +1,41 @@
-# Audit esterno GitHub
+# Read-only GitHub audit
 
-`scripts/audit-github.ps1` esegue soltanto GET tramite GitHub CLI, usando l autenticazione gia configurata. E un comando esplicito: Sync e Check non lo importano e non acquisiscono dipendenze di rete. L audit remoto e stato verificato con PowerShell 7.6.8 e GitHub CLI 2.103.2. Le 31 verifiche isolate senza rete passano anche su PowerShell 7.5.11 e 7.6.9 (evidenze di collaudo conservate nelle fixture isolate). Questo non costituisce una nuova acquisizione autenticata dei remoti sulla 7.5.
+[Retained Italian source; use this English page for current behavior](external-audit.it.md)
 
-```powershell
-# Tutti i repository attivi dell inventario, output su stdout:
-./scripts/audit-github.ps1 -ConfigPath .runtime/hosts/<id>/workstation.json
+audit-github.ps1 performs explicit GET requests through the existing GitHub CLI authentication. Sync and Check do not invoke the collector. Do not inspect credential stores or retain tokens.
 
-# Un repository gestito, artefatto locale nuovo:
-./scripts/audit-github.ps1 -ConfigPath .runtime/hosts/<id>/workstation.json `
-  -Repository github.com/example-user/my-app `
-  -OutputPath ".runtime/reports/audit-github-onlybackup.json"
-```
+~~~powershell
+pwsh -NoProfile -File scripts/audit-github.ps1 -Repository github.com/example-user/my-app
+~~~
 
-Il percorso JSON deve essere nuovo; non vengono sovrascritti audit, tracker o file preesistenti. Senza `-OutputPath` non si scrivono artefatti. Con output si usa il coordinamento Write e la scrittura verificata; durante una sessione prolungata passare `-SessionId` secondo la [procedura di accesso](access.md). Identita, owner e presenza nell inventario attivo sono controllati prima della rete; hash dell inventario verificato anche dopo la raccolta. Il comando non modifica remoti, checkout o tracker.
+The identity must belong to the active inventory and allowed owner policy. Without OutputPath, results go to stdout. An optional OutputPath must name a new JSON artifact in an initialized runtime report folder. It cannot overwrite a previous report or tracker. Pass SessionId for authorized longer writes.
 
-## Copertura ed esiti
+The inventory hash is checked after collection; changing it invalidates the result. The collector changes no remote, checkout or tracker.
 
-Per ogni identita vengono censiti metadata repository, issue (escluse le PR), tutte le PR, commenti issue, commenti inline, review di ogni PR osservata, branch, tag e fork. Ogni pagina registra URL, orari UTC, HTTP status e SHA-256 del payload ricevuto. I corpi e i titoli degli elementi sono conservati come hash e lunghezza; il payload grezzo, gli header di autenticazione e stderr non sono salvati. L elenco dei fork non ne verifica i contenuti.
+## Coverage
 
-La paginazione segue il `Link` con relazione `next` fino all esaurimento. Link fuori dall endpoint previsto, parametri estranei, cicli o oltre 1000 pagine rendono la risorsa incompleta. Non si segue un redirect di identita verso un repository differente. [Contratto GitHub della paginazione](https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api), [opzioni di gh api](https://cli.github.com/manual/gh_api).
+The collector inventories metadata, issues excluding PRs, PRs, issue comments, inline comments, reviews for observed PRs, branches, tags and forks. A fork list does not inspect fork contents.
 
-`complete` e `count` descrivono la risorsa intera; `observedCount` conserva gli elementi delle pagine ottenute. Un errore successivo lascia `count=null`, anche se alcuni elementi erano gia stati letti. Le review sono complete solo se sono complete sia la lista delle PR sia tutte le richieste per PR. Un elenco vuoto completo e distinto da una richiesta non eseguita.
+Pages record endpoint, UTC timing, HTTP status and payload SHA-256. Titles/bodies are represented by hashes and lengths; raw payloads, authentication headers and raw stderr are not retained. Wiki content needs separate inspection.
 
-| Stato | Significato |
+Pagination follows next links only within the expected endpoint. Foreign links, unexpected parameters, cycles and more than 1,000 pages produce incomplete coverage. Identity-changing redirects are not followed.
+
+## Results
+
+| State | Meaning |
 |---|---|
-| `accessible`, `complete=true`, `count=0` | Richiesta conclusa, elenco vuoto osservato |
-| `not_found_or_inaccessible` | HTTP 404; nessuna deduzione fra assenza e permessi |
-| `authentication_required` / `access_denied` | HTTP 401 / 403, distinti dai dati vuoti |
-| `rate_limited` | HTTP 429 o limite riconosciuto su 403; raccolta successiva arrestata, nessun retry automatico |
-| `partial` | Elementi gia ottenuti o review incomplete; nessun totale dichiarato |
-| `not_attempted` | Prerequisito indisponibile o arresto globale |
-| Wiki `disabled` | Metadata `has_wiki=false`; distinto da contenuto vuoto |
-| Wiki `unverified` | Contenuto non acquisito: nessuna affermazione su pagine o accessibilita |
+| accessible, complete=true, count=0 | Completed request and observed empty list |
+| not_found_or_inaccessible | HTTP 404; absence and permissions remain indistinguishable |
+| authentication_required / access_denied | HTTP 401 / 403 |
+| rate_limited | Recognized 429/rate-limit 403; later collection stops |
+| partial | Some pages obtained, no complete total |
+| not_attempted | Missing prerequisite or global stop |
+| Wiki disabled / unverified | Disabled in metadata / content not acquired |
 
-GitHub puo usare 404 per risorse private non accessibili; i limiti richiedono attesa prima di nuove richieste. Il collector interrompe la raccolta quando riconosce un limite o un problema globale di autenticazione. [Diagnostica ufficiale](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api).
+complete and count describe the entire resource. observedCount retains partial results; incomplete requests leave count null. Reviews are complete only if the PR listing and each required review query are complete. Global authentication/rate limits stop later collection without automatic retries.
 
-Le Wiki abilitate richiedono una verifica separata del loro repository Git o dell interfaccia; il collector REST non la esegue. [Gestione delle Wiki](https://docs.github.com/en/communities/documenting-your-project-with-wikis/adding-or-editing-wiki-pages). Anche uno stato completo resta uno snapshot non atomico fra richieste: allegati, Actions, cache, cloni e copie esterne sono fuori copertura.
+Snapshots are not atomic across endpoints. Attachments, Actions contents, caches, clones and external copies are outside coverage. A complete audit is not publication clearance.
 
-Exit code: **0** copertura completa; **1** artefatto valido con limiti espliciti; **2** errore di invocazione/configurazione/scrittura. I test isolati sono in `scripts/test-secondbrain-external-audit.ps1`, inclusi nella suite obbligatoria (evidenze reali e valutazione cronologia conservate nel runtime di test).
+Exit codes are 0 complete, 1 valid artifact with explicit limits, 2 invocation/configuration/write error. Fixture checks in test-secondbrain-external-audit.ps1 do not replace authenticated acquisition.
+
+Primary references: [pagination](https://docs.github.com/en/rest/using-the-rest-api/using-pagination-in-the-rest-api), [gh api](https://cli.github.com/manual/gh_api), [REST troubleshooting](https://docs.github.com/en/rest/using-the-rest-api/troubleshooting-the-rest-api).

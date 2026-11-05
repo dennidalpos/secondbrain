@@ -1,81 +1,66 @@
-# Uso quotidiano
+# Daily use
 
-Parli con l'agente come sempre. SecondBrain gli porta memoria e regole.
+[Retained Italian source; use this English page for current behavior](uso-quotidiano.it.md)
 
-```mermaid
-flowchart LR
-    A["Apri un progetto"] --> B["L'agente legge<br/>contesto e task"]
-    B --> C["Lavori"]
-    C --> D["L'agente aggiorna<br/>memoria e task"]
-    D --> A
-```
+Work with your agent as usual. SecondBrain supplies repository context, decisions, tasks and approved instructions. The agent must still respect the permissions of the current session.
 
-## Comandi da scrivere in chat
+## Chat commands
 
-| Scrivi | Succede |
+The command words below remain unchanged in every documentation language.
+
+| Type in the agent chat | Purpose |
 |---|---|
-| `sb prompt` | Mostra comandi e guide |
-| `sb prompt list` | Elenca tutti i prompt (una sola lista) |
-| `sb prompt ambito test` | Elenca i prompt di un'area |
-| `sb prompt mostra TST04` | Mostra un prompt |
-| `sb prompt TST04: controlla il login` | Usa il prompt per il tuo obiettivo |
-| `sb controlla` | Verifica lo stato, senza modificare |
-| `sb allinea` | Aggiorna le regole approvate |
-| `sb attiva` | Aggiunge progetti o agenti |
-| `sb compatta` | Accorcia gli appunti di un progetto, conservando gli originali |
+| `sb prompt` | Show commands, guides and the next step |
+| `sb prompt list` | Show the complete prompt list |
+| `sb prompt ambito test` | List one category |
+| `sb prompt mostra TST04` | Display a prompt card |
+| `sb prompt TST04: check the login flow` | Compose the card with your objective |
+| `sb controlla` | Inspect alignment; approved pending writes may be processed |
+| `sb allinea` | Sync approved instructions |
+| `sb attiva` | Discover and activate selected integrations |
+| `sb compatta` | Preview dossier compaction; applying it requires confirmation |
 
-I passi in ordine, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
+See the [per-repository workflow](flusso-prodotto.md) for the order of operations.
 
-## Dove stanno le cose: PARA
+## PARA and the dossier
 
-Quattro cartelle, un solo criterio: quanto è attivo un'informazione.
-
-```mermaid
-flowchart LR
-    P["01 Progetti<br/>hanno una fine"] --> AR["04 Archivi<br/>non più attivi"]
-    A["02 Aree<br/>sempre attive"] --> AR
-    R["03 Risorse<br/>utili in futuro"] --> AR
-```
-
-| Cartella | Esempio |
+| Folder | Use |
 |---|---|
-| `01-projects` | Rilascio di una nuova app |
-| `02-areas` | Un prodotto che mantieni |
-| `03-resources` | Norme e riferimenti |
-| `04-archives` | Lavori conclusi |
+| `01-projects/` | Work with an end condition |
+| `02-areas/` | Continuing responsibilities, including maintained products |
+| `03-resources/` | Reference material |
+| `04-archives/` | Inactive material; do not reactivate it implicitly |
 
-Queste cartelle restano sul tuo PC e non finiscono su GitHub.
+A repository dossier contains `index.md`, `context.md`, `memory.md`, `repository.json` and its declared tracker. Resolve it by repository identity, not the folder name. A declared dossier tracker is authoritative; a missing or invalid tracker is an error, not permission to use another file.
 
-## Ogni progetto ha
+Durable decisions use `Decisione: … — Motivo: …` in memory. Keep only verified, useful changes in context and memory. Read the essential startup package first, then request relevant task details and historical evidence. Slim defaults to 30,000 characters for the first load; characters are not tokens. See [loading and maintenance](riferimento/runtime-maintenance.md).
 
-| File | Cosa contiene |
-|---|---|
-| `context.md` | A che punto sei |
-| `memory.md` | Decisioni e trappole da ricordare, in una riga `Decisione: … — Motivo: …` |
-| `tracker.json` | L'elenco dei task |
+## CLI lookups
 
-L'agente li legge a strati (Progressive Summarization): prima il riassunto essenziale, poi i dettagli solo se servono. Come funziona: [caricamento a strati](riferimento/runtime-maintenance.md).
+Run these from the SecondBrain checkout, passing the product checkout explicitly:
 
-## Prima di pubblicare
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -NoRecovery -CheckoutPath C:/Projects/MyProduct
+pwsh -NoProfile -File scripts/knowledge.ps1 -Tasks -ReadyOnly -NoRecovery -CheckoutPath C:/Projects/MyProduct
+pwsh -NoProfile -File scripts/knowledge.ps1 -Task TASK-ID -NoRecovery -CheckoutPath C:/Projects/MyProduct
+~~~
 
-```powershell
-pwsh -NoProfile -File scripts/publication.ps1 -RepositoryPath C:/Progetti/MioRepo
-```
+The global task view requires `-All` and is paginated. Task edits belong to the repository being worked on. An audit that only proposes tracker changes must leave the tracker untouched.
 
-Cerca dati privati, segreti e file di lavoro. Commit e push restano sempre una tua richiesta.
+## Before publication
 
-## Cambiare versione
+~~~powershell
+pwsh -NoProfile -File scripts/publication.ps1 -RepositoryPath C:/Projects/MyProduct
+~~~
 
-Non ogni modifica merita un nuovo numero. L'agente, quando serve, propone la versione e **ti chiede se vuoi cambiarla**. Se dici sì, fa tutto lui e annota la modifica in [CHANGELOG](../CHANGELOG.md). Se dici no, resta com'è e il registro non cambia.
+The gate scans working tree, index and relevant history, subject to its reported coverage. Review findings, binary limitations and any accepted fingerprints. A clean pattern scan is not proof that every secret or private detail has been found. Commit and push each require the user's authorization.
 
-## Parole da sapere
+## Versions and closure
 
-| Parola | Significa |
-|---|---|
-| Dossier | La cartella di un progetto dentro SecondBrain |
-| Tracker | L'elenco dei task |
-| Blocco gestito | Il testo aggiunto da SecondBrain in un file |
-| Allineare | Aggiornare quel testo |
-| MCP | Il collegamento tra agente e SecondBrain |
+A documentation correction does not automatically require a new version. Propose a version only when justified; change it and the changelog only after acceptance.
 
-Più dettagli: [PARA](riferimento/tree.md#para-gestione-dei-progetti), [task](riferimento/trackers.md), [controlli](riferimento/operations.md#controllo-e-sincronizzazione-su-richiesta).
+At an authorized task closure, verify acceptance criteria, preserve task IDs and history, update the permitted dossier records and run Sync and Check. Repository memory collection is enabled only explicitly and requires a verified permission policy for the current turn.
+
+## Terms
+
+A dossier is a repository's knowledge folder; a tracker stores tasks; a managed block is the delimited text Sync maintains; MCP connects the client to the local server. See [trackers](riferimento/trackers.md), [PARA](riferimento/tree.md) and [operations](riferimento/operations.md).
