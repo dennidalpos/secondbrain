@@ -171,6 +171,12 @@ function ConvertTo-SBWriteError($Exception, [string]$Path) {
         $error.Data['path'] = $Path
         return $error
     }
+    # Hash/marker reads can contend before the inner write handler is entered.
+    # Keep the original I/O cause and reject the loser without retrying its transaction.
+    $contention = Get-SBWriteContention $Exception
+    if ($null -ne $contention) {
+        return (New-SBError 'core.write.contended' @($Path) ([IO.IOException]) 0 $contention)
+    }
     $Exception
 }
 function Test-SBWriteDeniedError($ErrorRecord) {

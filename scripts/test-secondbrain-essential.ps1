@@ -295,6 +295,18 @@ if('pending' -in $Groups){
     Check ($response.applied -and !$response.ContainsKey('closureAdvice')) 'queued metadata on a done task emits no closure signal'
 }
 if('audit2' -in $Groups){
+    $distribution=Join-Path $fixture 'distribution';[void][IO.Directory]::CreateDirectory($distribution)
+    [void](Invoke-SBGit $distribution @('init','-q'))
+    foreach($name in @('AGENTS.md','CLAUDE.md','GEMINI.md')){Put (Join-Path $distribution $name) '# Synthetic public instructions'}
+    [void](Invoke-SBGit $distribution @('add','--','AGENTS.md','CLAUDE.md','GEMINI.md'))
+    $checker=Join-Path $PSScriptRoot 'check-distribution.ps1'
+    $checkOutput=@(& pwsh -NoProfile -File $checker -RepositoryPath $distribution 2>&1)
+    Check ($LASTEXITCODE -eq 0) 'distribution accepts public IDE instruction pointers'
+    Put (Join-Path $distribution '02-areas/private.md') '# Synthetic private dossier'
+    Put (Join-Path $distribution 'notes.md') '# Unapproved root document'
+    [void](Invoke-SBGit $distribution @('add','--','02-areas/private.md','notes.md'))
+    $checkOutput=@(& pwsh -NoProfile -File $checker -RepositoryPath $distribution 2>&1)
+    Check ($LASTEXITCODE -eq 1 -and ($checkOutput -join "`n").Contains('02-areas/private.md') -and ($checkOutput -join "`n").Contains('notes.md')) 'distribution still rejects private dossiers and arbitrary root files'
     $target=Join-Path $brain 'denied.txt';Put $target 'updated'
     [IO.File]::SetAttributes($target,[IO.FileAttributes]::ReadOnly)
     try{

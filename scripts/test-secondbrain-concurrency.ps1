@@ -134,6 +134,18 @@ try {
         Assert-Conc (@($outcomes|Where-Object {!$_.ok -and !$_.code -and $_.type -ne 'IOException'}).Count -eq 0) 'transazioni PARA: i perdenti falliscono con codice stabile o errore di I/O dichiarato'
         Assert-Conc (@(1..6|Where-Object {$final -ceq "transazione-$_`n"}).Count -eq 1 -or $final -ceq "base`n") 'transazioni PARA: contenuto finale di una sola transazione (o originale)'
         Assert-Conc ($wins.Count -eq 0 -or (Test-Path -LiteralPath $marker) -eq $false) 'transazioni PARA: nessun marker pendente dopo la transazione vincente'
+
+        # Deterministic sharing violation before marker acquisition: no target/marker mutation.
+        $lockedBrain=Join-Path $brain 'locked-marker';$lockedMarker=Join-Path $lockedBrain '.runtime/para-transaction.json';$lockedTarget=Join-Path $lockedBrain 'target.md'
+        [IO.Directory]::CreateDirectory((Split-Path $lockedMarker))|Out-Null
+        [IO.File]::WriteAllText($lockedTarget,"preserve`n");$targetHash=Get-SBFileHash $lockedTarget
+        [IO.File]::WriteAllText($lockedMarker,'{"fixture":"held marker"}');$markerHash=Get-SBFileHash $lockedMarker
+        $holder=[IO.File]::Open($lockedMarker,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None);$lockedError=$null
+        try{
+            try{Invoke-SBParaTransaction -Operations @(@{path=$lockedTarget;expected=$targetHash;bytes=[Text.Encoding]::UTF8.GetBytes("replacement`n")}) -BackupRoot $backups -BrainRoot $lockedBrain|Out-Null}catch{$lockedError=$_.Exception}
+        }finally{$holder.Dispose()}
+        Assert-Conc ($null -ne $lockedError -and (Get-ErrorCode $lockedError) -eq 'core.write.contended') 'locked transaction marker: stable contention code before acquisition'
+        Assert-Conc ((Get-SBFileHash $lockedTarget) -eq $targetHash -and (Get-SBFileHash $lockedMarker) -eq $markerHash) 'locked transaction marker: target and retained marker bytes unchanged'
     }
 
     Invoke-Case 'tracker-new-task' (Join-Path $root 'tracker') {
