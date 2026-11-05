@@ -974,8 +974,10 @@ function Set-SBManagedContent {
     $key = [IO.Path]::GetFullPath($Path)+'|'+$Id
     $wanted = if ($WholeFile) { $Body } else { "<!-- secondbrain:${Id}:begin -->`n"+$Body.Trim()+"`n<!-- secondbrain:${Id}:end -->" }
     $existing = if ($WholeFile) { $text } else { Get-SBManagedContent $text $Id }
-    $oldHash = if ($null -eq $existing -or ($WholeFile -and $beforeHash -eq 'absent')) { 'absent' } else { Get-SBTextHash $existing }
-    if ($existing -ceq $wanted) {
+    # Git checkouts with autocrlf rewrite line endings: a block that differs only by CRLF is aligned, not a conflict.
+    $comparable = if ($null -ne $existing) { $existing.Replace("`r`n","`n") } else { $null }
+    $oldHash = if ($null -eq $existing -or ($WholeFile -and $beforeHash -eq 'absent')) { 'absent' } else { Get-SBTextHash $comparable }
+    if ($comparable -ceq $wanted) {
         if (!$Check) { $State[$key] = Get-SBTextHash $wanted }
         return 'aligned'
     }
