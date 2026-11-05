@@ -6,6 +6,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'prompts.encoding.invalid' = @{ it = 'Testo prompt con caratteri corrotti: {0}'; en = 'Prompt text contains corrupted characters: {0}' }
     'prompts.catalog.invalid' = @{ it = 'Catalogo prompt non valido'; en = 'Invalid prompt catalog' }
     'prompts.language.invalid' = @{ it = 'Lingua non supportata: {0} (usare en o it)'; en = 'Unsupported language: {0} (use en or it)' }
     'prompts.i18n.invalid' = @{ it = 'Traduzione non valida o scheda assente: {0} ({1})'; en = 'Invalid translation or missing card: {0} ({1})' }
@@ -47,10 +48,17 @@ Add-SBMessages @{
 $script:SBWorkflowTagOrder=@('role','context','inputs','decisions','procedure','constraints','exit_criteria','output_format')
 $script:SBWorkflowTagRequired=@('role','context','inputs','procedure','constraints','exit_criteria','output_format')
 
+# Known UTF-8 decoded as OEM/Windows-1252 signatures, not a ban on non-ASCII text.
+function Assert-SBWorkflowEncoding([string]$Text,[string]$Path) {
+    $pattern='\uFFFD|\u251C[\u00E1\u2593]|\u00E2(?:\u20AC[\u00A2\u00A6\u201C\u201D\u2122]|\u0161\u00A0)'
+    if([regex]::IsMatch($Text,$pattern)){throw (New-SBError 'prompts.encoding.invalid' @($Path))}
+}
+
 function Read-SBWorkflowCatalog([string]$BrainRoot, [switch]$ValidateBodies) {
     $root=Resolve-SBParaPath $BrainRoot 'direttive/prompts'
     $path=Join-Path $root 'catalog.json'; Assert-SBPlainPath $path
     $json=Read-SBText $path
+    Assert-SBWorkflowEncoding $json $path
     $schema=Resolve-SBParaPath $BrainRoot 'config/prompt-catalog.schema.json'
     if(!(Test-Json -Json $json -SchemaFile $schema -ErrorAction Stop)){throw (New-SBError 'prompts.catalog.invalid')}
     $catalog=ConvertFrom-Json -InputObject $json -AsHashtable
@@ -191,6 +199,7 @@ function Read-SBWorkflowPrompt([string]$BrainRoot, $Prompt, $Catalog, [string]$L
     $relative=if($Language -eq 'it'){'it/'+$Prompt.file}else{$Prompt.file}
     $path=Resolve-SBParaPath $BrainRoot ('direttive/prompts/'+$relative)
     $body=(Read-SBText $path).Replace("`r`n","`n")
+    Assert-SBWorkflowEncoding $body $path
     $code=$Prompt.code
     $lines=$body -split "`n"
     if(!$lines[0].StartsWith('# '+$code+' — ',[StringComparison]::Ordinal)){throw (New-SBError 'prompts.card.header' @($code))}

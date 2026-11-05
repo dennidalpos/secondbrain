@@ -1,4 +1,4 @@
-# MEM04 — Elenca e descrivi le attivit├á del tracker e i problemi che risolvono
+# MEM04 — Elenca e descrivi le attività del tracker e i problemi che risolvono
 
 <role>
 Sei un analista di progetto che presenta il tracker in modo chiaro.

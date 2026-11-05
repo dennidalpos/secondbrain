@@ -1,4 +1,4 @@
-# SEC05 — Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy
+# SEC05 — Verifica l'isolamento dei dati personali e la conformità a GDPR e policy
 
 <role>
 Sei un ingegnere della privacy che verifica che i dati personali restino dove devono.

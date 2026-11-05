@@ -531,7 +531,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Implementa una funzionalit├á con i controlli pertinenti.",
+          "summary": "Implementa una funzionalità con i controlli pertinenti.",
           "requires": "requisiti o criteri di accettazione verificati",
           "example": "implementa il comando di esportazione con validazione dell'hash"
         }
@@ -606,7 +606,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Aggiorna le dipendenze verificando compatibilit├á e regressioni.",
+          "summary": "Aggiorna le dipendenze verificando compatibilità e regressioni.",
           "requires": "manifest delle dipendenze e lock file",
           "example": "aggiorna il pacchetto di serializzazione JSON"
         }
@@ -702,9 +702,9 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice.",
+          "summary": "Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice.",
           "requires": "codice da rivedere, convenzioni del repository e test esistenti",
-          "example": "rivedi leggibilit├á e manutenibilit├á del modulo di sincronizzazione"
+          "example": "rivedi leggibilità e manutenibilità del modulo di sincronizzazione"
         }
       }
     },
@@ -752,7 +752,7 @@
       "i18n": {
         "it": {
           "summary": "Scrivi guide e README coerenti con il prodotto reale.",
-          "requires": "funzionalit├á implementate, comandi verificati e screenshot approvati",
+          "requires": "funzionalità implementate, comandi verificati e screenshot approvati",
           "example": "aggiorna le guide e aggiungi diagrammi di flusso Mermaid"
         }
       }
@@ -846,7 +846,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Verifica le licenze open source, la conformit├á dei file e le intestazioni SPDX.",
+          "summary": "Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.",
           "requires": "albero dei sorgenti e file di licenza",
           "example": "verifica la licenza MIT e che le intestazioni SPDX corrispondano"
         }
@@ -892,9 +892,9 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Valuta usabilit├á, coerenza e stati dei flussi utente.",
+          "summary": "Valuta usabilità, coerenza e stati dei flussi utente.",
           "requires": "applicazione eseguibile e flussi da esaminare",
-          "example": "valuta l'usabilit├á della procedura guidata di configurazione"
+          "example": "valuta l'usabilità della procedura guidata di configurazione"
         }
       }
     },
@@ -939,9 +939,9 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive.",
+          "summary": "Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.",
           "requires": "interfaccia funzionante e standard di riferimento",
-          "example": "verifica la conformit├á ARIA e l'accessibilit├á"
+          "example": "verifica la conformità ARIA e l'accessibilità"
         }
       }
     },
@@ -1035,7 +1035,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Migra progettazione e attivit├á nel dossier SecondBrain.",
+          "summary": "Migra progettazione e attività nel dossier SecondBrain.",
           "requires": "documentazione storica o issue esterne da migrare",
           "example": "sb prompt MEM02: migra todo sparsi nel tracker centralizzato del dossier"
         }
@@ -1084,7 +1084,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Elenca e descrivi le attivit├á del tracker e i problemi che risolvono.",
+          "summary": "Elenca e descrivi le attività del tracker e i problemi che risolvono.",
           "requires": "tracker del dossier di repository",
           "example": "sb prompt MEM04: elenca attivita e problemi del tracker"
         }
@@ -1109,7 +1109,7 @@
       "i18n": {
         "it": {
           "summary": "Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.",
-          "requires": "obiettivo dell'entit├á PARA e sessione di scrittura sul clone SecondBrain",
+          "requires": "obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain",
           "example": "sb prompt MEM05: archivia la risorsa conclusa res-guida"
         }
       }
@@ -1371,7 +1371,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Progetta contratti API, modelli di dati e compatibilit├á.",
+          "summary": "Progetta contratti API, modelli di dati e compatibilità.",
           "requires": "requisiti o schema attuale con la sua versione",
           "example": "progetta lo schema JSON e i contratti API per l'elenco dei task"
         }
@@ -1495,7 +1495,7 @@
         "it": {
           "summary": "Completa il prossimo task pronto del repository aperto.",
           "requires": "task pianificato e criteri di accettazione",
-          "example": "esegui il prossimo task prioritario che si pu├▓ fare in autonomia"
+          "example": "esegui il prossimo task prioritario che si può fare in autonomia"
         }
       }
     },
@@ -1733,8 +1733,8 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Correggi le vulnerabilit├á e rafforza le difese interessate.",
-          "requires": "vulnerabilit├á confermata e contesto del codice",
+          "summary": "Correggi le vulnerabilità e rafforza le difese interessate.",
+          "requires": "vulnerabilità confermata e contesto del codice",
           "example": "correggi il path traversal nella risoluzione dei percorsi"
         }
       }
@@ -1782,9 +1782,9 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy.",
-          "requires": "mappatura dei dati e policy di conformit├á",
-          "example": "verifica i dati personali e la conformit├á privacy GDPR"
+          "summary": "Verifica l'isolamento dei dati personali e la conformità a GDPR e policy.",
+          "requires": "mappatura dei dati e policy di conformità",
+          "example": "verifica i dati personali e la conformità privacy GDPR"
         }
       }
     },
@@ -1956,7 +1956,7 @@
       ],
       "i18n": {
         "it": {
-          "summary": "Controlla o allinea gli asset gi├á gestiti della postazione.",
+          "summary": "Controlla o allinea gli asset già gestiti della postazione.",
           "requires": "configurazione postazione e direttive approvate",
           "example": "sb prompt SYS04: verifica allineamento direttive nei repository gestiti"
         }
@@ -2193,7 +2193,7 @@
         "it": {
           "summary": "Trova e correggi i test instabili o non deterministici.",
           "requires": "log dei fallimenti intermittenti e suite di test",
-          "example": "correggi l'instabilit├á dei test asincroni della suite"
+          "example": "correggi l'instabilità dei test asincroni della suite"
         }
       }
     },

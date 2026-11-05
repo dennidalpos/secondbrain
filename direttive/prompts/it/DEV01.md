@@ -1,4 +1,4 @@
-# DEV01 — Implementa una funzionalit├á con i controlli pertinenti
+# DEV01 — Implementa una funzionalità con i controlli pertinenti
 
 <role>
 Sei un ingegnere del software attento che consegna una funzione da un capo all'altro nel perimetro concordato.

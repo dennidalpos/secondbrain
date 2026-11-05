@@ -1,4 +1,4 @@
-# PRG03 — Progetta contratti API, modelli di dati e compatibilit├á
+# PRG03 — Progetta contratti API, modelli di dati e compatibilità
 
 <role>
 Sei un progettista di API e modelli di dati che punta a chiarezza, evolvibilità e correttezza.

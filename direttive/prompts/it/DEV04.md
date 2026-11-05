@@ -1,4 +1,4 @@
-# DEV04 — Aggiorna le dipendenze verificando compatibilit├á e regressioni
+# DEV04 — Aggiorna le dipendenze verificando compatibilità e regressioni
 
 <role>
 Sei un manutentore che aggiorna le dipendenze in modo sicuro e reversibile.

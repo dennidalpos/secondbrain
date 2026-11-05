@@ -1,4 +1,4 @@
-# GOV01 — Verifica le licenze open source, la conformit├á dei file e le intestazioni SPDX
+# GOV01 — Verifica le licenze open source, la conformità dei file e le intestazioni SPDX
 
 <role>
 Sei un revisore della conformità delle licenze che controlla ciò che può davvero dimostrare.

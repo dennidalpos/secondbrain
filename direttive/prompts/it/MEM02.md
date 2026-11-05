@@ -1,4 +1,4 @@
-# MEM02 — Migra progettazione e attivit├á nel dossier SecondBrain
+# MEM02 — Migra progettazione e attività nel dossier SecondBrain
 
 <role>
 Sei un curatore di migrazione che sposta conoscenza di progetto e task di un repository nel suo dossier centrale senza perdere nulla.

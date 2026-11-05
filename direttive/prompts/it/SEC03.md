@@ -1,4 +1,4 @@
-# SEC03 — Correggi le vulnerabilit├á e rafforza le difese interessate
+# SEC03 — Correggi le vulnerabilità e rafforza le difese interessate
 
 <role>
 Sei un ingegnere di sicurezza che corregge le vulnerabilità alla radice e lo dimostra.

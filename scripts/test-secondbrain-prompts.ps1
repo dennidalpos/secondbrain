@@ -78,6 +78,35 @@ $crlf=(Get-Content -Raw -LiteralPath (Join-Path $pointerRoot 'CLAUDE.md')) -repl
 Assert-Prompts (@(Set-SBRepositoryPointers $pointerRoot $pointerState $true $pointerBackup|Where-Object {$_.file -eq 'CLAUDE.md'}).result -eq 'aligned') 'puntatore con terminatori CRLF (autocrlf) resta allineato'
 [IO.File]::WriteAllText((Join-Path $pointerRoot 'GEMINI.md'),($gemini -replace '@AGENTS.md','@ALTRO.md'))
 Assert-Prompts (@(Set-SBRepositoryPointers $pointerRoot $pointerState $true $pointerBackup|Where-Object {$_.file -eq 'GEMINI.md'}).result -eq 'conflict') 'modifica esterna del blocco segnalata come conflitto'
+# Encoding guard: exercise both read boundaries, including corruption in a body beyond its title.
+$encodingRoot=Join-Path $pointerRoot 'encoding'
+$encodingCatalog=Join-Path $encodingRoot 'direttive/prompts/catalog.json'
+$encodingCard=Join-Path $encodingRoot ('direttive/prompts/it/'+$readPrompt.file)
+$encodingBackup=Join-Path $pointerRoot 'encoding-backups'
+$validUnicode='Usabilità, può, receção, cessação, … — • ⚠ 🔭 ├── 中文'
+& (Get-Module SecondBrain.Prompts) {param($Text) Assert-SBWorkflowEncoding $Text 'valid-unicode'} $validUnicode
+Assert-Prompts $true 'codifica: accenti, portoghese, emoji, punteggiatura, cinese e alberi Unicode validi'
+$badSequences=@(
+    (-join ([char[]]@(0x251C,0x00E1))),
+    (-join ([char[]]@(0x251C,0x2593))),
+    (-join ([char[]]@(0x00E2,0x20AC,0x00A2))),
+    (-join ([char[]]@(0x00E2,0x20AC,0x201D))),
+    (-join ([char[]]@(0x00E2,0x20AC,0x00A6))),
+    (-join ([char[]]@(0x00E2,0x0161,0x00A0))),
+    ([string][char]0xFFFD)
+)
+foreach($bad in $badSequences){
+    $badJson=ConvertTo-SBJson @{text=('Fixture '+$bad)}
+    Write-SBFile $encodingCatalog ([Text.Encoding]::UTF8.GetBytes($badJson)) (Get-SBFileHash $encodingCatalog) $encodingBackup|Out-Null
+    $catalogRejected=$false
+    try{[void](Read-SBWorkflowCatalog $encodingRoot)}catch{$catalogRejected=Test-SBError $_ 'prompts.encoding.invalid'}
+    Assert-Prompts $catalogRejected 'codifica: catalogo corrotto respinto con codice stabile'
+    $badCard='# '+$readPrompt.code+' — Fixture'+[Environment]::NewLine+'<context>'+[Environment]::NewLine+$bad
+    Write-SBFile $encodingCard ([Text.Encoding]::UTF8.GetBytes($badCard)) (Get-SBFileHash $encodingCard) $encodingBackup|Out-Null
+    $cardRejected=$false
+    try{[void](Read-SBWorkflowPrompt $encodingRoot $readPrompt $catalog 'it')}catch{$cardRejected=Test-SBError $_ 'prompts.encoding.invalid'}
+    Assert-Prompts $cardRejected 'codifica: corpo scheda corrotto respinto con codice stabile'
+}
 # Generated indexes are in sync.
 $drift=Get-SBWorkflowDrift $brain
 Assert-Prompts (!@($drift).Count) 'indici generati allineati al catalogo'

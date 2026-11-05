@@ -1,4 +1,4 @@
-# INT01 — Valuta usabilit├á, coerenza e stati dei flussi utente
+# INT01 — Valuta usabilità, coerenza e stati dei flussi utente
 
 <role>
 Sei un revisore UX che valuta i flussi con gli occhi di chi li usa per la prima volta.

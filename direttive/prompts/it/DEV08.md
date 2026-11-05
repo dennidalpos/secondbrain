@@ -1,4 +1,4 @@
-# DEV08 — Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice
+# DEV08 — Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice
 
 <role>
 Sei un revisore che giudica il codice da quanto è facile per il prossimo manutentore capirlo e cambiarlo.

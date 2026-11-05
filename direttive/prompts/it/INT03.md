@@ -1,4 +1,4 @@
-# INT03 — Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive
+# INT03 — Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive
 
 <role>
 Sei uno specialista di accessibilità che verifica rispetto alle WCAG con test reali.

@@ -61,7 +61,7 @@ REQUISITI E PROGETTAZIONE
   • Cosa serve: alternative da valutare e vincoli del progetto
   • Esempio d'uso: confronta SQLite e JSON per la persistenza locale
 
-🔭 PRG03 | Progetta contratti API, modelli di dati e compatibilit├á.
+🔭 PRG03 | Progetta contratti API, modelli di dati e compatibilità.
   • ID: pmt-83764c0d
   • Ambito: repo/area | Modalità: read
   • Cosa serve: requisiti o schema attuale con la sua versione
@@ -93,7 +93,7 @@ REQUISITI E PROGETTAZIONE
 
 
 SVILUPPO E MODERNIZZAZIONE
-🔥 DEV01 | Implementa una funzionalit├á con i controlli pertinenti.
+🔥 DEV01 | Implementa una funzionalità con i controlli pertinenti.
   • ID: pmt-83df1685
   • Ambito: repo/area/file | Modalità: write
   • Cosa serve: requisiti o criteri di accettazione verificati
@@ -111,7 +111,7 @@ SVILUPPO E MODERNIZZAZIONE
   • Cosa serve: codice da migliorare, test esistenti e perimetro dell'intervento
   • Esempio d'uso: estrai la gestione delle transazioni in un modulo dedicato
 
-🔥 DEV04 | Aggiorna le dipendenze verificando compatibilit├á e regressioni.
+🔥 DEV04 | Aggiorna le dipendenze verificando compatibilità e regressioni.
   • ID: pmt-e2405036
   • Ambito: repo/area/file | Modalità: write
   • Cosa serve: manifest delle dipendenze e lock file
@@ -135,11 +135,11 @@ SVILUPPO E MODERNIZZAZIONE
   • Cosa serve: testo della segnalazione, ambiente e accesso in lettura al codice
   • Esempio d'uso: fai il triage e riproduci la segnalazione sul parsing dei percorsi
 
-🔭 DEV08 | Rivedi leggibilit├á, coerenza e manutenibilit├á senza modificare il codice.
+🔭 DEV08 | Rivedi leggibilità, coerenza e manutenibilità senza modificare il codice.
   • ID: pmt-b16674bd
   • Ambito: repo/area/file | Modalità: read
   • Cosa serve: codice da rivedere, convenzioni del repository e test esistenti
-  • Esempio d'uso: rivedi leggibilit├á e manutenibilit├á del modulo di sincronizzazione
+  • Esempio d'uso: rivedi leggibilità e manutenibilità del modulo di sincronizzazione
 
 🔥 DEV12 | Sviluppa o rivedi una funzione LLM con valutazioni
   • ID: pmt-0715c64b
@@ -165,7 +165,7 @@ TEST E VERIFICA
   • ID: pmt-91021b67
   • Ambito: repo/area | Modalità: write
   • Cosa serve: log dei fallimenti intermittenti e suite di test
-  • Esempio d'uso: correggi l'instabilit├á dei test asincroni della suite
+  • Esempio d'uso: correggi l'instabilità dei test asincroni della suite
 
 🔥 TST04 | Diagnostica e correggi i fallimenti di build e test in CI.
   • ID: pmt-bd98736f
@@ -211,10 +211,10 @@ REVISIONE E SICUREZZA
   • Cosa serve: architettura e flussi di dati verso l'esterno
   • Esempio d'uso: modello delle minacce dei flussi stdio e del file system locale
 
-🔥 SEC03 | Correggi le vulnerabilit├á e rafforza le difese interessate.
+🔥 SEC03 | Correggi le vulnerabilità e rafforza le difese interessate.
   • ID: pmt-b4cb6659
   • Ambito: repo/area/file | Modalità: write
-  • Cosa serve: vulnerabilit├á confermata e contesto del codice
+  • Cosa serve: vulnerabilità confermata e contesto del codice
   • Esempio d'uso: correggi il path traversal nella risoluzione dei percorsi
 
 ✅ SEC04 | Trova le credenziali esposte e verifica la validazione degli input.
@@ -223,11 +223,11 @@ REVISIONE E SICUREZZA
   • Cosa serve: working tree e strumenti di scansione
   • Esempio d'uso: esegui un audit di sicurezza delle credenziali
 
-✅ SEC05 | Verifica l'isolamento dei dati personali e la conformit├á a GDPR e policy.
+✅ SEC05 | Verifica l'isolamento dei dati personali e la conformità a GDPR e policy.
   • ID: pmt-24189cb6
   • Ambito: repo | Modalità: verify
-  • Cosa serve: mappatura dei dati e policy di conformit├á
-  • Esempio d'uso: verifica i dati personali e la conformit├á privacy GDPR
+  • Cosa serve: mappatura dei dati e policy di conformità
+  • Esempio d'uso: verifica i dati personali e la conformità privacy GDPR
 
 🔥 SEC06 | Rafforza configurazione del repository, CI, container e accessi.
   • ID: pmt-c356eede
@@ -287,11 +287,11 @@ AUDIT E METRICHE
 
 
 INTERFACCIA ED ESPERIENZA UTENTE
-🔭 INT01 | Valuta usabilit├á, coerenza e stati dei flussi utente.
+🔭 INT01 | Valuta usabilità, coerenza e stati dei flussi utente.
   • ID: pmt-33216f62
   • Ambito: repo/area | Modalità: read
   • Cosa serve: applicazione eseguibile e flussi da esaminare
-  • Esempio d'uso: valuta l'usabilit├á della procedura guidata di configurazione
+  • Esempio d'uso: valuta l'usabilità della procedura guidata di configurazione
 
 🔥 INT02 | Implementa un'interfaccia seguendo requisiti e riferimenti.
   • ID: pmt-db55c30d
@@ -299,11 +299,11 @@ INTERFACCIA ED ESPERIENZA UTENTE
   • Cosa serve: linee guida o mockup e componenti esistenti
   • Esempio d'uso: realizza la schermata di sincronizzazione
 
-✅ INT03 | Verifica l'accessibilit├á e l'uso con tastiera e tecnologie assistive.
+✅ INT03 | Verifica l'accessibilità e l'uso con tastiera e tecnologie assistive.
   • ID: pmt-2ea0c993
   • Ambito: repo/area | Modalità: verify
   • Cosa serve: interfaccia funzionante e standard di riferimento
-  • Esempio d'uso: verifica la conformit├á ARIA e l'accessibilit├á
+  • Esempio d'uso: verifica la conformità ARIA e l'accessibilità
 
 ✅ INT04 | Verifica l'internazionalizzazione di stringhe, formati e traduzioni.
   • ID: pmt-805ca095
@@ -392,7 +392,7 @@ DOCUMENTAZIONE
 🔥 DOC01 | Scrivi guide e README coerenti con il prodotto reale.
   • ID: pmt-07430e8c
   • Ambito: repo | Modalità: write
-  • Cosa serve: funzionalit├á implementate, comandi verificati e screenshot approvati
+  • Cosa serve: funzionalità implementate, comandi verificati e screenshot approvati
   • Esempio d'uso: aggiorna le guide e aggiungi diagrammi di flusso Mermaid
 
 🔥 DOC02 | Documenta API e contratti a partire dall'implementazione.
@@ -419,7 +419,7 @@ IGIENE DEL REPOSITORY
   • ID: pmt-4cc383ba
   • Ambito: repo | Modalità: write
   • Cosa serve: task pianificato e criteri di accettazione
-  • Esempio d'uso: esegui il prossimo task prioritario che si pu├▓ fare in autonomia
+  • Esempio d'uso: esegui il prossimo task prioritario che si può fare in autonomia
 
 ⛔ REP04 | Rimuovi residui e codice inutilizzato dopo la verifica.
   • ID: pmt-40772e6e
@@ -465,7 +465,7 @@ IGIENE DEL REPOSITORY
 
 
 GOVERNANCE, LICENZE E CONFORMITÀ
-✅ GOV01 | Verifica le licenze open source, la conformit├á dei file e le intestazioni SPDX.
+✅ GOV01 | Verifica le licenze open source, la conformità dei file e le intestazioni SPDX.
   • ID: pmt-313da996
   • Ambito: repo | Modalità: verify
   • Cosa serve: albero dei sorgenti e file di licenza
@@ -485,7 +485,7 @@ MEMORIA E CONTINUITÀ
   • Cosa serve: decisioni o modifiche recenti non registrate
   • Esempio d'uso: sb prompt MEM01: allinea context.md e memory.md dopo completamento task
 
-🔥 MEM02 | Migra progettazione e attivit├á nel dossier SecondBrain.
+🔥 MEM02 | Migra progettazione e attività nel dossier SecondBrain.
   • ID: pmt-64dfa49f
   • Ambito: repo/area | Modalità: write
   • Cosa serve: documentazione storica o issue esterne da migrare
@@ -497,7 +497,7 @@ MEMORIA E CONTINUITÀ
   • Cosa serve: stato del lavoro svolto, task successivi definiti e destinazione di consegna
   • Esempio d'uso: sb prompt MEM03: chiudi la sessione e chiedi commit e push
 
-🔭 MEM04 | Elenca e descrivi le attivit├á del tracker e i problemi che risolvono.
+🔭 MEM04 | Elenca e descrivi le attività del tracker e i problemi che risolvono.
   • ID: pmt-23c3d2be
   • Ambito: repo/area | Modalità: read
   • Cosa serve: tracker del dossier di repository
@@ -506,7 +506,7 @@ MEMORIA E CONTINUITÀ
 🔥 MEM05 | Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.
   • ID: pmt-4e1b7c52
   • Ambito: central | Modalità: write
-  • Cosa serve: obiettivo dell'entit├á PARA e sessione di scrittura sul clone SecondBrain
+  • Cosa serve: obiettivo dell'entità PARA e sessione di scrittura sul clone SecondBrain
   • Esempio d'uso: sb prompt MEM05: archivia la risorsa conclusa res-guida
 
 🔭 MEM06 | Leggi memoria attiva, contesto e tracker del repository corrente.
@@ -535,7 +535,7 @@ SISTEMA E MANUTENZIONE CENTRALE
   • Cosa serve: volume SecondBrain e consenso utente sugli asset
   • Esempio d'uso: sb prompt SYS03: attiva secondbrain selezionando repository e ide locali
 
-✅ SYS04 | Controlla o allinea gli asset gi├á gestiti della postazione.
+✅ SYS04 | Controlla o allinea gli asset già gestiti della postazione.
   • ID: pmt-677a10ab
   • Ambito: central | Modalità: verify
   • Cosa serve: configurazione postazione e direttive approvate
