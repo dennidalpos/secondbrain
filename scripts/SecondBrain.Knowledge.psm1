@@ -6,6 +6,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'knowledge.tasks.unselected' = @{it='Nessun task selezionato. Usa -Tasks per scegliere il lavoro e -Task per il dettaglio.';en='No task selected. Use -Tasks to choose work and -Task for complete details.'}
     'knowledge.tracker.data' = @{ it = 'Tracker data non disponibile'; en = 'Tracker data not available' }
     'knowledge.paging.invalid' = @{ it = 'Offset e Limit devono essere interi non negativi'; en = 'Offset and Limit must be non-negative integers' }
     'knowledge.record.missing' = @{ it = 'repository.json assente'; en = 'repository.json missing' }
@@ -46,6 +47,7 @@ function Get-SBDossierTOC([string]$Dossier) {
         if(Test-Path -LiteralPath $root){foreach($file in Get-ChildItem -LiteralPath $root -File -Filter '*.md'|Sort-Object Name){$lines+='- ['+$file.BaseName+']('+[Uri]::EscapeUriString($directory+'/'+$file.Name)+'): leggere per questo argomento.'}}
     }
     if(Test-Path -LiteralPath (Join-Path $Dossier 'authoritative-sources.json')){$lines+='- [Applicabilità delle fonti](authoritative-sources.json): leggere quando il task dipende da fonti autorevoli.'}
+    if(Test-Path -LiteralPath (Join-Path $Dossier 'knowledge-index.json')){$lines+='- [Indice tematico derivato](knowledge-index.json): revisioni e riferimenti, fonti da verificare prima di usarle.'}
     ($lines -join "`n")+"`n"
 }
 function Get-SBDossierHistoryIndex([string]$Dossier) {
@@ -131,6 +133,7 @@ function Split-SBMarkdownH2([string]$Text) {
     if($normalized.Length -gt $start){$normalized.Substring($start)}
 }
 function Split-SBTieredMarkdown([string]$Text) {
+    $Text=Remove-SBPrivateText $Text
     $essential=[Text.StringBuilder]::new();$history=[Text.StringBuilder]::new();$titles=@()
     foreach($chunk in (Split-SBMarkdownH2 $Text)){
         if(!$chunk){continue}
@@ -144,6 +147,11 @@ function Split-SBTieredMarkdown([string]$Text) {
         if($isHistory){[void]$history.Append($chunk);$titles+=$title}else{[void]$essential.Append($chunk)}
     }
     @{essential=$essential.ToString();history=$history.ToString();historyTitles=$titles}
+}
+function Remove-SBPrivateText([string]$Text) {
+    # Preserve newline positions for source citations; never return marked text in excerpts.
+    [regex]::Replace($Text,'(?is)<\s*(?<tag>private|do[-_]not[-_]memorize)\b[^>]*>.*?(?:<\s*/\s*\k<tag>\s*>|\z)',
+        [Text.RegularExpressions.MatchEvaluator]{param($match) [regex]::Replace($match.Value,'[^\r\n]','')})
 }
 # Agent view of memory.md (memory.agent.md): derived file, never edited manually. One entry per line, `- [T#id] date · scope · text`,
 # where T = D decision, G gotcha, A architecture, C constraint. Includes essential parts only; free-form historical entries are classified
@@ -159,7 +167,7 @@ function Get-SBAgentViewType([string]$Heading,[string]$Text) {
 function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
     $normalized=$MemoryText.Replace("`r`n","`n")
     $sourceHash=Get-SBTextHash $normalized
-    $essential=(Split-SBTieredMarkdown $normalized).essential
+    $essential=Select-SBActiveDecisionText (Split-SBTieredMarkdown $normalized).essential
     $entries=[Collections.Generic.List[object]]::new();$seen=@{};$heading='';$fence=$false
     $schema='^\[(?<t>[DGAC])\]\s+(?<d>\d{4}-\d{2}-\d{2}|s\.d\.)\s+·\s+(?<s>[^·]+?)\s+·\s+(?<x>.+)$'
     $add={
@@ -175,6 +183,7 @@ function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
     }
     $pending=$null
     foreach($line in ($essential -split "`n")){
+        if($line -match '^\s*<!-- sb:decision '){continue}
         if($line -match '^\s*(```|~~~)'){$fence=!$fence;continue}
         if($fence){continue}
         if($line -match '^#{1,6}\s+(?<h>.+?)\s*$'){if($null -ne $pending){& $add $pending;$pending=$null};$heading=$Matches.h;continue}
@@ -192,6 +201,14 @@ function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
     foreach($entry in $entries){$out.Add('- ['+$entry.type+'#'+$entry.id+'] '+$(if($entry.date){$entry.date+' · '+$entry.scope+' · '}else{''})+$entry.text)}
     ($out -join "`n")+"`n"
 }
+function Select-SBActiveDecisionText([string]$Text) {
+    $kept=@()
+    foreach($chunk in (Split-SBMarkdownH2 $Text)){
+        if($chunk -match '<!-- sb:decision id=[^ ]+ state=(?:superseded|expired)(?: [^>]*)? -->'){continue}
+        $kept+=,$chunk
+    }
+    $kept -join ''
+}
 function Format-SBSlimTaskRow($Task) {
     $blocker=([string]$Task['blocker']) -replace '\s+',' '
     if($blocker.Length -gt 90){$blocker=$blocker.Substring(0,90).TrimEnd()+'…'}
@@ -208,6 +225,10 @@ function Format-SBSlimTasks($Projection) {
 function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget) {
     $notice="`n"+(Get-SBMessage 'knowledge.startup.compacted')+"`n"
     $minimum=$Parts.index+$Parts.levels+$notice
+    $requiredContext=@(Split-SBMarkdownH2 $Parts.context|Where-Object {$_ -match '(?m)^## (?:Vincoli|Constraints|Stato corrente|Current state|Problemi aperti|Open issues|Prossimo passo|Next step)\s*$'}) -join ''
+    $requiredCharacters=$minimum.Length+$requiredContext.Length+$Parts.memory.Length+$Parts.tasks.Length
+    # Essential state and selected work cannot silently disappear to make the report green.
+    if($requiredCharacters -gt $Budget){return @{minimum=$requiredCharacters;omitted=@()}}
     if($minimum.Length -gt $Budget){
         $Parts.index="[index.md](index.md)`n"
         $Parts.levels=''
@@ -226,6 +247,7 @@ function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget)
             $heading=($chunk -split "`n",2)[0]
             $title=if($heading.StartsWith('## ')){$heading.Substring(3).Trim()}else{''}
             $priority=switch -Regex ($title){'^Vincoli$|^Constraints$'{0} '^Stato corrente$|^Current state$'{1} '^Problemi aperti$|^Open issues$|^Prossimo passo$|^Next step$'{2} default{4}}
+            if($part -eq 'memory'){$priority=3}
             $text=if($chunk.EndsWith("`n")){$chunk}else{$chunk+"`n"}
             $blocks.Add(@{part=$part;title=$title;text=$text;priority=$priority})
         }
@@ -249,7 +271,7 @@ function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget)
     @{minimum=$minimum.Length;omitted=$references}
 }
 function Get-SBStartupContext {
-    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full')
+    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full',[string]$PreviousRevision)
     if($Profile -eq 'Slim' -and !$PSBoundParameters.ContainsKey('Budget')){$Budget=Get-SBSlimStartupBudget}
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
@@ -259,7 +281,15 @@ function Get-SBStartupContext {
     $contextText=Read-SBText (Join-Path $Dossier 'context.md');$memoryText=Read-SBText (Join-Path $Dossier 'memory.md')
     $viewPath=Join-Path $Dossier 'memory.agent.md'
     $viewHash=if($slim -and [IO.File]::Exists($viewPath)){Get-SBFileHash $viewPath}else{''}
-    New-SBStartupPackage -Record $record -Tracker $tracker -TOC $toc -ContextText $contextText -MemoryText $memoryText -AgentViewHash $viewHash -TaskIds $TaskIds -Budget $Budget -ReadyOnly:$ReadyOnly -Profile $Profile
+    $package=New-SBStartupPackage -Record $record -Tracker $tracker -TOC $toc -ContextText $contextText -MemoryText $memoryText -AgentViewHash $viewHash -TaskIds $TaskIds -Budget $Budget -ReadyOnly:$ReadyOnly -Profile $Profile
+    # Revision covers source changes as well as the requested view. No client state is persisted.
+    $revisionSource=[ordered]@{repository=$record.identity;profile=$Profile;budget=$Budget;readyOnly=[bool]$ReadyOnly;taskIds=@($TaskIds|Sort-Object -Unique);context=(Get-SBTextHash $contextText);memory=(Get-SBTextHash $memoryText);toc=$toc;parts=[ordered]@{}}
+    foreach($key in @($package.parts.Keys|Sort-Object)){$revisionSource.parts[$key]=$package.parts[$key]}
+    $package.revision=Get-SBTextHash (ConvertTo-SBJson $revisionSource)
+    $package.changed=(!$PreviousRevision -or $PreviousRevision -cne $package.revision)
+    $package.sourceCharacters=$package.characters
+    if(!$package.changed){$package.parts=@{};$package.loadedParts=@();$package.characters=0}
+    $package
 }
 # Compose the startup package from a resolved snapshot, without reading or writing files.
 # Compaction supplies the final planned texts and agent view, before its transaction.
@@ -269,9 +299,9 @@ function New-SBStartupPackage {
     $slim=($Profile -eq 'Slim')
     $trData=if($tracker.ContainsKey('graph')){$tracker.graph}elseif($tracker.ContainsKey('data')){$tracker.data}else{$null}
     $trRel=if($tracker.ContainsKey('related')){$tracker.related}else{@{}}
-    $projection=if($trData){@(Get-SBTaskProjection $trData $TaskIds -ReadyOnly:($ReadyOnly -or ($slim -and !$TaskIds.Count)) -RelatedTrackers $trRel)}else{@()}
+    $projection=if($trData -and (!$slim -or $TaskIds.Count)){@(Get-SBTaskProjection $trData $TaskIds -ReadyOnly:($ReadyOnly -or ($slim -and !$TaskIds.Count)) -RelatedTrackers $trRel)}else{@()}
     if(!$slim){
-        $parts=@{index=$toc;context=$contextText;memory=$memoryText;tasks=(ConvertTo-SBJson $projection)}
+        $parts=@{index=$toc;context=(Remove-SBPrivateText $contextText);memory=(Remove-SBPrivateText $memoryText);tasks=(ConvertTo-SBJson $projection)}
         $omitted=@()
     }else{
         $contextTiers=Split-SBTieredMarkdown $contextText;$memoryTiers=Split-SBTieredMarkdown $memoryText
@@ -284,12 +314,13 @@ function New-SBStartupPackage {
         $levelLines=@('# Livelli non caricati','','Profilo Slim: sono caricate le sole parti essenziali. Nulla è stato eliminato; richiedi il resto quando serve.','')
         foreach($item in $omitted){$levelLines+=('- '+$item.part+$(if($item.characters){' — '+$item.characters+' caratteri'}else{''})+$(if(@($item.sections).Count){' ('+(@($item.sections) -join '; ')+')'}else{''})+': '+$item.how)}
         # Memory: the agent view replaces essential memory.md parts when aligned with the source (same hash).
-        $memorySlim=$memoryTiers.essential
+        $memorySlim=Select-SBActiveDecisionText $memoryTiers.essential
         if($AgentViewHash){
             $viewExpected=ConvertTo-SBAgentMemoryView $memoryText
             if($AgentViewHash -eq (Get-SBTextHash $viewExpected)){$memorySlim=$viewExpected}
         }
-        $parts=@{index=$toc;context=$contextTiers.essential;memory=$memorySlim;tasks=(Format-SBSlimTasks $projection);levels=(($levelLines -join "`n")+"`n")}
+        $taskText=if($TaskIds.Count){Format-SBSlimTasks $projection}else{(Get-SBMessage 'knowledge.tasks.unselected')+"`n"}
+        $parts=@{index=$toc;context=$contextTiers.essential;memory=$memorySlim;tasks=$taskText;levels=(($levelLines -join "`n")+"`n")}
     }
     $characters=($parts.Values|Measure-Object -Property Length -Sum).Sum
     $before=$characters;$minimum=0;$compacted=$false
@@ -310,17 +341,20 @@ function Get-SBSlimStartupBudget { 30000 }
 # Read-only compaction advice: hard when the Slim package exceeds the limit, soft when near it or when many turns have elapsed
 # since the last compaction. Never compacts automatically: application remains on request (SYS05).
 function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[int]$SoftPercent=80,[int]$SoftTurns=50,[int]$SoftTurnsPercent=60) {
-    $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*$Startup.characters/$Startup.budget)}else{0}
+    $measured=if($Startup.ContainsKey('uncompactedCharacters')){[double]$Startup.uncompactedCharacters}else{[double]$Startup.characters}
+    $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*$measured/$Startup.budget)}else{0}
     $last=[DateTimeOffset]::MinValue
     $manifests=Join-Path $Dossier 'history/compaction'
     if(Test-Path -LiteralPath $manifests -PathType Container){
         foreach($file in Get-ChildItem -LiteralPath $manifests -File -Filter '*.json' -Force){if([DateTimeOffset]$file.LastWriteTimeUtc -gt $last){$last=[DateTimeOffset]$file.LastWriteTimeUtc}}
     }
-    $turns=Get-SBTraceTurns $BrainRoot $Startup.repository $last
+    $legacyTurns=Get-SBTraceTurns $BrainRoot $Startup.repository $last
+    $capturedTurns=Get-SBCapturedTraceTurns $BrainRoot $Startup.repository $last
+    $turns=$legacyTurns+$capturedTurns
     $level='none'
-    if($Startup.budget -gt 0 -and $Startup.characters -gt $Startup.budget){$level='hard'}
+    if($Startup.budget -gt 0 -and $measured -gt $Startup.budget){$level='hard'}
     elseif($Startup.budget -gt 0 -and ($percent -ge $SoftPercent -or ($turns -ge $SoftTurns -and $percent -ge $SoftTurnsPercent))){$level='soft'}
-    @{level=$level;characters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
+    @{level=$level;characters=$measured;deliveredCharacters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;legacyTurns=$legacyTurns;capturedTurns=$capturedTurns;turnCountCoverage='legacy-metadata-and-local-capture-index';lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
 }
 # Read-only report: characters per part, estimated tokens (characters/4, not exact), omitted parts and loaded directive sizes.
 function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
@@ -452,10 +486,20 @@ function Find-SBKnowledge {
     if($Mode -eq 'Relevance'){$tokens=@(Get-SBSearchTokens $Search)}
     foreach($dir in $targetDirs){
         if(!(Test-Path -LiteralPath $dir -PathType Container)){continue}
+        $searchRepository=[string](Read-SBJson (Join-Path $dir 'repository.json') @{}).identity
         $filesToSearch=[Collections.Generic.List[string]]::new()
         foreach($name in @('context.md','memory.md','tracker.json')){
             $candidate=Join-Path $dir $name
             if(Test-Path -LiteralPath $candidate -PathType Leaf){$filesToSearch.Add($candidate)}
+        }
+        foreach($name in @('topics','knowledge')){
+            $topicRoot=Join-Path $dir $name
+            if(Test-Path -LiteralPath $topicRoot -PathType Container){
+                Assert-SBPlainPath $topicRoot
+                foreach($topicFile in Get-ChildItem -LiteralPath $topicRoot -File -Recurse -Filter '*.md'){
+                    Assert-SBPlainPath $topicFile.FullName;$filesToSearch.Add($topicFile.FullName)
+                }
+            }
         }
         # Compacted originals nearly duplicate current files: search them only with -IncludeOriginals.
         $compactionDir=Join-Path $dir 'history/compaction'
@@ -477,9 +521,10 @@ function Find-SBKnowledge {
         foreach($filePath in $filesToSearch){
             $hash=Get-SBFileHash $filePath
             $relPath=[IO.Path]::GetRelativePath($root,$filePath).Replace('\','/')
-            $lines=(Read-SBText $filePath) -split '\r?\n'
+            $documentId=(Get-SBTextHash ($searchRepository+':'+[IO.Path]::GetRelativePath($dir,$filePath).Replace('\','/'))).ToLowerInvariant()
+            $lines=(Remove-SBPrivateText (Read-SBText $filePath)) -split '\r?\n'
             if($Mode -eq 'Relevance'){
-                foreach($unit in @(Split-SBSearchUnits $lines ($filePath -like '*.md'))){$unit.path=$relPath;$unit.sha256=$hash;$rankUnits.Add($unit)}
+                foreach($unit in @(Split-SBSearchUnits $lines ($filePath -like '*.md'))){$unit.path=$relPath;$unit.sha256=$hash;$unit.documentId=$documentId;$unit.repository=$searchRepository;$rankUnits.Add($unit)}
                 continue
             }
             $lineNum=0
@@ -487,7 +532,7 @@ function Find-SBKnowledge {
                 $lineNum++
                 if($line.Contains($Search,[StringComparison]::OrdinalIgnoreCase)){
                     $trimmed=Limit-SBSearchLine $line.Trim()
-                    $candidates.Add(@{extract=@{path=$relPath;line=$lineNum;sha256=$hash;text=$trimmed};size=($relPath.Length + $trimmed.Length + $hash.Length + 20)})
+                    $candidates.Add(@{extract=@{documentId=$documentId;repository=$searchRepository;path=$relPath;line=$lineNum;sha256=$hash;text=$trimmed};size=($relPath.Length + $trimmed.Length + $hash.Length + 20)})
                 }
             }
         }
@@ -516,7 +561,7 @@ function Find-SBKnowledge {
                 $lower=$line.ToLowerInvariant()
                 if(!@($tokens|Where-Object {$lower.Contains($_)}).Count){continue}
                 $trimmed=Limit-SBSearchLine $line.Trim()
-                $candidates.Add(@{extract=@{path=$unit.path;line=$lineNum;sha256=$unit.sha256;text=$trimmed;score=$entry.score;section=[string]$unit.title};size=($unit.path.Length + $trimmed.Length + $unit.sha256.Length + 20)})
+                $candidates.Add(@{extract=@{documentId=$unit.documentId;repository=$unit.repository;path=$unit.path;line=$lineNum;sha256=$unit.sha256;text=$trimmed;score=$entry.score;section=[string]$unit.title};size=($unit.path.Length + $trimmed.Length + $unit.sha256.Length + 20)})
             }
         }
     }
@@ -620,7 +665,7 @@ function Get-SBSection {
     $exact=@();$partial=@()
     foreach($file in $files){
         if(!(Test-Path -LiteralPath $file -PathType Leaf)){continue}
-        $lines=(Read-SBText $file) -split '\r?\n'
+        $lines=(Remove-SBPrivateText (Read-SBText $file)) -split '\r?\n'
         $hash=Get-SBFileHash $file
         foreach($section in @(Get-SBMarkdownSections $lines)){
             $hit=@{path=[IO.Path]::GetRelativePath($root,$file).Replace('\','/');sha256=$hash;title=$section.title;level=$section.level;line=$section.start;endLine=$section.end;lines=$lines}
@@ -636,7 +681,7 @@ function Get-SBSection {
     @{repository=$record.identity;section=$Title;matchKind=$(if($exact.Count){'exact'}else{'partial'});count=$found.Count;matches=$found}
 }
 function Invoke-SBDossierCompaction {
-    param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=50000)
+    param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=30000)
     if([string]::IsNullOrWhiteSpace($Dossier)){throw (New-SBError 'knowledge.dossier.unspecified')}
     $root=[IO.Path]::GetFullPath($BrainRoot);$dir=[IO.Path]::GetFullPath($Dossier)
     [void](Assert-SBPlainPath $dir)
@@ -685,6 +730,7 @@ function Invoke-SBDossierCompaction {
     @{repository=$record.identity;applied=[bool]$Apply;archives=$archives;operations=$ops.Count;originalsPreserved=$true;manifest=$manifestPath}
 }
 Export-ModuleMember -Function @(
+    'Remove-SBPrivateText',
     'Get-SBDossierTOC',
     'Get-SBDossierHistoryIndex',
     'Get-SBTaskProjection',

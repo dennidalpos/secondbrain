@@ -19,6 +19,9 @@ param(
     [Parameter(ParameterSetName = 'Server')]
     [string]$ConfigPath,
 
+    [Parameter(ParameterSetName = 'Server')]
+    [switch]$NoRecovery,
+
     [Parameter(Mandatory, ParameterSetName = 'Pair')]
     [switch]$Pair,
 
@@ -137,4 +140,4 @@ if ($Pair) {
     return $info
 }
 
-Start-SBMcpServer -BrainRoot $BrainRoot -ConfigPath $ConfigPath
+Start-SBMcpServer -BrainRoot $BrainRoot -ConfigPath $ConfigPath -NoRecovery:$NoRecovery

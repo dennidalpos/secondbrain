@@ -4,7 +4,8 @@
 End-of-turn trace for compaction advice (Claude Code Stop hook).
 .DESCRIPTION
 -Event stop appends a metadata-only line (time, session, repository, folder hash) to .runtime/trace/<workstation>/<date>.jsonl,
-reading optional hook JSON from stdin. Contains no prompt text, uses no writer lock, does not measure context and
+only when hook JSON explicitly declares persistence=allowed and policyEvidence for the current turn. Unknown/disabled policy writes nothing.
+Contains no prompt text, uses no writer lock, does not measure context and
 fails open: always exits 0 and never blocks the turn. Reading and advice live in secondbrain.ps1 -Check.
 -InstallHook / -UninstallHook / -HookStatus manage the Stop entry in ~/.claude/settings.json (or -SettingsPath): without -Apply,
 preview only; with -Apply, save with backup; leave other tools' entries untouched.

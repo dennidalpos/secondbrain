@@ -32,6 +32,9 @@ function Resolve-SBTraceRepository([string]$BrainRoot,[string]$Cwd) {
 function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$InputJson='',[string]$Ide='claude-code') {
     $payload=@{}
     if($InputJson.Trim()){try{$parsed=$InputJson|ConvertFrom-Json -AsHashtable -ErrorAction Stop;if($parsed -is [Collections.IDictionary]){$payload=$parsed}}catch{}}
+    # A legacy hook without per-turn permission is intentionally silent. Installation grants no consent.
+    if(!$payload.ContainsKey('persistence') -or $payload.persistence -cne 'allowed' -or
+       !$payload.ContainsKey('policyEvidence') -or [string]::IsNullOrWhiteSpace([string]$payload.policyEvidence)){return $null}
     $cwd=if($payload.ContainsKey('cwd')){[string]$payload.cwd}else{(Get-Location).Path}
     $session=if($payload.ContainsKey('session_id')){[string]$payload.session_id}else{''}
     if($session -notmatch '^[A-Za-z0-9_.-]{0,128}$'){$session=''}
@@ -71,6 +74,26 @@ function Get-SBTraceTurns([string]$BrainRoot,[string]$Repository,[DateTimeOffset
         }
     }
     $count
+}
+
+function Get-SBCapturedTraceTurns([string]$BrainRoot,[string]$Repository,[DateTimeOffset]$Since=[DateTimeOffset]::MinValue) {
+    # Metadata indexes only: never load raw captured conversations to count turns.
+    if(!(Test-SBRepositoryIdentity $Repository)){return 0}
+    $root=Join-Path $BrainRoot ('.runtime/hosts/'+(Get-SBHostId)+'/repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/evidence')
+    Assert-SBPlainPath $root
+    if(![IO.Directory]::Exists($root)){return 0}
+    $seen=@{}
+    foreach($folder in Get-ChildItem -LiteralPath $root -Directory){
+        $path=Join-Path $folder.FullName 'turns-index.json';Assert-SBPlainPath $path
+        if(![IO.File]::Exists($path)){continue}
+        $index=Read-SBJson $path $null
+        if(!$index -or $index.repository -cne $Repository -or $index.schemaVersion -ne 1){continue}
+        foreach($turn in @($index.turns)){
+            $date=[DateTimeOffset]::MinValue
+            if($turn.id -cmatch '^[a-f0-9]{64}$' -and [DateTimeOffset]::TryParse([string]$turn.capturedAt,[ref]$date) -and $date -gt $Since){$seen[$turn.id]=$true}
+        }
+    }
+    $seen.Count
 }
 
 # Claude Code Stop hook: settings.json entry running trace.ps1 at turn end. Recognized by script path; leave other entries intact.
@@ -123,4 +146,4 @@ function Set-SBTraceHook([string]$BrainRoot,[string]$BackupRoot,[switch]$Remove,
     $result
 }
 
-Export-ModuleMember -Function @('Get-SBTraceRoot','Resolve-SBTraceRepository','Add-SBTraceEvent','Get-SBTraceTurns','Get-SBTraceHookCommand','Get-SBTraceSettingsPath','Get-SBTraceHookState','Set-SBTraceHook')
+Export-ModuleMember -Function @('Get-SBTraceRoot','Resolve-SBTraceRepository','Add-SBTraceEvent','Get-SBTraceTurns','Get-SBCapturedTraceTurns','Get-SBTraceHookCommand','Get-SBTraceSettingsPath','Get-SBTraceHookState','Set-SBTraceHook')

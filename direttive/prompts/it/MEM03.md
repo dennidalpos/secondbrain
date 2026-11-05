@@ -5,7 +5,7 @@ Sei un ingegnere del passaggio di consegne: lasci il repository in modo che un a
 </role>
 
 <context>
-Da usare a fine lotto, prima di cambiare sessione o di consegnare lavoro parziale.
+Da usare a fine lotto, prima di cambiare sessione o consegnare lavoro parziale. Nei repository con ciclo memorie esplicitamente abilitato distingui chiusura incrementale, consegna del lotto e manutenzione SYS05.
 </context>
 
 <inputs>
@@ -24,11 +24,14 @@ Da usare a fine lotto, prima di cambiare sessione o di consegnare lavoro parzial
 2. Memorie: aggiorna `context.md` (stato, vincoli, problemi aperti, prossimo passo) e `memory.md` (decisioni durevoli e trappole) con la regola di sintesi minima.
 3. Tracker: chiudi solo ciò che è completo e dimostrato, tieni parziali e bloccati con stato e motivo, traccia i residui confermati senza duplicati; i task conclusi vanno in archivio.
 4. Consegna: salva in `history/` un rapporto con lavoro svolto, decisioni, comandi ed esiti, file utili, residui e primo passo; collegalo dal TOC senza duplicare cronache.
-5. Esegui `secondbrain.ps1 -Sync` e `-Check`.
+5. A fine lotto esegui `secondbrain.ps1 -Sync` e `-Check`. La chiusura incrementale aggiorna solo viste e indici interessati; niente Sync globale o riscrittura completa a ogni risposta. Proponi SYS05 separatamente quando necessario.
 6. Mostra `git status --ignored`, il diff, branch, remoto e commit non pubblicati. Se commit e push non sono già autorizzati, chiedi; fai ciò che è stato approvato, in sequenza. Prima del push verifica destinazione, visibilità, branch, perimetro e verifiche (SEC07).
 </procedure>
 
 <constraints>
+- Per il ciclo abilitato prepara variazioni strutturate con ID degli eventi prima della risposta finale. Il writer verifica revisioni ed evidenze; conflitti e ambiguita restano proposte. Un comando riuscito non dimostra il completamento; nessuna seconda chiamata al modello obbligatoria nell'hook Stop.
+- Registro fedele separato dalle memorie derivate. Principi STE solo nei derivati, conservando incertezze, condizioni e riferimenti; privati esclusi prima della persistenza.
+- Un turno senza scritture sospende registro, allegati, proposte, code e recovery. Usa `knowledge.ps1 -NoRecovery` o server MCP avviato con `-NoRecovery`.
 - Un passaggio di consegne non rinnova permessi né equivale a commit o pubblicazione.
 - Nessun force push, reset o cancellazione per ottenere un albero pulito; nessuna pulizia di artefatti senza richiesta esplicita e perimetro concreto.
 </constraints>

@@ -11,6 +11,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'mcp.pending.disabled' = @{it='Consultazione senza recupero delle scritture pendenti per questa sessione o richiesta.';en='Consultation without pending-write recovery for this session or request.'}
+    'mcp.description.noRecovery' = @{it='Non integrare scritture pendenti in questa chiamata; usare -NoRecovery all avvio del server per disabilitare anche il recupero iniziale';en='Skip pending-write recovery for this call; start the server with -NoRecovery to disable startup recovery too'}
     'mcp.title.get_startup_context' = @{ it = 'Contesto iniziale'; en = 'Startup context' }
     'mcp.title.get_ready_tasks' = @{ it = 'Attività pronte'; en = 'Ready tasks' }
     'mcp.title.get_task' = @{ it = 'Dettaglio attività'; en = 'Task details' }
@@ -24,11 +26,12 @@ Add-SBMessages @{
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
     'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
     'mcp.json.internal' = @{ it = 'Errore interno: {0}'; en = 'Internal error: {0}' }
-    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Profilo slim (predefinito, tetto 30000 caratteri): indice, sezioni essenziali di context.md e memory.md, task pronti in forma breve e l''elenco dei livelli non caricati (nulla eliminato). Profilo full: tutto, senza tetto.'; en = 'Return repository or dossier startup context. Slim (default, 30000-character limit): index, essential context and memory sections, brief ready tasks and omitted layers (nothing deleted). Full: complete context without a limit.' }
+    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Slim (default, 30000 caratteri): indice, contesto e memoria essenziali, soli task selezionati e riferimenti ai livelli non caricati. Full: contesto completo senza tetto. Una revisione invariata non ripete le parti.'; en = 'Return repository or dossier startup context. Slim (default, 30000 characters): index, essential context and memory, selected tasks only and omitted-layer references. Full: complete context without a limit. An unchanged revision does not repeat parts.' }
     'mcp.description.get_startup_context.repository' = @{ it = 'Identificatore del repository (es. github.com/example-user/secondbrain); default: checkout in lavoro'; en = 'Repository identity (e.g. github.com/example-user/secondbrain); defaults to the working checkout' }
     'mcp.description.get_startup_context.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
     'mcp.description.get_startup_context.dossier' = @{ it = 'Percorso relativo del dossier (es. 02-areas/products/SecondBrain)'; en = 'Relative dossier path (e.g. 02-areas/products/SecondBrain)' }
-    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, include solo task con dipendenze soddisfatte; vale per Slim quando non sono indicati ID'; en = 'If true, include only tasks with satisfied dependencies; enabled for Slim when no IDs are specified' }
+    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, filtra i task selezionati per dipendenze soddisfatte; Slim senza ID non include task'; en = 'If true, filter selected tasks by satisfied dependencies; Slim without IDs includes no tasks' }
+    'mcp.description.get_startup_context.previousRevision' = @{it='Revisione ricevuta in precedenza; se invariata restituisce changed=false senza ripetere le parti';en='Previously received revision; if unchanged, returns changed=false without repeating parts'}
     'mcp.description.get_startup_context.taskIds' = @{ it = 'ID dei task attivi da includere'; en = 'IDs of active tasks to include' }
     'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 30000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 30000 characters for initial loading only; full: complete context without a limit' }
     'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 30000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 30000 for slim, unlimited for full)' }
@@ -123,6 +126,7 @@ function Get-SBMcpToolDefinitions {
                     profile = @{ type = 'string'; enum = @('slim', 'full'); description = (Get-SBMessage 'mcp.description.get_startup_context.profile') }
                     budget = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_startup_context.budget') }
                     taskIds = @{ type = 'array'; items = @{type='string'}; description = (Get-SBMessage 'mcp.description.get_startup_context.taskIds') }
+                    previousRevision = @{type='string';description=(Get-SBMessage 'mcp.description.get_startup_context.previousRevision')}
                 }
             }
         },
@@ -224,6 +228,7 @@ function Get-SBMcpToolDefinitions {
         }
     )
     foreach($definition in $definitions){
+        $definition.inputSchema.properties.noRecovery=@{type='boolean';description=(Get-SBMessage 'mcp.description.noRecovery')}
         $definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')
         $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
         $definition
@@ -300,7 +305,9 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             }
             $dossierPath = if ([IO.Path]::IsPathRooted($dossier)) { $dossier } else { Join-Path $BrainRoot $dossier }
 
-            $ctx = Get-SBStartupContext -BrainRoot $BrainRoot -Dossier $dossierPath -Budget $budget -ReadyOnly:$readyOnly -TaskIds $taskIds -Profile $startupProfile
+            if($Arguments.ContainsKey('previousRevision') -and $Arguments.previousRevision -isnot [string]){throw (New-SBError 'mcp.startup.invalid')}
+            $previousRevision=if($Arguments.ContainsKey('previousRevision')){$Arguments.previousRevision}else{''}
+            $ctx = Get-SBStartupContext -BrainRoot $BrainRoot -Dossier $dossierPath -Budget $budget -ReadyOnly:$readyOnly -TaskIds $taskIds -Profile $startupProfile -PreviousRevision $previousRevision
             return ConvertTo-SBMcpJson $ctx
         }
         'get_ready_tasks' {
@@ -435,7 +442,12 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
     
     try {
         $pendingWrites=$null
-        if($method -in @('initialize','tools/list','tools/call','prompts/list','prompts/get','resources/list','resources/read')){
+        $skipRecovery=([bool](Get-Variable -Name SBMcpNoRecovery -Scope Script -ValueOnly -ErrorAction SilentlyContinue))
+        if($params -is [Collections.IDictionary]){
+            if($params.ContainsKey('_meta') -and $params._meta -is [Collections.IDictionary] -and $params._meta.ContainsKey('noRecovery') -and $params._meta.noRecovery -eq $true){$skipRecovery=$true}
+            if($params.ContainsKey('arguments') -and $params.arguments -is [Collections.IDictionary] -and $params.arguments.ContainsKey('noRecovery') -and $params.arguments.noRecovery -eq $true){$skipRecovery=$true}
+        }
+        if(!$skipRecovery -and $method -in @('initialize','tools/list','tools/call','prompts/list','prompts/get','resources/list','resources/read')){
             $pendingWrites=Invoke-SBMcpPendingRecovery $BrainRoot $script:SBMcpConfigPath
         }
         switch ($method) {
@@ -445,8 +457,8 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                     id = $id
                     result = @{
                         protocolVersion = $(if($params.ContainsKey('protocolVersion') -and $params.protocolVersion -eq '2024-11-05'){'2024-11-05'}else{'2025-03-26'})
-                        instructions = (Get-SBMessage 'mcp.pending.contract')
-                        _meta = @{pendingWrites=$pendingWrites}
+                        instructions = $(if($skipRecovery){Get-SBMessage 'mcp.pending.disabled'}else{Get-SBMessage 'mcp.pending.contract'})
+                        _meta = @{pendingWrites=$pendingWrites;noRecovery=$skipRecovery}
                         capabilities = @{
                             tools = @{ listChanged = $false }
                             prompts = @{ listChanged = $false }
@@ -626,14 +638,18 @@ function Start-SBMcpServer {
     [CmdletBinding()]
     param(
         [string]$BrainRoot,
-        [string]$ConfigPath
+        [string]$ConfigPath,
+        [switch]$NoRecovery
     )
     if (!$BrainRoot) {
         $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     }
     $script:SBMcpConfigPath=$ConfigPath
-    $startupPending=Invoke-SBMcpPendingRecovery $BrainRoot $ConfigPath
-    if($startupPending.applied.Count -or $startupPending.conflicts.Count -or $startupPending.pending -or $startupPending.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $startupPending))}
+    $script:SBMcpNoRecovery=[bool]$NoRecovery
+    if(!$NoRecovery){
+        $startupPending=Invoke-SBMcpPendingRecovery $BrainRoot $ConfigPath
+        if($startupPending.applied.Count -or $startupPending.conflicts.Count -or $startupPending.pending -or $startupPending.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $startupPending))}
+    }
     
     # Stdio loop
     $reader = [Console]::In

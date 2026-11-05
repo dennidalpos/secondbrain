@@ -111,6 +111,6 @@ Fonti operative: [script installati](../../scripts/), [regole del repository](..
 
 Un accesso negato è distinto da una contesa tra scrittori e dagli altri errori operativi. Le CLI interessate riportano su stderr il codice `core.write.denied` e l'invocazione PowerShell con parametri quotati. Eseguire il comando in PowerShell 7.5+ fuori dalla sandbox, rispettando le autorizzazioni già previste dal comando. Le radici scrivibili non vengono ampliate automaticamente.
 
-L'hook `trace.ps1 -Event stop` rimane fail-open: esce con 0 anche se non può registrare l'evento. In quel caso emette su stderr `trace.event.lost`; l'evento non è stato salvato. La diagnostica non contiene il testo del prompt o della trascrizione.
+L'hook `trace.ps1 -Event stop` rimane fail-open: esce con 0 anche se non può registrare l'evento. Registra solo se il payload dichiara `persistence=allowed` e `policyEvidence` per il turno corrente; politica assente o vietata non crea file. In caso di errore I/O emette su stderr `trace.event.lost`; l'evento non è stato salvato. La diagnostica non contiene il testo del prompt o della trascrizione. Il bridge e i permessi per la cattura strutturata sono descritti nel [ciclo memorie](memory-cycle.md).
 
 La selezione Slim usa blocchi Markdown interi e ordinamento stabile. La documentazione Microsoft descrive allocazione del budget, scelta dei blocchi e deduplicazione. SecondBrain applica la selezione nel processo PowerShell locale. [Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-prompt-engineering)

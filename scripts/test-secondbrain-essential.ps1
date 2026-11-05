@@ -74,6 +74,13 @@ if('portable' -in $Groups){
     $one=Invoke-SBHostActivation $brain $selectionPath -Apply
     $two=Invoke-SBHostActivation $brain $selectionPath -Apply
     Check ($one.applied -and $two.applied -and (Read-SBJson $one.configuration $null).bindings.Count -eq 1) 'activation is idempotent on one synthetic checkout'
+    $decisionMemory=Join-Path $dossier 'memory.md';$decisionOriginal=Read-SBText $decisionMemory
+    Put $decisionMemory ($decisionOriginal+"`n## Decisione old`n<!-- sb:decision id=old state=superseded supersededBy=new -->`nSuperseded detail.`n")
+    $decisionConfig=Read-SBConfiguration $one.configuration -ReadOnly
+    $decisionConfig.brainRoot=$brain
+    $decisionCheck=Invoke-SBPortableSync $decisionConfig -Check -Repository $identity
+    Check (@($decisionCheck.warnings|Where-Object kind -eq 'decisions-inactive').Count -eq 1 -and (Get-SBFileHash $decisionMemory) -ceq (Get-SBTextHash ($decisionOriginal+"`n## Decisione old`n<!-- sb:decision id=old state=superseded supersededBy=new -->`nSuperseded detail.`n"))) 'Check reports inactive decision identities without rewriting their sources'
+    Put $decisionMemory $decisionOriginal
     # Restore the synthetic runtime model used by the following boundary tests.
     Put $configPath (ConvertTo-SBJson $cfg)
     # In-process activation uses the loaded module's root for its registry.
@@ -189,9 +196,16 @@ if('trackers' -in $Groups){
 }
 if('workflows' -in $Groups){
     $empty=& (Get-Module SecondBrain.Knowledge) {New-SBStartupPackage -Record @{identity='github.com/test/empty'} -Tracker @{path=$null;source='absent';declared=$false} -TOC '# Empty' -ContextText '# Context' -MemoryText '# Memory' -Profile Slim -Budget 30000}
-    Check ($empty.withinBudget -and $empty.parts.tasks -eq "Nessun task pronto.`n") 'startup without declared task data has an empty task view'
+    Check ($empty.withinBudget -and $empty.parts.tasks.Contains('Nessun task selezionato.') -and !$empty.parts.tasks.Contains('Nessun task pronto.')) 'startup without selected tasks reports selection rather than claiming the tracker has no ready work'
     $default=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim
     Check ($default.budget -eq 30000) 'Slim API uses the shared 30000-character default'
+    $repeat=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim -PreviousRevision $default.revision
+    Check (!$repeat.changed -and !$repeat.parts.Count -and $repeat.characters -eq 0 -and $repeat.sourceCharacters -eq $default.characters) 'unchanged startup revision returns metadata without repeating parts'
+    $repeatCli=Invoke-EssentialCli @('-Startup','-NoRecovery','-PreviousRevision',$default.revision)
+    Check ($repeatCli.code -eq 0 -and !($repeatCli.text|ConvertFrom-Json).changed) 'CLI forwards previous startup revision without persistence'
+    $repeatMcp=Invoke-SBMcpToolCall $brain 'get_startup_context' @{repository=$identity;previousRevision=$default.revision} | ConvertFrom-Json -AsHashtable
+    Check (!$repeatMcp.changed -and !$repeatMcp.parts.Count) 'MCP forwards previous startup revision without repeating parts'
+    Check ((Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim -Budget 29999 -PreviousRevision $default.revision).changed) 'changed startup budget invalidates previous revision'
     $startup=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -CheckoutPath $repo -Budget 20000 -Profile Slim
     Check ($startup.withinBudget -and !$startup.parts.memory.Contains('Historical detail') -and $startup.omittedParts.Count -gt 0) 'Slim omits history without truncating source'
     $before=Get-SBFileHash (Join-Path $dossier 'memory.md')
@@ -222,6 +236,14 @@ if('workflows' -in $Groups){
     Reject {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Budget 16000 -Apply} 'stale compaction candidate rejected'
 }
 if('pending' -in $Groups){
+    $noRecoveryRequest=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="`nPending no-recovery fixture"} -Config $cfg
+    $memoryBefore=Get-SBFileHash (Join-Path $dossier 'memory.md')
+    $pureRead=Invoke-EssentialCli @('-Startup','-NoRecovery')
+    Check ($pureRead.code -eq 0 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and (Get-SBPendingWrites $brain|Where-Object id -eq $noRecoveryRequest.id).state -eq 'deferred') 'CLI NoRecovery preserves an authorized pending write without applying it'
+    $mcpModule=Get-Module SecondBrain.Mcp
+    $pureMcp=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=31;method='tools/list';params=@{_meta=@{noRecovery=$true}}}} $brain
+    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 8 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
+    [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg)
     Reject {New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';DependsOn=@('T-1')} -Config $cfg} 'invalid dependency graph rejected before queuing'
     $target=Join-Path $brain 'untracked.txt';Put $target 'original';$hash=Get-SBFileHash $target
     [void](Write-SBFile $target ([Text.Encoding]::UTF8.GetBytes('updated')) $hash $cfg.backupRoot)

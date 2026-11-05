@@ -56,7 +56,7 @@ Il server gira solo sul tuo PC e non apre porte di rete. All'avvio e durante le 
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
 | **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 9.326 caratteri in italiano e 8.758 in inglese (misurazione del 2026-11-04; il solo `result` misura 9.292/8.724). Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
+| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 11.027 caratteri in italiano e 10.280 in inglese (misurazione del 2026-11-05, parametri `noRecovery` e `previousRevision` inclusi; il solo `result` misura 10.993/10.246). Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
 
@@ -68,6 +68,8 @@ Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumen
 4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente per gli strumenti di conoscenza: possono integrare solo richieste pendenti già autorizzate; `check_publication` conserva il consenso separato.
 
 Limite: la verifica nelle interfacce grafiche degli IDE non è ancora provata dal vivo.
+
+Per una sessione rigorosamente senza scritture avvia il server con `mcp-server.ps1 -NoRecovery`; il solo `noRecovery=true` di una chiamata non annulla il recupero gia avvenuto all'avvio. L'equivalente CLI e `knowledge.ps1 -NoRecovery`. Registro dei turni, allegati e adattatori sono descritti nel [ciclo memorie per repository](riferimento/memory-cycle.md); le prove su fixture non attestano la cattura live.
 
 ## Senza MCP
 

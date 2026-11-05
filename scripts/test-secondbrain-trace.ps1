@@ -14,16 +14,18 @@ try {
     [IO.File]::WriteAllText((Join-Path $hostDir 'workstation.json'),(ConvertTo-SBJson @{schemaVersion=1;bindings=@(@{identity='github.com/acme/repo-a';path=$checkout})}))
 
     # Event: metadata only, repository resolved from path, no prompt text.
-    $stdin=ConvertTo-Json -Compress @{session_id='sess-1';cwd=(Join-Path $checkout 'src');prompt='SEGRETO-DEL-PROMPT';transcript_path='C:/x/y.jsonl'}
+    $stdin=ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='synthetic fixture';session_id='sess-1';cwd=(Join-Path $checkout 'src');prompt='SEGRETO-DEL-PROMPT';transcript_path='C:/x/y.jsonl'}
     $file=Add-SBTraceEvent $brain 'stop' $stdin
     $line=@([IO.File]::ReadAllLines($file))[0];$entry=$line|ConvertFrom-Json -AsHashtable
     Assert-Trace ($file.StartsWith((Join-Path $brain '.runtime/trace'),[StringComparison]::OrdinalIgnoreCase) -and $file.EndsWith('.jsonl') -and $entry.repository -ceq 'github.com/acme/repo-a' -and $entry.sessionId -eq 'sess-1' -and $entry.event -eq 'stop') 'evento accodato in .runtime/trace con repository risolto'
     Assert-Trace (!$line.Contains('SEGRETO-DEL-PROMPT') -and !$line.Contains('transcript') -and !$line.Contains($checkout)) 'la riga non contiene prompt, trascrizione né percorsi'
-    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{session_id='sess-1';cwd=$other}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';session_id='sess-1';cwd=$other}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';cwd=$other}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';session_id='../../x';cwd=$checkout}))
     [void](Add-SBTraceEvent $brain 'stop' 'non-e-json{')
-    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{session_id='../../x';cwd=$checkout}))
+    [void](Add-SBTraceEvent $brain 'stop' '{"persistence":"disabled"}')
     $rows=@([IO.File]::ReadAllLines($file)|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
-    Assert-Trace ($rows.Count -eq 4 -and $rows[1].repository -eq '' -and $rows[2].sessionId -eq '' -and $rows[3].sessionId -eq '' -and $rows[3].repository -ceq 'github.com/acme/repo-a') 'checkout estraneo, input non JSON e sessione non valida: righe valide senza errori'
+    Assert-Trace ($rows.Count -eq 4 -and $rows[1].repository -eq '' -and $rows[2].sessionId -eq '' -and $rows[3].sessionId -eq '' -and $rows[3].repository -ceq 'github.com/acme/repo-a') 'checkout e sessioni validati; input non JSON e persistenza vietata non scrivono'
 
     # Count turns by repository and time interval.
     $future=[DateTimeOffset]::Now.AddMinutes(5)
@@ -82,6 +84,7 @@ try {
     'non-json{'|& pwsh -NoProfile -File $cli -Event stop -Ide test-fixture
     Assert-Trace ($LASTEXITCODE -eq 0) 'CLI -Event stop esce con 0 anche con input non valido'
     . (Join-Path $PSScriptRoot 'test-trace-denied.ps1')
+    & (Join-Path $PSScriptRoot 'test-secondbrain-memory-cycle.ps1')
     'SUCCESS TRACE: '+$script:checks+' verifiche; runtime='+$PSVersionTable.PSVersion
 } finally {
     $full=[IO.Path]::GetFullPath($root);$boundary=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar

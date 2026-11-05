@@ -14,3 +14,5 @@ Direttive comuni e conoscenza del repository risiedono nel dossier SecondBrain; 
 - A fine sessione porta le evidenze o i rapporti utili nel dossier (history/), chiudi la cartella con lo stesso comando e -Close (aggiorna MANIFEST.json) e lascia fixture e tmp alla retention (7 giorni, ultime 5 conservate; work 30 giorni dalla chiusura; evidence e report mai automatici). Ricostruisci l’indice con scripts/cleanup.ps1 -RuntimeReport.
 - Pulizia e migrazione (scripts/cleanup.ps1 -Migrate, -Regenerable) partono in anteprima e si applicano solo su richiesta esplicita, sulla propria postazione, con perimetro concreto e inattività delle sessioni.
 - Backup, journal e artefatti ufficiali non si eliminano; i dati sensibili grezzi restano nell’area locale esclusa da Git.
+
+- Ciclo memorie solo dopo attivazione esplicita del repository; registro separato dai derivati, privati esclusi e divieto di scrittura esteso alla persistenza. MEM03 e SYS05 distinguono turni, lotti e manutenzione.

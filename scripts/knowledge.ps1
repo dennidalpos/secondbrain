@@ -31,6 +31,8 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
     [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@(),
+    [Parameter(ParameterSetName='Startup')][string]$PreviousRevision,
+    [switch]$NoRecovery,
     [ValidateSet('en','it')][string]$Language)
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 $ErrorActionPreference='Stop'
@@ -57,13 +59,14 @@ try{
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     $pendingResult=$null
-    if($readOnly -and !$bufferedWrite -and !$ArchiveTasks){
+    if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
+    if($readOnly -and !$bufferedWrite -and !$ArchiveTasks -and !$NoRecovery){
         $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
-    # Full is unlimited unless -Budget is explicit; -Compact uses startupBudget or 50,000.
+    # Full is unlimited unless -Budget is explicit; Slim and Compact share the 30,000 default.
     # Search has a default limit (-1: 20 matches and 10,000 characters); explicit -Limit 0 / -Budget 0 removes it.
-    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
+    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Compact -or ($Startup -and $Profile -eq 'Slim')){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } else { 30000 }
     $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
     # Cooperative scope: explicit repository, otherwise the working checkout's repository (current directory).
     $resolveWorking={
@@ -75,7 +78,7 @@ try{
     if($Startup){
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
-        $result=Get-SBStartupContext -BrainRoot $brain -Dossier $Dossier -CheckoutPath $CheckoutPath -TaskIds $TaskIds -Budget $effectiveBudget -ReadyOnly:$ReadyOnly -Profile $Profile
+        $result=Get-SBStartupContext -BrainRoot $brain -Dossier $Dossier -CheckoutPath $CheckoutPath -TaskIds $TaskIds -Budget $effectiveBudget -ReadyOnly:$ReadyOnly -Profile $Profile -PreviousRevision $PreviousRevision
         if($Report){
             $directives=@{}
             try{

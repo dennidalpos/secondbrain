@@ -11,3 +11,5 @@
 - Prompt: una sola lista; ogni scheda ha ruolo, contesto, input, procedura, vincoli, criteri di uscita e formato, e la composizione è strutturata in XML. In caso di dubbio chiedi con scelta strutturata.
 - IDE: SYS01 distingue file locale, installazione, profilo, ambiente e account; un file allineato non dimostra il caricamento e il login non si automatizza. Scripts/trace.ps1 -InstallHook (anteprima, poi -Apply) installa l’hook Stop di Claude Code per l’avviso di compattazione.
 - Modifiche: per i blocchi gestiti cambia i generatori, non snapshot o blocchi a mano. Le nuove prescrizioni comuni richiedono proposta concreta, approvazione esplicita e hash verificati prima della distribuzione.
+
+- Ciclo memorie per repository: memory-cycle.ps1 e bridge con permesso verificato del turno. In sola lettura usa knowledge.ps1 -NoRecovery o server MCP avviato con -NoRecovery. Workspace evidence per registri e originali; nessuna importazione automatica delle vecchie chat.
