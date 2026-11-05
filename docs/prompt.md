@@ -1,6 +1,6 @@
 # Prompt
 
-65 prompt generici in 12 aree, più 16 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+65 prompt generici in 12 aree, più 17 di manutenzione di SecondBrain. Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list

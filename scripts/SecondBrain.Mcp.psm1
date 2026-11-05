@@ -24,13 +24,14 @@ Add-SBMessages @{
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
     'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
     'mcp.json.internal' = @{ it = 'Errore interno: {0}'; en = 'Internal error: {0}' }
-    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Profilo slim (predefinito, tetto 20000 caratteri): indice, sezioni essenziali di context.md e memory.md, task pronti in forma breve e l''elenco dei livelli non caricati (nulla eliminato). Profilo full: tutto, senza tetto.'; en = 'Return repository or dossier startup context. Slim (default, 20000-character limit): index, essential context and memory sections, brief ready tasks and omitted layers (nothing deleted). Full: complete context without a limit.' }
+    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Profilo slim (predefinito, tetto 30000 caratteri): indice, sezioni essenziali di context.md e memory.md, task pronti in forma breve e l''elenco dei livelli non caricati (nulla eliminato). Profilo full: tutto, senza tetto.'; en = 'Return repository or dossier startup context. Slim (default, 30000-character limit): index, essential context and memory sections, brief ready tasks and omitted layers (nothing deleted). Full: complete context without a limit.' }
     'mcp.description.get_startup_context.repository' = @{ it = 'Identificatore del repository (es. github.com/example-user/secondbrain); default: checkout in lavoro'; en = 'Repository identity (e.g. github.com/example-user/secondbrain); defaults to the working checkout' }
     'mcp.description.get_startup_context.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
     'mcp.description.get_startup_context.dossier' = @{ it = 'Percorso relativo del dossier (es. 02-areas/products/SecondBrain)'; en = 'Relative dossier path (e.g. 02-areas/products/SecondBrain)' }
-    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, include solo task con dipendenze soddisfatte (con slim è sempre attivo)'; en = 'If true, include only tasks with satisfied dependencies (always enabled for slim)' }
-    'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 20000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 20000 characters for initial loading only; full: complete context without a limit' }
-    'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 20000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 20000 for slim, unlimited for full)' }
+    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, include solo task con dipendenze soddisfatte; vale per Slim quando non sono indicati ID'; en = 'If true, include only tasks with satisfied dependencies; enabled for Slim when no IDs are specified' }
+    'mcp.description.get_startup_context.taskIds' = @{ it = 'ID dei task attivi da includere'; en = 'IDs of active tasks to include' }
+    'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 30000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 30000 characters for initial loading only; full: complete context without a limit' }
+    'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 30000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 30000 for slim, unlimited for full)' }
     'mcp.description.get_ready_tasks' = @{ it = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale richiede all=true.'; en = 'Return ready tasks with satisfied dependencies for the working repository, resolved from the current checkout or repository/checkoutPath. The global view requires all=true.' }
     'mcp.description.get_ready_tasks.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
     'mcp.description.get_ready_tasks.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
@@ -81,6 +82,7 @@ Add-SBMessages @{
     'mcp.query.required' = @{ it = 'Il parametro query è obbligatorio per search_knowledge'; en = 'The query parameter is required for search_knowledge' }
     'mcp.mode.invalid' = @{ it = 'Modalità non valida: usare literal o relevance'; en = 'Invalid mode: use literal or relevance' }
     'mcp.search.invalid' = @{ it = 'offset, limit e budget devono essere interi non negativi'; en = 'offset, limit and budget must be non-negative integers' }
+    'mcp.startup.invalid' = @{ it = 'budget deve essere un intero non negativo e taskIds un array di ID'; en = 'budget must be a non-negative integer and taskIds an array of IDs' }
     'mcp.pack.invalid' = @{ it = 'Pacchetto non valido: core, maintenance o all'; en = 'Invalid pack: core, maintenance or all' }
     'mcp.prompt.required' = @{ it = 'Il parametro prompt è obbligatorio per get_prompt'; en = 'The prompt parameter is required for get_prompt' }
     'mcp.path.required' = @{ it = 'Il parametro repositoryPath è obbligatorio per check_publication'; en = 'The repositoryPath parameter is required for check_publication' }
@@ -122,6 +124,7 @@ function Get-SBMcpToolDefinitions {
                     readyOnly = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.get_startup_context.readyOnly') }
                     profile = @{ type = 'string'; enum = @('slim', 'full'); description = (Get-SBMessage 'mcp.description.get_startup_context.profile') }
                     budget = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_startup_context.budget') }
+                    taskIds = @{ type = 'array'; items = @{type='string'}; description = (Get-SBMessage 'mcp.description.get_startup_context.taskIds') }
                 }
             }
         },
@@ -262,6 +265,7 @@ function Get-SBMcpDeprecationNotice([string]$ToolName) {
 }
 
 function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments) {
+    if($BrainRoot.StartsWith('\\') -and ![IO.Directory]::Exists($BrainRoot)){throw (New-SBError 'access.brain.unreachable' @($BrainRoot))}
     if (!$Arguments) { $Arguments = @{} }
     $legacyAliases = Get-SBMcpDeprecatedToolAliases
     if ($legacyAliases.Contains($ToolName)) { $ToolName = $legacyAliases[$ToolName] }
@@ -280,7 +284,14 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $startupProfile = if ($startupProfile -eq 'full') { 'Full' } else { 'Slim' }
             # Limit only initial loading (slim); full is unlimited unless budget is explicit.
             $budgetDefault = if ($startupProfile -eq 'Slim') { Get-SBSlimStartupBudget } else { 0 }
-            $budget = if ($Arguments.ContainsKey('budget') -and $Arguments.budget) { [int]$Arguments.budget } else { $budgetDefault }
+            $budget=$budgetDefault
+            if($Arguments.ContainsKey('budget') -and ![int]::TryParse([string]$Arguments.budget,[ref]$budget)){throw (New-SBError 'mcp.startup.invalid')}
+            $taskIds=@()
+            if($Arguments.ContainsKey('taskIds')){
+                if($Arguments.taskIds -isnot [array] -or @($Arguments.taskIds|Where-Object {$_ -isnot [string] -or !$_}).Count){throw (New-SBError 'mcp.startup.invalid')}
+                $taskIds=@($Arguments.taskIds)
+            }
+            if($budget -lt 0){throw (New-SBError 'mcp.startup.invalid')}
             $readyOnly = if ($Arguments.ContainsKey('readyOnly')) { [bool]$Arguments.readyOnly } else { $false }
             $dossier = if ($Arguments.ContainsKey('dossier')) { [string]$Arguments.dossier } else { $null }
 
@@ -291,7 +302,7 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             }
             $dossierPath = if ([IO.Path]::IsPathRooted($dossier)) { $dossier } else { Join-Path $BrainRoot $dossier }
 
-            $ctx = Get-SBStartupContext -BrainRoot $BrainRoot -Dossier $dossierPath -Budget $budget -ReadyOnly:$readyOnly -Profile $startupProfile
+            $ctx = Get-SBStartupContext -BrainRoot $BrainRoot -Dossier $dossierPath -Budget $budget -ReadyOnly:$readyOnly -TaskIds $taskIds -Profile $startupProfile
             return ConvertTo-SBMcpJson $ctx
         }
         'get_ready_tasks' {
@@ -674,6 +685,7 @@ Add-SBMessages @{
     'mcp.pair.json' = @{ it = 'Configurazione MCP non è JSON rigoroso (errori o commenti), nessuna modifica: {0}. Inserisci a mano il frammento mostrato da mcp-server.ps1 -Pair.'; en = 'MCP configuration is not strict JSON (errors or comments), no change made: {0}. Add by hand the fragment shown by mcp-server.ps1 -Pair.' }
     'mcp.pair.toml' = @{ it = 'TOML ambiguo o non supportato, nessuna modifica: {0}'; en = 'Ambiguous or unsupported TOML, no change made: {0}' }
     'mcp.pair.permissions.conflict' = @{ it = 'Regola esistente concede consenso a check_publication; nessuna modifica: {0}'; en = 'Existing rule approves check_publication; no change made: {0}' }
+    'mcp.pair.permissions.scope' = @{ it = 'Selezionare un solo ambito di approvazione MCP'; en = 'Select only one MCP permission scope' }
     'mcp.pair.root' = @{ it = 'Configurazione MCP con radice non oggetto, nessuna modifica: {0}'; en = 'MCP configuration with a non-object root, no change made: {0}' }
 }
 # Private pairing helpers.
@@ -700,32 +712,43 @@ function Read-SBMcpSettings([string]$Path) {
         $data
     } catch { throw (New-SBError 'mcp.pair.json' @($Path)) }
 }
-function Get-SBMcpPermissionPlan($Pairing) {
+function Get-SBMcpPermissionPlan($Pairing,[switch]$ApproveAllTools) {
     $names=@(Get-SBMcpKnowledgeToolNames)
-    $status='manual';$path=$null;$snippet=$null
+    if($ApproveAllTools){$names+='check_publication'}
+    $requiresConsent=@('check_publication'|Where-Object {$_ -notin $names})
+    $status='manual';$path=$null;$snippet=$null;$manualStep=$null
     switch($Pairing.Target){
         'codex' {
             $status='supported';$path=$Pairing.ConfigFile
             $lines=@('[mcp_servers.secondbrain]','default_tools_approval_mode = "prompt"')
             foreach($name in $names){$lines+=@("[mcp_servers.secondbrain.tools.$name]",'approval_mode = "approve"')}
-            $lines+=@('[mcp_servers.secondbrain.tools.check_publication]','approval_mode = "prompt"')
+            if($requiresConsent.Count){$lines+=@('[mcp_servers.secondbrain.tools.check_publication]','approval_mode = "prompt"')}
             $snippet=$lines -join "`n"
         }
         'claude-code' {
             $status='supported'
-            $path=if($Pairing.Scope -eq 'project'){Join-Path (Split-Path $Pairing.ConfigFile) '.claude/settings.json'}else{Join-Path (Split-Path $Pairing.ConfigFile) '.claude/settings.json'}
+            $path=Join-Path (Split-Path $Pairing.ConfigFile) '.claude/settings.json'
             # CLAUDE_CONFIG_DIR is itself the settings directory, unlike the default profile root.
-            if($Pairing.Scope -eq 'user' -and $env:CLAUDE_CONFIG_DIR){$path=Join-Path $env:CLAUDE_CONFIG_DIR 'settings.json'}
-            $snippet=ConvertTo-SBJson @{permissions=@{allow=@($names|ForEach-Object {"mcp__secondbrain__$_"});ask=@('mcp__secondbrain__check_publication')}}
+            $claudeRoot=[Environment]::GetEnvironmentVariable('CLAUDE_CONFIG_DIR','User')
+            if(!$claudeRoot){$claudeRoot=$env:CLAUDE_CONFIG_DIR}
+            if($Pairing.Scope -eq 'user'){
+                $directory=Split-Path $Pairing.ConfigFile
+                if(($claudeRoot -and (Test-SBSamePath $directory $claudeRoot)) -or
+                    ((Split-Path $Pairing.ConfigFile -Leaf) -eq '.claude.json' -and !(Test-SBSamePath $directory $env:USERPROFILE))){$path=Join-Path $directory 'settings.json'}
+            }
+            $snippet=ConvertTo-SBJson @{permissions=@{allow=@($names|ForEach-Object {"mcp__secondbrain__$_"});ask=@($requiresConsent|ForEach-Object {"mcp__secondbrain__$_"})}}
         }
         'cursor' {
-            $status='supported';$path=Join-Path (Split-Path $Pairing.ConfigFile) 'permissions.json'
+            $status='supported';$path=Join-Path $env:USERPROFILE '.cursor/permissions.json'
+            if($Pairing.Scope -eq 'user'){$path=Join-Path (Split-Path $Pairing.ConfigFile) 'permissions.json'}
             $snippet=ConvertTo-SBJson @{mcpAllowlist=@($names|ForEach-Object {"secondbrain:$_"})}
         }
         'antigravity' {$status='unverified'}
         'windsurf' {$status='unverified'}
+        'vscode' {$manualStep='Chat: Manage Tool Approval → SecondBrain → select the listed tools in the intended profile.'}
+        'claude' {$manualStep='Open a new Claude Desktop session and review the per-tool permissions offered by the client.'}
     }
-    @{status=$status;path=$path;snippet=$snippet;tools=$names;requiresConsent=@('check_publication');contract='knowledge-with-authorized-pending-writes';automaticDossierWrites=$true}
+    @{status=$status;path=$path;snippet=$snippet;tools=$names;requiresConsent=$requiresConsent;manualStep=$manualStep;approveAllTools=[bool]$ApproveAllTools;contract='knowledge-with-authorized-pending-writes';automaticDossierWrites=$true}
 }
 function Set-SBMcpTomlValue([string]$Text,[string]$Table,[string]$Key,[string]$Value,[switch]$KeepRestrictive) {
     # Edit only a single-line string in an exact table. Preserve all other bytes/comments;
@@ -765,8 +788,9 @@ function Get-SBMcpPermissionContent($Pairing) {
             throw (New-SBError 'mcp.pair.toml' @($plan.path))
         }
         $text=Set-SBMcpTomlValue $text 'mcp_servers.secondbrain' 'default_tools_approval_mode' 'prompt'
-        foreach($name in $plan.tools){$text=Set-SBMcpTomlValue $text ('mcp_servers.secondbrain.tools.'+$name) 'approval_mode' 'approve' -KeepRestrictive}
-        return (Set-SBMcpTomlValue $text 'mcp_servers.secondbrain.tools.check_publication' 'approval_mode' 'prompt')
+        foreach($name in $plan.tools){$text=Set-SBMcpTomlValue $text ('mcp_servers.secondbrain.tools.'+$name) 'approval_mode' 'approve' -KeepRestrictive:(!$plan.approveAllTools)}
+        if($plan.requiresConsent.Count){$text=Set-SBMcpTomlValue $text 'mcp_servers.secondbrain.tools.check_publication' 'approval_mode' 'prompt'}
+        return $text
     }
     $data=Read-SBMcpSettings $plan.path
     $requested=ConvertFrom-Json -InputObject $plan.snippet -AsHashtable
@@ -775,7 +799,8 @@ function Get-SBMcpPermissionContent($Pairing) {
         $previous=if($data.ContainsKey('mcpAllowlist')){@($data.mcpAllowlist)}else{@()}
         foreach($entry in $previous){
             $pieces=([string]$entry) -split ':',2
-            if($pieces.Count -eq 2 -and 'secondbrain' -like $pieces[0] -and 'check_publication' -like $pieces[1]){
+            if($pieces.Count -eq 2 -and 'secondbrain' -like $pieces[0] -and
+                (($plan.approveAllTools -and $pieces[1] -match '[*?\[]') -or (!$plan.approveAllTools -and 'check_publication' -like $pieces[1]))){
                 throw (New-SBError 'mcp.pair.permissions.conflict' @($plan.path))
             }
         }
@@ -786,6 +811,7 @@ function Get-SBMcpPermissionContent($Pairing) {
         foreach($key in @('allow','ask')){
             if($data.permissions.ContainsKey($key) -and ($data.permissions[$key] -isnot [array] -or @($data.permissions[$key]|Where-Object {$_ -isnot [string]}).Count)){throw (New-SBError 'mcp.pair.json' @($plan.path))}
             $previous=if($data.permissions.ContainsKey($key)){@($data.permissions[$key])}else{@()}
+            if($plan.approveAllTools -and $key -eq 'ask'){$previous=@($previous|Where-Object {$_ -cne 'mcp__secondbrain__check_publication'})}
             $data.permissions[$key]=@(@($previous)+@($requested.permissions[$key])|Select-Object -Unique)
         }
     }
@@ -854,8 +880,8 @@ function Get-SBMcpPairing {
         [string]$BrainRoot,
         [Parameter()][ValidateSet('codex', 'claude', 'claude-code', 'cursor', 'vscode', 'antigravity', 'windsurf', 'all')][string]$Target = 'all',
         [string]$WorkspacePath,
-        [string]$ClaudeCodeConfigFile,
-        [ValidateSet('user','project')][string]$Scope
+        [string]$ClaudeCodeConfigFile,[Alias('ConfigFile')][string]$OverrideConfigFile,
+        [ValidateSet('user','project')][string]$Scope,[switch]$ApproveAllTools
     )
     if (!$BrainRoot) {
         $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -1105,9 +1131,15 @@ function Get-SBMcpPairing {
         }
     }
 
+    if($OverrideConfigFile -and $results.Count -ne 1){throw (New-SBError 'mcp.pair.scope' @('ConfigFile','all'))}
     foreach($result in $results){
+        if($OverrideConfigFile){$result.ConfigFile=[IO.Path]::GetFullPath($OverrideConfigFile)}
         $result | Add-Member Scope $effectiveScope
-        $plan=Get-SBMcpPermissionPlan $result
+        if($OverrideConfigFile){
+            $result.Configured=if($result.Target -in @('codex','claude-code')){(Test-SBMcpNativeDefinition $result).matches}
+                else{[IO.File]::Exists($result.ConfigFile) -and (Read-SBText $result.ConfigFile) -match '"secondbrain"'}
+        }
+        $plan=Get-SBMcpPermissionPlan $result -ApproveAllTools:$ApproveAllTools
         $result | Add-Member PermissionPlan $plan
         $result | Add-Member PermissionsStatus $plan.status
         $result | Add-Member -NotePropertyName PermissionsSnippet -NotePropertyValue $plan.snippet -Force
@@ -1126,26 +1158,24 @@ function Set-SBMcpConfiguration {
         [ValidateSet('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')][string]$Target='all',
         [string]$WorkspacePath,[string]$ConfigFile,[string]$BackupRoot,
         [ValidateSet('user','project')][string]$Scope,[Alias('ApproveKnowledgeTools')][switch]$ApproveReadTools,
-        [scriptblock]$CliInvoker
+        [switch]$ApproveAllTools,[scriptblock]$CliInvoker
     )
     if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
     $backupDir=if($BackupRoot){$BackupRoot}else{Join-Path $BrainRoot '.runtime/backup/mcp-pairing'}
-    $options=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath}
+    if($ApproveReadTools -and $ApproveAllTools){throw (New-SBError 'mcp.pair.permissions.scope')}
+    $approvePermissions=$ApproveReadTools -or $ApproveAllTools
+    $options=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath;ApproveAllTools=$ApproveAllTools;ConfigFile=$ConfigFile}
     if($Scope){$options.Scope=$Scope}
     $pairings=@(Get-SBMcpPairing @options)
     if($ConfigFile -and $pairings.Count -ne 1){throw (New-SBError 'mcp.pair.scope' @('ConfigFile','all'))}
     $applied=@()
     foreach($pairing in $pairings){
-        if($ConfigFile){
-            $pairing.ConfigFile=[IO.Path]::GetFullPath($ConfigFile);$pairing.PermissionPlan=Get-SBMcpPermissionPlan $pairing
-            if($pairing.Target -eq 'claude-code'){$pairing.PermissionPlan.path=Join-Path (Split-Path $pairing.ConfigFile) '.claude/settings.json'}
-        }
         $targetFile=$pairing.ConfigFile;$expectedHash=Get-SBFileHash $targetFile
         $backupPath=$null;$action='unchanged';$cliResult=$null;$permissionAction='not-requested'
         # Preflight all files before native registration or any write; JSONC is refused intact.
         $data=if($pairing.Target -ne 'codex'){Read-SBMcpSettings $targetFile}else{$null}
-        $permissionHash=if($ApproveReadTools -and $pairing.PermissionPlan.path){Get-SBFileHash $pairing.PermissionPlan.path}else{$null}
-        $permissionContent=if($ApproveReadTools){Get-SBMcpPermissionContent $pairing}else{$null}
+        $permissionHash=if($approvePermissions -and $pairing.PermissionPlan.path){Get-SBFileHash $pairing.PermissionPlan.path}else{$null}
+        $permissionContent=if($approvePermissions){Get-SBMcpPermissionContent $pairing}else{$null}
         $native=$pairing.Target -in @('codex','claude-code')
         if($native){
             $state=Test-SBMcpNativeDefinition $pairing;$present=$state.present;$matches=$state.matches
@@ -1158,7 +1188,7 @@ function Set-SBMcpConfiguration {
                     $argsList=if($command -eq 'codex'){@('mcp','add','secondbrain','--','pwsh','-NoProfile','-File',$pairing.ServerDefinition.args[2])}else{@('mcp','add','--transport','stdio','--scope',$pairing.Scope,'secondbrain','--','pwsh','-NoProfile','-File',$pairing.ServerDefinition.args[2])}
                     $cliEnvironment=@{}
                     if($command -eq 'codex'){$cliEnvironment.CODEX_HOME=Split-Path $targetFile}
-                    elseif($pairing.Scope -eq 'user' -and $ConfigFile){$cliEnvironment.CLAUDE_CONFIG_DIR=Split-Path $targetFile}
+                    elseif($pairing.Scope -eq 'user' -and $ConfigFile -and !(Test-SBSamePath (Split-Path $targetFile) $env:USERPROFILE)){$cliEnvironment.CLAUDE_CONFIG_DIR=Split-Path $targetFile}
                     $workingDirectory=if($pairing.Scope -eq 'project'){$WorkspacePath}else{$BrainRoot}
                     if((Get-SBFileHash $targetFile) -ne $expectedHash){throw (New-SBError 'core.concurrent.modified' @($targetFile))}
                     $cliResult=if($CliInvoker){& $CliInvoker $command $argsList $workingDirectory $cliEnvironment $targetFile $pairing.ServerDefinition}else{Invoke-SBMcpNative $command $argsList $workingDirectory $cliEnvironment}
@@ -1183,7 +1213,7 @@ function Set-SBMcpConfiguration {
                 if($meta){$backupPath=$meta.FullName.Substring(0,$meta.FullName.Length-5)}
             }
         }
-        if($ApproveReadTools){
+        if($approvePermissions){
             if($pairing.PermissionPlan.status -ne 'supported'){$permissionAction=$pairing.PermissionPlan.status}
             elseif($action -in @('created','updated','applied','unchanged')){
                 # Native registration changes config.toml: recompute only after checking its new hash.
@@ -1196,7 +1226,7 @@ function Set-SBMcpConfiguration {
             $meta=Read-SBJson ($backupPath+'.json') @{};$meta.deployedHash=Get-SBFileHash $targetFile;$meta.status=$action
             [void](Write-SBFile ($backupPath+'.json') ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta))) (Get-SBFileHash ($backupPath+'.json')) $backupDir)
         }
-        $applied+=[pscustomobject]@{Target=$pairing.Target;Name=$pairing.Name;Scope=$pairing.Scope;ConfigFile=$targetFile;Action=$action;BackupFile=$backupPath;PermissionAction=$permissionAction;PermissionStatus=$pairing.PermissionPlan.status;ClientSessionVerified=$false;CliResult=$cliResult}
+        $applied+=[pscustomobject]@{Target=$pairing.Target;Name=$pairing.Name;Scope=$pairing.Scope;ConfigFile=$targetFile;Action=$action;BackupFile=$backupPath;PermissionAction=$permissionAction;PermissionStatus=$pairing.PermissionPlan.status;ManualStep=$pairing.PermissionPlan.manualStep;ClientSessionVerified=$false;CliResult=$cliResult}
     }
     if($Target -ne 'all'){return $applied[0]}
     $applied

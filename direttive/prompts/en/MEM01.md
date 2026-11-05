@@ -18,7 +18,7 @@ Repository, applicable instructions, current dossier and authoritative tracker.
 
 Compare code, manifests and commands with the documents. Record decisions and gotchas in memory, each lasting decision on one line in the literal format «Decisione: … — Motivo: …», architecture and status in the context and tasks in the existing tracker. Edit local instructions outside the managed blocks; propose new common rules separately. Apply the minimal-summary rule strictly: condense memories, contexts and dossiers to the bare minimum, recording only the key operations performed.
 
-Update the TOC in index.md and keep the initial package lean, within 20,000 characters (a cap on the first load only), without truncating. Load tracker and history selectively; use SYS05 for the reviewed summary. All working output, including builds and caches where supported and verified, lives in SecondBrain/.runtime.
+Update the TOC in index.md and keep the initial package lean, within 30,000 characters (a cap on the first load only), without truncating. Load tracker and history selectively; use SYS05 for the reviewed summary. All working output, including builds and caches where supported and verified, lives in SecondBrain/.runtime.
 
 ## Decisions to collect
 

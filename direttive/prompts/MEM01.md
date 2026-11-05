@@ -18,7 +18,7 @@ Repository, istruzioni applicabili, dossier corrente e tracker autorevole.
 
 Confronta codice, manifest e comandi con i documenti. Registra decisioni/gotcha in memoria, ogni decisione durevole in una riga «Decisione: … — Motivo: …», architettura/stato nel contesto e attività nel tracker esistente. Modifica istruzioni locali fuori dai blocchi gestiti; proponi separatamente nuove regole comuni. Applica tassativamente la regola di sintesi minima: sintetizza memorie, contesti e dossier al minimo indispensabile registrando soltanto le operazioni chiave effettuate.
 
-Aggiorna il TOC index.md e mantieni il pacchetto iniziale snello entro 20.000 caratteri (tetto del solo primo caricamento) senza troncare. Carica tracker e storico in modo selettivo; per la sintesi revisionata usa SYS05. Tutti gli output di lavoro, incluse build/cache dove supportato e verificato, risiedono in SecondBrain/.runtime.
+Aggiorna il TOC index.md e mantieni il pacchetto iniziale snello entro 30.000 caratteri (tetto del solo primo caricamento) senza troncare. Carica tracker e storico in modo selettivo; per la sintesi revisionata usa SYS05. Tutti gli output di lavoro, incluse build/cache dove supportato e verificato, risiedono in SecondBrain/.runtime.
 
 ## Decisioni da raccogliere
 

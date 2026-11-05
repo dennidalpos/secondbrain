@@ -111,4 +111,10 @@ CENTRAL SYSTEM AND MAINTENANCE
   • Needs: SecondBrain root, target IDEs and confirmation before writing
   • Example: sb prompt SYS15: install the mcp server in vscode and claude code
 
+🔥 SYS16 | Update a skill from authoritative sources and verify the diff.
+  • ID: pmt-9ef61b3d
+  • Scope: central | Mode: write
+  • Needs: identified skill, target agent and version, official sources
+  • Example: sb prompt SYS16: update the local skill from official sources
+
 ```

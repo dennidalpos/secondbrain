@@ -124,7 +124,7 @@ function Get-SBTrackerRelocationData($Config,$Area,[hashtable]$Mapping) {
     $snapshot=[IO.File]::ReadAllBytes($resolved.path);$previous=Get-SBHash $snapshot
     $original=([Text.UTF8Encoding]::new($false,$true)).GetString($snapshot).TrimStart([char]0xFEFF)|ConvertFrom-Json -AsHashtable -DateKind String
     $entities=@(Get-SBParaEntities $Config.brainRoot $Config.allowedOwners)
-    [void](Test-SBTrackerData $original $Area.repository @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $Config.brainRoot $Area.repository $entities))
+    Assert-SBTrackerWriteData $Config.brainRoot $Area.repository $original $resolved.path
     $data=Convert-SBTrackerLocation $original $Mapping $Config.brainRoot $Area.path
     $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))
     @{path=$resolved.path;previousHash=$previous;deployedHash=Get-SBHash $bytes;bytes=$bytes}
@@ -388,7 +388,7 @@ function Invoke-SBTrackerImport {
             Assert-SBTrackerImportSources $m
             if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.aftercopy')}
             $data=Read-SBJson $m.candidate $null
-            [void](Test-SBTrackerData $data $Identity @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $Config.brainRoot $Identity $entities))
+            Assert-SBTrackerWriteData $Config.brainRoot $Identity $data
             $original=if([IO.Path]::GetExtension($m.source.path) -eq '.json'){Read-SBJson $m.source.backup $null}else{@{markdown=Read-SBText $m.source.backup}}
             if((ConvertTo-SBJson $data.extensions.original) -cne (ConvertTo-SBJson $original)){throw (New-SBError 'trackerimport.compare.failed')}
             foreach($payload in @(Get-SBTrackerImportPayloads $m)){if((Get-SBFileHash $payload.archive) -ne $payload.sha256){throw (New-SBError 'trackerimport.copy.notidentical')}}
@@ -399,7 +399,7 @@ function Invoke-SBTrackerImport {
         if($m.phase -in @('verified','references_updated')){
             if((Get-SBFileHash $m.candidate) -ne $m.candidateHash){throw (New-SBError 'trackerimport.candidate.afterverify')}
             $entities=@(Get-SBParaEntities $Config.brainRoot $Config.allowedOwners)
-            [void](Test-SBTrackerData (Read-SBJson $m.candidate $null) $Identity @($entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') (Get-SBTrackerRelatedData $Config.brainRoot $Identity $entities))
+            Assert-SBTrackerWriteData $Config.brainRoot $Identity (Read-SBJson $m.candidate $null)
         }
         if(!$Activate){return $ManifestPath}
         if(!(Test-SBTrackerPolicy $Config.brainRoot)){throw (New-SBError 'trackerimport.activation.approval')}

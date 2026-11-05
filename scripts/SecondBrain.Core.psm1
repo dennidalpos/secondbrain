@@ -962,6 +962,11 @@ function Test-SBApproval([string]$BrainRoot) {
     foreach ($relative in @('direttive/AGENTS.global_ide.md','direttive/workstation.template.md')) {
         if (!$approval.files.ContainsKey($relative) -or $approval.files[$relative] -ne (Get-SBFileHash (Join-Path $BrainRoot $relative))) { return $false }
     }
+    $repositorySource='direttive/AGENTS.repo.managed.md'
+    $repositoryHash=Get-SBFileHash (Join-Path $BrainRoot $repositorySource)
+    if($approval.files.ContainsKey($repositorySource) -or $repositoryHash -ne 'absent'){
+        if($repositoryHash -eq 'absent' -or $approval.files[$repositorySource] -cne $repositoryHash){return $false}
+    }
     return $true
 }
 Export-ModuleMember -Function @(

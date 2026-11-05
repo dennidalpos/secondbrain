@@ -43,7 +43,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 ```
 
-`SECONDBRAIN_HOME` è una variabile utente che indica il clone ai tuoi agent. `-Setup -Apply` la scrive **solo dopo una conferma esplicita**: `-RegisterEnvironment`, oppure la risposta `SI` alla domanda posta da `-Setup -Interactive`; senza conferma (o con `-NoRegisterEnvironment`) il percorso vale solo per il processo e il risultato lo dice (`environment`). `-Activate -Apply` la registra salvo `-NoRegisterEnvironment`. Gli IDE già aperti vanno riavviati per leggerla. Per gli IDE senza file locale (impostazioni account web, Continue, Android Studio) copia a mano il testo di `.runtime/hosts/<id>/istruzioni-globali.md`: vedi [IDE](adapters.md).
+`SECONDBRAIN_HOME` indica la radice autorevole. Dopo la selezione confermata, `-Setup -Apply` la registra per l'utente e sincronizza gli asset. Per una prova usa `-NoRegisterEnvironment`. Riavvia gli IDE aperti per leggere la variabile. Gli IDE con istruzioni manuali ricevono il testo generato in `.runtime/hosts/<id>/istruzioni-globali.md`.
 
 ### Primo avvio con un agent
 
@@ -89,9 +89,9 @@ Opzioni di `-Setup`:
 | `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. Non serve per un blocco identico al testo approvato (stessi marcatori e hash di origine): `-Setup` lo riconosce e lo registra come approvato. Un blocco diverso resta bloccato. |
 | `-Yes` | Conferma non interattiva: registra utente, host e data nella selezione. Va usata solo dopo la conferma dell'utente. |
 | `-Apply` | Applica; senza, resta l'anteprima. Non scrive `SECONDBRAIN_HOME` da solo. |
-| `-RegisterEnvironment` | Conferma esplicita: scrive la variabile utente `SECONDBRAIN_HOME`. In `-Interactive` la conferma è la risposta `SI`. |
+| `-RegisterEnvironment` | Registra `SECONDBRAIN_HOME`. È già il comportamento del setup applicato. |
 | `-NoRegisterEnvironment` | Esclude la variabile utente (anche in `-Activate -Apply`); incompatibile con `-RegisterEnvironment`. |
-| `-AndSync` | Dopo l'applicazione esegue `-Sync` invece di `-Check`. |
+| `-AndSync` | Esegue Sync all'applicazione, comportamento predefinito. `-AndSync:$false` esegue il solo Check. |
 
 In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, DOC03).
 
@@ -121,7 +121,7 @@ Gli artefatti sono conservati anche dopo esito positivo; la fixture di `test-sec
 
 ## TOC e compattazione
 
-Ogni dossier ha index.md. knowledge.ps1 -Tasks elenca i task del repository in lavoro (checkout corrente o -Repository; vista globale solo con -All, in sola lettura) senza duplicare; -Startup -Dossier compone il profilo snello (indice, sezioni essenziali di contesto e memoria, task pronti in una riga, elenco dei livelli non caricati) entro 20.000 caratteri, tetto valido solo per il primo caricamento; -Profile Full e -Search non hanno tetto salvo -Budget; -Report misura le parti. Se lo snello eccede segnala needsCompaction senza troncare. SYS05 guida la sintesi e il candidato revisionato; -Compact mostra l'anteprima e -Apply conserva originali per hash e transazione. Nessun riassunto automatico non verificato, nessuna cancellazione dello storico e nessun rinnovo di autorizzazioni.
+Ogni dossier ha index.md. knowledge.ps1 -Tasks elenca i task del repository in lavoro (checkout corrente o -Repository; vista globale solo con -All, in sola lettura) senza duplicare; -Startup -Dossier compone il profilo snello (indice, sezioni essenziali di contesto e memoria, task pronti in una riga, elenco dei livelli non caricati) entro 30.000 caratteri, tetto valido solo per il primo caricamento; -Profile Full e -Search non hanno tetto salvo -Budget; -Report misura le parti. Se Slim eccede il tetto, seleziona automaticamente blocchi interi e indica gli approfondimenti. Un budget insufficiente per il minimo restituisce `minimumCharacters`. SYS05 guida la sintesi e il candidato revisionato; -Compact mostra l'anteprima e -Apply conserva originali per hash e transazione. Nessun riassunto automatico non verificato, nessuna cancellazione dello storico e nessun rinnovo di autorizzazioni.
 
 La ricerca trasversale `knowledge.ps1 -Search <termine> [-Dossier <percorso>] [-Repository <identità>] [-Budget <caratteri>] [-Mode Literal|Relevance]` (funzione `Find-SBKnowledge`) esplora `context.md`, `memory.md`, `tracker.json`, `history/tracker-archive.json`, i `report.md` in `history/` e l'intero albero `history/compaction/`, restituendo estratti con percorso relativo, riga, SHA-256 del file e testo corrispondente, rispettando il budget configurato (`withinBudget`). Con `-Mode Relevance` la richiesta è scomposta in termini (parole vuote ignorate) e le sezioni Markdown (o i blocchi di `tracker.json`) sono ordinate per pertinenza: termini distinti coperti, titolo, frase esatta, frequenza; ogni estratto aggiunge `score` e `section` e mantiene percorso, riga e SHA-256. Senza `-Mode` resta la ricerca letterale; nessun tetto per impostazione predefinita. `-Offset` e `-Limit` paginano i risultati ordinati (il risultato riporta `offset`, `limit`, `hasMore`).
 
@@ -144,7 +144,7 @@ DOC01 prepara README e guide Markdown, senza GitHub Pages implicito. DOC03 richi
 Per gli IDE e gli agenti conformi alle specifiche MCP (Cursor, Claude Desktop, Antigravity, VS Code, Windsurf, OpenAI Codex), SecondBrain fornisce un server stdio locale tramite `scripts/mcp-server.ps1` (modulo `scripts/SecondBrain.Mcp.psm1`).
 
 Il server risponde a chiamate JSON-RPC 2.0 (protocollo MCP `2025-03-26`, con compatibilità `2024-11-05`) su standard input e standard output. All'avvio e prima delle letture prova, senza attendere il lock, a integrare le sole richieste di dossier già autorizzate e accodate; non espone comandi arbitrari né nuove scritture MCP. Espone gli strumenti informativi essenziali:
-- `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 20.000 caratteri, solo primo caricamento) o `full` senza tetto.
+- `get_startup_context`: restituisce il pacchetto di avvio per il repository o dossier specificato: profilo `slim` (predefinito, 30.000 caratteri, solo primo caricamento) o `full` senza tetto.
 - `get_ready_tasks`: restituisce la lista delle sole attività sbloccate con dipendenze soddisfatte (`-ReadyOnly`).
 - `search_knowledge`: ricerca nel dossier del repository in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio e rapporti) con tetto predefinito di 20 riscontri e 10.000 caratteri; `allDossiers`, `includeOriginals`, `limit=0` e `budget=0` ampliano o tolgono il tetto.
 - `list_prompts`: elenca il catalogo dei prompt organizzati nelle aree tematiche (parametro `pack`: `core` predefinito, `maintenance`, `all`); con `compact` una riga per prompt, con `category` filtra per id o prefisso.

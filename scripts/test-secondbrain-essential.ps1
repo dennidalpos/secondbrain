@@ -84,6 +84,67 @@ if('portable' -in $Groups){
     $out=@($wire|& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -BrainRoot $brain -ConfigPath $configPath)
     $messages=@($out|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
     Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 8) 'real MCP stdio negotiates and exposes eight tools'
+    if($Extended){
+        $candidate=Join-Path $runtime 'directive-proposal'
+        Put (Join-Path $candidate 'README.md') '# Synthetic proposal'
+        Put (Join-Path $candidate 'AGENTS.repo.managed.md') 'Synthetic shared repository directive. [Official docs](https://example.invalid/home/guide)'
+        $relative=[IO.Path]::GetRelativePath($brain,$dossier)
+        Put (Join-Path $candidate "$relative/AGENTS.managed.md") 'Synthetic repository-specific directive.'
+        $approvalScript=Join-Path $brain 'scripts/approve-revision.ps1'
+        $proposal=(& pwsh -NoProfile -File $approvalScript -ProposalPath $candidate -ConfigPath $configPath -Preview)|ConvertFrom-Json -AsHashtable
+        Check ($LASTEXITCODE -eq 0 -and $proposal.changes.Count -eq 2 -and !(Test-Path (Join-Path $dossier 'AGENTS.managed.md'))) 'directive preview reports both changes without applying them'
+        & pwsh -NoProfile -File $approvalScript -ProposalPath $candidate -ConfigPath $configPath -ExpectedProposalHash $proposal.proposalHash -Authorization 'synthetic proposal' | Out-Null
+        Check ($LASTEXITCODE -eq 0 -and (Test-SBApproval $brain)) 'reviewed directive hashes are applied together'
+        $publicApproval=Read-SBJson (Join-Path $brain 'direttive/approved.json') @{}
+        $privateApproval=Read-SBJson (Join-Path $brain '.runtime/directive-approvals.json') @{}
+        Check (@($publicApproval.files.Keys|Where-Object {$_ -like '02-areas/*'}).Count -eq 0 -and $privateApproval.files.ContainsKey($relative.Replace('\','/')+'/AGENTS.managed.md')) 'dossier directive approvals remain outside the public manifest'
+        $generated=& $portableModule {param($root,$dir) New-SBPortableRepositoryBody (Get-SBApprovedDirectiveRevision $root) $root $dir} $brain $dossier
+        Check ($generated.Contains('https://example.invalid/home/guide') -and $generated.Contains('Synthetic repository-specific directive.')) 'shared and specific Markdown with public URLs feed the managed block'
+        Put (Join-Path $dossier 'AGENTS.managed.md') 'Unapproved edit'
+        Reject {& $portableModule {param($root,$dir) New-SBPortableRepositoryBody (Get-SBApprovedDirectiveRevision $root) $root $dir} $brain $dossier} 'unapproved repository edit cannot be distributed'
+        Put (Join-Path $dossier 'AGENTS.managed.md') 'Synthetic repository-specific directive.'
+        $cursor=Join-Path $runtime 'cursor/mcp.json'
+        $cursorPlan=Get-SBMcpPairing -BrainRoot $brain -Target cursor -Scope user -ConfigFile $cursor -ApproveAllTools
+        Check ((Test-SBSamePath $cursorPlan.ConfigFile $cursor) -and (Test-SBSamePath $cursorPlan.PermissionPlan.path (Join-Path (Split-Path $cursor) 'permissions.json'))) 'Cursor configuration and policy overrides stay inside the fixture before writing'
+        $mcp=Set-SBMcpConfiguration -BrainRoot $brain -Target cursor -Scope user -ConfigFile $cursor -BackupRoot $cfg.backupRoot -ApproveAllTools
+        $rules=(Read-SBJson (Join-Path (Split-Path $cursor) 'permissions.json') @{}).mcpAllowlist
+        Check ($mcp.PermissionAction -eq 'applied' -and !$mcp.ClientSessionVerified -and $rules.Count -eq 8 -and $rules -contains 'secondbrain:check_publication') 'all-tool pairing approves eight exact names and separates live verification'
+        $again=Set-SBMcpConfiguration -BrainRoot $brain -Target cursor -Scope user -ConfigFile $cursor -BackupRoot $cfg.backupRoot -ApproveAllTools
+        Check ($again.Action -eq 'unchanged' -and $again.PermissionAction -eq 'unchanged') 'all-tool pairing can be repeated without drift'
+        foreach($target in @('codex','claude-code')){
+            $file=Join-Path $runtime ($target+'/'+$(if($target -eq 'codex'){'config.toml'}else{'.claude.json'}))
+            $pair=Get-SBMcpPairing -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools
+            Check (Test-SBSamePath $pair.ConfigFile $file) ($target+' configuration override stays inside the fixture before writing')
+            if($target -eq 'codex'){
+                Put $file ("[mcp_servers.secondbrain]`ncommand = `"pwsh`"`nargs = "+(ConvertTo-Json -InputObject @($pair.ServerDefinition.args) -Compress)+"`n")
+            }else{
+                Put $file (ConvertTo-SBJson @{mcpServers=@{secondbrain=$pair.ServerDefinition}})
+                Put $pair.PermissionPlan.path (ConvertTo-SBJson @{permissions=@{deny=@('mcp__other__write');ask=@('mcp__secondbrain__check_publication')}})
+            }
+            $installed=Set-SBMcpConfiguration -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools -BackupRoot $cfg.backupRoot
+            if($target -eq 'codex'){
+                $text=Read-SBText $file
+                Check ([regex]::Matches($text,'approval_mode = "approve"').Count -eq 8 -and $text.Contains('default_tools_approval_mode = "prompt"')) 'Codex approves all eight names and retains the default for future tools'
+            }else{
+                $policy=(Read-SBJson $pair.PermissionPlan.path @{}).permissions
+                Check ($policy.allow.Count -eq 8 -and !$policy.ask.Count -and $policy.deny -contains 'mcp__other__write') 'custom Claude profile approves eight tools and preserves deny rules'
+            }
+            $repeat=Set-SBMcpConfiguration -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools -BackupRoot $cfg.backupRoot
+            Check ($repeat.PermissionAction -eq 'unchanged') ($target+' all-tool policy is idempotent')
+        }
+        $oldProfile=$env:USERPROFILE;$oldBrain=$env:SECONDBRAIN_HOME
+        try{
+            Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
+            Put (Join-Path $brain 'config/prompt-catalog.schema.json') (Read-SBText (Join-Path $PSScriptRoot '../config/prompt-catalog.schema.json'))
+            $env:USERPROFILE=Join-Path $runtime 'synthetic-profile'
+            [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
+            $setupScript=Join-Path $brain 'scripts/secondbrain.ps1'
+            $setup=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+            Check ($LASTEXITCODE -eq 0 -and $setup.applied -and $setup.check.mode -eq 'sync' -and $setup.mcp.permissionConfigurationComplete -and [IO.File]::Exists($setup.setupReport)) 'setup applies sync, named approvals and a persistent report in an isolated profile'
+            $repeat=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+            Check ($LASTEXITCODE -eq 0 -and $repeat.mcp.items[0].PermissionAction -eq 'unchanged') 'setup repeats with the same repository identity and MCP rules'
+        }finally{$env:USERPROFILE=$oldProfile;$env:SECONDBRAIN_HOME=$oldBrain}
+    }
 }
 if('trackers' -in $Groups){
     Reject {Update-SBTrackerTask @argsBase -TaskId T-1} 'empty update rejected'
@@ -102,11 +163,22 @@ if('trackers' -in $Groups){
     Reject {Update-SBTrackerTask -BrainRoot $brain -Identity $identity -WorkingRepository 'github.com/test/foreign' -TaskId T-1 -Priority P0} 'foreign tracker write rejected'
     Check ((Get-SBFileHash $trackerPath) -ceq $before) 'rejected updates preserve tracker bytes'
     $closed=Update-SBTrackerTask @argsBase -TaskId T-2 -Status done
-    Check ($closed.ContainsKey('closureAdvice')) 'explicit done produces closure advice'
+    $closedDetail=Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task '#002'
+    Check ($closed.ContainsKey('closureAdvice') -and $closedDetail.source -eq 'archive' -and $closedDetail.task.status -eq 'done' -and (Read-SBJson $trackerPath $null).tasks.Count -eq 1) 'closure advice and complete archived record'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-2 -Status todo)
+    Check ((Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task '#002').source -eq 'tracker') 'reopening preserves task number and restores the active record'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-2 -Status done)
     $meta=Update-SBTrackerTask @argsBase -TaskId T-2 -Priority P2
     Check (!$meta.ContainsKey('closureAdvice')) 'metadata update on done task does not produce closure advice'
     [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn ($identity+'#T-2;github.com/test/other#O-1'))
     Check ((Read-SBJson $trackerPath $null).tasks[0].dependencies.Count -eq 2) 'semicolon-separated qualified dependencies preserve managed repository identities'
+    $archivePreview=Move-SBTerminalTrackerTasks -BrainRoot $brain -Identity 'github.com/test/other'
+    Check (!$archivePreview.applied -and $archivePreview.taskIds -contains 'O-1' -and !(Test-Path (Join-Path $otherDossier 'history/tracker-archive.json'))) 'terminal migration preview leaves the archive absent'
+    [void](Move-SBTerminalTrackerTasks -BrainRoot $brain -Identity 'github.com/test/other' -Apply)
+    Check (@(Get-SBGlobalTasks -BrainRoot $brain -Repository $identity -ReadyOnly).id -contains 'T-1') 'archived local and cross-repository dependencies satisfy readiness'
+    [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity 'github.com/test/other' -TaskId O-1 -Status cancelled)
+    Check (@(Get-SBGlobalTasks -BrainRoot $brain -Repository $identity -ReadyOnly).id -notcontains 'T-1') 'cancelled historical tasks do not satisfy dependencies'
+    [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity 'github.com/test/other' -TaskId O-1 -Status done)
     $cli=Invoke-EssentialCli @('-UpdateTaskId','T-1','-DependsOn','','-Stream','','-Priority','P2')
     $task=(Read-SBJson $trackerPath $null).tasks[0]
     Check ($cli.code -eq 0 -and !$task.dependencies.Count -and !$task.extensions.ContainsKey('stream') -and $task.priority -eq 'P2') ('CLI clears explicit empty metadata: '+$cli.text)
@@ -116,11 +188,29 @@ if('trackers' -in $Groups){
     Check ($cli.code -eq 0 -and @($cli.text|ConvertFrom-Json).Count -eq 1) 'CLI lists only open local tasks'
 }
 if('workflows' -in $Groups){
+    $empty=& (Get-Module SecondBrain.Knowledge) {New-SBStartupPackage -Record @{identity='github.com/test/empty'} -Tracker @{path=$null;source='absent';declared=$false} -TOC '# Empty' -ContextText '# Context' -MemoryText '# Memory' -Profile Slim -Budget 30000}
+    Check ($empty.withinBudget -and $empty.parts.tasks -eq "Nessun task pronto.`n") 'startup without declared task data has an empty task view'
+    $default=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim
+    Check ($default.budget -eq 30000) 'Slim API uses the shared 30000-character default'
     $startup=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -CheckoutPath $repo -Budget 20000 -Profile Slim
     Check ($startup.withinBudget -and !$startup.parts.memory.Contains('Historical detail') -and $startup.omittedParts.Count -gt 0) 'Slim omits history without truncating source'
     $before=Get-SBFileHash (Join-Path $dossier 'memory.md')
-    $under=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -CheckoutPath $repo -Budget ([int]$startup.characters-1) -Profile Slim
-    Check (!$under.withinBudget -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $before) 'over-budget startup reports failure without changing source'
+    $under=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -CheckoutPath $repo -Budget 1 -Profile Slim
+    Check (!$under.withinBudget -and $under.minimumCharacters -gt 1) 'unworkable explicit budget reports its minimum'
+    $contextPath=Join-Path $dossier 'context.md';$originalContext=Read-SBText $contextPath
+    $prefix="`n## Long example`n"
+    $padding=30000-[int]$startup.characters-$prefix.Length-1
+    foreach($extra in @(-1,0,1)){
+        Put $contextPath ($originalContext+$prefix+('x'*($padding+$extra))+"`n")
+        $contextHash=Get-SBFileHash $contextPath
+        $sized=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Budget (Get-SBSlimStartupBudget) -Profile Slim
+        Check ($sized.withinBudget -and $sized.uncompactedCharacters -eq (30000+$extra) -and $sized.compacted -eq ($extra -gt 0) -and (Get-SBFileHash $contextPath) -ceq $contextHash) ('Slim 30000-character boundary '+$extra)
+    }
+    $longSection=$prefix.TrimStart("`n")+('x'*($padding+1))+"`n"
+    Check ($sized.parts.context.Contains('Keep bytes.') -and (!$sized.parts.context.Contains('Long example') -or $sized.parts.context.Contains($longSection)) -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $before) 'Slim preserves prioritized sections, whole blocks and source bytes'
+    $mcpStartup=Invoke-SBMcpToolCall $brain 'get_startup_context' @{repository=$identity} | ConvertFrom-Json -AsHashtable
+    Check ($mcpStartup.budget -eq 30000 -and $mcpStartup.compacted -and $mcpStartup.parts.context -ceq $sized.parts.context) 'MCP and CLI compose the same compacted startup'
+    Put $contextPath $originalContext
     $candidatePath=Join-Path $brain '.runtime/candidate.json'
     $candidate=@{schemaVersion=1;repository=$identity;sources=@{};summaries=@{};openTaskIds=@((Read-SBJson $trackerPath $null).tasks|Where-Object status -notin @('done','cancelled')|ForEach-Object id);reviewed=$true;reviewNote='synthetic conservation test'}
     foreach($name in @('context.md','memory.md')){$candidate.sources[$name]=Get-SBFileHash (Join-Path $dossier $name);$candidate.summaries[$name]=Read-SBText (Join-Path $dossier $name)}
@@ -159,16 +249,17 @@ if('pending' -in $Groups){
     Check ($compatible.request.operation -ceq 'task.status' -and (Split-Path $legacyQueue -Leaf) -ceq 'pending-writes') 'status-only producer preserves the legacy wire format and queue'
     Check ((Complete-SBPendingSubmission $compatible $cfg).applied) 'compatible status request applies'
 
-    $healthy=Read-SBText $trackerPath
+    $graphPath=if(@((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-2').Count){$trackerPath}else{Join-Path $dossier 'history/tracker-archive.json'}
+    $healthy=Read-SBText $graphPath
     $broken=$healthy|ConvertFrom-Json -AsHashtable -DateKind String
-    $broken.tasks[1].dependencies=@(@{id='MISSING-FIXTURE'})
-    Put $trackerPath (ConvertTo-SBJson $broken)
+    @($broken.tasks|Where-Object id -eq 'T-2')[0].dependencies=@(@{id='MISSING-FIXTURE'})
+    Put $graphPath (ConvertTo-SBJson $broken)
     $repairable=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Stream='after-repair';Priority='P2'} -Config $cfg
     Check ((Split-Path (Split-Path $repairable.path) -Leaf) -ceq 'task-update' -and
         $repairable.id -notin @(Get-ChildItem -LiteralPath $legacyQueue -Filter '*.json' -File | ForEach-Object BaseName)) 'legacy nonrecursive consumer cannot see extended request'
     $response=Complete-SBPendingSubmission $repairable $cfg
     Check ($response.state -eq 'deferred' -and $response.pendingWrites.errors.Count -eq 1) 'preexisting broken graph leaves a durable request without terminal receipt'
-    Put $trackerPath $healthy
+    Put $graphPath $healthy
     Check ((Complete-SBPendingSubmission $repairable $cfg).applied -and (Read-SBJson $trackerPath $null).tasks[0].extensions.stream -eq 'after-repair') 'repair allows the original request to apply'
     $after=Get-SBFileHash $trackerPath
     Check ((Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg).applied.Count -eq 0 -and (Get-SBFileHash $trackerPath) -ceq $after) 'repair replay applies once'

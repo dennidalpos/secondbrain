@@ -32,3 +32,4 @@ Fonti controllate, variazioni, limiti, impatto e riferimenti per gli agenti prod
 
 - COM03: Trova le fonti ufficiali adatte al problema tecnico.
 - SYS01: Verifica gli IDE; mappa, registra account o riallinea su richiesta.
+- SYS16: Aggiorna una skill da fonti autorevoli e verifica il diff.

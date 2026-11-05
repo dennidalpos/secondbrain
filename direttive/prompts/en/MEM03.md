@@ -19,7 +19,7 @@ Goal, current authorizations, Git state (branch, remote, unpublished commits), c
 Reconcile the actual state and the acceptance criteria, then, in order:
 
 1. **Memories.** Update `context.md` (state, constraints, open problems, next step) and `memory.md` (lasting decisions and gotchas) with the minimal-summary rule: only key operations and verified news, with no redundant chronicles and no renewed historical authorizations.
-2. **Tracker.** Set the task status after verifying the criteria: close only what is complete and proven, keep partial and blocked items with status and reason, track newly confirmed leftovers without duplicates and outside the current batch.
+2. **Tracker.** Set the task status after verifying the criteria: close only what is complete and proven, keep partial and blocked items with status and reason, track confirmed leftovers without duplicates. Verify that done and cancelled tasks are in the archive with their full records and only remaining work is in the active tracker. A queued request stays pending until the receipt confirms it was applied.
 3. **Handoff.** Save in the dossier (`history/`) a report with work done, decisions, commands and outcomes, useful files, leftovers and the first step; link the history and the TOC without duplicating chronicles in the startup package.
 4. **Alignment.** Run Sync and Check with the write session; report preserved artifacts and output configuration, without unrequested cleanups.
 5. **Git state.** Show `git status --ignored`, the diff, branch, remote and unpublished commits.

@@ -5,7 +5,8 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][ValidateSet('Slim','Full')][string]$Profile='Slim',
     [Parameter(ParameterSetName='Startup')][switch]$Report,
     [Parameter(Mandatory,ParameterSetName='Compact')][switch]$Compact,
-    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
+    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][Parameter(ParameterSetName='ArchiveTasks')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
+    [Parameter(Mandatory,ParameterSetName='ArchiveTasks')][switch]$ArchiveTasks,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=50000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
     [Parameter(Mandatory,ParameterSetName='FileSave')][string]$SaveFile,
@@ -56,12 +57,11 @@ try{
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     $pendingResult=$null
-    if($readOnly -and !$bufferedWrite){
+    if($readOnly -and !$bufferedWrite -and !$ArchiveTasks){
         $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
-    # Slim: 20,000-character limit (essential parts; the rest on request). Full: workstation startupBudget or 50,000.
-    # The startup limit applies only to initial loading (Slim: 20,000); Full is unlimited (0) unless -Budget is explicit; -Compact uses startupBudget or 50,000.
+    # Full is unlimited unless -Budget is explicit; -Compact uses startupBudget or 50,000.
     # Search has a default limit (-1: 20 matches and 10,000 characters); explicit -Limit 0 / -Budget 0 removes it.
     $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Startup -and $Profile -eq 'Slim'){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } elseif($config -and $config.ContainsKey('startupBudget') -and $config.startupBudget -gt 0){ [int]$config.startupBudget } else { 50000 }
     $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
@@ -86,9 +86,11 @@ try{
             $agents=Join-Path $checkout 'AGENTS.md'
             if(Test-Path -LiteralPath $agents -PathType Leaf){$directives['AGENTS.md del checkout']=([IO.File]::ReadAllText($agents).Length.ToString()+' caratteri')}
             Format-SBStartupReport $result $directives
+            if(!$result.withinBudget){Write-Error -ErrorAction Continue $(if($result.diagnostic){$result.diagnostic}else{Get-SBMessage 'knowledge.budget.exceeded'});exit 1}
             exit 0
         }
     }
+    elseif($ArchiveTasks){$result=Move-SBTerminalTrackerTasks -BrainRoot $brain -Identity (& $resolveWorking) -Apply:$Apply -BackupRoot $config.backupRoot}
     elseif($Compact){
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}

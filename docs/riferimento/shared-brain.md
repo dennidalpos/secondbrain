@@ -10,9 +10,18 @@ Stato della verifica: i comportamenti sono provati su fixture locali (processi `
 | --- | --- | --- |
 | Dossier, `para-index.json`, `config/shared.json`, direttive | clone sulla share | condiviso |
 | `.runtime/access/` (lock, coda FIFO `queue/`, sessioni, `workstations.json`), `.runtime/para-transaction.json` | clone sulla share | condiviso (coordinamento) |
-| `.runtime/hosts/<id>/` (`workstation.json`, `discovery.json`, `selection.json`, `state.json`, `inventory.json`, `ide-map.json`, backup) | clone sulla share | per host: `<id>` deriva da PC e utente |
+| `.runtime/hosts/<id>/` (`workstation.json`, `discovery.json`, `selection.json`, `state.json`, `setup-result.json`, `inventory.json`, `ide-map.json`, backup) | clone sulla share | per host: `<id>` deriva da PC e utente |
 | `SECONDBRAIN_HOME` | ambiente utente di ogni PC | per host |
 | Cache e build dei prodotti | di norma `.runtime/hosts/<id>/` | per host; opzionalmente su disco locale |
+
+```mermaid
+flowchart LR
+    A["PC A · checkout e IDE locali"] --> U["Radice SecondBrain su share UNC"]
+    B["PC B · checkout e IDE locali"] --> U
+    U --> D["Dossier unico per identità Git"]
+    U --> P["Direttive e prompt centrali"]
+    U --> H["Report e configurazione per PC e utente"]
+```
 
 ## Permessi
 
@@ -25,9 +34,11 @@ SecondBrain non ha un modello di utenti: i permessi sono quelli della share e di
 - Script su UNC: l'ExecutionPolicy `RemoteSigned` blocca script scaricati; usare `Unblock-File` sul clone o un criterio adeguato. A seconda della zona di sicurezza con cui Windows classifica il percorso UNC (da verificare con FQDN e indirizzi IP), il blocco può riguardare anche i file del clone.
 - Git: se la share ha un proprietario diverso, git risponde "dubious ownership". SecondBrain passa `safe.directory` per il solo cervello; per gli altri strumenti: `git config --global --add safe.directory '//server/share/SecondBrain'`.
 
+In ambiente aziendale assegnare ai manutentori la modifica di script, configurazione condivisa, direttive approvate e catalogo. Ai contributori dare lettura a quei file e modifica alle aree dossier e al runtime di cui hanno bisogno, inclusa la coda condivisa. Verificare l'accesso effettivo al percorso UNC con ciascun profilo. [Microsoft Learn, controllo accessi Windows](https://learn.microsoft.com/windows/security/identity-protection/access-control/access-control)
+
 ## Attivazione di un nuovo PC
 
-Su ogni PC: `pwsh -NoProfile -File \\server\share\SecondBrain\scripts\secondbrain.ps1 -Setup -Interactive` (vedere [portable-brain.md](portable-brain.md)). Il report e la selezione sono per host in `.runtime/hosts/<id>/`, quindi non si sovrascrivono tra PC. Lo stesso `workstationId` con percorsi diversi richiede `access.ps1 -Reconcile`, ma gli alias dello stesso percorso (maiuscole, UNC con nome breve o FQDN, drive mappato, `\\localhost\X$`) non sono considerati uno spostamento.
+Anche da una copia locale, lanciare lo script della radice autorevole. Su ogni PC: `pwsh -NoProfile -File \\server\share\SecondBrain\scripts\secondbrain.ps1 -Setup -Interactive` (vedere [portable-brain.md](portable-brain.md)). Il report e la selezione sono per host in `.runtime/hosts/<id>/`, quindi non si sovrascrivono tra PC. Lo stesso `workstationId` con percorsi diversi richiede `access.ps1 -Reconcile`, ma gli alias dello stesso percorso (maiuscole, UNC con nome breve o FQDN, drive mappato, `\\localhost\X$`) non sono considerati uno spostamento.
 
 ## Scritture
 

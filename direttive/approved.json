@@ -1,13 +1,15 @@
 {
-  "approvedAt": "2026-11-04T12:02:45.6383329+01:00",
-  "authorization": "Richiesta esplicita dell utente 2026-11-04: attiva blocco e torna alla prima versione di rilascio su tutti i fronti; prima release 1.0.0 (881d7eb), revisione 1.0, prescrizioni attuali conservate.",
+  "approvedAt": "2026-11-05T00:28:16.8556766+01:00",
+  "authorization": "Utente 2026-11-05: Approva e distribuisci agli asset gestiti; testi e digest mostrati in questa chat.",
   "files": {
-    "direttive/AGENTS.global_ide.md": "C5BF494601C28A796AF090380CFB2A1542E54B4BC918961A995E7EAD1573C403",
-    "direttive/workstation.template.md": "002E9F0AE6F73498E180423B2638EABF39C5FADEBB1C517AEFC681B31CE35B0A"
+    "direttive/AGENTS.global_ide.md": "1A5F2C9A0CB77BAF17E938117EB61CB081A0C74612883844586592CB3013D3AC",
+    "direttive/AGENTS.repo.managed.md": "03111E9F07C1A1F775F751AC76B2BBA6A353AF51E6B2832833215789D196AAFC",
+    "direttive/workstation.template.md": "1EEB3165818F566AB6D830EB65A107EB6E2AF79A62BF2E26558A1B441E67DBEE"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-04-version-reset",
-    "readmeHash": "8F1146D6C1CBB4758CE8A8E5743FD7E633D08A0444542897A28DFFD901210C53"
+    "path": "direttive/proposals/2026-11-04-team-rete",
+    "readmeHash": "E6A6C01E8EB53E8B09F85201FB43DD69EB3980FFCD4BEC9021B16BB9F42BFF49",
+    "sha256": "80A0F32EDC4A307AB4089695B272512526B66E76EEF9C9649A2E84EF0CED79AB"
   },
   "schemaVersion": 1
 }

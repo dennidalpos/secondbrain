@@ -126,7 +126,20 @@ La migrazione comprende tracker attivo e metadati storici dell'archivio, se pres
 
 ## Proiezione dei Task e Budget
 
-Il `tracker.json` conserva tutti i task con il loro stato (`todo`, `in_progress`, `blocked`, `done`, `cancelled`, `unknown`); non esiste una archiviazione automatica verso file separati. Per contenere il pacchetto di avvio snello entro **20.000 caratteri**, `knowledge.ps1 -Startup` e il server MCP usano una proiezione: i task chiusi (`done`/`cancelled`) non vengono inclusi, e con `-ReadyOnly` (`get_ready_tasks`) restano solo i task non bloccati le cui dipendenze sono soddisfatte. Se il tracker cresce troppo, la compattazione conservativa (SYS05) archivia gli originali per hash senza cancellare informazioni.
+`tracker.json` contiene le attività rimanenti. Dopo la verifica dei criteri di accettazione, gli stati `done` e `cancelled` passano in `history/tracker-archive.json`, con ID, numero, evidenze e provenienza. Tracker, archivio e ricevuta di una richiesta accodata sono scritti nella stessa transazione.
+
+```mermaid
+flowchart LR
+    A["Criteri di accettazione verificati"] --> B["Aggiornamento del task"]
+    B --> C["Transazione condivisa"]
+    C --> D["Tracker delle attività rimanenti"]
+    C --> E["Storico dei task chiusi"]
+    C --> F["Ricevuta della coda"]
+```
+
+`-Tasks -ReadyOnly` e MCP `get_ready_tasks` risolvono le dipendenze anche nello storico, incluso quello di altri repository. Solo gli esiti completati soddisfano una dipendenza. `-Task <ID|#numero>` mostra il record completo e `-UpdateTaskId <ID> -Status todo` riapre esplicitamente lo stesso task.
+
+Per migrare i terminali già presenti, aggiornare prima tutte le postazioni della share alla stessa revisione, eseguire `knowledge.ps1 -ArchiveTasks -Repository <identità>` in anteprima e aggiungere `-Apply` dopo aver verificato l'elenco. I dossier archiviati conservano i dati esistenti. Conservare il manifest e usare la procedura di recupero in caso di interruzione.
 
 ## Aggiornare stato e metadati
 

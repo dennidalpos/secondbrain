@@ -122,6 +122,7 @@ function New-SBPendingWrite {
     if($Operation -in @('task.status','task.update')){
         $tracker=Read-SBPendingTracker $BrainRoot $Repository $dir
         $task=@($tracker.data.tasks|Where-Object id -eq $Arguments.TaskId)
+        if(!$task.Count){$task=@((Read-SBTrackerArchive $tracker.path $Repository).data.tasks|Where-Object id -eq $Arguments.TaskId)}
         if($task.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($Arguments.TaskId))}
         $Expected=@{taskHash=(Get-SBTextHash (ConvertTo-SBJson $task[0]))}
     }elseif($Operation -eq 'task.new'){
@@ -142,7 +143,7 @@ function New-SBPendingWrite {
         } catch {
             $failure=$_
             $baseValid=$false
-            try{Assert-SBTrackerWriteData $BrainRoot $Repository $tracker.data;$baseValid=$true}catch{
+            try{Assert-SBTrackerWriteData $BrainRoot $Repository $tracker.data $tracker.path;$baseValid=$true}catch{
                 # The request envelope and task hash are known even when the rest of the graph cannot be read.
             }
             if($baseValid){throw $failure}
@@ -266,6 +267,7 @@ function Invoke-SBPendingWrites {
                     $before=$target.hash
                     if($request.operation -in @('task.status','task.update')){
                         $task=@($target.data.tasks|Where-Object id -eq $request.arguments.TaskId)
+                        if(!$task.Count){$task=@((Read-SBTrackerArchive $target.path $request.repository).data.tasks|Where-Object id -eq $request.arguments.TaskId)}
                         if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $request.expected.taskHash){$state='conflict'}
                         else{
                             $arguments=@{}+$request.arguments
@@ -275,7 +277,7 @@ function Invoke-SBPendingWrites {
                                 $failure=$_
                                 if(!(Test-SBPendingCandidateValidationError $failure)){throw}
                                 # If the current graph is broken, this throws before a terminal receipt is written.
-                                Assert-SBTrackerWriteData $BrainRoot $request.repository $target.data
+                                Assert-SBTrackerWriteData $BrainRoot $request.repository $target.data $target.path
                                 $state='invalid';$errorCode=$failure.Exception.Message
                             }
                         }
@@ -287,6 +289,7 @@ function Invoke-SBPendingWrites {
                     }
                     if($state -eq 'applied'){
                         $ops+=@{path=$target.path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $candidate.data))}
+                        $ops+=@($candidate.extraOperations)
                         foreach($key in @('taskId','status','seq','title','closureAdvice')){if($candidate.ContainsKey($key)){$result[$key]=$candidate[$key]}}
                     }
                 }else{

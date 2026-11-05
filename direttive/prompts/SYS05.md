@@ -12,7 +12,7 @@ Su richiesta esplicita sb compatta oppure durante sb allinea per dossier oltre b
 
 ## Input
 
-Dossier identificato da PARA, fonti attuali, task aperti e tetto di 20.000 caratteri per l'avvio snello.
+Dossier identificato da PARA, fonti attuali, task aperti e tetto di 30.000 caratteri per l'avvio snello.
 
 ## Attività specifiche
 

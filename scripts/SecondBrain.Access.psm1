@@ -5,6 +5,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'access.station.inactive' = @{ it = 'Postazione non attivata: eseguire la procedura di attivazione (SYS03, scripts/secondbrain.ps1 -Setup)'; en = 'Workstation not activated: run the activation procedure (SYS03, scripts/secondbrain.ps1 -Setup)' }
     'access.config.missing' = @{ it = 'Configurazione non trovata: {0}'; en = 'Configuration not found: {0}' }
+    'access.brain.unreachable' = @{ it = 'Radice SecondBrain irraggiungibile: {0}'; en = 'SecondBrain root is unreachable: {0}' }
     'access.config.chain' = @{ it = 'Catena di configurazioni migrate non valida'; en = 'Invalid chain of migrated configurations' }
     'access.config.incomplete' = @{ it = 'Configurazione portabile incompleta: {0}'; en = 'Incomplete portable configuration: {0}' }
     'access.binding.invalid' = @{ it = 'Associazione repository non valida'; en = 'Invalid repository binding' }
@@ -47,6 +48,7 @@ function Get-SBLockWaitMs($Config,[int]$WaitMs=-1) {
 }
 function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransaction,[int]$MigrationDepth=0,[switch]$ReadOnly,[string]$BrainRoot) {
     $brain = if($BrainRoot){[IO.Path]::GetFullPath($BrainRoot)}else{[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
+    if($brain.StartsWith('\\') -and ![IO.Directory]::Exists($brain)){throw (New-SBError 'access.brain.unreachable' @($brain))}
     if(!$ConfigPath){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
         $ConfigPath=Get-SBHostConfigPath $brain

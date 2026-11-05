@@ -16,9 +16,9 @@ Local repository, AGENTS.md file, repository dossier with context.md, memory.md 
 
 ## Activities
 
-Resolve the associated dossier by checking para.json and repository.json. Read index.md and load the summary context, essential memory and the open projection of the tasks in the lean profile (20,000 characters, first load only); the rest is requested with `knowledge.ps1 -Startup -Profile Full` or `-Search`, with no cap. Consult the authoritative tracker source with no fallback. Do not create stubs or redundant memories.
+Resolve the associated dossier by checking para.json and repository.json. Read index.md and load the summary context, essential memory and the open projection of the tasks in the lean profile (30,000 characters, first load only); the rest is requested with `knowledge.ps1 -Startup -Profile Full` or `-Search`, with no cap. Consult the authoritative tracker source with no fallback. Do not create stubs or redundant memories.
 
-To measure the initial package use `knowledge.ps1 -Startup -Report`: characters per part (not tokens), saturation against the 20,000 of the lean profile and the weight of the directives; the full context (`-Profile Full`) has no cap. If the package exceeds the cap, reorganize the levels or plan the conservative compaction SYS05.
+To measure the initial package use `knowledge.ps1 -Startup -Report`: characters per part (not tokens), saturation against the 30,000 of the lean profile and the weight of the directives; the full context (`-Profile Full`) has no cap. If the package exceeds the cap, reorganize the levels or plan the conservative compaction SYS05.
 
 To find other dossiers, areas or resources of the central PARA, resolve identities and paths from `para-index.json` or `scripts/para.ps1 -Check`, read `para.json` and `brief.md` without inferring from the file system, tell active entities from retired or archived ones, and do not reactivate archives or create undocumented links between independent areas.
 

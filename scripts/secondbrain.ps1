@@ -7,7 +7,7 @@ Exit code: 0 aligned, 1 attention required, 2 error, 3 archive busy (writer lock
 Reads (-Check) take no blocking locks: an active writer or pending transaction appears in warnings.
 -Setup: guided activation (preflight, discovery, proposal, confirmation, preview, -Apply); 0 valid preview or activation applied,
 1 unconfirmed proposal or paused discovery. Per-host report and selection in .runtime/hosts/<id>/.
--Setup writes the user SECONDBRAIN_HOME variable only with confirmation (-RegisterEnvironment or answer SI in -Interactive); -NoRegisterEnvironment excludes it from -Activate -Apply too.
+-Setup registers SECONDBRAIN_HOME on confirmed activation unless -NoRegisterEnvironment is supplied.
 -Setup -Status: binding, IDE and latest selection receipt status (read-only, exit 0).
 -Setup -Unbind <repo|path|ideId|ideName>[,..]: unbinds managed repositories and IDE integrations with proposal, confirmation (-Yes or -Interactive) and preview, like activation; -Apply applies it. Dossiers and IDE files are not deleted.
 -Setup -Output <repo|path> -OutputStatus verified|exception-accepted|unverified [-Evidence <file under .runtime>] [-Exception <reason>]: records output-location results in the binding after product-agent testing (preview, -Yes or -Interactive confirmation, -Apply). verified binds evidence to its bytes (SHA-256); exception-accepted requires a reason; runs no product builds or tests.
@@ -50,7 +50,7 @@ param(
     [Parameter(ParameterSetName='Setup')][switch]$Yes,
     [Parameter(ParameterSetName='Setup')][switch]$RegisterEnvironment,
     [Parameter(ParameterSetName='Setup')][Parameter(ParameterSetName='Activate')][switch]$NoRegisterEnvironment,
-    [Parameter(ParameterSetName='Setup')][switch]$AndSync,
+    [Parameter(ParameterSetName='Setup')][switch]$AndSync=$true,
     [Parameter(ParameterSetName='Setup')][switch]$Status,
     [Parameter(ParameterSetName='Setup')][string[]]$Unbind=@(),
     [Parameter(ParameterSetName='Setup')][string]$Output,

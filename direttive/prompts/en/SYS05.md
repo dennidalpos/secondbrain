@@ -12,7 +12,7 @@ On explicit request sb compatta, or during sb allinea for dossiers over budget.
 
 ## Input
 
-Dossier identified by PARA, current sources, open tasks and the 20,000-character cap for the lean startup.
+Dossier identified by PARA, current sources, open tasks and the 30,000-character cap for the lean startup.
 
 ## Activities
 

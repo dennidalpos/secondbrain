@@ -111,4 +111,10 @@ SISTEMA E MANUTENZIONE CENTRALE
   • Cosa serve: radice SecondBrain, IDE di destinazione e conferma prima di scrivere
   • Esempio d'uso: sb prompt SYS15: installa il server mcp in vscode e claude code
 
+🔥 SYS16 | Aggiorna una skill da fonti autorevoli e verifica il diff.
+  • ID: pmt-9ef61b3d
+  • Ambito: central | Modalità: write
+  • Cosa serve: skill identificata, agente e versione di destinazione, fonti ufficiali
+  • Esempio d'uso: sb prompt SYS16: aggiorna la skill locale dalle fonti ufficiali
+
 ```

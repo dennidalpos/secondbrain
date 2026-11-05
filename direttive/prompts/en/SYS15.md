@@ -32,6 +32,8 @@ Apply after the user's confirmation: the same command with `-Apply`. The write i
 
 Verification: `scripts/test-secondbrain-mcp-handshake.ps1` runs initialize and tools/list with the registered command; then restart the IDE and check `ide-map.ps1 -Verify` (field `mcpConfigured`). Never hand-write the IDEs' configurations and never read their credentials.
 
+The `secondbrain.ps1 -Setup -Apply` flow configures MCP for selected IDEs and pre-approves the eight current tools by name in supported clients. Direct pairing supports `-ApproveAllTools` for the same scope or `-ApproveKnowledgeTools` for the seven knowledge tools. Administrative rules retain precedence. In VS Code use **Chat: Manage Tool Approval** in the intended profile. The report records manual steps and profiles without a verified path. Check approval prompts in a new client session.
+
 ## Decisions to collect
 
 - IDEs and installation scope (multiple choice);

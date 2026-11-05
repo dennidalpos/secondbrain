@@ -35,7 +35,7 @@ Then, in the agent chat, type `sb prompt`. Step by step: [getting-started guide]
 |---|---|
 | Memory | Context, decisions and tasks of every project, always at hand |
 | Common rules | The same instructions for every agent and project |
-| 65 ready-made prompts | Development, testing, security, documentation, release; in Italian and English (plus 16 maintenance prompts: `sb prompt maintenance`) |
+| 65 ready-made prompts | Development, testing, security, documentation, release; in Italian and English (plus 17 maintenance prompts: `sb prompt maintenance`) |
 | Pre-publish check | Blocks private data and secrets before the push |
 | Backup | Every replaced file stays recoverable |
 
@@ -126,7 +126,7 @@ Servono Windows, Git 2.42+ e PowerShell 7.5+. Prima leggi [cosa viene modificato
 |---|---|
 | Memoria | Contesto, decisioni e task di ogni progetto, sempre pronti |
 | Regole comuni | Le stesse istruzioni per tutti gli agenti e i progetti |
-| 65 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio; in italiano e in inglese (più 16 di manutenzione: `sb prompt maintenance`) |
+| 65 prompt pronti | Sviluppo, test, sicurezza, documentazione, rilascio; in italiano e in inglese (più 17 di manutenzione: `sb prompt maintenance`) |
 | Controllo prima di pubblicare | Blocca dati privati e segreti prima del push |
 | Backup | Ogni file sostituito resta recuperabile |
 

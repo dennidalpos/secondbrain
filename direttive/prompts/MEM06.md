@@ -16,9 +16,9 @@ Repository locale, file AGENTS.md, dossier del repository con context.md, memory
 
 ## Attività specifiche
 
-Risolvi il dossier associato verificando para.json e repository.json. Leggi index.md e carica contesto sintetico, memoria essenziale e proiezione aperta dei task nel profilo snello (20.000 caratteri, solo primo caricamento); il resto si richiede con `knowledge.ps1 -Startup -Profile Full` o `-Search`, senza tetto. Consulta la fonte autorevole del tracker senza fallback. Non creare stub né memorie ridondanti.
+Risolvi il dossier associato verificando para.json e repository.json. Leggi index.md e carica contesto sintetico, memoria essenziale e proiezione aperta dei task nel profilo snello (30.000 caratteri, solo primo caricamento); il resto si richiede con `knowledge.ps1 -Startup -Profile Full` o `-Search`, senza tetto. Consulta la fonte autorevole del tracker senza fallback. Non creare stub né memorie ridondanti.
 
-Per misurare il pacchetto iniziale usa `knowledge.ps1 -Startup -Report`: caratteri per parte (non token), saturazione rispetto ai 20.000 del profilo snello e peso delle direttive; il contesto completo (`-Profile Full`) non ha tetto. Se il pacchetto supera il tetto, riorganizza i livelli o pianifica la compattazione conservativa SYS05.
+Per misurare il pacchetto iniziale usa `knowledge.ps1 -Startup -Report`: caratteri per parte (non token), saturazione rispetto ai 30.000 del profilo snello e peso delle direttive; il contesto completo (`-Profile Full`) non ha tetto. Se il pacchetto supera il tetto, riorganizza i livelli o pianifica la compattazione conservativa SYS05.
 
 Per individuare altri dossier, aree o risorse del PARA centrale risolvi identità e percorsi da `para-index.json` o `scripts/para.ps1 -Check`, leggi `para.json` e `brief.md` senza dedurre dal filesystem, distingui entità attive da ritirate o archiviate e non riattivare archivi né creare legami non documentati tra aree indipendenti.
 

@@ -33,6 +33,7 @@ param(
 
     [Parameter(ParameterSetName = 'Pair')][ValidateSet('user','project')][string]$Scope,
     [Parameter(ParameterSetName = 'Pair')][Alias('ApproveKnowledgeTools')][switch]$ApproveReadTools,
+    [Parameter(ParameterSetName = 'Pair')][switch]$ApproveAllTools,
 
     [Parameter(Mandatory, ParameterSetName = 'ExportPackage')]
     [switch]$ExportPackage,
@@ -86,7 +87,7 @@ if ($ExportPackage) {
 }
 
 if ($Pair) {
-    $pairOptions=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath}
+    $pairOptions=@{BrainRoot=$BrainRoot;Target=$Target;WorkspacePath=$WorkspacePath;ApproveAllTools=$ApproveAllTools}
     if($Scope){$pairOptions.Scope=$Scope}
     if ($Apply) {
         # IDE configurations are written outside the brain: use the same FIFO queue and lock as every writer, including on inactive workstations.

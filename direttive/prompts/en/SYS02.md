@@ -32,3 +32,4 @@ Sources checked, changes, limits, impact and references for product agents; no c
 
 - COM03: Find official sources that fit the technical problem.
 - SYS01: Check the IDEs; map, register accounts or realign on request.
+- SYS16: Update a skill from authoritative sources and verify the diff.

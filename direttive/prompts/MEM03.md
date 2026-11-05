@@ -19,7 +19,7 @@ Obiettivo, autorizzazioni attuali, stato Git (branch, remoto, commit non pubblic
 Riconcilia stato effettivo e criteri di accettazione, poi nell'ordine:
 
 1. **Memorie.** Aggiorna `context.md` (stato, vincoli, problemi aperti, prossimo passo) e `memory.md` (decisioni durevoli e gotcha) con la regola di sintesi minima: solo operazioni chiave e novità verificate, senza cronache ridondanti né autorizzazioni storiche rinnovate.
-2. **Tracker.** Imposta lo stato dei task dopo aver verificato i criteri: chiudi solo ciò che è completo e provato, mantieni parziali e bloccati con stato e motivo, traccia i nuovi residui confermati senza duplicati e fuori dal lotto corrente.
+2. **Tracker.** Imposta lo stato dei task dopo aver verificato i criteri: chiudi solo ciò che è completo e provato, mantieni parziali e bloccati con stato e motivo, traccia i residui confermati senza duplicati. Verifica che done e cancelled siano nello storico, con il record completo, e che il tracker attivo contenga le sole attività rimanenti. Una richiesta accodata resta in attesa finché la ricevuta non conferma l'applicazione.
 3. **Handoff.** Salva nel dossier (`history/`) un rapporto con lavoro svolto, decisioni, comandi ed esiti, file utili, residui e primo passo; collega lo storico e il TOC senza duplicare cronache nell'avvio.
 4. **Allineamento.** Esegui Sync e Check con la sessione di scrittura; riporta artefatti conservati e configurazione di output, senza pulizie non richieste.
 5. **Stato Git.** Mostra `git status --ignored`, diff, branch, remoto e commit non pubblicati.

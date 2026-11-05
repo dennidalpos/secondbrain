@@ -101,9 +101,10 @@ try {
     $independent=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='done'} -Config $cfg
     [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Status in_progress -BackupRoot $cfg.backupRoot)
     $done=Complete-SBPendingSubmission $independent $cfg
-    Assert-Pending ($done.applied -and $done.closureAdvice.code -eq 'tracker.closure.advice' -and (Read-SBJson $trackerPath $null).tasks[1].status -eq 'in_progress') 'different tasks merge without replacing another task changes'
+    $archived=Read-SBJson (Join-Path $dossier 'history/tracker-archive.json') $null
+    Assert-Pending ($done.applied -and $done.closureAdvice.code -eq 'tracker.closure.advice' -and $archived.tasks[0].id -eq 'T-1' -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'in_progress') 'closure archives the task without replacing another task changes'
     $validTracker=Read-SBText $trackerPath
-    $invalidTracker=Read-SBJson $trackerPath $null;$invalidTracker.tasks[1].unexpectedField='invalid central schema'
+    $invalidTracker=Read-SBJson $trackerPath $null;$invalidTracker.tasks[0].unexpectedField='invalid central schema'
     Put-Pending $trackerPath (ConvertTo-SBJson $invalidTracker)
     $duringInvalid=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='in_progress'} -Config $cfg
     $invalidCentral=Complete-SBPendingSubmission $duringInvalid $cfg
@@ -113,7 +114,7 @@ try {
     $conflict=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-2';Status='done'} -Config $cfg
     [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Status blocked -BackupRoot $cfg.backupRoot)
     $conflicted=Complete-SBPendingSubmission $conflict $cfg
-    Assert-Pending ($conflicted.state -eq 'conflict' -and !$conflicted.applied -and (Read-SBJson $trackerPath $null).tasks[1].status -eq 'blocked' -and (Test-Path -LiteralPath $conflict.path)) 'same-task conflict preserves the central value and request'
+    Assert-Pending ($conflicted.state -eq 'conflict' -and !$conflicted.applied -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'blocked' -and (Test-Path -LiteralPath $conflict.path)) 'same-task conflict preserves the central value and request'
 
     $saved=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.save -Arguments @{relativePath='context.md';content='Queued replacement'} -Expected @{hash=(Get-SBFileHash (Join-Path $dossier 'context.md'))} -Config $cfg
     Put-Pending (Join-Path $dossier 'context.md') 'Other agent context'

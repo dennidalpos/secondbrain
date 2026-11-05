@@ -2513,7 +2513,8 @@
       ],
       "related": [
         "pmt-25c97d58",
-        "pmt-26817a61"
+        "pmt-26817a61",
+        "pmt-9ef61b3d"
       ],
       "requires": "registro PARA resource-authoritative-sources",
       "scope": "central",
@@ -2800,6 +2801,38 @@
       "scope": "central",
       "status": "active",
       "summary": "Installa il server MCP SecondBrain negli IDE e verifica l'handshake.",
+      "target": "central"
+    },
+    {
+      "aliases": [],
+      "category": "sistema",
+      "code": "SYS16",
+      "example": "sb prompt SYS16: aggiorna la skill locale dalle fonti ufficiali",
+      "file": "SYS16.md",
+      "i18n": {
+        "en": {
+          "summary": "Update a skill from authoritative sources and verify the diff.",
+          "requires": "identified skill, target agent and version, official sources",
+          "example": "sb prompt SYS16: update the local skill from official sources"
+        }
+      },
+      "id": "pmt-9ef61b3d",
+      "mode": "write",
+      "next": [
+        "pmt-5b593404"
+      ],
+      "pack": "maintenance",
+      "references": [
+        "https://agentskills.io/specification",
+        "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
+      ],
+      "related": [
+        "pmt-5b593404"
+      ],
+      "requires": "skill identificata, agente e versione di destinazione, fonti ufficiali",
+      "scope": "central",
+      "status": "active",
+      "summary": "Aggiorna una skill da fonti autorevoli e verifica il diff.",
       "target": "central"
     },
     {

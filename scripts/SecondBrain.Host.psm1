@@ -94,6 +94,7 @@ function Get-SBIDEAssets {
     $codexRoot=Split-Path -Parent (Get-SBIDEContext 'Codex').instructions
     $definitions=@(
         @{name='Claude Code';adapter='claude-code';instructions=(Get-SBIDEContext 'Claude Code').instructions;commands=@('claude')},
+        @{name='Claude Desktop';adapter='manual';instructions='';commands=@()},
         @{name='Codex';adapter='codex';instructions=(Get-SBIDEContext 'Codex').instructions;commands=@('codex')},
         @{name='Antigravity';adapter='antigravity';instructions=(Get-SBIDEContext 'Antigravity').instructions;commands=@('antigravity')},
         @{name='VS Code';adapter='vscode';instructions='';commands=@('code','code-insiders')},
@@ -124,6 +125,7 @@ function Get-SBIDEAssets {
         # Other IDEs: MCP registration is a known JSON file; read only the presence of the secondbrain key (no credentials).
         $mcpFile = switch ($definition.name) {
             'Claude Code' { $claudeHome = Get-SBIDERoot 'CLAUDE_CONFIG_DIR' $env:USERPROFILE; Join-Path $claudeHome.path '.claude.json' }
+            'Claude Desktop' { Join-Path $env:APPDATA 'Claude/claude_desktop_config.json' }
             'Antigravity' { $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'; if (Test-Path -LiteralPath $agShared -PathType Leaf) { $agShared } else { Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json' } }
             'VS Code' { Join-Path $env:APPDATA 'Code/User/mcp.json' }
             'Cursor' { Join-Path $env:USERPROFILE '.cursor/mcp.json' }
@@ -148,6 +150,7 @@ function Get-SBIDEAssets {
         $context=Get-SBIDEContext $definition.name
         # Cursor and Windsurf: configuration folder presence only (no credential or session reads).
         if($definition.name -in @('Cursor','Windsurf')){$evidence+=@($context.configDirectories|ForEach-Object {'Directory: '+$_})}
+        if($definition.name -eq 'Claude Desktop' -and (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'Programs/Claude/Claude.exe'))){$evidence+='Claude Desktop executable'}
         if($executables.Count -or $evidence.Count -or ($definition.instructions -and (Test-Path -LiteralPath $definition.instructions))){
             @{id=$definition.adapter+'-'+(Get-SBTextHash $definition.name).Substring(0,8);name=$definition.name;adapter=$definition.adapter;mode=$(if($definition.instructions){'file'}else{'manual'});
               instructions=$definition.instructions;sha256=$(if($definition.instructions){Get-SBFileHash $definition.instructions}else{'absent'});executables=$executables;installationEvidence=$evidence;

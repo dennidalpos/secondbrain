@@ -67,7 +67,7 @@ Restituisce 0 se l'indice è conforme e pulito; restituisce 1 e blocca la proced
 
 L'inventario e la mappa IDE risiedono nel runtime locale della postazione. I dossier e l'indice PARA sono condivisi. La presenza di un nuovo checkout nel filesystem non lo aggiunge al perimetro gestito; l'assenza di un percorso non elimina dossier o task.
 
-Il pacchetto iniziale (profilo snello) comprende TOC, sezioni essenziali di contesto e memoria, task pronti in una riga e l'elenco dei livelli non caricati. Quando supera il tetto del primo caricamento (20.000 caratteri, solo per l'avvio), SYS04 prepara con SYS05 una compattazione revisionata; la CLI non inventa sintesi e non tronca dati. Gli originali restano conservati.
+Il profilo Slim include indice, sezioni essenziali, task pronti e riferimenti agli approfondimenti. Al superamento di 30.000 caratteri seleziona automaticamente sezioni e righe task intere, con priorità stabili e senza inferenza. I riferimenti riportano al dettaglio con `-Section`, `-Task` o `-Startup -Profile Full`. SYS05 resta il flusso revisionato per modificare i Markdown sorgente.
 
 La chiusura con `knowledge.ps1 -UpdateTaskId ID -Status done` restituisce `closureAdvice`: memoria, contesto, riepilogo minimo e Sync/Check. Ogni nuova transizione a `done` registra `extensions.lastClosure` nel tracker; ripetere `done` conserva la data precedente. Check emette il solo avviso `closure-memory-pending` se `memory.md` manca o precede l'ultima chiusura. L'avviso tace dopo l'aggiornamento della memoria, non blocca l'allineamento e non certifica il contenuto del riepilogo. Non si ricostruiscono date per task storici e non si leggono trascrizioni. MEM03 propone il riepilogo aggiuntivo in memoria, nello storico o «salta», preservando gli aggiornamenti obbligatori.
 
@@ -112,3 +112,5 @@ Fonti operative: [script installati](../../scripts/), [regole del repository](..
 Un accesso negato è distinto da una contesa tra scrittori e dagli altri errori operativi. Le CLI interessate riportano su stderr il codice `core.write.denied` e l'invocazione PowerShell con parametri quotati. Eseguire il comando in PowerShell 7.5+ fuori dalla sandbox, rispettando le autorizzazioni già previste dal comando. Le radici scrivibili non vengono ampliate automaticamente.
 
 L'hook `trace.ps1 -Event stop` rimane fail-open: esce con 0 anche se non può registrare l'evento. In quel caso emette su stderr `trace.event.lost`; l'evento non è stato salvato. La diagnostica non contiene il testo del prompt o della trascrizione.
+
+La selezione Slim usa blocchi Markdown interi e ordinamento stabile. La documentazione Microsoft descrive allocazione del budget, scelta dei blocchi e deduplicazione. SecondBrain applica la selezione nel processo PowerShell locale. [Microsoft Learn](https://learn.microsoft.com/en-us/azure/architecture/ai-ml/guide/rag/rag-prompt-engineering)

@@ -19,6 +19,6 @@ Modello da compilare soltanto con informazioni verificate; omettere le sezioni n
 - `02-areas/products/<Nome>/memory.md` e `02-areas/products/<Nome>/context.md` (nel dossier SecondBrain) conservano decisioni tecniche durevoli, gotcha e architettura; aggiornarli nei task di scrittura solo con novità pertinenti e verificate.
 - Collegamenti al tracker (`tracker.json` o `02-areas/products/<Nome>/tracker.md`) e a direttive annidate, se presenti.
 - Nei task di scrittura rimuovere temporanei del task e residui confermati preservando dati e lavoro unico. Sincronizzare SecondBrain dopo modifiche a dossier o direttive, oppure su richiesta; nelle sole analisi segnalare i residui preesistenti senza rimuoverli.
-- A chiusura del task verificare i criteri di accettazione, impostare lo stato nel tracker del dossier (`tracker.json`), registrare decisioni durevoli in `memory.md`, aggiornare `context.md` ed eseguire la sincronizzazione SecondBrain.
+- A chiusura del task verificare i criteri di accettazione, aggiornare il tracker del dossier (`tracker.json`) e verificare che i task completati o annullati siano archiviati nello storico con ID, dipendenze e prove, registrare decisioni durevoli in `memory.md`, aggiornare `context.md` ed eseguire la sincronizzazione SecondBrain.
 
 Non copiare esempi di altri stack come comandi operativi. Non attribuire automaticamente una modalità Greenfield, obblighi normativi o un workflow Git. Il blocco SecondBrain gestito viene aggiunto separatamente da `secondbrain.ps1 -Sync`.

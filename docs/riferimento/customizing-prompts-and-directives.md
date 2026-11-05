@@ -18,17 +18,24 @@ Un prompt si ritira (con sostituto), non si cancella, salvo richiesta esplicita.
 
 ## Modifica delle direttive
 
-Le direttive comuni (`direttive/AGENTS.global_ide.md`) e l'integrazione di postazione (`direttive/workstation.template.md`) arrivano agli IDE solo dopo approvazione e distribuzione:
+Preparare una cartella con un `README.md` e i Markdown da modificare. I nomi comuni sono `AGENTS.global_ide.md`, `workstation.template.md` e `AGENTS.repo.managed.md`. Per un singolo repository, riprodurre nel candidato il percorso relativo del dossier e aggiungere `AGENTS.managed.md`. Usare una cartella di proposta nel runtime per testi privati. Un Markdown specifico vuoto ritira il solo contributo specifico.
 
-1. proposta in `direttive/proposals/<data>-<nome>/` con i due testi e un `README.md` con gli hash (sezione 3);
-2. `scripts/approve-revision.ps1 -Authorization <testo> -ConfigPath <config> -ProposalPath <cartella>` registra l'approvazione e copia i testi in `direttive/` (con backup);
-3. `secondbrain.ps1 -Check`, poi `-Sync`: scrive solo il blocco gestito in `AGENTS.md` e nei file IDE, con backup ([cosa viene toccato](safety-backups.md)). Gli IDE manuali si aggiornano incollando il testo di `.runtime/hosts/<id>/istruzioni-globali.md`.
+```mermaid
+flowchart LR
+    M["Sorgenti Markdown"] --> P["Anteprima con testi e hash"]
+    P --> A["Approvazione della proposta"]
+    A --> S["Sync sui checkout e IDE gestiti"]
+    S --> C["Check e verifica del caricamento"]
+```
+
+`scripts/approve-revision.ps1 -Preview -ProposalPath <cartella>` mostra i testi prima e dopo, gli hash per file e `proposalHash`. Dopo approvazione, ripetere senza `-Preview` passando `-ExpectedProposalHash <hash>` e `-Authorization <riferimento>`. Una modifica intervenuta dopo la revisione richiede una nuova anteprima. L'applicazione conserva il manifest di recupero. Ogni postazione esegue `-Sync` e `-Check`; i conflitti locali vengono segnalati. Le impronte delle direttive comuni stanno in `direttive/approved.json`. Quelle dei dossier stanno in `.runtime/directive-approvals.json`, condiviso tra le postazioni e privato.
+
 
 ---
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 78 schede operative attive (62 del pacchetto `core`, 16 del pacchetto `maintenance`) in 14 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
+I prompt di SecondBrain sono organizzati in formato modulare con separazione netta tra metadati (`catalog.json`), schede Markdown per area tematica e indice generato (`direttive/prompts/README.md`). Il catalogo conta 82 schede operative attive (65 del pacchetto `core`, 17 del pacchetto `maintenance`) in 14 aree tematiche; ogni prompt è un workflow atomico delimitato da scopo, prerequisiti, modalità, vincoli e comandi di verifica. Non è imposto un numero fisso di prompt né una numerazione consecutiva.
 
 Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta, evitando sovraccarichi di contesto nel prompt dell'agente. La build valida tutte le schede prima di generare l'indice. Una riga logica dell'elenco è lunga al massimo 88 caratteri; finestre molto strette possono applicare il wrapping dell'IDE.
 
@@ -136,7 +143,7 @@ flowchart LR
     C --> D["4. Distribuzione Atomica<br/>(secondbrain.ps1 -Sync)"]
 ```
 
-Le regole comuni attive sono [AGENTS.global_ide.md](../../direttive/AGENTS.global_ide.md) e [workstation.template.md](../../direttive/workstation.template.md); [approved.json](../../direttive/approved.json) registra hash e autorizzazione e la [proposta della revisione corrente 1.0](../../direttive/proposals/2026-11-04-version-reset/README.md) contiene il testo approvato; le proposte precedenti restano come storico. Le proposte approvate restano immutabili: non modificare hash o blocchi generati per eludere il processo. Dopo la distribuzione si esegue anche [SYS01](adapters.md).
+Le regole comuni attive sono [AGENTS.global_ide.md](../../direttive/AGENTS.global_ide.md) e [workstation.template.md](../../direttive/workstation.template.md); [approved.json](../../direttive/approved.json) registra hash e autorizzazione e la [proposta team-rete approvata](../../direttive/proposals/2026-11-04-team-rete/README.md) contiene il testo approvato; le proposte precedenti restano come storico. Le proposte approvate restano immutabili: non modificare hash o blocchi generati per eludere il processo. Dopo la distribuzione si esegue anche [SYS01](adapters.md).
 
 Gli AGENTS applicativi distinguono revisione comune applicata e revisione specifica del progetto; per la parte specifica si parte dal modello [AGENTS.repo.template.md](../../direttive/AGENTS.repo.template.md), mentre il blocco comune gestito è generato da `New-SBPortableRepositoryBody` (`scripts/SecondBrain.Portable.psm1`). Una marcatura allineata non prova il caricamento in sessione né la validità tecnica di tutti i contenuti applicativi: il caricamento va verificato in nuove sessioni, separatamente dall'allineamento dei file.
 
@@ -150,13 +157,18 @@ Redigi i file proposti sotto `direttive/proposals/<data>-<nome-proposta>/`:
 Registra l'autorizzazione calcolando gli hash crittografici:
 
 ```powershell
+$proposal = pwsh -NoProfile -File scripts/approve-revision.ps1 `
+    -ConfigPath .runtime/hosts/<id>/workstation.json `
+    -ProposalPath direttive/proposals/<data>-<nome> -Preview | ConvertFrom-Json
+
+# Dopo la revisione dei testi restituiti e l'approvazione dell'utente.
 pwsh -NoProfile -File scripts/approve-revision.ps1 `
     -ConfigPath .runtime/hosts/<id>/workstation.json `
     -ProposalPath direttive/proposals/<data>-<nome> `
-    -Authorization "Ricevuta approvazione esplicita utente"
+    -ExpectedProposalHash $proposal.proposalHash -Authorization "Ricevuta approvazione esplicita utente"
 ```
 
-Con `-ProposalPath` lo script copia `AGENTS.global_ide.md` e `workstation.template.md` della proposta in `direttive/` (con backup), richiede il `README.md` della proposta e registra in `direttive/approved.json` gli hash SHA-256, l'autorizzazione e l'hash del README. Senza `-ProposalPath` registra gli hash dei testi già presenti in `direttive/`. `-SessionId` riusa una sessione di scrittura aperta con `scripts/access.ps1`.
+La proposta include i soli Markdown da cambiare e un `README.md`. `-Preview` restituisce il digest da passare come `-ExpectedProposalHash`. L'applicazione registra i testi e `approved.json` nella stessa transazione con backup. `-SessionId` riusa una sessione di scrittura aperta con `scripts/access.ps1`.
 
 ### 3. Distribuzione con `secondbrain.ps1 -Sync`
 Applica la nuova revisione a tutti i checkout gestiti:
