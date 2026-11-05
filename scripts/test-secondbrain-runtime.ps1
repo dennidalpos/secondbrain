@@ -68,15 +68,161 @@ Assert-Runtime (!(Test-Path -LiteralPath (Join-Path $runtime ('hosts/'+$hostId+'
 Assert-Runtime (Test-Path -LiteralPath (Join-Path $target 'work/20261103-dup/w.txt')) 'segmento duplicato unito'
 Assert-Runtime (Test-Path -LiteralPath (Join-Path $runtime 'access/writer.lock')) 'access/ intatto'
 Assert-Runtime (!@((Get-SBRuntimeMigrationPlan $brain $hostId $segment 0).moves)) 'seconda esecuzione: nulla da spostare'
-# Regenerable targets.
-$targets=Get-SBRegenerableRuntimeTargets $brain @() 5 0
-$byKind=@($targets.targets|Group-Object kind|ForEach-Object {$_.Name+'='+$_.Count})
-Assert-Runtime (@($targets.targets|Where-Object kind -eq 'fixture-flat').Count -eq 2) 'fixture e tmp piatte tra i rigenerabili'
-Assert-Runtime (@($targets.targets|Where-Object kind -eq 'nested-fixture').Count -eq 2) 'fixture annidate oltre le ultime 5'
-Assert-Runtime (@($targets.targets|Where-Object kind -eq 'handshake-reports').Count -eq 1 -and @($targets.targets|Where-Object kind -eq 'empty-folder').Count -eq 1) 'handshake e cartelle vuote rigenerabili'
-Assert-Runtime (!@($targets.targets|Where-Object {$_.relative -match '^(access|hosts/[^/]+/repos/[^/]+/(work|evidence|report))'})) 'access, work, evidence e report mai rigenerabili'
-$recent=Get-SBRegenerableRuntimeTargets $brain @() 5 10080
-Assert-Runtime (@($recent.targets).Count -eq 0 -and @($recent.skipped).Count -gt 0) 'cartelle recenti saltate'
-foreach($t in $targets.targets){Remove-SBRuntimeTree $t.path $brain}
-Assert-Runtime (!(Test-Path -LiteralPath (Join-Path $runtime 'fixture-20261103-vecchia')) -and (Test-Path -LiteralPath (Join-Path $target 'work/20261103-uno'))) 'rimozione limitata ai rigenerabili'
+# Regenerable selector: retain legacy data, require explicit verified ownership.
+$identity=@{HostId=$hostId;OwnerUser='fixture-user';OwnerComputer='fixture-pc'}
+$legacy=Get-SBRegenerableRuntimeTargets $brain @() 5 0 @identity
+Assert-Runtime ($legacy.targets.Count -eq 0) 'legacy e manifest mancanti esclusi'
+Assert-Runtime (@($legacy.skipped|Where-Object reasonCode -eq 'unsupported-layout').Count -ge 4) 'legacy, handshake e cartelle vuote con motivo'
+$unknown=Get-SBRegenerableRuntimeTargets $brain @() 0 0
+Assert-Runtime ($unknown.targets.Count -eq 0 -and $unknown.skipped[0].reasonCode -eq 'identity-unverified') 'identita sconosciuta non seleziona dati'
+# Separate synthetic brain: none of the migration evidence above is removed.
+$safeBrain=Join-Path $root 'selector';$safeRuntime=Join-Path $safeBrain '.runtime'
+$testBackups=Join-Path $root 'write-backups'
+function Write-RuntimeFixture([string]$Path,[string]$Text){
+    Write-SBFile $Path ([Text.UTF8Encoding]::new($false).GetBytes($Text)) (Get-SBFileHash $Path) $testBackups|Out-Null
+}
+function New-SafeFolder([string]$Name,[hashtable]$Overrides=@{},[string]$Category='fixture',[string]$Repo=$segment,[string]$HostName=$hostId){
+    $path=Join-Path $safeRuntime ('hosts/'+$HostName+'/repos/'+$Repo+'/'+$Category+'/'+$Name)
+    [IO.Directory]::CreateDirectory($path)|Out-Null
+    $record=@{schemaVersion=1;name=$Name;hostId=$HostName;repository=$Repo;category=$Category;owner=@{user=$identity.OwnerUser;computer=$identity.OwnerComputer;client='test'};status='closed';expires=(Get-Date).AddDays(-1).ToString('yyyy-MM-dd');task='synthetic runtime selector checks';sessionId='fixture'}
+    foreach($key in $Overrides.Keys){$record[$key]=$Overrides[$key]}
+    Write-RuntimeFixture (Join-Path $path 'MANIFEST.json') (ConvertTo-SBJson $record)
+    Write-RuntimeFixture (Join-Path $path 'data.txt') 'safe'
+    Set-Old $path
+    $path
+}
+function Get-SafePlan([int]$Keep=0,[int]$Age=0,[string[]]$Protected=@()){
+    Get-SBRegenerableRuntimeTargets $safeBrain $Protected $Keep $Age @identity
+}
+function Assert-SafeSkip([string]$Path,[string]$Code){
+    $entry=@((Get-SafePlan).skipped|Where-Object {Test-SBSamePath $_.path $Path})
+    Assert-Runtime ($entry.Count -eq 1 -and $entry[0].reasonCode -eq $Code) ('esclusione '+$Code+': '+(Split-Path $Path -Leaf))
+}
+function Get-SafeTarget([string]$Path){(Get-SafePlan).targets|Where-Object {Test-SBSamePath $_.path $Path}}
+function Remove-SafeTarget($Target,[int]$Keep=0){
+    Remove-SBRegenerableRuntimeTarget $Target $safeBrain @() $Keep 0 @identity
+}
+# Deterministic newest-five retention is independent per repository/category.
+foreach($n in 1..7){
+    $folder=New-SafeFolder ('2020010'+$n+'-f'+$n)
+    (Get-Item -LiteralPath $folder).LastWriteTimeUtc=[DateTime]::new(2020,1,1,0,0,0,[DateTimeKind]::Utc).AddDays($n)
+}
+$plan=Get-SafePlan 5
+Assert-Runtime ($plan.targets.Count -eq 2 -and $plan.skipped.Count -eq 5) 'ultime cinque cartelle conservate'
+Assert-Runtime ($plan.targets[0].relative -like '*20200102-f2' -and $plan.targets[1].relative -like '*20200101-f1') 'ordine dalla piu recente, oltre retention'
+$other=New-SafeFolder '20200101-other' @{} 'fixture' 'other-12345678'
+$tmp=New-SafeFolder '20200101-tmp' @{} 'tmp'
+Assert-Runtime ((Get-SafePlan 5).targets.Count -eq 2) 'retention separata per repository e categoria'
+# All metadata/date boundaries, including path consistency and malformed types.
+$cases=@(
+    @{name='schema';change=@{schemaVersion=2};code='manifest-invalid'},
+    @{name='string-schema';change=@{schemaVersion='1'};code='manifest-invalid'},
+    @{name='bool-schema';change=@{schemaVersion=$true};code='manifest-invalid'},
+    @{name='host';change=@{hostId='ws-other'};code='manifest-invalid'},
+    @{name='repository';change=@{repository='wrong'};code='manifest-invalid'},
+    @{name='category';change=@{category='work'};code='manifest-invalid'},
+    @{name='name';change=@{name='wrong'};code='manifest-invalid'},
+    @{name='owner-invalid';change=@{owner='wrong'};code='manifest-invalid'},
+    @{name='owner';change=@{owner=@{user='other';computer=$identity.OwnerComputer}};code='foreign-owner'},
+    @{name='computer';change=@{owner=@{user=$identity.OwnerUser;computer='other'}};code='foreign-owner'},
+    @{name='open';change=@{status='open'};code='manifest-not-closed'},
+    @{name='migrated';change=@{status='migrated'};code='manifest-not-closed'},
+    @{name='expiry-null';change=@{expires=$null};code='manifest-expiry-invalid'},
+    @{name='expiry-invalid';change=@{expires='2026-02-30'};code='manifest-expiry-invalid'},
+    @{name='expiry-today';change=@{expires=(Get-Date).ToString('yyyy-MM-dd')};code='manifest-not-expired'},
+    @{name='expiry-future';change=@{expires=(Get-Date).AddDays(1).ToString('yyyy-MM-dd')};code='manifest-not-expired'}
+)
+foreach($case in $cases){$path=New-SafeFolder ('20200101-'+$case.name) $case.change;Assert-SafeSkip $path $case.code}
+$foreign=New-SafeFolder '20200101-foreign' @{} 'fixture' $segment 'ws-foreign'
+Assert-SafeSkip (Join-Path $safeRuntime 'hosts/ws-foreign') 'foreign-host'
+$missing=Join-Path $safeRuntime ('hosts/'+$hostId+'/repos/'+$segment+'/tmp/20200101-missing')
+[IO.Directory]::CreateDirectory($missing)|Out-Null
+Assert-SafeSkip $missing 'manifest-missing'
+$corrupt=New-SafeFolder '20200101-corrupt';Write-RuntimeFixture (Join-Path $corrupt 'MANIFEST.json') '{bad'
+Assert-SafeSkip $corrupt 'manifest-invalid'
+$incomplete=New-SafeFolder '20200101-incomplete'
+Write-RuntimeFixture (Join-Path $incomplete 'MANIFEST.json') '{"schemaVersion":1}'
+Assert-SafeSkip $incomplete 'manifest-invalid'
+$invalidName=New-SafeFolder 'not-a-dated-folder'
+Assert-SafeSkip $invalidName 'unsupported-layout'
+$protected=New-SafeFolder '20200101-protected'
+$protectedPlan=Get-SafePlan 0 0 @((Join-Path $protected 'data.txt'))
+Assert-Runtime (@($protectedPlan.skipped|Where-Object {$_.path -eq $protected -and $_.reasonCode -eq 'protected-path'}).Count -eq 1) 'contenuto protetto escluso'
+$fresh=New-SafeFolder '20200101-fresh'
+(Get-Item -LiteralPath (Join-Path $fresh 'data.txt')).LastWriteTimeUtc=[DateTime]::UtcNow
+Assert-Runtime (@((Get-SafePlan 0 10).skipped|Where-Object {$_.path -eq $fresh -and $_.reasonCode -eq 'recently-written'}).Count -eq 1) 'scrittura recente esclusa anche con scadenza trascorsa'
+# Ties use path order, so repeated previews select the same folder.
+$tieA=New-SafeFolder '20200101-a' @{} 'fixture' 'tie-12345678'
+$tieB=New-SafeFolder '20200101-b' @{} 'fixture' 'tie-12345678'
+foreach($path in @($tieA,$tieB)){(Get-Item -LiteralPath $path).LastWriteTimeUtc=[DateTime]::new(2020,1,1)}
+$tiePlan=Get-SafePlan 1
+Assert-Runtime (@($tiePlan.skipped|Where-Object {$_.path -eq $tieA -and $_.reasonCode -eq 'retention'}).Count -eq 1 -and @($tiePlan.targets|Where-Object path -eq $tieB).Count -eq 1) 'spareggio deterministico sul percorso'
+# Junctions at the folder, category and content boundaries never expose their target.
+$sentinel=Join-Path $root 'sentinel';[IO.Directory]::CreateDirectory($sentinel)|Out-Null
+Write-RuntimeFixture (Join-Path $sentinel 'keep.txt') 'unchanged'
+$linkFolder=New-SafeFolder '20200101-link-content'
+New-Item -ItemType Junction -Path (Join-Path $linkFolder 'link') -Target $sentinel|Out-Null
+Assert-SafeSkip $linkFolder 'reparse-point'
+$folderLink=Join-Path $safeRuntime ('hosts/'+$hostId+'/repos/'+$segment+'/tmp/20200101-link-folder')
+New-Item -ItemType Junction -Path $folderLink -Target $sentinel|Out-Null
+Assert-SafeSkip $folderLink 'reparse-point'
+$linkedRepo=Join-Path $safeRuntime ('hosts/'+$hostId+'/repos/link-12345678')
+[IO.Directory]::CreateDirectory($linkedRepo)|Out-Null
+New-Item -ItemType Junction -Path (Join-Path $linkedRepo 'fixture') -Target $sentinel|Out-Null
+Assert-SafeSkip (Join-Path $linkedRepo 'fixture') 'reparse-point'
+Assert-Runtime ((Read-SBText (Join-Path $sentinel 'keep.txt')) -ceq 'unchanged') 'contenuto dietro junction conservato'
+# Preview is read-only and repeatable; unknown identity never produces candidates.
+$before=Get-SBFileHash (Join-Path $other 'MANIFEST.json')
+$first=Get-SafePlan;$second=Get-SafePlan
+Assert-Runtime ((ConvertTo-SBJson $first) -ceq (ConvertTo-SBJson $second) -and (Get-SBFileHash (Join-Path $other 'MANIFEST.json')) -ceq $before) 'anteprime identiche, nessuna modifica'
+# Apply rechecks the manifest, data hashes, membership, retention and protected paths.
+$changed=New-SafeFolder '20200101-changed'
+$selected=Get-SafeTarget $changed
+$record=Read-SBJson (Join-Path $changed 'MANIFEST.json') $null;$record.status='open'
+Write-RuntimeFixture (Join-Path $changed 'MANIFEST.json') (ConvertTo-SBJson $record)
+$outcome=Remove-SafeTarget $selected
+Assert-Runtime (!$outcome.removed -and $outcome.reasonCode -eq 'target-changed' -and (Test-Path -LiteralPath $changed)) 'manifest cambiato dopo selezione: rimozione rifiutata'
+$dataChanged=New-SafeFolder '20200101-data-changed'
+$selected=Get-SafeTarget $dataChanged;$dataPath=Join-Path $dataChanged 'data.txt';$time=(Get-Item -LiteralPath $dataPath).LastWriteTimeUtc
+Write-RuntimeFixture $dataPath 'edit';(Get-Item -LiteralPath $dataPath).LastWriteTimeUtc=$time
+Assert-Runtime (!(Remove-SafeTarget $selected).removed -and (Test-Path -LiteralPath $dataChanged)) 'stessa dimensione e data, contenuto modificato conservato'
+$added=New-SafeFolder '20200101-added';$selected=Get-SafeTarget $added
+Write-RuntimeFixture (Join-Path $added 'new.txt') 'new'
+Assert-Runtime (!(Remove-SafeTarget $selected).removed -and (Test-Path -LiteralPath $added)) 'nuovo file dopo selezione conservato'
+$retained=New-SafeFolder '20200101-retained' @{} 'fixture' 'retained-12345678';$selected=Get-SafeTarget $retained
+Assert-Runtime (!(Remove-SafeTarget $selected 1).removed -and (Test-Path -LiteralPath $retained)) 'retention ricontrollata in applicazione'
+$selected=Get-SafeTarget $protected
+$outcome=Remove-SBRegenerableRuntimeTarget $selected $safeBrain @((Join-Path $protected 'data.txt')) 0 0 @identity
+Assert-Runtime (!$outcome.removed -and (Test-Path -LiteralPath $protected)) 'protezione ricontrollata in applicazione'
+$selected=Get-SafeTarget $tmp
+$outcome=Remove-SafeTarget $selected
+Assert-Runtime ($outcome.removed -and !(Test-Path -LiteralPath $tmp)) 'target tmp invariato rimosso solo nella fixture sintetica'
+Assert-Runtime ((Test-Path -LiteralPath $foreign) -and (Test-Path -LiteralPath $missing) -and (Test-Path -LiteralPath (Join-Path $runtime 'fixture-20261103-vecchia')) -and (Test-Path -LiteralPath (Join-Path $target 'work/20261103-uno'))) 'dati esclusi, prove e legacy conservati'
+# Real CLI in an isolated synthetic installation: no access to workstation data.
+$cliBrain=Join-Path $root 'cli';$cliScripts=Join-Path $cliBrain 'scripts'
+[IO.Directory]::CreateDirectory($cliScripts)|Out-Null
+foreach($file in @('cleanup.ps1','SecondBrain.Core.psm1','SecondBrain.Messages.psm1','SecondBrain.Access.psm1','SecondBrain.Host.psm1')){
+    Write-RuntimeFixture (Join-Path $cliScripts $file) (Read-SBText (Join-Path $PSScriptRoot $file))
+}
+$cliHost=Get-SBHostId;$cliHostRoot=Join-Path $cliBrain ('.runtime/hosts/'+$cliHost)
+$cliConfig=Join-Path $cliHostRoot 'workstation.json'
+Write-RuntimeFixture $cliConfig (ConvertTo-SBJson @{schemaVersion=1;mode='portable';workstationId=$cliHost;runtimeRoot=$cliHostRoot;backupRoot=(Join-Path $cliHostRoot 'backups');bindings=@();ides=@()})
+Write-RuntimeFixture (Join-Path $cliBrain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('fixture');excludedDirectories=@()})
+$cliFolder=Join-Path $cliHostRoot ('repos/'+$segment+'/tmp/20200101-cli')
+[IO.Directory]::CreateDirectory($cliFolder)|Out-Null
+$cliManifest=@{schemaVersion=1;hostId=$cliHost;repository=$segment;category='tmp';name='20200101-cli';owner=@{user=([Security.Principal.WindowsIdentity]::GetCurrent().Name -split '\\')[-1];computer=[Environment]::MachineName};status='closed';expires=(Get-Date).AddDays(-1).ToString('yyyy-MM-dd');task='isolated CLI regression'}
+Write-RuntimeFixture (Join-Path $cliFolder 'MANIFEST.json') (ConvertTo-SBJson $cliManifest)
+Write-RuntimeFixture (Join-Path $cliFolder 'data.txt') 'cli-data'
+Set-Old $cliFolder
+$cliArgs=@('-NoProfile','-File',(Join-Path $cliScripts 'cleanup.ps1'),'-ConfigPath',$cliConfig,'-Regenerable','-KeepFixtures','0','-MinAgeMinutes','0')
+$preview=@(& pwsh @cliArgs);$previewCode=$LASTEXITCODE
+$previewData=($preview -join [Environment]::NewLine)|ConvertFrom-Json
+Assert-Runtime ($previewCode -eq 0 -and !$previewData.applied -and $previewData.targets.Count -eq 1 -and (Test-Path -LiteralPath $cliFolder) -and !(Test-Path -LiteralPath (Join-Path $cliBrain '.runtime/cleanup'))) 'CLI anteprima: target valido, nessuna rimozione o journal'
+$denied=@(& pwsh @cliArgs -Apply 2>&1);$deniedCode=$LASTEXITCODE
+Assert-Runtime ($deniedCode -ne 0 -and (Test-Path -LiteralPath $cliFolder)) 'CLI Apply senza Authorization rifiutato'
+$application=@(& pwsh @cliArgs -Apply -Authorization 'Task 328 approved plan: removal only inside this newly created synthetic CLI fixture')
+$applicationCode=$LASTEXITCODE;$appliedData=($application -join [Environment]::NewLine)|ConvertFrom-Json
+$journal=Read-SBJson $appliedData.registry $null
+Assert-Runtime ($applicationCode -eq 0 -and $appliedData.applied -and $journal.status -eq 'completed' -and $journal.items.Count -eq 1 -and $journal.items[0].relative -eq $previewData.targets[0].relative -and !(Test-Path -LiteralPath $cliFolder)) 'CLI applicazione e journal concordano con anteprima nella sola fixture'
+Assert-Runtime ((Read-SBText (Join-Path $sentinel 'keep.txt')) -ceq 'unchanged' -and (Test-Path -LiteralPath $foreign)) 'CLI non raggiunge dati esclusi o altre fixture'
 "SUCCESS RUNTIME: $script:runtimeChecks checks"

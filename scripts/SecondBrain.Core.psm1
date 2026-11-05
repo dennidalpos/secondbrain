@@ -572,60 +572,147 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
     @{scope='runtime-cleanup-proposal';applied=$false;generatedAt=[DateTimeOffset]::UtcNow.ToString('o');olderThanDays=$OlderThanDays;keepFixtures=$KeepFixtures;totalBytes=$report.totalBytes;byCategory=$report.byCategory;regenerableCandidateBytes=$regenerable;candidates=$candidates;legacy=@($report.legacy);
         note='Proposta di sola lettura, non un manifest eseguibile. Nessuna cartella è stata rimossa. L''applicazione richiede una richiesta esplicita e un perimetro concreto; i file con backup passano da cleanup.ps1 -ManifestPath.'}
 }
-# Clean only regenerable .runtime folders (test fixtures beyond the latest N, source Python environment): fixed scope, never arbitrary name-based selection.
-function Get-SBRegenerableRuntimeTargets([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$KeepFixtures=5,[int]$MinAgeMinutes=10) {
-    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
-    $sep=[IO.Path]::DirectorySeparatorChar
-    $protected=@($ProtectedPaths|Where-Object {$_}|ForEach-Object {[IO.Path]::GetFullPath($_).TrimEnd('\','/')})
-    $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
-    $candidates=@()
-    $testsDir=Join-Path $runtime 'tests'
-    if(Test-Path -LiteralPath $testsDir -PathType Container){
-        $folders=@(Get-ChildItem -LiteralPath $testsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object LastWriteTimeUtc -Descending)
-        foreach($folder in @($folders|Select-Object -Skip $KeepFixtures)){$candidates+=@{path=$folder.FullName;kind='fixture-test';recovery='si ricrea rieseguendo le suite test-secondbrain*.ps1'}}
-    }
-    $hostsDir=Join-Path $runtime 'hosts'
-    if(Test-Path -LiteralPath $hostsDir -PathType Container){
-        foreach($hostDir in @(Get-ChildItem -LiteralPath $hostsDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
-            $python=Join-Path $hostDir.FullName 'sources/python'
-            if(Test-Path -LiteralPath $python -PathType Container){$candidates+=@{path=[IO.Path]::GetFullPath($python);kind='python-sources';recovery='si ricrea con sources.ps1 dal lock delle dipendenze'}}
-            # Nested fixture/tmp folders: keep the latest N per repository and category, the rest is recreated by the suites.
-            foreach($repoDir in @(Get-ChildItem -LiteralPath (Join-Path $hostDir.FullName 'repos') -Directory -Force -ErrorAction SilentlyContinue|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
-                foreach($category in @('fixture','tmp')){
-                    $categoryDir=Join-Path $repoDir.FullName $category
-                    if(!(Test-Path -LiteralPath $categoryDir -PathType Container)){continue}
-                    $folders=@(Get-ChildItem -LiteralPath $categoryDir -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object LastWriteTimeUtc -Descending)
-                    foreach($folder in @($folders|Select-Object -Skip $KeepFixtures)){$candidates+=@{path=$folder.FullName;kind=('nested-'+$category);recovery='si ricrea rieseguendo le suite o il comando che l''ha creata'}}
+# Only closed, expired, owned fixture/tmp folders qualify; legacy data is retained.
+function New-SBRegenerableSkip([string]$Path,[string]$Runtime,[string]$Code) {
+    @{path=$Path;relative=[IO.Path]::GetRelativePath($Runtime,$Path).Replace('\','/');reasonCode=$Code;reason=(Get-SBMessage ('core.runtime.reason.'+$Code))}
+}
+function Get-SBRegenerableFolderState {
+    param([string]$Path,[string]$Runtime,[string]$HostId,[string]$OwnerUser,[string]$OwnerComputer,[string[]]$ProtectedPaths,[int]$MinAgeMinutes)
+    $code=$null;$manifest=$null;$manifestHash=$null;$snapshot=[Collections.Generic.List[object]]::new()
+    $files=0L;$bytes=0L;$newest=[DateTime]::MinValue
+    try {
+        Assert-SBPlainPath $Path
+        $relative=[IO.Path]::GetRelativePath($Runtime,$Path).Replace('\','/')
+        if($relative -cnotmatch '^hosts/([^/]+)/repos/([^/]+)/(fixture|tmp)/(\d{8}-[a-z0-9][a-z0-9-]*)$'){$code='unsupported-layout'}
+        else {
+            $pathHost=$Matches[1];$repository=$Matches[2];$category=$Matches[3];$name=$Matches[4]
+            if($pathHost -cne $HostId){$code='foreign-host'}
+        }
+        $sep=[IO.Path]::DirectorySeparatorChar
+        if(!$code -and @($ProtectedPaths|Where-Object {(Test-SBSamePath $_ $Path) -or $_.StartsWith($Path+$sep,[StringComparison]::OrdinalIgnoreCase)}).Count){$code='protected-path'}
+        $manifestPath=Join-Path $Path 'MANIFEST.json'
+        if(!$code){
+            if(![IO.File]::Exists($manifestPath)){$code='manifest-missing'}
+            else{
+                Assert-SBPlainPath $manifestPath
+                try{
+                    $manifestHash=Get-SBFileHash $manifestPath
+                    $manifest=Read-SBJson $manifestPath $null
+                    if((Get-SBFileHash $manifestPath) -cne $manifestHash){$code='target-changed'}
+                }catch{$code='manifest-invalid'}
+                if(!$code){
+                    if($manifest -isnot [Collections.IDictionary]){$code='manifest-invalid'}
+                    elseif(@('schemaVersion','hostId','repository','category','name','owner','status','expires')|Where-Object {!$manifest.ContainsKey($_)}){$code='manifest-invalid'}
+                    elseif(($manifest.schemaVersion -isnot [int] -and $manifest.schemaVersion -isnot [long]) -or $manifest.schemaVersion -ne 1 -or $manifest.hostId -cne $pathHost -or $manifest.repository -cne $repository -or $manifest.category -cne $category -or $manifest.name -cne $name){$code='manifest-invalid'}
+                    elseif($manifest.owner -isnot [Collections.IDictionary] -or !$manifest.owner.ContainsKey('user') -or !$manifest.owner.ContainsKey('computer') -or $manifest.owner.user -isnot [string] -or $manifest.owner.computer -isnot [string]){$code='manifest-invalid'}
+                    elseif($manifest.owner.user -ine $OwnerUser -or $manifest.owner.computer -ine $OwnerComputer){$code='foreign-owner'}
+                    elseif($manifest.status -cne 'closed'){$code='manifest-not-closed'}
+                    else{
+                        $expiry=[DateTime]::MinValue
+                        if($manifest.expires -isnot [string] -or ![DateTime]::TryParseExact($manifest.expires,'yyyy-MM-dd',[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$expiry)){$code='manifest-expiry-invalid'}
+                        elseif($expiry.Date -ge [DateTime]::Today){$code='manifest-not-expired'}
+                    }
                 }
             }
         }
-    }
-    # Flat legacy fixture/tmp folders (<fixture|tmp>-<yyyyMMdd>-<slug>), the handshake reports and empty top-level folders are regenerable by definition.
-    foreach($top in @(Get-ChildItem -LiteralPath $runtime -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)})){
-        $name=$top.Name.ToLowerInvariant()
-        if($name -cmatch '^(fixture|tmp)-\d{8}-[a-z0-9][a-z0-9-]*$'){$candidates+=@{path=$top.FullName;kind='fixture-flat';recovery='si ricrea rieseguendo le suite o il comando che l''ha creata'};continue}
-        if($name -eq 'mcp-handshake'){$candidates+=@{path=$top.FullName;kind='handshake-reports';recovery='si ricrea rieseguendo test-secondbrain-mcp-handshake.ps1'};continue}
-        if($name -in $script:SBRuntimeManagedTopLevel -or $name -in @('backup','backups')){continue}
-        if(!(Get-ChildItem -LiteralPath $top.FullName -Recurse -File -Force -ErrorAction SilentlyContinue|Select-Object -First 1)){$candidates+=@{path=$top.FullName;kind='empty-folder';recovery='cartella vuota: nessun contenuto da recuperare'}}
-    }
-    $targets=@();$skipped=@()
-    foreach($candidate in $candidates){
-        $path=$candidate.path;$item=Get-Item -LiteralPath $path -Force
-        $relative=$path.Substring($runtime.Length+1).Replace('\','/')
-        $reason=$null;$reasonCode=$null
-        if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){$reasonCode='reparse-point';$reason=Get-SBMessage 'core.runtime.reason.reparse-point'}
-        elseif(@($protected|Where-Object {$_ -ieq $path -or $_.StartsWith($path+$sep,[StringComparison]::OrdinalIgnoreCase)}).Count){$reasonCode='protected-path';$reason=Get-SBMessage 'core.runtime.reason.protected-path'}
-        $files=0;$bytes=0L;$newest=$item.LastWriteTimeUtc
-        if(!$reason){
-            foreach($file in ([IO.DirectoryInfo]::new($path)).EnumerateFiles('*',$options)){$files++;$bytes+=$file.Length;if($file.LastWriteTimeUtc -gt $newest){$newest=$file.LastWriteTimeUtc}}
-            if($MinAgeMinutes -gt 0 -and $newest -gt [DateTime]::UtcNow.AddMinutes(-$MinAgeMinutes)){$reasonCode='recently-written';$reason=Get-SBMessage 'core.runtime.reason.recently-written' @($MinAgeMinutes)}
+        if(!$code){
+            # Explicit traversal rejects links and unreadable content rather than following or ignoring them.
+            $stack=[Collections.Generic.Stack[string]]::new();$stack.Push($Path)
+            while($stack.Count -and !$code){
+                $directory=[IO.DirectoryInfo]::new($stack.Pop())
+                $snapshot.Add(@{path=[IO.Path]::GetRelativePath($Path,$directory.FullName);kind='directory';ticks=$directory.LastWriteTimeUtc.Ticks;created=$directory.CreationTimeUtc.Ticks})
+                if($directory.LastWriteTimeUtc -gt $newest){$newest=$directory.LastWriteTimeUtc}
+                foreach($item in $directory.EnumerateFileSystemInfos()){
+                    if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){$code='reparse-point';break}
+                    if($item.Attributes -band [IO.FileAttributes]::Directory){$stack.Push($item.FullName);continue}
+                    $hash=Get-SBFileHash $item.FullName
+                    if((Test-SBSamePath $item.FullName $manifestPath) -and $hash -cne $manifestHash){$code='target-changed';break}
+                    $item.Refresh()
+                    $snapshot.Add(@{path=[IO.Path]::GetRelativePath($Path,$item.FullName);kind='file';bytes=$item.Length;ticks=$item.LastWriteTimeUtc.Ticks;sha256=$hash})
+                    $files++;$bytes+=$item.Length
+                    if($item.LastWriteTimeUtc -gt $newest){$newest=$item.LastWriteTimeUtc}
+                }
+            }
+            if(!$code -and $MinAgeMinutes -gt 0 -and $newest -gt [DateTime]::UtcNow.AddMinutes(-$MinAgeMinutes)){$code='recently-written'}
         }
-        $entry=@{path=$path;relative=$relative;kind=$candidate.kind;files=$files;bytes=$bytes;newestWriteUtc=$newest.ToString('o');recovery=$candidate.recovery}
-        if($reason){$entry.reason=$reason;$entry.reasonCode=$reasonCode;$skipped+=$entry}else{$targets+=$entry}
+    }catch{
+        $code='inspection-failed'
+        # Assert-SBPlainPath uses localized errors; identify a link without following it.
+        $ancestor=$Path
+        while($ancestor -and $ancestor.Length -ge $Runtime.Length){
+            if([IO.File]::Exists($ancestor) -or [IO.Directory]::Exists($ancestor)){
+                if((Get-Item -LiteralPath $ancestor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){$code='reparse-point';break}
+            }
+            $ancestor=Split-Path -Parent $ancestor
+        }
+    }
+    if($code){
+        $skip=New-SBRegenerableSkip $Path $Runtime $code
+        if($code -eq 'recently-written'){$skip.reason=Get-SBMessage 'core.runtime.reason.recently-written' @($MinAgeMinutes)}
+        return $skip
+    }
+    @{path=$Path;relative=$relative;kind=('nested-'+$category);files=$files;bytes=$bytes;newestWriteUtc=$newest.ToString('o');
+      fingerprint=(Get-SBTextHash (ConvertTo-SBJson @($snapshot|Sort-Object path)));recovery=(Get-SBMessage 'core.runtime.regenerable.recovery')}
+}
+function Get-SBRegenerableRuntimeTargets {
+    param([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,
+        [string]$HostId,[string]$OwnerUser,[string]$OwnerComputer)
+    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
+    $protected=@($ProtectedPaths|Where-Object {$_}|ForEach-Object {[IO.Path]::GetFullPath($_).TrimEnd('\','/')})
+    $targets=@();$skipped=@()
+    if($HostId -cnotmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$' -or [string]::IsNullOrWhiteSpace($OwnerUser) -or [string]::IsNullOrWhiteSpace($OwnerComputer)){
+        $skipped+=New-SBRegenerableSkip $runtime $runtime 'identity-unverified'
+    }elseif(Test-Path -LiteralPath $runtime -PathType Container){
+        try{
+            Assert-SBPlainPath $runtime
+            foreach($top in Get-ChildItem -LiteralPath $runtime -Directory -Force){
+                if($top.Name -cne 'hosts'){$skipped+=New-SBRegenerableSkip $top.FullName $runtime 'unsupported-layout';continue}
+                Assert-SBPlainPath $top.FullName
+                foreach($hostDir in Get-ChildItem -LiteralPath $top.FullName -Directory -Force){
+                    if($hostDir.Name -cne $HostId){$skipped+=New-SBRegenerableSkip $hostDir.FullName $runtime 'foreign-host';continue}
+                    Assert-SBPlainPath $hostDir.FullName
+                    $python=Join-Path $hostDir.FullName 'sources/python'
+                    if(Test-Path -LiteralPath $python){$skipped+=New-SBRegenerableSkip $python $runtime 'unsupported-layout'}
+                    $repos=Join-Path $hostDir.FullName 'repos'
+                    if(!(Test-Path -LiteralPath $repos -PathType Container)){continue}
+                    Assert-SBPlainPath $repos
+                    foreach($repoDir in Get-ChildItem -LiteralPath $repos -Directory -Force){
+                        if($repoDir.Attributes -band [IO.FileAttributes]::ReparsePoint){$skipped+=New-SBRegenerableSkip $repoDir.FullName $runtime 'reparse-point';continue}
+                        foreach($category in @('fixture','tmp')){
+                            $categoryDir=Join-Path $repoDir.FullName $category
+                            if(!(Test-Path -LiteralPath $categoryDir -PathType Container)){continue}
+                            if((Get-Item -LiteralPath $categoryDir -Force).Attributes -band [IO.FileAttributes]::ReparsePoint){$skipped+=New-SBRegenerableSkip $categoryDir $runtime 'reparse-point';continue}
+                            $folders=@(Get-ChildItem -LiteralPath $categoryDir -Directory -Force|Sort-Object @{Expression='LastWriteTimeUtc';Descending=$true},@{Expression='FullName';Descending=$false})
+                            for($rank=0;$rank -lt $folders.Count;$rank++){
+                                $folder=$folders[$rank]
+                                # Retain the newest N directories even when some have invalid manifests.
+                                if($rank -lt $KeepFixtures){$skipped+=New-SBRegenerableSkip $folder.FullName $runtime 'retention';continue}
+                                $entry=Get-SBRegenerableFolderState $folder.FullName $runtime $HostId $OwnerUser $OwnerComputer $protected $MinAgeMinutes
+                                if($entry.ContainsKey('reasonCode')){$skipped+=$entry}else{$targets+=$entry}
+                            }
+                        }
+                    }
+                }
+            }
+        }catch{
+            # Partial discovery must never become an executable partial plan.
+            $targets=@();$skipped+=New-SBRegenerableSkip $runtime $runtime 'inspection-failed'
+        }
     }
     $totalBytes=0L;$totalFiles=0L;foreach($target in $targets){$totalBytes+=$target.bytes;$totalFiles+=$target.files}
     @{targets=@($targets);skipped=@($skipped);keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;bytes=$totalBytes;files=$totalFiles}
 }
+function Remove-SBRegenerableRuntimeTarget {
+    param($Target,[string]$BrainRoot,[string[]]$ProtectedPaths,[int]$KeepFixtures,[int]$MinAgeMinutes,[string]$HostId,[string]$OwnerUser,[string]$OwnerComputer)
+    $plan=Get-SBRegenerableRuntimeTargets $BrainRoot $ProtectedPaths $KeepFixtures $MinAgeMinutes $HostId $OwnerUser $OwnerComputer
+    $current=@($plan.targets|Where-Object {Test-SBSamePath $_.path $Target.path})
+    if($current.Count -ne 1 -or !$Target.ContainsKey('fingerprint') -or $current[0].fingerprint -cne $Target.fingerprint){
+        return @{removed=$false;relative=$Target.relative;reasonCode='target-changed';reason=(Get-SBMessage 'core.runtime.reason.target-changed')}
+    }
+    Remove-SBRuntimeTree $current[0].path $BrainRoot
+    @{removed=$true;relative=$current[0].relative;kind=$current[0].kind;files=$current[0].files;bytes=$current[0].bytes;recovery=$current[0].recovery}
+}
+
 # Normalizes a runtime folder name to <yyyyMMdd>-<slug>: strips repeated category prefixes and duplicate dates, keeps the original date (or the last write date).
 function ConvertTo-SBRuntimeFolderName([string]$Name,[DateTime]$Newest) {
     $n=$Name.ToLowerInvariant();$date=$null
@@ -1130,6 +1217,7 @@ Export-ModuleMember -Function @(
     'Get-SBRuntimeIndex',
     'Get-SBRuntimeCleanupProposal',
     'Get-SBRegenerableRuntimeTargets',
+    'Remove-SBRegenerableRuntimeTarget',
     'ConvertTo-SBRuntimeFolderName',
     'Get-SBRuntimeMigrationPlan',
     'Invoke-SBRuntimeMigration',

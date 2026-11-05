@@ -27,9 +27,19 @@ New work uses hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> with work/evi
 
 Initialize with work.ps1 Repository/Category/Slug/Init/Task/SessionId; Close marks the manifest closed. A plan without Init/Run creates nothing. Normal access Start/End belongs in one try/finally script; pass the same SessionId to CLIs.
 
-Manifests bind host/user/client/session/task, status and expiry. Fixture/tmp default to 7 days and retain the latest five per repository; work is considered after 30 days from closure. Evidence/report do not expire automatically. These are manifest policy metadata, not a scheduled deletion service. The current Regenerable selector does not enforce manifest expiry/closed state or current-host ownership: it considers fixture/tmp beyond the latest five across hosts using MinAgeMinutes (default 10). Do not assume the 7/30-day policy is enforced by that command; review exact targets, ownership and recovery before any separately authorized cleanup.
+Manifests bind host/user/client/session/task, status and expiry. Fixture/tmp default to 7 days; work receives a 30-day expiry from closure. Evidence/report do not expire automatically. This is not a scheduled deletion service.
 
-Old flat/legacy layouts are preserved. Migrate previews proposed same-volume moves; Apply needs explicit Authorization and checks active sessions, recent folders, reparse points and collisions. Regenerable cleanup is preview-first and records a journal, but has the manifest/host-selection gap described above. No migration/cleanup belongs to an ordinary documentation update.
+Regenerable selects only hosts/<current-host>/repos/<repo>/fixture|tmp/<yyyyMMdd>-<slug> folders with a readable schema-1 MANIFEST.json matching the path, current Windows user and computer. Status must be closed and expires must be a valid yyyy-MM-dd strictly before the local current date: the expiry day is retained. The latest KeepFixtures folders (default five) per repository and category are retained, ordered by directory last-write time descending, then path ascending. Open, migrated, unexpired, foreign-owned and invalid/missing-manifest folders are excluded with stable reason codes and localized explanations. Missing current identity yields no targets.
+
+Legacy tests/flat fixture/tmp folders, Python environments, handshake reports and empty top-level folders are excluded. No manifest is inferred or added to existing data. Old test-run folders without valid manifests remain preserved; their run.json is not a substitute. The general ListRuntime/ProposeRuntime inventory can still describe reproducible content outside this selector's narrower scope; a proposal is not executable authorization.
+
+~~~powershell
+pwsh -NoProfile -File scripts/cleanup.ps1 -Regenerable -KeepFixtures 5
+~~~
+
+The preview changes nothing. Apply additionally requires an explicit cleanup request quoted in Authorization; review exact targets, references, hashes and recovery first. MinAgeMinutes (default 10), configuration/access paths, reparse points anywhere in a candidate tree, pending transactions and active access sessions remain protection gates. The command reselects each target and compares a fingerprint of manifest, file hashes and directory metadata before removal. Changed or no-longer-eligible targets are preserved, journaled as skipped and produce a partial outcome. Inspection failures never authorize removal. Cooperative locks and revalidation do not guarantee atomic protection against an external process writing during filesystem deletion; close producers before applying cleanup. Only synthetic test folders exercise removal in the regression suite.
+
+Old flat/legacy layouts are preserved. Migrate previews proposed same-volume moves; Apply needs explicit Authorization and checks active sessions, recent folders, reparse points and collisions. No migration/cleanup belongs to an ordinary documentation update.
 
 ## Verification levels
 

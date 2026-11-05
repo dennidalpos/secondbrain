@@ -20,10 +20,13 @@ flat work/evidence/report folders, host-level evidence/report folders, duplicate
 backup/* into backups/*, root *.log into logs/. Rename on the same volume only (no copies, no content deletion); writes MANIFEST.json for work/evidence/report folders;
 -Repository is the repository identity of the destination segment (default github.com/dennidalpos/secondbrain). Journal in .runtime/cleanup/migrate-*.json.
 -Regenerable previews (without -Apply) or removes (with -Apply and -Authorization quoting the user's explicit request) only regenerable .runtime folders:
-test fixtures beyond the latest -KeepFixtures (tests/, hosts/<id>/repos/<repo>/fixture|tmp), flat fixture-*/tmp-* folders, MCP handshake reports, empty top-level folders
-and the source Python environment (hosts/<id>/sources/python). Fixed scope, no name-based selection; skips folders
+only hosts/<current-host>/repos/<repo>/fixture|tmp folders beyond the latest -KeepFixtures, with a valid schema-1 MANIFEST.json
+matching path and current owner, status closed and expiry strictly before today (the expiry day is retained).
+Legacy folders, missing/invalid manifests, Python, handshake reports and empty top-level folders are excluded.
+Fixed scope, no name-based selection; skips folders
 written within the latest -MinAgeMinutes, containing configuration paths or reparse points; refuses pending transactions or active access sessions; does not follow
-junctions/symlinks; no backup (recreated with the suites or sources.ps1), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
+junctions/symlinks; rechecks eligibility and content hashes before each removal, retaining changed targets.
+No backup (recreated with the owning suite/command), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
 #>
 [CmdletBinding()]
 param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
@@ -77,7 +80,10 @@ try {
     if($Regenerable){
         if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
         $protectedRoots=@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)
-        $plan=Get-SBRegenerableRuntimeTargets $config.brainRoot $protectedRoots $KeepFixtures $MinAgeMinutes
+        # Resolve from the OS, never from a manifest or an arbitrary host configuration.
+        $identity=@{HostId=(Get-SBHostId);OwnerUser=([Security.Principal.WindowsIdentity]::GetCurrent().Name -split '\\')[-1];OwnerComputer=[Environment]::MachineName}
+        if($config.workstationId -cne $identity.HostId){$identity.HostId=''}
+        $plan=Get-SBRegenerableRuntimeTargets $config.brainRoot $protectedRoots $KeepFixtures $MinAgeMinutes @identity
         $summary=@{applied=$false;scope='runtime-regenerable-only';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;targets=@($plan.targets);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
         if(!$Apply){$summary.note='Anteprima: nessuna cartella rimossa. Con -Apply e -Authorization si rimuovono solo i target elencati.';ConvertTo-SBJson $summary;exit 0}
         if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
@@ -90,20 +96,23 @@ try {
         $record=@{schemaVersion=1;executedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;scope='runtime-regenerable-only';status='started';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;items=@();skipped=@($plan.skipped);failed=@()}
         $stream=[IO.FileStream]::new($registryPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try{$stream.Write([Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $record)));$stream.Flush($true)}finally{$stream.Dispose()}
-        $removedItems=@();$failures=@()
+        $removedItems=@();$failures=@();$changed=@()
         foreach($target in $plan.targets){
-            try{Remove-SBRuntimeTree $target.path $config.brainRoot;$removedItems+=@{relative=$target.relative;kind=$target.kind;files=$target.files;bytes=$target.bytes;recovery=$target.recovery}}
+            try{
+                $outcome=Remove-SBRegenerableRuntimeTarget $target $config.brainRoot $protectedRoots $KeepFixtures $MinAgeMinutes @identity
+                if($outcome.removed){$removedItems+=$outcome}else{$changed+=$outcome}
+            }
             catch{$failures+=@{relative=$target.relative;error=$_.Exception.Message}}
         }
         # Fixtures may have registered Git worktrees: prune only those whose folder is already absent.
         if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.git')){Invoke-SBGit $config.brainRoot @('worktree','prune')|Out-Null}
-        $record.items=@($removedItems);$record.failed=@($failures);$record.status=if($failures.Count){'partial'}else{'completed'}
+        $record.items=@($removedItems);$record.failed=@($failures);$record.skipped+=@($changed);$record.status=if($failures.Count -or $changed.Count){'partial'}else{'completed'}
         $record.removedBytes=0L;$record.removedFiles=0L;foreach($item in $removedItems){$record.removedBytes+=$item.bytes;$record.removedFiles+=$item.files}
         [IO.File]::WriteAllText($registryPath,(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
-        $summary.applied=[bool]($removedItems.Count -gt 0 -and !$failures.Count);$summary.removed=@($removedItems);$summary.failed=@($failures);$summary.registry=$registryPath;$summary.authorization=$Authorization
-        if($failures.Count){$summary.status='partial'}
+        $summary.applied=[bool]($removedItems.Count -gt 0 -and !$failures.Count -and !$changed.Count);$summary.removed=@($removedItems);$summary.failed=@($failures);$summary.skipped+=@($changed);$summary.registry=$registryPath;$summary.authorization=$Authorization
+        if($failures.Count -or $changed.Count){$summary.status='partial'}
         ConvertTo-SBJson $summary
-        exit $(if($failures.Count){1}else{0})
+        exit $(if($failures.Count -or $changed.Count){1}else{0})
     }
     if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){
         if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw (New-SBError 'cleanup.modes.exclusive')}

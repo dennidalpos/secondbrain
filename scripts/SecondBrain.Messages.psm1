@@ -101,6 +101,19 @@ Add-SBMessages @{
     'core.runtime.reason.config-path' = @{ it = 'percorso della configurazione o del registro postazioni'; en = 'configuration or workstation registry path' }
     'core.runtime.reason.protected-path' = @{ it = 'contiene percorsi della configurazione o degli accessi'; en = 'contains configuration or access paths' }
     'core.runtime.reason.recently-written' = @{ it = 'scritta negli ultimi {0} minuti: potrebbe essere in uso'; en = 'written in the last {0} minutes: it may be in use' }
+    'core.runtime.reason.identity-unverified' = @{ it = 'identita della postazione o del proprietario non verificabile'; en = 'workstation or owner identity is not verifiable' }
+    'core.runtime.reason.unsupported-layout' = @{ it = 'fuori dal layout fixture/tmp annidato: dati conservati'; en = 'outside the nested fixture/tmp layout: data retained' }
+    'core.runtime.reason.foreign-host' = @{ it = 'cartella di un altra postazione: dati conservati'; en = 'folder belongs to another workstation: data retained' }
+    'core.runtime.reason.foreign-owner' = @{ it = 'manifest di un altro proprietario: dati conservati'; en = 'manifest belongs to another owner: data retained' }
+    'core.runtime.reason.manifest-missing' = @{ it = 'MANIFEST.json assente: dati conservati'; en = 'MANIFEST.json missing: data retained' }
+    'core.runtime.reason.manifest-invalid' = @{ it = 'manifest illeggibile, non supportato o incoerente con il percorso'; en = 'manifest unreadable, unsupported or inconsistent with its path' }
+    'core.runtime.reason.manifest-not-closed' = @{ it = 'manifest non chiuso: dati conservati'; en = 'manifest is not closed: data retained' }
+    'core.runtime.reason.manifest-expiry-invalid' = @{ it = 'scadenza del manifest assente o non valida'; en = 'manifest expiry missing or invalid' }
+    'core.runtime.reason.manifest-not-expired' = @{ it = 'scadenza non trascorsa (il giorno di scadenza e incluso)'; en = 'expiry has not passed (the expiry day is included)' }
+    'core.runtime.reason.retention' = @{ it = 'cartella tra le ultime da conservare per repository e categoria'; en = 'folder is among the latest retained per repository and category' }
+    'core.runtime.reason.inspection-failed' = @{ it = 'ispezione incompleta: nessuna rimozione autorizzata dal piano'; en = 'inspection incomplete: the plan does not permit removal' }
+    'core.runtime.reason.target-changed' = @{ it = 'target modificato o non piu idoneo dopo la selezione: dati conservati'; en = 'target changed or no longer eligible after selection: data retained' }
+    'core.runtime.regenerable.recovery' = @{ it = 'ricreare con la suite o il comando indicato dal task nel manifest; verificare i riferimenti prima di autorizzare'; en = 'recreate with the suite or command identified by the manifest task; review references before authorizing' }
     'core.write.contended'      = @{ it = 'Scrittura contesa: il file è in uso o è stato sostituito da un altro scrittore: {0}'; en = 'Write contended: the file is in use or was replaced by another writer: {0}' }
     'core.write.denied'         = @{ it = 'Accesso negato durante la scrittura: {0}'; en = 'Access denied while writing: {0}' }
     'core.write.retry'          = @{ it = 'Ripeti in PowerShell 7.5+ fuori dalla sandbox: {0}'; en = 'Retry in PowerShell 7.5+ outside the sandbox: {0}' }
