@@ -276,7 +276,7 @@ function Invoke-SBTrackerImport {
         }
         $SourcePath=[IO.Path]::GetFullPath($SourcePath);Assert-SBPlainPath $SourcePath
         $checkout=Split-Path $SourcePath
-        $source=Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $Identity -CheckoutPath $checkout -AllowedOwners $Config.allowedOwners -Entities $entities
+        $source=Resolve-SBTracker -BrainRoot $Config.brainRoot -Identity $Identity -CheckoutPath $checkout -AllowedOwners $Config.allowedOwners -Entities $entities -AllowUndeclaredImportSource
         if(!$source.path -or [IO.Path]::GetFullPath($source.path) -ne $SourcePath -or $source.declared){throw (New-SBError 'trackerimport.source.notundeclared')}
         if($source.source -eq 'repository_undeclared'){
             $bindings=if($Config.ContainsKey('bindings')){$Config.bindings}else{@()}

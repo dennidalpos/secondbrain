@@ -4,7 +4,9 @@
 
 ## Fonte autorevole
 
-Il resolver condiviso da compositore, Sync e Check risolve il dossier tramite identita GitHub e metadati PARA. In assenza di dichiarazione controlla l'eventuale `tracker.md` nel dossier; le fonti sono censite come `dossier_di origine` o `absent`. Un tracker di origine non e automaticamente conforme allo schema comune e non viene convertito dal monitor.
+Il resolver condiviso individua il dossier tramite identità del repository e metadati PARA. Su un checkout nuovo senza tracker sorgente, il bootstrap crea direttamente la dichiarazione e un tracker vuoto di schema 1.
+
+Le letture ordinarie di un dossier greenfield richiedono la dichiarazione. Il resolver segnala `tracker.greenfield.declaration.required` se manca, `tracker.declared.missing` se il file dichiarato è assente e `tracker.schema.version` se la versione del payload è incompatibile. Le letture lasciano intatti i file. La sorgente non dichiarata di un dossier greenfield è accessibile tramite la procedura esplicita di importazione con `-Repository` e `-SourcePath`.
 
 Il contratto JSON e attivo per ogni dossier; approved.json ne registra lo stato attivo. La dichiarazione nel `repository.json` del dossier e:
 
@@ -26,7 +28,7 @@ Ogni riga di tabella o checkbox non riconosciuta fa fallire la conversione, anch
 
 ## Anteprima, preparazione e ripresa
 
-Per riprendere un'importazione, risolvere $manifest dal registro tracker-imports nel runtime configurato (i registri creati prima della V1.0 in tracker-migrations, con archivi `history/tracker-migration-<id>`, restano leggibili; le nuove importazioni usano `tracker-import`). I dati originali importati sono in `extensions.original`. L anteprima seguente legge lo stato registrato senza scrivere. La preparazione di un elenco esistente richiede -Repository e -SourcePath sul relativo tracker autorevole; non e eseguita automaticamente.
+Per riprendere un'importazione, individua il manifest dal registro `tracker-imports` nel runtime configurato. `-ResumeManifest` e `-RollbackManifest` accettano anche i journal precedenti alla 1.0 con registro `tracker-migrations` e archivio `history/tracker-migration-<id>`, dopo la validazione. Check e le protezioni degli spostamenti PARA continuano a rilevarli. Le nuove importazioni scrivono `tracker-import`. I dati originali importati sono in `extensions.original`. L'anteprima legge lo stato registrato in sola lettura.
 
 ```powershell
 $cfg = '.runtime/hosts/<id>/workstation.json'

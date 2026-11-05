@@ -2,7 +2,9 @@
 
 [Retained Italian source; use this English page for current behavior](trackers.it.md)
 
-Resolve the active dossier by repository identity and PARA metadata. A repository.json declaration of tracker location=dossier, path=tracker.json, schemaVersion=1 makes that file authoritative. Missing/invalid declarations or payloads are errors without fallback. An undeclared original Markdown source is not automatically a valid JSON tracker.
+Resolve the active dossier by repository identity and PARA metadata. A `repository.json` declaration of `location=dossier`, `path=tracker.json` and `schemaVersion=1` makes that file authoritative. The bootstrap for a new checkout without a source tracker creates this declaration and an empty schema 1 tracker directly.
+
+Ordinary reads of a greenfield dossier require the declaration. A missing declaration reports `tracker.greenfield.declaration.required`, a missing declared file reports `tracker.declared.missing`, and an incompatible payload version reports `tracker.schema.version`. These reads leave the files intact. An undeclared original source is discoverable for a greenfield dossier only through the explicit import workflow.
 
 ## Validation and reads
 
@@ -27,11 +29,11 @@ After verified acceptance, terminal done/cancelled records move into history/tra
 
 ## Import workflow
 
-import-tracker previews source conversion. Supported original collections preserve raw values/provenance; notes do not become tasks. Ambiguous statuses/dependencies become unknown and block activation. Unsupported Markdown table/checkbox rows cause explicit errors, not a silently partial tracker. This is not a generic Markdown importer.
+`import-tracker.ps1 -Repository <identity> -SourcePath <path>` previews source conversion. The supplied path must match the original source identified for the dossier. Supported collections preserve values and provenance. Ambiguous statuses or dependencies become unknown and block activation. Unsupported Markdown task rows raise an error.
 
 Preparation Apply records manifest, verified exact original, candidate and recovery payload under backupRoot. A verified candidate is not yet authoritative. Activation needs separately approved concrete migration and Activate/Apply. Source changes after preparation block resume; do not edit hashes or candidate bytes to bypass it.
 
-Manifest phases are pending/prepared/copied/verified/references_updated/originals_removed/completed; rollback ends rolled_back. ResumeManifest reads recorded state. RollbackManifest previews recovery before Apply. Validate all payloads/destinations first and preserve later user edits.
+Manifest phases are pending/prepared/copied/verified/references_updated/originals_removed/completed. Rollback ends in rolled_back. `-ResumeManifest` reads the recorded state and `-RollbackManifest` previews recovery before Apply. These explicit commands also accept validated pre-1.0 `tracker-migration` journals. Check and PARA safety checks still detect their registered state.
 
 Optional ReviewPath binds repository/sourceSha256 and explicit task status/dependency decisions with reasons. Its exact bytes/hash remain in manifest/history. It classifies imported data; it does not qualify application acceptance.
 

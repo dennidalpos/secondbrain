@@ -35,6 +35,7 @@ Add-SBMessages @{
     'tracker.dossier.identity' = @{ it = 'Identita del dossier tracker divergente'; en = 'Tracker dossier identity mismatch' }
     'tracker.declaration.invalid' = @{ it = 'Dichiarazione tracker non valida: {0}'; en = 'Invalid tracker declaration: {0}' }
     'tracker.declared.missing' = @{ it = 'Tracker dichiarato assente: {0}'; en = 'Declared tracker missing: {0}' }
+    'tracker.greenfield.declaration.required' = @{ it = 'Il dossier greenfield di {0} richiede un tracker dichiarato di schema 1'; en = 'The greenfield dossier for {0} requires a declared schema 1 tracker' }
     'tracker.policy.unapproved' = @{ it = 'Contratto tracker non approvato: {0}'; en = 'Tracker contract not approved: {0}' }
     'tracker.review.source' = @{ it = 'Review tracker di altra identita o sorgente divergente'; en = 'Tracker review of another identity or diverging source' }
     'tracker.review.tasks' = @{ it = 'Review tracker senza elenco task'; en = 'Tracker review without task list' }
@@ -180,7 +181,8 @@ function Get-SBTrackerRelatedData([string]$BrainRoot,[string]$Identity,$Entities
 }
 
 function Resolve-SBTracker {
-    param([string]$BrainRoot,[string]$Identity,[string]$CheckoutPath,[string[]]$AllowedOwners,$Entities=@(),[string]$DossierPath='')
+    param([string]$BrainRoot,[string]$Identity,[string]$CheckoutPath,[string[]]$AllowedOwners,$Entities=@(),[string]$DossierPath='',
+        [switch]$AllowUndeclaredImportSource)
     if(!$Entities.Count){$Entities=@(Get-SBParaEntities $BrainRoot $AllowedOwners)}
     $areas=@($Entities|Where-Object {$_.kind -eq 'area' -and $_.repository -eq $Identity})
     if(!$areas.Count -and $DossierPath -and (Test-SBRepositoryIdentity $Identity $AllowedOwners)){
@@ -198,6 +200,9 @@ function Resolve-SBTracker {
         if(!(Test-Path -LiteralPath $path -PathType Leaf)){throw (New-SBError 'tracker.declared.missing' @($path))}
         if(!(Test-SBTrackerPolicy $BrainRoot)){throw (New-SBError 'tracker.policy.unapproved' @($Identity))}
         $data=Read-SBJson $path $null
+        if($data -is [Collections.IDictionary] -and $data.Contains('schemaVersion') -and $data.schemaVersion -ne 1){
+            throw (New-SBError 'tracker.schema.version')
+        }
         $archives=@{}
         $related=Get-SBTrackerRelatedData $BrainRoot $Identity $Entities $archives
         $archive=Read-SBTrackerArchive $path $Identity
@@ -206,6 +211,10 @@ function Resolve-SBTracker {
         [void](Test-SBTrackerData $data $Identity @($Entities|Where-Object kind -eq 'area'|ForEach-Object repository) (Join-Path $PSScriptRoot '../config/tracker.schema.json') $related $archives)
         foreach($repo in @($related.Keys)){$related[$repo]=Join-SBTrackerArchive $related[$repo] $archives[$repo]}
         return @{source='dossier';path=$path;relativePath=$area.path+'/tracker.json';declared=$true;schemaVersion=1;data=$data;related=$related;graph=$graph;archive=$archive}
+    }
+    # Only explicit import may discover an original source for an undeclared greenfield tracker.
+    if(!$AllowUndeclaredImportSource -and $metadata.ContainsKey('lifecycle') -and $metadata.lifecycle -ceq 'greenfield'){
+        throw (New-SBError 'tracker.greenfield.declaration.required' @($Identity))
     }
     $path=if($CheckoutPath -and [IO.Path]::GetFullPath($CheckoutPath) -ne [IO.Path]::GetFullPath($dir)){
         $found=''

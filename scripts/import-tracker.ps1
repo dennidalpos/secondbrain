@@ -27,9 +27,13 @@ $config=Read-SBConfiguration $ConfigPath
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
 try {
     if(!$Apply){
-        if($ResumeManifest -or $RollbackManifest){Read-SBTrackerManifest $config $(if($ResumeManifest){$ResumeManifest}else{$RollbackManifest})|ConvertTo-SBJson}
+        if($ResumeManifest -or $RollbackManifest){
+            $manifestPath=if($ResumeManifest){$ResumeManifest}else{$RollbackManifest}
+            $manifest=Read-SBTrackerManifest $config $manifestPath
+            ConvertTo-SBJson $manifest
+        }
         else{
-            $resolved=Resolve-SBTracker -BrainRoot $config.brainRoot -Identity $Repository -CheckoutPath (Split-Path ([IO.Path]::GetFullPath($SourcePath))) -AllowedOwners $config.allowedOwners
+            $resolved=Resolve-SBTracker -BrainRoot $config.brainRoot -Identity $Repository -CheckoutPath (Split-Path ([IO.Path]::GetFullPath($SourcePath))) -AllowedOwners $config.allowedOwners -AllowUndeclaredImportSource
             if(!$resolved.path -or [IO.Path]::GetFullPath($resolved.path) -ne [IO.Path]::GetFullPath($SourcePath)){throw (New-SBError 'importtracker.source.diverged')}
             $data=ConvertTo-SBTracker -SourcePath $SourcePath -Identity $Repository -HistoryPath $HistoryPath -ReviewPath $ReviewPath
             $entities=@(Get-SBParaEntities $config.brainRoot $config.allowedOwners)

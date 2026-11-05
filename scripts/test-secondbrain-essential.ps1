@@ -152,8 +152,81 @@ if('portable' -in $Groups){
             Check ($LASTEXITCODE -eq 0 -and $repeat.mcp.items[0].PermissionAction -eq 'unchanged') 'setup repeats with the same repository identity and MCP rules'
         }finally{$env:USERPROFILE=$oldProfile;$env:SECONDBRAIN_HOME=$oldBrain}
     }
+    $freshCheckout=Join-Path $fixture 'fresh'
+    [void][IO.Directory]::CreateDirectory($freshCheckout)
+    Check ((Invoke-SBGit $freshCheckout @('init','-q')).code -eq 0) 'fresh checkout initialized'
+    Check ((Invoke-SBGit $freshCheckout @('remote','add','origin','https://github.com/test/fresh.git')).code -eq 0) 'fresh checkout has a synthetic identity'
+    $freshReport=Join-Path $runtime 'fresh-discovery.json'
+    $freshDiscovery=Invoke-SBHostDiscovery -BrainRoot $brain -Roots @($freshCheckout) -ReportPath $freshReport
+    $freshSelection=Join-Path $runtime 'fresh-selection.json'
+    Put $freshSelection (ConvertTo-SBJson @{schemaVersion=1;confirmed=$true;confirmation='synthetic greenfield bootstrap';reportPath=$freshReport;reportSha256=(Get-SBFileHash $freshReport);repositories=@(@{id=$freshDiscovery.repositories[0].id});ides=@()})
+    $previousConfig=Read-SBText $configPath
+    try {
+        $activated=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/secondbrain.ps1') -Activate -SelectionPath $freshSelection -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+        Check ($LASTEXITCODE -eq 0 -and $activated.applied -and !$activated.repositories[0].trackerImportRequired) 'fresh CLI activation needs no tracker import'
+        $freshDossier=Join-Path $brain $activated.repositories[0].dossier
+        $freshTracker=Join-Path $freshDossier 'tracker.json'
+        $freshMetadata=Read-SBJson (Join-Path $freshDossier 'repository.json') $null
+        $seed=Read-SBJson $freshTracker $null
+        Check ($freshMetadata.tracker.location -ceq 'dossier' -and $freshMetadata.tracker.path -ceq 'tracker.json' -and $freshMetadata.tracker.schemaVersion -eq 1 -and $seed.schemaVersion -eq 1 -and $seed.repository -ceq 'github.com/test/fresh' -and !$seed.tasks.Count) 'bootstrap declares and seeds the current schema directly'
+        $seedHash=Get-SBFileHash $freshTracker
+        $knowledge=Join-Path $brain 'scripts/knowledge.ps1'
+        $lifecycle=(& pwsh -NoProfile -File $knowledge -ConfigPath $activated.configuration -CheckoutPath $freshCheckout -SetLifecycle greenfield)|ConvertFrom-Json -AsHashtable
+        Check ($LASTEXITCODE -eq 0 -and $lifecycle.lifecycle -ceq 'greenfield') 'SYS13 entry point declares greenfield'
+        $reopened=(& pwsh -NoProfile -File $knowledge -ConfigPath $activated.configuration -CheckoutPath $freshCheckout -Startup -NoRecovery)|ConvertFrom-Json -AsHashtable
+        Check ($LASTEXITCODE -eq 0 -and $reopened.repository -ceq 'github.com/test/fresh' -and (Test-SBSamePath $reopened.taskSource $freshTracker) -and (Get-SBFileHash $freshTracker) -ceq $seedHash) 'separate CLI process reopens the declared greenfield tracker without rewriting it'
+    } finally {Put $configPath $previousConfig}
 }
 if('trackers' -in $Groups){
+    $metadataPath=Join-Path $dossier 'repository.json'
+    $metadataBytes=Read-SBText $metadataPath
+    $trackerBytes=Read-SBText $trackerPath
+    $otherTrackerPath=Join-Path $otherDossier 'tracker.json'
+    $otherTrackerBytes=Read-SBText $otherTrackerPath
+    $metadata=Read-SBJson $metadataPath $null
+    $metadata.lifecycle='greenfield'
+    $alternative=Join-Path $repo 'legacy-tasks.json'
+    Put $alternative '{"tasks":[{"id":"OLD","title":"Original source"}]}'
+    $alternativeHash=Get-SBFileHash $alternative
+    $resolve=@{BrainRoot=$brain;Identity=$identity;CheckoutPath=$repo;AllowedOwners=@()}
+    $heldTracker=$trackerPath+'.retained'
+    try {
+        Put $metadataPath (ConvertTo-SBJson $metadata)
+        Check ((Resolve-SBTracker @resolve).data.tasks[0].id -ceq 'T-1') 'greenfield resolves the declared tracker even with an old source nearby'
+        [void]$metadata.Remove('tracker')
+        Put $metadataPath (ConvertTo-SBJson $metadata)
+        $metadataHash=Get-SBFileHash $metadataPath
+        $currentHash=Get-SBFileHash $trackerPath
+        $otherActive=Read-SBJson $otherTrackerPath $null
+        $otherActive.tasks[0].status='todo'
+        Put $otherTrackerPath (ConvertTo-SBJson $otherActive)
+        $rows=@(Get-SBGlobalTasks -BrainRoot $brain -All)
+        $unverified=@($rows|Where-Object status -eq 'unverified')
+        Check ($unverified.Count -eq 1 -and $unverified[0].repository -ceq $identity -and $unverified[0].reasonCode -ceq 'tracker.greenfield.declaration.required' -and @($rows|Where-Object id -eq 'O-1').Count -eq 1) 'global tasks isolate a greenfield dossier without a declaration'
+        $blocked=$null
+        try{Resolve-SBTracker @resolve|Out-Null}catch{$blocked=$_}
+        Check ((Test-SBError $blocked 'tracker.greenfield.declaration.required') -and (Get-SBFileHash $metadataPath) -ceq $metadataHash -and (Get-SBFileHash $trackerPath) -ceq $currentHash -and (Get-SBFileHash $alternative) -ceq $alternativeHash) 'ordinary lookup refuses the original source and preserves all bytes'
+        $metadata.tracker=@{location='dossier';path='tracker.json';schemaVersion=1}
+        Put $metadataPath (ConvertTo-SBJson $metadata)
+        $metadataHash=Get-SBFileHash $metadataPath
+        Move-Item -LiteralPath $trackerPath -Destination $heldTracker
+        $blocked=$null
+        try{Resolve-SBTracker @resolve|Out-Null}catch{$blocked=$_}
+        Check ((Test-SBError $blocked 'tracker.declared.missing') -and !(Test-Path -LiteralPath $trackerPath) -and (Get-SBFileHash $heldTracker) -ceq $currentHash -and (Get-SBFileHash $metadataPath) -ceq $metadataHash -and (Get-SBFileHash $alternative) -ceq $alternativeHash) 'missing declared tracker fails without conversion or fallback'
+        Move-Item -LiteralPath $heldTracker -Destination $trackerPath
+        $obsolete=Read-SBJson $trackerPath $null
+        $obsolete.schemaVersion=0
+        Put $trackerPath (ConvertTo-SBJson $obsolete)
+        $obsoleteHash=Get-SBFileHash $trackerPath
+        $blocked=$null
+        try{Resolve-SBTracker @resolve|Out-Null}catch{$blocked=$_}
+        Check ((Test-SBError $blocked 'tracker.schema.version') -and (Get-SBFileHash $trackerPath) -ceq $obsoleteHash -and (Get-SBFileHash $metadataPath) -ceq $metadataHash -and (Get-SBFileHash $alternative) -ceq $alternativeHash) 'incompatible declared schema fails without changing the payload or alternate source'
+    } finally {
+        if(Test-Path -LiteralPath $heldTracker){Move-Item -LiteralPath $heldTracker -Destination $trackerPath}
+        Put $metadataPath $metadataBytes
+        Put $trackerPath $trackerBytes
+        Put $otherTrackerPath $otherTrackerBytes
+    }
     Reject {Update-SBTrackerTask @argsBase -TaskId T-1} 'empty update rejected'
     foreach($field in @('Priority','Execution')){$bad=@{$field='invalid'};Reject {Update-SBTrackerTask @argsBase -TaskId T-1 @bad} ('invalid '+$field+' rejected')}
     $snapshot=Read-SBJson $trackerPath $null

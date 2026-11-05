@@ -392,7 +392,11 @@ function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$Al
                 $task.scope=$scope
                 $task
             }
-        }catch{@{repository=$area.repository;status='unverified';reason=$_.Exception.Message;scope=$scope}}
+        }catch{
+            $diagnostic=@{repository=$area.repository;status='unverified';reason=$_.Exception.Message;scope=$scope}
+            if($_.Exception.Data.Contains('code')){$diagnostic.reasonCode=$_.Exception.Data['code']}
+            $diagnostic
+        }
     }
 }
 function Get-SBGlobalTaskPage([string]$BrainRoot,[int]$Offset=0,[int]$Limit=50,[switch]$ReadyOnly) {

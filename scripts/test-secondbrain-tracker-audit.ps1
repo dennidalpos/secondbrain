@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([ValidateSet('All','Source','References','Graph','Para')][string]$Case='All')
+param([ValidateSet('All','Source','References','Graph','Para','Greenfield')][string]$Case='All')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
@@ -43,6 +43,43 @@ function New-AuditFixture([string]$Name){
 $root=Join-Path (Get-SBTestRoot) ('tracker-audit-'+[guid]::NewGuid().ToString('N').Substring(0,12))
 $success=$false
 try {
+    if($Case -in @('All','Greenfield')){
+        $f=New-AuditFixture 'gf'
+        $metadata=Join-Path $f.dir 'repository.json'
+        Put-Audit $metadata (ConvertTo-SBJson @{schemaVersion=1;identity=$f.identity;lifecycle='greenfield'})
+        Put-Audit $f.source '{"tasks":[{"id":"X","title":"Originale","status":"todo"}]}'
+        $originalHash=Get-SBFileHash $f.source
+        $metadataHash=Get-SBFileHash $metadata
+        $cli=Join-Path $f.brain 'scripts/import-tracker.ps1'
+        $preview=(& pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $f.source)|ConvertFrom-Json -AsHashtable
+        Assert-Audit ($LASTEXITCODE -eq 0 -and $preview.mode -ceq 'preview' -and $preview.tasks -eq 1 -and (Get-SBFileHash $f.source) -ceq $originalHash) 'anteprima esplicita greenfield legge la sorgente approvabile'
+        $foreignSource=Join-Path $f.checkout 'other.json'
+        Put-Audit $foreignSource '{"tasks":[]}'
+        $ignored=@(& pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $foreignSource 2>&1)
+        Assert-Audit ($LASTEXITCODE -ne 0 -and (Get-SBFileHash $f.source) -ceq $originalHash) 'anteprima esplicita rifiuta una sorgente diversa'
+        $stop={param($phase) if($phase -eq 'prepared'){throw 'synthetic stop before archive creation'}}
+        Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -AfterPhase $stop} 'preparazione esplicita greenfield arriva al backup verificato'
+        $registrationPath=Get-SBTrackerImportPath $f.config $f.identity
+        $manifestPath=(Read-SBJson $registrationPath $null).manifest
+        $historical=Read-SBTrackerManifest $f.config $manifestPath
+        Assert-Audit ($historical.phase -ceq 'prepared' -and (Get-SBFileHash $historical.source.backup) -ceq $originalHash) 'preparazione conserva originale e fase'
+        # Model a pre-1.0 journal before it writes any archive operations.
+        $historical.kind='tracker-migration'
+        $historical.source.archive=$historical.source.archive.Replace('tracker-import-','tracker-migration-')
+        Put-Audit $manifestPath (ConvertTo-SBJson $historical)
+        $legacyRegistration=Join-Path $f.config.runtimeRoot ('tracker-migrations/'+(Split-Path $registrationPath -Leaf))
+        [void][IO.Directory]::CreateDirectory((Split-Path $legacyRegistration))
+        Move-Item -LiteralPath (Assert-SBCentralDataPath $f.brain $registrationPath) -Destination (Assert-SBCentralDataPath $f.brain $legacyRegistration)
+        Assert-Audit (@(Get-SBTrackerImportIssues $f.config).Count -eq 1 -and @(Get-SBParaRuntimePaths $f.config) -contains $manifestPath) 'registro storico rilevato da Check e dalle protezioni PARA'
+        $resumed=(& pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -ResumeManifest $manifestPath)|ConvertFrom-Json -AsHashtable
+        Assert-Audit ($LASTEXITCODE -eq 0 -and $resumed.kind -ceq 'tracker-migration' -and $resumed.phase -ceq 'prepared') 'CLI legge esplicitamente il journal storico'
+        [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifestPath -Activate)
+        $current=Resolve-SBTracker -BrainRoot $f.brain -Identity $f.identity -CheckoutPath $f.checkout -AllowedOwners @('test')
+        Assert-Audit ($current.data.schemaVersion -eq 1 -and $current.data.tasks[0].id -ceq 'X' -and (Get-SBFileHash $historical.source.archive) -ceq $originalHash) 'ripresa storica attiva lo schema corrente e conserva la copia esatta'
+        & pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -RollbackManifest $manifestPath -Apply|Out-Null
+        Assert-Audit ($LASTEXITCODE -eq 0 -and (Read-SBTrackerManifest $f.config $manifestPath).phase -ceq 'rolled_back' -and (Get-SBFileHash $f.source) -ceq $originalHash -and (Get-SBFileHash $metadata) -ceq $metadataHash) 'rollback esplicito del journal storico ripristina i byte originali'
+        Reject-Audit {Resolve-SBTracker -BrainRoot $f.brain -Identity $f.identity -CheckoutPath $f.checkout -AllowedOwners @('test')} 'ripristinare la sorgente storica non riattiva il fallback greenfield' @('tracker.greenfield.declaration.required')
+    }
     if($Case -in @('All','Source')){
         foreach($checkpoint in @('prepared','copied','verified','references_updated')){
             # Keep Git metadata discoverable on Windows; the runtime root stays unchanged.
