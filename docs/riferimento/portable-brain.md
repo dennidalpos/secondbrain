@@ -53,7 +53,7 @@ pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 
 Check may integrate already-authorized pending dossier writes. Sync writes approved blocks and generated views, reporting dirty/conflicting files rather than forcing them. File alignment, profile/account observation and live loading are separate outcomes.
 
-Operational folders use work Init with category/slug, manifest and session. Tool-specific intermediate/output settings must be verified; cache environment variables alone do not relocate every artifact. Preserve test runs and recovery records.
+SecondBrain work folders use work Init with category, slug, manifest and session. Product agents keep build output, caches, temporary files, fixtures and evidence in Git-ignored local folders of the product checkout. The product agent verifies any tool-specific paths. Preserve test runs and recovery records.
 
 Slim defaults to 30,000 characters for first load and explicitly selected tasks; Full has no default budget. Search defaults to 20 matches/10,000 characters unless overridden. Compact previews a candidate; Apply needs review/confirmation and preserves originals by hash.
 

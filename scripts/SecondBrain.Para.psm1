@@ -144,9 +144,10 @@ function Update-SBParaIndex($Config,[switch]$Check) {
     $index=Get-SBParaIndex $Config.brainRoot $Config.allowedOwners
     foreach($pair in @(@('para-index.json','json'),@('PARA.md','markdown'))){
         $path=Join-Path $Config.brainRoot $pair[0];$text=$index[$pair[1]]
-        if((Get-SBFileHash $path) -ne (Get-SBTextHash $text)){
+        $hash=Get-SBFileHash $path
+        if($hash -ne (Get-SBTextHash $text)){
             if($Check){throw (New-SBError 'para.index.stale')}
-            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($text)) (Get-SBFileHash $path) $Config.backupRoot|Out-Null
+            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($text)) $hash $Config.backupRoot -Recoverable|Out-Null
         }
     }
     $index
@@ -204,7 +205,10 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
             Assert-SBWriteGuard
             $op=$Operations[$i];$record=$records[$i]
             if($null -eq $op.bytes){Remove-SBFile $op.path (Split-Path $op.path) $op.expected $journalRoot|Out-Null}
-            else{Write-SBFile $op.path $op.bytes $op.expected $journalRoot|Out-Null}
+            else{
+                if($op.expected -ne 'absent' -and (Get-SBFileHash $record.backup) -ne $op.expected){throw (New-SBError 'para.transaction.backup')}
+                Write-SBFile $op.path $op.bytes $op.expected $journalRoot -Recoverable|Out-Null
+            }
             $record.applied=$true;Save-Journal
         }
         $journal.status='complete';Save-Journal

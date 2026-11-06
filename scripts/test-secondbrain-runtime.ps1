@@ -258,4 +258,58 @@ $applicationCode=$LASTEXITCODE;$appliedData=($application -join [Environment]::N
 $journal=Read-SBJson $appliedData.registry $null
 Assert-Runtime ($applicationCode -eq 0 -and $appliedData.applied -and $journal.status -eq 'completed' -and $journal.items.Count -eq 1 -and $journal.items[0].relative -eq $previewData.targets[0].relative -and !(Test-Path -LiteralPath $cliFolder)) 'CLI applicazione e journal concordano con anteprima nella sola fixture'
 Assert-Runtime ((Read-SBText (Join-Path $sentinel 'keep.txt')) -ceq 'unchanged' -and (Test-Path -LiteralPath $foreign)) 'CLI non raggiunge dati esclusi o altre fixture'
+$indexPath=Join-Path $cliBrain '.runtime/INDEX.md'
+$cliBackups=Join-Path $cliHostRoot 'backups'
+Write-RuntimeFixture $indexPath 'previous generated index'
+$oldIndexHash=Get-SBFileHash $indexPath
+$null=& pwsh -NoProfile -File (Join-Path $cliScripts 'cleanup.ps1') -ConfigPath $cliConfig -RuntimeReport -ReportPath $indexPath
+$indexCode=$LASTEXITCODE
+$indexJournal=@(Get-ChildItem -LiteralPath $cliBackups -Filter '*.stage' | ForEach-Object {Read-SBJson $_.FullName $null} | Where-Object path -eq $indexPath)
+Assert-Runtime ($indexCode -eq 0 -and $oldIndexHash -ne (Get-SBFileHash $indexPath) -and !(Get-ChildItem -LiteralPath $cliBackups -Filter '*.bin')) 'CLI rigenera INDEX.md senza backup binario'
+Assert-Runtime ($indexJournal.Count -eq 1 -and $indexJournal[0].status -eq 'completed' -and $indexJournal[0].user -eq [Security.Principal.WindowsIdentity]::GetCurrent().Name -and $indexJournal[0].startedAt -and $indexJournal[0].expectedHash -eq $oldIndexHash -and $indexJournal[0].deployedHash -eq (Get-SBFileHash $indexPath)) 'journal registra destinazione, autore, ora e hash verificabili'
+$staleRejected=$false
+try{Write-SBFile $indexPath ([Text.Encoding]::UTF8.GetBytes('stale edit')) $oldIndexHash $cliBackups -Recoverable|Out-Null}
+catch{$staleRejected=Test-SBError $_ 'core.concurrent.modified'}
+Assert-Runtime ($staleRejected -and (Get-SBFileHash $indexPath) -eq $indexJournal[0].deployedHash) 'scrittura rigenerabile rifiuta un hash precedente obsoleto'
+$originalStateRoot=$env:SECONDBRAIN_STATE_ROOT
+$originalProfile=$env:USERPROFILE
+try{
+    $env:SECONDBRAIN_STATE_ROOT=Join-Path $root 'state outside the clone'
+    $expectedRoot=Get-SBWorkstationStateRoot $cliBrain $cliHost
+    $cleanup=Join-Path $cliScripts 'cleanup.ps1'
+    $statePreview=(& pwsh -NoProfile -File $cleanup -Migrate -LocalState)|ConvertFrom-Json -AsHashtable
+    Assert-Runtime ($LASTEXITCODE -eq 0 -and !$statePreview.applied -and $statePreview.destination -eq $expectedRoot -and $statePreview.files[0].sha256 -eq (Get-SBFileHash $cliConfig) -and $statePreview.repositoryAction -eq 'retain' -and ![IO.Directory]::Exists($expectedRoot)) 'anteprima F3 con hash sorgente, senza creare la destinazione o spostare repository'
+    $null=& pwsh -NoProfile -File $cleanup -Migrate -LocalState -Apply -Authorization 'synthetic rejection check' 2>&1
+    Assert-Runtime ($LASTEXITCODE -ne 0 -and ![IO.Directory]::Exists($expectedRoot)) 'Apply rifiutato per la migrazione F3'
+    $otherRoot=Get-SBWorkstationStateRoot $safeBrain $cliHost
+    Assert-Runtime ($otherRoot -ine $expectedRoot) 'clone diverso, stato separato'
+    Write-RuntimeFixture (Join-Path $expectedRoot 'workstation.json') (Read-SBText $cliConfig)
+    $env:USERPROFILE=Join-Path $root 'synthetic-user'
+    [IO.Directory]::CreateDirectory($env:USERPROFILE)|Out-Null
+    $personal=Join-Path $env:USERPROFILE 'AGENTS.md'
+    $tracked=Join-Path $env:USERPROFILE 'tracked.md'
+    Write-RuntimeFixture $personal 'personal IDE rules'
+    Write-RuntimeFixture $tracked 'versioned rules'
+    $null=& git -C $env:USERPROFILE init -q
+    $null=& git -C $env:USERPROFILE add -- tracked.md
+    $null=& git -C $env:USERPROFILE -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm 'fixture'
+    Assert-Runtime ($LASTEXITCODE -eq 0) 'fixture Git del profilo sintetico'
+    $install=Join-Path $expectedRoot 'install-backups'
+    $state=@{}
+    $null=Set-SBManagedContent $personal 'common rules' 'global' $state $false $testBackups -InstallBackupRoot $install
+    $null=Set-SBManagedContent $tracked 'common rules' 'global' $state $false $testBackups -InstallBackupRoot $install
+    $metadata=Get-ChildItem -LiteralPath $install -File -Filter '*.bin.json'
+    Assert-Runtime (@($metadata).Count -eq 1 -and (Read-SBJson $metadata.FullName $null).path -eq $personal) 'copia IDE dedicata solo per il file personale non versionato'
+    $recent=(& pwsh -NoProfile -File $cleanup -ListInstallBackups)|ConvertFrom-Json -AsHashtable
+    Assert-Runtime ($LASTEXITCODE -eq 0 -and $recent.olderThanDays -eq 7 -and $recent.candidates.Count -eq 0) 'copia recente esclusa dalla revisione'
+    $metadata.LastWriteTimeUtc=[DateTime]::UtcNow.AddDays(-8)
+    $expired=(& pwsh -NoProfile -File $cleanup -ListInstallBackups)|ConvertFrom-Json -AsHashtable
+    Assert-Runtime ($LASTEXITCODE -eq 0 -and !$expired.applied -and $expired.candidates.Count -eq 1 -and $expired.candidates[0].original -eq $personal -and [IO.File]::Exists($expired.candidates[0].backup)) 'copia oltre sette giorni verificata e ancora recuperabile'
+    $null=& git -C $env:USERPROFILE add -- AGENTS.md
+    $versioned=(& pwsh -NoProfile -File $cleanup -ListInstallBackups)|ConvertFrom-Json -AsHashtable
+    Assert-Runtime ($LASTEXITCODE -eq 0 -and $versioned.candidates.Count -eq 0) 'copia esclusa quando il file originale è diventato versionato'
+}finally{
+    $env:USERPROFILE=$originalProfile
+    $env:SECONDBRAIN_STATE_ROOT=$originalStateRoot
+}
 "SUCCESS RUNTIME: $script:runtimeChecks checks"

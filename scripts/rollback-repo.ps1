@@ -212,7 +212,7 @@ try {
         }
     }
     $workstationConfig.forbiddenRepositories = $forbidden
-    Write-SBFile $workstationConfigPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $workstationConfig))) (Get-SBFileHash $workstationConfigPath) $config.backupRoot | Out-Null
+    Write-SBFile $workstationConfigPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $workstationConfig))) (Get-SBFileHash $workstationConfigPath) $config.localStateBackupRoot | Out-Null
     Write-Host (Get-SBMessage 'rollback.out.workstation') -ForegroundColor Green
 
     $statePath = Join-Path $workstationConfig.runtimeRoot 'state.json'

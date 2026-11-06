@@ -55,7 +55,7 @@ try {
         'Indice fonti allineato';exit 0
     }
     if($Collect){
-        if(!$PythonPath){$PythonPath=if($config.ContainsKey('sourcePythonPath')){$config.sourcePythonPath}else{Join-Path $config.runtimeRoot 'sources/python/Scripts/python.exe'}}
+        if(!$PythonPath){$PythonPath=if($config.ContainsKey('sourcePythonPath')){$config.sourcePythonPath}else{Join-Path $config.localStateRoot 'sources/python/Scripts/python.exe'}}
         $collected=Invoke-SBSourceCollect $config $registry $SourceId $PythonPath
         ConvertTo-SBJson $collected
         if($collected.status -in @('extracted','unchanged')){exit 0};exit 1

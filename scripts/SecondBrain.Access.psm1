@@ -49,12 +49,16 @@ function Get-SBLockWaitMs($Config,[int]$WaitMs=-1) {
 function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransaction,[int]$MigrationDepth=0,[switch]$ReadOnly,[string]$BrainRoot) {
     $brain = if($BrainRoot){[IO.Path]::GetFullPath($BrainRoot)}else{[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
     if($brain.StartsWith('\\') -and ![IO.Directory]::Exists($brain)){throw (New-SBError 'access.brain.unreachable' @($brain))}
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+    $hostConfigPath=Get-SBHostConfigPath $brain
     if(!$ConfigPath){
-        Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
-        $ConfigPath=Get-SBHostConfigPath $brain
+        $ConfigPath=$hostConfigPath
         if(!(Test-Path -LiteralPath $ConfigPath)){throw (New-SBError 'access.station.inactive')}
     }elseif(!(Test-Path -LiteralPath $ConfigPath -PathType Leaf)){throw (New-SBError 'access.config.missing' @($ConfigPath))}
-    $local = Read-SBJson ([IO.Path]::GetFullPath($ConfigPath)) $null
+    $stateRoot=Split-Path $hostConfigPath -Parent
+    $ConfigPath=Assert-SBSetupStatePath $brain $stateRoot $ConfigPath @('workstation.json')
+    $externalState=($ConfigPath -ieq $hostConfigPath -and $stateRoot -ine (Get-SBLocalRoot $brain (Get-SBHostId)))
+    $local = Read-SBJson $ConfigPath $null
     if($MigrationDepth -gt 3){throw (New-SBError 'access.config.chain')}
     if($local -and $local.ContainsKey('migratedTo')){
         $target=Assert-SBCentralDataPath $brain $local.migratedTo
@@ -64,7 +68,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
     if($local -and $local.schemaVersion -eq 1 -and $local.mode -eq 'portable'){
         foreach($key in @('workstationId','runtimeRoot','backupRoot','bindings','ides')){if(!$local.ContainsKey($key)){throw (New-SBError 'access.config.incomplete' @($key))}}
         if($local.workstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw (New-SBError 'core.workstation.invalid')}
-        [void](Assert-SBCentralDataPath $brain $ConfigPath)
+        if($externalState -and $local.workstationId -cne (Get-SBHostId)){throw (New-SBError 'access.station.identity')}
         foreach($key in @('runtimeRoot','backupRoot')){
             $value=[string]$local[$key];if(![IO.Path]::IsPathFullyQualified($value)){$value=Join-Path $brain $value}
             $local[$key]=Assert-SBCentralDataPath $brain $value
@@ -76,7 +80,9 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         $owners=@($shared.allowedOwners)
         foreach($owner in $owners){if($owner -notmatch '^[a-zA-Z0-9][a-zA-Z0-9-]*$'){throw (New-SBError 'access.shared.owner')}}
         $excludedDirs=@($shared.excludedDirectories)
-        $local.brainRoot=$brain;$local.configPath=[IO.Path]::GetFullPath($ConfigPath);$local.repositoryRoot=$brain;$local.allowedOwners=$owners;$local.excludedDirectories=$excludedDirs;$local.sessionTimeoutMinutes=30
+        $local.brainRoot=$brain;$local.configPath=$ConfigPath;$local.repositoryRoot=$brain;$local.allowedOwners=$owners;$local.excludedDirectories=$excludedDirs;$local.sessionTimeoutMinutes=30
+        $local.localStateRoot=if($externalState){$stateRoot}else{$local.runtimeRoot}
+        $local.localStateBackupRoot=if($externalState){Join-Path $stateRoot 'backups'}else{$local.backupRoot}
         $local.coordinationRoot=Join-Path $brain '.runtime/access'
         # Writer wait: lockWaitSeconds in config/shared.json (0-600, default 60).
         $local.lockWaitMs=60000

@@ -78,6 +78,13 @@ $crlf=(Get-Content -Raw -LiteralPath (Join-Path $pointerRoot 'CLAUDE.md')) -repl
 Assert-Prompts (@(Set-SBRepositoryPointers $pointerRoot $pointerState $true $pointerBackup|Where-Object {$_.file -eq 'CLAUDE.md'}).result -eq 'aligned') 'puntatore con terminatori CRLF (autocrlf) resta allineato'
 [IO.File]::WriteAllText((Join-Path $pointerRoot 'GEMINI.md'),($gemini -replace '@AGENTS.md','@ALTRO.md'))
 Assert-Prompts (@(Set-SBRepositoryPointers $pointerRoot $pointerState $true $pointerBackup|Where-Object {$_.file -eq 'GEMINI.md'}).result -eq 'conflict') 'modifica esterna del blocco segnalata come conflitto'
+$pointerBinaryCount=@(Get-ChildItem -LiteralPath $pointerBackup -Filter '*.bin').Count
+$geminiPath=Join-Path $pointerRoot 'GEMINI.md'
+$pointerState[$geminiPath+'|pointer']=Get-SBTextHash ((Read-SBText $geminiPath).Trim())
+$updatedPointer=@(Set-SBRepositoryPointers $pointerRoot $pointerState $false $pointerBackup|Where-Object file -eq 'GEMINI.md')
+Assert-Prompts ($updatedPointer.result -eq 'updated' -and (Read-SBText $geminiPath) -ceq $gemini -and @(Get-ChildItem -LiteralPath $pointerBackup -Filter '*.bin').Count -eq $pointerBinaryCount) 'puntatore interamente generato aggiornato senza copia binaria'
+$personalBackup=@(Get-ChildItem -LiteralPath $pointerBackup -Filter '*.bin'|Where-Object {(Read-SBText $_.FullName) -ceq "# Note utente`nIstruzioni personali.`n"})
+Assert-Prompts ($personalBackup.Count -eq 1) 'puntatore misto mantiene una copia esatta delle istruzioni personali'
 # Encoding guard: exercise both read boundaries, including corruption in a body beyond its title.
 $encodingRoot=Join-Path $pointerRoot 'encoding'
 $encodingCatalog=Join-Path $encodingRoot 'direttive/prompts/catalog.json'

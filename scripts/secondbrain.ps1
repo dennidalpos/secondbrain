@@ -10,7 +10,6 @@ Reads (-Check) take no blocking locks: an active writer or pending transaction a
 -Setup registers SECONDBRAIN_HOME on confirmed activation unless -NoRegisterEnvironment is supplied.
 -Setup -Status: binding, IDE and latest selection receipt status (read-only, exit 0).
 -Setup -Unbind <repo|path|ideId|ideName>[,..]: unbinds managed repositories and IDE integrations with proposal, confirmation (-Yes or -Interactive) and preview, like activation; -Apply applies it. Dossiers and IDE files are not deleted.
--Setup -Output <repo|path> -OutputStatus verified|exception-accepted|unverified [-Evidence <file under .runtime>] [-Exception <reason>]: records output-location results in the binding after product-agent testing (preview, -Yes or -Interactive confirmation, -Apply). verified binds evidence to its bytes (SHA-256); exception-accepted requires a reason; runs no product builds or tests.
 Portable operations and contracts: docs/riferimento/portable-brain.md.
 .EXAMPLE
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
@@ -23,7 +22,6 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots D:\Projects -Select 
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Activate -SelectionPath .runtime/hosts/<id>/selection.json -Apply -NoRegisterEnvironment
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Status
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Unbind github.com/my-org/my-product -Yes -Apply
-pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Output github.com/my-org/my-product -OutputStatus verified -Evidence .runtime/proofs/my-product-output.json -Yes -Apply
 #>
 [CmdletBinding(DefaultParameterSetName='Check')]
 param(
@@ -53,10 +51,6 @@ param(
     [Parameter(ParameterSetName='Setup')][switch]$AndSync=$true,
     [Parameter(ParameterSetName='Setup')][switch]$Status,
     [Parameter(ParameterSetName='Setup')][string[]]$Unbind=@(),
-    [Parameter(ParameterSetName='Setup')][string]$Output,
-    [Parameter(ParameterSetName='Setup')][string]$OutputStatus,
-    [Parameter(ParameterSetName='Setup')][string]$Evidence,
-    [Parameter(ParameterSetName='Setup')][string]$Exception,
     [Parameter(ParameterSetName='Check')][Parameter(ParameterSetName='Sync')][string]$Repository,
     [string]$ConfigPath,[string]$ObservationPath,
     [string]$SessionId,
@@ -75,27 +69,21 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
-    'cli.output.required' = @{ it = '-{0} richiede -Output'; en = '-{0} requires -Output' }
-    'cli.setup.conflict' = @{ it = '-Status/-Unbind/-Output non accettano: -{0}'; en = '-Status/-Unbind/-Output do not accept: -{0}' }
-    'cli.alternatives' = @{ it = '-Status, -Unbind e -Output sono alternativi'; en = '-Status, -Unbind and -Output are alternatives' }
+    'cli.setup.conflict' = @{ it = '-Status/-Unbind non accettano: -{0}'; en = '-Status/-Unbind do not accept: -{0}' }
+    'cli.alternatives' = @{ it = '-Status e -Unbind sono alternativi'; en = '-Status and -Unbind are alternatives' }
     'cli.status.readonly' = @{ it = '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano'; en = '-Status is read-only: -Apply, -Yes and -Interactive do not apply' }
 }
 
 try {
     $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     if ($Setup) {
-        $outputBound = $PSBoundParameters.ContainsKey('Output')
-        $outputOptions = @('OutputStatus', 'Evidence', 'Exception') | Where-Object { $PSBoundParameters.ContainsKey($_) }
-        if ($outputOptions -and !$outputBound) { throw (New-SBError 'cli.output.required' @(($outputOptions -join ', -'))) }
-        if ($Status -or $outputBound -or $Unbind.Count -or $PSBoundParameters.ContainsKey('Unbind')) {
-            if ((@($Status.IsPresent, $outputBound, $PSBoundParameters.ContainsKey('Unbind')) | Where-Object { $_ }).Count -gt 1) { throw (New-SBError 'cli.alternatives') }
+        if ($Status -or $PSBoundParameters.ContainsKey('Unbind')) {
+            if ($Status -and $PSBoundParameters.ContainsKey('Unbind')) { throw (New-SBError 'cli.alternatives') }
             $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw (New-SBError 'cli.setup.conflict' @(($conflicting -join ', -'))) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw (New-SBError 'cli.status.readonly') }
                 $result = Get-SBSetupStatus $brain
-            } elseif ($outputBound) {
-                $result = Invoke-SBSetupOutput -BrainRoot $brain -Target $Output -OutputStatus $OutputStatus -Evidence $Evidence -Exception $Exception -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -SessionId $SessionId
             } else {
                 $result = Invoke-SBSetupUnbind -BrainRoot $brain -Targets $Unbind -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -SessionId $SessionId
             }

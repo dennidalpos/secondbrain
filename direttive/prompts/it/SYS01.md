@@ -31,6 +31,7 @@ Da usare nella manutenzione centrale. La verifica in sola lettura è il caso pre
 <constraints>
 - Non scrivere mai `selection.json` a mano; nessuna automazione del login; nessuna lettura di archivi di credenziali.
 - Un file allineato a una revisione può coesistere con istruzioni di account più vecchie: segnalalo. Il codice di uscita 0 sui file non certifica account né caricamento.
+- Conserva gli output nelle cartelle locali del prodotto escluse da Git. Usa il runtime di SecondBrain per i suoi rapporti e configurazioni.
 </constraints>
 
 <exit_criteria>

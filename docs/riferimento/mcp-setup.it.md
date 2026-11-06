@@ -225,7 +225,7 @@ Aggiungi la configurazione sotto la chiave `"servers"`, con `"type": "stdio"` ([
 ---
 
 ### E. Google Antigravity
-- Percorso file: `%USERPROFILE%\.gemini\config\mcp_config.json` (Antigravity 2.0, condiviso tra IDE e CLI) se esiste, altrimenti `%USERPROFILE%\.gemini\antigravity\mcp_config.json` (versioni precedenti). `-Pair` sceglie il file da solo; verifica quale esiste sulla tua postazione.
+- Google documenta `~/.gemini/config/mcp_config.json` per l’utente e `.agents/mcp_config.json` per il progetto. `-Pair` usa questi percorsi e conserva il ripiego sul file storico `~/.gemini/antigravity/mcp_config.json` quando è l’unico file utente esistente. L’anteprima mostra la destinazione selezionata. [Documentazione MCP dell’IDE Antigravity](https://antigravity.google/docs/mcp?tab=ide#antigravity-ide)
 
 Inserisci o integra la sezione `mcpServers`:
 ```json

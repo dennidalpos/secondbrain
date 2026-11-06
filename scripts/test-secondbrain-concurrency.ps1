@@ -84,6 +84,42 @@ try {
         Assert-Conc (@(Get-ChildItem -LiteralPath $dir -Force -Filter '.secondbrain-*.tmp'|Where-Object {$_.FullName -notin $interruptedFresh}).Count -eq 0) 'Write-SBFile su file assente: nessuno staging orfano (i perdenti lasciano il record .stage interrotto)'
     }
 
+    Invoke-Case 'git-backed-write' (Join-Path $root 'git-backed') {
+        $repo=Join-Path $root 'git-backed'
+        $backupRoot=Join-Path $repo 'backups'
+        $target=Join-Path $repo 'tracked.txt'
+        [IO.Directory]::CreateDirectory($repo)|Out-Null
+        $null=& git -C $repo init -q
+        Assert-Conc ($LASTEXITCODE -eq 0) 'repository Git sintetico inizializzato'
+        [IO.File]::WriteAllText($target,'tracked original')
+        $hidden=Join-Path $repo 'hidden.txt'
+        $crlf=Join-Path $repo 'crlf.txt'
+        [IO.File]::WriteAllText($hidden,'committed version')
+        [IO.File]::WriteAllText((Join-Path $repo '.gitattributes'),"crlf.txt text eol=crlf`n")
+        [IO.File]::WriteAllText($crlf,"line one`r`nline two`r`n")
+        $null=& git -C $repo add -- tracked.txt hidden.txt crlf.txt .gitattributes
+        $null=& git -C $repo -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm 'fixture'
+        Assert-Conc ($LASTEXITCODE -eq 0) 'originale registrato in Git'
+        $originalHash=Get-SBFileHash $target
+        $newBytes=[Text.Encoding]::UTF8.GetBytes('updated content')
+        $null=Write-SBFile $target $newBytes $originalHash $backupRoot
+        $gitRecord=Get-ChildItem -LiteralPath $backupRoot -Filter '*.git.json' | ForEach-Object {Read-SBJson $_.FullName $null}
+        $originalText=& git -C $repo cat-file blob $gitRecord.gitBlob
+        Assert-Conc ($gitRecord.previousHash -eq $originalHash -and (Get-SBTextHash $originalText) -eq $originalHash -and !(Get-ChildItem -LiteralPath $backupRoot -Filter '*.bin')) 'originale pulito recuperabile dal blob senza copia binaria'
+        $dirtyRejected=$false
+        try{Write-SBFile $target ([Text.Encoding]::UTF8.GetBytes('new content')) (Get-SBFileHash $target) $backupRoot -Recoverable|Out-Null}
+        catch{$dirtyRejected=(Get-ErrorCode $_.Exception) -eq 'core.tracked.dirty'}
+        Assert-Conc ($dirtyRejected -and (Get-SBFileHash $target) -eq (Get-SBHash $newBytes)) 'la rigenerabilita non aggira la protezione dei file tracciati sporchi'
+        $null=Write-SBFile $crlf $newBytes (Get-SBFileHash $crlf) $backupRoot
+        Assert-Conc (!(Get-ChildItem -LiteralPath $backupRoot -Filter '*.bin')) 'Git riproduce anche le terminazioni CRLF della copia di lavoro'
+        $null=& git -C $repo update-index --assume-unchanged -- hidden.txt
+        [IO.File]::WriteAllText($hidden,'local bytes hidden from status')
+        $hiddenHash=Get-SBFileHash $hidden
+        $null=Write-SBFile $hidden $newBytes $hiddenHash $backupRoot
+        $binaryBackup=Get-ChildItem -LiteralPath $backupRoot -Filter '*.bin'
+        Assert-Conc (@($binaryBackup).Count -eq 1 -and (Get-SBFileHash $binaryBackup.FullName) -eq $hiddenHash) 'un file apparentemente pulito conserva il backup se Git non riproduce i byte locali'
+    }
+
     Invoke-Case 'trace' (Join-Path $root 'trace') {
         $brain=Join-Path $root 'trace/brain';$checkout=Join-Path $root 'trace/work/repo-a'
         foreach($dir in @($brain,$checkout)){[IO.Directory]::CreateDirectory($dir)|Out-Null}

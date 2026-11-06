@@ -28,6 +28,7 @@ Da usare per scegliere e completare il prossimo task pronto (senza blocchi apert
 <constraints>
 - Un task alla volta; non ampliarne il perimetro.
 - Non chiudere un task i cui criteri non sono stati dimostrati.
+- Conserva build, cache, temporanei, fixture ed evidenze nelle cartelle del checkout prodotto escluse da Git.
 </constraints>
 
 <exit_criteria>

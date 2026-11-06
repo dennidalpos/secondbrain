@@ -31,6 +31,7 @@ Use in central maintenance. The read-only check is the default. Registration is 
 <constraints>
 - Never write `selection.json` by hand; no login automation; no reading of credential stores.
 - A file aligned to a revision can coexist with older account instructions: flag it. Exit code 0 on files does not certify accounts or loading.
+- Keep product outputs in Git-ignored product folders. Use the SecondBrain runtime for SecondBrain reports and configuration.
 </constraints>
 
 <exit_criteria>

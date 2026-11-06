@@ -123,9 +123,34 @@ function Get-SBGitFileState([string]$Path) {
     $null = & $gitExe -C $dir ls-files --error-unmatch -- $name 2>$null
     if ($LASTEXITCODE -ne 0) { return $null }
     $status = (& $gitExe -C $dir status --porcelain -- $name 2>$null) -join ''
+    if ($LASTEXITCODE -ne 0) { return @{dirty=$true;commit='';blob=''} }
     $commit = (& $gitExe -C $dir rev-parse HEAD 2>$null | Select-Object -First 1)
-    $blob = (& $gitExe -C $dir rev-parse "HEAD:./$name" 2>$null | Select-Object -First 1)
+    $blob = if ($commit) { & $gitExe -C $dir rev-parse "${commit}:./$name" 2>$null | Select-Object -First 1 }
     @{ dirty = ($status.Length -gt 0); commit = [string]$commit; blob = [string]$blob }
+}
+function Test-SBGitRecovery([string]$Path,[string]$Commit,[string]$ExpectedHash) {
+    # A clean status alone does not prove that Git can reconstruct the bytes (e.g. assume-unchanged).
+    $gitExe = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if (!$gitExe) { return $false }
+    $full = [IO.Path]::GetFullPath($Path)
+    $start = [Diagnostics.ProcessStartInfo]::new($gitExe.Source)
+    $start.WorkingDirectory = [IO.Path]::GetDirectoryName($full)
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    foreach ($argument in @('cat-file','--filters',("${Commit}:./" + [IO.Path]::GetFileName($full)))) {
+        $start.ArgumentList.Add($argument)
+    }
+    try { $process = [Diagnostics.Process]::Start($start) }
+    catch [ComponentModel.Win32Exception] { return $false }
+    try {
+        $stderr = $process.StandardError.BaseStream.CopyToAsync([IO.Stream]::Null)
+        $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($process.StandardOutput.BaseStream))
+        $process.WaitForExit()
+        [void]$stderr.GetAwaiter().GetResult()
+        $process.ExitCode -eq 0 -and $hash -eq $ExpectedHash
+    } finally { $process.Dispose() }
 }
 function Test-SBBackupInGit([string]$MetadataPath) {
     # Read-only: true only if a .bin.json's .bin duplicates Git (copy SHA-256 equals previousHash, tracked clean source, content present as a blob).
@@ -217,25 +242,41 @@ function Get-SBIDEWriteScope($Ide) {
     @{status='unverified';roots=@();evidence=$null}
 }
 function Write-SBFile {
-    param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty)
+    param([string]$Path, [byte[]]$Bytes, [string]$ExpectedHash, [string]$BackupRoot, [switch]$BackupDirty, [switch]$Recoverable)
     try {
     Assert-SBWriteGuard
     Assert-SBPlainPath $Path
     if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
-    if ((Get-SBHash $Bytes) -eq $ExpectedHash) { return $false }
-    # Git preserves tracked files: clean = no .bin (commit and blob recorded); dirty = refused unless -BackupDirty (regenerated files retain the .bin).
+    $deployedHash = Get-SBHash $Bytes
+    if ($deployedHash -eq $ExpectedHash) { return $false }
+    # Recoverable callers either generate the entire file or have verified its transaction payload.
     $git = Get-SBGitFileState $Path
     if ($null -ne $git -and $git.dirty -and !$BackupDirty) {
         throw (New-SBError 'core.tracked.dirty' @($Path))
     }
-    $gitOnly = ($null -ne $git -and !$git.dirty)
+    $gitOnly = ($null -ne $git -and !$git.dirty -and $git.commit -and $git.blob -and
+        (Test-SBGitRecovery $Path $git.commit $ExpectedHash))
     $script:SBWriteGeneration++
     $parent = Split-Path -Parent $Path
     $temp = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.tmp')
-    $backup = $null
     $completed=$false
     $stageRecordPath=Join-Path $BackupRoot ([guid]::NewGuid().ToString('N')+'.stage')
-    $stageRecord=@{schemaVersion=1;path=[IO.Path]::GetFullPath($Path);staging=$temp;expectedHash=$ExpectedHash;status='writing'}
+    $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
+    try { $user=$identity.Name } finally { $identity.Dispose() }
+    $stageRecord=@{
+        schemaVersion=1;path=[IO.Path]::GetFullPath($Path);staging=$temp
+        expectedHash=$ExpectedHash;deployedHash=$deployedHash;status='writing'
+        user=$user
+        startedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    }
+    if ($gitOnly) {
+        $stageRecord.gitCommit=$git.commit
+        $stageRecord.gitBlob=$git.blob
+    }
+    if ($ExpectedHash -ne 'absent') {
+        # Record the recovery path before replacing the destination, including for an interrupted process.
+        $stageRecord.recovery=Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.recovery')
+    }
     $failure=$null;$stageRegistered=$false
     try {
         [IO.Directory]::CreateDirectory($parent) | Out-Null
@@ -244,38 +285,29 @@ function Write-SBFile {
         $stageRegistered=$true
         $stream = [IO.FileStream]::new($temp, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
         try { $stream.Write($Bytes); $stream.Flush($true) } finally { $stream.Dispose() }
-        if ((Get-SBFileHash $temp) -ne (Get-SBHash $Bytes)) { throw (New-SBError 'core.readback.staging') }
+        if ((Get-SBFileHash $temp) -ne $deployedHash) { throw (New-SBError 'core.readback.staging') }
         if ((Get-SBFileHash $Path) -ne $ExpectedHash) { throw (New-SBError 'core.concurrent.modified' @($Path)) }
         Assert-SBWriteGuard
         if ($ExpectedHash -ne 'absent') {
-            [IO.Directory]::CreateDirectory($BackupRoot) | Out-Null
-            $backup = Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.bin')
             # Replace preserves the replaced file exactly, detecting races in the final window too.
-            $localBackup = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.recovery')
-            $stageRecord.recovery=$localBackup
+            $localBackup = $stageRecord.recovery
             [IO.File]::Replace($temp, $Path, $localBackup)
+            $actual = Get-SBFileHash $localBackup
+            # A later external edit can win the final race. Keep those bytes even for generated files.
+            if ($actual -ne $ExpectedHash) { throw (New-SBError 'core.race.kept' @($localBackup)) }
             if ($gitOnly) {
-                $actual = Get-SBFileHash $localBackup
-                $backup = $null
-                $record = @{ schemaVersion = 1; path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; gitCommit = $git.commit; gitBlob = $git.blob }
+                $record = @{ schemaVersion = 1; path = $Path; previousHash = $actual; deployedHash = $deployedHash; gitCommit = $git.commit; gitBlob = $git.blob }
                 [IO.File]::WriteAllText((Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.git.json')), (ConvertTo-SBJson $record), [Text.UTF8Encoding]::new($false))
-                if ($actual -ne $ExpectedHash) { throw (New-SBError 'core.race.kept' @($localBackup)) }
-                [IO.File]::Delete($localBackup)
-            } else {
+            } elseif (!$Recoverable) {
+                $backup = Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.bin')
                 [IO.File]::Copy($localBackup, $backup)
-                $actual = Get-SBFileHash $backup
-                if ($actual -ne (Get-SBFileHash $localBackup)) { throw (New-SBError 'core.backup.unverified' @($localBackup)) }
-                $metadata = @{ path = $Path; previousHash = $actual; deployedHash = Get-SBHash $Bytes; backup = $backup }
+                if ((Get-SBFileHash $backup) -ne $actual) { throw (New-SBError 'core.backup.unverified' @($localBackup)) }
+                $metadata = @{ path = $Path; previousHash = $actual; deployedHash = $deployedHash; backup = $backup }
                 [IO.File]::WriteAllText($backup + '.json', (ConvertTo-SBJson $metadata), [Text.UTF8Encoding]::new($false))
-                [IO.File]::Delete($localBackup)
-            }
-            if ($actual -ne $ExpectedHash) {
-                # Never attempt rollback with Copy(overwrite): an external editor
-                # may have changed the file again after the hash check.
-                throw (New-SBError 'core.race.kept' @($backup))
             }
         } else { [IO.File]::Move($temp, $Path) }
-        if ((Get-SBFileHash $Path) -ne (Get-SBHash $Bytes)) { throw (New-SBError 'core.readback.destination' @($Path)) }
+        if ((Get-SBFileHash $Path) -ne $deployedHash) { throw (New-SBError 'core.readback.destination' @($Path)) }
+        if ($stageRecord.ContainsKey('recovery')) { [IO.File]::Delete($stageRecord.recovery) }
         $completed=$true
         return $true
     } catch {
@@ -1027,6 +1059,34 @@ function Get-SBLocalRoot([string]$BrainRoot,[string]$WorkstationId='default') {
     if($WorkstationId -notmatch '^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$'){throw (New-SBError 'core.workstation.invalid')}
     [IO.Path]::GetFullPath((Join-Path $BrainRoot ('.runtime/hosts/'+$WorkstationId)))
 }
+function Get-SBWorkstationStateRoot([string]$BrainRoot,[string]$WorkstationId) {
+    $legacy=Get-SBLocalRoot $BrainRoot $WorkstationId
+    $override=$env:SECONDBRAIN_STATE_ROOT
+    if(!$override){return $legacy}
+    if($override -notmatch '^[A-Za-z]:[\\/]' -or ![IO.Path]::IsPathFullyQualified($override)){
+        throw (New-SBError 'core.state.root')
+    }
+    $base=[IO.Path]::GetFullPath($override)
+    $drive=[IO.DriveInfo]::new([IO.Path]::GetPathRoot($base))
+    if($drive.DriveType -ne [IO.DriveType]::Fixed){throw (New-SBError 'core.state.root')}
+    $brain=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')
+    $root=Join-Path $base ((Get-SBTextHash $brain.ToLowerInvariant()).Substring(0,16).ToLowerInvariant()+'/'+$WorkstationId)
+    if($root.StartsWith($brain+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+        throw (New-SBError 'core.state.root')
+    }
+    Assert-SBPlainPath $root
+    $root
+}
+
+function Assert-SBSetupStatePath([string]$BrainRoot,[string]$StateRoot,[string]$Path,[string[]]$Names) {
+    $full=[IO.Path]::GetFullPath($Path)
+    if((Split-Path $full -Leaf) -in $Names -and (Split-Path $full -Parent) -ieq $StateRoot){
+        Assert-SBPlainPath $full
+        return $full
+    }
+    Assert-SBCentralDataPath $BrainRoot $full
+}
+
 function Assert-SBCentralDataPath([string]$BrainRoot,[string]$Path) {
     $boundary=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     $full=[IO.Path]::GetFullPath($Path)
@@ -1060,8 +1120,25 @@ function Get-SBManagedContent([string]$Text, [string]$Id) {
     if ($Text.Contains("<!-- secondbrain:${Id}:")) { throw (New-SBError 'core.block.incomplete' @($Id)) }
     return $null
 }
+function Test-SBUntrackedUserFile([string]$Path) {
+    if(!$env:USERPROFILE -or ![IO.Path]::IsPathFullyQualified($Path) -or ![IO.File]::Exists($Path)){return $false}
+    $profileRoot=[IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\','/')
+    $full=[IO.Path]::GetFullPath($Path)
+    if(!$full.StartsWith($profileRoot+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){return $false}
+    Assert-SBPlainPath $full
+    $parent=Split-Path $full -Parent
+    $result=Invoke-SBGit $parent @('--literal-pathspecs','ls-files','--',(Split-Path $full -Leaf))
+    if($result.code -eq 0){return !$result.output}
+    if($result.code -ne 128){return $false}
+    # Outside Git, ls-files returns 128. A repository marker instead requires a successful Git check.
+    for($dir=[IO.DirectoryInfo]::new($parent);$dir;$dir=$dir.Parent){
+        if(Test-Path -LiteralPath (Join-Path $dir.FullName '.git')){return $false}
+    }
+    $true
+}
+
 function Set-SBManagedContent {
-    param([string]$Path,[string]$Body,[string]$Id,[hashtable]$State,[bool]$Check,[string]$BackupRoot,[switch]$WholeFile,[switch]$AfterTitle)
+    param([string]$Path,[string]$Body,[string]$Id,[hashtable]$State,[bool]$Check,[string]$BackupRoot,[switch]$WholeFile,[switch]$AfterTitle,[string]$InstallBackupRoot)
     $beforeHash = Get-SBFileHash $Path
     $text = if ($beforeHash -eq 'absent') { '' } else { Read-SBText $Path }
     $key = [IO.Path]::GetFullPath($Path)+'|'+$Id
@@ -1082,7 +1159,12 @@ function Set-SBManagedContent {
         $title=[regex]::Match($text,'\A# [^\r\n]*(?:\r?\n|$)')
         if($title.Success){$text.Insert($title.Length,"`n"+$wanted+"`n")}else{$wanted+"`n`n"+$text}
     } elseif ($text.Length) { $text+"`n`n"+$wanted+"`n" } else { $wanted+"`n" }
-    try { Write-SBFile $Path ([Text.Encoding]::UTF8.GetBytes($updated)) $beforeHash $BackupRoot | Out-Null }
+    $generatedPointer = ($Id -ceq 'pointer' -and $null -ne $existing -and $text.Trim() -ceq $existing)
+    if($InstallBackupRoot -and $beforeHash -ne 'absent' -and (Test-SBUntrackedUserFile $Path)){
+        Assert-SBPlainPath $InstallBackupRoot
+        $BackupRoot=$InstallBackupRoot
+    }
+    try { Write-SBFile $Path ([Text.Encoding]::UTF8.GetBytes($updated)) $beforeHash $BackupRoot -Recoverable:$generatedPointer | Out-Null }
     catch {
         if (Test-SBError $_ 'core.tracked.dirty') { Write-Warning $_.Exception.Message; return 'conflict' }
         throw
@@ -1232,10 +1314,13 @@ Export-ModuleMember -Function @(
     'Resolve-SBWorkingRepository',
     'Test-SBCheckoutScope',
     'Get-SBLocalRoot',
+    'Get-SBWorkstationStateRoot',
+    'Assert-SBSetupStatePath',
     'Assert-SBCentralDataPath',
     'Test-SBIDEObservation',
     'Get-SBManagedContent',
     'Set-SBManagedContent',
+    'Test-SBUntrackedUserFile',
     'Get-SBApprovedDirectiveRevision',
     'Remove-SBFile',
     'Test-SBApproval'

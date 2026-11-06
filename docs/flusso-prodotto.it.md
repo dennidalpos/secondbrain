@@ -16,6 +16,8 @@ SecondBrain si usa in due modi con lo stesso risultato: **in chat**, scrivendo `
 
 I passi 1–3 si fanno una volta; 4–8 a ogni lavoro; 9 solo quando serve. Nuovi task: `knowledge.ps1 -NewTask` (non si modifica il tracker a mano).
 
+Gli agenti dei prodotti eseguono build e test e conservano output, cache, temporanei, fixture ed evidenze nelle cartelle locali dei prodotti escluse da Git. Il dossier SecondBrain conserva sintesi e riferimenti.
+
 ## Dove sei e cosa fare ora
 
 `sb prompt` è il menu iniziale. Con il percorso del repository aggiunge lo stato della postazione, il repository corrente (gestito o no) e il prossimo passo:

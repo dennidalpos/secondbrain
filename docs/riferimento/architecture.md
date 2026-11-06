@@ -23,7 +23,7 @@ Git tracks scripts, schemas, public documentation and approved instruction sourc
 |---|---|
 | Core | Hashes, path validation, stable serialization and guarded I/O |
 | Access / Pending | Configuration, sessions, FIFO locks and deferred requests |
-| Host / Portable | Discovery, bindings, output locations and instruction distribution |
+| Host / Portable | Discovery, bindings and instruction distribution |
 | Para / Tracker | Entity IDs, declared tracker, graph validation and transactions |
 | Knowledge | Startup composition, task/section lookup, search and compaction |
 | Prompts | Catalog/card validation, context resolution and XML composition |

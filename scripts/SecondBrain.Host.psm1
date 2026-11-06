@@ -28,7 +28,7 @@ function Get-SBHostId {
     'ws-'+(Get-SBTextHash $identity).Substring(0,16).ToLowerInvariant()
 }
 function Get-SBHostConfigPath([string]$BrainRoot) {
-    Join-Path (Get-SBLocalRoot $BrainRoot (Get-SBHostId)) 'workstation.json'
+    Join-Path (Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId)) 'workstation.json'
 }
 function Get-SBCheckoutAsset([string]$Path,$Bindings=@()) {
     $root=Invoke-SBGit $Path @('rev-parse','--show-toplevel')
@@ -225,9 +225,10 @@ function Test-SBSystemAccessPath([string]$Path) {
 function Invoke-SBHostDiscovery {
     param([string]$BrainRoot,[string[]]$Roots=@(),$Bindings=@(),[string]$ResumePath,[string]$ReportPath,[int]$MaxDirectories=0)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$queue=[Collections.Generic.Queue[string]]::new();$visited=@{};$repositories=@();$issues=@();$warnings=@();$excluded=@();$portableIDEs=@()
+    $stateRoot=Get-SBWorkstationStateRoot $brain (Get-SBHostId)
     if(!$Roots.Count){$Roots=@([IO.DriveInfo]::GetDrives()|Where-Object {$_.IsReady -and $_.DriveType -eq 'Fixed'}|ForEach-Object {$_.RootDirectory.FullName})}
     if($ResumePath){
-        [void](Assert-SBCentralDataPath $brain $ResumePath);$resume=Read-SBJson $ResumePath $null
+        [void](Assert-SBSetupStatePath $brain $stateRoot $ResumePath @('discovery.json'));$resume=Read-SBJson $ResumePath $null
         if(!$resume -or $resume.schemaVersion -ne 1 -or !(Test-SBSamePath $resume.brainRoot $brain) -or $resume.hostId -ne (Get-SBHostId)){throw (New-SBError 'host.discovery.checkpoint')}
         $Roots=@($resume.roots);foreach($path in $resume.pending){$queue.Enqueue($path)};foreach($path in $resume.visited){$visited[$path]=$true}
         $repositories=@($resume.repositories);$issues=@($resume.issues);$excluded=@($resume.excluded)
@@ -300,7 +301,11 @@ function Invoke-SBHostDiscovery {
     foreach($kind in @('WSL','VM','container')){$extensions+=@{kind=$kind;included=$false;status='requires-explicit-selection'}}
     $report=@{schemaVersion=1;hostId=(Get-SBHostId);brainRoot=$brain;observedAt=[DateTimeOffset]::UtcNow.ToString('o');roots=$Roots;visited=@($visited.Keys|Sort-Object);pending=@($queue.ToArray());
         complete=(!$paused -and !$issues.Count);paused=$paused;repositories=@($repositories|Sort-Object path -Unique);ides=@((Get-SBIDEAssets)+$portableIDEs);issues=$issues;warnings=$warnings;excluded=$excluded;extensions=$extensions}
-    if($ReportPath){$output=Assert-SBCentralDataPath $brain $ReportPath;[IO.Directory]::CreateDirectory((Split-Path $output))|Out-Null;Write-SBFile $output ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $output) (Join-Path (Get-SBLocalRoot $brain (Get-SBHostId)) 'backups')|Out-Null}
+    if($ReportPath){
+        $output=Assert-SBSetupStatePath $brain $stateRoot $ReportPath @('discovery.json')
+        $backupRoot=if((Split-Path $output -Parent) -ieq $stateRoot){$stateRoot}else{Get-SBLocalRoot $brain (Get-SBHostId)}
+        Write-SBFile $output ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $output) (Join-Path $backupRoot 'backups') -Recoverable|Out-Null
+    }
     $report
 }
 # Categories of the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>; the area hosts/<id>/repos/<repo>/temp holds TEMP/TMP.

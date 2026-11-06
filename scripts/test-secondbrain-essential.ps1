@@ -52,6 +52,24 @@ $argsBase=@{BrainRoot=$brain;Identity=$identity;WorkingRepository=$identity}
 function Invoke-EssentialCli([string[]]$Arguments){$out=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -ConfigPath $configPath -CheckoutPath $repo @Arguments 2>&1);@{code=$LASTEXITCODE;text=($out -join "`n")}}
 
 if('portable' -in $Groups){
+    $savedAntigravityProfile=$env:USERPROFILE
+    try {
+        $env:USERPROFILE=Join-Path $fixture 'antigravity-profile'
+        $sharedConfig=Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'
+        $legacyConfig=Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json'
+        $antigravityWorkspace=Join-Path $fixture 'antigravity-workspace'
+        [void][IO.Directory]::CreateDirectory($antigravityWorkspace)
+        $default=Get-SBMcpPairing -BrainRoot $brain -Target antigravity
+        Check ($default.ConfigFile -eq $sharedConfig -and (Get-SBFileHash $sharedConfig) -eq 'absent') 'Antigravity fresh user preview selects the documented shared path'
+        Put $legacyConfig '{"mcpServers":{}}'
+        $legacy=Get-SBMcpPairing -BrainRoot $brain -Target antigravity
+        Check ($legacy.ConfigFile -eq $legacyConfig) 'Antigravity legacy-only profile preserves its existing configuration path'
+        Put $sharedConfig '{"mcpServers":{}}'
+        $shared=Get-SBMcpPairing -BrainRoot $brain -Target antigravity
+        Check ($shared.ConfigFile -eq $sharedConfig) 'Antigravity shared config takes precedence when both files exist'
+        $project=Get-SBMcpPairing -BrainRoot $brain -Target antigravity -Scope project -WorkspacePath $antigravityWorkspace
+        Check ($project.ConfigFile -eq (Join-Path $antigravityWorkspace '.agents/mcp_config.json') -and (Get-SBFileHash $project.ConfigFile) -eq 'absent') 'Antigravity project preview selects the documented workspace path'
+    } finally { $env:USERPROFILE=$savedAntigravityProfile }
     $portableModule=Get-Module SecondBrain.Portable
     foreach($case in @(@('',1,$false),@('git version 2.41.9',0,$false),@('unrecognized',0,$false),@('git version 2.42.0',0,$true),@('git version 2.56.0.windows.4',0,$true),@('git version 2.56.0',1,$false))){
         $result=& $portableModule {param($text,$code) Test-SBGitRequirement $text $code} $case[0] $case[1]
@@ -139,7 +157,7 @@ if('portable' -in $Groups){
             $repeat=Set-SBMcpConfiguration -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools -BackupRoot $cfg.backupRoot
             Check ($repeat.PermissionAction -eq 'unchanged') ($target+' all-tool policy is idempotent')
         }
-        $oldProfile=$env:USERPROFILE;$oldBrain=$env:SECONDBRAIN_HOME
+        $oldProfile=$env:USERPROFILE;$oldBrain=$env:SECONDBRAIN_HOME;$oldState=$env:SECONDBRAIN_STATE_ROOT
         try{
             Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
             Put (Join-Path $brain 'config/prompt-catalog.schema.json') (Read-SBText (Join-Path $PSScriptRoot '../config/prompt-catalog.schema.json'))
@@ -150,7 +168,15 @@ if('portable' -in $Groups){
             Check ($LASTEXITCODE -eq 0 -and $setup.applied -and $setup.check.mode -eq 'sync' -and $setup.mcp.permissionConfigurationComplete -and [IO.File]::Exists($setup.setupReport)) 'setup applies sync, named approvals and a persistent report in an isolated profile'
             $repeat=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $repeat.mcp.items[0].PermissionAction -eq 'unchanged') 'setup repeats with the same repository identity and MCP rules'
-        }finally{$env:USERPROFILE=$oldProfile;$env:SECONDBRAIN_HOME=$oldBrain}
+            $legacyConfig=$repeat.activation.configuration
+            $legacyHash=Get-SBFileHash $legacyConfig
+            $env:SECONDBRAIN_STATE_ROOT=Join-Path $fixture 'external-state'
+            $external=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+            $externalCode=$LASTEXITCODE
+            $local=Read-SBConfiguration -BrainRoot $brain -ReadOnly
+            Check ($externalCode -eq 0 -and $external.applied -and $local.configPath -eq $external.activation.configuration -and $local.localStateRoot.StartsWith($env:SECONDBRAIN_STATE_ROOT) -and $local.runtimeRoot -ine $local.localStateRoot) 'external setup uses the workstation state root'
+            Check ([IO.File]::Exists((Join-Path $local.localStateRoot 'ide-map.json')) -and [IO.File]::Exists($external.setupReport) -and (Get-SBFileHash $legacyConfig) -eq $legacyHash -and (Test-SBSamePath $local.coordinationRoot (Join-Path $brain '.runtime/access'))) 'local setup and IDE state are separate from legacy bytes and shared coordination'
+        }finally{$env:USERPROFILE=$oldProfile;$env:SECONDBRAIN_HOME=$oldBrain;$env:SECONDBRAIN_STATE_ROOT=$oldState}
     }
     $freshCheckout=Join-Path $fixture 'fresh'
     [void][IO.Directory]::CreateDirectory($freshCheckout)

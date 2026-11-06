@@ -2,7 +2,7 @@
 
 <!-- secondbrain:tracker-contract:1 -->
 
-- Radice: risolvi SECONDBRAIN_HOME dall’ambiente utente; il valore è locale e non va copiato nelle istruzioni account né nei repository pubblici. Il bootstrap dal checkout funziona anche senza variabile. Configurazione e output operativi sono sotto .runtime del clone.
+- Radice: risolvi SECONDBRAIN_HOME dall’ambiente utente; il valore è locale e non va copiato nelle istruzioni account né nei repository pubblici. Il bootstrap dal checkout funziona anche senza variabile. La configurazione e gli output delle attività di SecondBrain stanno nel .runtime del clone.
 - Dossier: index.md, context.md, memory.md, repository.json e tracker dichiarato. Para-index.json risolve gli identificatori; archivi e conflitti richiedono gestione esplicita.
 - Tracker: repository.json con tracker location=dossier, path=tracker.json, schemaVersion=1 richiede esclusivamente quella fonte; assenza o invalidità sono errori senza fallback. Le importazioni preservano originali, task e riferimenti.
 - Avvio: scripts/knowledge.ps1 -Startup o -Tasks (o lo strumento MCP get_startup_context); -Profile Full e -Search (-Budget, -Limit, -AllDossiers) per approfondire; -Report misura caratteri e peso delle direttive. Scripts/prompts.ps1 -Context -RepositoryPath risolve soltanto i percorsi del dossier.

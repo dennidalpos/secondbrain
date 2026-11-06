@@ -34,12 +34,14 @@ Unrelated configuration is preserved where the supported format allows it. Inval
 
 | Record | Meaning |
 |---|---|
-| <guid>.stage | Target, staging path, expected hash and write state |
+| <guid>.stage | Target, Windows user, UTC start time, previous and intended SHA-256, staging path and write state |
 | <guid>.bin / .bin.json | Exact local original and previous/deployed hashes |
-| <guid>.git.json | Clean tracked original identified by commit/blob |
+| <guid>.git.json | Clean tracked original verified byte for byte against Git checkout output, with commit and blob IDs |
 | Transaction manifest | Coordinated file changes and rollback journal |
 
 Workstation backupRoot normally resides under .runtime/hosts/<id>/backups; MCP pairing also has .runtime/backups/mcp-pairing. New files have no original to back up. Dirty tracked files are refused by ordinary Sync; preserve the diff instead of bypassing the guard. Package export is an implementation exception: it does not use these protected writes or enforce a new/runtime-confined OutDir. Choose a new initialized runtime target and retain previous packages.
+
+Generated PARA and runtime indexes, dossier views, the generated global instructions and IDE files that consist entirely of the managed pointer use the journal without a separate binary copy. A pointer file with personal text retains the normal backup policy. PARA and tracker import transactions reuse their verified rollback payloads when writing a file. An interrupted replacement can retain an adjacent `.recovery` file.
 
 ~~~powershell
 pwsh -NoProfile -File scripts/restore-managed.ps1 -List -Path "$HOME/.claude/CLAUDE.md"

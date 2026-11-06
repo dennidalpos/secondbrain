@@ -28,6 +28,7 @@ Use to pick and complete the next task that is ready (no open blockers) in the r
 <constraints>
 - Do one task at a time; do not widen its scope.
 - Do not close a task whose criteria were not proven.
+- Keep product build output, caches, temporary files, fixtures and evidence in Git-ignored folders of the product checkout.
 </constraints>
 
 <exit_criteria>

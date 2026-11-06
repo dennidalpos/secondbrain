@@ -67,4 +67,4 @@ pwsh -NoProfile -File scripts/cleanup.ps1 -ListRuntime
 
 Check ownership, references, hashes, active sessions, markers and reparse points before proposing maintenance. Do not recursively delete unresolved paths or use an empty mirrored directory as a shortcut.
 
-Products are separate checkouts. Central maintenance retains their dossiers and collects repository-agent evidence; it does not execute product qualification. See [runtime](runtime-maintenance.md), [trackers](trackers.md), [recovery](recovery.md) and [shared brain](shared-brain.md).
+Products are separate checkouts. Products keep their operational outputs in Git-ignored checkout folders. Central maintenance keeps dossiers with summaries and references. Product agents handle product qualification. See [runtime](runtime-maintenance.md), [trackers](trackers.md), [recovery](recovery.md) and [shared brain](shared-brain.md).

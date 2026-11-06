@@ -328,7 +328,11 @@ function Invoke-SBTrackerImport {
             $previous=Get-SBFileHash $full
             if($Remove -and $previous -ne $m.source.sha256){throw (New-SBError 'trackerimport.remove.sourcechanged' @($full))}
             $operationPayload=Join-Path (Split-Path $ManifestPath) ('operation-'+$m.operations.Count+'.bin')
-            if($previous -ne 'absent'){[void](Write-SBFile $operationPayload ([IO.File]::ReadAllBytes($full)) 'absent' $Config.backupRoot)}
+            if($previous -ne 'absent'){
+                $original=[IO.File]::ReadAllBytes($full)
+                if((Get-SBHash $original) -ne $previous){throw (New-SBError 'trackerimport.concurrent' @($full))}
+                [void](Write-SBFile $operationPayload $original 'absent' $Config.backupRoot)
+            }
             $op=@{path=$full;previousHash=$previous;deployedHash=$deployed;backup=$operationPayload}
             $m.operations+=,$op;. $save
         }
@@ -337,7 +341,10 @@ function Invoke-SBTrackerImport {
         if($current -eq $deployed){return}
         if($current -ne $op.previousHash){throw (New-SBError 'trackerimport.concurrent' @($full))}
         if($Remove){[void](Remove-SBFile $full (Split-Path $full) $current $Config.backupRoot)}
-        else{[void](Write-SBFile $full $Bytes $current $Config.backupRoot)}
+        else{
+            if($current -ne 'absent' -and (Get-SBFileHash $op.backup) -ne $current){throw (New-SBError 'trackerimport.backup.unverified')}
+            [void](Write-SBFile $full $Bytes $current $Config.backupRoot -Recoverable)
+        }
     }
     try {
         if($m.phase -eq 'completed'){
@@ -382,7 +389,7 @@ function Invoke-SBTrackerImport {
                 foreach($h in $data.history){$h.reference=$historyRef}
             }
             $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))
-            [void](Write-SBFile $m.candidate $bytes (Get-SBFileHash $m.candidate) $Config.backupRoot)
+            [void](Write-SBFile $m.candidate $bytes (Get-SBFileHash $m.candidate) $Config.backupRoot -Recoverable)
             $m.candidateHash=Get-SBHash $bytes
             . $phase 'copied'
         }

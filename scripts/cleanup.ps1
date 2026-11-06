@@ -19,6 +19,8 @@ It is not an executable manifest and removes nothing. -ProposalPath saves the pr
 flat work/evidence/report folders, host-level evidence/report folders, duplicate repository segments, non-conforming names, backup-<date>-* folders (hosts/<id>/install-backups),
 backup/* into backups/*, root *.log into logs/. Rename on the same volume only (no copies, no content deletion); writes MANIFEST.json for work/evidence/report folders;
 -Repository is the repository identity of the destination segment (default github.com/dennidalpos/secondbrain). Journal in .runtime/cleanup/migrate-*.json.
+-Migrate -LocalState compares the current workstation's legacy state with the SECONDBRAIN_STATE_ROOT destination. This mode is preview only.
+-ListInstallBackups lists verified pairs for untracked user-profile files after InstallBackupDays (default 7). It is review only.
 -Regenerable previews (without -Apply) or removes (with -Apply and -Authorization quoting the user's explicit request) only regenerable .runtime folders:
 only hosts/<current-host>/repos/<repo>/fixture|tmp folders beyond the latest -KeepFixtures, with a valid schema-1 MANIFEST.json
 matching path and current owner, status closed and expiry strictly before today (the expiry day is retained).
@@ -29,7 +31,7 @@ junctions/symlinks; rechecks eligibility and content hashes before each removal,
 No backup (recreated with the owning suite/command), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
 #>
 [CmdletBinding()]
-param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
+param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[switch]$LocalState,[switch]$ListInstallBackups,[ValidateRange(1,3650)][int]$InstallBackupDays=7,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
@@ -48,11 +50,55 @@ Add-SBMessages @{
     'cleanup.data.protected' = @{ it = 'Dato operativo attivo protetto'; en = 'Active operational data protected' }
     'cleanup.manifest.content' = @{ it = 'Contenuto assente, duplicato o modificato nel manifest'; en = 'Content missing, duplicated or modified in the manifest' }
     'cleanup.transaction.pending' = @{ it = 'Transazione pendente: pulizia sospesa'; en = 'Pending transaction: cleanup suspended' }
+    'cleanup.state.preview' = @{ it = 'La migrazione dello stato locale richiede -Migrate -LocalState e consente solo l anteprima'; en = 'Local state migration requires -Migrate -LocalState and is preview only' }
+    'cleanup.state.override' = @{ it = 'Impostare SECONDBRAIN_STATE_ROOT per confrontare le posizioni'; en = 'Set SECONDBRAIN_STATE_ROOT to compare locations' }
+    'cleanup.install.preview' = @{ it = 'ListInstallBackups è una modalità separata di sola lettura'; en = 'ListInstallBackups is a separate read-only mode' }
 }
 # Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
-$config=Read-SBConfiguration $ConfigPath
-$operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply)
+if($LocalState){
+    if(!$Migrate -or $Apply -or $ListInstallBackups -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $ManifestPath -or $ReportPath -or $ProposalPath){throw (New-SBError 'cleanup.state.preview')}
+    if(!$env:SECONDBRAIN_STATE_ROOT){throw (New-SBError 'cleanup.state.override')}
+    $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+    $hostId=Get-SBHostId
+    $legacyRoot=Get-SBLocalRoot $brain $hostId
+    $stateRoot=Get-SBWorkstationStateRoot $brain $hostId
+    $files=foreach($name in @('workstation.json','discovery.json','selection.json','setup-result.json','ide-map.json','istruzioni-globali.md','unbind-report.json','unbind-selection.json')){
+        $source=Join-Path $legacyRoot $name
+        $target=Join-Path $stateRoot $name
+        Assert-SBPlainPath $source
+        Assert-SBPlainPath $target
+        if(!(Test-Path -LiteralPath $source -PathType Leaf)){continue}
+        $before=Get-SBFileHash $source
+        $after=Get-SBFileHash $target
+        @{from=$source;to=$target;sha256=$before;destinationSha256=$after;status=$(if($after -eq 'absent'){'available'}elseif($after -eq $before){'identical'}else{'conflict'})}
+    }
+    ConvertTo-SBJson @{scope='local-state-preview';applied=$false;hostId=$hostId;source=$legacyRoot;destination=$stateRoot;files=@($files);repositoryData=(Join-Path $legacyRoot 'repos');repositoryAction='retain';pythonAction='recreate-from-lock';coordination=(Join-Path $brain '.runtime/access')}
+    exit 0
+}
+if($ListInstallBackups -and ($Apply -or $Migrate -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $ManifestPath -or $ReportPath -or $ProposalPath)){throw (New-SBError 'cleanup.install.preview')}
+$config=Read-SBConfiguration $ConfigPath -ReadOnly:($ListInstallBackups)
+if($ListInstallBackups){
+    $root=Join-Path $config.localStateRoot 'install-backups'
+    Assert-SBPlainPath $root
+    $cutoff=[DateTime]::UtcNow.AddDays(-$InstallBackupDays)
+    $eligible=if([IO.Directory]::Exists($root)){
+        foreach($file in Get-ChildItem -LiteralPath $root -File -Filter '*.bin.json'){
+            if($file.Name -cnotmatch '^[0-9a-f]{32}\.bin\.json$' -or $file.LastWriteTimeUtc -gt $cutoff -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){continue}
+            $record=try{Read-SBJson $file.FullName $null}catch{continue}
+            $backup=Join-Path $root ($file.Name -replace '\.json$','')
+            if($record -isnot [Collections.IDictionary] -or !$record.ContainsKey('path') -or !$record.ContainsKey('backup') -or !$record.ContainsKey('previousHash') -or $record.backup -ine $backup -or $record.previousHash -notmatch '^[0-9a-f]{64}$'){continue}
+            try{
+                Assert-SBPlainPath $backup
+                if((Get-SBFileHash $backup) -ne $record.previousHash -or !(Test-SBUntrackedUserFile $record.path)){continue}
+                @{original=$record.path;backup=$backup;sha256=$record.previousHash;metadata=$file.FullName;metadataSha256=(Get-SBFileHash $file.FullName);lastWriteUtc=$file.LastWriteTimeUtc.ToString('o')}
+            }catch{continue}
+        }
+    }
+    ConvertTo-SBJson @{scope='ide-install-backup-review';applied=$false;olderThanDays=$InstallBackupDays;candidates=@($eligible|Where-Object {$_})}
+    exit 0
+}
+$operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply -and !($RuntimeReport -and $ReportPath))
 try {
     if($Migrate){
         if($Regenerable -or $ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
@@ -129,9 +175,7 @@ try {
                 $bytes=[Text.UTF8Encoding]::new($false).GetBytes($index.markdown)
                 [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
                 if($target -ieq [IO.Path]::GetFullPath((Join-Path $config.brainRoot '.runtime/INDEX.md'))){
-                    # Derived view: regenerate atomically without leaving a partial file.
-                    $temp=$target+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
-                    try{[IO.File]::WriteAllBytes($temp,$bytes);[IO.File]::Move($temp,$target,$true)}finally{if([IO.File]::Exists($temp)){[IO.File]::Delete($temp)}}
+                    Write-SBFile $target $bytes (Get-SBFileHash $target) $config.backupRoot -Recoverable|Out-Null
                 }else{
                     $stream=[IO.FileStream]::new($target,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
                     try{$stream.Write($bytes);$stream.Flush($true)}finally{$stream.Dispose()}

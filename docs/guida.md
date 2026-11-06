@@ -61,7 +61,7 @@ pwsh -NoProfile -File scripts/access.ps1 -Queue
 
 Knowledge reads avoid blocking locks, but default reads may process queued writes. Writers serialize through a FIFO queue and return exit 3 when the wait limit expires. Do not remove lock files or incomplete-transaction markers.
 
-Longer writes use Start/End in the same script with try/finally and pass SessionId to the invoked CLIs. Operational folders are initialized with `work.ps1 -Category <category> -Slug <slug> -Init` and a manifest; verify each tool's output redirection. Environment variables alone do not redirect every build artifact.
+Longer writes use Start/End in the same script with try/finally and pass SessionId to the invoked CLIs. Initialize work folders for SecondBrain activities with `work.ps1 -Category <category> -Slug <slug> -Init` and a manifest. Product agents verify tool-specific output paths in Git-ignored folders of their own checkout.
 
 Clean tracked files are recoverable by recorded Git commit/blob; local files use verified backups. Dirty tracked files are protected from overwrite. See [safe writes](riferimento/safety-backups.md) and [recovery](riferimento/recovery.md).
 

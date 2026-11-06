@@ -3,7 +3,7 @@
 .SYNOPSIS
 Lists backups of files replaced by SecondBrain and restores a file from its backup.
 .DESCRIPTION
--List (read-only) shows backups by original path, with date and hash, searching the workstation backupRoot and .runtime/backups/mcp-pairing. -Path filters by original file.
+-List (read-only) shows backups by original path, with date and hash, searching workstation, IDE install and MCP pairing backups. -Path filters by original file.
 -MetadataPath restores a file from its <guid>.bin.json: the backup must match the recorded hash and the current file must match the file deployed by SecondBrain.
 .EXAMPLE
 pwsh -NoProfile -File scripts/restore-managed.ps1 -List -Path "$HOME/.claude/CLAUDE.md"
@@ -31,10 +31,13 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 if($List){
     $config=Read-SBConfiguration $ConfigPath -ReadOnly
     $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
-    $roots=@($config.backupRoot,(Join-Path $brain '.runtime/backups/mcp-pairing'))|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}|Select-Object -Unique
+    $roots=@($config.backupRoot,$config.localStateBackupRoot,(Join-Path $brain '.runtime/backups/mcp-pairing'))|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}|Select-Object -Unique
+    $installRoot=Join-Path $config.localStateRoot 'install-backups'
     $wanted=if($Path){[IO.Path]::GetFullPath($Path)}else{$null}
-    $found=foreach($root in $roots){
-        foreach($file in Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.bin.json'){
+    $found=foreach($root in @($roots)+@($installRoot)){
+        if(![IO.Directory]::Exists($root)){continue}
+        Assert-SBPlainPath $root
+        foreach($file in Get-ChildItem -LiteralPath $root -Recurse:($root -ine $installRoot) -File -Filter '*.bin.json'){
             $item=Read-SBJson $file.FullName $null
             if(!$item -or !$item.path -or !$item.backup){continue}
             if($wanted -and [IO.Path]::GetFullPath([string]$item.path) -ine $wanted){continue}
@@ -51,6 +54,11 @@ $metadata=Read-SBJson $MetadataPath $null
 if(!$metadata -or !$metadata.path -or !$metadata.backup -or !$metadata.previousHash -or !$metadata.deployedHash){throw (New-SBError 'restore.metadata.invalid')}
 if((Get-SBFileHash $metadata.backup) -ne $metadata.previousHash){throw (New-SBError 'restore.backup.altered')}
 $backupRoot=$config.backupRoot
+$targetParent=Split-Path ([IO.Path]::GetFullPath($metadata.path)) -Parent
+$metadataParent=Split-Path ([IO.Path]::GetFullPath($MetadataPath)) -Parent
+if($targetParent -ieq $config.localStateRoot -or $metadataParent -ieq (Join-Path $config.localStateRoot 'install-backups')){
+    $backupRoot=$config.localStateBackupRoot
+}
 Assert-SBPlainPath $metadata.backup
     Write-SBFile $metadata.path ([IO.File]::ReadAllBytes($metadata.backup)) $metadata.deployedHash $backupRoot -BackupDirty | Out-Null
     'Ripristinato: '+$metadata.path+'. Eseguire secondbrain.ps1 -Check per riconciliare lo stato.'

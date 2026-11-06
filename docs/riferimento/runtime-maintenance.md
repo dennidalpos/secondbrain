@@ -2,7 +2,15 @@
 
 [Retained Italian source; use this English page for current behavior](runtime-maintenance.it.md)
 
-.runtime contains host configuration, backups, reports, fixtures and operational work. It is excluded from Git. Growth does not authorize cleanup; preserve references, original evidence and other sessions' ownership.
+.runtime contains backups, reports, fixtures and operational work, and holds workstation configuration by default. It is excluded from Git. Preserve references, original evidence and other sessions' ownership when reviewing cleanup.
+
+## Optional local workstation state
+
+Set `SECONDBRAIN_STATE_ROOT` in the launching environment to an absolute directory on a fixed local drive outside the checkout. SecondBrain creates a separate subdirectory per checkout and workstation. Setup writes workstation configuration, discovery, selection and setup results there. Sync and Verify use the IDE map and generated global instructions at that location. The default source Python environment is `sources/python` under the same local root. Shared sessions, locks and recovery coordination stay under the brain's `.runtime/access`.
+
+For a workstation with existing state, `cleanup.ps1 -Migrate -LocalState` lists the known files with their source and destination hashes. A conflict is shown when the destination already contains different bytes. Repository work under `hosts/<id>/repos` stays in its current layout. Recreate Python from its lock at the new location. This mode accepts only preview.
+
+`cleanup.ps1 -ListInstallBackups` lists verified backup and metadata pairs from managed IDE instruction updates when the original is an untracked file in the current user profile. The default review age is seven days and can be set with `-InstallBackupDays`. Existing legacy bundles stay outside this review. Use `restore-managed.ps1 -List` to find backups by original file.
 
 ## Categories and inspection
 
@@ -25,7 +33,7 @@ RuntimeReport without ReportPath prints a derived index. ReportPath .runtime/IND
 
 New work uses hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> with work/evidence/report/fixture/tmp. The repository segment includes an identity hash. TEMP/TMP use the repository temp area.
 
-Initialize with work.ps1 Repository/Category/Slug/Init/Task/SessionId; Close marks the manifest closed. A plan without Init/Run creates nothing. Normal access Start/End belongs in one try/finally script; pass the same SessionId to CLIs.
+For SecondBrain work folders, initialize with work.ps1 Repository/Category/Slug/Init/Task/SessionId; Close marks the manifest closed. A plan without Init/Run creates nothing. Normal access Start/End belongs in one try/finally script; pass the same SessionId to CLIs.
 
 Manifests bind host/user/client/session/task, status and expiry. Fixture/tmp default to 7 days; work receives a 30-day expiry from closure. Evidence/report do not expire automatically. This is not a scheduled deletion service.
 
@@ -55,7 +63,7 @@ Quick is pure local source verification (no Git/child processes), budget 15 seco
 
 Every run preserves run.json, logs and fixtures, including successful runs. New default runs live in `hosts/<id>/repos/tests-<hash>/fixture/<yyyyMMdd>-minimal/` with a MANIFEST.json (category fixture, owner, 7-day expiry): it is `open` while a run is active and `closed` when the last active run in the container ends, also after failures. A same-day run reopens it. Containers named `fixture-<date>-minimal` and custom `SECONDBRAIN_TEST_ROOT` values get no manifest, so the regenerable selector keeps them. A run that crashed while `running` keeps its container open until reviewed. `-Only tracker-audit` runs the tracker import/PARA audit scenarios (~150-180 s); it is part of `-Full`, where it runs in parallel with the other groups. Child runners use sibling directories linked by reports; esito.json points to the latest run. KeepFixtures remains accepted, but preservation is already the current behavior. Run evidence binds commands, environment, source hashes and durations. A timestamp alone is not reusable validation; compare inputs/environment and coverage.
 
-Git environment, locale, long paths and fixture prerequisites can affect tests. Use process-scoped overrides and restore them even on error. ACL/loopback/SMB skips are explicit limits, not successful application qualification. Product checks belong to product agents with verified output redirection. Optional pending-queue benchmarks are explicit workloads, not routine maintenance.
+Git environment, locale, long paths and fixture prerequisites can affect tests. Use process-scoped overrides and restore them even on error. ACL/loopback/SMB skips are explicit limits, not successful application qualification. Product agents run product checks and verify the output paths in Git-ignored folders of their own checkout. Optional pending-queue benchmarks are explicit workloads, not routine maintenance.
 
 ## Layered startup
 

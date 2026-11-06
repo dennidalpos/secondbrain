@@ -37,7 +37,7 @@ File MCP scritti da `-Pair -Apply` (solo per i target scelti; con `-Target all` 
 | `cursor` | `~/.cursor/mcp.json` |
 | `vscode` | `%APPDATA%\Code\User\mcp.json` (con `-WorkspacePath`: `.vscode/mcp.json` del progetto) |
 | `claude-code` | `.mcp.json` nella cartella di `-WorkspacePath` (obbligatorio; non incluso in `-Target all`) |
-| `antigravity` | `~/.gemini/config/mcp_config.json` se esiste (Antigravity 2.0), altrimenti `~/.gemini/antigravity/mcp_config.json` |
+| `antigravity` | A livello utente `~/.gemini/config/mcp_config.json` (ripiego su `~/.gemini/antigravity/mcp_config.json` se è il solo file utente esistente). A livello di progetto `.agents/mcp_config.json` |
 | `windsurf` | `~/.codeium/windsurf/mcp_config.json` |
 
 Il file e la cartella vengono creati anche se l'IDE non è installato. Le altre voci del file restano; se il file non è JSON rigoroso (errori o commenti, come in un `mcp.json` di VS Code con JSONC) o la radice non è un oggetto, **l'operazione si ferma e non scrive**. Il JSON viene riscritto con la formattazione standard: commenti e ordine delle chiavi non si conservano, per questo il backup è importante. Nel TOML di Codex viene sostituita l'intera sezione `[mcp_servers.secondbrain]`.
@@ -46,21 +46,23 @@ Non vengono mai scritti: il codice dei repository (solo `AGENTS.md`), gli IDE «
 
 ## Dove sono i backup
 
-Ogni file esistente **fuori da Git** (dossier, file degli IDE, configurazione MCP, `AGENTS.md` non tracciato) sostituito da `-Sync`, `approve-revision.ps1`, `mcp-server.ps1 -Pair -Apply`, `rollback-repo.ps1` e `restore-managed.ps1` viene prima copiato così:
+Le scritture protette conservano una copia dei file esistenti che richiedono un originale per il recupero, come dossier, configurazioni MCP e istruzioni IDE personali.
 
 | Percorso | Contenuto |
 |---|---|
 | `.runtime/hosts/<id>/backups/<guid>.bin` | Copia esatta del file com'era prima |
 | `.runtime/hosts/<id>/backups/<guid>.bin.json` | Metadati: `path` originale, `previousHash`, `deployedHash`, `backup` |
-| `.runtime/hosts/<id>/backups/<guid>.stage` | Record della scrittura (`writing`, `completed`, `interrupted`) |
-| `.runtime/hosts/<id>/backups/<guid>.git.json` | Solo per file tracciati da Git e puliti: `path`, `previousHash`, `deployedHash`, `gitCommit`, `gitBlob` (nessuna copia `.bin`) |
+| `.runtime/hosts/<id>/backups/<guid>.stage` | Destinazione, utente Windows, ora UTC, SHA-256 precedente e previsto, staging e stato della scrittura |
+| `.runtime/hosts/<id>/backups/<guid>.git.json` | Originale tracciato e verificato byte per byte rispetto al checkout Git, con percorso, hash, commit e blob |
 | `.runtime/backups/mcp-pairing/` | Come sopra, per i file MCP |
 | `.runtime/hosts/<id>/backups/para-<guid>/manifest.json` | Transazioni sui dossier |
 | `.runtime/hosts/<id>/backups/rollback-<guid>/` | Dossier salvato da `rollback-repo.ps1 -Force` senza checkout |
 
 `<id>` è l'identificativo della postazione (`ws-` più 16 cifre esadecimali). `.runtime/` è escluso da Git: i backup restano solo sul tuo PC e non vengono mai pubblicati. Non c'è cancellazione automatica; la pulizia è esplicita (`cleanup.ps1`, vedi [recovery](recovery.md)). Se un file non esisteva, la scrittura lo crea e non c'è nulla da salvare.
 
-**Git salva i file tracciati.** SecondBrain non sostituisce Git: se il file è tracciato e senza modifiche, la scrittura non crea `.bin` e registra commit e blob (`.git.json`); recuperi il contenuto precedente con `git show <gitCommit>:<percorso>` o `git checkout`. Se il file tracciato ha modifiche non committate, la scrittura **si ferma** con un messaggio: committa o metti da parte (`git stash`) le modifiche e ripeti (in `-Sync` il blocco risulta `conflict` con lo stesso avviso). I file rigenerati da SecondBrain stesso (`build-prompts.ps1`, `approve-revision.ps1`, `restore-managed.ps1`, `rollback-repo.ps1`) mantengono il `.bin` anche se sporchi. I `.bin` già esistenti di file oggi tracciati e puliti compaiono come proposta in `cleanup.ps1 -ProposeRuntime`; non vengono rimossi.
+Gli indici PARA e del runtime, le viste del dossier, le istruzioni globali generate e i file IDE composti interamente dal puntatore gestito usano il journal senza copia binaria separata. Se il file del puntatore contiene testo personale, segue la normale politica di backup. Le scritture delle transazioni PARA e di importazione tracker riusano le rispettive copie di ripristino verificate. Una sostituzione interrotta può lasciare accanto alla destinazione un file `.recovery`.
+
+Per un file tracciato e pulito, SecondBrain verifica che `git cat-file --filters <gitCommit>:<percorso>` riproduca l'hash precedente. Se coincide, registra commit e blob. Se la verifica fallisce, applica la politica di backup ordinaria. Le scritture ordinarie si fermano sui file tracciati con modifiche non committate. Le operazioni che ammettono esplicitamente un file sporco mantengono il backup delle modifiche locali. `cleanup.ps1 -ProposeRuntime` può elencare i backup precedenti candidati alla revisione.
 
 `backup.ps1` crea invece uno zip deterministico dei dati locali con manifest SHA-256 (`-Verify` lo controlla). Con il nome predefinito `secondbrain-backup-<data>-<ora>.zip` un archivio esistente non viene mai sovrascritto: due backup nello stesso secondo ricevono il suffisso `-2`, `-3`, … (con `-OutputPath` esplicito il file indicato viene rimpiazzato). Non copre i file degli IDE, la configurazione MCP né `AGENTS.md` dei repository, e non esiste un comando di ripristino dello zip. Esempi: `backup.ps1` (archivio di `01-projects`, `02-areas`, `03-resources`, `04-archives`, `PARA.md`, `para-index.json` e `.runtime/hosts`), `backup.ps1 -OutputPath D:/Backups/SecondBrain/backup.zip` per un percorso scelto, `backup.ps1 -Verify` (ultimo archivio in `.runtime/backups/`) e `backup.ps1 -Verify -BackupPath <zip>` per uno specifico.
 

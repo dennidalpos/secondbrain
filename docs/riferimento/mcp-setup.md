@@ -28,6 +28,8 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target vscode -Scope project
 
 Supported targets are codex, claude, claude-code, cursor, vscode, antigravity, windsurf and all. User is the default scope; WorkspacePath without explicit Scope preserves project scope. Project scope requires a directory and is supported for the adapters declared by the implementation.
 
+Google documents `~/.gemini/config/mcp_config.json` for the user and `.agents/mcp_config.json` for a workspace. `-Pair` uses these paths and retains the legacy fallback to `~/.gemini/antigravity/mcp_config.json` when it is the only existing user file. The preview shows the selected destination. [Antigravity IDE MCP documentation](https://antigravity.google/docs/mcp?tab=ide#antigravity-ide)
+
 Inspect the exact destination/snippet/native CLI command before adding Apply. Target all is not permission to change every client. Setup with explicit MCP targets is another reviewed installation path; SYS15 guides it.
 
 Codex/Claude Code can use native user CLI registration. JSON/TOML adapters update the secondbrain section while preserving supported unrelated settings. Invalid input stops writing. JSON formatting/comments may not survive reserialization, so retain verified backup metadata. Inspect actual profile/configuration roots rather than assuming a path from the product name.

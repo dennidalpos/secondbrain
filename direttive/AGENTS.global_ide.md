@@ -10,13 +10,13 @@ Revisione 1.0 — 2026-11-05. Indicazioni trasversali; le scelte del progetto re
 
 ## Sicurezza e dati
 - Proteggi i segreti e valida gli input ai confini; non acquisire credenziali dagli archivi di autenticazione.
-- Nei repository prodotto restano codice, istruzioni tecniche, configurazioni distribuibili, documentazione e asset pubblicabili. Informazioni personali, task interni, memorie private e prove riservate appartengono a SecondBrain; dati sensibili grezzi, account, backup e catture non sanificate restano nell’area locale esclusa da Git.
+- Nei repository prodotto restano codice, istruzioni tecniche, configurazioni distribuibili, documentazione e asset pubblicabili. Informazioni personali, task interni, memorie private e riferimenti alle prove riservate appartengono al dossier SecondBrain; dati sensibili grezzi, account, backup e catture non sanificate restano nell’area locale esclusa da Git.
 - Non eliminare artefatti, backup, build, cache, fixture o screenshot senza richiesta esplicita, perimetro concreto e verifica di riferimenti, hash e recuperabilità. Preserva il lavoro estraneo e gli artefatti ufficiali; non cancellare checkout, branch o worktree senza verificarne lavoro unico e recupero.
 
 ## SecondBrain
 - Risolvi il dossier per identità (PARA e repository.json), non dal nome della cartella, e non riattivare archivi. Crea o cambia entità PARA solo con sb prompt MEM05 e scripts/para.ps1; PARA.md e para-index.json sono viste generate.
 - Carica a strati: index.md, contesto sintetico, memoria essenziale e task pertinenti (pacchetto snello di al più 30.000 caratteri, tetto solo sul primo caricamento); approfondimenti, tracker integrale e storico solo su richiesta. Non troncare l’essenziale; i caratteri non sono token esatti.
-- Output operativi, backup, fixture, build e cache gestiti stanno in SecondBrain/.runtime, isolati per postazione e repository. Crea le cartelle di lavoro con scripts/work.ps1 -Init (percorso annidato con MANIFEST.json). Configura solo capacità degli strumenti supportate e verificate, dichiarando le eccezioni.
+- Build, cache, temporanei, fixture ed evidenze dei prodotti restano nelle cartelle locali del prodotto escluse da Git. Gli output delle attività di SecondBrain stanno nel suo .runtime. Per queste attività crea le cartelle di lavoro con scripts/work.ps1 -Init (percorso annidato con MANIFEST.json). Configura solo capacità degli strumenti supportate e verificate, dichiarando le eccezioni.
 - Contesto, decisioni e tracker vivono nel dossier con sintesi minima: solo operazioni chiave e novità verificate. Preserva schema, ID, dipendenze, provenienza e storico; la compattazione conserva gli originali per hash.
 - La manutenzione centrale non esegue task, build o test dei prodotti: spettano all’agente del repository.
 

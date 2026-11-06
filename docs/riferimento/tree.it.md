@@ -63,7 +63,7 @@ Tutto il dossier è conoscenza non rigenerabile: **non cancellare**. La dimensio
 
 Per la routine di pulizia, le categorie e la proposta di pulizia vedi [manutenzione di .runtime](runtime-maintenance.md).
 
-Tutti gli output operativi gestiti stanno qui, isolati per host. Il clone può stare su una share: `.runtime/hosts/<id>/` resta per host. Nulla sotto `.runtime` entra in un repository prodotto o nell'indice Git.
+Gli output operativi di SecondBrain stanno qui, isolati per host. Gli output dei prodotti restano nelle loro cartelle locali escluse da Git. Il clone può stare su una share: `.runtime/hosts/<id>/` resta per host. Nulla sotto `.runtime` entra in un repository prodotto o nell'indice Git.
 
 | Percorso | Chi lo scrive | Cosa contiene | Cancellabile |
 | --- | --- | --- | --- |

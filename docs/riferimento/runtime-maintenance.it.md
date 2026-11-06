@@ -4,6 +4,10 @@
 
 ## Cosa contiene, per categoria
 
+`SECONDBRAIN_STATE_ROOT` consente di usare un percorso assoluto su disco fisso locale, fuori dal clone. La sottocartella è distinta per clone e postazione e contiene configurazione, discovery, selezione, esito di Setup, mappa IDE, istruzioni globali generate e il percorso predefinito `sources/python`. Sessioni e lock restano in `.runtime/access` sulla radice SecondBrain.
+
+`cleanup.ps1 -Migrate -LocalState` confronta in anteprima i file di stato e gli hash a destinazione. Le cartelle `hosts/<id>/repos` restano nella posizione corrente e Python si ricrea dal lock. `cleanup.ps1 -ListInstallBackups` presenta alla revisione le copie verificate dei file IDE personali non versionati dopo sette giorni, con soglia impostabile tramite `-InstallBackupDays`.
+
 `cleanup.ps1 -ListRuntime` classifica ogni voce di primo livello:
 
 | Categoria | Cartelle tipiche | Si può cancellare? | Come si recupera |
@@ -27,7 +31,7 @@ pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport
 pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport -ReportPath .runtime/INDEX.md
 ```
 
-**Layout delle cartelle degli agent** (l'unico ammesso): `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work` (lavoro temporaneo), `evidence` (prove), `report` (rapporti), `fixture` o `tmp`. `<repo>` è l'ultimo segmento dell'identità del repository più 8 caratteri dell'hash (leggibile e senza collisioni tra proprietari); `<slug>` usa minuscole, cifre e trattini (al più 60 caratteri). TEMP e TMP del lavoro stanno nell'area `hosts/<id>/repos/<repo>/temp`. Il percorso si ottiene con `work.ps1 -Repository <identità> -Category work -Slug <slug>` (senza `-Init` e `-Run` stampa il piano e non crea cartelle) o con `Get-SBRuntimeWorkPath`; con `-Init -Task <testo> -SessionId <id>` crea la cartella e il suo `MANIFEST.json`, con `-Close` la marca chiusa. Senza `-Category` e `-Slug` `work.ps1` mantiene l'ambiente di build `hosts/<id>/repositories/<hash>/<Project>/<Runtime>`.
+**Layout delle cartelle di lavoro di SecondBrain**: `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work` (lavoro temporaneo), `evidence` (prove), `report` (rapporti), `fixture` o `tmp`. `<repo>` è l'ultimo segmento dell'identità del repository più 8 caratteri dell'hash (leggibile e senza collisioni tra proprietari); `<slug>` usa minuscole, cifre e trattini (al più 60 caratteri). TEMP e TMP del lavoro stanno nell'area `hosts/<id>/repos/<repo>/temp`. Il percorso si ottiene con `work.ps1 -Repository <identità> -Category work -Slug <slug>` (senza `-Init` e `-Run` stampa il piano e non crea cartelle) o con `Get-SBRuntimeWorkPath`; con `-Init -Task <testo> -SessionId <id>` crea la cartella e il suo `MANIFEST.json`, con `-Close` la marca chiusa. Senza `-Category` e `-Slug` `work.ps1` mantiene l'ambiente di build `hosts/<id>/repositories/<hash>/<Project>/<Runtime>`.
 
 ### Manifest, sessioni e retention
 

@@ -120,6 +120,7 @@ Add-SBMessages @{
     'core.retry.parameter'      = @{ it = 'Nome parametro non valido per il comando di ripetizione'; en = 'Invalid parameter name for the retry command' }
     'core.write.finalization'   = @{ it = 'Registrazione finale non riuscita; errore originale conservato ({0}): {1}'; en = 'Final record failed; original error preserved ({0}): {1}' }
     'trace.event.lost'          = @{ it = 'Evento Trace perso: {0}'; en = 'Trace event lost: {0}' }
+    'core.state.root'           = @{ it = 'SECONDBRAIN_STATE_ROOT deve indicare un percorso assoluto su disco locale fisso, fuori dal clone'; en = 'SECONDBRAIN_STATE_ROOT must name an absolute path on a fixed local drive outside the clone' }
     'core.tracked.dirty'        = @{ it = "File tracciato con modifiche non committate: {0}. Committa o metti da parte (git stash) le modifiche al file, poi ripeti l'operazione."; en = 'Tracked file has uncommitted changes: {0}. Commit or stash (git stash) the file changes, then retry.' }
     'core.readback.staging'     = @{ it = 'Readback staging fallito'; en = 'Staging readback failed' }
     'core.race.kept'            = @{ it = 'Gara di scrittura rilevata; copia concorrente conservata: {0}'; en = 'Write race detected; concurrent copy kept: {0}' }
