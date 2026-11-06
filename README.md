@@ -1,4 +1,4 @@
-# SecondBrain
+# SecondBrain for Coding Agents
 
 ![Version 1.0.1](https://img.shields.io/badge/version-1.0.1-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
 
@@ -28,6 +28,29 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude -Apply
 ```
 
 Then, in the agent chat, type `sb prompt`. Step by step: [getting-started guide](docs/inizia.md).
+
+### Activate one local repository
+
+After cloning SecondBrain, run this command from its checkout. Replace the example path with the root of a local Git repository you want SecondBrain to manage.
+
+```powershell
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Projects/MyProject -Select C:/Projects/MyProject -Yes -Apply -NoRegisterEnvironment
+```
+
+This command confirms activation for the selected checkout and applies the approved rules. It leaves the user-level environment variable untouched. Use interactive setup above to review the selection first or to connect an agent.
+
+## SecondBrain for Coding Agents CLI demo
+
+From the SecondBrain checkout, load the selected project's Slim context in a fresh PowerShell process and inspect the next-task workflow.
+
+```powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Profile Slim -NoRecovery -CheckoutPath C:/Projects/MyProject
+pwsh -NoProfile -File scripts/prompts.ps1 -Show -Prompt REP01 -Language en
+```
+
+In an isolated Windows run with one synthetic Git repository, Setup returned `applied: true`. Startup returned `profile: Slim` and `withinBudget: true`, and the catalog displayed the English REP01 card. No agent login is needed for this CLI demo.
+
+On the reference Windows workstation, Setup took a median **10.96 s** across three isolated runs with one synthetic repository and no IDE pairing. The real SecondBrain dossier measured **21,194 characters** in Slim and **54,746** in Full, with one CLI sample per profile. In separate local filesystem tests, two concurrent writers produced two distinct tracker entries and two memory updates, each recorded once.
 
 ## What it does
 
@@ -105,6 +128,9 @@ Publication also requires [SEC07](docs/riferimento/operations.md#publication), w
 - Windows only.
 - An updated file does not prove that the agent loaded it: check in a new session.
 - Tests use sample data, not every real app.
+- A shared Markdown folder works for manual notes. SecondBrain adds a tracker, layered startup and coordinated writes, with the overhead of running Setup and maintaining a dossier.
+- Per-repository instruction files work when each project owns its own rules. SecondBrain distributes a common managed block across selected checkouts. Loading that block still depends on the agent.
+- The setup and concurrency measurements cover one Windows workstation and its local filesystem. Network shares and live IDE sessions require separate checks.
 
 MIT License. Sources and acknowledgements: [CREDITS](CREDITS.md). Central maintenance and backup: [runtime](docs/riferimento/runtime-maintenance.md).
 

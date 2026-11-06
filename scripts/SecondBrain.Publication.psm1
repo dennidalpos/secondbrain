@@ -65,7 +65,8 @@ function Test-SBPublicationText([string]$Text,[string]$Path,[string]$Surface,$Al
 function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath) {
     # Without explicit -PolicyPath, use the default local policy when present (CLI and MCP return the same outcome).
     if($PolicyPath){return $PolicyPath}
-    if(Test-Path -LiteralPath (Join-Path $BrainRoot '.runtime/publication/policy.json') -PathType Leaf){return '.runtime/publication/policy.json'}
+    $defaultPolicyPath=Join-Path $BrainRoot '.runtime/publication/policy.json'
+    if(Test-Path -LiteralPath $defaultPolicyPath -PathType Leaf){return $defaultPolicyPath}
     return $null
 }
 function Get-SBPublicationBaselinePath([string]$BrainRoot,[string]$RepositoryRoot) {

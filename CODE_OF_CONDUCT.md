@@ -20,4 +20,4 @@ Unacceptable behavior:
 
 The maintainer may edit, hide or remove contributions that do not follow this code, and may block repeat offenders from the repository.
 
-To report a conduct problem, contact the maintainer through the GitHub profile [dennidalpos](https://github.com/dennidalpos). Reports are handled privately. Security vulnerabilities follow [SECURITY.md](SECURITY.md) instead.
+To report a conduct problem, contact the maintainer through the GitHub profile [dennidalpos](https://github.com/dennidalpos). Keep sensitive details out of public issues, pull requests and discussions. Security vulnerabilities follow [SECURITY.md](SECURITY.md) instead.
