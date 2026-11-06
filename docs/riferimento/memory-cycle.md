@@ -35,6 +35,8 @@ For an isolated probe, pass `-Diagnostics` and capture the bridge's stderr. It e
 
 A live qualification receipt binds client/version, workspace, observation, evidence path/hash and the current module hash. Only evidenceKind=live-client can yield liveVerified. Hashes establish integrity, not truth or permission to persist.
 
+When Codex Stop repeats the text of a final transcript message, the bridge keeps the structured transcript message once. It retains the Stop reply when the transcript lacks that final text or contains a different reply.
+
 ## Promotion
 
 A candidate binds capture path/hash, expected destination hashes and verified changes referencing retained event IDs.

@@ -112,6 +112,21 @@ $permit=@{schemaVersion=1;repository=$repo;client='codex';clientVersion='fixture
 $native=@{session_id='native-session';turn_id='native-turn';transcript_path=$nativeFile;last_assistant_message='Final response'}
 $normalized=ConvertFrom-SBCycleNativeTurn codex $native $permit
 Assert-Cycle ($normalized.state -eq 'prepared' -and (ConvertTo-SBJson $normalized.envelope) -notmatch 'Old turn|Hidden reasoning|Hidden analysis' -and $normalized.envelope.events[-1].content -eq 'Final response') 'native Codex selects current turn, final response and exposed events only'
+$finalBlocks=@(@{type='output_text';text='Final ';annotations=@();logprobs=@()},@{type='output_text';text='response';annotations=@();logprobs=@()})
+$finalRow=@{type='response_item';payload=@{type='message';role='assistant';channel='final';content=$finalBlocks}}
+[IO.File]::WriteAllLines($nativeFile,@(($nativeRows+@($finalRow))|ForEach-Object {$_|ConvertTo-Json -Compress -Depth 20}))
+$normalized=ConvertFrom-SBCycleNativeTurn codex $native $permit
+$assistantEvents=@($normalized.envelope.events|Where-Object kind -eq 'assistant')
+Assert-Cycle ($assistantEvents.Count -eq 1 -and (ConvertTo-SBJson $assistantEvents[0].content) -ceq (ConvertTo-SBJson $finalBlocks)) 'native Codex keeps the structured final reply once when Stop repeats its text'
+$native.last_assistant_message='Different final response'
+$normalized=ConvertFrom-SBCycleNativeTurn codex $native $permit
+Assert-Cycle ($normalized.envelope.events[-1].content -ceq 'Different final response') 'native Codex retains a distinct Stop reply'
+$native.last_assistant_message='Final response'
+$finalRow.payload.channel='commentary'
+[IO.File]::WriteAllLines($nativeFile,@(($nativeRows+@($finalRow))|ForEach-Object {$_|ConvertTo-Json -Compress -Depth 20}))
+$normalized=ConvertFrom-SBCycleNativeTurn codex $native $permit
+Assert-Cycle ($normalized.envelope.events[-1].content -ceq 'Final response') 'native Codex retains the final Stop reply when only commentary repeats its text'
+[IO.File]::WriteAllLines($nativeFile,@($nativeRows|ForEach-Object {$_|ConvertTo-Json -Compress -Depth 20}))
 $transcriptWriter=[IO.File]::Open($nativeFile,[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::Read)
 try {
     Assert-Cycle ((ConvertFrom-SBCycleNativeTurn codex $native $permit).state -eq 'prepared') 'native Codex reads a transcript still open by the writer'
