@@ -19,7 +19,7 @@ Review command effects first. Ordinary synchronization does not edit product sou
 | Hook install/remove | Selected Git hook after separate authorization |
 | Cleanup/recovery/rollback | Preview first; respective Apply authorization required |
 | Backup | Local knowledge/runtime archive, not an IDE-wide backup |
-| ExportPackage | Direct package-file writes; existing OutDir files can be overwritten without managed backups |
+| ExportPackage | Managed writes into a new directory below `.runtime`; existing destinations are refused |
 | work Run | Executes the explicitly supplied program |
 
 Preview does not always mean zero runtime writes. Use strict NoRecovery knowledge/server entrypoints when all writes are prohibited.

@@ -11,6 +11,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'mcp.package.destination' = @{it='Scegliere una cartella nuova sotto .runtime: {0}';en='Choose a new folder under .runtime: {0}'}
     'mcp.pending.disabled' = @{it='Consultazione senza recupero delle scritture pendenti per questa sessione o richiesta.';en='Consultation without pending-write recovery for this session or request.'}
     'mcp.description.noRecovery' = @{it='Non integrare scritture pendenti in questa chiamata; usare -NoRecovery all avvio del server per disabilitare anche il recupero iniziale';en='Skip pending-write recovery for this call; start the server with -NoRecovery to disable startup recovery too'}
     'mcp.title.get_startup_context' = @{ it = 'Contesto iniziale'; en = 'Startup context' }
@@ -1243,6 +1244,50 @@ function Set-SBMcpConfiguration {
     $applied
 }
 
+function New-SBMcpDesktopBundle {
+    $manifest = ConvertTo-SBMcpJson @{
+        manifest_version='0.3';name='secondbrain';version=(Read-SBText (Join-Path $PSScriptRoot '../VERSION')).Trim()
+        description='Launch the local SecondBrain MCP server';author=@{name='SecondBrain contributors'}
+        compatibility=@{platforms=@('win32')}
+        user_config=@{clone=@{type='directory';title='SecondBrain checkout';description='Select the local SecondBrain clone';required=$true}}
+        server=@{type='node';entry_point='launcher.cjs';mcp_config=@{
+            command='node';args=@('${__dirname}/launcher.cjs','${user_config.clone}')
+        }}
+        tools_generated=$true
+    }
+    $launcher = @'
+const { spawn } = require('node:child_process');
+const { join } = require('node:path');
+
+const checkout = process.argv[2];
+if (!checkout) {
+  console.error('Select the SecondBrain checkout in the extension settings.');
+  process.exitCode = 1;
+} else {
+  const server = spawn('pwsh', ['-NoProfile', '-File', join(checkout, 'scripts', 'mcp-server.ps1')], {
+    stdio: 'inherit',
+    windowsHide: true,
+  });
+  server.on('error', (error) => {
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+  server.on('exit', (code) => { process.exitCode = code ?? 1; });
+}
+'@
+    $buffer = [IO.MemoryStream]::new()
+    try {
+        $archive = [IO.Compression.ZipArchive]::new($buffer,[IO.Compression.ZipArchiveMode]::Create,$true)
+        try {
+            foreach ($entry in @{ 'manifest.json'=$manifest; 'launcher.cjs'=$launcher }.GetEnumerator()) {
+                $writer = [IO.StreamWriter]::new($archive.CreateEntry($entry.Key).Open(),[Text.UTF8Encoding]::new($false))
+                try { $writer.Write($entry.Value) } finally { $writer.Dispose() }
+            }
+        } finally { $archive.Dispose() }
+        return ,$buffer.ToArray()
+    } finally { $buffer.Dispose() }
+}
+
 function New-SBMcpPackage {
     [CmdletBinding()]
     param(
@@ -1256,57 +1301,43 @@ function New-SBMcpPackage {
     if (!$OutDir) {
         $OutDir = Join-Path $BrainRoot '.runtime/mcp-package'
     }
-    $OutDir = [IO.Path]::GetFullPath($OutDir)
-    [IO.Directory]::CreateDirectory($OutDir) | Out-Null
+    $runtime = Join-Path $BrainRoot '.runtime'
+    $OutDir = [IO.Path]::GetFullPath($OutDir).TrimEnd([char[]]@('/', '\'))
+    $relative = [IO.Path]::GetRelativePath($runtime,$OutDir)
+    if ($relative -in '.','..' -or $relative.StartsWith('..'+[IO.Path]::DirectorySeparatorChar) -or
+        [IO.Path]::IsPathRooted($relative) -or $relative -match '[:]|[. ](?:[\\/]|$)') {
+        throw (New-SBError 'mcp.package.destination' @($OutDir))
+    }
+    Assert-SBPlainPath $OutDir
+    if (Test-Path -LiteralPath $OutDir) { throw (New-SBError 'mcp.package.destination' @($OutDir)) }
 
-    $pairings = Get-SBMcpPairing -BrainRoot $BrainRoot -Target all
-    $createdFiles = @()
-
-    foreach ($p in $pairings) {
-        $targetDir = Join-Path $OutDir $p.Target
-        [IO.Directory]::CreateDirectory($targetDir) | Out-Null
-
-        if ($p.Target -eq 'codex') {
-            $fullToml = Join-Path $targetDir 'config.toml'
-            [IO.File]::WriteAllText($fullToml, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $fullToml
-
-            $snippetToml = Join-Path $targetDir 'snippet.toml'
-            [IO.File]::WriteAllText($snippetToml, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $snippetToml
-        } elseif ($p.Target -eq 'vscode') {
-            $settingsJson = Join-Path $targetDir 'mcp.json'
-            [IO.File]::WriteAllText($settingsJson, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $settingsJson
-        } elseif ($p.Target -eq 'claude') {
-            $claudeJson = Join-Path $targetDir 'claude_desktop_config.json'
-            [IO.File]::WriteAllText($claudeJson, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $claudeJson
-        } elseif ($p.Target -eq 'claude-code') {
-            $registrationJson=Join-Path $targetDir 'user-registration.json'
-            [IO.File]::WriteAllText($registrationJson,($p.Snippet+"`n"),[Text.UTF8Encoding]::new($false))
-            $createdFiles+=$registrationJson
-        } elseif ($p.Target -eq 'cursor') {
-            $cursorJson = Join-Path $targetDir 'mcp.json'
-            [IO.File]::WriteAllText($cursorJson, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $cursorJson
-        } else {
-            $mcpJson = Join-Path $targetDir 'mcp_config.json'
-            [IO.File]::WriteAllText($mcpJson, ($p.Snippet + "`n"), [Text.UTF8Encoding]::new($false))
-            $createdFiles += $mcpJson
+    $files = [ordered]@{}
+    foreach ($pairing in Get-SBMcpPairing -BrainRoot $BrainRoot -Target all) {
+        $name = switch ($pairing.Target) {
+            'codex' { 'config.toml' }
+            'claude' { 'claude_desktop_config.json' }
+            'claude-code' { 'user-registration.json' }
+            { $_ -in 'cursor','vscode' } { 'mcp.json' }
+            default { 'mcp_config.json' }
+        }
+        $files["$($pairing.Target)/$name"] = $pairing.Snippet + "`n"
+        if ($pairing.PermissionsSnippet) {
+            $extension = if ($pairing.Target -eq 'codex') { 'toml' } else { 'json' }
+            $files["$($pairing.Target)/permissions-preview.$extension"] = $pairing.PermissionsSnippet + "`n"
         }
     }
+    $files['codex/snippet.toml'] = $files['codex/config.toml']
+    $files['claude/secondbrain.mcpb'] = New-SBMcpDesktopBundle
+    $files['SecondBrain.Messages.psm1'] = Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+    $server = @{command='pwsh';args=@('-NoProfile','-File',(Join-Path $BrainRoot 'scripts/mcp-server.ps1'))}
+    $vsCode = ConvertTo-Json -InputObject ($server + @{name='secondbrain';type='stdio'}) -Compress
+    $cursor = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBMcpJson $server)))
 
-    # Bundle the message runtime so bootstrap errors work even without the brain.
-    $messageRuntime = Join-Path $OutDir 'SecondBrain.Messages.psm1'
-    [IO.File]::WriteAllText($messageRuntime, (Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')), [Text.UTF8Encoding]::new($false))
-    $createdFiles += $messageRuntime
     $packageMessages = @{}
     foreach($key in @('mcp.package.root','mcp.package.applying')){
         $packageMessages[$key] = @{it=(Get-SBMessage $key @() 'it');en=(Get-SBMessage $key @() 'en')}
     }
     # Install script one-click
-    $installScript = Join-Path $OutDir 'install-all-ides.ps1'
     $installContent = @(
         '#requires -Version 7.5',
         '<#',
@@ -1314,7 +1345,7 @@ function New-SBMcpPackage {
         'Installa automaticamente il server MCP SecondBrain in tutti gli IDE supportati.',
         '#>',
         '[CmdletBinding()]',
-        'param([ValidateSet(''en'',''it'')][string]$Language)',
+        'param([ValidateSet(''en'',''it'')][string]$Language,[switch]$ApproveKnowledgeTools)',
         'Import-Module (Join-Path $PSScriptRoot ''SecondBrain.Messages.psm1'') -Force',
         'if($Language){Set-SBUiLanguage $Language;$env:SECONDBRAIN_LANG=$Language}',
         ('Add-SBMessages (ConvertFrom-Json -AsHashtable -InputObject ''' + (ConvertTo-SBMcpJson $packageMessages).Replace("'","''") + ''')'),
@@ -1328,13 +1359,10 @@ function New-SBMcpPackage {
         '    }',
         '}',
         'Write-Host (Get-SBMessage ''mcp.package.applying'') -ForegroundColor Cyan',
-        '& pwsh -NoProfile -File (Join-Path $brain ''scripts/mcp-server.ps1'') -Pair -Target all -Apply'
+        '$options = @{Pair=$true;Target=''all'';Apply=$true;ApproveReadTools=$ApproveKnowledgeTools}',
+        '& (Join-Path $brain ''scripts/mcp-server.ps1'') @options'
     ) -join "`n"
-    [IO.File]::WriteAllText($installScript, ($installContent + "`n"), [Text.UTF8Encoding]::new($false))
-    $createdFiles += $installScript
-
-    # README guide
-    $readmePath = Join-Path $OutDir 'README.md'
+    $files['install-all-ides.ps1'] = $installContent + "`n"
     $readmeContent = @(
         '# Pacchetto di Configurazione MCP: SecondBrain',
         '',
@@ -1353,6 +1381,22 @@ function New-SBMcpPackage {
         '',
         '---',
         '',
+        'I consensi sono opzionali. Riesaminare i file permissions-preview prima di usare -ApproveKnowledgeTools. Il piano mantiene la conferma per check_publication.',
+        '',
+        '- Claude Desktop: aprire claude/secondbrain.mcpb e selezionare il clone locale. Richiede PowerShell 7.5+ sul PATH.',
+        ('- Cursor: [Importa SecondBrain](cursor://anysphere.cursor-deeplink/mcp/install?name=secondbrain&config=' + [uri]::EscapeDataString($cursor) + ')'),
+        '- VS Code, da PowerShell:',
+        '',
+        '```powershell',
+        ("code --add-mcp '" + $vsCode.Replace("'", "''") + "'"),
+        '```',
+        '',
+        '- Codex: usare scripts/mcp-server.ps1 -Pair -Target codex -Apply dal clone.',
+        '- Claude Code: usare scripts/mcp-server.ps1 -Pair -Target claude-code -Apply dal clone.',
+        '- Antigravity 2.x: per un progetto usare -Pair -Target antigravity -Scope project -WorkspacePath <progetto> -Apply (.agents/mcp_config.json).',
+        '',
+        'I frammenti e i link sono specifici del clone di esportazione. Il bundle Desktop chiede la radice alla persona che lo importa.',
+        '',
         '## 2. Installazione Manuale per Singolo IDE',
         '',
         '| IDE | File nel pacchetto | Destinazione nel sistema |',
@@ -1368,14 +1412,27 @@ function New-SBMcpPackage {
         '---',
         '',
         '## 3. Verifica Connessione JSON-RPC',
-        'Invia una richiesta handshake di test al server:',
+        'Dal clone, inviare una richiesta di test al server:',
         '```powershell',
-        "'{\`"jsonrpc\`":\`"2.0\`",\`"id\`":1,\`"method\`":\`"tools/list\`",\`"params\`":{}}' | pwsh -NoProfile -File `"$($BrainRoot.Replace('\', '/'))/scripts/mcp-server.ps1`"",
+        '''{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'' | pwsh -NoProfile -File scripts/mcp-server.ps1 -NoRecovery',
         '```'
     ) -join "`n"
-    [IO.File]::WriteAllText($readmePath, ($readmeContent + "`n"), [Text.UTF8Encoding]::new($false))
-    [IO.File]::WriteAllText($readmePath, ($readmeContent + "`n"), [Text.UTF8Encoding]::new($false))
-    $createdFiles += $readmePath
+    $files['README.md'] = $readmeContent + "`n"
+    $checksums = foreach ($name in @($files.Keys)) {
+        if ($files[$name] -is [string]) { $files[$name] = [Text.Encoding]::UTF8.GetBytes($files[$name]) }
+        "$(Get-SBHash $files[$name])  $name"
+    }
+    $files['SHA256SUMS'] = [Text.Encoding]::UTF8.GetBytes(($checksums -join "`n") + "`n")
+    $lock = Enter-SBOperation @{coordinationRoot=(Join-Path $runtime 'access');brainRoot=$BrainRoot;workstationId='non-attivata'} -LockOnly
+    try {
+        Assert-SBPlainPath $OutDir
+        if (Test-Path -LiteralPath $OutDir) { throw (New-SBError 'mcp.package.destination' @($OutDir)) }
+        $createdFiles = foreach ($name in $files.Keys) {
+            $destination = Join-Path $OutDir $name
+            Write-SBFile $destination $files[$name] 'absent' (Join-Path $runtime 'backups') | Out-Null
+            $destination
+        }
+    } finally { Exit-SBOperation $lock }
 
     return [PSCustomObject]@{
         PackageDir = $OutDir

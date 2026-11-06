@@ -95,35 +95,19 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target claude -Apply
 
 ## 4. Metodo 2: Esportazione di un Pacchetto Distribuibile (`-ExportPackage`)
 
-Se desideri creare un pacchetto portabile con tutte le configurazioni già pronte, script one-click e guida per distribuirlo ad altri workspace o postazioni:
+Esporta in una sottocartella nuova di `.runtime`. Per ripetere l'export, scegli una nuova destinazione. Il file `SHA256SUMS` contiene le impronte dei file generati.
 
 ```powershell
 # Genera il pacchetto nella cartella predefinita (.runtime/mcp-package)
 pwsh -NoProfile -File scripts/mcp-server.ps1 -ExportPackage
 
 # Oppure specifica una directory di destinazione personalizzata
-pwsh -NoProfile -File scripts/mcp-server.ps1 -ExportPackage -OutDir "C:\Condivisa\SecondBrain-MCP-Package"
+pwsh -NoProfile -File scripts/mcp-server.ps1 -ExportPackage -OutDir ".runtime/mcp-package-fixture"
 ```
 
-### Contenuto del Pacchetto Generato:
-```text
-mcp-package/
-├── README.md                      # Guida autonoma di consultazione rapida
-├── install-all-ides.ps1           # Script PowerShell one-click per applicare a tutti gli IDE
-├── codex/
-│   ├── config.toml                # File completo per ~/.codex/config.toml
-│   └── snippet.toml               # Solo la sezione [mcp_servers.secondbrain]
-├── claude/
-│   └── claude_desktop_config.json # Configurazione JSON per Claude Desktop
-├── cursor/
-│   └── mcp.json                   # Configurazione JSON per Cursor
-├── vscode/
-│   └── mcp.json                   # Frammento mcp.json con servers (type stdio)
-├── antigravity/
-│   └── mcp_config.json            # Configurazione JSON per Google Antigravity
-└── windsurf/
-    └── mcp_config.json            # Configurazione JSON per Windsurf
-```
+Il README generato include il link per Cursor, il comando per VS Code, i comandi di pairing per Codex e Claude Code e i percorsi utente e progetto di Antigravity 2.x. I frammenti e i link usano il percorso del clone da cui sono stati esportati. Il bundle `claude/secondbrain.mcpb` chiede di selezionare il clone locale all'importazione e richiede PowerShell 7.5+ sul PATH.
+
+L'installer applica il collegamento. Per applicare anche i consensi supportati, riesamina le anteprime e passa `-ApproveKnowledgeTools`. Il piano conserva la conferma per `check_publication`. Verifica caricamento e consensi in una nuova sessione del client.
 
 ---
 

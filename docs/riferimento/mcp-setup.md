@@ -38,7 +38,11 @@ Codex/Claude Code can use native user CLI registration. JSON/TOML adapters updat
 
 ApproveKnowledgeTools (alias ApproveReadTools) prepares named knowledge permissions that include already-authorized queue integration. check_publication remains separate. ApproveAllTools is a broader policy choice requiring explicit scope approval; do not use it as a routine fix for prompts.
 
-ExportPackage creates a configuration package/launcher through direct file writes. Its current implementation can overwrite files in an existing OutDir without the managed writer's expected-hash checks/backups, and does not enforce runtime confinement. Always choose a new initialized runtime destination, preserve any previous package, and review the target before export. Export is not an installation preview. Keep launcher, modules/messages and configuration together; a package does not prove installation or live loading.
+`-ExportPackage` writes to a new directory below the checkout's `.runtime`. Use a new child directory of an initialized work folder for subsequent exports. Verify the payloads with `SHA256SUMS` and keep the launcher, message module, and configuration together. A failed export may leave an incomplete directory. Use a fresh destination for the retry.
+
+The generated README includes a VS Code CLI command, a Cursor import link, and native pairing commands for Codex and Claude Code. It also covers the Antigravity 2.x user and project paths. The snippets and import commands contain the exporting checkout path. The separate `claude/secondbrain.mcpb` asks for the checkout directory at import time and requires PowerShell 7.5+ on PATH.
+
+The generated installer applies the connection. To apply the supported tool permissions as well, review the permission previews and pass `-ApproveKnowledgeTools`. The plan keeps `check_publication` subject to confirmation. Verify loading and actual consent behavior in a fresh session of the target client.
 
 ## Verify in layers
 

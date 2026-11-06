@@ -52,6 +52,27 @@ $argsBase=@{BrainRoot=$brain;Identity=$identity;WorkingRepository=$identity}
 function Invoke-EssentialCli([string[]]$Arguments){$out=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -ConfigPath $configPath -CheckoutPath $repo @Arguments 2>&1);@{code=$LASTEXITCODE;text=($out -join "`n")}}
 
 if('portable' -in $Groups){
+    $package = New-SBMcpPackage -BrainRoot $brain -OutDir (Join-Path $brain '.runtime/package')
+    Reject { New-SBMcpPackage -BrainRoot $brain -OutDir $package.PackageDir } 'MCP export refuses existing package'
+    Reject { New-SBMcpPackage -BrainRoot $brain -OutDir (Join-Path $brain '.runtime/../outside') } 'MCP export refuses a destination outside runtime'
+    $checksums = @(Get-Content -LiteralPath (Join-Path $package.PackageDir 'SHA256SUMS'))
+    Check ($checksums.Count -eq $package.FileCount - 1) 'MCP export records a hash for every payload'
+    foreach ($line in $checksums) {
+        $hash,$relative = $line -split '  ',2
+        Check ((Get-SBFileHash (Join-Path $package.PackageDir $relative)) -ceq $hash) ('MCP export checksum: '+$relative)
+    }
+    $desktop = [IO.Compression.ZipFile]::OpenRead((Join-Path $package.PackageDir 'claude/secondbrain.mcpb'))
+    try {
+        $reader = [IO.StreamReader]::new($desktop.GetEntry('manifest.json').Open())
+        try { $manifestText = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $manifest = ConvertFrom-Json $manifestText
+        Check ($desktop.Entries.Count -eq 2 -and $desktop.GetEntry($manifest.server.entry_point) -and
+            $manifest.user_config.clone.required -and $manifest.server.mcp_config.args[1] -ceq '${user_config.clone}' -and
+            !$manifestText.Contains($brain)) 'MCP Desktop bundle only uses the install-time clone path'
+    } finally { $desktop.Dispose() }
+    $packageReadme = Read-SBText (Join-Path $package.PackageDir 'README.md')
+    Check ($packageReadme.Contains('code --add-mcp') -and $packageReadme.Contains('cursor://anysphere.cursor-deeplink/mcp/install') -and
+        $packageReadme.Contains('.agents/mcp_config.json')) 'MCP export documents the import commands and project path'
     $savedAntigravityProfile=$env:USERPROFILE
     try {
         $env:USERPROFILE=Join-Path $fixture 'antigravity-profile'
