@@ -94,7 +94,8 @@ try {
             $f=New-AuditFixture ('source-'+$fixturePhase)
             Put-Audit $f.source '{"tasks":[{"id":"X","title":"Originale","status":"pending"}]}'
             $hash=Get-SBFileHash $f.source;$source=$f.source
-            $edit={param($phase) if($phase -eq $checkpoint){Put-Audit $source '{"tasks":[{"id":"X","title":"Originale","status":"pending"},{"id":"NEW","title":"Concorrente","status":"pending"}]}'}}.GetNewClosure()
+            # The hook runs inside the import module: closures do not see this script's helper functions, so write with .NET directly.
+            $edit={param($phase) if($phase -eq $checkpoint){[IO.File]::WriteAllText($source,'{"tasks":[{"id":"X","title":"Originale","status":"pending"},{"id":"NEW","title":"Concorrente","status":"pending"}]}',[Text.UTF8Encoding]::new($false))}}.GetNewClosure()
             Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $source -Activate -AfterPhase $edit} ('modifica nella fase '+$checkpoint+' rifiutata')
             $m=Read-SBTrackerManifest $f.config (Read-SBJson (Get-SBTrackerImportPath $f.config $f.identity) $null).manifest
             Assert-Audit ((Read-SBJson $source $null).tasks.Count -eq 2 -and (Get-SBFileHash $m.source.backup) -eq $hash -and (Get-SBFileHash $m.source.archive) -eq $hash) ('entrambe le versioni preservate '+$checkpoint)
