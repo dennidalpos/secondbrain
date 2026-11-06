@@ -70,7 +70,8 @@ Assert-Cycle ($third.state -eq 'applied' -and $decisionSource.Contains('id=decis
 $thirdReceipt=Read-SBJson $third.receipt $null
 Assert-Cycle ((Get-SBTextHash (ConvertTo-SBJson $thirdReceipt.candidate)).ToLowerInvariant() -ceq $thirdReceipt.candidateSha256) 'promotion receipt preserves the reviewed candidate and its source revisions'
 $derived=$candidate.Clone();$derived.sources=@{'context.md'=(Get-SBFileHash (Join-Path $d 'context.md'));'topics/fixture.md'='absent'}
-$derived.changes=@(@{kind='context';text=(Read-SBText (Join-Path $d 'context.md'));verified=$true;eventIds=@('a2')},@{kind='topic';path='topics/fixture.md';text='# Verified topic';verified=$true;eventIds=@('a2')})
+$englishContext=(Read-SBText (Join-Path $d 'context.md')).Replace('Stato corrente','Current state').Replace('Vincoli','Constraints').Replace('Problemi aperti','Open issues').Replace('Prossimo passo','Next step')
+$derived.changes=@(@{kind='context';text=$englishContext;verified=$true;eventIds=@('a2')},@{kind='topic';path='topics/fixture.md';text='# Verified topic';verified=$true;eventIds=@('a2')})
 $derivedResult=Invoke-SBCyclePromotion $brain $derived $workspace $backups -Apply
 $topicText=Read-SBText (Join-Path $d 'topics/fixture.md')
 $topicLink=[regex]::Match($topicText,'\[registro del turno\]\(([^)]+)\)').Groups[1].Value

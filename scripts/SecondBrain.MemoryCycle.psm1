@@ -428,7 +428,7 @@ function Invoke-SBCyclePromotion {
         switch($change.kind){
             'context' {
                 if(!$change.ContainsKey('text')){throw (New-SBError 'cycle.invalid' @('context text'))}
-                foreach($heading in @('Stato corrente','Vincoli','Problemi aperti','Prossimo passo')){if($change.text -notmatch ('(?m)^## '+$heading+'\s*$')){$reasons+='essential-section'}}
+                if(@(Get-SBMissingContextSection $change.text).Count){$reasons+='essential-section'}
                 $planned['context.md']=([string]$change.text).TrimEnd()+"`n`nFonte: [registro del turno]("+$sourceLink+'); eventi '+($change.eventIds -join ', ')+"`n"
             }
             'decision' {

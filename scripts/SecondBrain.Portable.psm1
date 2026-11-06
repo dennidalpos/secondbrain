@@ -173,7 +173,7 @@ function Invoke-SBHostActivation {
             $repo=@{schemaVersion=1;identity=$identity}
             if(!$requiresImport){$repo.tracker=@{location='dossier';path='tracker.json';schemaVersion=1}}
             $seed=@{'para.json'=(ConvertTo-SBJson $metadata);'repository.json'=(ConvertTo-SBJson $repo);'brief.md'=("# "+$asset.name+"`n`nRepository selezionato per la gestione della conoscenza. Perimetro e stato nel contesto corrente.`n");
-              'context.md'=("# Contesto`n`n## Stato corrente`n`nRepository selezionato; architettura e comandi da verificare dallʼagente del prodotto.`n`n## Vincoli`n`nNessun task applicativo eseguito dal bootstrap.`n`n## Problemi aperti`n`nQualificare fonti informative e configurazione degli output.`n`n## Prossimo passo`n`nEsaminare codice e documenti del repository.`n");
+              'context.md'=(Read-SBText (Join-Path $PSScriptRoot 'SecondBrain.context.template.md'));
               'memory.md'="# Memoria essenziale`n`nNessuna decisione tecnica ancora qualificata.`n"}
             if(!$requiresImport){$seed['tracker.json']=ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@();history=@();extensions=@{}}}
             foreach($name in $seed.Keys){$path=Join-Path $dossier $name;if(Test-Path -LiteralPath $path){throw (New-SBError 'portable.destination.uncensused')};$operations+=@{path=$path;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($seed[$name])}}

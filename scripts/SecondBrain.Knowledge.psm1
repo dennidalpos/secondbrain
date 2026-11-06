@@ -26,6 +26,7 @@ Add-SBMessages @{
     'knowledge.candidate.repository' = @{ it = 'Candidato di un altro repository'; en = 'Candidate belongs to another repository' }
     'knowledge.source.changed' = @{ it = 'Fonte modificata dopo la preparazione: {0}'; en = 'Source changed after preparation: {0}' }
     'knowledge.summary.missing' = @{ it = 'Sintesi assente: {0}'; en = 'Summary missing: {0}' }
+    'knowledge.section.name' = @{ it = '{1}'; en = '{0}' }
     'knowledge.section.essential' = @{ it = 'Sezione essenziale assente: {0}'; en = 'Essential section missing: {0}' }
     'knowledge.original.diverged' = @{ it = 'Originale archiviato divergente'; en = 'Archived original diverges' }
     'knowledge.candidate.tasks' = @{ it = 'Il candidato omette task aperti: rigenerare la proiezione'; en = 'The candidate omits open tasks: regenerate the projection' }
@@ -132,6 +133,27 @@ function Split-SBMarkdownH2([string]$Text) {
     }
     if($normalized.Length -gt $start){$normalized.Substring($start)}
 }
+$script:SBContextSections = @(
+    @{ english='Constraints'; italian='Vincoli'; priority=0 }
+    @{ english='Current state'; italian='Stato corrente'; priority=1 }
+    @{ english='Open issues'; italian='Problemi aperti'; priority=2 }
+    @{ english='Next step'; italian='Prossimo passo'; priority=2 }
+)
+
+function Get-SBMarkdownSectionTitle([string]$Chunk) {
+    if($Chunk.StartsWith('## ')){return ($Chunk -split "`n",2)[0].Substring(3).Trim()}
+    return ''
+}
+
+function Get-SBMissingContextSection([string]$Text) {
+    $titles=@(Split-SBMarkdownH2 $Text | ForEach-Object { Get-SBMarkdownSectionTitle $_ })
+    foreach($section in $script:SBContextSections){
+        if($section.english -notin $titles -and $section.italian -notin $titles){
+            Get-SBMessage 'knowledge.section.name' @($section.english,$section.italian)
+        }
+    }
+}
+
 function Split-SBTieredMarkdown([string]$Text) {
     $Text=Remove-SBPrivateText $Text
     $essential=[Text.StringBuilder]::new();$history=[Text.StringBuilder]::new();$titles=@()
@@ -225,7 +247,8 @@ function Format-SBSlimTasks($Projection) {
 function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget) {
     $notice="`n"+(Get-SBMessage 'knowledge.startup.compacted')+"`n"
     $minimum=$Parts.index+$Parts.levels+$notice
-    $requiredContext=@(Split-SBMarkdownH2 $Parts.context|Where-Object {$_ -match '(?m)^## (?:Vincoli|Constraints|Stato corrente|Current state|Problemi aperti|Open issues|Prossimo passo|Next step)\s*$'}) -join ''
+    $essentialTitles=@($script:SBContextSections.english)+@($script:SBContextSections.italian)
+    $requiredContext=@(Split-SBMarkdownH2 $Parts.context | Where-Object { (Get-SBMarkdownSectionTitle $_) -in $essentialTitles }) -join ''
     $requiredCharacters=$minimum.Length+$requiredContext.Length+$Parts.memory.Length+$Parts.tasks.Length
     # Essential state and selected work cannot silently disappear to make the report green.
     if($requiredCharacters -gt $Budget){return @{minimum=$requiredCharacters;omitted=@()}}
@@ -244,10 +267,14 @@ function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget)
     $blocks=[Collections.Generic.List[object]]::new()
     foreach($part in @('context','memory')){
         foreach($chunk in (Split-SBMarkdownH2 $Parts[$part])){
-            $heading=($chunk -split "`n",2)[0]
-            $title=if($heading.StartsWith('## ')){$heading.Substring(3).Trim()}else{''}
-            $priority=switch -Regex ($title){'^Vincoli$|^Constraints$'{0} '^Stato corrente$|^Current state$'{1} '^Problemi aperti$|^Open issues$|^Prossimo passo$|^Next step$'{2} default{4}}
+            $title=Get-SBMarkdownSectionTitle $chunk
+            $priority=4
             if($part -eq 'memory'){$priority=3}
+            else{
+                foreach($section in $script:SBContextSections){
+                    if($title -in @($section.english,$section.italian)){$priority=$section.priority;break}
+                }
+            }
             $text=if($chunk.EndsWith("`n")){$chunk}else{$chunk+"`n"}
             $blocks.Add(@{part=$part;title=$title;text=$text;priority=$priority})
         }
@@ -703,7 +730,11 @@ function Invoke-SBDossierCompaction {
         if(!$candidate.sources.ContainsKey($name) -or $candidate.sources[$name] -ne $hash){throw (New-SBError 'knowledge.source.changed' @($name))}
         if(!$candidate.summaries.ContainsKey($name) -or !$candidate.summaries[$name].Trim()){throw (New-SBError 'knowledge.summary.missing' @($name))}
         $text=[string]$candidate.summaries[$name]
-        if($name -eq 'context.md'){foreach($heading in @('Stato corrente','Vincoli','Problemi aperti','Prossimo passo')){if($text -notmatch ('(?m)^## '+[regex]::Escape($heading)+'\s*$')){throw (New-SBError 'knowledge.section.essential' @($heading))}}}
+        if($name -eq 'context.md'){
+            foreach($heading in (Get-SBMissingContextSection $text)){
+                throw (New-SBError 'knowledge.section.essential' @($heading))
+            }
+        }
         $archiveRelative='history/compaction/'+$hash.ToLowerInvariant()+'/'+$name
         $archive=Join-Path $dir $archiveRelative;$existing=Get-SBFileHash $archive
         if($existing -eq 'absent'){$ops+=@{path=$archive;expected='absent';bytes=[IO.File]::ReadAllBytes($source)}}elseif($existing -ne $hash){throw (New-SBError 'knowledge.original.diverged')}
@@ -736,6 +767,7 @@ function Invoke-SBDossierCompaction {
 Export-ModuleMember -Function @(
     'Remove-SBPrivateText',
     'Get-SBDossierTOC',
+    'Get-SBMissingContextSection',
     'Get-SBDossierHistoryIndex',
     'Get-SBTaskProjection',
     'Split-SBTieredMarkdown',

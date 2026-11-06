@@ -127,7 +127,19 @@ Assert-Prompts ($global.Length -le 5500) ('testo comune entro 5.500 caratteri ('
 Assert-Prompts ($station.Length -le 3200) ('testo di postazione entro 3.200 caratteri ('+$station.Length+')')
 Assert-Prompts ($repoBlock.Length -le 3200) ('blocco repository entro 3.200 caratteri ('+$repoBlock.Length+')')
 Assert-Prompts ($global -match '(?m)^Revisione \d+\.\d+ — \d{4}-\d{2}-\d{2}\.') 'riga di revisione leggibile dal registro'
-foreach($heading in 'Principi','Sicurezza e dati','SecondBrain','Verifica','Git e pubblicazione','Chiusura'){Assert-Prompts ($global -match ('(?m)^## '+[regex]::Escape($heading)+'\s*$')) "sezione '$heading' nel testo comune"}
+$headings=[ordered]@{
+    'Principi'='Principles'
+    'Sicurezza e dati'='Security and data'
+    'SecondBrain'='SecondBrain'
+    'Verifica'='Verification'
+    'Git e pubblicazione'='Git and publication'
+    'Chiusura'='Closing work'
+}
+foreach($heading in $headings.Keys){
+    $italian=[regex]::Escape($heading)
+    $english=[regex]::Escape($headings[$heading])
+    Assert-Prompts ($global -match "(?m)^## (?:$italian|$english)\s*$") "sezione '$heading' nel testo comune"
+}
 Assert-Prompts ($global -notmatch 'ask_question|Function Calling') 'nessun nome di strumento non standard nel testo comune'
 foreach($text in $global,$station,$repoBlock){Assert-Prompts ($text -notmatch '(?<![A-Za-z0-9+.-])[A-Z]:[\/]|(?<![\w/])/(?:Users|home)/|\{\{') 'nessun percorso assoluto o segnaposto'}
 Assert-Prompts ($station.Contains('<!-- secondbrain:tracker-contract:1 -->')) 'contratto tracker presente nel testo di postazione'

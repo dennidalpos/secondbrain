@@ -1,19 +1,17 @@
-# Dossier SecondBrain
+# Repository context
 
-## Stato corrente
+## Current state
 
-Tool di conoscenza, memorie, storico, task, prompt e direttive dei repository.
-Verificare codice, configurazione locale e revisione comune effettivamente approvata.
+The repository is registered in SecondBrain. Verify its architecture, configuration, and commands in the checkout.
 
-## Vincoli
+## Constraints
 
-La manutenzione centrale non esegue task applicativi impliciti. Output sotto .runtime;
-nessun monitor e nessuna pulizia di artefatti senza richiesta esplicita.
+The bootstrap registers the dossier. Product agents run product tasks and keep their outputs in Git-ignored folders in the product checkout.
 
-## Problemi aperti
+## Open issues
 
-Qualificare lo stato reale della postazione e delle integrazioni; un template non e una prova.
+Verify which sources and workstation integrations apply.
 
-## Prossimo passo
+## Next step
 
-Leggere index.md e usare il workflow pertinente del catalogo corrente.
+Read index.md and select the relevant workflow from the current prompt catalog.

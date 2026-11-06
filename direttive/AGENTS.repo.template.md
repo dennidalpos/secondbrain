@@ -1,24 +1,26 @@
-# Istruzioni del repository: <Nome>
+# Repository instructions for <Name>
 
-Revisione 1.0 — 2026-11-04. Vincoli specifici del progetto; i contenuti comuni sono gestiti separatamente.
+Revision 1.0 — 2026-11-04. Record project-specific rules here. SecondBrain manages the common directives separately.
 
-Modello da compilare soltanto con informazioni verificate; omettere le sezioni non pertinenti.
+Use verified information and omit sections that do not apply.
 
-## Contesto
-- Scopo e utenti del progetto.
-- Stack, versioni e ambienti effettivi: riferimenti ai manifest e lockfile.
-- Confini architetturali e invarianti che non sono immediatamente evidenti dal codice.
+## Context
 
-## Lavoro e verifiche
-- Comandi realmente presenti: prerequisiti, directory, shell e criterio di successo.
-- Controlli richiesti prima di una consegna o di un commit, se definiti dal progetto.
-- Vincoli specifici su compatibilità, dati, release e collaborazione Git.
+- Describe the project's purpose and users.
+- Identify the stack, versions, and supported environments from manifests and lockfiles.
+- Record architectural boundaries and invariants that are hard to infer from the code.
 
-## Riferimenti e collaborazione
-- Consultare README e documentazione effettivamente presenti; versioni dai manifest/lockfile, non da ipotesi sullo stack.
-- `02-areas/products/<Nome>/memory.md` e `02-areas/products/<Nome>/context.md` (nel dossier SecondBrain) conservano decisioni tecniche durevoli, gotcha e architettura; aggiornarli nei task di scrittura solo con novità pertinenti e verificate.
-- Collegamenti al tracker (`tracker.json` o `02-areas/products/<Nome>/tracker.md`) e a direttive annidate, se presenti.
-- Nei task di scrittura rimuovere temporanei del task e residui confermati preservando dati e lavoro unico. Sincronizzare SecondBrain dopo modifiche a dossier o direttive, oppure su richiesta; nelle sole analisi segnalare i residui preesistenti senza rimuoverli.
-- A chiusura del task verificare i criteri di accettazione, aggiornare il tracker del dossier (`tracker.json`) e verificare che i task completati o annullati siano archiviati nello storico con ID, dipendenze e prove, registrare decisioni durevoli in `memory.md`, aggiornare `context.md` ed eseguire la sincronizzazione SecondBrain.
+## Work and verification
 
-Non copiare esempi di altri stack come comandi operativi. Non attribuire automaticamente una modalità Greenfield, obblighi normativi o un workflow Git. Il blocco SecondBrain gestito viene aggiunto separatamente da `secondbrain.ps1 -Sync`.
+- List commands available in this checkout, including prerequisites, working directory, shell, and success criteria.
+- List project checks required before delivery or commit.
+- Record project-specific rules for compatibility, data, releases, and Git collaboration.
+
+## References and collaboration
+
+- Link to the current README, documentation, nested instructions, and authoritative tracker declaration.
+- Record durable decisions, gotchas, and architecture in the SecondBrain dossier's memory.md. Update context.md with verified changes.
+- Preserve existing artifacts and unrelated work. Follow the common cleanup authorization rules.
+- Before closing a task, verify its acceptance criteria and update the tracker. Check that terminal tasks move to history with their IDs, dependencies, and evidence. Update context and memory, then run the SecondBrain checks.
+
+Verify examples against this project before including them. State the lifecycle, regulatory obligations, and Git workflow only when supported by project evidence. The managed SecondBrain block is added by `secondbrain.ps1 -Sync`.

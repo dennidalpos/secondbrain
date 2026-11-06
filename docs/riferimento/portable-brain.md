@@ -33,7 +33,7 @@ Discover can save a runtime report; MaxDirectories/ResumePath support bounded re
 
 Preview the current command and selection; do not treat flags as authorization. Activate SelectionPath is the lower-level path for a confirmed selection with matching report/fingerprint hashes. Outdated selections are refused. Setup Status reads current bindings/integrations/receipt.
 
-New dossiers can start empty only if no existing authoritative tracker source needs explicit import. Conversion/import and adoption of old memories remain separate reviewed actions. RegisterEnvironment behavior is explicit; restart IDEs to pick up user-environment changes.
+New dossiers start with an English context template. Slim startup, compaction and memory-cycle promotion recognize the four required context headings in English or Italian. New dossiers can start with an empty tracker only if no existing authoritative tracker source needs explicit import. Conversion/import and adoption of old memories remain separate reviewed actions. RegisterEnvironment behavior is explicit; restart IDEs to pick up user-environment changes.
 
 ## Configuration and identity
 

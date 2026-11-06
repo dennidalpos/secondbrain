@@ -327,6 +327,9 @@ if('workflows' -in $Groups){
     $candidatePath=Join-Path $brain '.runtime/candidate.json'
     $candidate=@{schemaVersion=1;repository=$identity;sources=@{};summaries=@{};openTaskIds=@((Read-SBJson $trackerPath $null).tasks|Where-Object status -notin @('done','cancelled')|ForEach-Object id);reviewed=$true;reviewNote='synthetic conservation test'}
     foreach($name in @('context.md','memory.md')){$candidate.sources[$name]=Get-SBFileHash (Join-Path $dossier $name);$candidate.summaries[$name]=Read-SBText (Join-Path $dossier $name)}
+    $candidate.summaries['context.md']=$originalContext.Replace('Stato corrente','Current state').Replace('Vincoli','Constraints').Replace('Problemi aperti','Open issues').Replace('Prossimo passo','Next step')
+    Check (@(Get-SBMissingContextSection $originalContext).Count -eq 0) 'Italian context remains valid'
+    Check (@(Get-SBMissingContextSection ($candidate.summaries['context.md'].Replace('## Next step', "~~~markdown`n## Next step`n~~~"))).Count -eq 1) 'fenced headings do not satisfy context validation'
     Put $candidatePath (ConvertTo-SBJson $candidate)
     $preview=Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Budget 16000 -CheckoutPath $repo
     Check (!$preview.applied -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $before) 'compaction preview preserves source'
