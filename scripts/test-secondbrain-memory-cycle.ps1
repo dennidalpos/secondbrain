@@ -112,6 +112,12 @@ $permit=@{schemaVersion=1;repository=$repo;client='codex';clientVersion='fixture
 $native=@{session_id='native-session';turn_id='native-turn';transcript_path=$nativeFile;last_assistant_message='Final response'}
 $normalized=ConvertFrom-SBCycleNativeTurn codex $native $permit
 Assert-Cycle ($normalized.state -eq 'prepared' -and (ConvertTo-SBJson $normalized.envelope) -notmatch 'Old turn|Hidden reasoning|Hidden analysis' -and $normalized.envelope.events[-1].content -eq 'Final response') 'native Codex selects current turn, final response and exposed events only'
+$transcriptWriter=[IO.File]::Open($nativeFile,[IO.FileMode]::Open,[IO.FileAccess]::Write,[IO.FileShare]::Read)
+try {
+    Assert-Cycle ((ConvertFrom-SBCycleNativeTurn codex $native $permit).state -eq 'prepared') 'native Codex reads a transcript still open by the writer'
+} finally {
+    $transcriptWriter.Dispose()
+}
 $permit.turnId='previous-turn'
 Assert-Cycle ((ConvertFrom-SBCycleNativeTurn codex $native $permit).state -eq 'suppressed') 'stale native permit cannot authorize another turn'
 $permit.turnId='native-turn';$permit.lastUserSha256='0'*64
@@ -144,14 +150,21 @@ $permit.client='codex';$permit.turnId='native-turn';$permit.lastUserSha256=Get-S
 [IO.File]::WriteAllLines($nativeFile,@($nativeRows|ForEach-Object {$_|ConvertTo-Json -Compress -Depth 20}))
 $permitPath=Join-Path $workspace 'permit.json';[IO.File]::WriteAllText($permitPath,(ConvertTo-SBJson $permit))
 $native.cwd=$root
-$bridge=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath 2>&1)
+$bridge=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath -Diagnostics 2>&1)
 $nativeKey=(Get-SBTextHash ($repo+"`n"+'codex'+"`n"+'native-session'+"`n"+'native-turn')).ToLowerInvariant()
 Assert-Cycle ($LASTEXITCODE -eq 0 -and [IO.File]::Exists((Join-Path $workspace ('turns/'+$nativeKey+'.json')))) ('native bridge subprocess captures current fixture turn: '+($bridge -join ' '))
+$receipt=[string]$bridge[0]|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($bridge.Count -eq 1 -and $receipt.Count -eq 3 -and $receipt.schemaVersion -eq 1 -and $receipt.phase -ceq 'capture' -and $receipt.outcome -ceq 'captured') 'capture diagnostic contains only phase and outcome metadata'
 $permit.turnId='wrong-root';$native.turn_id='wrong-root';$native.cwd=Join-Path (Split-Path $root) 'unbound-repository'
 [IO.File]::WriteAllText($permitPath,(ConvertTo-SBJson $permit))
 $before=@(Get-ChildItem -LiteralPath $brain -Recurse -File).Count
 $ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath 2>&1)
 Assert-Cycle ($LASTEXITCODE -eq 0 -and @(Get-ChildItem -LiteralPath $brain -Recurse -File).Count -eq $before) 'native repository mismatch cannot start a write session or capture'
+Assert-Cycle ($ignored.Count -eq 0) 'suppressed native hook is silent by default'
+$diagnosed=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath -Diagnostics 2>&1)
+$receipt=[string]$diagnosed[0]|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $diagnosed.Count -eq 1 -and $receipt.Count -eq 3 -and $receipt.schemaVersion -eq 1 -and $receipt.phase -ceq 'binding' -and $receipt.outcome -ceq 'suppressed') 'diagnostic reports suppression at the repository binding'
+Assert-Cycle (@(Get-ChildItem -LiteralPath $brain -Recurse -File).Count -eq $before) 'diagnostic suppression does not start a write session or create files'
 $observation=@{schemaVersion=1;repository=$repo;client='codex';clientVersion='fixture';workspace=$workspace;observedAt=[DateTimeOffset]::UtcNow.ToString('o');coverage='partial';evidenceKind='fixture';evidencePath=$saved.path;evidenceSha256=(Get-SBFileHash $saved.path);moduleSha256=(Get-SBFileHash (Join-Path $PSScriptRoot 'SecondBrain.MemoryCycle.psm1'))}
 $observationPath=Join-Path $workspace 'observation.json';[IO.File]::WriteAllText($observationPath,(ConvertTo-SBJson $observation))
 Assert-Cycle (!(Get-SBCycleAdapter codex $brain $repo $observationPath).liveVerified) 'valid fixture receipt never becomes live qualification'

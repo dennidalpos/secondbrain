@@ -31,6 +31,8 @@ memory-cycle-hook requires PermitPath binding exact repository, client/version, 
 
 Codex uses turn_id, Claude Code the last human UUID and Antigravity executionNum. Changed request/session/turn/path invalidates a permit. Optional candidate/attachment paths authorize exact workspace files. The bridge neither installs hooks nor grants permission; errors do not prevent ending a client turn.
 
+For an isolated probe, pass `-Diagnostics` and capture the bridge's stderr. It emits a JSON record with `schemaVersion`, `phase` and `outcome`. The record contains only fixed status values and can distinguish suppression during permit validation, native event handling, or repository binding from a capture attempt. The switch requires no diagnostic file and grants no persistence permission.
+
 A live qualification receipt binds client/version, workspace, observation, evidence path/hash and the current module hash. Only evidenceKind=live-client can yield liveVerified. Hashes establish integrity, not truth or permission to persist.
 
 ## Promotion

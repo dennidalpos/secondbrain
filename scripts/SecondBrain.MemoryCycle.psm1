@@ -94,40 +94,48 @@ function ConvertFrom-SBCycleNativeTurn([string]$Client,$NativeEvent,$Permit) {
     Assert-SBPlainPath $path
     if(![IO.File]::Exists($path) -or ([IO.FileInfo]::new($path)).Length -gt 128MB){return @{state='suppressed';reason='native-source-unavailable';writes=0}}
     $events=@();$lineNumber=0;$lastUser=$null;$lastUserId='';$lastAssistant='';$unsupported=0
-    foreach($line in [IO.File]::ReadLines($path)){
-        $lineNumber++
-        if($line.Length -gt 8MB){throw (New-SBError 'cycle.invalid' @('native line size'))}
-        try{$entry=$line|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{$unsupported++;continue}
-        if($entry -isnot [Collections.IDictionary]){$unsupported++;continue}
-        $message=$entry
-        if($entry.ContainsKey('type') -and $entry.type -eq 'response_item' -and $entry.ContainsKey('payload')){$message=$entry.payload}
-        elseif($entry.ContainsKey('message') -and $entry.message -is [Collections.IDictionary]){$message=$entry.message}
-        $kind='';$content=$null;$human=$false
-        if($message.ContainsKey('channel') -and $message.channel -notin @('final','commentary')){$unsupported++;continue}
-        if($message.ContainsKey('role') -and $message.ContainsKey('content')){
-            if($message.role -in @('user','assistant')){
-                if($message.content -isnot [string] -and $message.content -isnot [array]){$unsupported++;continue}
-                $blocks=$message.content
-                if($blocks -is [array]){
-                    $visible=@($blocks|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('type') -and $_.type -in @('text','input_text','output_text','image','input_image','document','tool_use','tool_result')})
-                    $unsupported+=$blocks.Count-$visible.Count;$blocks=$visible
+    # The native client can still hold its transcript open for writing at Stop.
+    $stream=[IO.File]::Open($path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
+    $reader=$null
+    try {
+        $reader=[IO.StreamReader]::new($stream)
+        while($null -ne ($line=$reader.ReadLine())){
+            $lineNumber++
+            if($line.Length -gt 8MB){throw (New-SBError 'cycle.invalid' @('native line size'))}
+            try{$entry=$line|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{$unsupported++;continue}
+            if($entry -isnot [Collections.IDictionary]){$unsupported++;continue}
+            $message=$entry
+            if($entry.ContainsKey('type') -and $entry.type -eq 'response_item' -and $entry.ContainsKey('payload')){$message=$entry.payload}
+            elseif($entry.ContainsKey('message') -and $entry.message -is [Collections.IDictionary]){$message=$entry.message}
+            $kind='';$content=$null;$human=$false
+            if($message.ContainsKey('channel') -and $message.channel -notin @('final','commentary')){$unsupported++;continue}
+            if($message.ContainsKey('role') -and $message.ContainsKey('content')){
+                if($message.role -in @('user','assistant')){
+                    if($message.content -isnot [string] -and $message.content -isnot [array]){$unsupported++;continue}
+                    $blocks=$message.content
+                    if($blocks -is [array]){
+                        $visible=@($blocks|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('type') -and $_.type -in @('text','input_text','output_text','image','input_image','document','tool_use','tool_result')})
+                        $unsupported+=$blocks.Count-$visible.Count;$blocks=$visible
+                    }
+                    $toolResult=@($blocks|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('type') -and $_.type -eq 'tool_result'}).Count -gt 0
+                    $kind=if($toolResult){'tool-result'}else{[string]$message.role};$content=$blocks;$human=($kind -eq 'user')
                 }
-                $toolResult=@($blocks|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('type') -and $_.type -eq 'tool_result'}).Count -gt 0
-                $kind=if($toolResult){'tool-result'}else{[string]$message.role};$content=$blocks;$human=($kind -eq 'user')
+            }elseif($message.ContainsKey('type') -and $message.type -in @('function_call','function_call_output')){
+                $kind=if($message.type -eq 'function_call'){'tool-request'}else{'tool-result'}
+                $content=@{};foreach($field in @('name','arguments','output','call_id')){if($message.ContainsKey($field)){$content[$field]=$message[$field]}}
+            }elseif($message.ContainsKey('userMessage') -and $message.userMessage -is [string]){$kind='user';$human=$true;$content=$message.userMessage}
+            elseif($message.ContainsKey('assistantMessage') -and $message.assistantMessage -is [string]){$kind='assistant';$content=$message.assistantMessage}
+            if(!$kind){$unsupported++;continue}
+            if($human){
+                $events=@();$lastUser=$content;$lastAssistant=''
+                $lastUserId=if($entry.ContainsKey('uuid')){[string]$entry.uuid}elseif($entry.ContainsKey('id')){[string]$entry.id}else{''}
             }
-        }elseif($message.ContainsKey('type') -and $message.type -in @('function_call','function_call_output')){
-            $kind=if($message.type -eq 'function_call'){'tool-request'}else{'tool-result'}
-            $content=@{};foreach($field in @('name','arguments','output','call_id')){if($message.ContainsKey($field)){$content[$field]=$message[$field]}}
-        }elseif($message.ContainsKey('userMessage') -and $message.userMessage -is [string]){$kind='user';$human=$true;$content=$message.userMessage}
-        elseif($message.ContainsKey('assistantMessage') -and $message.assistantMessage -is [string]){$kind='assistant';$content=$message.assistantMessage}
-        if(!$kind){$unsupported++;continue}
-        if($human){
-            $events=@();$lastUser=$content;$lastAssistant=''
-            $lastUserId=if($entry.ContainsKey('uuid')){[string]$entry.uuid}elseif($entry.ContainsKey('id')){[string]$entry.id}else{''}
+            if($null -eq $lastUser){continue}
+            $events+=@{id=('native-'+$lineNumber);kind=$kind;content=$content}
+            if($kind -eq 'assistant'){$lastAssistant=ConvertTo-SBJson $content}
         }
-        if($null -eq $lastUser){continue}
-        $events+=@{id=('native-'+$lineNumber);kind=$kind;content=$content}
-        if($kind -eq 'assistant'){$lastAssistant=ConvertTo-SBJson $content}
+    } finally {
+        if($reader){$reader.Dispose()}else{$stream.Dispose()}
     }
     $turn=if($NativeEvent.ContainsKey('turn_id')){[string]$NativeEvent.turn_id}elseif($Client -eq 'claude-code'){$lastUserId}elseif($NativeEvent.ContainsKey('executionNum')){[string]$NativeEvent.executionNum}else{''}
     if(!$turn -or $turn -cne $Permit.turnId -or $null -eq $lastUser -or (Get-SBTextHash (ConvertTo-SBJson $lastUser)) -cne $Permit.lastUserSha256){
