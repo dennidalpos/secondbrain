@@ -47,7 +47,7 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
 pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
 ~~~
 
-Sync applies the approved managed blocks. Pair without Apply previews the configuration; Apply changes the selected client's configuration with backup. Use `claude`, `claude-code` or `antigravity` when appropriate; consult [agents and MCP](ide-e-mcp.md) for user and workspace targets.
+Sync applies the approved managed blocks. Pair without Apply previews the configuration; Apply changes the selected client's configuration with backup. Setup also previews user-level pairing for selected supported IDEs or explicit `-McpTargets`. Review the preview before confirming. Use `-Pair` for project scope and verify popup behavior in a new client session. See [agents and MCP](ide-e-mcp.md).
 
 ## Verify the integration
 

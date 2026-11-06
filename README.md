@@ -87,7 +87,7 @@ flowchart LR
 | ChatGPT Codex for Windows | supported | `-Target codex` |
 | Antigravity for Windows | supported | `-Target antigravity` |
 
-MCP is optional; the same content is also available from the command line.
+MCP is optional. Review the user-level pairing in Setup or use `mcp-server.ps1 -Pair` for a specific client and scope. Verify popup behavior in a new client session. The same content is available from the command line.
 
 - **With MCP:** agent-ready tools and compact answers; at startup and on lookups it picks up queued, already-authorized dossier writes. [Deferred writes and permissions](docs/riferimento/pending-writes.md).
 - **Without MCP:** the agent runs the scripts from a shell; approval requirements depend on the IDE configuration.

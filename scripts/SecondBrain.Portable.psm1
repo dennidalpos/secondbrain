@@ -10,9 +10,13 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+$script:SBPortableMcpTargets=@{'Codex'='codex';'Claude Code'='claude-code';'Claude Desktop'='claude';'Cursor'='cursor';'VS Code'='vscode';'Antigravity'='antigravity';'Windsurf'='windsurf'}
 Add-SBMessages @{
     'portable.git.required' = @{it='Serve Git 2.42 o successivo, eseguibile e con versione riconoscibile';en='Git 2.42 or later is required, executable and with a recognizable version'}
     'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di conoscenza';en='Select valid MCP targets to approve knowledge tools'}
+    'portable.mcp.preview' = @{it='Anteprima del pairing MCP a livello utente';en='User-level MCP pairing preview'}
+    'portable.setup.apply' = @{it='Digita APPLICA per attivare ora (invio = solo anteprima)';en='Type APPLICA to activate now (Enter keeps the preview)'}
+    'portable.issue.mcpconsent' = @{it='Manca una prova valida del popup di consenso per uno strumento MCP in questa sessione';en='A valid observation of the consent prompt for an MCP tool in this session is missing'}
     'portable.selection.summary' = @{ it = 'Selezione: {0} repository, {1} IDE'; en = 'Selection: {0} repositories, {1} IDEs' }
     'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
     'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
@@ -420,7 +424,7 @@ function Invoke-SBSetup {
         if(!$approvals[$asset.id]){throw (New-SBError 'portable.block.unapproved' @($asset.path))}
     }
     $result.selected=[ordered]@{repositories=@($chosen|ForEach-Object {$_.name});ides=@($chosenIdes|ForEach-Object {$_.name})}
-    $targetsByName=@{'Codex'='codex';'Claude Code'='claude-code';'Claude Desktop'='claude';'Cursor'='cursor';'VS Code'='vscode';'Antigravity'='antigravity';'Windsurf'='windsurf'}
+    $targetsByName=$script:SBPortableMcpTargets
     if(!$McpTargets.Count){
         $McpTargets=@($chosenIdes|ForEach-Object {$targetsByName[$_.name]}|Where-Object {$_}|Sort-Object -Unique)
     }
@@ -467,7 +471,13 @@ function Invoke-SBSetup {
         })}
     }
     $doApply=[bool]$Apply
-    if(!$doApply -and $prompting){$doApply=(([string](Read-Host 'Digita APPLICA per attivare ora (invio = solo anteprima)')).Trim() -ceq 'APPLICA')}
+    if($prompting -and $McpTargets.Count){
+        Write-Host (Get-SBMessage 'portable.mcp.preview')
+        Write-Host (ConvertTo-SBJson $result.mcp)
+    }
+    if($prompting -and (!$doApply -or $McpTargets.Count)){
+        $doApply=(([string](Read-Host (Get-SBMessage 'portable.setup.apply'))).Trim() -ceq 'APPLICA')
+    }
     if(!$doApply){$result.activation=$preview;return $result}
     if($RegisterEnvironment -and $NoRegisterEnvironment){throw (New-SBError 'portable.environment.alternatives')}
     $doRegister=!$NoRegisterEnvironment
@@ -620,6 +630,11 @@ function Invoke-SBPortableSync {
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
         if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $Config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw (New-SBError 'portable.observations.invalid')};$observations=@($receipt.observations)}
+        $mcpToolNames=@()
+        if($Check -and !$Repository -and $ObservationPath){
+            Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')
+            $mcpToolNames=@(Get-SBMcpKnowledgeToolNames)+@('check_publication')
+        }
         $global=$null
         try{$global=Get-SBPortableGlobal $Config.brainRoot}catch{$issues+=@{kind='unapproved-portable-directives';reason=$_.Exception.Message}}
         $forbiddenList=@(Get-SBForbiddenRepositories $Config.brainRoot $Config)
@@ -718,6 +733,17 @@ function Invoke-SBPortableSync {
                 if($contextState.status -eq 'unrecorded' -and !$Check -and $contextState.current){$state.ideContext[[string]$ide.id]=$contextState.current}
                 elseif($contextState.status -eq 'changed'){$issues+=@{kind='ide-context-changed';ide=$ide.name;reason=(Get-SBMessage 'portable.issue.idecontext')}}
                 $observed=Test-SBIDEObservation $ide (Get-SBTextHash $global.Trim()) $observations $Config.brainRoot $Config.workstationId
+                if($mcpToolNames.Count -and $script:SBPortableMcpTargets.ContainsKey($ide.name)){
+                    $mcpObservations=@($observations|Where-Object {$_ -is [System.Collections.IDictionary] -and $_['ideId'] -ceq $ide.id})
+                    if($mcpObservations.Count){
+                        $consent=$mcpObservations[0]['mcpConsent']
+                        if(!$observed -or $contextState.status -eq 'changed' -or $mcpObservations[0]['evidenceSha256'] -notmatch '^[0-9a-fA-F]{64}$' -or
+                           $consent -isnot [System.Collections.IDictionary] -or $consent['tool'] -cnotin $mcpToolNames -or
+                           $consent['outcome'] -cnotin @('popup-shown','no-popup')){
+                            $issues+=@{kind='mcp-consent-unverified';ide=$ide.name;id=$ide.id;reason=(Get-SBMessage 'portable.issue.mcpconsent')}
+                        }
+                    }
+                }
                 if($ide.mode -eq 'manual'){
                     $alias=if($ide.ContainsKey('accountAlias')){[string]$ide.accountAlias}else{''}
                     if(!$observed){$issues+=@{kind='account-unverified';ide=$ide.name;id=$ide.id;accountAlias=$alias}}

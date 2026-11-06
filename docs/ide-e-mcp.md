@@ -26,7 +26,7 @@ pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 ~~~
 
-Preview first; Apply changes the selected configuration with backup. Restart the client and inspect its MCP connection in a new session. SYS15 guides multi-client installation; SYS01 handles profile/account evidence. For workspace targets, inspect the explicit destination before applying.
+Review Setup's user-level MCP preview for selected supported IDEs or explicit `-McpTargets`. In interactive Setup, review the destination and named tool rules before entering `APPLICA`. For direct pairing, preview first. Apply changes the selected configuration with backup. Restart the client and inspect its MCP connection in a new session. SYS15 guides multi-client installation; SYS01 handles profile/account evidence. For workspace targets, inspect the explicit destination before applying.
 
 ## Exposed tools
 
@@ -63,6 +63,6 @@ Use `SECONDBRAIN_LANG` or server `-Language en|it` for tool descriptions. Indivi
 2. Run the repository's MCP handshake checks to distinguish protocol failures from client configuration.
 3. Inspect the connection in the real client; Claude Code provides `/mcp`, while Codex CLI provides `codex mcp list`.
 4. Check named tool permissions without granting broader access than the current workflow needs.
-5. Record account/profile, instruction revision and observed loading separately.
+5. Record account/profile, instruction revision, observed loading and the popup outcome for the exact tool. `secondbrain.ps1 -Check -ObservationPath` reports `mcp-consent-unverified` for a supported IDE with an incomplete or invalid consent observation.
 
 Use the shell when MCP is unavailable. CLI access has the same data model, while shell permissions remain those of the session. Detailed procedures: [adapters](riferimento/adapters.md), [MCP setup](riferimento/mcp-setup.md), [deferred writes](riferimento/pending-writes.md).

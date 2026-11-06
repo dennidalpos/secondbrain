@@ -164,10 +164,37 @@ if('portable' -in $Groups){
             $env:USERPROFILE=Join-Path $runtime 'synthetic-profile'
             [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
             $setupScript=Join-Path $brain 'scripts/secondbrain.ps1'
+            $cursorConfig=Join-Path $env:USERPROFILE '.cursor/mcp.json'
+            $preview=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+            Check ($LASTEXITCODE -eq 0 -and $preview.mcp.preview -and $preview.mcp.targets[0].ConfigFile -eq $cursorConfig -and !(Test-Path -LiteralPath $cursorConfig)) 'setup previews the MCP destination without pairing'
+            $interactiveOutput=(('skip'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Interactive -Apply -NoRegisterEnvironment -Language en) -join "`n")
+            $previewAt=$interactiveOutput.IndexOf('User-level MCP pairing preview')
+            $resultAt=$interactiveOutput.IndexOf('"stage": "preview"')
+            Check ($LASTEXITCODE -eq 0 -and $previewAt -ge 0 -and $resultAt -gt $previewAt -and !(Test-Path -LiteralPath $cursorConfig)) 'interactive setup displays the MCP preview and respects refusal'
             $setup=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $setup.applied -and $setup.check.mode -eq 'sync' -and $setup.mcp.permissionConfigurationComplete -and [IO.File]::Exists($setup.setupReport)) 'setup applies sync, named approvals and a persistent report in an isolated profile'
             $repeat=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $repeat.mcp.items[0].PermissionAction -eq 'unchanged') 'setup repeats with the same repository identity and MCP rules'
+            $observationConfig=Read-SBConfiguration -BrainRoot $brain -ReadOnly
+            $observationConfig.ides=@(@{id='fixture-cursor';name='Cursor';mode='manual';profile='fixture';accountAlias='fixture'})
+            $observationPath=Join-Path $runtime 'mcp-observation.json'
+            $evidence=Join-Path $runtime 'mcp-observation-evidence.txt'
+            Put $evidence 'Synthetic loading and tool consent observation'
+            $observation=@{ideId='fixture-cursor';workstationId=$hostId;profile='fixture';accountAlias='fixture';accountVerified=$true;sessionId='fixture-session';observedAt=[DateTimeOffset]::UtcNow.ToString('o');observedHash=(Get-SBTextHash (Get-SBPortableGlobal $brain).Trim());loadingVerified=$true;evidencePath=$evidence;evidenceSha256=(Get-SBFileHash $evidence)}
+            Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
+            $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
+            Check (@($check.issues|Where-Object {$_.kind -eq 'mcp-consent-unverified' -and $_.id -eq 'fixture-cursor'}).Count -eq 1 -and $check.liveLoadingVerified) 'MCP consent remains unverified when loading is observed without a popup result'
+            foreach($outcome in 'popup-shown','no-popup','unknown'){
+                $observation.mcpConsent=@{tool='get_prompt_home';outcome=$outcome}
+                Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
+                $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
+                Check (('mcp-consent-unverified' -in $check.issues.kind) -eq ($outcome -eq 'unknown')) ('MCP receipt checks the observed outcome: '+$outcome)
+            }
+            $observation.mcpConsent.outcome='no-popup'
+            Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
+            Put $evidence 'Modified evidence'
+            $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
+            Check ('mcp-consent-unverified' -in $check.issues.kind) 'MCP consent cannot be verified with changed evidence'
             $legacyConfig=$repeat.activation.configuration
             $legacyHash=Get-SBFileHash $legacyConfig
             $env:SECONDBRAIN_STATE_ROOT=Join-Path $fixture 'external-state'
