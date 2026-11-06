@@ -86,6 +86,8 @@ function Get-SBTrackerManifestRegistrations($Config) {
     $registry=Read-SBJson (Join-Path $Config.coordinationRoot 'workstations.json') @{}
     $stations+=@($registry.Values)
     $seen=@{}
+    # A pre-V1.0 journal and its current counterpart may both register one manifest: report each manifest once (current root first), after validating every entry.
+    $manifestsSeen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
     foreach($station in $stations){
         $runtime=[IO.Path]::GetFullPath($station.runtimeRoot)
         if($seen.ContainsKey($runtime)){continue};$seen[$runtime]=$true
@@ -109,7 +111,7 @@ function Get-SBTrackerManifestRegistrations($Config) {
             if(!$m -or $m.schemaVersion -ne 1 -or $m.kind -notin $script:SBTrackerImportKinds -or $m.identity -cne $registration.identity -or
                $m.brainRoot -ne $Config.brainRoot -or $m.id -notmatch '^[a-f0-9]{32}$' -or
                $path -ne (Join-Path $stationConfig.backupRoot ('tracker-'+$m.id+'/manifest.json'))){throw (New-SBError 'trackerimport.registry.binding')}
-            @{path=$path;config=$stationConfig;manifest=$m;hash=$manifestHash}
+            if($manifestsSeen.Add($path)){@{path=$path;config=$stationConfig;manifest=$m;hash=$manifestHash}}
         }
         }
     }

@@ -197,6 +197,39 @@ Assert-Runtime (!$outcome.removed -and (Test-Path -LiteralPath $protected)) 'pro
 $selected=Get-SafeTarget $tmp
 $outcome=Remove-SafeTarget $selected
 Assert-Runtime ($outcome.removed -and !(Test-Path -LiteralPath $tmp)) 'target tmp invariato rimosso solo nella fixture sintetica'
+# Test-runner fixture lifecycle: managed manifest opens with the run, closes on every outcome and is selected only after expiry.
+. (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
+$runnerIdentity=@{HostId=$hostId;OwnerUser="$env:USERNAME";OwnerComputer="$env:COMPUTERNAME"}
+$runnerBase=Join-Path $safeRuntime ('hosts/'+$hostId+'/repos/tests-0a1b2c3d/fixture/20200101-minimal')
+[IO.Directory]::CreateDirectory((Join-Path $runnerBase 'run-aaaaaaaa'))|Out-Null
+function Get-RunnerEntry{
+    $plan=Get-SBRegenerableRuntimeTargets $safeBrain @() 0 0 @runnerIdentity
+    @($plan.targets+$plan.skipped|Where-Object {Test-SBSamePath $_.path $runnerBase})
+}
+$runnerManifest=Open-SBTestFixtureManifest $runnerBase $hostId 'tests-0a1b2c3d'
+$opened=Read-SBJson $runnerManifest $null
+Assert-Runtime ($opened.status -ceq 'open' -and $opened.category -ceq 'fixture' -and $opened.name -ceq '20200101-minimal' -and $opened.hostId -ceq $hostId) 'manifest fixture runner aperto con campi coerenti'
+Assert-Runtime (@(Get-RunnerEntry)[0].reasonCode -ceq 'manifest-not-closed') 'fixture runner aperta mai selezionata'
+$runnerRun=@{manifest=$runnerManifest;baseRoot=$runnerBase;runId='run-aaaaaaaa'}
+[IO.Directory]::CreateDirectory((Join-Path $runnerBase 'run-bbbbbbbb'))|Out-Null
+[IO.File]::WriteAllText((Join-Path $runnerBase 'run-bbbbbbbb/run.json'),'{"status":"running"}')
+Close-SBTestFixtureManifest $runnerRun
+Assert-Runtime ((Read-SBJson $runnerManifest $null).status -ceq 'open') 'esecuzione concorrente attiva: contenitore non chiuso'
+[IO.File]::WriteAllText((Join-Path $runnerBase 'run-bbbbbbbb/run.json'),'{"status":"failed"}')
+Close-SBTestFixtureManifest $runnerRun
+$closed=Read-SBJson $runnerManifest $null
+Assert-Runtime ($closed.status -ceq 'closed' -and $closed.closed) 'manifest chiuso anche dopo esecuzione fallita'
+$closed.expires=(Get-Date).AddDays(-1).ToString('yyyy-MM-dd')
+Write-RuntimeFixture $runnerManifest (ConvertTo-SBJson $closed)
+Set-Old $runnerBase
+$entry=@(Get-RunnerEntry)
+Assert-Runtime ($entry.Count -eq 1 -and !$entry[0].ContainsKey('reasonCode') -and $entry[0].kind -ceq 'nested-fixture') 'fixture runner chiusa e scaduta selezionabile'
+$reopened=Read-SBJson (Open-SBTestFixtureManifest $runnerBase $hostId 'tests-0a1b2c3d') $null
+Assert-Runtime ($reopened.status -ceq 'open' -and !$reopened.ContainsKey('closed') -and $reopened.created -ceq $closed.created) 'ripresa nello stesso giorno riapre senza perdere la data di creazione'
+$legacyRunner=Join-Path $safeRuntime ('hosts/'+$hostId+'/repos/tests-0a1b2c3d/fixture/fixture-20200101-minimal')
+[IO.Directory]::CreateDirectory($legacyRunner)|Out-Null
+Assert-SafeSkip $legacyRunner 'unsupported-layout'
+Assert-Runtime (!(Test-Path -LiteralPath (Join-Path $legacyRunner 'MANIFEST.json'))) 'fixture storiche senza manifest retroattivo'
 Assert-Runtime ((Test-Path -LiteralPath $foreign) -and (Test-Path -LiteralPath $missing) -and (Test-Path -LiteralPath (Join-Path $runtime 'fixture-20261103-vecchia')) -and (Test-Path -LiteralPath (Join-Path $target 'work/20261103-uno'))) 'dati esclusi, prove e legacy conservati'
 # Real CLI in an isolated synthetic installation: no access to workstation data.
 $cliBrain=Join-Path $root 'cli';$cliScripts=Join-Path $cliBrain 'scripts'

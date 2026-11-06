@@ -76,6 +76,13 @@ try {
         [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifestPath -Activate)
         $current=Resolve-SBTracker -BrainRoot $f.brain -Identity $f.identity -CheckoutPath $f.checkout -AllowedOwners @('test')
         Assert-Audit ($current.data.schemaVersion -eq 1 -and $current.data.tasks[0].id -ceq 'X' -and (Get-SBFileHash $historical.source.archive) -ceq $originalHash) 'ripresa storica attiva lo schema corrente e conserva la copia esatta'
+        $registrationFiles=@(foreach($rootName in @('tracker-imports','tracker-migrations')){$dir=Join-Path $f.config.runtimeRoot $rootName;if(Test-Path -LiteralPath $dir){Get-ChildItem -LiteralPath $dir -File -Filter '*.json'}})
+        $registrations=@(Get-SBTrackerManifestRegistrations $f.config)
+        Assert-Audit ($registrationFiles.Count -eq 2 -and $registrations.Count -eq 1 -and $registrations[0].path -ceq $manifestPath) 'registri storico e corrente dello stesso manifest producono una sola registrazione'
+        $mapping=@{'02-areas/products/Repo'='04-archives/areas/repo-area'}
+        $relocation=@(Get-SBTrackerRelocationOperations $f.config $mapping)
+        Assert-Audit (@($relocation|Group-Object path|Where-Object Count -gt 1).Count -eq 0) 'pianificazione PARA: una sola operazione per manifest'
+        Assert-Audit (@(Get-SBParaRuntimePaths $f.config|Where-Object {$_ -ceq $manifestPath}).Count -eq 1) 'protezioni PARA: manifest elencato una volta'
         & pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -RollbackManifest $manifestPath -Apply|Out-Null
         Assert-Audit ($LASTEXITCODE -eq 0 -and (Read-SBTrackerManifest $f.config $manifestPath).phase -ceq 'rolled_back' -and (Get-SBFileHash $f.source) -ceq $originalHash -and (Get-SBFileHash $metadata) -ceq $metadataHash) 'rollback esplicito del journal storico ripristina i byte originali'
         Reject-Audit {Resolve-SBTracker -BrainRoot $f.brain -Identity $f.identity -CheckoutPath $f.checkout -AllowedOwners @('test')} 'ripristinare la sorgente storica non riattiva il fallback greenfield' @('tracker.greenfield.declaration.required')
