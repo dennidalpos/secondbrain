@@ -31,7 +31,4 @@ Revisione 1.0 — 2026-11-05. Indicazioni trasversali; le scelte del progetto re
 
 ## Chiusura
 - Prima di concludere rivedi diff e git status --ignored; riporta risultati, prove e limiti. Non aggiungere memorie ridondanti né modificare istruzioni private degli IDE come scorciatoia.
-- A fine task o lotto verifica i criteri di accettazione, aggiorna il tracker (task conclusi nello storico, stessa transazione), annota le decisioni durevoli in memory.md («Decisione: … — Motivo: …», senza ADR separati), aggiorna context.md ed esegui secondbrain.ps1 -Sync e -Check. Per la risintesi usa SYS05; nei repository abilitati gli aggiornamenti incrementali seguono MEM03 con hash ed evidenze.
-
-## Ciclo memorie per repository
-- Solo nei repository abilitati: registro fedele e allegati separati dai derivati; variazioni con evidenze e hash, conflitti in proposta. Politica del turno sconosciuta o scritture vietate: niente persistenza ne recovery. Escludi i privati prima del salvataggio. Nei derivati usa STE pragmatico senza perdere condizioni o incertezze. MEM03 chiude i turni; SYS05 mantiene lo storico con anteprima e conferma. Dichiara i limiti dei client.
+- A fine task o lotto verifica i criteri di accettazione, aggiorna il tracker (task conclusi nello storico, stessa transazione), annota le decisioni durevoli in memory.md («Decisione: … — Motivo: …», senza ADR separati), aggiorna context.md ed esegui secondbrain.ps1 -Sync e -Check. Per riscrivere contesto o memoria usa SYS05.

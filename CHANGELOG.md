@@ -2,9 +2,11 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.0.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.0.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
 ## [Non rilasciato]
+
+## [1.0.1] - 2026-11-06
 
 ## [1.2.0] - 2026-11-02
 
@@ -17,7 +19,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazi
 ### Modificato
 
 - Direttive comuni 1.2: rimando a MEM05, nomi in `.runtime`, proposta di SYS05 alla chiusura del task; il contesto iniziale si carica con `knowledge.ps1 -Startup`, non con `prompts.ps1 -Context`.
-- Il tetto di 20.000 caratteri del primo caricamento ha una fonte unica (`Get-SBSlimStartupBudget`).
+- Il tetto di 30.000 caratteri del primo caricamento ha una fonte unica (`Get-SBSlimStartupBudget`).
 
 ## [1.1.0] - 2026-11-01
 
@@ -31,7 +33,7 @@ Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazi
 
 ### Aggiunto
 
-- Memoria, contesto e task per ogni progetto, con caricamento a strati entro 20.000 caratteri al primo avvio.
+- Memoria, contesto e task per ogni progetto, con caricamento a strati entro 30.000 caratteri al primo avvio.
 - Catalogo di 80 prompt in 13 aree, composti secondo CO-STAR.
 - Server MCP in sola lettura per Claude, Codex e Antigravity.
 - Controllo di pubblicabilità (REP05) su file, indice e storia.

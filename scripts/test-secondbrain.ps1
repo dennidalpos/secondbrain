@@ -44,8 +44,42 @@ try {
         if(!$Only -or 'quick' -in $Only){Invoke-MinimalSuite 'quick' {& (Join-Path $PSScriptRoot 'test-secondbrain-quick.ps1')}}
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
-            if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit')})}elseif($Full){@('trace','concurrency','sources','external-audit','runtime','prompts')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit')})}elseif($Full){@('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit')}else{@()}
+            # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
+            $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
+            $jobs=@()
+            if($parallel){
+                $jobs=@($extras|ForEach-Object {
+                    $suiteFile=Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1')
+                    Start-Job -Name ('suite-'+$_) -ArgumentList $_,$suiteFile -ScriptBlock {
+                        param($Key,$File)
+                        $watch=[Diagnostics.Stopwatch]::StartNew()
+                        $output=@(& pwsh -NoProfile -File $File 2>&1|ForEach-Object {[string]$_});$code=$LASTEXITCODE
+                        [pscustomobject]@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;output=$output}
+                    }
+                })
+                $extras=@()
+            }
+            try{
+                if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}
+            }catch{
+                if($jobs.Count){$jobs|Wait-Job|Receive-Job|Out-Null;$jobs|Remove-Job -Force}
+                throw
+            }
+            $failedJob=$null
+            foreach($job in $jobs){
+                $job|Wait-Job|Out-Null
+                $outcome=@(Receive-Job $job)|Select-Object -Last 1;Remove-Job $job -Force
+                if(!$outcome){$outcome=[pscustomobject]@{key=($job.Name -replace '^suite-','');seconds=0;exitCode=1;output=@('Suite job returned no result.')}}
+                $log=Join-Path $run.directory ('suite-'+$outcome.key+'.log')
+                [IO.File]::WriteAllLines($log,[string[]]@($outcome.output),[Text.UTF8Encoding]::new($false))
+                $code=if($outcome.exitCode){1}else{0}
+                $results.Add(@{key=$outcome.key;seconds=$outcome.seconds;exitCode=$code;status=$(if($code){'failed'}else{'passed'});log=$log})
+                if($code){if(!$failedJob){$failedJob=$outcome};$outcome.output|Write-Output;continue}
+                Write-Output ((@($outcome.output|Where-Object {$_ -match '^SUCCESS'}) -join '; ')+' ['+$outcome.key+', '+[math]::Round($outcome.seconds,2)+' s]')
+                $outcome.output|Write-Output
+            }
+            if($failedJob){throw ('Suite failed: '+$failedJob.key)}
             foreach($extra in $extras){
                 $suiteFile=Join-Path $PSScriptRoot ('test-secondbrain-'+$extra+'.ps1')
                 Invoke-MinimalSuite $extra {
