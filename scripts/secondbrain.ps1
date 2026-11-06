@@ -45,6 +45,8 @@ param(
     [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
+    [Parameter(ParameterSetName='Setup')][switch]$PreviewOnly,
+    [Parameter(ParameterSetName='Setup')][string]$TeamRoot,
     [Parameter(ParameterSetName='Setup')][switch]$Yes,
     [Parameter(ParameterSetName='Setup')][switch]$RegisterEnvironment,
     [Parameter(ParameterSetName='Setup')][Parameter(ParameterSetName='Activate')][switch]$NoRegisterEnvironment,
@@ -69,6 +71,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'cli.setup.team.preview' = @{ it = '-TeamRoot richiede -PreviewOnly e una radice UNC raggiungibile'; en = '-TeamRoot requires -PreviewOnly and a reachable UNC root' }
     'cli.setup.conflict' = @{ it = '-Status/-Unbind non accettano: -{0}'; en = '-Status/-Unbind do not accept: -{0}' }
     'cli.alternatives' = @{ it = '-Status e -Unbind sono alternativi'; en = '-Status and -Unbind are alternatives' }
     'cli.status.readonly' = @{ it = '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano'; en = '-Status is read-only: -Apply, -Yes and -Interactive do not apply' }
@@ -79,7 +82,7 @@ try {
     if ($Setup) {
         if ($Status -or $PSBoundParameters.ContainsKey('Unbind')) {
             if ($Status -and $PSBoundParameters.ContainsKey('Unbind')) { throw (New-SBError 'cli.alternatives') }
-            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'All', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools', 'PreviewOnly', 'TeamRoot') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw (New-SBError 'cli.setup.conflict' @(($conflicting -join ', -'))) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw (New-SBError 'cli.status.readonly') }
@@ -91,8 +94,22 @@ try {
             if ($result.stage -in @('status', 'preview', 'applied')) { exit 0 }
             exit 1
         }
+        if ($PreviewOnly -and ($Yes -or $Apply -or $RegisterEnvironment)) {
+            throw (New-SBError 'cli.setup.conflict' @('-PreviewOnly / -Yes / -Apply / -RegisterEnvironment'))
+        }
+        if ($PSBoundParameters.ContainsKey('TeamRoot')) {
+            if (!$PreviewOnly -or $TeamRoot -notmatch '^\\\\[^\\.?][^\\]*\\[^\\]+' -or ![IO.Directory]::Exists($TeamRoot)) {
+                throw (New-SBError 'cli.setup.team.preview')
+            }
+            if (!$Roots.Count) { $Roots=@($brain) }
+            $brain=[IO.Path]::GetFullPath($TeamRoot)
+        }
         $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -All:$All -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
-            -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId
+            -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId -PreviewOnly:$PreviewOnly
+        if ($PreviewOnly) {
+            $result.mode=if ($brain.StartsWith('\\')) {'team'} else {'single'}
+            $result.brainRoot=$brain
+        }
         ConvertTo-SBJson $result
         # 0: valid preview or activation applied; 1: unconfirmed proposal, paused discovery or unavailable subsequent check.
         if($result.Contains('mcp') -and $result.mcp.Contains('complete') -and !$result.mcp.complete){exit 1}

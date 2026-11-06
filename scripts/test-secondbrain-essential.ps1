@@ -186,6 +186,14 @@ if('portable' -in $Groups){
             [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
             $setupScript=Join-Path $brain 'scripts/secondbrain.ps1'
             $cursorConfig=Join-Path $env:USERPROFILE '.cursor/mcp.json'
+            $setupPaths=Get-SBSetupPaths $brain
+            $previewPaths=@($setupPaths.report,$setupPaths.selection,(Get-SBHostConfigPath $brain),$cursorConfig)
+            $beforePreview=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
+            $readOnlyPreview=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -Roots $repo -Select $repo -McpTargets cursor)|ConvertFrom-Json -AsHashtable
+            $afterPreview=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
+            Check ($LASTEXITCODE -eq 0 -and $readOnlyPreview.mode -eq 'single' -and !$readOnlyPreview.applied -and !$readOnlyPreview.confirmed -and !$readOnlyPreview.discovery.report -and $readOnlyPreview.activation.repositories.Count -eq 1 -and $readOnlyPreview.mcp.targets[0].ConfigFile -eq $cursorConfig -and ($beforePreview -join ',') -eq ($afterPreview -join ',')) 'read-only setup plans activation and MCP without writing discovery, selection or pairing files'
+            $teamError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $repo -Language en 2>&1) -join "`n"
+            Check ($LASTEXITCODE -eq 2 -and $teamError.Contains('reachable UNC root')) 'team preview rejects a local path'
             $preview=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $preview.mcp.preview -and $preview.mcp.targets[0].ConfigFile -eq $cursorConfig -and !(Test-Path -LiteralPath $cursorConfig)) 'setup previews the MCP destination without pairing'
             $interactiveOutput=(('skip'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Interactive -Apply -NoRegisterEnvironment -Language en) -join "`n")

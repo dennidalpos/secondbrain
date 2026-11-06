@@ -131,14 +131,20 @@ function Set-SBRepositoryPointers([string]$Checkout,[hashtable]$State,[bool]$Che
     }
 }
 function Invoke-SBHostActivation {
-    param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment)
+    param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment,
+          [hashtable]$PreviewSelection,[hashtable]$PreviewReport)
     $paths=Get-SBSetupPaths $BrainRoot
-    $SelectionPath=Assert-SBSetupStatePath $BrainRoot $paths.hostRoot $SelectionPath @('selection.json','unbind-selection.json')
-    $selection=Read-SBJson $SelectionPath $null
-    if(!$selection -or $selection.schemaVersion -ne 1 -or $selection.confirmed -ne $true -or !$selection.confirmation){throw (New-SBError 'portable.selection.unconfirmed')}
-    $reportPath=Assert-SBSetupStatePath $BrainRoot $paths.hostRoot $selection.reportPath @('discovery.json','unbind-report.json')
-    if((Get-SBFileHash $reportPath) -ne $selection.reportSha256){throw (New-SBError 'portable.discovery.modified')}
-    $report=Read-SBJson $reportPath $null
+    if($PreviewSelection -and $PreviewReport -and !$Apply){
+        $selection=$PreviewSelection
+        $report=$PreviewReport
+    }else{
+        $SelectionPath=Assert-SBSetupStatePath $BrainRoot $paths.hostRoot $SelectionPath @('selection.json','unbind-selection.json')
+        $selection=Read-SBJson $SelectionPath $null
+        if(!$selection -or $selection.schemaVersion -ne 1 -or $selection.confirmed -ne $true -or !$selection.confirmation){throw (New-SBError 'portable.selection.unconfirmed')}
+        $reportPath=Assert-SBSetupStatePath $BrainRoot $paths.hostRoot $selection.reportPath @('discovery.json','unbind-report.json')
+        if((Get-SBFileHash $reportPath) -ne $selection.reportSha256){throw (New-SBError 'portable.discovery.modified')}
+        $report=Read-SBJson $reportPath $null
+    }
     if($report.hostId -ne (Get-SBHostId) -or !(Test-SBSamePath $report.brainRoot $BrainRoot)){throw (New-SBError 'portable.discovery.foreign')}
     $configPath=Get-SBHostConfigPath $BrainRoot
     $configurationHash=Get-SBFileHash $configPath
@@ -220,10 +226,12 @@ function Invoke-SBHostActivation {
     foreach($id in $retireIDEIds){if(!@($configuration.ides|Where-Object id -eq $id).Count){throw (New-SBError 'portable.ide.unmanaged')}}
     $newIdeIds=@($selectedIDEs|ForEach-Object {$_.id})
     $configuration.ides=@(@($configuration.ides|Where-Object {$_.id -notin $newIdeIds -and $_.id -notin $retireIDEIds})+$selectedIDEs)
-    $configuration.selectionReceipt=@{sha256=(Get-SBFileHash $SelectionPath);confirmation=$selection.confirmation;reportSha256=$selection.reportSha256}
+    if($SelectionPath){$configuration.selectionReceipt=@{sha256=(Get-SBFileHash $SelectionPath);confirmation=$selection.confirmation;reportSha256=$selection.reportSha256}}
     $configOperation=@{path=$configPath;expected=$configurationHash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $configuration))}
     $externalState=$paths.hostRoot -ine (Get-SBLocalRoot $BrainRoot (Get-SBHostId))
     if(!$externalState){$operations+=$configOperation}
+    $plannedFiles=@($operations|ForEach-Object path)
+    if($externalState){$plannedFiles+=$configPath}
     if($Apply){
         $lockConfig=if(Test-Path -LiteralPath $configPath){Read-SBConfiguration $configPath}else{$configuration.brainRoot=$BrainRoot;$configuration.configPath=$configPath;$configuration.allowedOwners=@();$configuration.coordinationRoot=Join-Path $BrainRoot '.runtime/access';$configuration}
         $lockConfig.brainRoot=$BrainRoot;$lockConfig.coordinationRoot=Join-Path $BrainRoot '.runtime/access'
@@ -236,7 +244,7 @@ function Invoke-SBHostActivation {
             Update-SBParaIndex (Read-SBConfiguration $configPath)|Out-Null
         }finally{Exit-SBOperation $lock}
     }
-    @{applied=[bool]$Apply;configuration=$configPath;repositories=$plans;retiredCheckouts=$retirePaths;retiredIdes=$retireIDEIds;ides=@($selectedIDEs|ForEach-Object name);ideBindings=@($selectedIDEs|ForEach-Object {@{id=$_.id;assetId=$_.assetId;profile=$_.profile;accountAlias=$_.accountAlias}});directivesDeployed=$false;activation='metadata-only; run Sync after approval of portable directives'}
+    @{applied=[bool]$Apply;configuration=$configPath;repositories=$plans;retiredCheckouts=$retirePaths;retiredIdes=$retireIDEIds;ides=@($selectedIDEs|ForEach-Object name);ideBindings=@($selectedIDEs|ForEach-Object {@{id=$_.id;assetId=$_.assetId;profile=$_.profile;accountAlias=$_.accountAlias}});directivesDeployed=$false;activation='metadata-only; run Sync after approval of portable directives';plannedFiles=$plannedFiles}
 }
 function Get-SBSetupPaths([string]$BrainRoot) {
     $root=Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId)
@@ -248,7 +256,7 @@ function Test-SBGitRequirement([string]$VersionText,[int]$ExitCode=0) {
     if($ok){$ok=([version]($match.Groups[1].Value+'.'+$match.Groups[2].Value+'.'+$match.Groups[3].Value) -ge [version]'2.42.0')}
     @{name='git';ok=[bool]$ok;blocking=$true;detail=$(if($ok){$VersionText}else{(Get-SBMessage 'portable.git.required')+' ('+$VersionText+')'})}
 }
-function Test-SBSetupPreflight([string]$BrainRoot) {
+function Test-SBSetupPreflight([string]$BrainRoot,[switch]$ReadOnly) {
     $checks=@()
     $checks+=@{name='powershell';ok=($PSVersionTable.PSVersion -ge [version]'7.5');blocking=$true;detail=$PSVersionTable.PSVersion.ToString()}
     $git=Get-Command git -CommandType Application -ErrorAction SilentlyContinue|Select-Object -First 1
@@ -256,12 +264,14 @@ function Test-SBSetupPreflight([string]$BrainRoot) {
     $gitDetail=if($git){try{$value=(& $git.Source --version 2>&1|Out-String).Trim();$gitExit=$LASTEXITCODE;$value}catch{''}}else{''}
     $checks+=Test-SBGitRequirement $gitDetail $gitExit
     $writable=@{name='runtime-scrivibile';ok=$false;blocking=$true;detail='.runtime/hosts/'+(Get-SBHostId)}
-    try{
-        $hostRoot=Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId);[void][IO.Directory]::CreateDirectory($hostRoot)
-        $probe=[IO.FileStream]::new((Join-Path $hostRoot ('.setup-probe-'+[guid]::NewGuid().ToString('N'))),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None,1,[IO.FileOptions]::DeleteOnClose)
-        $probe.Dispose();$writable.ok=$true
-    }catch{$writable.detail=$_.Exception.Message}
-    $checks+=$writable
+    if(!$ReadOnly){
+        try{
+            $hostRoot=Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId);[void][IO.Directory]::CreateDirectory($hostRoot)
+            $probe=[IO.FileStream]::new((Join-Path $hostRoot ('.setup-probe-'+[guid]::NewGuid().ToString('N'))),[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None,1,[IO.FileOptions]::DeleteOnClose)
+            $probe.Dispose();$writable.ok=$true
+        }catch{$writable.detail=$_.Exception.Message}
+        $checks+=$writable
+    }
     $shared=@{name='policy-condivisa';ok=$false;blocking=$true;detail='config/shared.json'}
     try{[void](Get-SBSharedPolicy $BrainRoot);$shared.ok=$true}catch{$shared.detail=$_.Exception.Message}
     $checks+=$shared
@@ -311,7 +321,7 @@ function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
 function Invoke-SBSetup {
     param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
           [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$RegisterEnvironment,[switch]$NoRegisterEnvironment,[switch]$AndSync=$true,[string]$SessionId,
-          [string[]]$McpTargets=@(),[switch]$ApproveMcpReadTools)
+          [string[]]$McpTargets=@(),[switch]$ApproveMcpReadTools,[switch]$PreviewOnly)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain;$hostId=Get-SBHostId
     $McpTargets=@($McpTargets|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
     foreach($target in $McpTargets){if($target -notin @('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')){throw (New-SBError 'portable.mcp.targets')}}
@@ -319,12 +329,13 @@ function Invoke-SBSetup {
     $Select=@($Select|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $Ides=@($Ides|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $result=[ordered]@{stage='preflight';hostId=$hostId;confirmed=$false;applied=$false}
-    $preflight=@(Test-SBSetupPreflight $brain);$result.preflight=$preflight
+    $preflight=@(Test-SBSetupPreflight $brain -ReadOnly:$PreviewOnly);$result.preflight=$preflight
     $failed=@($preflight|Where-Object {$_.blocking -and !$_.ok})
     if($failed.Count){throw (New-SBError 'portable.preflight.failed' @((($failed|ForEach-Object {$_.name+' ('+$_.detail+')'}) -join '; ')))}
     $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
-    if($needSelection -and !$Interactive -and [Console]::IsInputRedirected){throw (New-SBError 'portable.selection.missing')}
-    $prompting=($Interactive -or $needSelection)
+    if($needSelection -and !$Interactive -and !$PreviewOnly -and [Console]::IsInputRedirected){throw (New-SBError 'portable.selection.missing')}
+    $prompting=($Interactive -or ($needSelection -and !$PreviewOnly))
+    if($PreviewOnly -and !$Roots.Count){$Roots=@($brain)}
     if($prompting -and !$Roots.Count){
         $answer=([string](Read-Host 'Radici da analizzare separate da ; (invio = tutti i volumi fissi)')).Trim()
         if($answer){$Roots=@($answer -split ';'|ForEach-Object {$_.Trim()}|Where-Object {$_})}
@@ -332,15 +343,17 @@ function Invoke-SBSetup {
     $configPath=Get-SBHostConfigPath $brain;$bindings=@()
     if(Test-Path -LiteralPath $configPath){$existingConfig=Read-SBJson $configPath @{};if($existingConfig.ContainsKey('bindings')){$bindings=@($existingConfig.bindings)}}
     $result.stage='discovery'
-    $report=Invoke-SBHostDiscovery -BrainRoot $brain -Roots $Roots -Bindings $bindings -ReportPath $paths.report -MaxDirectories $MaxDirectories
+    $reportPath=if(!$PreviewOnly){$paths.report}
+    $report=Invoke-SBHostDiscovery -BrainRoot $brain -Roots $Roots -Bindings $bindings -ReportPath $reportPath -MaxDirectories $MaxDirectories
     $repos=@($report.repositories|Where-Object {$_.kind -in @('repository','worktree','submodule') -and $_.status -eq 'discovered'})
-    $result.discovery=[ordered]@{complete=[bool]$report.complete;paused=[bool]$report.paused;repositories=$repos.Count;ides=@($report.ides).Count;issues=@($report.issues).Count;warnings=@($report.warnings).Count;report=$paths.report}
+    $result.discovery=[ordered]@{complete=[bool]$report.complete;paused=[bool]$report.paused;repositories=$repos.Count;ides=@($report.ides).Count;issues=@($report.issues).Count;warnings=@($report.warnings).Count;report=$reportPath}
     if($report.paused){$result.stage='discovery-paused';return $result}
     $result.stage='proposal'
     $boundPaths=@($bindings|ForEach-Object {$_.path})
     $result.proposal=[ordered]@{
         repositories=@($repos|ForEach-Object {[ordered]@{id=$_.id;name=$_.name;path=$_.path;identity=$(if($_.identity){$_.identity}else{'local'});bound=($_.path -in $boundPaths)}})
         ides=@($report.ides|ForEach-Object {[ordered]@{id=$_.id;name=$_.name;mode=$_.mode}})}
+    if($PreviewOnly -and $needSelection -and !$Interactive){$result.stage='preview';return $result}
     # Repository selection.
     $chosen=@()
     if($All){$chosen=$repos}
@@ -403,7 +416,10 @@ function Invoke-SBSetup {
         $accountEntries+=$entry
         if($found[0].id -notin @($chosenIdes|ForEach-Object {$_.id})){$chosenIdes+=$found[0]}
     }
-    if(!$chosen.Count -and !$chosenIdes.Count){throw (New-SBError 'portable.selection.empty')}
+    if(!$chosen.Count -and !$chosenIdes.Count){
+        if($PreviewOnly){$result.stage='preview';$result.selectionEmpty=$true;return $result}
+        throw (New-SBError 'portable.selection.empty')
+    }
     # An IDE with a declared alias is one integration: do not add the unaliased entry for the same IDE selected by name.
     $accountIdeIds=@($accountEntries|ForEach-Object {$_.id})
     $plainIdes=@($plainIdes|Where-Object {$_.id -notin $accountIdeIds})
@@ -447,8 +463,8 @@ function Invoke-SBSetup {
     })
     # Actual user confirmation.
     $confirmed=$false;$how=''
-    if($Yes){$confirmed=$true;$how='-Yes'}
-    elseif($prompting){
+    if(!$PreviewOnly -and $Yes){$confirmed=$true;$how='-Yes'}
+    elseif(!$PreviewOnly -and $prompting){
         Write-Host (Get-SBMessage 'portable.selection.summary' @($chosen.Count,$chosenIdes.Count))
         if(([string](Read-Host 'Digita CONFERMO per registrare la scelta')).Trim() -ceq 'CONFERMO'){$confirmed=$true;$how='interattiva'}
     }
@@ -456,13 +472,15 @@ function Invoke-SBSetup {
     $selection=@{schemaVersion=1;confirmed=$confirmed;confirmation=$confirmation;reportPath=$paths.report;reportSha256=(Get-SBFileHash $paths.report)
         repositories=@($chosen|ForEach-Object {$entry=@{id=$_.id};if($approvals.ContainsKey($_.id)){$entry.approveExistingBlock=$true};$entry})
         ides=@(@($plainIdes|ForEach-Object {@{id=$_.id}})+$accountEntries)}
-    $selectionPath=$paths.selection
-    Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) $paths.backupRoot|Out-Null
-    $result.selection=$selectionPath;$result.confirmed=$confirmed
-    if(!$confirmed){$result.note='Conferma mancante: selezione registrata come proposta (confirmed=false). Rilanciare con -Yes oppure -Interactive.';return $result}
+    if(!$PreviewOnly){
+        $selectionPath=$paths.selection
+        Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) $paths.backupRoot|Out-Null
+        $result.selection=$selectionPath;$result.confirmed=$confirmed
+        if(!$confirmed){$result.note='Conferma mancante: selezione registrata come proposta (confirmed=false). Rilanciare con -Yes oppure -Interactive.';return $result}
+    }
     # Preview, then apply.
     $result.stage='preview'
-    $preview=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId
+    $preview=if($PreviewOnly){Invoke-SBHostActivation -BrainRoot $brain -PreviewSelection $selection -PreviewReport $report}else{Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId}
     if($McpTargets.Count){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')
         $result.mcp=[ordered]@{preview=$true;approveReadTools=[bool]$ApproveMcpReadTools;targets=@(foreach($job in $mcpJobs){
@@ -470,6 +488,7 @@ function Invoke-SBSetup {
             Get-SBMcpPairing -BrainRoot $brain -Target $job.target -ConfigFile $job.configFile -Scope user -ApproveAllTools:(!$ApproveMcpReadTools)
         })}
     }
+    if($PreviewOnly){$result.activation=$preview;return $result}
     $doApply=[bool]$Apply
     if($prompting -and $McpTargets.Count){
         Write-Host (Get-SBMessage 'portable.mcp.preview')

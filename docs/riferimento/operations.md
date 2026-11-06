@@ -18,6 +18,12 @@ flowchart LR
 
 prompts Context resolves paths; knowledge Startup loads the actual packet. A resolved path is not loaded knowledge.
 
+### Review workstation setup
+
+Run `scripts/secondbrain.ps1 -Setup -PreviewOnly -Roots <folder>` to list discovered repositories and IDEs. Add `-Interactive` to select several assets, or pass `-Select` and `-Ides` to review an explicit selection. The resulting plan lists dossier metadata paths and MCP destinations. The preview skips the runtime write probe and leaves discovery, selection, activation and MCP files untouched. For an approved setup, use the existing `-Setup -Interactive` activation flow.
+
+For a team preview, pass `-TeamRoot '\\server\share'` for an existing authoritative SecondBrain root. Discovery still targets the local checkout by default. Team access uses the share's existing ACLs. Keep personal context on the workstation and resolve conflicting instructions explicitly before applying changes. The team preview does not merge the layers or write to the share. Use the existing UNC setup procedure for activation.
+
 <a id="controllo-e-sincronizzazione-su-richiesta"></a>
 
 ## Check and Sync
