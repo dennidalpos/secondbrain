@@ -18,6 +18,19 @@ function Get-SBHash([byte[]]$Bytes) {
     [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($Bytes))
 }
 function Get-SBTextHash([string]$Text) { Get-SBHash ([Text.Encoding]::UTF8.GetBytes($Text)) }
+function Get-SBTransactionMarkerPaths([string]$BrainRoot) {
+    # New transactions need only the shared coordination directory. Retain detection of
+    # markers from older clients; never migrate or discard an interrupted transaction.
+    (Join-Path $BrainRoot '.runtime/access/para-transaction.json')
+    (Join-Path $BrainRoot '.runtime/para-transaction.json')
+}
+function Get-SBTransactionMarkerPath([string]$BrainRoot) {
+    $paths=@(Get-SBTransactionMarkerPaths $BrainRoot)
+    $existing=@($paths|Where-Object {[IO.File]::Exists($_)})
+    if($existing.Count -gt 1){throw (New-SBError 'core.transaction.multiple')}
+    if($existing.Count){return $existing[0]}
+    $paths[0]
+}
 # Product version: the VERSION file in the clone root is the single source.
 function Get-SBVersion {
     $path=Join-Path $PSScriptRoot '../VERSION'
@@ -1277,6 +1290,8 @@ Export-ModuleMember -Function @(
     'Get-SBHash',
     'Get-SBTextHash',
     'Get-SBVersion',
+    'Get-SBTransactionMarkerPaths',
+    'Get-SBTransactionMarkerPath',
     'Read-SBText',
     'Get-SBFileHash',
     'Read-SBJson',

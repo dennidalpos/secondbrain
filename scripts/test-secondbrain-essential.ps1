@@ -72,6 +72,7 @@ $argsBase=@{BrainRoot=$brain;Identity=$identity;WorkingRepository=$identity}
 function Invoke-EssentialCli([string[]]$Arguments){$out=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -ConfigPath $configPath -CheckoutPath $repo @Arguments 2>&1);@{code=$LASTEXITCODE;text=($out -join "`n")}}
 
 if('portable' -in $Groups){
+    . (Join-Path $PSScriptRoot 'test-sandbox-roots.ps1')
     $package = New-SBMcpPackage -BrainRoot $brain -OutDir (Join-Path $brain '.runtime/package')
     Reject { New-SBMcpPackage -BrainRoot $brain -OutDir $package.PackageDir } 'MCP export refuses existing package'
     Reject { New-SBMcpPackage -BrainRoot $brain -OutDir (Join-Path $brain '.runtime/../outside') } 'MCP export refuses a destination outside runtime'
@@ -149,7 +150,7 @@ if('portable' -in $Groups){
     $wire=@('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}','{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}') -join "`n"
     $out=@($wire|& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -BrainRoot $brain -ConfigPath $configPath)
     $messages=@($out|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
-    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 8) 'real MCP stdio negotiates and exposes eight tools'
+    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 10) 'real MCP stdio negotiates and exposes ten tools'
     if($Extended){
         $candidate=Join-Path $runtime 'directive-proposal'
         Put (Join-Path $candidate 'README.md') '# Synthetic proposal'
@@ -475,14 +476,16 @@ if('workflows' -in $Groups){
     Check ((Get-SBFileHash (Join-Path $dossier ('history/compaction/'+$before.ToLowerInvariant()+'/memory.md'))) -ceq $before) 'compaction preserves byte-exact original'
     Reject {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Budget 16000 -Apply} 'stale compaction candidate rejected'
 }
+if('mcp-writes' -in $Groups){. (Join-Path $PSScriptRoot 'test-mcp-writes.ps1')}
 if('pending' -in $Groups){
+    . (Join-Path $PSScriptRoot 'test-mcp-write-smoke.ps1')
     $noRecoveryRequest=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="`nPending no-recovery fixture"} -Config $cfg
     $memoryBefore=Get-SBFileHash (Join-Path $dossier 'memory.md')
     $pureRead=Invoke-EssentialCli @('-Startup','-NoRecovery')
     Check ($pureRead.code -eq 0 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and (Get-SBPendingWrites $brain|Where-Object id -eq $noRecoveryRequest.id).state -eq 'deferred') 'CLI NoRecovery preserves an authorized pending write without applying it'
     $mcpModule=Get-Module SecondBrain.Mcp
     $pureMcp=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=31;method='tools/list';params=@{_meta=@{noRecovery=$true}}}} $brain
-    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 8 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
+    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 10 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
     [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg)
     Reject {New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';DependsOn=@('T-1')} -Config $cfg} 'invalid dependency graph rejected before queuing'
     $target=Join-Path $brain 'untracked.txt';Put $target 'original';$hash=Get-SBFileHash $target

@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 1.1.0](https://img.shields.io/badge/version-1.1.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
+![Version 1.3.0](https://img.shields.io/badge/version-1.3.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
 
 English · [Italiano](#italiano)
 
@@ -106,6 +106,7 @@ The maintained guides are in English. Adjacent `.it.md` files retain the Italian
 | [Per-product flow](docs/flusso-prodotto.md) | The steps in order, in chat and from scripts |
 | [Prompts](docs/prompt.md) | Use and edit the prompts |
 | [Agents and MCP](docs/ide-e-mcp.md) | Connect the tools |
+| [Reviewed MCP writes](docs/riferimento/mcp-writes.md) | Preview and approve a dossier operation |
 | [Security](docs/sicurezza.md) | Backup, restore, uninstall |
 | [Technical reference](docs/riferimento/operations.md) | All the details |
 

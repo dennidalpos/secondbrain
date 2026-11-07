@@ -57,7 +57,7 @@ try {
     foreach ($field in 'history','http','pagination','conversion','publication') {
         Assert-Tracker ($texts.it[$field] -cne $texts.en[$field]) ('localized text with stable identity: '+$field)
     }
-    Assert-Tracker (($texts.it.tools.name -join ',') -ceq ($texts.en.tools.name -join ',') -and $texts.en.tools.Count -eq 8) 'MCP localization preserves tool identities'
+    Assert-Tracker (($texts.it.tools.name -join ',') -ceq ($texts.en.tools.name -join ',') -and $texts.en.tools.Count -eq 10) 'MCP localization preserves tool identities'
     for($i=0;$i -lt $texts.it.tools.Count;$i++){
         $it=$texts.it.tools[$i];$en=$texts.en.tools[$i]
         Assert-Tracker ($it.description -cne $en.description) ('MCP tool description localized: '+$it.name)
@@ -78,7 +78,7 @@ try {
     Set-SBWriteGuard $guard
     Reject-Tracker {Invoke-SBTrackerHistoryMigration -BrainRoot $recoveryRoot -Identity $identity -Path $recoveryTracker -BackupRoot $recoveryBackups -Apply} 'history migration interruption retains a recovery journal'
 } finally { Set-SBWriteGuard $null }
-$marker = Read-SBJson (Join-Path $recoveryRoot '.runtime/para-transaction.json') $null
+$marker = Read-SBJson (Join-Path $recoveryRoot '.runtime/access/para-transaction.json') $null
 Assert-Tracker ($marker -and (Get-SBFileHash $recoveryTracker) -cne $recoveryHash) 'history migration records the applied change before interruption'
 $deployed = Read-SBText $recoveryTracker
 Put-Tracker $recoveryTracker 'concurrent edit'
@@ -86,7 +86,7 @@ Reject-Tracker {Restore-SBParaTransaction $marker.manifest $recoveryRoot $recove
 Assert-Tracker ((Read-SBText $recoveryTracker) -ceq 'concurrent edit') 'history recovery preserves concurrent work'
 Put-Tracker $recoveryTracker $deployed
 Restore-SBParaTransaction $marker.manifest $recoveryRoot $recoveryBackups | Out-Null
-Assert-Tracker ((Get-SBFileHash $recoveryTracker) -ceq $recoveryHash -and !(Test-Path (Join-Path $recoveryRoot '.runtime/para-transaction.json'))) 'history recovery restores exact original bytes'
+Assert-Tracker ((Get-SBFileHash $recoveryTracker) -ceq $recoveryHash -and !(Test-Path (Join-Path $recoveryRoot '.runtime/access/para-transaction.json'))) 'history recovery restores exact original bytes'
 
 $package = New-SBMcpPackage -BrainRoot $contractRoot -OutDir (Join-Path $contractRoot '.runtime/package')
 $installer = Join-Path $package.PackageDir 'install-all-ides.ps1'

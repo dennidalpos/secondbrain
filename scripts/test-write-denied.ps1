@@ -51,7 +51,7 @@ Invoke-Case 'write-denied' (Join-Path $root 'denied') {
     Invoke-WriteDeniedAcl (Split-Path $transactionTarget) {
         $failure=$null
         try{Invoke-SBParaTransaction @(@{path=$transactionTarget;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes('new')}) (Join-Path $transactionBrain '.runtime/backup') $transactionBrain|Out-Null}catch{$failure=$_}
-        Assert-Conc ($failure -and (Test-SBError $failure 'core.write.denied') -and (Test-Path -LiteralPath (Join-Path $transactionBrain '.runtime/para-transaction.json'))) 'transaction preserves denied classification and pending recovery marker'
+        Assert-Conc ($failure -and (Test-SBError $failure 'core.write.denied') -and (Test-Path -LiteralPath (Join-Path $transactionBrain '.runtime/access/para-transaction.json'))) 'transaction preserves denied classification and pending recovery marker'
     }
     # Actual CLI, copied brain and synthetic profile: lock-directory denial happens before pairing.
     $cliBrain=Join-Path $deniedRoot 'cli';$cliScripts=Join-Path $cliBrain 'scripts'

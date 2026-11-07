@@ -28,7 +28,7 @@ Add-SBMessages @{
 
 function Get-SBPendingTransaction([string]$BrainRoot) {
     # Summarize an interrupted transaction marker: owner, time, manifest and reachability from this workstation.
-    $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
+    $marker=Get-SBTransactionMarkerPath $BrainRoot
     if(!(Test-Path -LiteralPath $marker)){return $null}
     $pending=try{Read-SBJson $marker @{}}catch{@{}}
     $manifest=if($pending.ContainsKey('manifest')){[string]$pending.manifest}else{''}

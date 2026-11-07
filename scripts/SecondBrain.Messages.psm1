@@ -115,6 +115,7 @@ Add-SBMessages @{
     'core.runtime.reason.target-changed' = @{ it = 'target modificato o non piu idoneo dopo la selezione: dati conservati'; en = 'target changed or no longer eligible after selection: data retained' }
     'core.runtime.regenerable.recovery' = @{ it = 'ricreare con la suite o il comando indicato dal task nel manifest; verificare i riferimenti prima di autorizzare'; en = 'recreate with the suite or command identified by the manifest task; review references before authorizing' }
     'core.write.contended'      = @{ it = 'Scrittura contesa: il file è in uso o è stato sostituito da un altro scrittore: {0}'; en = 'Write contended: the file is in use or was replaced by another writer: {0}' }
+    'core.transaction.multiple' = @{ it = 'Più marker di transazione presenti: recuperare separatamente senza sovrascriverli'; en = 'Multiple transaction markers exist: recover separately without overwriting them' }
     'core.write.denied'         = @{ it = 'Accesso negato durante la scrittura: {0}'; en = 'Access denied while writing: {0}' }
     'core.write.retry'          = @{ it = 'Ripeti in PowerShell 7.5+ fuori dalla sandbox: {0}'; en = 'Retry in PowerShell 7.5+ outside the sandbox: {0}' }
     'core.retry.parameter'      = @{ it = 'Nome parametro non valido per il comando di ripetizione'; en = 'Invalid parameter name for the retry command' }

@@ -107,7 +107,7 @@ try {
         $summary=@{applied=$false;scope='runtime-migrate';hostId=$config.workstationId;segment=$segment;moves=@($plan.moves);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
         if(!$Apply){$summary.note='Anteprima: nessuna cartella spostata. Con -Apply e -Authorization si eseguono solo gli spostamenti elencati (rename sullo stesso volume, nessuna copia, nessuna cancellazione di contenuti).';ConvertTo-SBJson $summary;exit 0}
         if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
-        if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
+        if(Test-Path -LiteralPath (Get-SBTransactionMarkerPath $config.brainRoot)){throw (New-SBError 'cleanup.transaction.pending')}
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
         if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
         $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
@@ -133,7 +133,7 @@ try {
         $summary=@{applied=$false;scope='runtime-regenerable-only';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;targets=@($plan.targets);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
         if(!$Apply){$summary.note='Anteprima: nessuna cartella rimossa. Con -Apply e -Authorization si rimuovono solo i target elencati.';ConvertTo-SBJson $summary;exit 0}
         if(!$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
-        if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
+        if(Test-Path -LiteralPath (Get-SBTransactionMarkerPath $config.brainRoot)){throw (New-SBError 'cleanup.transaction.pending')}
         # Sessions owned by other processes; the current operation's writer-lock owner is not a session.
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
         if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
@@ -210,7 +210,7 @@ try {
     $manifest=Read-SBJson (Assert-SBCentralDataPath $config.brainRoot $ManifestPath) $null
     if(!$manifest -or $manifest.schemaVersion -ne 1 -or !$manifest.reviewed -or !$manifest.referencesChecked -or !$manifest.reason){throw (New-SBError 'cleanup.manifest.unreviewed')}
     if($Apply -and !$Authorization){throw (New-SBError 'cleanup.apply.authorization')}
-    $protected=@($config.configPath,(Join-Path $config.runtimeRoot 'state.json'),(Join-Path $config.brainRoot '.runtime/para-transaction.json'))
+    $protected=@($config.configPath,(Join-Path $config.runtimeRoot 'state.json'),(Get-SBTransactionMarkerPath $config.brainRoot))
     $files=@();$seen=@{}
     foreach($entry in $manifest.files){
         $path=Assert-SBCentralDataPath $config.brainRoot $entry.path
@@ -218,7 +218,7 @@ try {
         if($seen.ContainsKey($path) -or !(Test-Path -LiteralPath $path -PathType Leaf) -or (Get-SBFileHash $path) -ne $entry.sha256){throw (New-SBError 'cleanup.manifest.content')}
         $seen[$path]=$true;$files+=@{path=$path;sha256=$entry.sha256}
     }
-    if(Test-Path -LiteralPath (Join-Path $config.brainRoot '.runtime/para-transaction.json')){throw (New-SBError 'cleanup.transaction.pending')}
+    if(Test-Path -LiteralPath (Get-SBTransactionMarkerPath $config.brainRoot)){throw (New-SBError 'cleanup.transaction.pending')}
     $backup=Join-Path $config.backupRoot ('cleanup-'+[guid]::NewGuid().ToString('N'))
     $removed=@();$failure=$null
     if($Apply){

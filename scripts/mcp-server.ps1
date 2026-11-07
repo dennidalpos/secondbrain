@@ -1,7 +1,7 @@
 #requires -Version 7.5
 <#
 .SYNOPSIS
-MCP stdio server: reads dossiers and applies previously authorized queued dossier writes.
+MCP stdio server: reads dossiers, previews reviewed writes and integrates authorized requests.
 Exposes startup context, ready tasks (-ReadyOnly), complete task details (get_task), paginated cross-dossier search, the prompt catalog and publication checks (SEC07) to compatible IDEs.
 Supports pairing with all major IDEs (-Pair -Target <ide> or -Target all) and configuration package generation (-ExportPackage).
 

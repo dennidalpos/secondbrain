@@ -28,7 +28,7 @@ Select the verified metadata record, then pass MetadataPath to restore-managed. 
 
 ## Interrupted transactions
 
-.runtime/para-transaction.json identifies an unfinished transaction and blocks central writes. Status reports owner, time and manifest. Another host can recover only when it reaches the validated manifest through a verified brain alias.
+.runtime/access/para-transaction.json identifies an unfinished transaction and blocks central writes. Status reports owner, time and manifest. Another host can recover only when it reaches the validated manifest through a verified brain alias.
 
 ~~~powershell
 pwsh -NoProfile -File scripts/recover.ps1 -ManifestPath $manifestPath
@@ -51,3 +51,5 @@ core.write.denied returns CLI exit 4 preserving the original exception. A destin
 Windows protected removal normalizes ordinary local/UNC paths before native extended-path access. Existing writers, lost sessions and unsupported filesystems may prevent it. Local Unicode/long-path/loopback fixtures do not certify two-PC SMB or another host's long-path policy.
 
 Verified backup does not authorize deletion. See [safe writes](safety-backups.md), [runtime](runtime-maintenance.md), [shared brain](shared-brain.md).
+
+Older root-level transaction markers remain detectable and recoverable; see [sandbox roots](sandbox-roots.md).

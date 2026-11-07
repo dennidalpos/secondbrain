@@ -190,7 +190,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
         }finally{if([IO.File]::Exists($temp)){[IO.File]::Delete($temp)}}
     }
     Save-Journal
-    $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
+    $marker=Get-SBTransactionMarkerPath $BrainRoot
     $markerHash=Get-SBFileHash $marker
     if($markerHash -ne 'absent'){
         $pending=Read-SBJson $marker @{}
@@ -247,7 +247,7 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
         $ops=@(@{path=$r.path;expected=$current;bytes=$(if($r.previousHash -eq 'absent'){$null}else{[IO.File]::ReadAllBytes($r.backup)})})+$ops
     }
     if($ops.Count){Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot $AllowedPaths $ManifestPath}else{
-        $marker=Join-Path $BrainRoot '.runtime/para-transaction.json'
+        $marker=Get-SBTransactionMarkerPath $BrainRoot
         if(Test-Path -LiteralPath $marker){
             $pendingMarker=Read-SBJson $marker @{}
             $pendingManifest=if($pendingMarker.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pendingMarker.manifest) ([string]$pendingMarker.brainRoot) $BrainRoot}else{[string]$pendingMarker.manifest}

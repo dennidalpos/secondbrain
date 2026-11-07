@@ -5,7 +5,7 @@ Checks or restores an interrupted PARA transaction from its manifest.
 .DESCRIPTION
 Without -Apply, previews the destinations to restore. With -Apply, performs the
 verified restoration (previous hash, payload in the manifest journal) and removes the
-.runtime/para-transaction.json marker; preserves the original manifest.
+.runtime/access/para-transaction.json marker (also detects older root-level markers); preserves the original manifest.
 Without -ConfigPath, uses the default portable configuration (including partial activation);
 with -ConfigPath, uses backupRoot and operational paths from the specified workstation.
 .EXAMPLE

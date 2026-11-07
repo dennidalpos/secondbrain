@@ -85,7 +85,9 @@ Trace stop events are fail-open and require current-turn persistence permission.
 | Cleanup/interrupted writes | [Recovery](recovery.md) |
 | Dossier and runtime layout | [Tree](tree.md) |
 | Task authority/import/history | [Trackers](trackers.md) |
+| Optional dossier write roots | [Sandbox roots](sandbox-roots.md) |
 | IDE/account qualification | [Adapters](adapters.md) |
+| Reviewed dossier writes | [MCP writes](mcp-writes.md) |
 | Pairing/local stdio | [MCP](mcp-setup.md) |
 | Catalog/common instructions | [Customization](customizing-prompts-and-directives.md) |
 | Source applicability | [Sources](authoritative-sources.md) |

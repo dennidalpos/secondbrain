@@ -165,14 +165,14 @@ try {
         [IO.File]::WriteAllText($target,"base`n");$original=Get-SBFileHash $target
         $outcomes=Invoke-Race 6 {param($i,$a) Invoke-SBParaTransaction -Operations @(@{path=$a[0];expected=$a[1];bytes=[Text.Encoding]::UTF8.GetBytes("transazione-$i`n")}) -BackupRoot $a[2] -BrainRoot $a[3]} @($target,$original,$backups,$brain)
         $wins=@($outcomes|Where-Object ok);$final=[IO.File]::ReadAllText($target)
-        $marker=Join-Path $brain '.runtime/para-transaction.json'
+        $marker=Join-Path $brain '.runtime/access/para-transaction.json'
         Assert-Conc ($wins.Count -le 1) ('transazioni PARA: al piu un vincitore sullo stesso file ('+$wins.Count+' su 6)')
         Assert-Conc (@($outcomes|Where-Object {!$_.ok -and !$_.code -and $_.type -ne 'IOException'}).Count -eq 0) 'transazioni PARA: i perdenti falliscono con codice stabile o errore di I/O dichiarato'
         Assert-Conc (@(1..6|Where-Object {$final -ceq "transazione-$_`n"}).Count -eq 1 -or $final -ceq "base`n") 'transazioni PARA: contenuto finale di una sola transazione (o originale)'
         Assert-Conc ($wins.Count -eq 0 -or (Test-Path -LiteralPath $marker) -eq $false) 'transazioni PARA: nessun marker pendente dopo la transazione vincente'
 
         # Deterministic sharing violation before marker acquisition: no target/marker mutation.
-        $lockedBrain=Join-Path $brain 'locked-marker';$lockedMarker=Join-Path $lockedBrain '.runtime/para-transaction.json';$lockedTarget=Join-Path $lockedBrain 'target.md'
+        $lockedBrain=Join-Path $brain 'locked-marker';$lockedMarker=Join-Path $lockedBrain '.runtime/access/para-transaction.json';$lockedTarget=Join-Path $lockedBrain 'target.md'
         [IO.Directory]::CreateDirectory((Split-Path $lockedMarker))|Out-Null
         [IO.File]::WriteAllText($lockedTarget,"preserve`n");$targetHash=Get-SBFileHash $lockedTarget
         [IO.File]::WriteAllText($lockedMarker,'{"fixture":"held marker"}');$markerHash=Get-SBFileHash $lockedMarker
@@ -197,7 +197,7 @@ try {
         $data=Read-SBJson $trackerPath $null;$seqs=@($data.tasks|ForEach-Object seq);$wins=@($outcomes|Where-Object ok)
         Assert-Conc (@($outcomes|Where-Object {!$_.ok -and !$_.code}).Count -eq 0) ('tracker -NewTask: i perdenti falliscono con codice stabile ('+(@($outcomes|Where-Object {!$_.ok}|ForEach-Object {[string]$_.code+':'+$_.type+':'+$_.message}) -join ' | ')+')')
         Assert-Conc ($data.tasks.Count -eq 1+$wins.Count -and @($seqs|Sort-Object -Unique).Count -eq $seqs.Count -and $data.extensions.lastSeq -eq ($seqs|Measure-Object -Maximum).Maximum) 'tracker -NewTask: file valido, numeri progressivi senza duplicati, lastSeq coerente'
-        Assert-Conc ($wins.Count -ge 1 -and ((Test-Path -LiteralPath (Join-Path $brain '.runtime/para-transaction.json')) -eq $false)) 'tracker -NewTask: almeno una creazione riuscita e nessuna transazione pendente'
+        Assert-Conc ($wins.Count -ge 1 -and ((Test-Path -LiteralPath (Join-Path $brain '.runtime/access/para-transaction.json')) -eq $false)) 'tracker -NewTask: almeno una creazione riuscita e nessuna transazione pendente'
     }
 
     Invoke-Case 'backup' (Join-Path $root 'backup') {

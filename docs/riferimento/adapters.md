@@ -50,3 +50,7 @@ Write access is also observed, not assumed. core.write.denied/CLI exit 4 differs
 Sources in local fixtures demonstrate parser/adaptor behavior. They do not prove every installed client version, GUI permission dialog, account setting, native collector or multi-host filesystem condition. Report unavailable observations as pending.
 
 See [safe writes](safety-backups.md), [access](access.md), [memory cycle](memory-cycle.md) and [operations](operations.md).
+
+## Reviewed MCP writes
+
+The [write support matrix](mcp-writes.md#client-support-and-approval-matrix) separates the synthetic stdio contract from real client qualification. Local receipts bind one request to its user, workstation and checkout. Neither existing preauthorization scope includes the new tools. Personal IDE settings are unchanged.

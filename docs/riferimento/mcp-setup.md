@@ -8,7 +8,7 @@ The PowerShell server uses stdio JSON-RPC and no listening network port. It expo
 
 Use Windows, PowerShell 7.5+ and Git 2.42+ with the actual active brain configuration. The server negotiates MCP 2025-03-26 and accepts 2024-11-05 when requested. Advertised annotations describe side effects; they do not grant user permission.
 
-The eight tools are get_startup_context, get_ready_tasks, get_task, search_knowledge, get_prompt_home, list_prompts, get_prompt and check_publication. No arbitrary shell or extra tracker-write tool is exposed. The server also implements prompts/list for the catalog cards, prompts/get with an optional objective, and resources/list/resources/read for secondbrain://prompts/catalog. Resource subscription and list-change notifications are not advertised. A client still needs to expose those protocol surfaces; generic MCP support does not prove its UI does so.
+The eight existing tools are get_startup_context, get_ready_tasks, get_task, search_knowledge, get_prompt_home, list_prompts, get_prompt and check_publication. Two additional tools, preview_dossier_write and submit_dossier_write, support restricted dossier writes using reviewed local receipts. No arbitrary shell is exposed. See [reviewed MCP writes](mcp-writes.md). The server also implements prompts/list for the catalog cards, prompts/get with an optional objective, and resources/list/resources/read for secondbrain://prompts/catalog. Resource subscription and list-change notifications are not advertised. A client still needs to expose those protocol surfaces; generic MCP support does not prove its UI does so.
 
 For a strict no-recovery session:
 
@@ -36,7 +36,7 @@ Codex/Claude Code can use native user CLI registration. JSON/TOML adapters updat
 
 ## Permissions and packages
 
-ApproveKnowledgeTools (alias ApproveReadTools) prepares named knowledge permissions that include already-authorized queue integration. check_publication remains separate. ApproveAllTools is a broader policy choice requiring explicit scope approval; do not use it as a routine fix for prompts.
+ApproveKnowledgeTools (alias ApproveReadTools) prepares named knowledge permissions that include already-authorized queue integration. check_publication remains separate. ApproveAllTools retains the eight existing names and excludes the two new tools. It is a broader policy choice requiring explicit scope approval; do not use it as a routine fix for prompts.
 
 `-ExportPackage` writes to a new directory below the checkout's `.runtime`. Use a new child directory of an initialized work folder for subsequent exports. Verify the payloads with `SHA256SUMS` and keep the launcher, message module, and configuration together. A failed export may leave an incomplete directory. Use a fresh destination for the retry.
 

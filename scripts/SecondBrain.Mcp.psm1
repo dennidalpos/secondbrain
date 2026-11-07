@@ -10,7 +10,16 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Publication.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpWrites.psm1')
 Add-SBMessages @{
+    'mcp.title.preview_dossier_write' = @{it='Anteprima scrittura dossier';en='Preview dossier write'}
+    'mcp.title.submit_dossier_write' = @{it='Invia scrittura approvata';en='Submit approved write'}
+    'mcp.write.param.requestId' = @{it='ID idempotente della richiesta: 32 cifre esadecimali minuscole';en='Idempotent request ID: 32 lowercase hexadecimal characters'}
+    'mcp.write.param.operation' = @{it='Operazione ristretta da preparare';en='Restricted operation to preview'}
+    'mcp.write.param.payload' = @{it='Dati dell operazione: task.status (taskId,status,reason?), task.new (title,acceptance,provenance,description?,priority?,pointer?), memory.append (content), activity.append (taskId,sessionId,when,outcome,detail), history.save (path,content)';en='Operation data: task.status (taskId,status,reason?), task.new (title,acceptance,provenance,description?,priority?,pointer?), memory.append (content), activity.append (taskId,sessionId,when,outcome,detail), history.save (path,content)'}
+    'mcp.write.param.planHash' = @{it='SHA-256 del piano esatto approvato tramite CLI';en='SHA-256 of the exact plan approved through the CLI'}
+    'mcp.write.preview.description' = @{it='Prepara senza scrivere un piano per stato task, nuovo task, memoria, attività o history. Richiede checkout gestito, repository e ID richiesta esadecimale di 32 caratteri. Approvare il piano con mcp-write.ps1 prima di submit_dossier_write.';en='Previews a task status, new task, memory, activity or history write without persistence. Requires a managed checkout, repository and 32-character lowercase hex request ID. Approve the returned plan with mcp-write.ps1 before submit_dossier_write.'}
+    'mcp.write.submit.description' = @{it='Verifica la ricevuta CLI locale del piano e accoda una sola richiesta idempotente con precondizioni hash. Nessuna approvazione viene accettata dal payload MCP. NoRecovery vieta nuovi invii; il registro attività resta soggetto alla procedura di attivazione.';en='Verifies the local CLI approval receipt and queues one idempotent request with hash preconditions. MCP arguments cannot grant approval. NoRecovery forbids submissions; activity logging still requires its activation procedure.'}
     'mcp.package.destination' = @{it='Scegliere una cartella nuova sotto .runtime: {0}';en='Choose a new folder under .runtime: {0}'}
     'mcp.pending.disabled' = @{it='Consultazione senza recupero delle scritture pendenti per questa sessione o richiesta.';en='Consultation without pending-write recovery for this session or request.'}
     'mcp.description.noRecovery' = @{it='Non integrare scritture pendenti in questa chiamata; usare -NoRecovery all avvio del server per disabilitare anche il recupero iniziale';en='Skip pending-write recovery for this call; start the server with -NoRecovery to disable startup recovery too'}
@@ -228,10 +237,24 @@ function Get-SBMcpToolDefinitions {
             }
         }
     )
+    $scopeProperties=@{repository=@{type='string';description=(Get-SBMessage 'mcp.description.get_task.repository')};checkoutPath=@{type='string';description=(Get-SBMessage 'mcp.description.get_startup_context.checkoutPath')};requestId=@{type='string';pattern='^[a-f0-9]{32}$';description=(Get-SBMessage 'mcp.write.param.requestId')}}
+    $previewProperties=@{}+$scopeProperties
+    $previewProperties.operation=@{type='string';description=(Get-SBMessage 'mcp.write.param.operation');enum=@('task.status','task.new','memory.append','activity.append','history.save')}
+    $previewProperties.payload=@{type='object';description=(Get-SBMessage 'mcp.write.param.payload')}
+    $submitProperties=@{}+$scopeProperties
+    $submitProperties.planHash=@{type='string';pattern='^[A-F0-9]{64}$';description=(Get-SBMessage 'mcp.write.param.planHash')}
+    $definitions+=@(
+        @{name='preview_dossier_write';description=(Get-SBMessage 'mcp.write.preview.description');inputSchema=@{type='object';additionalProperties=$false;required=@('repository','checkoutPath','requestId','operation','payload');properties=$previewProperties}}
+        @{name='submit_dossier_write';description=(Get-SBMessage 'mcp.write.submit.description');inputSchema=@{type='object';additionalProperties=$false;required=@('repository','checkoutPath','requestId','planHash');properties=$submitProperties}}
+    )
     foreach($definition in $definitions){
         $definition.inputSchema.properties.noRecovery=@{type='boolean';description=(Get-SBMessage 'mcp.description.noRecovery')}
-        $definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')
+        if($definition.name -notin @('preview_dossier_write','submit_dossier_write')){$definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')}
         $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
+        if($definition.name -in @('preview_dossier_write','submit_dossier_write')){
+            $definition.annotations.idempotentHint=$true
+            if($definition.name -eq 'preview_dossier_write'){$definition.annotations.readOnlyHint=$true;$definition.annotations.destructiveHint=$false}
+        }
         $definition
     }
 }
@@ -377,6 +400,16 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $objective = if ($Arguments.ContainsKey('objective')) { [string]$Arguments.objective } else { '' }
             return New-SBWorkflowComposition $BrainRoot $catalog $resolution.prompt @{repositories=@();project=$null;sourceRegistry=$null} $objective -Standalone
         }
+        'preview_dossier_write' {
+            Assert-SBMcpWriteFields $Arguments @('repository','checkoutPath','requestId','operation','payload','noRecovery') @('repository','checkoutPath','requestId','operation','payload')
+            return ConvertTo-SBMcpJson (New-SBMcpWritePlan $BrainRoot $script:SBMcpConfigPath $Arguments.repository $Arguments.checkoutPath $Arguments.requestId $Arguments.operation $Arguments.payload)
+        }
+        'submit_dossier_write' {
+            Assert-SBMcpWriteFields $Arguments @('repository','checkoutPath','requestId','planHash','noRecovery') @('repository','checkoutPath','requestId','planHash')
+            $disabled=[bool](Get-Variable -Name SBMcpNoRecovery -Scope Script -ValueOnly -ErrorAction SilentlyContinue)
+            if($disabled -or ($Arguments.ContainsKey('noRecovery') -and $Arguments.noRecovery -eq $true)){throw (New-SBError 'mcpwrite.disabled')}
+            return ConvertTo-SBMcpJson (Submit-SBMcpWrite $BrainRoot $script:SBMcpConfigPath $Arguments.repository $Arguments.checkoutPath $Arguments.requestId $Arguments.planHash)
+        }
         'check_publication' {
             if (!$Arguments.ContainsKey('repositoryPath') -or !$Arguments.repositoryPath) {
                 throw (New-SBError 'mcp.path.required')
@@ -448,6 +481,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
             if($params.ContainsKey('_meta') -and $params._meta -is [Collections.IDictionary] -and $params._meta.ContainsKey('noRecovery') -and $params._meta.noRecovery -eq $true){$skipRecovery=$true}
             if($params.ContainsKey('arguments') -and $params.arguments -is [Collections.IDictionary] -and $params.arguments.ContainsKey('noRecovery') -and $params.arguments.noRecovery -eq $true){$skipRecovery=$true}
         }
+        if($method -eq 'tools/call' -and $params.ContainsKey('name') -and $params.name -in @('preview_dossier_write','submit_dossier_write')){$skipRecovery=$true}
         if(!$skipRecovery -and $method -in @('initialize','tools/list','tools/call','prompts/list','prompts/get','resources/list','resources/read')){
             $pendingWrites=Invoke-SBMcpPendingRecovery $BrainRoot $script:SBMcpConfigPath
         }

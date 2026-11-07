@@ -49,7 +49,7 @@ Use MEM05 and para.ps1 for entity creation/state changes. Check and SuggestArchi
 | hosts/<id>/repos/<repo>/<category>/<date>-<slug>/ | Manifest-owned work/fixture/tmp/evidence/report folders |
 | hosts/<id>/repos/<repo>/temp/ | Repository-scoped temporary environment |
 | access/ | Sessions, leases, FIFO tickets, locks, requests and receipts |
-| para-transaction.json | Incomplete transaction marker; recover instead of deleting |
+| access/para-transaction.json | Incomplete transaction marker; recover instead of deleting (older root-level markers also detected) |
 | backups/mcp-pairing/ | MCP configuration recovery |
 | publication/ | Fingerprint allowances, binary reviews and baseline/reports |
 | trace/, cleanup/, INDEX.md | Turn metadata, cleanup receipts and generated inventory |

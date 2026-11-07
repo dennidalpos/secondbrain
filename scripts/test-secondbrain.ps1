@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
     [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
     [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
-    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment','runtime','prompts','tracker-audit')][string[]]$Only,
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes')][string[]]$Only,
     [switch]$KeepFixtures,[switch]$Sequential
 )
 $profileWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -44,17 +44,22 @@ try {
         if(!$Only -or 'quick' -in $Only){Invoke-MinimalSuite 'quick' {& (Join-Path $PSScriptRoot 'test-secondbrain-quick.ps1')}}
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit')})}elseif($Full){@('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit','mcp-writes')})}elseif($Full){@('trace','concurrency','sources','external-audit','runtime','prompts','tracker-audit','mcp-writes')}else{@()}
             # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
             $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
             $jobs=@()
             if($parallel){
-                $jobs=@($extras|ForEach-Object {
-                    $suiteFile=Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1')
-                    Start-Job -Name ('suite-'+$_) -ArgumentList $_,$suiteFile -ScriptBlock {
-                        param($Key,$File)
+                # Portable's extended checks use an independent fixture. Run them
+                # alongside the remaining groups; Sequential keeps the original order.
+                $specs=@($extras|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
+                $specs+=@{key='essential-portable';file=(Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1');arguments=@('-Groups','portable','-Extended')}
+                $groups=@($groups|Where-Object {$_ -ne 'portable'})
+                $jobs=@($specs|ForEach-Object {
+                    Start-Job -Name ('suite-'+$_.key) -ArgumentList $_ -ScriptBlock {
+                        param($Spec)
+                        $Key=$Spec.key;$File=$Spec.file;$suiteArguments=@($Spec.arguments)
                         $watch=[Diagnostics.Stopwatch]::StartNew()
-                        $output=@(& pwsh -NoProfile -File $File 2>&1|ForEach-Object {[string]$_});$code=$LASTEXITCODE
+                        $output=@(& pwsh -NoProfile -File $File @suiteArguments 2>&1|ForEach-Object {[string]$_});$code=$LASTEXITCODE
                         [pscustomobject]@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;output=$output}
                     }
                 })

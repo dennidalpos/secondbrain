@@ -104,15 +104,33 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     }
 }
 
+function Get-SBPendingContentHash($Request) {
+    Get-SBTextHash (ConvertTo-SBJson @{repository=$Request.repository;operation=$Request.operation;arguments=$Request.arguments;expected=$Request.expected})
+}
+function Read-SBPendingIdempotent([string]$Path,[string]$Repository,[string]$RequestId,[string]$PreparedHash) {
+    Assert-SBPlainPath $Path
+    if(![IO.File]::Exists($Path)){return $null}
+    $existing=Read-SBJson $Path $null
+    Assert-SBPendingRequest $existing $RequestId
+    if($existing.repository -cne $Repository -or (Get-SBPendingContentHash $existing) -cne $PreparedHash){throw (New-SBError 'pending.invalid' @('request ID collision'))}
+    @{id=$RequestId;path=$Path;state='deferred';applied=$false;request=$existing;replayed=$true}
+}
 function New-SBPendingWrite {
     [CmdletBinding()]
-    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId,[hashtable]$Diagnostics)
+    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId,[hashtable]$Diagnostics,[switch]$PrepareOnly,[switch]$StrictPreconditions,[string]$RequestId,[string]$PreparedHash)
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     try {
     if(!$Config -or !(Test-SBSamePath $Config.brainRoot $BrainRoot)){throw (New-SBError 'pending.invalid' @('configuration root'))}
     $session=$null
     if($SessionId){$session=Assert-SBSession $Config $SessionId}
     $dir=Resolve-SBPendingDossier $BrainRoot $Repository
+    if(!$RequestId){$RequestId=[guid]::NewGuid().ToString('N')}
+    if($RequestId -cnotmatch '^[a-f0-9]{32}$'){throw (New-SBError 'pending.invalid' @('request ID'))}
+    $idempotentPath=Join-Path (Get-SBPendingPaths $BrainRoot).queue ($RequestId+'.json')
+    if(!$PrepareOnly -and $PreparedHash){
+        $prior=Read-SBPendingIdempotent $idempotentPath $Repository $RequestId $PreparedHash
+        if($prior){return $prior}
+    }
     if($Operation -eq 'task.update' -and $Arguments.ContainsKey('Status') -and
        !@($Arguments.Keys|Where-Object {$_ -notin @('TaskId','Status','StateReason','Evidence')}).Count){
         $Operation='task.status'
@@ -134,7 +152,11 @@ function New-SBPendingWrite {
         $Arguments.ProvenanceReference=[IO.Path]::GetRelativePath($dir,$source).Replace('\','/')
         $Expected=@{provenancePath=[IO.Path]::GetRelativePath($BrainRoot,$source).Replace('\','/');provenanceHash=(Get-SBFileHash $source)}
     }
-    $request=@{schemaVersion=1;id=[guid]::NewGuid().ToString('N');repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=[DateTimeOffset]::UtcNow.ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
+    if($StrictPreconditions){
+        if($Operation -eq 'task.new'){$Expected.trackerHash=(Read-SBPendingTracker $BrainRoot $Repository $dir).hash}
+        if($Operation -eq 'file.append'){$Expected.hash=Get-SBFileHash (Resolve-SBParaPath $dir $Arguments.relativePath)}
+    }
+    $request=@{schemaVersion=1;id=$RequestId;repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=[DateTimeOffset]::UtcNow.ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
     $request.sha256=Get-SBPendingHash $request
     Assert-SBPendingRequest $request $request.id
     if($Operation -eq 'task.update'){
@@ -151,6 +173,9 @@ function New-SBPendingWrite {
     }
     $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $request))
     if($bytes.Length -gt 2MB){throw (New-SBError 'pending.invalid' @('size > 2 MiB'))}
+    $contentHash=Get-SBPendingContentHash $request
+    if($PreparedHash -and $contentHash -cne $PreparedHash){throw (New-SBError 'pending.invalid' @('stale prepared request'))}
+    if($PrepareOnly){return @{id=$request.id;request=$request;contentHash=$contentHash;applied=$false;state='preview'}}
     $paths=Get-SBPendingPaths $BrainRoot
     $queue=if($Operation -eq 'task.update'){$paths.taskUpdates}else{$paths.queue}
     Assert-SBPlainPath $queue
@@ -158,7 +183,10 @@ function New-SBPendingWrite {
     $path=Join-Path $queue ($request.id+'.json')
     if($clock){$Diagnostics.prepareMs=$clock.Elapsed.TotalMilliseconds;$writeStart=$clock.Elapsed.TotalMilliseconds}
     # Each request has a private new file: no shared append, no writer/operation lock.
-    $stream=[IO.FileStream]::new($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try{$stream=[IO.FileStream]::new($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)}catch [IO.IOException]{
+        if($PreparedHash){$prior=Read-SBPendingIdempotent $path $Repository $RequestId $PreparedHash;if($prior){return $prior}}
+        throw
+    }
     try{$stream.Write($bytes);$stream.Flush($true)}finally{$stream.Dispose()}
     if($clock){$Diagnostics.writeFlushMs=$clock.Elapsed.TotalMilliseconds-$writeStart;$readStart=$clock.Elapsed.TotalMilliseconds}
     if((Get-SBFileHash $path) -ne (Get-SBHash $bytes)){throw (New-SBError 'core.readback.destination')}
@@ -212,13 +240,15 @@ function Get-SBPendingWrites([string]$BrainRoot) {
 
 function Invoke-SBPendingWrites {
     [CmdletBinding()]
-    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics)
+    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId)
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     if($clock){$Diagnostics.lockAttemptMs=0.0;$Diagnostics.lockAttempts=0}
     try {
+    if($RequestId -and $RequestId -cnotmatch '^[a-f0-9]{32}$'){throw (New-SBError 'pending.invalid' @('request ID'))}
     $summary=@{state='idle';applied=@();conflicts=@();errors=@();pending=0}
     try{$entries=@(Get-SBPendingWrites $BrainRoot)}catch{$summary.state='unavailable';$summary.errors+=@{code='pending.scan.failed';message=$_.Exception.Message};return $summary}
     finally{if($clock){$Diagnostics.scanMs=$clock.Elapsed.TotalMilliseconds}}
+    if($RequestId){$entries=@($entries|Where-Object id -ceq $RequestId)}
     $todo=@($entries|Where-Object state -eq 'deferred'|Sort-Object createdAt,id)
     $summary.conflicts=@($entries|Where-Object state -in @('conflict','invalid','invalid-receipt')|ForEach-Object {@{id=$_.id;repository=$_.repository;state=$_.state;path=$_.path}})
     $summary.pending=$todo.Count
@@ -283,7 +313,7 @@ function Invoke-SBPendingWrites {
                         }
                     }else{
                         $source=Resolve-SBParaPath $BrainRoot $request.expected.provenancePath
-                        if((Get-SBFileHash $source) -ine $request.expected.provenanceHash -or
+                        if(($request.expected.ContainsKey('trackerHash') -and $before -ine $request.expected.trackerHash) -or (Get-SBFileHash $source) -ine $request.expected.provenanceHash -or
                            ($request.arguments.ContainsKey('Id') -and $request.arguments.Id -and @($target.data.tasks|Where-Object id -eq $request.arguments.Id).Count)){$state='conflict'}
                         else{$arguments=@{}+$request.arguments;$candidate=New-SBTrackerTaskEntry -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
                     }
@@ -295,7 +325,7 @@ function Invoke-SBPendingWrites {
                 }else{
                     $path=Resolve-SBParaPath $dossier $request.arguments.relativePath
                     $before=Get-SBFileHash $path
-                    if($request.operation -eq 'file.save' -and $before -ine $request.expected.hash){$state='conflict'}
+                    if(($request.operation -eq 'file.save' -or $request.expected.ContainsKey('hash')) -and $before -ine $request.expected.hash){$state='conflict'}
                     else{
                         $text=[string]$request.arguments.content
                         if($request.operation -eq 'file.append' -and $before -ne 'absent'){$text=(Read-SBText $path)+$text}
@@ -347,10 +377,12 @@ function Invoke-SBPendingWrites {
     } finally {if($clock){$Diagnostics.drainMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
-function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[hashtable]$Diagnostics) {
+function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[hashtable]$Diagnostics,[switch]$OnlySubmission) {
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     try {
-    $drain=Invoke-SBPendingWrites -BrainRoot $Config.brainRoot -Config $Config -SessionId $SessionId -Diagnostics $Diagnostics
+    $drainOptions=@{BrainRoot=$Config.brainRoot;Config=$Config;SessionId=$SessionId;Diagnostics=$Diagnostics}
+    if($OnlySubmission){$drainOptions.RequestId=$Submission.id}
+    $drain=Invoke-SBPendingWrites @drainOptions
     $paths=Get-SBPendingPaths $Config.brainRoot
     $receipt=Read-SBPendingReceipt (Join-Path $paths.receipts ($Submission.id+'.json')) $Submission.path $Submission.id
     $result=@{requestId=$Submission.id;requestPath=$Submission.path;state='deferred';applied=$false;pendingWrites=$drain}
@@ -368,4 +400,4 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
 function Format-SBPendingNotice($Summary) {
     Get-SBMessage 'pending.notice' @($Summary.applied.Count,$Summary.conflicts.Count,$Summary.pending,$Summary.state)
 }
-Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice')
+Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice','Get-SBPendingContentHash')

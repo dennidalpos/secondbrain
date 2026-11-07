@@ -258,14 +258,14 @@ try {
         $allowed=@(Get-SBParaRuntimePaths $f.config)
         Set-SBWriteGuard {if((Get-SBFileHash $manifest) -ne $before){throw 'interruzione dopo spostamento manifest'}}.GetNewClosure()
         try{Reject-Audit {Invoke-SBParaTransaction $ops $f.config.backupRoot $f.brain $allowed} 'transazione interrotta dopo aggiornamento manifest' @('para.transaction.interrupted')}finally{Set-SBWriteGuard $null}
-        $marker=Read-SBJson (Join-Path $f.brain '.runtime/para-transaction.json') $null
+        $marker=Read-SBJson (Join-Path $f.brain '.runtime/access/para-transaction.json') $null
         Assert-Audit ($marker -and (Read-SBTrackerManifest $f.config $manifest).dossier -eq $destination) 'journal preserva lo spostamento incompleto'
         $targetContext=Join-Path $target 'context.md';$original=Read-SBText $targetContext;Put-Audit $targetContext ($original+' personale')
         Reject-Audit {Restore-SBParaTransaction $marker.manifest $f.brain $f.config.backupRoot @(Get-SBParaRuntimePaths $f.config)} 'recupero PARA rifiuta modifiche successive' @('para.restore.refused')
         Assert-Audit ((Get-SBFileHash $manifest) -ne $before -and (Read-SBText $targetContext).EndsWith('personale')) 'rifiuto del recupero non modifica manifest o dati personali'
         Put-Audit $targetContext $original
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $marker.manifest -ConfigPath $f.config.configPath -Apply|Out-Null
-        Assert-Audit ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $manifest) -eq $before -and (Test-Path -LiteralPath (Join-Path $f.dir 'repository.json')) -and !(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/para-transaction.json'))) 'CLI recupera insieme dossier e manifest esterno'
+        Assert-Audit ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $manifest) -eq $before -and (Test-Path -LiteralPath (Join-Path $f.dir 'repository.json')) -and !(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/access/para-transaction.json'))) 'CLI recupera insieme dossier e manifest esterno'
         Assert-Audit (@(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'Check coerente dopo recupero transazionale'
     }
     $success=$true
