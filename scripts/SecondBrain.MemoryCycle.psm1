@@ -78,6 +78,71 @@ function Get-SBCycleAdapter([ValidateSet('claude-code','codex','antigravity','vs
     $result
 }
 
+# Explicit CLI authorization. The receipt never infers permission from client settings.
+function New-SBCyclePermit {
+    [CmdletBinding()]
+    param([string]$BrainRoot,$Request,[string]$Workspace,[string]$BackupRoot,[switch]$Apply)
+    if(!(Test-SBCyclePersistence $Request) -or (Test-SBCyclePrivate $Request)){return @{state='suppressed';writes=0}}
+    foreach($field in @('schemaVersion','repository','client','clientVersion','sessionId','turnId','transcriptPath','requestContent')){
+        if(!$Request.ContainsKey($field)){throw (New-SBError 'cycle.invalid' @('permit '+$field))}
+    }
+    if($Request.schemaVersion -ne 1 -or $Request.client -cnotin @('codex','claude-code','antigravity') -or
+       $Request.clientVersion -isnot [string] -or [string]::IsNullOrWhiteSpace($Request.clientVersion) -or $Request.clientVersion.Length -gt 100){
+        throw (New-SBError 'cycle.invalid' @('permit client/version'))
+    }
+    Assert-SBCycleIdentifier $Request.sessionId;Assert-SBCycleIdentifier $Request.turnId
+    [void](Resolve-SBCycleDossier $BrainRoot $Request.repository)
+    $root=Assert-SBCycleWorkspace $BrainRoot $Request.repository $Workspace
+    if(![IO.Path]::IsPathFullyQualified($Request.transcriptPath) -or (Test-SBCycleCredentialPath $Request.transcriptPath)){
+        throw (New-SBError 'cycle.invalid' @('transcript path'))
+    }
+    Assert-SBPlainPath $Request.transcriptPath
+    if($Request.requestContent -isnot [string] -and $Request.requestContent -isnot [array]){
+        throw (New-SBError 'cycle.invalid' @('request content'))
+    }
+    $permit=@{schemaVersion=1;repository=$Request.repository;client=$Request.client;clientVersion=$Request.clientVersion;
+      sessionId=$Request.sessionId;turnId=$Request.turnId;transcriptPath=[IO.Path]::GetFullPath($Request.transcriptPath);
+      lastUserSha256=(Get-SBTextHash (ConvertTo-SBJson $Request.requestContent));persistence='allowed';
+      policyEvidence=$Request.policyEvidence;workspace=$root;authorization='explicit-cli-single-turn';
+      moduleSha256=(Get-SBFileHash (Join-Path $BrainRoot 'scripts/SecondBrain.MemoryCycle.psm1'));
+      bridgeSha256=(Get-SBFileHash (Join-Path $BrainRoot 'scripts/memory-cycle-hook.ps1'))}
+    if($permit.moduleSha256 -eq 'absent' -or $permit.bridgeSha256 -eq 'absent'){throw (New-SBError 'cycle.invalid' @('bridge revision'))}
+    # Optional artifacts are exact files. Authorization never expands to a directory.
+    $permit.allowedAttachmentPaths=@()
+    if($Request.ContainsKey('attachments')){
+        if($Request.attachments -isnot [array]){throw (New-SBError 'cycle.invalid' @('attachments'))}
+        $permit.attachments=$Request.attachments
+        foreach($attachment in $Request.attachments){
+            if($attachment -isnot [Collections.IDictionary] -or !$attachment.ContainsKey('path') -or
+               ![IO.Path]::IsPathFullyQualified($attachment.path) -or (Test-SBCycleCredentialPath $attachment.path)){
+                throw (New-SBError 'cycle.invalid' @('attachment path'))
+            }
+            Assert-SBPlainPath $attachment.path
+            $permit.allowedAttachmentPaths+=,[IO.Path]::GetFullPath($attachment.path)
+        }
+    }
+    if($Request.ContainsKey('candidatePath')){
+        $candidate=[IO.Path]::GetFullPath($Request.candidatePath)
+        if(!$candidate.StartsWith($root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+            throw (New-SBError 'cycle.invalid' @('candidate scope'))
+        }
+        Assert-SBPlainPath $candidate
+        $permit.candidateSha256=Get-SBFileHash $candidate
+        if($permit.candidateSha256 -eq 'absent'){throw (New-SBError 'cycle.invalid' @('candidate absent'))}
+        $permit.candidatePath=$candidate
+    }
+    $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $permit))
+    $hash=Get-SBHash $bytes
+    $path=Join-Path $root ('permits/'+$hash.ToLowerInvariant()+'.json')
+    $existing=Get-SBFileHash $path
+    if($existing -ne 'absent' -and $existing -cne $hash){throw (New-SBError 'cycle.conflict' @('permit receipt'))}
+    if($Apply -and $existing -eq 'absent'){
+        [void][IO.Directory]::CreateDirectory((Split-Path $path))
+        [void](Write-SBFile $path $bytes 'absent' $BackupRoot)
+    }
+    @{state=$(if(!$Apply){'preview'}elseif($existing -eq $hash){'duplicate'}else{'authorized'});
+      permitPath=$path;permitSha256=$hash;permit=$permit;writes=$(if($Apply -and $existing -eq 'absent'){1}else{0})}
+}
 function ConvertFrom-SBCycleNativeTurn([string]$Client,$NativeEvent,$Permit) {
     # A caller-owned, single-turn permit supplies permission and exact source scope.
     if(!(Test-SBCyclePersistence $Permit) -or (Test-SBCyclePrivate $Permit)){return @{state='suppressed';writes=0}}
@@ -529,4 +594,4 @@ function Invoke-SBCyclePromotion {
     @{state=$(if($Apply){'applied'}else{'preview'});receipt=$receipt;operations=$ops.Count;applied=[bool]$Apply}
 }
 
-Export-ModuleMember -Function @('Test-SBCyclePersistence','Resolve-SBCycleDossier','Assert-SBCycleWorkspace','Get-SBCycleAdapter','ConvertFrom-SBCycleNativeTurn','ConvertTo-SBCycleTurn','Save-SBCycleTurn','Get-SBCycleKnowledgeIndex','Save-SBCycleKnowledgeIndex','Get-SBCycleContext','Invoke-SBCyclePromotion')
+Export-ModuleMember -Function @('New-SBCyclePermit','Test-SBCyclePersistence','Resolve-SBCycleDossier','Assert-SBCycleWorkspace','Get-SBCycleAdapter','ConvertFrom-SBCycleNativeTurn','ConvertTo-SBCycleTurn','Save-SBCycleTurn','Get-SBCycleKnowledgeIndex','Save-SBCycleKnowledgeIndex','Get-SBCycleContext','Invoke-SBCyclePromotion')

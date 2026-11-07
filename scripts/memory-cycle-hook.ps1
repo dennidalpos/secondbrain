@@ -2,7 +2,7 @@
 # Native Stop bridge. A missing or stale per-turn permit never writes anything.
 [CmdletBinding()]
 param([Parameter(Mandatory)][ValidateSet('claude-code','codex','antigravity')][string]$Client,
-    [Parameter(Mandatory)][string]$PermitPath,[string]$ConfigPath,[switch]$Diagnostics)
+    [Parameter(Mandatory)][string]$PermitPath,[string]$PermitSha256,[string]$ConfigPath,[switch]$Diagnostics)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.MemoryCycle.psm1')
@@ -14,13 +14,17 @@ Add-SBMessages @{'cycle.hook.failed'=@{it='Ciclo memorie: acquisizione non esegu
 $session=$null;$lock=$null;$config=$null
 $phase='permit';$outcome='suppressed'
 try{
-    if(![Console]::IsInputRedirected -or ![IO.File]::Exists($PermitPath)){exit 0}
+    if($PermitSha256 -cnotmatch '^[A-Fa-f0-9]{64}$' -or ![Console]::IsInputRedirected -or ![IO.File]::Exists($PermitPath)){exit 0}
     $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     $permitFull=[IO.Path]::GetFullPath($PermitPath)
     $permitRoot=[IO.Path]::GetFullPath((Join-Path $brain ('.runtime/hosts/'+(Get-SBHostId)+'/repos'))).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
     if(!$permitFull.StartsWith($permitRoot,[StringComparison]::OrdinalIgnoreCase)){exit 0}
     Assert-SBPlainPath $PermitPath
+    if((Get-SBFileHash $permitFull) -cne $PermitSha256){exit 0}
     $permit=Read-SBJson $PermitPath $null
+    if(!$permit -or !$permit.ContainsKey('authorization') -or $permit.authorization -cne 'explicit-cli-single-turn' -or
+       !$permit.ContainsKey('moduleSha256') -or $permit.moduleSha256 -cne (Get-SBFileHash (Join-Path $PSScriptRoot 'SecondBrain.MemoryCycle.psm1')) -or
+       !$permit.ContainsKey('bridgeSha256') -or $permit.bridgeSha256 -cne (Get-SBFileHash $PSCommandPath)){exit 0}
     if(!(Test-SBCyclePersistence $permit)){exit 0}
     if(!$permit.ContainsKey('workspace') -or !$permit.ContainsKey('repository')){exit 0}
     $phase='scope'
@@ -53,6 +57,8 @@ try{
     $phase='writer'
     $session=& (Join-Path $PSScriptRoot 'access.ps1') -Start -Mode Write -Client memory-cycle-hook -Repository $permit.repository -ConfigPath $config.configPath|ConvertFrom-Json -AsHashtable
     $lock=Enter-SBOperation $config $session.sessionId
+    # Recheck under the writer lock: edits/revocation while reading the transcript must suppress persistence.
+    if((Get-SBFileHash $permitFull) -cne $PermitSha256){exit 0}
     $allowed=if($permit.ContainsKey('allowedAttachmentPaths')){@($permit.allowedAttachmentPaths)}else{@()}
     $phase='capture'
     $result=Save-SBCycleTurn -BrainRoot $brain -Envelope $prepared.envelope -Workspace $permit.workspace -BackupRoot $config.backupRoot -AllowedAttachmentPaths $allowed -Apply

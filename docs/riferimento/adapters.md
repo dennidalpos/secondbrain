@@ -54,3 +54,15 @@ See [safe writes](safety-backups.md), [access](access.md), [memory cycle](memory
 ## Reviewed MCP writes
 
 The [write support matrix](mcp-writes.md#client-support-and-approval-matrix) separates the synthetic stdio contract from real client qualification. Local receipts bind one request to its user, workstation and checkout. Neither existing preauthorization scope includes the new tools. Personal IDE settings are unchanged.
+
+## Single-turn memory permissions
+
+Memory collectors use the explicit [Permit CLI receipt](memory-cycle.md#explicit-single-turn-cli-receipt-140). Codex, Claude Code and Antigravity share receipt validation and the Stop bridge, with native boundaries checked on synthetic fixtures. Those fixtures do not qualify installed client versions. If the client does not expose the required request and turn identifiers, keep the normalized-envelope fallback. Existing live receipts are revision-bound; a changed module requires new qualification.
+
+| Client | Native boundary checked on fixture | Version claim |
+|---|---|---|
+| Codex | session_id, turn_id, transcript_path, exact human text blocks; Stop final text deduplication | clientVersion="fixture"; no new installed-version qualification |
+| Claude Code | session_id, transcript_path, last human UUID and exact content | clientVersion="fixture"; no new installed-version qualification |
+| Antigravity | conversationId, executionNum, transcriptPath, exact userMessage, declared terminationReason | clientVersion="fixture"; no new installed-version qualification |
+
+The CLI stores the version asserted by its caller. It does not discover or certify that version. Error/interruption fields supplied by a producer can be preserved; missing native delivery or missing termination fields remain unknown. Physical crashes and real client interruptions remain in #352.

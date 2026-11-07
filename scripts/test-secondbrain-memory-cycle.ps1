@@ -145,6 +145,11 @@ $permit.client='antigravity';$permit.turnId='2'
 [IO.File]::WriteAllLines($nativeFile,@((@{userMessage='Current request'}|ConvertTo-Json -Compress),(@{assistantMessage='Visible answer'}|ConvertTo-Json -Compress)))
 $normalized=ConvertFrom-SBCycleNativeTurn antigravity @{conversationId='native-session';executionNum=2;transcriptPath=$nativeFile;terminationReason='model_stop'} $permit
 Assert-Cycle ($normalized.state -eq 'prepared' -and $normalized.envelope.termination -eq 'completed') 'Antigravity declared execution boundary fixture (not live qualification)'
+foreach($termination in @('error','interrupted')){
+    $event=@{conversationId='native-session';executionNum=2;transcriptPath=$nativeFile;terminationReason=$termination}
+    $interrupted=ConvertFrom-SBCycleNativeTurn antigravity $event $permit
+    Assert-Cycle ($interrupted.state -eq 'prepared' -and $interrupted.envelope.termination -eq $termination) ('native declared '+$termination+' preserved on fixture')
+}
 $workspace2=Join-Path (Split-Path $workspace) '20261105-cycle-two'
 [void][IO.Directory]::CreateDirectory($workspace2)
 [IO.File]::WriteAllText((Join-Path $workspace2 'MANIFEST.json'),(Read-SBText (Join-Path $workspace 'MANIFEST.json')))
@@ -163,23 +168,100 @@ $cfg=@{schemaVersion=1;mode='portable';brainRoot=$brain;workstationId=$hostId;ru
 [IO.File]::WriteAllText($configPath,(ConvertTo-SBJson $cfg))
 $permit.client='codex';$permit.turnId='native-turn';$permit.lastUserSha256=Get-SBTextHash (ConvertTo-SBJson $current);$permit.workspace=$workspace
 [IO.File]::WriteAllLines($nativeFile,@($nativeRows|ForEach-Object {$_|ConvertTo-Json -Compress -Depth 20}))
-$permitPath=Join-Path $workspace 'permit.json';[IO.File]::WriteAllText($permitPath,(ConvertTo-SBJson $permit))
+$request=(ConvertTo-SBJson $permit)|ConvertFrom-Json -AsHashtable
+$request.requestContent=$current
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$authorization=New-SBCyclePermit $brain $request $workspace $backups
+Assert-Cycle ($authorization.state -eq 'preview' -and !(Test-Path $authorization.permitPath) -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'permit preview creates no receipt'
+$deniedRequest=$request.Clone();$deniedRequest.persistence='denied'
+Assert-Cycle ((New-SBCyclePermit $brain $deniedRequest $workspace $backups -Apply).state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'denied permission writes no receipt, queue or recovery'
+$privateRequest=$request.Clone();$privateRequest.requestContent='<private>not persisted</private>'
+Assert-Cycle ((New-SBCyclePermit $brain $privateRequest $workspace $backups -Apply).state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'private request cannot create an authorization receipt'
+$unknownRequest=$request.Clone();$unknownRequest.persistence='unknown'
+Assert-Cycle ((New-SBCyclePermit $brain $unknownRequest $workspace $backups -Apply).state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'unknown permit policy cannot create a receipt'
+$invalidRequest=$request.Clone();$invalidRequest.candidatePath=Join-Path $root 'outside-candidate.json'
+Reject-Cycle {New-SBCyclePermit $brain $invalidRequest $workspace $backups -Apply} 'permit cannot grant promotion outside its workspace'
+$invalidRequest=$request.Clone();$invalidRequest.transcriptPath=Join-Path $root 'auth.json'
+Reject-Cycle {New-SBCyclePermit $brain $invalidRequest $workspace $backups -Apply} 'permit cannot grant a credential transcript'
+$authorization=New-SBCyclePermit $brain $request $workspace $backups -Apply
+$permitPath=$authorization.permitPath;$permitHash=$authorization.permitSha256
+Assert-Cycle ($authorization.state -eq 'authorized' -and (Get-SBFileHash $permitPath) -ceq $permitHash -and $authorization.permit.lastUserSha256 -ceq (Get-SBTextHash (ConvertTo-SBJson $current))) 'CLI receipt binds the exact current request and client scope'
+Assert-Cycle ((New-SBCyclePermit $brain $request $workspace $backups -Apply).state -eq 'duplicate') 'reissuing the same authorization is idempotent'
 $native.cwd=$root
-$bridge=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath -Diagnostics 2>&1)
+$bridge=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -PermitSha256 $permitHash -ConfigPath $configPath -Diagnostics 2>&1)
 $nativeKey=(Get-SBTextHash ($repo+"`n"+'codex'+"`n"+'native-session'+"`n"+'native-turn')).ToLowerInvariant()
 Assert-Cycle ($LASTEXITCODE -eq 0 -and [IO.File]::Exists((Join-Path $workspace ('turns/'+$nativeKey+'.json')))) ('native bridge subprocess captures current fixture turn: '+($bridge -join ' '))
 $receipt=[string]$bridge[0]|ConvertFrom-Json -AsHashtable
 Assert-Cycle ($bridge.Count -eq 1 -and $receipt.Count -eq 3 -and $receipt.schemaVersion -eq 1 -and $receipt.phase -ceq 'capture' -and $receipt.outcome -ceq 'captured') 'capture diagnostic contains only phase and outcome metadata'
 $permit.turnId='wrong-root';$native.turn_id='wrong-root';$native.cwd=Join-Path (Split-Path $root) 'unbound-repository'
-[IO.File]::WriteAllText($permitPath,(ConvertTo-SBJson $permit))
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$request.turnId=$permit.turnId
+$unknownRequest=$request.Clone();$unknownRequest.persistence='unknown'
+Assert-Cycle ((New-SBCyclePermit $brain $unknownRequest $workspace $backups -Apply).state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'unknown permit policy cannot create a receipt'
+$invalidRequest=$request.Clone();$invalidRequest.candidatePath=Join-Path $root 'outside-candidate.json'
+Reject-Cycle {New-SBCyclePermit $brain $invalidRequest $workspace $backups -Apply} 'permit cannot grant promotion outside its workspace'
+$invalidRequest=$request.Clone();$invalidRequest.transcriptPath=Join-Path $root 'auth.json'
+Reject-Cycle {New-SBCyclePermit $brain $invalidRequest $workspace $backups -Apply} 'permit cannot grant a credential transcript'
+$authorization=New-SBCyclePermit $brain $request $workspace $backups -Apply
+$permitPath=$authorization.permitPath;$permitHash=$authorization.permitSha256
 $before=@(Get-ChildItem -LiteralPath $brain -Recurse -File).Count
-$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath 2>&1)
+$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -PermitSha256 $permitHash -ConfigPath $configPath 2>&1)
 Assert-Cycle ($LASTEXITCODE -eq 0 -and @(Get-ChildItem -LiteralPath $brain -Recurse -File).Count -eq $before) 'native repository mismatch cannot start a write session or capture'
 Assert-Cycle ($ignored.Count -eq 0) 'suppressed native hook is silent by default'
-$diagnosed=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath -Diagnostics 2>&1)
+$diagnosed=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -PermitSha256 $permitHash -ConfigPath $configPath -Diagnostics 2>&1)
 $receipt=[string]$diagnosed[0]|ConvertFrom-Json -AsHashtable
 Assert-Cycle ($LASTEXITCODE -eq 0 -and $diagnosed.Count -eq 1 -and $receipt.Count -eq 3 -and $receipt.schemaVersion -eq 1 -and $receipt.phase -ceq 'binding' -and $receipt.outcome -ceq 'suppressed') 'diagnostic reports suppression at the repository binding'
 Assert-Cycle (@(Get-ChildItem -LiteralPath $brain -Recurse -File).Count -eq $before) 'diagnostic suppression does not start a write session or create files'
+# A receipt hash is required even when the JSON contains an allowed policy.
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -PermitSha256 ('0'*64) -ConfigPath $configPath 2>&1)
+Assert-Cycle ($LASTEXITCODE -eq 0 -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'altered authorization hash cannot persist or open a writer session'
+$noHash=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $permitPath -ConfigPath $configPath 2>&1)
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $noHash.Count -eq 0) 'missing receipt hash remains a silent nonblocking fallback'
+$deniedFile=Join-Path $workspace 'denied-request.json'
+[IO.File]::WriteAllText($deniedFile,(ConvertTo-SBJson $deniedRequest))
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$deniedCli=& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle.ps1') -Operation Permit -InputPath $deniedFile -Workspace $workspace -ConfigPath 'nonexistent-config.json' -Apply|Out-String|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $deniedCli.state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'denied CLI exits before configuration, sessions and pending recovery'
+[IO.File]::WriteAllText($deniedFile,(ConvertTo-SBJson $privateRequest))
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$deniedCli=& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle.ps1') -Operation Permit -InputPath $deniedFile -Workspace $workspace -ConfigPath 'nonexistent-config.json' -Apply|Out-String|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $deniedCli.state -eq 'suppressed' -and @(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'private CLI request exits before configuration or session persistence'
+# Exercise the actual CLI preview and explicit Apply, then Stop capture + promotion.
+$request.turnId='promotion-turn';$native.turn_id='promotion-turn';$native.cwd=$root
+$promotionCandidate=Join-Path $workspace 'candidate.json'
+[IO.File]::WriteAllText($promotionCandidate,(ConvertTo-SBJson @{schemaVersion=1;repository=$repo;persistence='allowed';policyEvidence='fixture derivative for one turn';captureSha256='bind-current-turn';sources=@{'memory.md'=(Get-SBFileHash (Join-Path $d 'memory.md'))};changes=@(@{kind='decision';id='native-promotion';text='Native fixture decision';reason='Synthetic integration';verified=$true;eventIds=@('native-final')})}))
+$request.candidatePath=$promotionCandidate
+$requestFile=Join-Path $workspace 'request.json';[IO.File]::WriteAllText($requestFile,(ConvertTo-SBJson $request))
+$cliResult=& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle.ps1') -Operation Permit -InputPath $requestFile -Workspace $workspace -ConfigPath $configPath|Out-String|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $cliResult.state -eq 'preview' -and !(Test-Path $cliResult.permitPath)) 'Permit CLI previews the exact receipt without writing it'
+$cliResult=& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle.ps1') -Operation Permit -InputPath $requestFile -Workspace $workspace -ConfigPath $configPath -Apply|Out-String|ConvertFrom-Json -AsHashtable
+Assert-Cycle ($LASTEXITCODE -eq 0 -and $cliResult.state -eq 'authorized') 'Permit CLI Apply emits a single-turn receipt'
+$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $cliResult.permitPath -PermitSha256 $cliResult.permitSha256 -ConfigPath $configPath -Diagnostics 2>&1)
+Assert-Cycle ((Read-SBText (Join-Path $d 'memory.md')) -match 'Decisione: Native fixture decision') ('authorized native Stop captures and promotes with retained event evidence: '+($ignored -join ' '))
+$memoryHash=Get-SBFileHash (Join-Path $d 'memory.md')
+$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $cliResult.permitPath -PermitSha256 $cliResult.permitSha256 -ConfigPath $configPath 2>&1)
+Assert-Cycle ((Get-SBFileHash (Join-Path $d 'memory.md')) -ceq $memoryHash) 'native Stop replay cannot duplicate a promoted decision'
+$native.turn_id='later-turn'
+$before=@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count
+$ignored=@($native|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client codex -PermitPath $cliResult.permitPath -PermitSha256 $cliResult.permitSha256 -ConfigPath $configPath 2>&1)
+Assert-Cycle (@(Get-ChildItem -LiteralPath $brain -File -Recurse).Count -eq $before) 'single-turn receipt cannot authorize a subsequent turn'
+foreach($client in @('claude-code','antigravity')){
+    $clientRequest=$request.Clone();$clientRequest.Remove('candidatePath')
+    $clientRequest.client=$client;$clientRequest.requestContent='Current request'
+    $clientRequest.turnId=if($client -eq 'claude-code'){'user-uuid'}else{'2'}
+    $clientPermit=New-SBCyclePermit $brain $clientRequest $workspace $backups -Apply
+    if($client -eq 'claude-code'){
+        [IO.File]::WriteAllLines($nativeFile,@((@{type='user';uuid='user-uuid';message=@{role='user';content='Current request'}}|ConvertTo-Json -Compress -Depth 12),(@{type='assistant';message=@{role='assistant';content='Visible answer'}}|ConvertTo-Json -Compress -Depth 12)))
+        $clientEvent=@{session_id='native-session';transcript_path=$nativeFile;cwd=$root}
+    }else{
+        [IO.File]::WriteAllLines($nativeFile,@((@{userMessage='Current request'}|ConvertTo-Json -Compress),(@{assistantMessage='Visible answer'}|ConvertTo-Json -Compress)))
+        $clientEvent=@{conversationId='native-session';executionNum=2;transcriptPath=$nativeFile;terminationReason='error';workspacePaths=@($root)}
+    }
+    $clientOutput=@($clientEvent|ConvertTo-Json -Compress|& pwsh -NoProfile -File (Join-Path $scripts 'memory-cycle-hook.ps1') -Client $client -PermitPath $clientPermit.permitPath -PermitSha256 $clientPermit.permitSha256 -ConfigPath $configPath -Diagnostics 2>&1)
+    $clientDiagnostic=([string]$clientOutput[0])|ConvertFrom-Json
+    Assert-Cycle ($LASTEXITCODE -eq 0 -and $clientDiagnostic.outcome -eq 'captured') ($client+' receipt-to-collector contract on synthetic native events, not live qualification')
+}
 $observation=@{schemaVersion=1;repository=$repo;client='codex';clientVersion='fixture';workspace=$workspace;observedAt=[DateTimeOffset]::UtcNow.ToString('o');coverage='partial';evidenceKind='fixture';evidencePath=$saved.path;evidenceSha256=(Get-SBFileHash $saved.path);moduleSha256=(Get-SBFileHash (Join-Path $PSScriptRoot 'SecondBrain.MemoryCycle.psm1'))}
 $observationPath=Join-Path $workspace 'observation.json';[IO.File]::WriteAllText($observationPath,(ConvertTo-SBJson $observation))
 Assert-Cycle (!(Get-SBCycleAdapter codex $brain $repo $observationPath).liveVerified) 'valid fixture receipt never becomes live qualification'

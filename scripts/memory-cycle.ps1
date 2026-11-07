@@ -1,7 +1,7 @@
 #requires -Version 7.5
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][ValidateSet('Capture','Promote','Index','Context','Maintenance','Adapter')][string]$Operation,
+    [Parameter(Mandatory)][ValidateSet('Capture','Promote','Index','Context','Maintenance','Adapter','Permit')][string]$Operation,
     [string]$Repository,[string]$InputPath,[string]$Workspace,[string[]]$AttachmentPath=@(),
     [string[]]$TaskIds=@(),[string]$PreviousRevision,[int]$Budget=30000,
     [ValidateSet('claude-code','codex','antigravity','vscode','android-studio','claude','cursor','windsurf','continue','jetbrains')][string]$Client='codex',
@@ -18,7 +18,7 @@ Add-SBMessages @{'cycle.invalid'=@{it='Ciclo memorie: input non valido ({0})';en
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if($Operation -eq 'Adapter'){ConvertTo-SBJson (Get-SBCycleAdapter $Client $brain $Repository $ObservationPath);exit 0}
 $inputObject=$null
-if($Operation -in @('Capture','Promote')){
+if($Operation -in @('Capture','Promote','Permit')){
     if(!$InputPath){throw (New-SBError 'cycle.invalid' @('InputPath'))}
     Assert-SBPlainPath $InputPath
     if(([IO.FileInfo]::new($InputPath)).Length -gt 8MB){throw (New-SBError 'cycle.invalid' @('input > 8 MiB'))}
@@ -37,6 +37,10 @@ if($Operation -eq 'Maintenance'){
     ConvertTo-SBJson @{repository=$Repository;revision=$index.revision;batches=@($index.entries|Group-Object topic|ForEach-Object {@{topic=$_.Name;sources=@($_.Group);requires='SYS05 preview and explicit batch confirmation'}})}
     exit 0
 }
+if($Operation -eq 'Permit'){
+    $preview=New-SBCyclePermit -BrainRoot $brain -Request $inputObject -Workspace $Workspace
+    if(!$Apply -or $preview.state -eq 'suppressed'){ConvertTo-SBJson $preview;exit 0}
+}
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:(!$Apply)
 if(!$Apply -and $Operation -eq 'Capture' -and !$Workspace){ConvertTo-SBJson (ConvertTo-SBCycleTurn $inputObject);exit 0}
 $owned=$null;$lock=$null
@@ -49,6 +53,7 @@ try{
         $Workspace=$work.root
     }
     $result=switch($Operation){
+        'Permit' {New-SBCyclePermit -BrainRoot $brain -Request $inputObject -Workspace $Workspace -BackupRoot $config.backupRoot -Apply:$Apply}
         'Capture' {Save-SBCycleTurn -BrainRoot $brain -Envelope $inputObject -Workspace $Workspace -BackupRoot $config.backupRoot -AllowedAttachmentPaths $AttachmentPath -Apply:$Apply}
         'Promote' {Invoke-SBCyclePromotion -BrainRoot $brain -Candidate $inputObject -Workspace $Workspace -BackupRoot $config.backupRoot -Apply:$Apply}
         'Index' {Save-SBCycleKnowledgeIndex $brain $Repository $config.backupRoot -Apply:$Apply}
