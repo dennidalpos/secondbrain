@@ -49,14 +49,14 @@ function Resolve-SBParaPath([string]$Root,[string]$Relative) {
 }
 
 $script:SBParaCache=@{}
-function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners) {
+function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners,[switch]$Refresh) {
     # On a share, scanning every dossier on each call is costly: short-lived memoization, invalidated by each write
     # in this process (generation) and by expiry. Disabled locally unless forced with SECONDBRAIN_PARA_CACHE=1.
     if(!($BrainRoot.StartsWith('\\') -or $env:SECONDBRAIN_PARA_CACHE -eq '1')){return @(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)}
     $key=[IO.Path]::GetFullPath($BrainRoot).ToLowerInvariant()+'|'+((@($AllowedOwners)|Sort-Object) -join ',')
     $generation=Get-SBWriteGeneration
     $entry=if($script:SBParaCache.ContainsKey($key)){$script:SBParaCache[$key]}else{$null}
-    if($entry -and $entry.generation -eq $generation -and ([DateTimeOffset]::UtcNow-$entry.at).TotalSeconds -lt 10){return @($entry.items)}
+    if(!$Refresh -and $entry -and $entry.generation -eq $generation -and ([DateTimeOffset]::UtcNow-$entry.at).TotalSeconds -lt 10){return @($entry.items)}
     $items=@(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)
     $script:SBParaCache[$key]=@{generation=$generation;at=[DateTimeOffset]::UtcNow;items=$items}
     $items

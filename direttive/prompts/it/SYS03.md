@@ -13,18 +13,18 @@ Da usare da SecondBrain, anche prima della configurazione locale, con `sb attiva
 </inputs>
 
 <decisions>
-- repository da gestire e radici da esaminare;
+- modalità locale o team, repository da gestire e radici da esaminare;
 - integrazioni IDE o agent da associare, con profilo e account;
 - blocchi gestiti esistenti da approvare;
 - conferma finale prima di `-Yes` e `-Apply`.
 </decisions>
 
 <procedure>
-1. Ricava la radice dal checkout e usa `secondbrain.ps1 -Setup`; non scrivere `selection.json` a mano.
-2. Primo passo senza `-Select`: preflight (PowerShell, git, `.runtime` scrivibile, `shared.json`, direttive approvate) e discovery di tutti i volumi fissi; salva rapporto e selezione per host in `.runtime/hosts/<id>/` e termina come proposta.
-3. Mostra copertura, repository, checkout, IDE e profili, e ambienti separati; i dati trovati non sono autorizzazioni.
-4. Chiedi quali asset gestire e presenta le modifiche concrete (scelta multipla strutturata se disponibile).
-5. Riesegui in modo non interattivo con `-Roots`, `-Select`, `-Ides`, `-ApproveExistingBlocks` secondo necessità; aggiungi `-Yes` solo dopo la conferma, poi `-Apply` per il perimetro confermato. `-Apply` registra `SECONDBRAIN_HOME`, applica le direttive approvate e configura MCP per gli IDE selezionati.
+1. Ricava la radice locale dal checkout e usa `secondbrain.ps1 -Setup`. Per la modalità team passa `-TeamRoot <UNC>` e usa un disco fisso locale per `SECONDBRAIN_STATE_ROOT` prima dell'attivazione. Affida a Setup la scrittura dei file di selezione.
+2. Usa `-PreviewOnly -Roots <cartella>` per preflight e discovery in sola lettura. Aggiungi `-Interactive` per scegliere più repository e IDE e vedere i piani di attivazione, direttive e MCP.
+3. Mostra copertura, checkout, profili IDE e ambienti. Se entrambe le radici hanno un dossier attivo per la stessa identità, presenta entrambi i percorsi e il checkout. Confronta i dossier con il codice reale prima di concordare il consolidamento.
+4. Usa `-Setup -Interactive` per rivedere e attivare nella stessa esecuzione. Conferma con `APPLICA` dopo aver esaminato il piano. In alternativa, passa `-Roots`, `-Select`, `-Ides` e `-ApproveExistingBlocks` secondo necessità e usa `-Yes -Apply` per il perimetro approvato.
+5. Verifica nella ricevuta la registrazione di `SECONDBRAIN_HOME`, la distribuzione delle direttive approvate e la configurazione MCP per gli IDE selezionati.
 </procedure>
 
 <constraints>

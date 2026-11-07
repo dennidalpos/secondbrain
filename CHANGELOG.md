@@ -2,9 +2,22 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.0.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.1.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
 ## [Non rilasciato]
+
+## [1.1.0] - 2026-11-07
+
+### Aggiunto
+
+- Setup team da un checkout locale con radice UNC, anteprima delle destinazioni e attivazione nello stesso flusso interattivo.
+- Segnalazione dei dossier personale e team per la stessa identità, con confronto richiesto prima del consolidamento.
+
+### Modificato
+
+- Configurazione, ricevute, inventario e stato IDE del Setup team conservati sul disco locale della postazione.
+- Journal di recupero delle transazioni team nel coordinamento condiviso.
+- Guida iniziale e SYS03 aggiornati per il flusso locale e team.
 
 ## [1.0.1] - 2026-11-06
 

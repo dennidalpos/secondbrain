@@ -10,6 +10,26 @@ $checks=0
 function Check($Value,[string]$Message){if(!$Value){throw ('FAIL ESSENTIAL: '+$Message)};$script:checks++;'PASS ESSENTIAL: '+$Message}
 function Reject([scriptblock]$Action,[string]$Message){$caught=$false;try{& $Action|Out-Null}catch{$caught=$true};Check $caught $Message}
 function Put([string]$Path,[string]$Text){[void][IO.Directory]::CreateDirectory((Split-Path $Path));[IO.File]::WriteAllText($Path,$Text,[Text.UTF8Encoding]::new($false))}
+function Copy-SetupCatalog([string]$Root){
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Prompts.psm1')
+    $source=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+    Put (Join-Path $Root 'config/prompt-catalog.schema.json') (Read-SBText (Join-Path $source 'config/prompt-catalog.schema.json'))
+    $catalog=Read-SBJson (Join-Path $source 'direttive/prompts/catalog.json') @{}
+    $catalog.prompts=@($catalog.prompts|Where-Object code -in 'SYS03','SYS04')
+    $catalog.categories=@($catalog.categories|Where-Object id -in @($catalog.prompts.category))
+    foreach($prompt in $catalog.prompts){
+        $prompt.related=@($catalog.prompts|Where-Object id -ne $prompt.id|ForEach-Object id)
+        foreach($folder in 'direttive/prompts','direttive/prompts/it'){
+            $file=Join-Path $folder $prompt.file
+            Put (Join-Path $Root $file) (Read-SBText (Join-Path $source $file))
+        }
+    }
+    Put (Join-Path $Root 'direttive/prompts/catalog.json') (ConvertTo-SBJson $catalog)
+    foreach($language in 'en','it'){
+        $index=New-SBWorkflowIndex $Root $language
+        Put (Join-Path $Root $index.path) $index.text
+    }
+}
 $fixture=Join-Path (Get-SBTestRoot) ('e-'+[guid]::NewGuid().ToString('N').Substring(0,6))
 $brain=Join-Path $fixture 'b';$repo=Join-Path $fixture 'r';$identity='github.com/test/essential'
 $dossier=Join-Path $brain '02-areas/products/Essential';$trackerPath=Join-Path $dossier 'tracker.json'
@@ -180,8 +200,7 @@ if('portable' -in $Groups){
         }
         $oldProfile=$env:USERPROFILE;$oldBrain=$env:SECONDBRAIN_HOME;$oldState=$env:SECONDBRAIN_STATE_ROOT
         try{
-            Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../direttive/prompts') -Destination (Join-Path $brain 'direttive/prompts') -Recurse
-            Put (Join-Path $brain 'config/prompt-catalog.schema.json') (Read-SBText (Join-Path $PSScriptRoot '../config/prompt-catalog.schema.json'))
+            Copy-SetupCatalog $brain
             $env:USERPROFILE=Join-Path $runtime 'synthetic-profile'
             [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
             $setupScript=Join-Path $brain 'scripts/secondbrain.ps1'
@@ -194,13 +213,76 @@ if('portable' -in $Groups){
             Check ($LASTEXITCODE -eq 0 -and $readOnlyPreview.mode -eq 'single' -and !$readOnlyPreview.applied -and !$readOnlyPreview.confirmed -and !$readOnlyPreview.discovery.report -and $readOnlyPreview.activation.repositories.Count -eq 1 -and $readOnlyPreview.mcp.targets[0].ConfigFile -eq $cursorConfig -and ($beforePreview -join ',') -eq ($afterPreview -join ',')) 'read-only setup plans activation and MCP without writing discovery, selection or pairing files'
             $teamError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $repo -Language en 2>&1) -join "`n"
             Check ($LASTEXITCODE -eq 2 -and $teamError.Contains('reachable UNC root')) 'team preview rejects a local path'
+            $personalRoot=Join-Path $fixture 'personal'
+            $personalDossier=Join-Path $personalRoot '02-areas/Personal'
+            foreach($file in 'para.json','repository.json','brief.md','context.md','memory.md','tracker.json','history/seed/report.md'){
+                Put (Join-Path $personalDossier $file) (Read-SBText (Join-Path $dossier $file))
+            }
+            $personalContext=Join-Path $personalDossier 'context.md'
+            $personalHash=Get-SBFileHash $personalContext
+            $teamPreview=Invoke-SBSetup -BrainRoot $brain -PersonalRoot $personalRoot -PreviewOnly -Roots $repo -Select $repo
+            $conflicts=@($teamPreview.dossierConflicts)
+            Check ($conflicts.Count -eq 1 -and $conflicts[0].identity -eq $identity -and $conflicts[0].checkout -eq $repo -and $conflicts[0].personalDossier -eq $personalDossier -and $conflicts[0].teamDossier -eq $dossier -and (Get-SBFileHash $personalContext) -eq $personalHash -and (Get-SBFileHash $setupPaths.report) -eq $afterPreview[0]) 'team preview identifies both dossiers and the checkout without writing state'
+            if($personalRoot -match '^(?<drive>[A-Za-z]):(?<tail>\\.*)$'){
+                $loopback='\\localhost\'+$Matches.drive+'$'+$Matches.tail
+                if([IO.Directory]::Exists($loopback)){
+                    Put (Join-Path $personalRoot 'config/shared.json') (Read-SBText (Join-Path $brain 'config/shared.json'))
+                    $teamCli=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $loopback -Roots $repo -Select $repo -ApproveExistingBlocks)|ConvertFrom-Json -AsHashtable
+                    Check ($LASTEXITCODE -eq 0 -and $teamCli.mode -eq 'team' -and $teamCli.dossierConflicts.Count -eq 1 -and (Test-SBSamePath $teamCli.dossierConflicts[0].teamDossier $personalDossier) -and ![IO.Directory]::Exists((Join-Path $personalRoot '.runtime'))) 'team CLI reports the conflict over loopback UNC without creating runtime'
+                    $conflict=(& pwsh -NoProfile -File $setupScript -Setup -TeamRoot $loopback -Roots $repo -Select $repo -ApproveExistingBlocks -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+                    Check ($LASTEXITCODE -eq 1 -and $conflict.stage -eq 'dossier-conflict' -and !$conflict.applied -and $conflict.dossierConflicts.Count -eq 1 -and ![IO.Directory]::Exists((Join-Path $personalRoot '.runtime'))) 'team conflict stops activation before writes even with explicit confirmation'
+
+                    $teamRepo=Join-Path $fixture 'team-repo'
+                    [void][IO.Directory]::CreateDirectory($teamRepo)
+                    Check ((Invoke-SBGit $teamRepo @('init','-q')).code -eq 0 -and (Invoke-SBGit $teamRepo @('remote','add','origin','https://github.com/test/team-fixture.git')).code -eq 0) 'team checkout has a separate synthetic identity'
+                    try{
+                        $env:SECONDBRAIN_STATE_ROOT=$null
+                        $missingState=(& pwsh -NoProfile -File $setupScript -Setup -TeamRoot $loopback -Roots $teamRepo -Select $teamRepo -Yes -Apply -NoRegisterEnvironment -Language en 2>&1) -join [Environment]::NewLine
+                    }finally{$env:SECONDBRAIN_STATE_ROOT=$oldState}
+                    Check ($LASTEXITCODE -eq 2 -and $missingState.Contains('requires SECONDBRAIN_STATE_ROOT') -and ![IO.Directory]::Exists((Join-Path $personalRoot '.runtime'))) 'team activation refuses to keep workstation state on the share'
+                    foreach($file in 'AGENTS.global_ide.md','workstation.template.md'){
+                        Put (Join-Path $personalRoot ('direttive/'+$file)) (Read-SBText (Join-Path $brain ('direttive/'+$file)))
+                    }
+                    Put (Join-Path $personalRoot 'direttive/approved.json') (ConvertTo-SBJson $approval)
+                    foreach($file in 'VERSION','config/tracker.schema.json','config/prompt-catalog.schema.json','scripts/mcp-server.ps1'){
+                        Put (Join-Path $personalRoot $file) (Read-SBText (Join-Path $brain $file))
+                    }
+                    Copy-SetupCatalog $personalRoot
+                    $env:SECONDBRAIN_STATE_ROOT=Join-Path $fixture 'team-state'
+                    $fixtureProfile=$env:USERPROFILE
+                    try{
+                        $env:USERPROFILE=Join-Path $fixture 'team-profile'
+                        [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
+                        $teamOutput=(('APPLICA'|& pwsh -NoProfile -File $setupScript -Setup -Interactive -TeamRoot $loopback -Roots $teamRepo -Select $teamRepo -McpTargets cursor -NoRegisterEnvironment) -join "`n")
+                        $teamCode=$LASTEXITCODE
+                        $team=$teamOutput.Substring($teamOutput.LastIndexOf("`n{`n")+1)|ConvertFrom-Json -AsHashtable
+                        Check ($teamCode -eq 0 -and $team.applied -and $team.mode -eq 'team' -and $team.check.mode -eq 'sync' -and $team.check.filesAligned) ('one interactive command applies the team plan over loopback UNC: '+($team.check|ConvertTo-Json -Compress))
+                        $teamMcp=Read-SBJson (Join-Path $env:USERPROFILE '.cursor/mcp.json') @{}
+                        $teamServer=(Join-Path $loopback 'scripts/mcp-server.ps1').Replace('\','/')
+                        Check ($team.mcp.complete -and $teamMcp.mcpServers.secondbrain.args -contains $teamServer) 'team MCP points to the authoritative root from the local profile'
+                        $teamConfig=Read-SBConfiguration -BrainRoot $loopback -ReadOnly
+                        $teamState=$teamConfig.localStateRoot
+                        foreach($file in 'workstation.json','discovery.json','selection.json','setup-result.json','state.json','inventory.json','ide-map.json'){
+                            Check ([IO.File]::Exists((Join-Path $teamState $file))) ('team workstation file stays local: '+$file)
+                        }
+                        $teamDossier=Join-Path $loopback $team.activation.repositories[0].dossier
+                        Check ($teamState.StartsWith($env:SECONDBRAIN_STATE_ROOT) -and [IO.File]::Exists((Join-Path $teamDossier 'tracker.json')) -and [IO.File]::Exists((Join-Path $teamRepo 'AGENTS.md')) -and [IO.Directory]::Exists((Join-Path $loopback '.runtime/access/recovery')) -and ![IO.Directory]::Exists((Join-Path $loopback '.runtime/hosts'))) 'team share contains dossier and coordination while Setup keeps workstation files local'
+                        $teamRepeat=(& pwsh -NoProfile -File $setupScript -Setup -TeamRoot $loopback -Roots $teamRepo -Select $teamRepo -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+                        Check ($LASTEXITCODE -eq 0 -and $teamRepeat.applied -and $teamRepeat.activation.repositories[0].dossier -eq $team.activation.repositories[0].dossier) 'team setup repeats with the existing binding'
+                    }finally{$env:SECONDBRAIN_STATE_ROOT=$oldState;$env:USERPROFILE=$fixtureProfile}
+                }
+            }
             $preview=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $preview.mcp.preview -and $preview.mcp.targets[0].ConfigFile -eq $cursorConfig -and !(Test-Path -LiteralPath $cursorConfig)) 'setup previews the MCP destination without pairing'
+            $beforeRefusal=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
             $interactiveOutput=(('skip'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Interactive -Apply -NoRegisterEnvironment -Language en) -join "`n")
+            $afterRefusal=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
+            $activationAt=$interactiveOutput.IndexOf('Workstation activation preview')
             $previewAt=$interactiveOutput.IndexOf('User-level MCP pairing preview')
             $resultAt=$interactiveOutput.IndexOf('"stage": "preview"')
-            Check ($LASTEXITCODE -eq 0 -and $previewAt -ge 0 -and $resultAt -gt $previewAt -and !(Test-Path -LiteralPath $cursorConfig)) 'interactive setup displays the MCP preview and respects refusal'
-            $setup=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+            Check ($LASTEXITCODE -eq 0 -and $activationAt -ge 0 -and $previewAt -gt $activationAt -and $resultAt -gt $previewAt -and ($beforeRefusal -join ',') -eq ($afterRefusal -join ',')) 'interactive setup previews activation and MCP and leaves files untouched on refusal'
+            $setupOutput=(('APPLICA'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Interactive -NoRegisterEnvironment) -join "`n")
+            $setup=$setupOutput.Substring($setupOutput.LastIndexOf("`n{`n")+1)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $setup.applied -and $setup.check.mode -eq 'sync' -and $setup.mcp.permissionConfigurationComplete -and [IO.File]::Exists($setup.setupReport)) 'setup applies sync, named approvals and a persistent report in an isolated profile'
             $repeat=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $repeat.mcp.items[0].PermissionAction -eq 'unchanged') 'setup repeats with the same repository identity and MCP rules'

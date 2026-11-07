@@ -1071,7 +1071,7 @@ function Get-SBWorkstationStateRoot([string]$BrainRoot,[string]$WorkstationId) {
     if($drive.DriveType -ne [IO.DriveType]::Fixed){throw (New-SBError 'core.state.root')}
     $brain=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')
     $root=Join-Path $base ((Get-SBTextHash $brain.ToLowerInvariant()).Substring(0,16).ToLowerInvariant()+'/'+$WorkstationId)
-    if($root.StartsWith($brain+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
+    if((ConvertTo-SBComparablePath $root).StartsWith((ConvertTo-SBComparablePath $brain)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){
         throw (New-SBError 'core.state.root')
     }
     Assert-SBPlainPath $root

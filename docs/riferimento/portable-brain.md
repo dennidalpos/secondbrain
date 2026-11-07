@@ -14,7 +14,7 @@ Use Windows, PowerShell 7.5+ and Git 2.42+. Inspect the actual version with pwsh
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Projects -Interactive
 ~~~
 
-Setup performs preflight, discovery, proposal, confirmation, preview and application. Without explicit roots discovery may visit accessible fixed volumes, so bounded roots are preferable. Known system/build trees are excluded and coverage/errors are reported. Metadata discovery does not inspect authentication stores.
+Interactive Setup performs preflight, discovery and preview before confirmation and application. Without explicit roots discovery may visit accessible fixed volumes, so bounded roots are preferable. Known system and build trees are excluded and coverage and errors are reported. Metadata discovery leaves authentication stores alone. For team activation and workstation storage, see the [shared-root procedure](shared-brain.md).
 
 Discover can save a runtime report; MaxDirectories/ResumePath support bounded resumable discovery. New checkouts are not managed until selected. Raw discovery contains host paths and must not be published.
 

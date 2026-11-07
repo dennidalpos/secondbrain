@@ -20,9 +20,15 @@ prompts Context resolves paths; knowledge Startup loads the actual packet. A res
 
 ### Review workstation setup
 
-Run `scripts/secondbrain.ps1 -Setup -PreviewOnly -Roots <folder>` to list discovered repositories and IDEs. Add `-Interactive` to select several assets, or pass `-Select` and `-Ides` to review an explicit selection. The resulting plan lists dossier metadata paths and MCP destinations. The preview skips the runtime write probe and leaves discovery, selection, activation and MCP files untouched. For an approved setup, use the existing `-Setup -Interactive` activation flow.
+Run `scripts/secondbrain.ps1 -Setup -PreviewOnly -Roots <folder>` to list discovered repositories and IDEs. Add `-Interactive` to select several assets, or pass `-Select` and `-Ides` to review an explicit selection. The resulting plan lists dossier metadata paths and MCP destinations. The preview skips the runtime write probe and leaves discovery, selection, activation and MCP files untouched.
 
-For a team preview, pass `-TeamRoot '\\server\share'` for an existing authoritative SecondBrain root. Discovery still targets the local checkout by default. Team access uses the share's existing ACLs. Keep personal context on the workstation and resolve conflicting instructions explicitly before applying changes. The team preview does not merge the layers or write to the share. Use the existing UNC setup procedure for activation.
+Run `-Setup -Interactive -Roots <folder>` to review the activation and MCP plans and apply them in the same run. Type `APPLICA` to confirm. Press Enter to finish with the preview and leave workstation files untouched.
+
+For team setup, pass `-TeamRoot '\\server\share'` for an existing authoritative SecondBrain root. Discovery still targets the local checkout by default. Use `-PreviewOnly` to review the plan, or set `SECONDBRAIN_STATE_ROOT` to a directory on a fixed local drive and use `-Interactive` to review and activate in one run. Automation can use `-Yes -Apply` for an already approved selection. Team access uses the share's existing ACLs.
+
+If a selected repository has an active dossier in both roots, `dossierConflicts` lists the identity, checkout and both dossier paths. Setup stops before writing. Review the dossiers against that checkout before agreeing on consolidation.
+
+Setup keeps the workstation configuration, inventory, discovery, selection, receipts and IDE state in the local state directory. The share receives dossier changes, generated PARA views and coordination records, including recovery journals under `.runtime/access/recovery`. Run subsequent commands from the authoritative root with the same local state setting.
 
 <a id="controllo-e-sincronizzazione-su-richiesta"></a>
 

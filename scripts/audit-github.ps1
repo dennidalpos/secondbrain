@@ -22,7 +22,10 @@ try {
     $config=Read-SBConfiguration $ConfigPath
     $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$OutputPath)
     $portable=$config.ContainsKey('mode') -and $config.mode -eq 'portable'
-    $inventoryPath=if($portable){Join-Path $config.runtimeRoot 'inventory.json'}else{Join-Path $config.brainRoot 'inventory.json'}
+    $inventoryPath=if($portable){Join-Path $config.localStateRoot 'inventory.json'}else{Join-Path $config.brainRoot 'inventory.json'}
+    if($portable -and !(Test-Path -LiteralPath $inventoryPath -PathType Leaf)){
+        $inventoryPath=Join-Path $config.runtimeRoot 'inventory.json'
+    }
     $inventoryHash=Get-SBFileHash $inventoryPath;$inventory=Read-SBJson $inventoryPath $null
     if(!$inventory -or $inventory.schemaVersion -ne 1){throw (New-SBError 'audit.inventory.required')}
     $managed=if($portable){@($config.bindings|Where-Object {$_.status -eq 'managed' -and $_.identity.StartsWith('github.com/',[StringComparison]::Ordinal)}|ForEach-Object identity|Sort-Object -Unique)}else{@($inventory.repositories|Where-Object status -eq 'active'|ForEach-Object identities|Sort-Object -Unique)}

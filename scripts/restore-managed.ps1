@@ -56,7 +56,7 @@ if((Get-SBFileHash $metadata.backup) -ne $metadata.previousHash){throw (New-SBEr
 $backupRoot=$config.backupRoot
 $targetParent=Split-Path ([IO.Path]::GetFullPath($metadata.path)) -Parent
 $metadataParent=Split-Path ([IO.Path]::GetFullPath($MetadataPath)) -Parent
-if($targetParent -ieq $config.localStateRoot -or $metadataParent -ieq (Join-Path $config.localStateRoot 'install-backups')){
+if($targetParent -ieq $config.localStateRoot -or $metadataParent -ieq $config.localStateBackupRoot -or $metadataParent -ieq (Join-Path $config.localStateRoot 'install-backups')){
     $backupRoot=$config.localStateBackupRoot
 }
 Assert-SBPlainPath $metadata.backup

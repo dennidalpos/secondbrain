@@ -215,14 +215,15 @@ try {
     Write-SBFile $workstationConfigPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $workstationConfig))) (Get-SBFileHash $workstationConfigPath) $config.localStateBackupRoot | Out-Null
     Write-Host (Get-SBMessage 'rollback.out.workstation') -ForegroundColor Green
 
-    $statePath = Join-Path $workstationConfig.runtimeRoot 'state.json'
-    if ($checkoutPath -and (Test-Path -LiteralPath $statePath)) {
-        $state = Read-SBJson $statePath @{ managed = @{} }
+    $statePath = Join-Path $config.localStateRoot 'state.json'
+    $stateSource = if (Test-Path -LiteralPath $statePath -PathType Leaf) { $statePath } else { Join-Path $config.runtimeRoot 'state.json' }
+    if ($checkoutPath -and (Test-Path -LiteralPath $stateSource -PathType Leaf)) {
+        $state = Read-SBJson $stateSource @{ managed = @{} }
         $keys = @([IO.Path]::GetFullPath((Join-Path $checkoutPath 'AGENTS.md')) + '|repository') + @('CLAUDE.md', 'GEMINI.md' | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $checkoutPath $_)) + '|pointer' })
         foreach ($key in $keys) {
             if ($state.managed.ContainsKey($key)) {
                 $state.managed.Remove($key)
-                Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $config.backupRoot | Out-Null
+                Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $config.localStateBackupRoot | Out-Null
                 Write-Host (Get-SBMessage 'rollback.out.state' @($key)) -ForegroundColor Green
             }
         }

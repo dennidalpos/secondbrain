@@ -16,8 +16,10 @@ Add-SBMessages @{
     'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di conoscenza';en='Select valid MCP targets to approve knowledge tools'}
     'portable.mcp.preview' = @{it='Anteprima del pairing MCP a livello utente';en='User-level MCP pairing preview'}
     'portable.setup.apply' = @{it='Digita APPLICA per attivare ora (invio = solo anteprima)';en='Type APPLICA to activate now (Enter keeps the preview)'}
+    'portable.setup.preview' = @{it='Anteprima di attivazione della postazione';en='Workstation activation preview'}
+    'portable.setup.dossier.conflict' = @{it='Dossier personale e team presenti. Confrontarli con il checkout prima di concordare il consolidamento.';en='Personal and team dossiers both exist. Compare them with the checkout before agreeing on consolidation.'}
+    'portable.setup.team.state' = @{it='Il Setup team richiede SECONDBRAIN_STATE_ROOT su un disco fisso locale, fuori dalla radice condivisa.';en='Team setup requires SECONDBRAIN_STATE_ROOT on a fixed local drive outside the shared root.'}
     'portable.issue.mcpconsent' = @{it='Manca una prova valida del popup di consenso per uno strumento MCP in questa sessione';en='A valid observation of the consent prompt for an MCP tool in this session is missing'}
-    'portable.selection.summary' = @{ it = 'Selezione: {0} repository, {1} IDE'; en = 'Selection: {0} repositories, {1} IDEs' }
     'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
     'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
     'portable.issue.compaction' = @{ it = 'Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'; en = 'Propose SYS05 (sb compact): nothing is compacted without confirmation' }
@@ -130,9 +132,22 @@ function Set-SBRepositoryPointers([string]$Checkout,[hashtable]$State,[bool]$Che
         @{file=$pointer;result=(Set-SBManagedContent (Join-Path $Checkout $pointer) '@AGENTS.md' 'pointer' $State $Check $BackupRoot)}
     }
 }
+function Get-SBSetupDossierConflicts([string]$BrainRoot,[string]$PersonalRoot,$Repositories,[switch]$Refresh) {
+    if(!$PersonalRoot -or !$Repositories.Count -or (Test-SBSamePath $PersonalRoot $BrainRoot)){return}
+    $personalAreas=@(Get-SBParaEntities $PersonalRoot @() -Refresh:$Refresh|Where-Object {$_.kind -eq 'area' -and !$_.archived -and $_.status -eq 'active'})
+    $teamAreas=@(Get-SBParaEntities $BrainRoot @() -Refresh:$Refresh|Where-Object {$_.kind -eq 'area' -and !$_.archived -and $_.status -eq 'active'})
+    foreach($plan in $Repositories){
+        $personal=$personalAreas|Where-Object repository -eq $plan.identity
+        $team=$teamAreas|Where-Object repository -eq $plan.identity
+        if($personal -and $team){
+            @{identity=$plan.identity;checkout=$plan.path;personalDossier=(Resolve-SBParaPath $PersonalRoot $personal.path)
+                teamDossier=(Resolve-SBParaPath $BrainRoot $team.path);message=(Get-SBMessage 'portable.setup.dossier.conflict')}
+        }
+    }
+}
 function Invoke-SBHostActivation {
     param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment,
-          [hashtable]$PreviewSelection,[hashtable]$PreviewReport)
+          [hashtable]$PreviewSelection,[hashtable]$PreviewReport,[string]$TeamPersonalRoot,[switch]$PlanSync)
     $paths=Get-SBSetupPaths $BrainRoot
     if($PreviewSelection -and $PreviewReport -and !$Apply){
         $selection=$PreviewSelection
@@ -150,7 +165,10 @@ function Invoke-SBHostActivation {
     $configurationHash=Get-SBFileHash $configPath
     $configuration=Read-SBJson $configPath (New-SBPortableConfiguration $BrainRoot)
     $configuration.runtimeRoot=Get-SBLocalRoot $BrainRoot $configuration.workstationId
-    $configuration.backupRoot=Join-Path $configuration.runtimeRoot 'backups'
+    $teamBackupRoot=Join-Path $BrainRoot ('.runtime/access/recovery/'+$configuration.workstationId)
+    $configuration.backupRoot=if($TeamPersonalRoot -or (Test-SBSamePath $configuration.backupRoot $teamBackupRoot)){
+        $teamBackupRoot
+    }else{Join-Path $configuration.runtimeRoot 'backups'}
     $entities=@(Get-SBParaEntities $BrainRoot @());$operations=@();$newBindings=@();$plans=@()
     $forbiddenList=@(Get-SBForbiddenRepositories $BrainRoot $configuration)
     foreach($choice in $selection.repositories){
@@ -233,18 +251,31 @@ function Invoke-SBHostActivation {
     $plannedFiles=@($operations|ForEach-Object path)
     if($externalState){$plannedFiles+=$configPath}
     if($Apply){
-        $lockConfig=if(Test-Path -LiteralPath $configPath){Read-SBConfiguration $configPath}else{$configuration.brainRoot=$BrainRoot;$configuration.configPath=$configPath;$configuration.allowedOwners=@();$configuration.coordinationRoot=Join-Path $BrainRoot '.runtime/access';$configuration}
+        $lockConfig=if(Test-Path -LiteralPath $configPath){Read-SBConfiguration $configPath -BrainRoot $BrainRoot}else{$configuration.brainRoot=$BrainRoot;$configuration.configPath=$configPath;$configuration.allowedOwners=@();$configuration.coordinationRoot=Join-Path $BrainRoot '.runtime/access';$configuration}
         $lockConfig.brainRoot=$BrainRoot;$lockConfig.coordinationRoot=Join-Path $BrainRoot '.runtime/access'
+        $lockConfig.backupRoot=$configuration.backupRoot
         $lock=Enter-SBOperation $lockConfig $SessionId
         try{
+            if(@(Get-SBSetupDossierConflicts $BrainRoot $TeamPersonalRoot $plans -Refresh).Count){
+                throw (New-SBError 'portable.setup.dossier.conflict')
+            }
             if($operations.Count){Invoke-SBParaTransaction $operations $configuration.backupRoot $BrainRoot|Out-Null}
             # External workstation bytes never enter the shared dossier transaction or its rollback payload.
             if($externalState){Write-SBFile $configPath $configOperation.bytes $configurationHash $paths.backupRoot|Out-Null}
             if($RegisterEnvironment){[Environment]::SetEnvironmentVariable('SECONDBRAIN_HOME',[IO.Path]::GetFullPath($BrainRoot),$script:SBEnvironmentScope)}
-            Update-SBParaIndex (Read-SBConfiguration $configPath)|Out-Null
+            Update-SBParaIndex (Read-SBConfiguration $configPath -BrainRoot $BrainRoot)|Out-Null
         }finally{Exit-SBOperation $lock}
     }
-    @{applied=[bool]$Apply;configuration=$configPath;repositories=$plans;retiredCheckouts=$retirePaths;retiredIdes=$retireIDEIds;ides=@($selectedIDEs|ForEach-Object name);ideBindings=@($selectedIDEs|ForEach-Object {@{id=$_.id;assetId=$_.assetId;profile=$_.profile;accountAlias=$_.accountAlias}});directivesDeployed=$false;activation='metadata-only; run Sync after approval of portable directives';plannedFiles=$plannedFiles}
+    $activation=@{applied=[bool]$Apply;configuration=$configPath;repositories=$plans;retiredCheckouts=$retirePaths;retiredIdes=$retireIDEIds;ides=@($selectedIDEs|ForEach-Object name);ideBindings=@($selectedIDEs|ForEach-Object {@{id=$_.id;assetId=$_.assetId;profile=$_.profile;accountAlias=$_.accountAlias}});directivesDeployed=$false;activation='metadata-only; run Sync after approval of portable directives';plannedFiles=$plannedFiles}
+    if($PlanSync){
+        $revision=Get-SBApprovedDirectiveRevision $BrainRoot
+        $targets=@(foreach($binding in $configuration.bindings){
+            foreach($name in (@('AGENTS.md')+$script:SBRepositoryPointerFiles)){Join-Path $binding.path $name}
+        })
+        $targets+=@($configuration.ides|Where-Object mode -eq 'file'|ForEach-Object instructions)
+        $activation.directiveSync=@{approvedRevision=$(if($revision){$revision.version});targets=@($targets|Sort-Object -Unique)}
+    }
+    $activation
 }
 function Get-SBSetupPaths([string]$BrainRoot) {
     $root=Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId)
@@ -321,20 +352,23 @@ function Assert-SBIDEInstructionsPath([string]$Name,[string]$Path) {
 function Invoke-SBSetup {
     param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
           [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$RegisterEnvironment,[switch]$NoRegisterEnvironment,[switch]$AndSync=$true,[string]$SessionId,
-          [string[]]$McpTargets=@(),[switch]$ApproveMcpReadTools,[switch]$PreviewOnly)
+          [string[]]$McpTargets=@(),[switch]$ApproveMcpReadTools,[switch]$PreviewOnly,[string]$PersonalRoot)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain;$hostId=Get-SBHostId
+    $teamSetup=[bool]($PersonalRoot -and !$PreviewOnly)
     $McpTargets=@($McpTargets|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
     foreach($target in $McpTargets){if($target -notin @('codex','claude','claude-code','cursor','vscode','antigravity','windsurf','all')){throw (New-SBError 'portable.mcp.targets')}}
+    if($RegisterEnvironment -and $NoRegisterEnvironment){throw (New-SBError 'portable.environment.alternatives')}
     # With -File, a list arrives as a single comma-separated string.
     $Select=@($Select|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $Ides=@($Ides|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $result=[ordered]@{stage='preflight';hostId=$hostId;confirmed=$false;applied=$false}
-    $preflight=@(Test-SBSetupPreflight $brain -ReadOnly:$PreviewOnly);$result.preflight=$preflight
+    $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
+    $prompting=($Interactive -or ($needSelection -and !$PreviewOnly))
+    $readOnlyDiscovery=($PreviewOnly -or $prompting -or $teamSetup)
+    $preflight=@(Test-SBSetupPreflight $brain -ReadOnly:$readOnlyDiscovery);$result.preflight=$preflight
     $failed=@($preflight|Where-Object {$_.blocking -and !$_.ok})
     if($failed.Count){throw (New-SBError 'portable.preflight.failed' @((($failed|ForEach-Object {$_.name+' ('+$_.detail+')'}) -join '; ')))}
-    $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
     if($needSelection -and !$Interactive -and !$PreviewOnly -and [Console]::IsInputRedirected){throw (New-SBError 'portable.selection.missing')}
-    $prompting=($Interactive -or ($needSelection -and !$PreviewOnly))
     if($PreviewOnly -and !$Roots.Count){$Roots=@($brain)}
     if($prompting -and !$Roots.Count){
         $answer=([string](Read-Host 'Radici da analizzare separate da ; (invio = tutti i volumi fissi)')).Trim()
@@ -343,7 +377,7 @@ function Invoke-SBSetup {
     $configPath=Get-SBHostConfigPath $brain;$bindings=@()
     if(Test-Path -LiteralPath $configPath){$existingConfig=Read-SBJson $configPath @{};if($existingConfig.ContainsKey('bindings')){$bindings=@($existingConfig.bindings)}}
     $result.stage='discovery'
-    $reportPath=if(!$PreviewOnly){$paths.report}
+    $reportPath=if(!$readOnlyDiscovery){$paths.report}
     $report=Invoke-SBHostDiscovery -BrainRoot $brain -Roots $Roots -Bindings $bindings -ReportPath $reportPath -MaxDirectories $MaxDirectories
     $repos=@($report.repositories|Where-Object {$_.kind -in @('repository','worktree','submodule') -and $_.status -eq 'discovered'})
     $result.discovery=[ordered]@{complete=[bool]$report.complete;paused=[bool]$report.paused;repositories=$repos.Count;ides=@($report.ides).Count;issues=@($report.issues).Count;warnings=@($report.warnings).Count;report=$reportPath}
@@ -461,26 +495,23 @@ function Invoke-SBSetup {
             @{target=$target;profile=$(if($profile.ContainsKey('profile')){$profile.profile}else{$profile.accountAlias});configFile=$path;status=$status}
         }
     })
-    # Actual user confirmation.
-    $confirmed=$false;$how=''
-    if(!$PreviewOnly -and $Yes){$confirmed=$true;$how='-Yes'}
-    elseif(!$PreviewOnly -and $prompting){
-        Write-Host (Get-SBMessage 'portable.selection.summary' @($chosen.Count,$chosenIdes.Count))
-        if(([string](Read-Host 'Digita CONFERMO per registrare la scelta')).Trim() -ceq 'CONFERMO'){$confirmed=$true;$how='interattiva'}
-    }
-    $confirmation=if($confirmed){[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'}else{''}
-    $selection=@{schemaVersion=1;confirmed=$confirmed;confirmation=$confirmation;reportPath=$paths.report;reportSha256=(Get-SBFileHash $paths.report)
+    $selection=@{schemaVersion=1;confirmed=$false;confirmation='';reportPath=$paths.report;reportSha256='absent'
         repositories=@($chosen|ForEach-Object {$entry=@{id=$_.id};if($approvals.ContainsKey($_.id)){$entry.approveExistingBlock=$true};$entry})
         ides=@(@($plainIdes|ForEach-Object {@{id=$_.id}})+$accountEntries)}
-    if(!$PreviewOnly){
-        $selectionPath=$paths.selection
-        Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) $paths.backupRoot|Out-Null
-        $result.selection=$selectionPath;$result.confirmed=$confirmed
-        if(!$confirmed){$result.note='Conferma mancante: selezione registrata come proposta (confirmed=false). Rilanciare con -Yes oppure -Interactive.';return $result}
-    }
-    # Preview, then apply.
     $result.stage='preview'
-    $preview=if($PreviewOnly){Invoke-SBHostActivation -BrainRoot $brain -PreviewSelection $selection -PreviewReport $report}else{Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId}
+    $preview=Invoke-SBHostActivation -BrainRoot $brain -PreviewSelection $selection -PreviewReport $report -PlanSync:$AndSync
+    $preview.setupRecords=@($paths.report,$paths.selection,$paths.setupResult)
+    if($PersonalRoot){
+        $result.dossierConflicts=@(Get-SBSetupDossierConflicts $brain $PersonalRoot $preview.repositories)
+        if($teamSetup -and $result.dossierConflicts.Count){
+            $result.stage='dossier-conflict'
+            $result.activation=$preview
+            return $result
+        }
+    }
+    if($teamSetup -and (Test-SBSamePath $paths.hostRoot (Get-SBLocalRoot $brain $hostId))){
+        throw (New-SBError 'portable.setup.team.state')
+    }
     if($McpTargets.Count){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')
         $result.mcp=[ordered]@{preview=$true;approveReadTools=[bool]$ApproveMcpReadTools;targets=@(foreach($job in $mcpJobs){
@@ -489,25 +520,49 @@ function Invoke-SBSetup {
         })}
     }
     if($PreviewOnly){$result.activation=$preview;return $result}
+    $confirmed=[bool]$Yes
     $doApply=[bool]$Apply
-    if($prompting -and $McpTargets.Count){
-        Write-Host (Get-SBMessage 'portable.mcp.preview')
-        Write-Host (ConvertTo-SBJson $result.mcp)
+    $how='-Yes'
+    $reportBytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))
+    if($prompting){
+        Write-Host (Get-SBMessage 'portable.setup.preview')
+        Write-Host (ConvertTo-SBJson $preview)
+        if($McpTargets.Count){
+            Write-Host (Get-SBMessage 'portable.mcp.preview')
+            Write-Host (ConvertTo-SBJson $result.mcp)
+        }
+        if(([string](Read-Host (Get-SBMessage 'portable.setup.apply'))).Trim() -cne 'APPLICA'){
+            $result.activation=$preview
+            return $result
+        }
+        $confirmed=$true
+        $doApply=$true
+        $how='interattiva'
     }
-    if($prompting -and (!$doApply -or $McpTargets.Count)){
-        $doApply=(([string](Read-Host (Get-SBMessage 'portable.setup.apply'))).Trim() -ceq 'APPLICA')
+    if($readOnlyDiscovery -and $confirmed -and $doApply){
+        $writeCheck=@(Test-SBSetupPreflight $brain | Where-Object name -eq 'runtime-scrivibile')[0]
+        $result.preflight+=@($writeCheck)
+        if(!$writeCheck.ok){throw (New-SBError 'portable.preflight.failed' @($writeCheck.detail))}
+        Write-SBFile $paths.report $reportBytes (Get-SBFileHash $paths.report) $paths.backupRoot -Recoverable|Out-Null
+        $result.discovery.report=$paths.report
     }
+    $selection.confirmed=$confirmed
+    if($confirmed){$selection.confirmation=[Environment]::UserName+'@'+[Environment]::MachineName+' '+[DateTimeOffset]::UtcNow.ToString('o')+' ('+$how+')'}
+    $selection.reportSha256=Get-SBHash $reportBytes
+    $selectionPath=$paths.selection
+    Write-SBFile $selectionPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $selection))) (Get-SBFileHash $selectionPath) $paths.backupRoot|Out-Null
+    $result.selection=$selectionPath;$result.confirmed=$confirmed
+    if(!$confirmed){$result.stage='proposal';$result.note='Conferma mancante: selezione registrata come proposta (confirmed=false). Rilanciare con -Yes oppure -Interactive.';return $result}
     if(!$doApply){$result.activation=$preview;return $result}
-    if($RegisterEnvironment -and $NoRegisterEnvironment){throw (New-SBError 'portable.environment.alternatives')}
     $doRegister=!$NoRegisterEnvironment
-    $applied=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId -Apply -RegisterEnvironment:$doRegister
+    $applied=Invoke-SBHostActivation -BrainRoot $brain -SelectionPath $selectionPath -SessionId $SessionId -Apply -RegisterEnvironment:$doRegister -TeamPersonalRoot $PersonalRoot
     if($McpTargets.Count){
         Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')
-        $mcpLock=Enter-SBOperation (Read-SBConfiguration $configPath) $SessionId
+        $mcpLock=Enter-SBOperation (Read-SBConfiguration $configPath -BrainRoot $brain) $SessionId
         try{
             $mcpItems=@(foreach($job in $mcpJobs){
                 if($job.status -ne 'supported'){@{Target=$job.target;Profile=$job.profile;Action=$job.status;PermissionAction='skipped';ClientSessionVerified=$false};continue}
-                try{Set-SBMcpConfiguration -BrainRoot $brain -Target $job.target -ConfigFile $job.configFile -Scope user -ApproveReadTools:$ApproveMcpReadTools -ApproveAllTools:(!$ApproveMcpReadTools)}
+                try{Set-SBMcpConfiguration -BrainRoot $brain -Target $job.target -ConfigFile $job.configFile -Scope user -BackupRoot $paths.backupRoot -ApproveReadTools:$ApproveMcpReadTools -ApproveAllTools:(!$ApproveMcpReadTools)}
                 catch{if(Test-SBWriteDeniedError $_){throw};@{Target=$job.target;Action='failed';PermissionAction='skipped';ClientSessionVerified=$false;Error=$_.Exception.Message}}
             })
         }finally{Exit-SBOperation $mcpLock}
@@ -518,13 +573,13 @@ function Invoke-SBSetup {
     $result.environment=if($doRegister){'registrata (variabile utente SECONDBRAIN_HOME)'}else{'non registrata: il percorso vale solo per questo processo'}
     $result.stage='applied';$result.applied=$true;$result.activation=$applied
     try{
-        $config=Read-SBConfiguration $configPath
+        $config=Read-SBConfiguration $configPath -BrainRoot $brain
         $sync=Invoke-SBPortableSync -Config $config -Check:(!$AndSync) -SessionId $SessionId
         $result.check=[ordered]@{mode=$(if($AndSync){'sync'}else{'check'});aligned=[bool]$sync.aligned;filesAligned=[bool]$sync.filesAligned;repositories=$sync.repositories;issues=@($sync.issues|ForEach-Object {$_.kind}|Sort-Object -Unique)}
     }catch{if(Test-SBWriteDeniedError $_){throw};$result.check=[ordered]@{mode='check';error=$_.Exception.Message}}
     $result.next=if($AndSync){'Verificare caricamento IDE e account (manuale).'}else{'Distribuire le direttive con secondbrain.ps1 -Sync dopo aver riletto il -Check.'}
     $result.setupReport=$paths.setupResult
-    $reportLock=Enter-SBOperation (Read-SBConfiguration $configPath) $SessionId
+    $reportLock=Enter-SBOperation (Read-SBConfiguration $configPath -BrainRoot $brain) $SessionId
     try{
         [void](Write-SBFile $paths.setupResult ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $result))) (Get-SBFileHash $paths.setupResult) $paths.backupRoot)
     }finally{Exit-SBOperation $reportLock}
@@ -558,7 +613,10 @@ function Get-SBSetupStatus([string]$BrainRoot) {
     $value={param($item,[string]$key) if($item.ContainsKey($key)){$item[$key]}else{$null}}
     $bindings=if($config.ContainsKey('bindings')){@($config.bindings)}else{@()}
     $ides=if($config.ContainsKey('ides')){@($config.ides)}else{@()}
-    $statePath=if($config.ContainsKey('runtimeRoot') -and $config.runtimeRoot){Join-Path $config.runtimeRoot 'state.json'}else{''}
+    $statePath=Join-Path (Get-SBWorkstationStateRoot $brain (Get-SBHostId)) 'state.json'
+    if(!(Test-Path -LiteralPath $statePath) -and $config.ContainsKey('runtimeRoot') -and $config.runtimeRoot){
+        $statePath=Join-Path $config.runtimeRoot 'state.json'
+    }
     $state=if($statePath -and (Test-Path -LiteralPath $statePath -PathType Leaf)){Read-SBJson $statePath @{}}else{$null}
     [ordered]@{stage='status';hostId=(Get-SBHostId);configuration=$configPath
         bindings=@($bindings|ForEach-Object {[ordered]@{path=(& $value $_ 'path');identity=(& $value $_ 'identity');dossier=(& $value $_ 'dossier');status=(& $value $_ 'status')}})
@@ -645,7 +703,10 @@ function Invoke-SBPortableSync {
         $stateRoot=if($Config.ContainsKey('localStateRoot')){$Config.localStateRoot}else{$Config.runtimeRoot}
         $stateBackups=if($Config.ContainsKey('localStateBackupRoot')){$Config.localStateBackupRoot}else{$Config.backupRoot}
         $externalState=$stateRoot -ine $Config.runtimeRoot
-        $issues=@();$changes=@();$statePath=Join-Path $Config.runtimeRoot 'state.json';$state=Read-SBJson $statePath @{schemaVersion=1;managed=@{};dossierMap=@{}}
+        $issues=@();$changes=@();$statePath=Join-Path $stateRoot 'state.json'
+        $state=Read-SBJson $statePath $null
+        if($null -eq $state -and $externalState){$state=Read-SBJson (Join-Path $Config.runtimeRoot 'state.json') $null}
+        if($null -eq $state){$state=@{schemaVersion=1;managed=@{};dossierMap=@{}}}
         $entities=@(Get-SBParaEntities $Config.brainRoot @())
         $observations=@()
         if($ObservationPath){$receipt=Read-SBJson (Assert-SBCentralDataPath $Config.brainRoot $ObservationPath) $null;if(!$receipt -or $receipt.schemaVersion -ne 1){throw (New-SBError 'portable.observations.invalid')};$observations=@($receipt.observations)}
@@ -723,11 +784,11 @@ function Invoke-SBPortableSync {
                 if($global){
                     $agents=Join-Path $binding.path 'AGENTS.md';$key=[IO.Path]::GetFullPath($agents)+'|repository'
                     if(!$state.managed.ContainsKey($key) -and $binding.managedHash -ne 'absent'){$state.managed[$key]=$binding.managedHash}
-                    $result=Set-SBManagedContent $agents (New-SBPortableRepositoryBody (Get-SBApprovedDirectiveRevision $Config.brainRoot) $Config.brainRoot $dir) 'repository' $state.managed $Check $Config.backupRoot -AfterTitle
+                    $result=Set-SBManagedContent $agents (New-SBPortableRepositoryBody (Get-SBApprovedDirectiveRevision $Config.brainRoot) $Config.brainRoot $dir) 'repository' $state.managed $Check $stateBackups -AfterTitle
                     if($result -eq 'conflict'){$issues+=@{kind='directive-conflict';repository=$binding.identity}}
                     elseif($result -eq 'pending'){$issues+=@{kind='directive-pending';repository=$binding.identity}}
                     elseif($result -eq 'updated'){$changes+='directive:'+ $binding.identity}
-                    foreach($pointer in @(Set-SBRepositoryPointers $binding.path $state.managed $Check $Config.backupRoot)){
+                    foreach($pointer in @(Set-SBRepositoryPointers $binding.path $state.managed $Check $stateBackups)){
                         if($pointer.result -eq 'conflict'){$issues+=@{kind='pointer-conflict';repository=$binding.identity;file=$pointer.file}}
                         elseif($pointer.result -eq 'pending'){$issues+=@{kind='pointer-pending';repository=$binding.identity;file=$pointer.file}}
                         elseif($pointer.result -eq 'updated'){$changes+='pointer:'+$pointer.file+':'+$binding.identity}
@@ -777,20 +838,20 @@ function Invoke-SBPortableSync {
                     $block=Get-SBManagedContent ((Read-SBText $ide.instructions) -replace "`r`n","`n") 'global'
                     if($null -eq $block){$issues+=@{kind='ide-adoption-required';ide=$ide.name};continue};$state.managed[$key]=Get-SBTextHash $block
                 }
-                $result=Set-SBManagedContent $ide.instructions $global.Trim() 'global' $state.managed $Check $Config.backupRoot -InstallBackupRoot (Join-Path $stateRoot 'install-backups')
+                $result=Set-SBManagedContent $ide.instructions $global.Trim() 'global' $state.managed $Check $stateBackups -InstallBackupRoot (Join-Path $stateRoot 'install-backups')
                 if($result -in @('conflict','pending')){$issues+=@{kind=('ide-'+$result);ide=$ide.name}}
                 # File deployment never certifies the identity of an account or loaded session.
                 if(!$observed){$issues+=@{kind='ide-loading-unverified';ide=$ide.name}}
             }
         }
         if(!$Check -and $Repository){
-            Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $Config.backupRoot|Out-Null
+            Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $stateBackups|Out-Null
         }
         if(!$Check -and !$Repository){
             $inventory=@{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings;ides=$Config.ides;coverage='approved-associations; use Check for current verification'}
-            $inventoryPath=Join-Path $Config.runtimeRoot 'inventory.json'
-            Write-SBFile $inventoryPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $inventory))) (Get-SBFileHash $inventoryPath) $Config.backupRoot|Out-Null
-            Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $Config.backupRoot|Out-Null
+            $inventoryPath=Join-Path $stateRoot 'inventory.json'
+            Write-SBFile $inventoryPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $inventory))) (Get-SBFileHash $inventoryPath) $stateBackups|Out-Null
+            Write-SBFile $statePath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $state))) (Get-SBFileHash $statePath) $stateBackups|Out-Null
             $map=@{schemaVersion=1;workstationId=$Config.workstationId;ides=@($Config.ides|ForEach-Object {$entry=@{};foreach($key in $_.Keys){$entry[$key]=$_[$key]};$entry.writeScope=Get-SBIDEWriteScope $_;$entry})}
             $mapPath=Join-Path $stateRoot 'ide-map.json';Write-SBFile $mapPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $map))) (Get-SBFileHash $mapPath) $stateBackups -Recoverable|Out-Null
             Update-SBParaIndex $Config|Out-Null

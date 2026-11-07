@@ -21,10 +21,11 @@ try {
     Assert-Quick (Test-SBRepositoryIdentity ('local:'+('a'*32))) 'identita locale persistente'
     # Deterministic JSON.
     Assert-Quick ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'
-    # VERSION and directives.
+    # Product releases and approved directive revisions have independent versions.
     $productVersion=(Read-SBText (Join-Path $productRoot 'VERSION')).Trim()
     $revisionLine=[regex]::Match((Read-SBText (Join-Path $productRoot 'direttive/AGENTS.global_ide.md')),'(?m)^Revisione (\d+\.\d+) ').Groups[1].Value
-    Assert-Quick ($productVersion -match '^\d+\.\d+\.\d+$' -and $productVersion.StartsWith($revisionLine+'.')) 'VERSION coerente con la revisione delle direttive'
+    Assert-Quick ($productVersion -match '^\d+\.\d+\.\d+$') 'VERSION uses major.minor.patch'
+    Assert-Quick ($revisionLine -match '^\d+\.\d+$') 'directive revision uses major.minor independently of VERSION'
     function Test-ReadmeBadge([string]$Text,[string]$Version){$Text.Contains('https://img.shields.io/badge/version-'+$Version+'-blue') -and $Text.Contains('![Version '+$Version+']')}
     Assert-Quick (Test-ReadmeBadge (Read-SBText (Join-Path $productRoot 'README.md')) $productVersion) 'README badge matches VERSION'
     Assert-Quick (!(Test-ReadmeBadge '![Version 9.9.9](https://img.shields.io/badge/version-9.9.9-blue)' $productVersion)) 'stale README badge rejected'

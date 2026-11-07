@@ -15,7 +15,7 @@ flowchart LR
     S --> H[Isolated host and repository runtime]
 ~~~
 
-Dossiers, PARA index, shared policy, directives and .runtime/access are shared. .runtime/hosts/<id> holds host/user-specific bindings, state, inventory, evidence and backups. SECONDBRAIN_HOME is local to each user's environment. Separate Git clones do not share ignored dossiers/queues.
+Dossiers, the PARA index, shared policy, directives and `.runtime/access` are shared. Team Setup places bindings, state, inventory, receipts and IDE files in the workstation's local state directory. Older deployments may have these files under `.runtime/hosts/<id>`. `SECONDBRAIN_HOME` belongs to each user's environment. Separate Git clones do not share ignored dossiers or queues.
 
 ## Permissions and activation
 
@@ -23,7 +23,7 @@ Windows/SMB/NTFS enforce rights; SecondBrain is not a user-authorization service
 
 Assign script/policy/catalog maintenance only to intended maintainers. Writers also need create/replace access to the relevant runtime/coordination paths. Approval hashes establish integrity, not access control.
 
-Prefer an explicit UNC path over user/session-specific drive mappings. Invoke Setup from the authoritative root on each PC, preview and confirm selection there. A real workstation relocation needs Reconcile; supported aliases alone are not a relocation.
+Prefer an explicit UNC path over user/session-specific drive mappings. From the local SecondBrain checkout, use `-Setup -TeamRoot <UNC> -Interactive` with `SECONDBRAIN_STATE_ROOT` on a fixed local drive. The same run previews the selection and applies it after confirmation. Use the authoritative root for later commands. A real workstation relocation needs Reconcile.
 
 ExecutionPolicy/zone classification and Git ownership must be checked on the actual host. Do not weaken global policy or trust arbitrary safe.directory entries to hide a configuration error.
 

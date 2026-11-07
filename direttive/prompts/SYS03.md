@@ -13,18 +13,18 @@ Use from SecondBrain, even before local configuration, via `sb attiva`. It prepa
 </inputs>
 
 <decisions>
-- repositories to manage and roots to examine;
+- local or team mode, repositories to manage and roots to examine;
 - IDE or agent integrations to bind, with profile and account;
 - existing managed blocks to approve;
 - final confirmation before `-Yes` and `-Apply`.
 </decisions>
 
 <procedure>
-1. Derive the root from the checkout and use `secondbrain.ps1 -Setup`; do not write `selection.json` by hand.
-2. First run without `-Select`: preflight (PowerShell, git, writable `.runtime`, `shared.json`, approved directives) and discovery of all fixed volumes; it saves the report and the per-host selection under `.runtime/hosts/<id>/` and ends as a proposal.
-3. Show coverage, repositories, checkouts, IDEs and profiles, and separate environments; found data is not an authorization.
-4. Ask which assets to manage and present the concrete changes (structured multiple choice when available).
-5. Rerun non-interactively with `-Roots`, `-Select`, `-Ides`, `-ApproveExistingBlocks` as needed; add `-Yes` only after confirmation, then `-Apply` for the confirmed scope. `-Apply` registers `SECONDBRAIN_HOME`, applies approved directives and configures MCP for the selected IDEs.
+1. Derive the local root from the checkout and use `secondbrain.ps1 -Setup`. For team mode, pass `-TeamRoot <UNC>` and use a fixed local drive for `SECONDBRAIN_STATE_ROOT` before activation. Keep selection files under Setup's control.
+2. Use `-PreviewOnly -Roots <folder>` for read-only preflight and discovery. Add `-Interactive` to choose several repositories and IDEs and see the activation, directive and MCP plans.
+3. Show coverage, checkouts, IDE profiles and environments. If both roots have an active dossier for the same identity, present both paths and the checkout. Compare with the actual code before agreeing on consolidation.
+4. Use `-Setup -Interactive` to review and activate in one run. Confirm with `APPLICA` only after reviewing the plan. Alternatively, pass `-Roots`, `-Select`, `-Ides` and `-ApproveExistingBlocks` as needed, and use `-Yes -Apply` for the approved scope.
+5. Review the receipt for the registered `SECONDBRAIN_HOME`, deployed approved directives and MCP configuration for the selected IDEs.
 </procedure>
 
 <constraints>
