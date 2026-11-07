@@ -27,7 +27,7 @@ Git tracks scripts, schemas, public documentation and approved instruction sourc
 | Para / Tracker | Entity IDs, declared tracker, graph validation and transactions |
 | Knowledge | Startup composition, task/section lookup, search and compaction |
 | Prompts | Catalog/card validation, context resolution and XML composition |
-| Mcp | stdio JSON-RPC and eight exposed tools |
+| Mcp | stdio JSON-RPC and ten exposed tools, including reviewed write preview/submission |
 | Publication | Working-tree/index/history checks |
 | Sources / ExternalAudit | Explicit source and GitHub acquisition |
 | Trace / MemoryCycle | Turn metadata and separately enabled repository memory |

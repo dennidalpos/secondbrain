@@ -40,8 +40,8 @@ Interrupted transactions retain the normal recovery gate. Preserve manifests and
 
 ## MCP contract
 
-Tools advertise readOnlyHint=false, destructiveHint=true, idempotentHint=false and openWorldHint=false. These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.
+The eight original tools advertise readOnlyHint=false, destructiveHint=true, idempotentHint=false and openWorldHint=false. For the two reviewed-write tools, preview_dossier_write has readOnlyHint=true and destructiveHint=false; preview_dossier_write and submit_dossier_write both have idempotentHint=true. These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.
 
-ApproveKnowledgeTools prepares named knowledge-tool consent; ApproveReadTools remains an alias. check_publication requires separate consent. No arbitrary shell or additional dossier-writing MCP tool is introduced.
+ApproveKnowledgeTools prepares named knowledge-tool consent; ApproveReadTools remains an alias. check_publication requires separate consent. No arbitrary shell is exposed. The two additional reviewed-write tools are documented in [MCP writes](mcp-writes.md); they do not inherit the existing named preauthorization scopes.
 
 Running servers keep loaded code until restarted. Do not restart another agent's session automatically. Fixture qualification and real shared-host qualification remain distinct; see [shared brain](shared-brain.md).

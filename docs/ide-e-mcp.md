@@ -6,13 +6,14 @@ SecondBrain distributes approved instructions and can configure a local stdio MC
 
 ## Instruction and configuration targets
 
-| Target | Instructions / configuration scope |
+| Target | Configuration scope |
 |---|---|
-| Claude | `~/.claude/CLAUDE.md`; MCP `-Target claude` |
-| Codex | `~/.codex/AGENTS.md`; MCP `-Target codex` |
-| Antigravity | `~/.gemini/GEMINI.md`; MCP `-Target antigravity` |
-| Claude Code | User CLI registration with `-Target claude-code`, or project `-WorkspacePath` |
-| VS Code | User/profile MCP, or `-WorkspacePath` for project configuration |
+| Claude Desktop | User-level MCP with -Target claude; this does not establish how instructions were loaded |
+| Codex | User-level MCP with -Target codex; project pairing is not accepted |
+| Antigravity | User-level MCP or explicit project -Scope project -WorkspacePath |
+| Claude Code | User CLI registration with -Target claude-code, or project .mcp.json with -WorkspacePath |
+| VS Code | User/profile MCP, or project .vscode/mcp.json with -WorkspacePath |
+| Cursor | User MCP, or project .cursor/mcp.json with -Scope project -WorkspacePath |
 
 Other adapters exist in the implementation; consult [adapter qualification](riferimento/adapters.md) for their actual scope. Do not label an adapter live-qualified from file inspection or a synthetic handshake alone.
 
@@ -21,12 +22,13 @@ In managed repositories, `AGENTS.md` is the common source. Sync manages `CLAUDE.
 ## Preview, pair and verify
 
 ~~~powershell
-pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex
-pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target codex -Apply
-pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target cursor -Scope project -WorkspacePath $project
+pwsh -NoProfile -File scripts/mcp-server.ps1 -Pair -Target cursor -Scope project -WorkspacePath $project -Apply
 ~~~
 
-Review Setup's user-level MCP preview for selected supported IDEs or explicit `-McpTargets`. In interactive Setup, review the destination and named tool rules before entering `APPLICA`. For direct pairing, preview first. Apply changes the selected configuration with backup. Restart the client and inspect its MCP connection in a new session. SYS15 guides multi-client installation; SYS01 handles profile/account evidence. For workspace targets, inspect the explicit destination before applying.
+Run this project-scoped Cursor example from the SecondBrain checkout with $project set to the selected Git checkout. It was verified on synthetic configuration, without launching a client.
+
+Preview user-level pairing separately for Codex or Claude Desktop; neither target accepts project scope. Review Setup's user-level MCP preview for selected supported IDEs or explicit `-McpTargets`. In interactive Setup, review the destination and named tool rules before entering `APPLICA`. For direct pairing, preview first. Apply changes the selected configuration with backup. Restart the client and inspect its MCP connection in a new session. SYS15 guides multi-client installation; SYS01 handles profile/account evidence. For workspace targets, inspect the explicit destination before applying.
 
 ## Exposed tools
 
@@ -40,16 +42,18 @@ Review Setup's user-level MCP preview for selected supported IDEs or explicit `-
 | `list_prompts` | `prompts.ps1 -List -Compact` |
 | `get_prompt` | `prompts.ps1 -Show -Prompt <code>` |
 | `check_publication` | `publication.ps1 -RepositoryPath <checkout>` |
+| `preview_dossier_write` | Reviewed plan preparation; see the [write guide](riferimento/mcp-writes.md) |
+| `submit_dossier_write` | Submit one plan after local CLI approval; see the [write guide](riferimento/mcp-writes.md) |
 
-Tracker writes and compaction are CLI operations, not extra MCP write tools. Use `-CheckoutPath` or `-Repository` when the current working directory does not resolve the product. The global task view is opt-in with `-All`, paginated by `-Offset` and `-Limit` (default 50).
+The server exposes ten tools. Task status/new-task writes and memory/history appends are available through reviewed MCP submission as well as the CLI. Activity submission remains disabled until its activation procedure is complete. Compaction still uses reviewed CLI maintenance. Use `-CheckoutPath` or `-Repository` when the current working directory does not resolve the product. The global task view is opt-in with `-All`, paginated by `-Offset` and `-Limit` (default 50).
 
 ## Reads may have side effects
 
-The server runs over stdio and does not listen on a network port. At startup and during lookups it can apply already-authorized queued dossier writes; the tools therefore advertise `readOnlyHint=false`. Knowledge tools and the publication gate have distinct consent requirements.
+The server runs over stdio and does not listen on a network port. At startup and during lookups it can apply already-authorized queued dossier writes; the knowledge tools advertise readOnlyHint=false; preview_dossier_write advertises readOnlyHint=true, and submit_dossier_write requires a local approval receipt. Knowledge tools and the publication gate have distinct consent requirements.
 
 For a strict no-recovery session start `mcp-server.ps1 -NoRecovery`. Per-call `noRecovery=true` only prevents recovery during that call, not startup recovery. The CLI equivalent for knowledge reads is `knowledge.ps1 -NoRecovery`.
 
-Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle](riferimento/memory-cycle.md).
+Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle and known 1.4.0 limits](riferimento/memory-cycle.md#known-140-limits).
 
 ## Language and packages
 

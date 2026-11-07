@@ -17,7 +17,7 @@ SecondBrain manages instructions, configuration and local knowledge. Its core wo
 | `backup.ps1` / restore commands | Backup or restore operations; inspect the target and options first |
 | `mcp-server.ps1 -ExportPackage` | Managed writes into a new directory below `.runtime`; existing destinations are refused |
 
-Sync writes immediately. Inspect alignment first, preserve existing changes, and never treat a successful file write as proof that a live IDE loaded it. The MCP tools advertise `readOnlyHint=false` because knowledge reads may process queued writes. Start the server with `-NoRecovery` for a strict no-recovery session; a single call's `noRecovery=true` cannot undo recovery that already happened at startup.
+Sync writes immediately. Inspect alignment first, preserve existing changes, and never treat a successful file write as proof that a live IDE loaded it. The original MCP knowledge tools advertise readOnlyHint=false because their lookups may process queued writes. The reviewed-write preview advertises readOnlyHint=true; submission needs a local receipt. See [reviewed MCP writes](riferimento/mcp-writes.md). Start the server with `-NoRecovery` for a strict no-recovery session; a single call's `noRecovery=true` cannot undo recovery that already happened at startup.
 
 SecondBrain does not inspect authentication stores to discover credentials. Account and profile identities are declared and separately verified through SYS01.
 

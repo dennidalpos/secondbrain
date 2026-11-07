@@ -81,3 +81,11 @@ Optional attachments list exact authorized files with retained eventId reference
 Unknown/denied permission and private permit requests exit before configuration, writer sessions, queues or recovery. To revoke an issued receipt, change its persistence to denied; its previous hash then no longer validates. No permanent consent, retroactive capture or automatic enablement of another repository is introduced. Hashes bind the reviewed local CLI artifact; they are not digital signatures or evidence that a client actually delivered an event.
 
 Source for Codex native event fields: [OpenAI Docs: hooks](https://learn.chatgpt.com/docs/hooks). Client permission modes describe tool execution policy and are not memory-persistence authorization.
+
+## Known 1.4.0 limits
+
+The native bridge does not currently check that the incoming event kind is Stop. With a valid receipt and matching fields, a different event name can reach capture. Native event delivery in real clients is not qualified by the synthetic contract. Keep automatic native collection disabled pending the event gate; use the guided normalized-envelope workflow when needed.
+
+Permit Apply creates a receipt from the input it reads at that invocation. It does not compare an earlier preview hash supplied by the reviewer. If the request, optional candidate or code revision changes after review, the present CLI does not enforce that earlier approval boundary. This differs from the separate MCP-write approval CLI, which requires ExpectedPlanHash. Review the exact current input; do not treat a previous Permit preview as an immutable approval token.
+
+These are implementation limits, separate from client/account/SMB qualification. The paths and hashes bound inside an issued receipt remain checked by the bridge; they do not establish which earlier preview the user reviewed.

@@ -94,3 +94,9 @@ Eseguire memory-cycle.ps1 -Operation Permit -InputPath <richiesta.json> -Workspa
 La ricevuta immutabile in workspace/permits conserva l hash della richiesta e vincola repo, client/versione, sessione/turno, transcript, policy, workspace e revisioni di modulo/bridge. Il riuso identico restituisce duplicate; un turno diverso non è autorizzato. Hash assente, alterato o revisione cambiata: soppressione non bloccante. I vecchi permessi manuali senza marker CLI e hash correnti non abilitano la cattura.
 
 Attachments autorizza solo i file esatti collegati agli eventId conservati. candidatePath opzionale vincola un candidato già preparato nella workspace; captureSha256="bind-current-turn" lo collega alla cattura. Promozione transazionale, proposte per ambiguità/conflitti, replay idempotente. I permessi sconosciuti/vietati e le richieste private escono prima di configurazione, sessioni, code o recovery. La modifica della ricevuta per revocare il consenso invalida l hash precedente. Le prove sono sintetiche, separate dalle qualifiche live. Vedere la [guida inglese](memory-cycle.md#explicit-single-turn-cli-receipt-140) per comandi, limiti e fonte ufficiale Codex.
+
+## Limiti osservati della 1.4.0
+
+Il bridge non controlla ancora che il tipo dell evento in ingresso sia Stop: un nome evento diverso, con ricevuta e campi corrispondenti, può arrivare alla cattura. Mantenere disabilitata la raccolta nativa automatica fino al completamento del controllo; resta disponibile il percorso guidato con envelope normalizzato.
+
+Permit -Apply genera la ricevuta dall input letto in quel momento e non confronta l hash di un anteprima precedentemente esaminata. Una variazione successiva di richiesta, candidato o codice non viene confrontata con quell approvazione precedente. Non confondere questo percorso con mcp-write.ps1, che richiede ExpectedPlanHash. Sono limiti di implementazione, distinti dalle qualifiche dei client e di SMB.
