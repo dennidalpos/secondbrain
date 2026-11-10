@@ -23,10 +23,16 @@ INVENTORY.md
 # Conoscenza, dossier PARA e indici locali (struttura tracciata con .gitkeep, contenuti ignorati)
 /01-projects/*
 !/01-projects/.gitkeep
+!/01-projects/README.md
+/02-areas/*
+!/02-areas/.gitkeep
+!/02-areas/README.md
 /03-resources/*
 !/03-resources/.gitkeep
+!/03-resources/README.md
 /04-archives/*
 !/04-archives/.gitkeep
+!/04-archives/README.md
 !/04-archives/projects/
 /04-archives/projects/*
 !/04-archives/projects/.gitkeep

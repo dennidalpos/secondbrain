@@ -8,11 +8,12 @@ param(
     [Parameter(Mandatory,ParameterSetName='Suggest')][switch]$SuggestArchive,
     [Parameter(Mandatory,ParameterSetName='New')][switch]$NewProject,
     [Parameter(Mandatory,ParameterSetName='Resource')][switch]$NewResource,
+    [Parameter(Mandatory,ParameterSetName='Area')][switch]$NewArea,
     [Parameter(Mandatory,ParameterSetName='Status')][switch]$SetStatus,
-    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][ValidatePattern('^[a-z][a-z0-9-]{0,95}$')][string]$Id,
-    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][string]$Title,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][Parameter(Mandatory,ParameterSetName='Area')][ValidatePattern('^[a-z][a-z0-9-]{0,95}$')][string]$Id,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][Parameter(Mandatory,ParameterSetName='Area')][string]$Title,
     [Parameter(ParameterSetName='New')][string[]]$Areas=@(),
-    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][string]$Objective,
+    [Parameter(Mandatory,ParameterSetName='New')][Parameter(Mandatory,ParameterSetName='Resource')][Parameter(Mandatory,ParameterSetName='Area')][string]$Objective,
     [Parameter(Mandatory,ParameterSetName='New')][string[]]$Acceptance,
     [Parameter(Mandatory,ParameterSetName='Status')][ValidateSet('active','completed','cancelled','retired')][string]$Status,
     [Parameter(Mandatory,ParameterSetName='Migrate')][switch]$MigrateToProjects,
@@ -55,7 +56,7 @@ $config=Read-SBConfiguration $ConfigPath
 if(!$BackupRoot){$BackupRoot=$config.backupRoot}
 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$BackupRoot=Assert-SBCentralDataPath $config.brainRoot $BackupRoot}
 if((Read-SBJson (Join-Path $config.brainRoot 'config/shared.json') @{}).schemaVersion -ne 1){throw (New-SBError 'paracli.policy.invalid')}
-$writing=$BuildIndex -or $NewProject -or $NewResource -or $SetStatus -or $Archive -or $Restore -or ($MigrateToProjects -and $Apply)
+$writing=$BuildIndex -or $NewProject -or $NewResource -or $NewArea -or $SetStatus -or $Archive -or $Restore -or ($MigrateToProjects -and $Apply)
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$writing)
 try {
     $index=Get-SBParaIndex $config.brainRoot $config.allowedOwners
@@ -75,6 +76,16 @@ try {
         $dir=Resolve-SBParaPath $config.brainRoot ('03-resources/'+$Id)
         if(Test-Path -LiteralPath $dir){throw (New-SBError 'paracli.resource.folder')}
         $meta=New-SBParaMetadata $Id 'resource' $Title
+        $brief="# $Title`n`n## Obiettivo`n`n$Objective`n"
+        $ops=@(@{path=(Join-Path $dir 'para.json');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta))},@{path=(Join-Path $dir 'brief.md');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($brief)})
+        Invoke-SBParaTransaction $ops $BackupRoot $config.brainRoot
+    }elseif($NewArea){
+        # A PARA area is an ongoing responsibility without an end date (02-areas/<id>); repository dossiers stay in 01-projects.
+        if(!$Title.Trim() -or $Title -match '[\r\n]' -or !$Objective.Trim()){throw (New-SBError 'paracli.resource.fields')}
+        if(@($index.entities|Where-Object id -eq $Id).Count){throw (New-SBError 'paracli.id.present')}
+        $dir=Resolve-SBParaPath $config.brainRoot ('02-areas/'+$Id)
+        if(Test-Path -LiteralPath $dir){throw (New-SBError 'paracli.resource.folder')}
+        $meta=New-SBParaMetadata $Id 'area' $Title
         $brief="# $Title`n`n## Obiettivo`n`n$Objective`n"
         $ops=@(@{path=(Join-Path $dir 'para.json');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $meta))},@{path=(Join-Path $dir 'brief.md');expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes($brief)})
         Invoke-SBParaTransaction $ops $BackupRoot $config.brainRoot

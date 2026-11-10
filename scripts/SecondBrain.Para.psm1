@@ -100,7 +100,8 @@ function Read-SBParaEntitiesFromDisk([string]$BrainRoot,[string[]]$AllowedOwners
                     }else{[void](Resolve-SBParaPath $dir $tracker.path)}
                 }
             }
-            if($m.kind -eq 'area' -or $isRepoProject){
+            # An area with repository.json is a legacy repository dossier; an area without it is a plain ongoing responsibility (02-areas/<id>).
+            if(($m.kind -eq 'area' -and $repo) -or $isRepoProject){
                 if(!$repo -or !(Test-SBRepositoryIdentity $repo.identity $AllowedOwners)){throw (New-SBError 'para.area.identity')}
                 if($repositories.ContainsKey($repo.identity)){throw (New-SBError 'para.area.repoduplicate')};$repositories[$repo.identity]=$true
                 foreach($file in @('context.md','memory.md')){if(!(Test-Path -LiteralPath (Join-Path $dir $file) -PathType Leaf)){throw (New-SBError 'para.area.incomplete' @($relative, $file))}}

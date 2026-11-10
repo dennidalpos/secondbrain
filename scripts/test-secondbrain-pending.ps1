@@ -81,6 +81,12 @@ try {
         Assert-Pending ($session.code -eq 0 -and !$session.data.exclusive) ('ordinary write session does not reserve the writer: '+$client)
         $sessions+=$session.data.sessionId
     }
+    $ownId=[guid]::NewGuid().ToString('N')
+    $own=Invoke-PendingCli 'access.ps1' @('-Start','-Mode','Write','-Client','own-id','-WaitSeconds','0','-SessionId',$ownId)
+    Assert-Pending ($own.code -eq 0 -and $own.data.sessionId -eq $ownId) '-Start honours a caller-supplied SessionId'
+    $sessions+=$ownId
+    $dup=Invoke-PendingCli 'access.ps1' @('-Start','-Mode','Write','-Client','own-id','-WaitSeconds','0','-SessionId',$ownId)
+    Assert-Pending ($dup.code -ne 0) '-Start refuses a SessionId already in use'
     $content=Join-Path $fixture 'append.txt';Put-Pending $content "Pending report`n"
     $queuedCli=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-AppendFile','history/session/report.md','-ContentPath',$content,'-SessionId',$sessions[0])
     Assert-Pending ($queuedCli.code -eq 0 -and $queuedCli.data.state -eq 'deferred') 'CLI queues a dossier report while another writer is active'
