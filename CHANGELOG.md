@@ -2,7 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.19.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.20.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.20.0] - 2026-11-10
+
+### Aggiunto
+- `resources.ps1 -Check|-BuildIndex|-Sync [-IfStale]`: alberatura standard di `03-resources`, file di controllo `CONTROL.json` e indice `INDEX.md` per ogni risorsa, sincronizzazione del registro delle fonti con nuove versioni solo candidate, chiusura dei riferimenti normativi con limiti e coda di revisione `normative-queue.json`.
+- Controllo `mapping-outdated`: una mappatura di prodotto che punta a una versione precedente a quella accettata di un regolamento o decisione.
+- `resources-hook.ps1`: ponte non bloccante di avvio sessione per `-Sync -IfStale`; `-ShowConfiguration` stampa la voce senza modificare impostazioni.
+- `setup-status.ps1` e prompt SYS17 (`sb setup`): prima configurazione guidata con funzioni facoltative proposte dallo stato della postazione.
+- `lint.ps1` con `config/PSScriptAnalyzerSettings.psd1` e baseline `config/lint-baseline.json`.
+- Gruppi di test `resources` e `setup-status`.
 
 ## [1.19.0] - 2026-11-10
 

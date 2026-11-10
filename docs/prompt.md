@@ -2,7 +2,7 @@
 
 [Retained Italian source; use this English page for current behavior](prompt.it.md)
 
-The catalog contains 113 prompt cards in 17 categories, in two groups (current repository and central SecondBrain). The reference cards are in English, with Italian counterparts under `direttive/prompts/it/`.
+The catalog contains 114 prompt cards in 17 categories, in two groups (current repository and central SecondBrain). The reference cards are in English, with Italian counterparts under `direttive/prompts/it/`.
 
 ~~~text
 sb prompt list
@@ -57,7 +57,7 @@ Prompts are grouped by development area or need, not by code prefix. A repositor
 
 | ID | Area | Codes |
 |---|---|---|
-| `system` | Workstation and IDEs | SYS01, SYS03, SYS04, SYS10, SYS15 |
+| `system` | Workstation and IDEs | SYS01, SYS03, SYS04, SYS10, SYS15, SYS17 |
 | `knowledge` | Dossier, sources and directives | MEM05, MNT07, SYS02, SYS05, SYS11, SYS16 |
 | `maintenance` | SecondBrain maintenance | MNT01, MNT02, MNT03, MNT04, MNT05, MNT06, SYS09 |
 

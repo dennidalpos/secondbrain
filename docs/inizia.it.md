@@ -78,3 +78,7 @@ pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 | Vuoi tornare indietro | [Ripristina un file](sicurezza.md#ripristina-un-file) |
 
 Prossimo passo: [uso quotidiano](uso-quotidiano.md). Tutte le opzioni: [configurazione](riferimento/portable-brain.md#configurazione-e-prerequisiti).
+
+## Prima configurazione guidata
+
+Su una macchina pulita, dopo il clone, chiedi all'agente `sb setup` (prompt SYS17). Esegue `scripts/setup-status.ps1` (sola lettura: preflight, IDE rilevati e quali funzioni facoltative sono abilitate, disponibili o non supportate, con motivo e comando di anteprima), poi guida attivazione (SYS03), MCP (SYS15) e direttive (SYS01) con una conferma prima di ogni scrittura, e infine propone le funzioni facoltative una alla volta. I consigli derivano dallo stato attuale della postazione, non dalla cronologia dei comandi; nulla viene abilitato senza la tua conferma.

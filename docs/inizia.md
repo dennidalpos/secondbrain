@@ -59,3 +59,7 @@ Open a new session in the selected agent and request sb prompt. This is a chat c
 | Automatic memory capture is expected | Read the [current limits](riferimento/memory-cycle.md#known-limits-141); explicit loading remains available |
 
 Continue with [daily use](uso-quotidiano.md). Use the [bug form](https://github.com/dennidalpos/secondbrain/issues/new/choose) for defects and [SECURITY.md](../SECURITY.md) for private vulnerability reporting.
+
+## Guided first-run setup
+
+On a clean machine, after cloning, ask your agent for `sb setup` (prompt SYS17). It runs `scripts/setup-status.ps1` (read-only: preflight, detected IDEs, and which optional features are enabled, available or unsupported, with the reason and a preview command for each), then walks activation (SYS03), MCP (SYS15) and directives (SYS01) with a confirmation before every write, and finally offers the optional features one at a time. Recommendations come from the current state of the workstation, not from your command history; nothing is enabled without your confirmation.

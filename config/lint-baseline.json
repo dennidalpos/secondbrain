@@ -1,0 +1,425 @@
+{
+  "schemaVersion": 1,
+  "findings": [
+    {
+      "rule": "PSAvoidDefaultValueSwitchParameter",
+      "file": "scripts/SecondBrain.Portable.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidDefaultValueSwitchParameter",
+      "file": "scripts/secondbrain.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/backup.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/check-distribution.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/cleanup.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Access.psm1",
+      "count": 4
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Activity.psm1",
+      "count": 2
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Core.psm1",
+      "count": 3
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Mcp.psm1",
+      "count": 3
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.MemoryCycle.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Messages.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Pending.psm1",
+      "count": 2
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Prompts.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/SecondBrain.Trace.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/test-mcp-writes.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/test-secondbrain-mcp-handshake.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/test-secondbrain-pending.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/test-secondbrain-runner.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingEmptyCatchBlock",
+      "file": "scripts/trace.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSAvoidUsingWriteHost",
+      "file": "scripts/mcp-server.ps1",
+      "count": 21
+    },
+    {
+      "rule": "PSAvoidUsingWriteHost",
+      "file": "scripts/rollback-repo.ps1",
+      "count": 15
+    },
+    {
+      "rule": "PSAvoidUsingWriteHost",
+      "file": "scripts/SecondBrain.Portable.psm1",
+      "count": 11
+    },
+    {
+      "rule": "PSAvoidUsingWriteHost",
+      "file": "scripts/test-secondbrain-mcp-handshake.ps1",
+      "count": 3
+    },
+    {
+      "rule": "PSAvoidUsingWriteHost",
+      "file": "scripts/test-secondbrain-smb.ps1",
+      "count": 3
+    },
+    {
+      "rule": "PSPossibleIncorrectComparisonWithNull",
+      "file": "scripts/test-secondbrain-quick.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/SecondBrain.Tracker.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-mcp-writes.ps1",
+      "count": 4
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-sandbox-roots.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-activity.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-external-audit.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-ide-observation.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-ide.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-memory-cycle.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-pending.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-runner.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-sources.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-subagents.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-trace.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseApprovedVerbs",
+      "file": "scripts/test-secondbrain-tracker-audit.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/activity.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/backup.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/cleanup.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/ide-detect.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/mcp-server.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Activity.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Core.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Knowledge.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Mcp.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.McpWrites.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.MemoryCycle.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Messages.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Portable.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Prompts.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Publication.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.Tracker.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-mcp-writes.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-concurrency.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-directives.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-essential.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-integration.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-memory-cycle.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-message-contract.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-pending.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-prompts.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-quick.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-runner.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-runtime.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-trace.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-tracker-audit.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseCmdletCorrectly",
+      "file": "scripts/test-secondbrain-concurrency.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseCmdletCorrectly",
+      "file": "scripts/test-secondbrain-trace.ps1",
+      "count": 5
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/import-tracker.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/memory-cycle.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/SecondBrain.Core.psm1",
+      "count": 3
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/SecondBrain.TrackerImport.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-mcp-install.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-essential.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-memory-cycle.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-message-contract.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-pending.ps1",
+      "count": 3
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-runtime.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-smb.ps1",
+      "count": 2
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-sources.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseDeclaredVarsMoreThanAssignments",
+      "file": "scripts/test-secondbrain-tracker-audit.ps1",
+      "count": 1
+    }
+  ]
+}

@@ -2102,6 +2102,31 @@
       }
     },
     {
+      "id": "pmt-a17c3e52",
+      "code": "SYS17",
+      "category": "system",
+      "summary": "Guide the first-run setup of SecondBrain, IDE, agent, directives and MCP.",
+      "target": "central",
+      "mode": "write",
+      "scope": "central",
+      "requires": "fresh SecondBrain checkout, one supported IDE and confirmation before each write",
+      "example": "sb setup: configure this clean workstation with vscode",
+      "file": "SYS17.md",
+      "related": [
+        "pmt-5f9f93e0",
+        "pmt-2d3c1d51",
+        "pmt-26817a61",
+        "pmt-677a10ab"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Guida la prima configurazione di SecondBrain, IDE, agent, direttive e MCP.",
+          "requires": "checkout SecondBrain nuovo, un IDE supportato e conferma prima di ogni scrittura",
+          "example": "sb setup: configura questa postazione pulita con vscode"
+        }
+      }
+    },
+    {
       "id": "pmt-08bff671",
       "code": "TST01",
       "category": "test",

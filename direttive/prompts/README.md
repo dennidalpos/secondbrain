@@ -643,6 +643,12 @@ WORKSTATION AND IDES
   • Needs: SecondBrain root, target IDEs and confirmation before writing
   • Example: sb prompt SYS15: install the mcp server in vscode and claude code
 
+🔥 SYS17 | Guide the first-run setup of SecondBrain, IDE, agent, directives and MCP.
+  • ID: pmt-a17c3e52
+  • Scope: central | Mode: write
+  • Needs: fresh SecondBrain checkout, one supported IDE and confirmation before each write
+  • Example: sb setup: configure this clean workstation with vscode
+
 
 DOSSIER, SOURCES AND DIRECTIVES
 🔥 MEM05 | Create, update and archive projects, areas and resources of the central PARA.

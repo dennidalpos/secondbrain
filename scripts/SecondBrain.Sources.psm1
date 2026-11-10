@@ -296,6 +296,7 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
                 if($target.Count -ne 1){throw (New-SBError 'sources.product.unresolved')}
                 if($ref.versionId -and @($target[0].versions|Where-Object id -ceq $ref.versionId).Count -ne 1){throw (New-SBError 'sources.product.version')}
                 if($ref.applicability -eq 'unassessed'){$issues.Add(@{kind='applicability-unassessed';areaId=$entity.id;sourceId=$ref.sourceId})}
+                if($ref.versionId -and $target[0].acceptedVersion -and $target[0].kind -in @('regulation','decision') -and $ref.versionId -cne $target[0].acceptedVersion){$issues.Add(@{kind='mapping-outdated';areaId=$entity.id;sourceId=$ref.sourceId;versionId=$ref.versionId;currentVersionId=$target[0].acceptedVersion})}
             }
         }
     }
@@ -370,6 +371,46 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
     Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))) $hash $Config.backupRoot|Out-Null
     @{sourceId=$SourceId;versionId=$versionId;status=$result.status}
 }
+function Find-SBSourceReferences($Registry,$Source) {
+    # Heuristic: official numbers (YYYY/N or N/YYYY, "n. N del <date> <year>") found in the accepted, else latest, transcript.
+    $version=if($Source.acceptedVersion){@($Source.versions|Where-Object id -ceq $Source.acceptedVersion)[0]}elseif($Source.versions.Count){@($Source.versions|Sort-Object id)[-1]}else{$null}
+    $resolved=[Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal);$tokens=[Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+    if($version){
+        $versionRoot=Get-SBSourceChild $Source._root ('versions/'+$version.id)
+        $manifest=Read-SBJson (Join-Path $versionRoot 'manifest.json') $null
+        if($manifest -and $manifest.transcription.path){
+            $text=Read-SBText (Get-SBSourceChild $versionRoot $manifest.transcription.path)
+            foreach($m in [regex]::Matches($text,'(?<![\d/])(\d{4})/(\d{1,4})(?![\d/])')){[void]$tokens.Add($m.Groups[1].Value+'/'+$m.Groups[2].Value)}
+            foreach($m in [regex]::Matches($text,'(?i)\bn\.?\s*(\d{1,4})\s+del\s+\d{1,2}\s+\p{L}+\s+(\d{4})')){[void]$tokens.Add($m.Groups[1].Value+'/'+$m.Groups[2].Value)}
+        }
+    }
+    $unresolved=@()
+    foreach($token in $tokens){
+        $parts=$token -split '/'
+        $pattern='(?<![\d/])'+[regex]::Escape($token)+'(?![\d/])|(?<![\d/])'+[regex]::Escape($parts[1]+'/'+$parts[0])+'(?![\d/])'
+        $hits=@($Registry.sources|Where-Object {$_.id -cne $Source.id -and $_.officialId -and $_.officialId -match $pattern})
+        if($hits.Count){foreach($hit in $hits){[void]$resolved.Add($hit.id)}}elseif($token -ne ($Source.officialId -replace '^.*?(\d{4}/\d+).*$','$1')){$unresolved+=$token}
+    }
+    @{sourceId=$Source.id;resolved=@($resolved);unresolved=@($unresolved)}
+}
+function Get-SBSourceClosure($Registry,[string[]]$Seeds,[ValidateRange(0,10)][int]$MaxDepth=3,[ValidateRange(1,500)][int]$MaxSources=50) {
+    $included=[ordered]@{};$queue=@{};$frontier=@($Seeds|Where-Object {$_})
+    $byId=@{};foreach($source in $Registry.sources){$byId[$source.id]=$source}
+    for($depth=0;$depth -le $MaxDepth -and $frontier.Count;$depth++){
+        $next=@()
+        foreach($id in $frontier){
+            if($included.Contains($id) -or !$byId.ContainsKey($id)){continue}
+            if($included.Count -ge $MaxSources){$queue['limit:'+$id]=@{kind='limit-reached';sourceId=$id};continue}
+            $included[$id]=$depth
+            $found=Find-SBSourceReferences $Registry $byId[$id]
+            $next+=@($byId[$id].relatedSources|ForEach-Object {$_.id})+@($found.resolved)
+            foreach($token in $found.unresolved){$queue[$id+'|'+$token]=@{kind='unresolved-reference';sourceId=$id;reference=$token}}
+        }
+        $frontier=@($next|Select-Object -Unique)
+    }
+    if($frontier.Count -and $depth -gt $MaxDepth){foreach($id in $frontier|Where-Object {!$included.Contains($_)}){$queue['depth:'+$id]=@{kind='depth-limit';sourceId=$id}}}
+    @{sources=@($included.Keys);depths=$included;queue=@($queue.Keys|Sort-Object|ForEach-Object {$queue[$_]})}
+}
 Export-ModuleMember -Function @(
     'Get-SBSourceChild',
     'Read-SBSourceRegistry',
@@ -380,5 +421,7 @@ Export-ModuleMember -Function @(
     'Save-SBSourceReport',
     'Get-SBSourceCatalog',
     'Get-SBSourceChecks',
-    'Invoke-SBSourceCollect'
+    'Invoke-SBSourceCollect',
+    'Find-SBSourceReferences',
+    'Get-SBSourceClosure'
 )

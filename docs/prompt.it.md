@@ -1,6 +1,6 @@
 # Prompt
 
-113 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+114 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list
@@ -57,7 +57,7 @@ I prompt sono raggruppati per area di sviluppo o necessità, non per prefisso de
 
 | ID | Area | Codici |
 |---|---|---|
-| `system` | Postazione e IDE | SYS01, SYS03, SYS04, SYS10, SYS15 |
+| `system` | Postazione e IDE | SYS01, SYS03, SYS04, SYS10, SYS15, SYS17 |
 | `knowledge` | Dossier, fonti e direttive | MEM05, MNT07, SYS02, SYS05, SYS11, SYS16 |
 | `maintenance` | Manutenzione SecondBrain | MNT01, MNT02, MNT03, MNT04, MNT05, MNT06, SYS09 |
 

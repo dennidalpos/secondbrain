@@ -48,3 +48,11 @@ Rapporti in `runtimeRoot/sources/reports`; ultimo esito in `runtimeRoot/sources/
 `test-secondbrain-sources.ps1` e incluso nella suite principale; con `-PythonPath` esegue anche le prove reali del convertitore. Nessuna prova di pianificazione: lo scheduler è stato ritirato.
 
 Fonti tecniche: [MarkItDown](https://github.com/microsoft/markitdown), [PyPI](https://pypi.org/project/markitdown/), [HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient), [Task Scheduler](https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/new-scheduledtasksettingsset?view=windowsserver2025-ps).
+
+## Automazione, file di controllo e alberatura standard (03-resources)
+
+Ogni cartella di `03-resources/` ha la stessa alberatura: `para.json` (kind `resource`, id `resource-<cartella>`), `brief.md`, il contenuto e due viste generate, `CONTROL.json` (percorso, SHA-256 e dimensione di ogni file, senza date) e `INDEX.md`. Il registro aggiunge `entries/<id>/metadata.json`, `entries/<id>/versions/<yyyyMMdd>-<fp16>/`, `domains.json`, `catalog.json` e `normative-queue.json`. Le risorse restano ignorate da Git; la storia sono versioni e manifest, e lo ZIP di backup include gia la cartella.
+
+`scripts/resources.ps1`: `-Check` (sola lettura: alberatura, scostamento di CONTROL.json e INDEX.md), `-BuildIndex` (riscrive le viste), `-Sync [-IfStale] [-MaxDepth 3] [-MaxSources 50]`. Sync controlla ogni endpoint, raccoglie una nuova versione `candidate` solo se il contenuto e cambiato (le versioni accettate e precedenti non si toccano mai), segue `relatedSources` e i numeri ufficiali trovati nelle trascrizioni entro i limiti, e scrive in `normative-queue.json` cio che non risolve; non scarica mai una fonte non registrata. L accettazione resta manuale. Check segnala anche `mapping-outdated` quando una mappatura di prodotto punta a una versione precedente a quella accettata di un regolamento o una decisione.
+
+`scripts/resources-hook.ps1` e un ponte non bloccante all avvio della sessione: lancia `-Sync -IfStale` (report di probe piu vecchio di 14 giorni) in un processo separato. `-ShowConfiguration` stampa la voce SessionStart di Claude Code; lo script non modifica alcun file di impostazioni.

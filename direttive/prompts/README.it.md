@@ -643,6 +643,12 @@ POSTAZIONE E IDE
   • Cosa serve: radice SecondBrain, IDE di destinazione e conferma prima di scrivere
   • Esempio d'uso: sb prompt SYS15: installa il server mcp in vscode e claude code
 
+🔥 SYS17 | Guida la prima configurazione di SecondBrain, IDE, agent, direttive e MCP.
+  • ID: pmt-a17c3e52
+  • Ambito: central | Modalità: write
+  • Cosa serve: checkout SecondBrain nuovo, un IDE supportato e conferma prima di ogni scrittura
+  • Esempio d'uso: sb setup: configura questa postazione pulita con vscode
+
 
 DOSSIER, FONTI E DIRETTIVE
 🔥 MEM05 | Crea, aggiorna e archivia progetti, aree e risorse del PARA centrale.
