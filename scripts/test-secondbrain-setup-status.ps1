@@ -39,4 +39,16 @@ $usage=Get-SBTraceUsage $root
 Assert-Setup ($usage.present -and $usage.events -eq 2 -and (ConvertTo-SBJson $usage) -notmatch 'secret') 'uso dal Trace: solo conteggi, nessun contenuto'
 $after=@(Get-ChildItem -LiteralPath $root -Recurse -File|ForEach-Object {$_.FullName+'|'+(Get-SBFileHash $_.FullName)})
 Assert-Setup (($before -join "`n") -ceq ($after -join "`n")) 'nessun file creato o modificato'
+$state=Join-Path $root 'state'
+$approved='Revisione 1.0 - testo approvato di prova'
+Set-Fixture (Join-Path $state 'istruzioni-globali.md') $approved
+$approvedHash=Get-SBTextHash $approved.Trim()
+$accountIde=@(@{name='Claude account instructions';adapter='manual';mcpConfigured=$false})
+$writeMap={param($hash) Set-Fixture (Join-Path $state 'ide-map.json') (ConvertTo-SBJson @{schemaVersion=1;ides=@(@{name='Claude account instructions';mode='manual';selected=$true;observedHash=$hash})})}
+& $writeMap $approvedHash
+$ok=@(Get-SBSetupFeatureStatus -BrainRoot $root -HomeValue 'x' -SettingsPath $settings -Ides $accountIde -Bindings @() -Config @{} -StateRoot $state|Where-Object id -eq 'manual-directives')[0]
+Assert-Setup ($ok.state -eq 'enabled' -and !$ok.recommended) 'istruzioni account con hash osservato uguale: enabled, non consigliato'
+& $writeMap ('0'*64)
+$stale=@(Get-SBSetupFeatureStatus -BrainRoot $root -HomeValue 'x' -SettingsPath $settings -Ides $accountIde -Bindings @() -Config @{} -StateRoot $state|Where-Object id -eq 'manual-directives')[0]
+Assert-Setup ($stale.state -eq 'blocked' -and $stale.recommended) 'istruzioni account con hash obsoleto: blocked e consigliato'
 'SUCCESS SETUP-STATUS: '+$passed+' verifiche'
