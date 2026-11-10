@@ -59,7 +59,7 @@ Add-SBMessages @{
     'portable.path.outsideprofile' = @{ it = 'Percorso istruzioni alternativo fuori dal profilo utente'; en = 'Alternative instructions path outside the user profile' }
     'portable.path.credentials' = @{ it = 'Percorso istruzioni alternativo in una cartella di credenziali'; en = 'Alternative instructions path in a credentials folder' }
     'portable.preflight.failed' = @{ it = 'Preflight non superato: {0}'; en = 'Preflight failed: {0}' }
-    'portable.selection.missing' = @{ it = 'Selezione assente: indicare -Select, -All, -Ides, -AllIdes, -IdeAccount oppure -Interactive'; en = 'No selection: give -Select, -All, -Ides, -AllIdes, -IdeAccount or -Interactive' }
+    'portable.selection.missing' = @{ it = 'Selezione assente: indicare -Select, -Ides, -AllIdes, -IdeAccount oppure -Interactive'; en = 'No selection: give -Select, -Ides, -AllIdes, -IdeAccount or -Interactive' }
     'portable.repository.ambiguous' = @{ it = 'Repository non selezionabile o ambiguo: {0} ({1} corrispondenze)'; en = 'Repository not selectable or ambiguous: {0} ({1} matches)' }
     'portable.ideaccount.invalid' = @{ it = 'IdeAccount non valido (atteso id-o-nome|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): {0}'; en = 'Invalid IdeAccount (expected id-or-name|alias[|profile=..|environment=..|path=..|revision=..|hash=..]): {0}' }
     'portable.ide.ambiguous' = @{ it = 'IDE non selezionabile o ambiguo: {0} ({1} corrispondenze)'; en = 'IDE not selectable or ambiguous: {0} ({1} matches)' }
@@ -366,7 +366,7 @@ function Read-SBAccountObservationReceipt([string]$BrainRoot,[string]$Path,[stri
     @{observedRevision=$receipt.observedRevision;observedHash=$receipt.observedHash.ToUpperInvariant();receiptPath=$full;receiptSha256=(Get-SBFileHash $full)}
 }
 function Invoke-SBSetup {
-    param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[switch]$All,[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
+    param([string]$BrainRoot,[string[]]$Roots=@(),[int]$MaxDirectories=0,[string[]]$Select=@(),[string[]]$Ides=@(),[switch]$AllIdes,[string[]]$IdeAccount=@(),
           [switch]$ApproveExistingBlocks,[switch]$Interactive,[switch]$Yes,[switch]$Apply,[switch]$RegisterEnvironment,[switch]$NoRegisterEnvironment,[switch]$AndSync=$true,[string]$SessionId,
           [string[]]$McpTargets=@(),[switch]$ApproveMcpReadTools,[switch]$PreviewOnly,[string]$PersonalRoot)
     $brain=[IO.Path]::GetFullPath($BrainRoot);$paths=Get-SBSetupPaths $brain;$hostId=Get-SBHostId
@@ -378,7 +378,7 @@ function Invoke-SBSetup {
     $Select=@($Select|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $Ides=@($Ides|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
     $result=[ordered]@{stage='preflight';hostId=$hostId;confirmed=$false;applied=$false}
-    $needSelection=(!$Select.Count -and !$All -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
+    $needSelection=(!$Select.Count -and !$Ides.Count -and !$AllIdes -and !@($IdeAccount|Where-Object {$_}).Count)
     $prompting=($Interactive -or ($needSelection -and !$PreviewOnly))
     $readOnlyDiscovery=($PreviewOnly -or $prompting -or $teamSetup)
     $preflight=@(Test-SBSetupPreflight $brain -ReadOnly:$readOnlyDiscovery);$result.preflight=$preflight
@@ -407,8 +407,7 @@ function Invoke-SBSetup {
     if($PreviewOnly -and $needSelection -and !$Interactive){$result.stage='preview';return $result}
     # Repository selection.
     $chosen=@()
-    if($All){$chosen=$repos}
-    elseif($Select.Count){
+    if($Select.Count){
         foreach($token in $Select){
             $full=try{[IO.Path]::GetFullPath($token)}catch{''}
             $found=@($repos|Where-Object {$_.id -ceq $token -or $_.name -ieq $token -or ($full -and $_.path -ieq $full)})

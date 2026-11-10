@@ -62,12 +62,27 @@ function Test-SBPublicationText([string]$Text,[string]$Path,[string]$Surface,$Al
         }
     }
 }
+function Get-SBTrackedPublicationPolicyPath([string]$BrainRoot) {Join-Path $BrainRoot 'config/publication-policy.json'}
 function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath) {
-    # Without explicit -PolicyPath, use the default local policy when present (CLI and MCP return the same outcome).
+    # Without explicit -PolicyPath the tracked policy (config/publication-policy.json) wins, so a reset of .runtime does not change the outcome;
+    # the legacy local policy is read only while no tracked file exists (CLI and MCP return the same outcome).
     if($PolicyPath){return $PolicyPath}
-    $defaultPolicyPath=Join-Path $BrainRoot '.runtime/publication/policy.json'
-    if(Test-Path -LiteralPath $defaultPolicyPath -PathType Leaf){return $defaultPolicyPath}
+    $tracked=Get-SBTrackedPublicationPolicyPath $BrainRoot
+    if(Test-Path -LiteralPath $tracked -PathType Leaf){return $tracked}
+    $legacy=Join-Path $BrainRoot '.runtime/publication/policy.json'
+    if(Test-Path -LiteralPath $legacy -PathType Leaf){return $legacy}
     return $null
+}
+function Move-SBPublicationPolicy([string]$BrainRoot,[switch]$Apply) {
+    # Copies the legacy local policy to the tracked file; the legacy file stays in place.
+    $legacy=Join-Path $BrainRoot '.runtime/publication/policy.json';$tracked=Get-SBTrackedPublicationPolicyPath $BrainRoot
+    $state=if(!(Test-Path -LiteralPath $legacy -PathType Leaf)){'no-legacy'}elseif(Test-Path -LiteralPath $tracked -PathType Leaf){'tracked-exists'}else{'ready'}
+    if($state -eq 'ready'){
+        $policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $legacy) $null
+        if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')}
+        if($Apply){Write-SBFile $tracked ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $policy))) (Get-SBFileHash $tracked) (Join-Path $BrainRoot '.runtime/backups/publication')|Out-Null;$state='migrated'}
+    }
+    @{state=$state;applied=($state -eq 'migrated');source=$legacy;destination=$tracked}
 }
 function Get-SBPublicationBaselinePath([string]$BrainRoot,[string]$RepositoryRoot) {
     $key=[IO.Path]::GetFullPath($RepositoryRoot).TrimEnd('\','/').ToLowerInvariant().Replace('\','/')
@@ -131,7 +146,7 @@ function Test-SBPublication {
     param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[ValidateRange(0,[int]::MaxValue)][int]$MaxHistoryBlobs=10000,[ValidateRange(0,[int]::MaxValue)][int]$MaxTextBytes=2097152,[switch]$Initial,
         [ValidatePattern('^(?:[0-9a-f]{40}|[0-9a-f]{64})$')][string[]]$PushObjectIds=@())
     $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw (New-SBError 'publication.checkout')};$root=$repo.output
-    $allowances=@();$binaryReviews=@();if($PolicyPath){$policy=Read-SBJson (Assert-SBCentralDataPath $BrainRoot $PolicyPath) $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
+    $allowances=@();$binaryReviews=@();if($PolicyPath){$policyFile=if([IO.Path]::GetFullPath($PolicyPath) -ieq [IO.Path]::GetFullPath((Get-SBTrackedPublicationPolicyPath $BrainRoot))){Assert-SBPlainPath $PolicyPath;[IO.Path]::GetFullPath($PolicyPath)}else{Assert-SBCentralDataPath $BrainRoot $PolicyPath};$policy=Read-SBJson $policyFile $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
     $findings=@();$incomplete=@();$checked=0
 
     $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root }
@@ -570,6 +585,8 @@ function Get-SBPublicationHookStatus {
 Export-ModuleMember -Function @(
     'Test-SBPublicationText',
     'Resolve-SBPublicationPolicyPath',
+    'Get-SBTrackedPublicationPolicyPath',
+    'Move-SBPublicationPolicy',
     'Get-SBPublicationBaselinePath',
     'Read-SBPublicationBaseline',
     'Test-SBPublication',

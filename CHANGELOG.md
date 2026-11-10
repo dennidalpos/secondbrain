@@ -2,8 +2,23 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.18.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.19.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [1.19.0] - 2026-11-10
+
+### Aggiunto
+- `secondbrain.ps1 -AddRepo <percorso> [-Customer] [-ApplyAdd]`: arruola un solo repository con anteprima, in `config/local/allowlist.json`; con l allowlist presente la discovery non legge né elenca i repository esterni.
+- `secondbrain.ps1 -NewProject <percorso> [-Remote] [-Customer] [-ApplyNew]`: progetto da zero (cartella, git init, allowlist, dossier, tracker, greenfield, cliente).
+- `knowledge.ps1 -Roadmap [-Format Markdown|Json] [-Since]`: roadmap degli interventi del solo repository in lavoro.
+- `publication.ps1 -MigratePolicy -ApplyMigration` e policy tracciata `config/publication-policy.json`, letta da CLI e MCP: il reset di `.runtime` non cambia l esito.
+- Test di perimetro (knowledge, MCP, work.ps1), di allowlist, new-project, roadmap e policy tracciata.
+
+### Modificato
+- `work.ps1` rifiuta in una sessione runner i repository diversi da quello del task.
+- Budget di `test-secondbrain.ps1 -Full` da 300 a 600 s (run parallelo misurato 300-450 s; concurrency passa da sola).
+
+### Rimosso
+- `-All` dal Setup.
 ## [1.18.0] - 2026-11-10
 
 ### Aggiunto

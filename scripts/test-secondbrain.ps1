@@ -16,7 +16,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $level=if($Only){'Only'}elseif($Quick){'Quick'}elseif($Full){'Full'}else{'Fast'}
 $pure=[bool]($Quick -or ($Only -and @($Only|Where-Object {$_ -ne 'quick'}).Count -eq 0))
-$budget=if($Only){0}elseif($Quick){15}elseif($Full){300}else{120}
+$budget=if($Only){0}elseif($Quick){15}elseif($Full){600}else{120}
 $run=$null;$gitEnvironment=$null;$success=$false;$checks=0;$results=[Collections.Generic.List[object]]::new()
 $saved=@{}
 foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR','SECONDBRAIN_RUNNER_REPOSITORY','SECONDBRAIN_RUNNER_READS')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}

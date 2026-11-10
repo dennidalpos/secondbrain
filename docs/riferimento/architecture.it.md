@@ -239,7 +239,7 @@ flowchart LR
     SCAN -->|Nessun rilievo o allowance revisionata| READY["ready = true"]
 ```
 
-I binari sopra soglia o non testuali richiedono una revisione registrata nella policy (`.runtime/publication/policy.json`); la copertura incompleta è dichiarata e non equivale a esito pulito.
+I binari sopra soglia o non testuali richiedono una revisione registrata nella policy tracciata (`config/publication-policy.json`; `publication.ps1 -MigratePolicy -ApplyMigration` copia la vecchia `.runtime/publication/policy.json`); la copertura incompleta è dichiarata e non equivale a esito pulito.
 
 ---
 

@@ -15,6 +15,9 @@ Add-SBMessages @{
     'work.close.manifest' = @{ it = 'Close richiede una cartella inizializzata con MANIFEST.json'; en = 'Close requires a folder initialized with MANIFEST.json' }
     'work.checkout.unmanaged' =@{ it = 'Checkout non gestito o ambiguo'; en = 'Checkout not managed or ambiguous' }
 }
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
+# Runner session perimeter: work folders are written only for the task repository.
+Assert-SBRunnerReadScope -Repository $Repository -Write
 $config=Read-SBConfiguration $ConfigPath
 $plan=if($Category -or $Slug){Get-SBWorkEnvironment -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $Repository -Category $Category -Slug $Slug}else{Get-SBWorkEnvironment $config.brainRoot $config.workstationId $Repository $Project $Runtime}
 if($Init){

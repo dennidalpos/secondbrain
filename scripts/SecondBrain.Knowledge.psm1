@@ -664,6 +664,17 @@ function Get-SBRepositoryLifecycle([string]$Dossier) {
     if([string]$record.lifecycle -cne 'greenfield'){throw (New-SBError 'knowledge.lifecycle.invalid')}
     'greenfield'
 }
+function Set-SBRepositoryCustomer {
+    # Customer / company of the repository, recorded in the dossier's repository.json (roadmap and reports read it).
+    param([Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][string]$Customer,[Parameter(Mandatory)][string]$BackupRoot)
+    $path=Join-Path $Dossier 'repository.json'
+    $record=Read-SBJson $path $null
+    if(!$record){throw (New-SBError 'knowledge.record.missing')}
+    $value=$Customer.Trim()
+    $changed=(!$record.ContainsKey('customer') -or [string]$record.customer -cne $value)
+    if($changed){$record.customer=$value;[void](Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $record))) (Get-SBFileHash $path) $BackupRoot)}
+    @{repository=$record.identity;customer=$value;changed=$changed}
+}
 function Set-SBRepositoryLifecycle {
     param([Parameter(Mandatory)][string]$Dossier,[Parameter(Mandatory)][ValidateSet('greenfield','none')][string]$Lifecycle,[Parameter(Mandatory)][string]$BackupRoot)
     $path=Join-Path $Dossier 'repository.json'
@@ -694,6 +705,48 @@ function Get-SBTaskDetail {
         if($found.Count){return @{repository=$record.identity;source=$source.name;path=[IO.Path]::GetRelativePath([IO.Path]::GetFullPath($BrainRoot),$source.path).Replace('\','/');task=$found[0]}}
     }
     throw (New-SBError 'knowledge.task.notfound' @($Task))
+}
+function Get-SBRoadmap {
+    # Roadmap of the interventions of ONE repository: tracker/archive history (date from the history folder, tasks, commit and PR mentions) plus the checkout's git log.
+    param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$Dossier,[string]$CheckoutPath,[string]$Since,[ValidateRange(0,5000)][int]$MaxCommits=200)
+    $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
+    if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
+    $relativeDossier=[IO.Path]::GetRelativePath([IO.Path]::GetFullPath($BrainRoot),[IO.Path]::GetFullPath($Dossier)).Replace('\','/')
+    $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $relativeDossier -AllowedOwners @()
+    if(!$tracker.ContainsKey('data') -or !$tracker.data){throw (New-SBError 'knowledge.tracker.unavailable')}
+    $history=@($tracker.data.history)
+    $archive=$tracker.archive.data
+    if($archive -and $archive.ContainsKey('history')){$history=@($archive.history)+$history}
+    $commits=@()
+    if($CheckoutPath -and $MaxCommits -gt 0 -and (Test-Path -LiteralPath (Join-Path $CheckoutPath '.git'))){
+        $log=Invoke-SBGit $CheckoutPath @('log','--no-color','--date=short',('--max-count='+$MaxCommits),'--pretty=format:%h%x09%ad%x09%an%x09%s')
+        if($log.code -eq 0 -and $log.output){$commits=@($log.output -split '\r?\n'|Where-Object {$_}|ForEach-Object {$p=$_ -split "`t",4;if($p.Count -eq 4){@{hash=$p[0];date=$p[1];author=$p[2];subject=$p[3]}}})}
+    }
+    $position=0
+    $interventions=@(foreach($entry in $history){
+        $position++;$text=[string]$entry.description;$reference=[string]$entry.reference
+        $date=if($reference -match '(\d{4}-\d{2}-\d{2})'){$Matches[1]}elseif($text -match '(\d{4}-\d{2}-\d{2})'){$Matches[1]}else{''}
+        $tasks=@([regex]::Matches(($text -replace 'PR\s*#\d+',''),'#\d+')|ForEach-Object {$_.Value}|Select-Object -Unique)
+        $shas=@([regex]::Matches($text,'(?<![0-9A-Za-z])[0-9a-f]{7,40}(?![0-9A-Za-z])')|ForEach-Object {$_.Value}|Where-Object {$_ -match '[a-f]' -and $_ -match '\d'}|Select-Object -Unique)
+        $prs=@([regex]::Matches($text,'(?:PR\s*#|pull/)(\d+)')|ForEach-Object {'#'+$_.Groups[1].Value}|Select-Object -Unique)
+        [ordered]@{order=$position;date=$date;tasks=$tasks;description=$text;reference=$reference;commits=$shas;pullRequests=$prs}
+    })
+    if($Since){$interventions=@($interventions|Where-Object {!$_.date -or $_.date -ge $Since});$commits=@($commits|Where-Object {$_.date -ge $Since})}
+    $interventions=@($interventions|Sort-Object {if($_.date){$_.date}else{'9999-99-99'}},{$_.order})
+    $done=@($tracker.data.tasks|Where-Object {$_.status -in @('done','completed')}|ForEach-Object {@{id=[string]$_.id;title=[string]$_.title}})
+    [ordered]@{repository=[string]$record.identity;customer=$(if($record.ContainsKey('customer')){[string]$record.customer}else{''});interventions=$interventions;commits=$commits;completedTasks=$done.Count}
+}
+function ConvertTo-SBRoadmapMarkdown($Roadmap) {
+    $cell={param($v) ([string]$v).Replace('|','\|').Replace("`r",' ').Replace("`n",' ')}
+    $lines=@("# Roadmap: $($Roadmap.repository)")
+    if($Roadmap.customer){$lines+=@('','Cliente / azienda: '+$Roadmap.customer)}
+    $lines+=@('','## Interventi','','| Data | Task | Intervento | Commit / PR | Riferimento |','|---|---|---|---|---|')
+    foreach($i in $Roadmap.interventions){$lines+=('| '+(& $cell $i.date)+' | '+(& $cell ($i.tasks -join ', '))+' | '+(& $cell $i.description)+' | '+(& $cell ((@($i.commits)+@($i.pullRequests)) -join ', '))+' | '+(& $cell $i.reference)+' |')}
+    if(@($Roadmap.commits).Count){
+        $lines+=@('','## Commit del repository','','| Data | Commit | Autore | Oggetto |','|---|---|---|---|')
+        foreach($c in $Roadmap.commits){$lines+=('| '+$c.date+' | '+$c.hash+' | '+(& $cell $c.author)+' | '+(& $cell $c.subject)+' |')}
+    }
+    ($lines -join "`n")+"`n"
 }
 function Get-SBMarkdownSections([string[]]$Lines) {
     # Markdown sections: any heading through the next heading at the same or a higher level (including subsections); ignore code fences.
@@ -796,6 +849,8 @@ function Invoke-SBDossierCompaction {
     @{repository=$record.identity;applied=[bool]$Apply;archives=$archives;operations=$ops.Count;originalsPreserved=$true;manifest=$manifestPath}
 }
 Export-ModuleMember -Function @(
+    'Get-SBRoadmap',
+    'ConvertTo-SBRoadmapMarkdown',
     'Remove-SBPrivateText',
     'Get-SBDossierTOC',
     'Get-SBMissingContextSection',
@@ -815,6 +870,7 @@ Export-ModuleMember -Function @(
     'Get-SBSearchDefaultBudget',
     'Get-SBRepositoryLifecycle',
     'Set-SBRepositoryLifecycle',
+    'Set-SBRepositoryCustomer',
     'Get-SBTaskDetail',
     'Get-SBSection',
     'Invoke-SBDossierCompaction'

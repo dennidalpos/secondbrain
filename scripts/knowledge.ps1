@@ -25,6 +25,9 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='HistoryMigration')][switch]$MigrateHistoryMessages,
     [Parameter(Mandatory,ParameterSetName='HistoryMessages')][switch]$HistoryMessages,
     [Parameter(Mandatory,ParameterSetName='Lifecycle')][ValidateSet('greenfield','none')][string]$SetLifecycle,
+    [Parameter(Mandatory,ParameterSetName='Roadmap')][switch]$Roadmap,
+    [Parameter(ParameterSetName='Roadmap')][ValidateSet('Markdown','Json')][string]$Format='Markdown',
+    [Parameter(ParameterSetName='Roadmap')][ValidatePattern('^\d{4}-\d{2}-\d{2}$')][string]$Since,
     [Parameter(Mandatory,ParameterSetName='Task')][string]$Task,
     [Parameter(Mandatory,ParameterSetName='Section')][string]$Section,[Parameter(ParameterSetName='Section')][string]$Source,
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Task')][Parameter(ParameterSetName='Section')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
@@ -117,6 +120,13 @@ try{
         if($Repository){Assert-SBRunnerReadScope -Repository $Repository}
         $result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $searchRepository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $effectiveLimit -IncludeOriginals:$IncludeOriginals -Category $Category -PreviousRevision $PreviousRevision
     }
+    elseif($Roadmap){
+        # Single-repository roadmap: only this repository's tracker history and git log.
+        if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
+        elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
+        $roadmapCheckout=if($CheckoutPath){$CheckoutPath}else{(Get-Location).Path}
+        $result=Get-SBRoadmap -BrainRoot $brain -Dossier $Dossier -CheckoutPath $roadmapCheckout -Since $Since
+    }
     elseif($Task -or $Section){
         # Deeper layers: complete task details (including archived tasks) or a whole named section from the working repository's dossier.
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
@@ -199,7 +209,8 @@ try{
     }
     else{$result=@(Get-SBGlobalTasks -BrainRoot $brain -Repository (& $resolveWorking) -ReadyOnly:$ReadyOnly)}
     # Search and task lists use compact JSON (no indentation): fewer characters in the agent's context.
-    if($Search -or $All){(ConvertTo-SBStableValue $result|ConvertTo-Json -Depth 40 -Compress)}else{ConvertTo-SBJson $result}
+    if($Roadmap -and $Format -eq 'Markdown'){ConvertTo-SBRoadmapMarkdown $result}
+    elseif($Search -or $All){(ConvertTo-SBStableValue $result|ConvertTo-Json -Depth 40 -Compress)}else{ConvertTo-SBJson $result}
     if($Startup -and !$result.withinBudget){exit 1}
 }catch{
     if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 };

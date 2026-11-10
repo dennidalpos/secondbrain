@@ -78,7 +78,7 @@ La proposta indica cartelle candidate (fixture di test oltre le ultime `-KeepFix
 |---|---|---:|
 | `-Quick` | Parser, identità, JSON/schema, versione/badge, direttive, catalogo e messaggi; nessun Git o processo figlio | 15 s |
 | *(predefinito, Fast)* | Quick e flussi essenziali: attivazione/idempotenza, aggiornamento task, coda differita, Slim/compattazione e handshake MCP stdio | 90 s |
-| `-Full` | Fast e confini critici: hash/backup/recovery, isolamento, percorsi/junction, accesso negato, concorrenza, fonti, pubblicabilità sintetica, runtime, prompt e audit dei tracker; le suite extra girano in parallelo come processi separati | 300 s |
+| `-Full` | Fast e confini critici: hash/backup/recovery, isolamento, percorsi/junction, accesso negato, concorrenza, fonti, pubblicabilità sintetica, runtime, prompt e audit dei tracker; le suite extra girano in parallelo come processi separati | 600 s |
 | `-Only <chiave>` | Gruppi pertinenti: `portable`, `workflows`, `trackers`, `audit2`, `trace`, `concurrency`, `pending`, `sources`, `external-audit`, `quick`, `git-environment`, `runtime`, `prompts`, `tracker-audit` (~150-180 s, incluso in `-Full` in parallelo) | Misurato, senza budget di profilo |
 
 Misure del lotto sulla postazione Windows di riferimento, con PowerShell 7.6.9 e Git 2.56.0.windows.4: Quick 9,00 s, Fast 49,17 s e Full 66,13 s. I rapporti locali registrano durata e impronte per ogni esecuzione.

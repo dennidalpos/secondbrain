@@ -83,7 +83,7 @@ Opzioni di `-Setup`:
 | Opzione | Effetto |
 | --- | --- |
 | `-Roots` | Radici da analizzare, obbligatorie (nessuna scansione dei volumi). `-MaxDirectories` limita la visita. |
-| `-Select` | Repository per id, nome o percorso (più valori separati da virgola). `-All` seleziona tutti. |
+| `-Select` | Repository per id, nome o percorso (più valori separati da virgola). Per arruolare un solo repository con anteprima usa `-AddRepo <percorso> [-Customer <nome>] [-ApplyAdd]`: scrive `config/local/allowlist.json` (identità, percorso, cliente, ignorato da Git) e attiva il repository; con l allowlist presente la discovery non legge né elenca i repository esterni. `-All` non esiste più. |
 | `-Ides` / `-AllIdes` | IDE da associare (id o nome). |
 | `-ApproveExistingBlocks` | Conferma di aver rivisto il blocco gestito già presente in `AGENTS.md`. Non serve per un blocco identico al testo approvato (stessi marcatori e hash di origine): `-Setup` lo riconosce e lo registra come approvato. Un blocco diverso resta bloccato. |
 | `-Yes` | Conferma non interattiva: registra utente, host e data nella selezione. Va usata solo dopo la conferma dell'utente. |
@@ -92,7 +92,7 @@ Opzioni di `-Setup`:
 | `-NoRegisterEnvironment` | Esclude la variabile utente (anche in `-Activate -Apply`); incompatibile con `-RegisterEnvironment`. |
 | `-AndSync` | Esegue Sync all'applicazione, comportamento predefinito. `-AndSync:$false` esegue il solo Check. |
 
-In modalità non interattiva senza `-Select`/`-All` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot (`docs/assets/cli-discover.png` è un estratto dello stdout reale su una fixture sintetica, con profilo utente e `PATH` isolati e oscuramenti dichiarati, DOC03).
+In modalità non interattiva senza `-Select` lo script non chiede nulla e termina con errore. `-Discover` (ricognizione in sola lettura) e `-Activate -SelectionPath <selezione> [-Apply]` restano disponibili come primitive; il file di selezione deve stare sotto `.runtime/` della radice SecondBrain. L'output reale di `-Discover` elenca IDE, eseguibili, unità e percorsi della postazione: non pubblicarlo né usarlo tal quale in guide e screenshot.
 
 `-Setup` genera la selezione e registra come `confirmation` utente, host, data e modalità (`-Yes` o interattiva); senza conferma resta una proposta con confirmed=false, rifiutata da `-Activate`. Formato (per gli usi diretti di `-Activate`): la selezione JSON ha schemaVersion=1, confirmed=true, confirmation (riferimento alla scelta umana), reportPath, reportSha256, repositories e ides. Ogni repository usa l'id del candidato; approveExistingBlock=true conferma il blocco esistente esaminato. Ogni IDE usa l'id del candidato e può specificare accountAlias/profile/environment. Il flag non sostituisce l'autorizzazione umana. `-Activate -SelectionPath` mostra l'anteprima; aggiungere `-Apply` solo dopo conferma. Fingerprint e hash impediscono di applicare una selezione divenuta obsoleta.
 
@@ -215,3 +215,8 @@ Le postazioni nuove si attivano con `secondbrain.ps1 -Setup` (SYS03), che orches
 Ogni repository gestito ha il proprio dossier in `01-projects/<nome>--<hash>/` (PARA di tipo progetto con `repository.json`, più `specs/`, `material/` e `data/` per il materiale da implementare in quel repository). L'unica parte condivisa tra repository è `03-resources/`. Per impostazione predefinita ogni lettura resta nel repository in lavoro: `-All`, `-AllDossiers`, `all=true` e una ricerca senza repository risolto sono rifiutati con un errore di isolamento. Un cervello che ha davvero bisogno delle viste tra repository imposta `"crossProjectReads": true` in `config/shared.json`.
 
 I dossier creati prima di questo schema stanno in `02-areas/products/`. Anteprima dello spostamento con `pwsh -NoProfile -File scripts/para.ps1 -MigrateToProjects`, poi esecuzione con `-Apply` (facoltativo `-Only <id o identità>`). Ogni dossier si sposta in una propria transazione PARA con backup, conserva id e file e riceve `specs/`, `material/` e `data/`; binding e file di stato sono riscritti sui nuovi percorsi. Prima crea un archivio `backup.ps1` verificato.
+
+## Nuovi progetti e roadmap
+
+- `scripts/secondbrain.ps1 -NewProject <percorso> [-Remote <url>] [-Customer <nome>] [-ApplyNew]` crea un progetto da zero con un solo comando. Per impostazione predefinita mostra l'anteprima; con `-ApplyNew` crea la cartella, esegue `git init`, aggiunge il remote, registra il repository in `config/local/allowlist.json`, lo attiva (dossier, tracker iniziale, blocco gestito), dichiara il ciclo di vita greenfield e salva il cliente in `repository.json`.
+- `scripts/knowledge.ps1 -Roadmap [-Format Markdown|Json] [-Since aaaa-mm-gg]` stampa la roadmap del solo repository in lavoro: interventi dalla history del tracker (data dalla cartella della history, numeri di task, menzioni di commit e pull request) e git log, con il cliente da `repository.json`. I dati di altri repository non vengono mai letti.

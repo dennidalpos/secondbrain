@@ -316,6 +316,38 @@ if('portable' -in $Groups){
             $local=Read-SBConfiguration -BrainRoot $brain -ReadOnly
             Check ($externalCode -eq 0 -and $external.applied -and $local.configPath -eq $external.activation.configuration -and $local.localStateRoot.StartsWith($env:SECONDBRAIN_STATE_ROOT) -and $local.runtimeRoot -ine $local.localStateRoot) 'external setup uses the workstation state root'
             Check ([IO.File]::Exists((Join-Path $local.localStateRoot 'ide-map.json')) -and [IO.File]::Exists($external.setupReport) -and (Get-SBFileHash $legacyConfig) -eq $legacyHash -and (Test-SBSamePath $local.coordinationRoot (Join-Path $brain '.runtime/access'))) 'local setup and IDE state are separate from legacy bytes and shared coordination'
+            # Allowlist (#413): one validated repository per call with preview; repositories outside the list are not read or listed; Setup no longer takes -All.
+            $allowRoot=Join-Path $fixture 'allow';$allowFile=Get-SBAllowlistPath $brain
+            foreach($name in 'a','b'){
+                $dir=Join-Path $allowRoot $name;[void][IO.Directory]::CreateDirectory($dir)
+                [void](Invoke-SBGit $dir @('init','-q'));[void](Invoke-SBGit $dir @('remote','add','origin',('https://github.com/test/allow-'+$name+'.git')))
+            }
+            $allowA=Join-Path $allowRoot 'a'
+            try{
+                $addPreview=(& pwsh -NoProfile -File $setupScript -AddRepo $allowA -Customer Acme)|ConvertFrom-Json -AsHashtable
+                Check ($LASTEXITCODE -eq 0 -and !$addPreview.applied -and $addPreview.entry.identity -ceq 'github.com/test/allow-a' -and $addPreview.entry.customer -ceq 'Acme' -and ![IO.File]::Exists($allowFile)) 'add-repo previews the entry without writing the allowlist'
+                $addApply=(& pwsh -NoProfile -File $setupScript -AddRepo $allowA -Customer Acme -ApplyAdd -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
+                $list=Read-SBAllowlist $brain
+                Check ($LASTEXITCODE -eq 0 -and $addApply.applied -and $addApply.setup.applied -and @($list.repositories).Count -eq 1 -and $list.repositories[0].customer -ceq 'Acme') 'add-repo records the repository and activates it in one call'
+                $found=Invoke-SBHostDiscovery -BrainRoot $brain -Roots @($allowRoot)
+                Check (@($found.repositories|Where-Object {$_.kind -eq 'repository'}).Count -eq 1 -and @($found.repositories.identity) -contains 'github.com/test/allow-a' -and @($found.excluded|Where-Object {$_.reason -eq 'outside-allowlist'}).Count -eq 1) 'a repository outside the allowlist is neither read nor listed'
+                # PowerShell would still bind the abbreviation -All to -AllIdes: the check is on the declared parameters.
+                Check (!(Get-Command $setupScript).Parameters.ContainsKey('All') -and !(Get-Command Invoke-SBSetup).Parameters.ContainsKey('All')) 'setup no longer declares -All'
+                # New project from scratch (#416): one command creates folder, git, allowlist, dossier, tracker seed, greenfield and customer.
+                $newPath=Join-Path $allowRoot 'brandnew'
+                $newPreview=(& pwsh -NoProfile -File $setupScript -NewProject $newPath -Remote 'https://github.com/test/brandnew.git' -Customer 'Acme')|ConvertFrom-Json -AsHashtable
+                Check ($LASTEXITCODE -eq 0 -and !$newPreview.applied -and $newPreview.createFolder -and ![IO.Directory]::Exists($newPath)) 'new-project previews without creating anything'
+                $newRaw=(& pwsh -NoProfile -File $setupScript -NewProject $newPath -Remote 'https://github.com/test/brandnew.git' -Customer 'Acme' -ApplyNew -NoRegisterEnvironment 2>&1|Out-String)
+                $newCode=$LASTEXITCODE
+                Check ($newCode -eq 0) ('new-project apply succeeds: '+$newRaw.Substring(0,[math]::Min(900,$newRaw.Length)))
+                $newApplied=$newRaw|ConvertFrom-Json -AsHashtable
+                $newDossier=Join-Path $brain $newApplied.dossier
+                $newMeta=Read-SBJson (Join-Path $newDossier 'repository.json') $null
+                $newTracker=Read-SBJson (Join-Path $newDossier 'tracker.json') $null
+                Check ($newCode -eq 0 -and $newApplied.applied -and [IO.Directory]::Exists((Join-Path $newPath '.git')) -and $newMeta.identity -ceq 'github.com/test/brandnew' -and $newMeta.lifecycle -ceq 'greenfield' -and $newMeta.customer -ceq 'Acme' -and $newTracker.schemaVersion -eq 1 -and !$newTracker.tasks.Count -and [IO.File]::Exists((Join-Path $newDossier 'context.md')) -and [IO.File]::Exists((Join-Path $newDossier 'memory.md'))) ('new-project creates checkout, dossier, tracker seed, greenfield lifecycle and customer: '+$newCode+' '+($newMeta|ConvertTo-Json -Compress -Depth 3))
+                $newParaCheck=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/para.ps1') -Check -ConfigPath $configPath 2>&1|Out-String)
+                Check ($LASTEXITCODE -eq 0) ('the new dossier passes the PARA check: '+$newParaCheck.Substring(0,[math]::Min(500,$newParaCheck.Length)))
+            }finally{if([IO.File]::Exists($allowFile)){[IO.File]::Delete($allowFile)}}
         }finally{$env:USERPROFILE=$oldProfile;$env:SECONDBRAIN_HOME=$oldBrain;$env:SECONDBRAIN_STATE_ROOT=$oldState}
     }
     $freshCheckout=Join-Path $fixture 'fresh'
@@ -481,6 +513,70 @@ if('workflows' -in $Groups){
     Check ((Get-SBFileHash (Join-Path $dossier ('history/compaction/'+$before.ToLowerInvariant()+'/memory.md'))) -ceq $before) 'compaction preserves byte-exact original'
     Reject {Invoke-SBDossierCompaction -BrainRoot $brain -Dossier $dossier -CandidatePath $candidatePath -BackupRoot $cfg.backupRoot -Budget 16000 -Apply} 'stale compaction candidate rejected'
 }
+if('workflows' -in $Groups){
+    # Perimeter (#412): with project isolation active nothing reads or writes another repository's data, through knowledge.ps1, MCP tools and work.ps1.
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
+    $knowledgeCli=Join-Path $brain 'scripts/knowledge.ps1';$workCli=Join-Path $brain 'scripts/work.ps1'
+    Put $configPath (ConvertTo-SBJson $cfg)
+    $otherIdentity='github.com/test/other';$marker='PERIMETER-MARKER-OTHER'
+    $otherContext=Join-Path $otherDossier 'context.md';$otherContextBytes=Read-SBText $otherContext
+    Put $otherContext ("# Other context`n`n## Stato corrente`n$marker`n")
+    try{
+        Check (Test-SBProjectIsolation $brain) 'project isolation is active by default'
+        $cliTasks=(& pwsh -NoProfile -File $knowledgeCli -Tasks -ConfigPath $configPath -CheckoutPath $repo 2>&1|Out-String)
+        Check ($LASTEXITCODE -eq 0 -and $cliTasks -match 'T-1' -and $cliTasks -notmatch 'O-1' -and $cliTasks -notmatch [regex]::Escape($otherIdentity)) 'knowledge tasks from a checkout list only that repository'
+        $cliSearch=(& pwsh -NoProfile -File $knowledgeCli -Search $marker -ConfigPath $configPath -CheckoutPath $repo 2>&1|Out-String)
+        Check (($cliSearch|ConvertFrom-Json).totalMatches -eq 0) 'knowledge search from a checkout never returns another repository data'
+        foreach($flags in @(@('-Tasks','-All'),@('-Search',$marker,'-AllDossiers'))){
+            $out=(& pwsh -NoProfile -File $knowledgeCli @flags -ConfigPath $configPath -CheckoutPath $repo 2>&1|Out-String)
+            Check ($LASTEXITCODE -ne 0 -and $out -notmatch $marker -and $out -notmatch 'O-1') ('knowledge global view refused: '+($flags -join ' '))
+        }
+        foreach($case in @(@('get_ready_tasks',@{all=$true}),@('search_knowledge',@{query=$marker;allDossiers=$true}),@('search_knowledge',@{query=$marker}))){
+            $leak=$null;$refused=$false
+            try{$leak=Invoke-SBMcpToolCall $brain $case[0] $case[1]}catch{$refused=$true}
+            $clean=[string]$leak -replace [regex]::Escape($marker),''
+            $noHits=(!$leak -or $case[0] -ne 'search_knowledge' -or [int]($leak|ConvertFrom-Json -AsHashtable).totalMatches -eq 0)
+            Check ($refused -or ($clean -notmatch 'O-1' -and $noHits)) ('MCP '+$case[0]+' does not cross the project perimeter: '+$(if($leak){([string]$leak).Substring(0,[math]::Min(300,([string]$leak).Length))}))
+        }
+        $env:SECONDBRAIN_RUNNER_REPOSITORY=$identity;$env:SECONDBRAIN_RUNNER_READS=''
+        try{
+            $foreignWork=(& pwsh -NoProfile -File $workCli -Repository $otherIdentity -Category work -Slug perimeter -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
+            $foreignRoot=(Get-SBWorkEnvironment -BrainRoot $brain -HostId $hostId -Repository $otherIdentity -Category work -Slug perimeter).root
+            Check ($LASTEXITCODE -ne 0 -and ![IO.Directory]::Exists($foreignRoot) -and $foreignWork -match 'runner|task') 'work.ps1 refuses to create a work folder for another repository in a scoped session'
+            $ownWork=(& pwsh -NoProfile -File $workCli -Repository $identity -Category work -Slug perimeter -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
+            Check ($LASTEXITCODE -eq 0) ('work.ps1 still serves the session repository: '+$ownWork)
+        }finally{$env:SECONDBRAIN_RUNNER_REPOSITORY=$null;$env:SECONDBRAIN_RUNNER_READS=$null}
+    }finally{Put $otherContext $otherContextBytes}
+}
+if('workflows' -in $Groups){
+    # Roadmap (#417): interventions of one repository from tracker history and git log, exportable as Markdown, without data of other repositories.
+    $roadDossier=Join-Path $brain '02-areas/products/Roadmap';$roadRepo=Join-Path $fixture 'roadmap-checkout';$roadIdentity='github.com/test/roadmap'
+    [void][IO.Directory]::CreateDirectory($roadRepo)
+    Put (Join-Path $roadDossier 'para.json') (ConvertTo-SBJson @{schemaVersion=1;id='roadmap-area';kind='area';title='Roadmap';status='active'})
+    Put (Join-Path $roadDossier 'brief.md') '# Synthetic roadmap'
+    Put (Join-Path $roadDossier 'context.md') '# Roadmap context'
+    Put (Join-Path $roadDossier 'memory.md') '# Roadmap memory'
+    Put (Join-Path $roadDossier 'repository.json') (ConvertTo-SBJson @{schemaVersion=1;identity=$roadIdentity;customer='Acme S.r.l.';tracker=@{location='dossier';path='tracker.json';schemaVersion=1}})
+    Put (Join-Path $roadDossier 'history/2026-11-02-batch/report.md') 'Synthetic provenance'
+    $roadHash=Get-SBTextHash 'Synthetic provenance'
+    $roadTask=New-SBTrackerTask @{id='R-1';title='#001 — Roadmap task';status='done'} $roadIdentity 'fixture' 'history/2026-11-02-batch/report.md' $roadHash 'fixture'
+    $roadTask.seq=1
+    Put (Join-Path $roadDossier 'tracker.json') (ConvertTo-SBJson @{schemaVersion=1;repository=$roadIdentity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($roadTask);history=@(
+        @{description='Chiusi #001 e #002, pubblicato su origin/main abc1234def (PR #12).';reference='history/2026-11-02-batch/report.md';sha256=$roadHash},
+        @{description='Intervento senza data nel riferimento.';reference='history/misc/note.md';sha256=$roadHash});extensions=@{lastSeq=1}})
+    [void](Invoke-SBGit $roadRepo @('init','-q'))
+    Put (Join-Path $roadRepo 'a.txt') 'a'
+    [void](Invoke-SBGit $roadRepo @('add','a.txt'))
+    [void](Invoke-SBGit $roadRepo @('-c','user.name=Road Author','-c','user.email=road@example.invalid','commit','-qm','Synthetic roadmap commit'))
+    $road=Get-SBRoadmap -BrainRoot $brain -Dossier $roadDossier -CheckoutPath $roadRepo
+    $first=$road.interventions[0]
+    Check ($road.repository -ceq $roadIdentity -and $road.customer -ceq 'Acme S.r.l.' -and $first.date -ceq '2026-11-02' -and ($first.tasks -join ',') -ceq '#001,#002' -and $first.commits -contains 'abc1234def' -and $first.pullRequests -contains '#12') 'roadmap extracts date, tasks, commit and pull request from history'
+    Check (@($road.commits).Count -eq 1 -and $road.commits[0].author -ceq 'Road Author' -and $road.commits[0].subject -ceq 'Synthetic roadmap commit') 'roadmap lists the checkout git log with author'
+    $markdown=ConvertTo-SBRoadmapMarkdown $road
+    Check ($markdown.StartsWith('# Roadmap: '+$roadIdentity) -and $markdown.Contains('Acme S.r.l.') -and $markdown.Contains('2026-11-02') -and $markdown.Contains('Road Author')) 'roadmap exports as Markdown'
+    Check (!$markdown.Contains('O-1') -and !$markdown.Contains('github.com/test/other') -and !$markdown.Contains($identity)) 'roadmap contains no data of other repositories'
+    Check ((Get-SBRoadmap -BrainRoot $brain -Dossier $roadDossier -CheckoutPath $roadRepo -Since '2026-12-01').interventions.Count -eq 1) 'roadmap -Since keeps only undated interventions after the cut'
+}
 if('mcp-writes' -in $Groups){. (Join-Path $PSScriptRoot 'test-mcp-writes.ps1')}
 if('pending' -in $Groups){
     . (Join-Path $PSScriptRoot 'test-mcp-write-smoke.ps1')
@@ -587,6 +683,17 @@ if('audit2' -in $Groups){
         $pub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy -MaxTextBytes 400
         Check (@($pub.incomplete|Where-Object {$_.surface -eq 'history' -and $_.reason -eq 'size-limit'}).Count -eq $case[1]) 'reviewed historical blob is bound to the exact object'
     }
+    # Tracked policy (#420): a reset of .runtime does not change the outcome; legacy policy migrates once.
+    $trackedPolicy=Get-SBTrackedPublicationPolicyPath $brain
+    Put (Join-Path $brain '.runtime/publication/policy.json') (ConvertTo-SBJson @{schemaVersion=1;allowances=@();binaryReviews=@()})
+    Check ((Move-SBPublicationPolicy $brain).state -eq 'ready') 'legacy local policy is offered for migration'
+    Check ((Move-SBPublicationPolicy $brain -Apply).state -eq 'migrated' -and (Test-Path -LiteralPath $trackedPolicy)) 'legacy local policy migrates to the tracked file'
+    Check ((Move-SBPublicationPolicy $brain).state -eq 'tracked-exists') 'migration does not overwrite an existing tracked policy'
+    Check ((Resolve-SBPublicationPolicyPath $brain $null) -eq $trackedPolicy) 'default policy is the tracked file'
+    $withRuntime=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath (Resolve-SBPublicationPolicyPath $brain $null) -MaxTextBytes 400
+    Remove-Item -LiteralPath (Join-Path $brain '.runtime/publication/policy.json') -Force
+    $resetRuntime=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath (Resolve-SBPublicationPolicyPath $brain $null) -MaxTextBytes 400
+    Check ($withRuntime.ready -eq $resetRuntime.ready -and @($withRuntime.incomplete).Count -eq @($resetRuntime.incomplete).Count) 'resetting .runtime leaves the publication outcome unchanged'
     Put (Join-Path $repo 'README.md') $privateText
     & git -C $repo add README.md
     $pub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo

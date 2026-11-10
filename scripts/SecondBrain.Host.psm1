@@ -9,7 +9,10 @@ Add-SBMessages @{
     'host.ide.choice' = @{ it = 'Scelta IDE non valida: {0}'; en = 'Invalid IDE choice: {0}' }
     'host.discovery.checkpoint' = @{ it = 'Checkpoint discovery di altra postazione o clone'; en = 'Discovery checkpoint of another workstation or clone' }
     'host.discovery.root' = @{ it = 'Radice discovery assente: {0}'; en = 'Discovery root missing: {0}' }
-    'host.discovery.roots.required' = @{ it = 'Radici obbligatorie: indicare almeno una cartella da analizzare (-Roots); la scansione di tutti i volumi non e consentita'; en = 'Roots required: give at least one folder to scan (-Roots); scanning all volumes is not allowed' }
+    'host.allowlist.invalid' = @{ it = 'Allowlist non valida (config/local/allowlist.json): schemaVersion 1 e repositories obbligatori'; en = 'Invalid allowlist (config/local/allowlist.json): schemaVersion 1 and repositories are required' }
+    'host.allowlist.notrepo' = @{ it = 'Non e un checkout Git: {0}'; en = 'Not a Git checkout: {0}' }
+    'host.allowlist.notroot' = @{ it = 'Indicare la radice del checkout, non una sottocartella: {0}'; en = 'Give the checkout root, not a subfolder: {0}' }
+    'host.discovery.roots.required' =@{ it = 'Radici obbligatorie: indicare almeno una cartella da analizzare (-Roots); la scansione di tutti i volumi non e consentita'; en = 'Roots required: give at least one folder to scan (-Roots); scanning all volumes is not allowed' }
     'host.work.segment' = @{ it = 'Progetto/runtime non valido'; en = 'Invalid project/runtime' }
     'host.work.category' = @{ it = 'Categoria non valida; valori ammessi: {0}'; en = 'Invalid category; allowed values: {0}' }
     'host.work.slug' = @{ it = 'Slug non valido: minuscole, cifre e trattini, fino a 60 caratteri'; en = 'Invalid slug: lowercase letters, digits and hyphens, up to 60 characters' }
@@ -265,6 +268,35 @@ function ConvertTo-SBHostComparablePath([string]$Path) {
     if(!$Path){return ''}
     try{ConvertTo-SBComparablePath $Path}catch{$Path.TrimEnd('\','/').ToLowerInvariant()}
 }
+function Get-SBAllowlistPath([string]$BrainRoot) {Join-Path $BrainRoot 'config/local/allowlist.json'}
+function Read-SBAllowlist([string]$BrainRoot) {
+    # Local, Git-ignored allowlist (identity, path, customer). Absent file = no allowlist (roots alone bound discovery).
+    $path=Get-SBAllowlistPath $BrainRoot
+    if(!(Test-Path -LiteralPath $path -PathType Leaf)){return $null}
+    $data=Read-SBJson $path $null
+    if(!$data -or $data.schemaVersion -ne 1 -or !$data.ContainsKey('repositories')){throw (New-SBError 'host.allowlist.invalid')}
+    $data
+}
+function Add-SBAllowlistRepository {
+    param([string]$BrainRoot,[string]$Path,[string]$Customer='',[switch]$Apply)
+    $full=[IO.Path]::GetFullPath($Path)
+    if(!(Test-Path -LiteralPath (Join-Path $full '.git'))){throw (New-SBError 'host.allowlist.notrepo' @($full))}
+    $asset=Get-SBCheckoutAsset $full @()
+    if(!(Test-SBSamePath $asset.path $full)){throw (New-SBError 'host.allowlist.notroot' @($full))}
+    $entry=[ordered]@{identity=$(if($asset.identity){[string]$asset.identity}else{'local'});path=$full;customer=$Customer.Trim()}
+    $current=Read-SBAllowlist $BrainRoot
+    $others=@(if($current){@($current.repositories)|Where-Object {$_.path -ine $full}})
+    $result=[ordered]@{allowlist=(Get-SBAllowlistPath $BrainRoot);entry=$entry;replaces=[bool]($current -and @($current.repositories|Where-Object {$_.path -ieq $full}).Count);applied=$false}
+    if($Apply){
+        $target=Get-SBAllowlistPath $BrainRoot
+        $document=@{schemaVersion=1;repositories=@($others+@($entry)|Sort-Object path)}
+        $backup=Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId)
+        [void][IO.Directory]::CreateDirectory((Split-Path $target))
+        Write-SBFile $target ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $document))) (Get-SBFileHash $target) $backup|Out-Null
+        $result.applied=$true
+    }
+    $result
+}
 function Get-SBSharedPolicy([string]$BrainRoot) {
     $policy=@{allowedOwners=@();excludedDirectories=@();forbiddenRepositories=@()}
     $sharedPath=Join-Path $BrainRoot 'config/shared.json'
@@ -314,6 +346,8 @@ function Invoke-SBHostDiscovery {
     $configPath=Get-SBHostConfigPath $brain
     $hostCfg=if(Test-Path -LiteralPath $configPath){Read-SBJson $configPath @{}}else{@{}}
     $sharedPolicy=Get-SBSharedPolicy $brain
+    $allowlist=Read-SBAllowlist $brain
+    $allowlistPaths=if($allowlist){@(@($allowlist.repositories)|ForEach-Object {[IO.Path]::GetFullPath([string]$_.path)})}else{$null}
     $forbiddenList=@(Get-SBForbiddenRepositories $brain $hostCfg)
     $excludedNames=@($excludedNames+$sharedPolicy.excludedDirectories|Sort-Object -Unique)
     # A build-like name (bin, build, dist, vendor, ...) does not hide a checkout: skip only folders without .git.
@@ -330,7 +364,11 @@ function Invoke-SBHostDiscovery {
             if(& $isSkippedName $item.Name $path){$excluded+=@{path=$path;reason='known-system-or-build-tree'};continue}
             if(Test-SBForbiddenRepository $forbiddenList $path){$excluded+=@{path=$path;reason='forbidden-by-user-policy'};continue}
             $entries=@(Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop)
-            if(@($entries|Where-Object Name -eq '.git').Count){
+            if($allowlistPaths -and @($entries|Where-Object Name -eq '.git').Count -and $path -notin $allowlistPaths){
+                # Outside the allowlist: not read (no identity lookup) and not listed.
+                $excluded+=@{path=$path;reason='outside-allowlist'}
+            }
+            elseif(@($entries|Where-Object Name -eq '.git').Count){
                 $asset=Get-SBCheckoutAsset $path $Bindings
                 if(Test-SBForbiddenRepository $forbiddenList $path ([string]$asset.identity)){
                     $excluded+=@{path=$path;reason='forbidden-by-user-policy';identity=$asset.identity}
@@ -444,6 +482,9 @@ Export-ModuleMember -Function @(
     'Get-SBIDEDetection',
     'Resolve-SBIDESelection',
     'Get-SBSharedPolicy',
+    'Get-SBAllowlistPath',
+    'Read-SBAllowlist',
+    'Add-SBAllowlistRepository',
     'Get-SBForbiddenRepositories',
     'Test-SBForbiddenRepository',
     'Test-SBSystemAccessPath',

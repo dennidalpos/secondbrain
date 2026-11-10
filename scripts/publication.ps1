@@ -13,6 +13,12 @@ param(
     [Parameter(ParameterSetName='Check')]
     [string]$ReportPath,
 
+    [Parameter(Mandatory,ParameterSetName='MigratePolicy')]
+    [switch]$MigratePolicy,
+
+    [Parameter(ParameterSetName='MigratePolicy')]
+    [switch]$ApplyMigration,
+
     [Parameter(ParameterSetName='Check')]
     [int]$MaxHistoryBlobs=10000,
 
@@ -61,6 +67,10 @@ try{
     if($HookStatus){
         $res=Get-SBPublicationHookStatus -RepositoryPath $RepositoryPath
         ConvertTo-SBJson $res
+        exit 0
+    }
+    if($MigratePolicy){
+        ConvertTo-SBJson (Move-SBPublicationPolicy -BrainRoot $brain -Apply:$ApplyMigration)
         exit 0
     }
     $PolicyPath=Resolve-SBPublicationPolicyPath $brain $PolicyPath

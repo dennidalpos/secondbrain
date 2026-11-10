@@ -79,4 +79,4 @@ ApproveKnowledgeTools and ApproveAllTools retain their seven/eight existing name
 The [MCP tools specification](https://modelcontextprotocol.io/specification/2025-03-26/server/tools) leaves the interaction model to clients and defines schemas/annotations. The local receipt is a SecondBrain contract, not a universal MCP approval token. Protocol negotiation is unchanged. Synthetic tests do not qualify real clients, accounts or physical hosts; those checks remain after structural development.
 ## Test profiles
 
-Fast runs a write-free MCP smoke for scope/hash binding, denial, private payload rejection and NoRecovery. The complete synthetic operation, CLI and protocol matrix is unchanged in -Only mcp-writes and is included as a separate process in Full. Publication still requires the complete Full profile; budgets remain 90/300 seconds.
+Fast runs a write-free MCP smoke for scope/hash binding, denial, private payload rejection and NoRecovery. The complete synthetic operation, CLI and protocol matrix is unchanged in -Only mcp-writes and is included as a separate process in Full. Publication still requires the complete Full profile; budgets are 90/600 seconds.
