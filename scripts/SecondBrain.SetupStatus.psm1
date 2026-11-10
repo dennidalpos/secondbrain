@@ -13,6 +13,7 @@ Add-SBMessages @{
     'setupstatus.publication.reason' = @{ it = 'Il repository ha un remote: l''hook pre-push esegue la scansione di pubblicazione prima di ogni push.'; en = 'The repository has a remote: the pre-push hook runs the publication scan before every push.' }
     'setupstatus.launcher.reason'   = @{ it = 'Permette di eseguire i task pronti con il runner; richiede SECONDBRAIN_HOME.'; en = 'Lets the runner execute ready tasks; requires SECONDBRAIN_HOME.' }
     'setupstatus.activity.reason'   = @{ it = 'Registro attivita di team, facoltativo: richiede un''informativa e una ritenzione dichiarate.'; en = 'Optional team activity register: requires a declared privacy notice and retention.' }
+    'setupstatus.account.reason'    = @{ it = 'Le istruzioni dell''account non sono un file: vanno incollate a mano (testo in istruzioni-globali.md) e provate con una ricevuta di osservazione; senza, le direttive globali non valgono nelle chat.'; en = 'Account instructions are not a file: paste them by hand (text in istruzioni-globali.md) and prove them with an observation receipt; otherwise the global directives do not apply in chats.' }
     'setupstatus.blocked.inactive'  = @{ it = 'Postazione non attivata: eseguire prima SYS03.'; en = 'Workstation not activated: run SYS03 first.' }
 }
 function New-SBFeature([string]$Id,[string]$State,[string]$Evidence,[string]$Command,[string[]]$Prerequisites=@(),[string]$Risk='low',[bool]$Recommended=$false,[string]$ReasonKey,[string]$Scope='') {
@@ -27,7 +28,7 @@ function Get-SBTraceUsage([string]$BrainRoot) {
 }
 function Get-SBSetupFeatureStatus {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$BrainRoot,[string]$HomeValue=$env:SECONDBRAIN_HOME,[string]$SettingsPath,[object[]]$Ides,[object[]]$Bindings,[hashtable]$Config)
+    param([Parameter(Mandatory)][string]$BrainRoot,[string]$HomeValue=$env:SECONDBRAIN_HOME,[string]$SettingsPath,[object[]]$Ides,[object[]]$Bindings,[hashtable]$Config,[string]$StateRoot)
     $brain=[IO.Path]::GetFullPath($BrainRoot)
     if(!$SettingsPath){$SettingsPath=Get-SBTraceSettingsPath}
     $features=@()
@@ -51,6 +52,18 @@ function Get-SBSetupFeatureStatus {
             $resourcesInstalled=$null -ne (ConvertTo-Json $state.settings.hooks.SessionStart -Depth 8 | Select-String -SimpleMatch 'resources-hook.ps1')
         }
         $features+=New-SBFeature 'resources-hook' $(if($resourcesInstalled){'enabled'}else{'available'}) 'SessionStart entry in Claude Code settings' 'pwsh -NoProfile -File scripts/resources-hook.ps1 -ShowConfiguration' @('resources-registry') 'low' (!$resourcesInstalled -and (Test-Path -LiteralPath (Join-Path $brain '03-resources/authoritative-sources/entries'))) 'setupstatus.resources.reason' 'claude-code'
+    }
+    foreach($ide in @($Ides|Where-Object {[string]$_.adapter -eq 'manual' -and [string]$_.name -match 'account instructions'})){
+        # No file to deploy: verified only when the map holds a selected entry whose observed hash equals the approved text.
+        $verified=$false
+        if($StateRoot){
+            $mapPath=Join-Path $StateRoot 'ide-map.json';$textPath=Join-Path $StateRoot 'istruzioni-globali.md'
+            if((Test-Path -LiteralPath $mapPath) -and (Test-Path -LiteralPath $textPath)){
+                $map=Read-SBJson $mapPath $null;$hash=Get-SBTextHash ((Read-SBText $textPath).Trim())
+                $verified=@($map.ides|Where-Object {$_.name -eq $ide.name -and (!$_.ContainsKey('selected') -or $_.selected) -and $_.ContainsKey('observedHash') -and [string]$_.observedHash -ceq $hash}).Count -gt 0
+            }
+        }
+        $features+=New-SBFeature 'manual-directives' $(if($verified){'enabled'}else{'blocked'}) $(if($verified){'observed hash matches the approved text'}else{'no valid observation of the approved global directives'}) ('pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -IdeAccount "'+$ide.name+'|<alias>"') @('workstation-activated') 'low' (!$verified) 'setupstatus.account.reason' ([string]$ide.name)
     }
     foreach($binding in @($Bindings)){
         $path=[string]$binding.path
@@ -77,7 +90,7 @@ function Get-SBSetupWizardStatus {
     $config=if($activated){Read-SBJson $configPath @{}}else{@{}}
     $bindings=if($config.ContainsKey('bindings')){@($config.bindings)}else{@()}
     $detected=@(Get-SBIDEDetection $WorkspacePath)
-    $features=if($activated){@(Get-SBSetupFeatureStatus -BrainRoot $brain -SettingsPath $SettingsPath -Ides $detected -Bindings $bindings -Config $config)}else{@()}
+    $features=if($activated){@(Get-SBSetupFeatureStatus -BrainRoot $brain -SettingsPath $SettingsPath -Ides $detected -Bindings $bindings -Config $config -StateRoot (Split-Path $configPath))}else{@()}
     [ordered]@{
         schemaVersion=1;hostId=(Get-SBHostId);activated=$activated
         blocked=$(if($activated){$null}else{Get-SBMessage 'setupstatus.blocked.inactive'})

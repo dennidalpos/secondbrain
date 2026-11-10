@@ -16,7 +16,7 @@ $settings=Join-Path $root 'claude-settings.json'
 Set-Fixture $settings '{}'
 Set-Fixture (Join-Path $root '.runtime/trace/ws/2026-01-01.jsonl') ('{"secret":"must not be read"}'+"`n"+'{"secret":"x"}'+"`n")
 Set-Fixture (Join-Path $root '03-resources/authoritative-sources/entries/x/metadata.json') '{}'
-$ides=@(@{name='Claude Code';adapter='claude-code';mcpConfigured=$false},@{name='VS Code';adapter='vscode';mcpConfigured=$true},@{name='Android Studio';adapter='android-studio';mcpConfigured=$false})
+$ides=@(@{name='Claude Code';adapter='claude-code';mcpConfigured=$false},@{name='VS Code';adapter='vscode';mcpConfigured=$true},@{name='Android Studio';adapter='android-studio';mcpConfigured=$false},@{name='Claude account instructions';adapter='manual';mcpConfigured=$false})
 $bindings=@(@{path=$repo;identity='github.com/example/repo'})
 $before=@(Get-ChildItem -LiteralPath $root -Recurse -File|ForEach-Object {$_.FullName+'|'+(Get-SBFileHash $_.FullName)})
 $features=@(Get-SBSetupFeatureStatus -BrainRoot $root -HomeValue '' -SettingsPath $settings -Ides $ides -Bindings $bindings -Config @{})
@@ -31,6 +31,8 @@ Assert-Setup ((& $byId 'publication-hook').state -eq 'unsupported') 'repository 
 Assert-Setup ((& $byId 'task-launcher').state -eq 'available' -and !(& $byId 'task-launcher').recommended) 'lanciatore proposto ma non consigliato di default'
 Assert-Setup (!(& $byId 'activity-register').recommended -and (& $byId 'activity-register').risk -eq 'high') 'registro attivita mai consigliato (rischio alto)'
 Assert-Setup (@($features|Where-Object {$_.state -eq 'available' -and !$_.enableCommand}).Count -eq 0) 'ogni funzione disponibile ha un comando di anteprima'
+$account=& $byId 'manual-directives'
+Assert-Setup ($account.state -eq 'blocked' -and $account.recommended -and $account.enableCommand) 'istruzioni account senza osservazione: segnalate e consigliate'
 $enabled=@(Get-SBSetupFeatureStatus -BrainRoot $root -HomeValue 'C:\x' -SettingsPath $settings -Ides @() -Bindings @() -Config @{activityLogEnabled=$true})
 Assert-Setup ((@($enabled|Where-Object id -eq 'environment')[0]).state -eq 'enabled' -and (@($enabled|Where-Object id -eq 'activity-register')[0]).state -eq 'enabled') 'stato abilitato riconosciuto'
 $usage=Get-SBTraceUsage $root
