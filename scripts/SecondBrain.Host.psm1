@@ -1,0 +1,454 @@
+#requires -Version 7.5
+Set-StrictMode -Version Latest
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Add-SBMessages @{
+    'host.git.checkout' = @{ it = 'Checkout Git non leggibile'; en = 'Git checkout not readable' }
+    'host.git.metadata' = @{ it = 'Metadati Git non leggibili'; en = 'Git metadata not readable' }
+    'host.git.origin' = @{ it = 'Origin non leggibile'; en = 'Origin not readable' }
+    'host.ide.choice' = @{ it = 'Scelta IDE non valida: {0}'; en = 'Invalid IDE choice: {0}' }
+    'host.discovery.checkpoint' = @{ it = 'Checkpoint discovery di altra postazione o clone'; en = 'Discovery checkpoint of another workstation or clone' }
+    'host.discovery.root' = @{ it = 'Radice discovery assente: {0}'; en = 'Discovery root missing: {0}' }
+    'host.discovery.roots.required' = @{ it = 'Radici obbligatorie: indicare almeno una cartella da analizzare (-Roots); la scansione di tutti i volumi non e consentita'; en = 'Roots required: give at least one folder to scan (-Roots); scanning all volumes is not allowed' }
+    'host.work.segment' = @{ it = 'Progetto/runtime non valido'; en = 'Invalid project/runtime' }
+    'host.work.category' = @{ it = 'Categoria non valida; valori ammessi: {0}'; en = 'Invalid category; allowed values: {0}' }
+    'host.work.slug' = @{ it = 'Slug non valido: minuscole, cifre e trattini, fino a 60 caratteri'; en = 'Invalid slug: lowercase letters, digits and hyphens, up to 60 characters' }
+    'host.work.categoryslug' = @{ it = 'Category e Slug vanno indicati insieme'; en = 'Category and Slug must be given together' }
+    'host.work.repository' = @{ it = 'Repository non indicato'; en = 'Repository not specified' }
+    'host.work.localroot' =@{ it = 'SECONDBRAIN_WORK_LOCAL_ROOT deve essere un percorso locale assoluto'; en = 'SECONDBRAIN_WORK_LOCAL_ROOT must be an absolute local path' }
+}
+
+# The workstation configuration may carry "language" (it|en); it ranks below -Language and SECONDBRAIN_LANG.
+Set-SBUiLanguageProvider {
+    $brain = Split-Path -Parent $PSScriptRoot
+    $config = Read-SBJson (Get-SBHostConfigPath $brain) $null
+    if ($config -is [hashtable] -and $config.ContainsKey('language')) { $config.language } else { $null }
+}
+
+function Get-SBHostId {
+    $identity=[Environment]::MachineName+'|'+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    'ws-'+(Get-SBTextHash $identity).Substring(0,16).ToLowerInvariant()
+}
+function Get-SBHostConfigPath([string]$BrainRoot) {
+    Join-Path (Get-SBWorkstationStateRoot $BrainRoot (Get-SBHostId)) 'workstation.json'
+}
+function Get-SBCheckoutAsset([string]$Path,$Bindings=@()) {
+    $root=Invoke-SBGit $Path @('rev-parse','--show-toplevel')
+    if($root.code -ne 0){throw (New-SBError 'host.git.checkout')}
+    $full=[IO.Path]::GetFullPath($root.output)
+    $common=Invoke-SBGit $full @('rev-parse','--path-format=absolute','--git-common-dir')
+    $gitDir=Invoke-SBGit $full @('rev-parse','--absolute-git-dir')
+    $super=Invoke-SBGit $full @('rev-parse','--show-superproject-working-tree')
+    if($common.code -ne 0 -or $gitDir.code -ne 0){throw (New-SBError 'host.git.metadata')}
+    $origin=Invoke-SBGit $full @('config','--get','remote.origin.url')
+    if($origin.code -notin @(0,1)){throw (New-SBError 'host.git.origin')}
+    $remoteIdentity=if($origin.code -eq 0){ConvertTo-SBRepositoryIdentity $origin.output}else{$null}
+    $binding=@($Bindings|Where-Object {$null -ne $_ -and [IO.Path]::GetFullPath($_.path) -eq $full})
+    $identity=if($binding.Count -eq 1 -and $binding[0].remoteIdentity -ceq $remoteIdentity){$binding[0].identity}else{$remoteIdentity}
+    $kind=if($super.output){'submodule'}elseif($common.output -ne $gitDir.output){'worktree'}else{'repository'}
+    $agents=Join-Path $full 'AGENTS.md'
+    @{id=(Get-SBTextHash $full.ToLowerInvariant()).Substring(0,24).ToLowerInvariant();path=$full;name=[IO.Path]::GetFileName($full);identity=$identity;remoteIdentity=$remoteIdentity;
+      kind=$kind;commonGitDir=$common.output;agentsHash=(Get-SBFileHash $agents);fingerprint=(Get-SBTextHash ($full+'|'+$remoteIdentity+'|'+$common.output));status='discovered';requiresIdentity=(!$identity)}
+}
+function Get-SBIDERoot([string]$Variable,[string]$Default) {
+    $value=[Environment]::GetEnvironmentVariable($Variable,'User');$source='user-env'
+    if(!$value){$value=[Environment]::GetEnvironmentVariable($Variable,'Process');$source='process-env'}
+    if(!$value){$value=$Default;$source='default'}
+    @{path=$value;source=$source}
+}
+function Get-SBIDEContext([string]$Name) {
+    # Observable context without reading authentication stores: configuration root, override source and existing configuration folders.
+    # Cannot detect account changes within the same root: those remain declared (accountAlias) and proven by an observation receipt.
+    # Migrated configurations use descriptive names (e.g. "Claude Code (file CLAUDE.md)"): map them to canonical names.
+    $Name=switch -Regex ($Name){
+        '^Claude Code' {'Claude Code'}
+        '^Codex' {'Codex'}
+        '^Antigravity' {'Antigravity'}
+        '^Cursor' {'Cursor'}
+        '^Windsurf' {'Windsurf'}
+        '^JetBrains' {'JetBrains AI'}
+        '^Android Studio' {'Android Studio'}
+        '^(VS Code \+ )?Continue' {'Continue'}
+        '^Claude \(app|^Claude account' {'Claude account instructions'}
+        default {$Name}
+    }
+    $profileRoot=$env:USERPROFILE;$appData=$env:APPDATA
+    $claude=Get-SBIDERoot 'CLAUDE_CONFIG_DIR' (Join-Path $profileRoot '.claude')
+    $codex=Get-SBIDERoot 'CODEX_HOME' (Join-Path $profileRoot '.codex')
+    $instructions='';$root=@{path='';source=''};$candidates=@()
+    switch($Name){
+        'Claude Code' {$root=$claude;$instructions=Join-Path $claude.path 'CLAUDE.md'}
+        'Codex' {$root=$codex;$instructions=Join-Path $codex.path 'AGENTS.md'}
+        'Antigravity' {$root=@{path=(Join-Path $profileRoot '.gemini');source='default'};$instructions=Join-Path $profileRoot '.gemini/GEMINI.md'}
+        'Cursor' {$candidates=@(@{label='~/.cursor';path=(Join-Path $profileRoot '.cursor')},@{label='%APPDATA%/Cursor';path=(Join-Path $appData 'Cursor')})}
+        'Windsurf' {$candidates=@(@{label='~/.windsurf';path=(Join-Path $profileRoot '.windsurf')},@{label='~/.codeium';path=(Join-Path $profileRoot '.codeium')},@{label='%APPDATA%/Windsurf';path=(Join-Path $appData 'Windsurf')})}
+        'JetBrains AI' {$candidates=@(@{label='%APPDATA%/JetBrains';path=(Join-Path $appData 'JetBrains')})}
+        'Continue' {$candidates=@(@{label='~/.continue';path=(Join-Path $profileRoot '.continue')})}
+        'Android Studio' {$candidates=@(@{label='%APPDATA%/Google';path=(Join-Path $appData 'Google')})}
+        'Claude account instructions' {$candidates=@(@{label='%APPDATA%/Claude';path=(Join-Path $appData 'Claude')})}
+        default {return $null}
+    }
+    $present=@($candidates|Where-Object {$_.path -and (Test-Path -LiteralPath $_.path)}|ForEach-Object {$_.label}|Sort-Object)
+    $fingerprint=Get-SBTextHash (@($Name,$instructions.ToLowerInvariant(),$root.source,([string]$root.path).ToLowerInvariant(),($present -join ',')) -join '|')
+    @{name=$Name;instructions=$instructions;rootSource=$root.source;configDirectories=$present;fingerprint=$fingerprint}
+}
+function Get-SBIDEKnownPaths([string]$Name) {
+    # Existing well-known install files for one IDE (read-only Test-Path on environment-derived locations; no credential stores).
+    $profileRoot=[string]$env:USERPROFILE;$local=[string]$env:LOCALAPPDATA;$roaming=[string]$env:APPDATA
+    $programFiles=@($env:ProgramFiles,${env:ProgramFiles(x86)}|Where-Object {$_})
+    $candidates=@()
+    switch($Name){
+        'Claude Code' {$candidates=@((Join-Path $profileRoot '.local/bin/claude.exe'),(Join-Path $roaming 'npm/claude.cmd'))}
+        'Claude Desktop' {$candidates=@((Join-Path $local 'AnthropicClaude/Claude.exe'),(Join-Path $local 'Programs/Claude/Claude.exe'))}
+        'Codex' {$candidates=@((Join-Path $roaming 'npm/codex.cmd'))}
+        'Antigravity' {$candidates=@((Join-Path $local 'Programs/Antigravity/Antigravity.exe'))}
+        'VS Code' {$candidates=@((Join-Path $local 'Programs/Microsoft VS Code/Code.exe'),(Join-Path $local 'Programs/Microsoft VS Code Insiders/Code - Insiders.exe'))+@($programFiles|ForEach-Object {Join-Path $_ 'Microsoft VS Code/Code.exe'})}
+        'Cursor' {$candidates=@((Join-Path $local 'Programs/cursor/Cursor.exe'),(Join-Path $local 'Programs/Cursor/Cursor.exe'))}
+        'Windsurf' {$candidates=@((Join-Path $local 'Programs/Windsurf/Windsurf.exe'))}
+        'Android Studio' {$candidates=@($programFiles|ForEach-Object {Join-Path $_ 'Android/Android Studio/bin/studio64.exe'})+@((Join-Path $local 'Programs/Android Studio/bin/studio64.exe'))}
+        'JetBrains AI' {$candidates=@((Join-Path $local 'JetBrains/Toolbox'))+@($programFiles|ForEach-Object {Join-Path $_ 'JetBrains'})}
+    }
+    @($candidates|Where-Object {$_ -and (Test-Path -LiteralPath $_)}|Sort-Object -Unique)
+}
+function Get-SBIDEScopes([string]$Name,[string]$WorkspacePath) {
+    # Where each IDE reads its instructions and MCP registration. project needs a workspace; system exists only where the IDE defines a machine-wide location.
+    # Project scope follows the pairing rule of the MCP installer: Claude Code, Cursor, VS Code and Antigravity only.
+    $profileRoot=[string]$env:USERPROFILE;$roaming=[string]$env:APPDATA
+    $user=switch($Name){
+        'Claude Code' {(Get-SBIDERoot 'CLAUDE_CONFIG_DIR' (Join-Path $profileRoot '.claude')).path}
+        'Codex' {(Get-SBIDERoot 'CODEX_HOME' (Join-Path $profileRoot '.codex')).path}
+        'Antigravity' {Join-Path $profileRoot '.gemini'}
+        'VS Code' {Join-Path $roaming 'Code/User'}
+        'Cursor' {Join-Path $profileRoot '.cursor'}
+        'Windsurf' {Join-Path $profileRoot '.codeium/windsurf'}
+        'Claude Desktop' {Join-Path $roaming 'Claude'}
+        'Claude account instructions' {Join-Path $roaming 'Claude'}
+        'Continue' {Join-Path $profileRoot '.continue'}
+        'JetBrains AI' {Join-Path $roaming 'JetBrains'}
+        'Android Studio' {Join-Path $roaming 'Google'}
+        default {''}
+    }
+    $projectMarker=switch($Name){'Claude Code' {'.mcp.json'};'Cursor' {'.cursor/mcp.json'};'VS Code' {'.vscode/mcp.json'};'Antigravity' {'.gemini'};default {$null}}
+    $system=switch($Name){'Claude Code' {foreach($base in @($env:ProgramFiles,$env:ProgramData)){if($base){Join-Path $base 'ClaudeCode'}}};default {$null}}
+    $scopes=@()
+    $scopes+=@{scope='user';available=[bool]$user;location=$user;reason=$(if($user){''}else{'unsupported'})}
+    if($projectMarker){
+        $ok=[bool]$WorkspacePath
+        $scopes+=@{scope='project';available=$ok;location=$(if($ok){Join-Path $WorkspacePath $projectMarker}else{''});reason=$(if($ok){''}else{'workspace-required'})}
+    }
+    else{$scopes+=@{scope='project';available=$false;location='';reason='unsupported'}}
+    $existingSystem=@($system|Where-Object {$_ -and (Test-Path -LiteralPath $_ -PathType Container)}|Select-Object -First 1)
+    $scopes+=@{scope='system';available=($existingSystem.Count -gt 0);location=$(if($existingSystem.Count){[string]$existingSystem[0]}else{''});reason=$(if($existingSystem.Count){''}elseif($system){'not-present'}else{'unsupported'})}
+    $scopes
+}
+function Get-SBIDEDetection([string]$WorkspacePath) {
+    # Detected IDEs with confidence and the scopes each one supports. Read-only; the caller chooses and applies through the usual flows.
+    foreach($ide in @(Get-SBIDEAssets)){
+        $strong=@($ide.executables).Count -gt 0 -or @($ide.installationEvidence|Where-Object {$_ -like 'Path: *' -or $_ -like 'Claude Desktop*'}).Count -gt 0
+        $confidence=if($strong){'high'}elseif(@($ide.installationEvidence).Count -ge 2){'medium'}elseif(@($ide.installationEvidence).Count -eq 1 -or $ide.mode -eq 'file'){'low'}else{'none'}
+        if($confidence -eq 'none'){continue}
+        @{name=$ide.name;adapter=$ide.adapter;confidence=$confidence;evidence=@($ide.installationEvidence)+@($ide.executables|ForEach-Object {'Command: '+$_});
+          mcpConfigured=[bool]$(if($ide.ContainsKey('mcpConfigured')){$ide.mcpConfigured}else{$false});scopes=@(Get-SBIDEScopes $ide.name $WorkspacePath)}
+    }
+}
+function Resolve-SBIDESelection([string]$Answer,[int]$Count) {
+    # Multi-select answer: numbers separated by comma or space, "all"/"tutti", empty = none. Invalid input is an error, never a guess.
+    $Answer=([string]$Answer).Trim()
+    if(!$Answer -or $Count -lt 1){return @()}
+    if($Answer -in @('all','tutti')){return @(1..$Count)}
+    $indexes=@()
+    foreach($part in @($Answer -split '[,\s]+'|Where-Object {$_})){
+        if($part -notmatch '^\d+$' -or [int]$part -lt 1 -or [int]$part -gt $Count){throw (New-SBError 'host.ide.choice' @($part))}
+        $indexes+=[int]$part
+    }
+    @($indexes|Sort-Object -Unique)
+}
+function Get-SBIDEAssets {
+    $codexRoot=Split-Path -Parent (Get-SBIDEContext 'Codex').instructions
+    $definitions=@(
+        @{name='Claude Code';adapter='claude-code';instructions=(Get-SBIDEContext 'Claude Code').instructions;commands=@('claude')},
+        @{name='Claude Desktop';adapter='manual';instructions='';commands=@()},
+        @{name='Codex';adapter='codex';instructions=(Get-SBIDEContext 'Codex').instructions;commands=@('codex')},
+        @{name='Antigravity';adapter='antigravity';instructions=(Get-SBIDEContext 'Antigravity').instructions;commands=@('antigravity')},
+        @{name='VS Code';adapter='vscode';instructions='';commands=@('code','code-insiders')},
+        @{name='Cursor';adapter='manual';instructions='';commands=@('cursor')},
+        @{name='Windsurf';adapter='manual';instructions='';commands=@('windsurf')},
+        @{name='Android Studio';adapter='manual';instructions='';commands=@('studio64','studio')}
+    )
+    $installed=@()
+    foreach($registryPath in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*','HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*','HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*')){
+        $installed+=@(Get-ItemProperty $registryPath -ErrorAction SilentlyContinue|Where-Object {$_.PSObject.Properties.Name -contains 'DisplayName'}|ForEach-Object {[string]$_.DisplayName})
+    }
+    if(Get-Command Get-AppxPackage -ErrorAction SilentlyContinue){$installed+=@(Get-AppxPackage -ErrorAction SilentlyContinue|ForEach-Object {$_.Name})}
+    foreach($definition in $definitions){
+        $executables=@(foreach($command in $definition.commands){Get-Command $command -ErrorAction SilentlyContinue|Select-Object -ExpandProperty Source})
+        $evidence=@($installed|Where-Object {$_ -match [regex]::Escape($definition.name)})
+        $mcpConfigPath = $null
+        $mcpConfigured = $false
+        if ($definition.name -eq 'Codex') {
+            $codexToml = Join-Path $codexRoot 'config.toml'
+            $mcpConfigPath = $codexToml
+            if (Test-Path -LiteralPath $codexToml -PathType Leaf) {
+                $content = Get-Content -LiteralPath $codexToml -Raw -ErrorAction SilentlyContinue
+                if ($content -match 'mcp_servers\.secondbrain|secondbrain') {
+                    $mcpConfigured = $true
+                }
+            }
+        }
+        # Other IDEs: MCP registration is a known JSON file; read only the presence of the secondbrain key (no credentials).
+        $mcpFile = switch ($definition.name) {
+            'Claude Code' { $claudeHome = Get-SBIDERoot 'CLAUDE_CONFIG_DIR' $env:USERPROFILE; Join-Path $claudeHome.path '.claude.json' }
+            'Claude Desktop' { Join-Path $env:APPDATA 'Claude/claude_desktop_config.json' }
+            'Antigravity' { $agShared = Join-Path $env:USERPROFILE '.gemini/config/mcp_config.json'; if (Test-Path -LiteralPath $agShared -PathType Leaf) { $agShared } else { Join-Path $env:USERPROFILE '.gemini/antigravity/mcp_config.json' } }
+            'VS Code' { Join-Path $env:APPDATA 'Code/User/mcp.json' }
+            'Cursor' { Join-Path $env:USERPROFILE '.cursor/mcp.json' }
+            'Windsurf' { Join-Path $env:USERPROFILE '.codeium/windsurf/mcp_config.json' }
+            default { $null }
+        }
+        if ($mcpFile) {
+            $mcpConfigPath = $mcpFile
+            if (Test-Path -LiteralPath $mcpFile -PathType Leaf) {
+                $mcpConfigured = [bool]((Get-Content -LiteralPath $mcpFile -Raw -ErrorAction SilentlyContinue) -match '"secondbrain"')
+            }
+        }
+        if ($definition.name -eq 'Android Studio') {
+            $googleConfig = Join-Path $env:APPDATA 'Google'
+            if (Test-Path -LiteralPath $googleConfig) {
+                $asDirs = @(Get-ChildItem -LiteralPath $googleConfig -Filter '*AndroidStudio*' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+                if ($asDirs.Count) {
+                    $evidence += ("Config: " + ($asDirs -join ", "))
+                }
+            }
+        }
+        $context=Get-SBIDEContext $definition.name
+        # Cursor and Windsurf: configuration folder presence only (no credential or session reads).
+        if($definition.name -in @('Cursor','Windsurf')){$evidence+=@($context.configDirectories|ForEach-Object {'Directory: '+$_})}
+        if($definition.name -eq 'Claude Desktop' -and (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'Programs/Claude/Claude.exe'))){$evidence+='Claude Desktop executable'}
+        # Known install locations catch IDEs that are not on PATH and not in the uninstall registry (per-user, portable or npm installs).
+        $evidence+=@(Get-SBIDEKnownPaths $definition.name|ForEach-Object {'Path: '+$_})
+        if($executables.Count -or $evidence.Count -or ($definition.instructions -and (Test-Path -LiteralPath $definition.instructions))){
+            @{id=$definition.adapter+'-'+(Get-SBTextHash $definition.name).Substring(0,8);name=$definition.name;adapter=$definition.adapter;mode=$(if($definition.instructions){'file'}else{'manual'});
+              instructions=$definition.instructions;sha256=$(if($definition.instructions){Get-SBFileHash $definition.instructions}else{'absent'});executables=$executables;installationEvidence=$evidence;
+              writeScope=@{status='unverified';roots=@();evidence=$null};mcpConfigPath=$mcpConfigPath;mcpConfigured=$mcpConfigured;profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';
+              environmentFingerprint=$(if($context){$context.fingerprint}else{''});selected=$false}
+        }
+    }
+    foreach($name in @('Claude account instructions','Continue','JetBrains AI')){
+        $evidence=@()
+        if ($name -eq 'JetBrains AI') {
+            $jetBrains=Get-SBIDEContext 'JetBrains AI'
+            if ($jetBrains.configDirectories.Count) {
+                $products=@(Get-ChildItem -LiteralPath (Join-Path $env:APPDATA 'JetBrains') -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+                $evidence += ('Directory: %APPDATA%/JetBrains'+$(if($products.Count){' ('+($products -join ', ')+')'}else{''}))
+            }
+        }
+        if ($name -eq 'Continue') {
+            $continueDir = Join-Path $env:USERPROFILE '.continue'
+            if (Test-Path -LiteralPath $continueDir) { $evidence += 'Directory: ~/.continue' }
+            $vscodeExt = Join-Path $env:USERPROFILE '.vscode/extensions'
+            if (Test-Path -LiteralPath $vscodeExt) {
+                $found = @(Get-ChildItem -LiteralPath $vscodeExt -Filter '*continue*' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name)
+                if ($found.Count) { $evidence += ('VS Code extension: ' + ($found -join ', ')) }
+            }
+        }
+        elseif ($name -eq 'Claude account instructions') {
+            $claudeDesktop = Join-Path $env:LOCALAPPDATA 'Programs\Claude\Claude.exe'
+            if (Test-Path -LiteralPath $claudeDesktop) { $evidence += "Claude Desktop: $claudeDesktop" }
+            $claudeData = Join-Path $env:APPDATA 'Claude'
+            if (Test-Path -LiteralPath $claudeData) { $evidence += "Config: $claudeData" }
+        }
+        @{id='manual-'+(Get-SBTextHash $name).Substring(0,8);name=$name;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@();installationEvidence=$evidence;writeScope=@{status='unverified';roots=@();evidence=$null};profile='current-user';accountAlias='';accountStatus='unverified';loadingStatus='unverified';environmentFingerprint=(Get-SBIDEContext $name).fingerprint;selected=$false}
+    }
+}
+function ConvertTo-SBHostComparablePath([string]$Path) {
+    # Like Core's ConvertTo-SBComparablePath (the sole comparison form), but tolerant: empty or invalid paths do not interrupt discovery.
+    if(!$Path){return ''}
+    try{ConvertTo-SBComparablePath $Path}catch{$Path.TrimEnd('\','/').ToLowerInvariant()}
+}
+function Get-SBSharedPolicy([string]$BrainRoot) {
+    $policy=@{allowedOwners=@();excludedDirectories=@();forbiddenRepositories=@()}
+    $sharedPath=Join-Path $BrainRoot 'config/shared.json'
+    if(Test-Path -LiteralPath $sharedPath){
+        $shared=Read-SBJson $sharedPath @{}
+        foreach($key in @($policy.Keys)){if($shared.ContainsKey($key)){$policy[$key]=@($shared[$key])}}
+    }
+    $policy
+}
+function Get-SBForbiddenRepositories([string]$BrainRoot,$HostConfig) {
+    $list=@();if($HostConfig -and $HostConfig.ContainsKey('forbiddenRepositories')){$list=@($HostConfig.forbiddenRepositories)}
+    @($list+@((Get-SBSharedPolicy $BrainRoot).forbiddenRepositories))
+}
+function Test-SBForbiddenRepository($List,[string]$Path,[string]$Identity='') {
+    $comparable=ConvertTo-SBHostComparablePath $Path
+    foreach($f in @($List)){
+        if($f.ContainsKey('path') -and $f.path -and $comparable -and $comparable -ieq (ConvertTo-SBHostComparablePath $f.path)){return $true}
+        if($f.ContainsKey('identity') -and $f.identity -and $Identity -and $f.identity -ieq $Identity){return $true}
+    }
+    $false
+}
+function Test-SBSystemAccessPath([string]$Path) {
+    # Access denial in system folders or other profiles is expected and does not make discovery incomplete.
+    $full=ConvertTo-SBHostComparablePath $Path
+    if(!$full){return $false}
+    foreach($base in @($env:SystemRoot,$env:ProgramFiles,${env:ProgramFiles(x86)},$env:ProgramData)){
+        if($base){$prefix=ConvertTo-SBHostComparablePath $base;if($full -ieq $prefix -or $full.StartsWith($prefix+'\',[StringComparison]::OrdinalIgnoreCase)){return $true}}
+    }
+    if($full -match '^[A-Za-z]:\\(?:\$Recycle\.Bin|System Volume Information|Recovery|Config\.Msi|Documents and Settings)(?:\\|$)'){return $true}
+    if($full -match '^[A-Za-z]:\\Users\\(?<profile>[^\\]+)(?:\\|$)'){return $Matches.profile -ine $env:USERNAME}
+    $false
+}
+function Invoke-SBHostDiscovery {
+    param([string]$BrainRoot,[string[]]$Roots=@(),$Bindings=@(),[string]$ResumePath,[string]$ReportPath,[int]$MaxDirectories=0)
+    $brain=[IO.Path]::GetFullPath($BrainRoot);$queue=[Collections.Generic.Queue[string]]::new();$visited=@{};$repositories=@();$issues=@();$warnings=@();$excluded=@();$portableIDEs=@()
+    $stateRoot=Get-SBWorkstationStateRoot $brain (Get-SBHostId)
+    # Allowlist-first: only folders named explicitly by the user are scanned; there is no default over all fixed drives.
+    if(!$Roots.Count -and !$ResumePath){throw (New-SBError 'host.discovery.roots.required')}
+    if($ResumePath){
+        [void](Assert-SBSetupStatePath $brain $stateRoot $ResumePath @('discovery.json'));$resume=Read-SBJson $ResumePath $null
+        if(!$resume -or $resume.schemaVersion -ne 1 -or !(Test-SBSamePath $resume.brainRoot $brain) -or $resume.hostId -ne (Get-SBHostId)){throw (New-SBError 'host.discovery.checkpoint')}
+        $Roots=@($resume.roots);foreach($path in $resume.pending){$queue.Enqueue($path)};foreach($path in $resume.visited){$visited[$path]=$true}
+        $repositories=@($resume.repositories);$issues=@($resume.issues);$excluded=@($resume.excluded)
+        if($resume.ContainsKey('warnings')){$warnings=@($resume.warnings)}
+    }else{foreach($root in $Roots){$full=[IO.Path]::GetFullPath($root);if(!(Test-Path -LiteralPath $full -PathType Container)){throw (New-SBError 'host.discovery.root' @($full))};$queue.Enqueue($full)}}
+    $count=0;$paused=$false;$hardExcludedNames=@('Windows','Program Files','Program Files (x86)','AppData','node_modules','.venv');$excludedNames=@($hardExcludedNames+@('bin','obj'))
+    $configPath=Get-SBHostConfigPath $brain
+    $hostCfg=if(Test-Path -LiteralPath $configPath){Read-SBJson $configPath @{}}else{@{}}
+    $sharedPolicy=Get-SBSharedPolicy $brain
+    $forbiddenList=@(Get-SBForbiddenRepositories $brain $hostCfg)
+    $excludedNames=@($excludedNames+$sharedPolicy.excludedDirectories|Sort-Object -Unique)
+    # A build-like name (bin, build, dist, vendor, ...) does not hide a checkout: skip only folders without .git.
+    $isSkippedName={param([string]$Name,[string]$FullPath) $Name -in $excludedNames -and ($Name -in $hardExcludedNames -or !(Test-Path -LiteralPath (Join-Path $FullPath '.git')))}
+    $allowedOwners=@();if($hostCfg.ContainsKey('allowedOwners')){$allowedOwners=@($hostCfg.allowedOwners)}
+    $allowedOwners=@($allowedOwners+$sharedPolicy.allowedOwners|Sort-Object -Unique)
+    while($queue.Count){
+        if($MaxDirectories -gt 0 -and $count -ge $MaxDirectories){$paused=$true;break}
+        $path=$queue.Dequeue();if($visited.ContainsKey($path)){continue};$visited[$path]=$true;$count++
+        try{
+            $item=Get-Item -LiteralPath $path -Force -ErrorAction Stop
+            if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){$excluded+=@{path=$path;reason='reparse-point'};continue}
+            if($path -eq (Join-Path $brain '.runtime')){$excluded+=@{path=$path;reason='operational-data'};continue}
+            if(& $isSkippedName $item.Name $path){$excluded+=@{path=$path;reason='known-system-or-build-tree'};continue}
+            if(Test-SBForbiddenRepository $forbiddenList $path){$excluded+=@{path=$path;reason='forbidden-by-user-policy'};continue}
+            $entries=@(Get-ChildItem -LiteralPath $path -Force -ErrorAction Stop)
+            if(@($entries|Where-Object Name -eq '.git').Count){
+                $asset=Get-SBCheckoutAsset $path $Bindings
+                if(Test-SBForbiddenRepository $forbiddenList $path ([string]$asset.identity)){
+                    $excluded+=@{path=$path;reason='forbidden-by-user-policy';identity=$asset.identity}
+                    continue
+                }
+                if($allowedOwners.Count -gt 0 -and $asset.remoteIdentity){
+                    $ownerMatch=$false
+                    foreach($owner in $allowedOwners){
+                        if($asset.remoteIdentity -match ("^(?:github\.com|gitlab\.com|bitbucket\.org)/"+[regex]::Escape($owner)+"/")){ $ownerMatch=$true; break }
+                    }
+                    if(!$ownerMatch){
+                        $asset.kind='external'
+                        $asset.status='external-ignored'
+                        $excluded+=@{path=$path;reason='external-project-detected';identity=$asset.identity}
+                        continue
+                    }
+                }
+                $repositories+=$asset
+            }
+            elseif((Test-Path -LiteralPath (Join-Path $path 'HEAD') -PathType Leaf) -and (Test-Path -LiteralPath (Join-Path $path 'objects') -PathType Container) -and (Test-Path -LiteralPath (Join-Path $path 'config') -PathType Leaf)){
+                $bare=Invoke-SBGit $path @('rev-parse','--is-bare-repository')
+                if($bare.code -eq 0 -and $bare.output -eq 'true'){$repositories+=@{id=(Get-SBTextHash $path).Substring(0,24);path=$path;name=[IO.Path]::GetFileName($path);kind='bare';status='reference-only';identity=$null};continue}
+            }
+            foreach($entry in $entries){
+                if($entry.PSIsContainer){
+                    if($entry.Name -eq '.git'){continue}
+                    if(& $isSkippedName $entry.Name $entry.FullName){$excluded+=@{path=$entry.FullName;reason='known-system-or-build-tree'};continue}
+                    $queue.Enqueue($entry.FullName)
+                }
+                elseif($entry.Name -match '^(?:Code(?: - Insiders)?|Cursor|Windsurf|studio64|Antigravity|Claude|Codex)\.exe$'){
+                    $portableIDEs+=@{id='executable-'+(Get-SBTextHash $entry.FullName).Substring(0,16);name=$entry.BaseName;adapter='manual';mode='manual';instructions='';sha256='absent';executables=@($entry.FullName);writeScope=@{status='unverified';roots=@();evidence=$null};profile='unverified';accountAlias='';accountStatus='unverified';loadingStatus='unverified';selected=$false}
+                }
+            }
+        }catch{
+            # Only unreadable system folders or other profiles are warnings; inaccessible user folders make discovery incomplete.
+            if($_.Exception -is [UnauthorizedAccessException] -or $_.Exception.InnerException -is [UnauthorizedAccessException]){
+                if(Test-SBSystemAccessPath $path){$warnings+=@{path=$path;kind='access-denied'}}
+                else{$issues+=@{path=$path;kind='access-denied';reason='UnauthorizedAccessException'}}
+            }
+            else{$issues+=@{path=$path;kind='unreadable';reason=$_.Exception.GetType().Name}}
+        }
+    }
+    $extensions=@([IO.DriveInfo]::GetDrives()|Where-Object {$_.DriveType -in @('Network','Removable')}|ForEach-Object {@{kind=$_.DriveType.ToString();path=$_.Name;included=$false}})
+    foreach($kind in @('WSL','VM','container')){$extensions+=@{kind=$kind;included=$false;status='requires-explicit-selection'}}
+    $report=@{schemaVersion=1;hostId=(Get-SBHostId);brainRoot=$brain;observedAt=[DateTimeOffset]::UtcNow.ToString('o');roots=$Roots;visited=@($visited.Keys|Sort-Object);pending=@($queue.ToArray());
+        complete=(!$paused -and !$issues.Count);paused=$paused;repositories=@($repositories|Sort-Object path -Unique);ides=@((Get-SBIDEAssets)+$portableIDEs);issues=$issues;warnings=$warnings;excluded=$excluded;extensions=$extensions}
+    if($ReportPath){
+        $output=Assert-SBSetupStatePath $brain $stateRoot $ReportPath @('discovery.json')
+        $backupRoot=if((Split-Path $output -Parent) -ieq $stateRoot){$stateRoot}else{Get-SBLocalRoot $brain (Get-SBHostId)}
+        Write-SBFile $output ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $report))) (Get-SBFileHash $output) (Join-Path $backupRoot 'backups') -Recoverable|Out-Null
+    }
+    $report
+}
+# Categories of the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>; the area hosts/<id>/repos/<repo>/temp holds TEMP/TMP.
+$script:SBRuntimeCategories = @('work','evidence','report','fixture','tmp')
+# Readable and stable repository segment: last path component of the identity plus 8 hex characters of its hash (no collisions between owners).
+function Get-SBRuntimeRepoSegment([string]$Repository) {
+    if([string]::IsNullOrWhiteSpace($Repository)){throw (New-SBError 'host.work.repository')}
+    [string]$name=(($Repository -split '[\\/]')|Where-Object {$_}|Select-Object -Last 1)
+    $slug=(($name.ToLowerInvariant() -replace '[^a-z0-9]+','-').Trim('-'))
+    if(!$slug){$slug='repo'}
+    if($slug.Length -gt 48){$slug=$slug.Substring(0,48).Trim('-')}
+    $slug+'-'+(Get-SBTextHash $Repository).Substring(0,8).ToLowerInvariant()
+}
+# Resolves a path relative to the host runtime root, honouring the declared local override for brains on a share.
+function Resolve-SBWorkRoot([string]$BrainRoot,[string]$HostId,[string]$Relative) {
+    $location='brain-runtime';$advice=@()
+    $override=$env:SECONDBRAIN_WORK_LOCAL_ROOT
+    if($override){
+        # Brain on a share: host TEMP, caches and builds may live on a local drive (declared exception, not the default behavior).
+        if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw (New-SBError 'host.work.localroot')}
+        $hostRoot=Join-Path ([IO.Path]::GetFullPath($override)) (Split-Path (Get-SBLocalRoot $BrainRoot $HostId) -Leaf)
+        $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $Relative));$location='local-override'
+    }else{
+        $root=Assert-SBCentralDataPath $BrainRoot (Join-Path (Get-SBLocalRoot $BrainRoot $HostId) $Relative)
+        if($BrainRoot.StartsWith('\\')){$advice+='Cervello su share: cache e build risiedono sulla rete. Impostare SECONDBRAIN_WORK_LOCAL_ROOT su un disco locale per prestazioni e per non mescolare TEMP tra host.'}
+    }
+    @{root=$root;location=$location;advice=$advice}
+}
+function Get-SBRuntimeWorkPath {
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    if($Category -cnotin $script:SBRuntimeCategories){throw (New-SBError 'host.work.category' @(($script:SBRuntimeCategories -join ', ')))}
+    if($Slug -cnotmatch '^[a-z0-9][a-z0-9-]{0,59}$'){throw (New-SBError 'host.work.slug')}
+    (Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)).root
+}
+function Get-SBWorkEnvironment {
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    $nested=[bool]($Category -or $Slug)
+    if($nested){
+        if(!$Category -or !$Slug){throw (New-SBError 'host.work.categoryslug')}
+        $root=Get-SBRuntimeWorkPath $BrainRoot $HostId $Repository $Category $Slug $Date  # validates category and slug first
+        $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)
+        $temp=(Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/temp')).root
+    }else{
+        foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw (New-SBError 'host.work.segment')}}
+        $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repositories/'+(Get-SBTextHash $Repository).Substring(0,24).ToLowerInvariant()+'/'+$Project+'/'+$Runtime)
+        $root=$resolved.root
+        $temp=Join-Path $root 'temp'
+    }
+    $map=@{SECONDBRAIN_WORK_ROOT=$root;TEMP=$temp;TMP=$temp;TMPDIR=$temp;XDG_CACHE_HOME=(Join-Path $root 'cache');npm_config_cache=(Join-Path $root 'cache/npm');NUGET_PACKAGES=(Join-Path $root 'cache/nuget');DOTNET_CLI_HOME=(Join-Path $root 'cache/dotnet');GRADLE_USER_HOME=(Join-Path $root 'cache/gradle');CARGO_TARGET_DIR=(Join-Path $root 'build/cargo');PIP_CACHE_DIR=(Join-Path $root 'cache/pip');PYTHONPYCACHEPREFIX=(Join-Path $root 'cache/python')}
+    @{root=$root;location=$resolved.location;advice=$resolved.advice;environment=$map;buildRoot=(Join-Path $root 'build');layout=$(if($nested){'repos'}else{'repositories'});status='configuration-only';exceptions=@('Tool-specific intermediate/output configuration must be verified in the product repository; environment alone does not redirect every build output.')}
+}
+Export-ModuleMember -Function @(
+    'Get-SBHostId',
+    'Get-SBHostConfigPath',
+    'Get-SBCheckoutAsset',
+    'Get-SBIDEContext',
+    'Get-SBIDEAssets',
+    'Get-SBIDEKnownPaths',
+    'Get-SBIDEScopes',
+    'Get-SBIDEDetection',
+    'Resolve-SBIDESelection',
+    'Get-SBSharedPolicy',
+    'Get-SBForbiddenRepositories',
+    'Test-SBForbiddenRepository',
+    'Test-SBSystemAccessPath',
+    'Invoke-SBHostDiscovery',
+    'Get-SBWorkEnvironment',
+    'Get-SBRuntimeWorkPath',
+    'Get-SBRuntimeRepoSegment'
+)

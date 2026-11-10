@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "areaId", "repository", "assessedAt", "assessment", "sources", "census", "residualTasks"],
+  "properties": {
+    "schemaVersion": {"const": 1}, "areaId": {"type": "string", "minLength": 1}, "repository": {"type": "string", "pattern": "^(?:local:[a-f0-9]{32}|[A-Za-z0-9.-]+(?::[0-9]+)?/[^/\\\\\\s?#]+(?:/[^/\\\\\\s?#]+)*)$"},
+    "assessedAt": {"type": "string", "format": "date-time"}, "assessment": {"type": "string", "minLength": 1},
+    "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["sourceId", "versionId", "applicability", "rationale", "implementation", "requirements", "evidence", "tasks"], "properties": {
+      "sourceId": {"type": "string"}, "versionId": {"type": ["string", "null"]},
+      "applicability": {"enum": ["applicable", "conditional", "not-applicable", "unassessed"]},
+      "rationale": {"type": "string", "minLength": 1},
+      "implementation": {"enum": ["unverified", "partial", "verified", "not-required"]},
+      "requirements": {"type": "array", "items": {"type": "string"}}, "evidence": {"type": "array", "items": {"type": "string"}}, "tasks": {"type": "array", "items": {"type": "string"}}
+    }}},
+    "census": {"type": "object", "required": ["status", "reference"], "additionalProperties": false, "properties": {"status": {"enum": ["complete", "partial"]}, "reference": {"type": "string"}}},
+    "residualTasks": {"type": "array", "items": {"type": "string"}}
+  }
+}

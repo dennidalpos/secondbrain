@@ -1,0 +1,236 @@
+{
+  "$comment": "Contratto tracker v1; validazione semantica in SecondBrain.Tracker.psm1. Attivazione soggetta ad approvazione delle direttive comuni.",
+  "$defs": {
+    "source": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "originalCollection": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "originalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "originalStatus": {},
+        "pointer": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[A-Fa-f0-9]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "sha256",
+        "pointer"
+      ],
+      "type": "object"
+    },
+    "task": {
+      "additionalProperties": false,
+      "properties": {
+        "acceptance": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "repository": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "description": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "observedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "outcome": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "partial",
+                  "unverified"
+                ]
+              },
+              "reference": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "reference",
+              "outcome"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "execution": {
+          "enum": [
+            "autonomous",
+            "user_required",
+            "unspecified"
+          ]
+        },
+        "extensions": {
+          "type": "object"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "priority": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provenance": {
+          "items": {
+            "$ref": "#/$defs/source"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "seq": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "todo",
+            "in_progress",
+            "blocked",
+            "done",
+            "cancelled",
+            "unknown"
+          ]
+        },
+        "title": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "status",
+        "execution",
+        "priority",
+        "dependencies",
+        "acceptance",
+        "evidence",
+        "provenance",
+        "extensions"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:secondbrain:tracker:1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "extensions": {
+      "type": "object"
+    },
+    "history": {
+      "items": {
+        "additionalProperties": false,
+        "dependentRequired": {
+          "code": ["messageArgs"],
+          "messageArgs": ["code"]
+        },
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]+$"
+          },
+          "messageArgs": {
+            "type": "array",
+            "items": {"type": ["string", "number", "boolean", "null"]}
+          },
+          "description": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[A-Fa-f0-9]{64}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "sha256",
+          "description"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "repository": {
+      "pattern": "^(?:local:[a-f0-9]{32}|[A-Za-z0-9.-]+(?::[0-9]+)?/[^/\\\\\\s?#]+(?:/[^/\\\\\\s?#]+)*)$",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "tasks": {
+      "items": {
+        "$ref": "#/$defs/task"
+      },
+      "type": "array"
+    },
+    "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "repository",
+    "updatedAt",
+    "tasks",
+    "history",
+    "extensions"
+  ],
+  "type": "object"
+}

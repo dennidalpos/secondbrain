@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "mode": "portable",
+  "workstationId": "example",
+  "runtimeRoot": ".runtime/hosts/example",
+  "backupRoot": ".runtime/hosts/example/backups",
+  "bindings": [],
+  "ides": [],
+  "startupBudget": 50000
+}

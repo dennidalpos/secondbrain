@@ -1,0 +1,15 @@
+{
+  "approvedAt": "2026-11-08T21:17:34.5683075+01:00",
+  "authorization": "Approvazione esplicita utente dell'8 novembre 2026 per #098",
+  "files": {
+    "direttive/AGENTS.global_ide.md": "1B867747278BC2981BC6AFADAC58B8394CCC30B2D829EA634F080FA6F03AB980",
+    "direttive/AGENTS.repo.managed.md": "4589A488A58F6E213F57BF0FD5672EFF914E44DE0D7A242CB9700BB8449C2361",
+    "direttive/workstation.template.md": "0D7C7667F4003AA5041CC43071CAED6B4745B351F4B1D296237DD3A6025C6F9E"
+  },
+  "proposal": {
+    "path": "direttive/proposals/2026-11-08-script-checkout-refs",
+    "readmeHash": "800367E19D39008752C6063E8F7306972CEB03D50B6F119FFB9D1B3F50AE3C6F",
+    "sha256": "DF2014E76DCD4B111C36A2F302BD225CC70351CACD87005643089C17B113905A"
+  },
+  "schemaVersion": 1
+}
