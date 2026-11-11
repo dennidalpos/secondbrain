@@ -1,0 +1,13 @@
+## SecondBrain workstation integration
+
+<!-- secondbrain:tracker-contract:1 -->
+
+- Resolve SECONDBRAIN_HOME from the user environment. Its value belongs on the workstation. Keep it out of account instructions and public repositories. Bootstrapping from the checkout also works without the variable. SecondBrain configuration and activity outputs live in the checkout's .runtime folder.
+- The dossier contains index.md, context.md, memory.md, repository.json, and its declared tracker. Para-index.json resolves identifiers. Handle archives and conflicts explicitly.
+- If repository.json declares tracker location=dossier, path=tracker.json, schemaVersion=1, use that source exclusively. Missing or invalid trackers are errors. Imports preserve originals, tasks, and references.
+- Use scripts/knowledge.ps1 -Startup or -Tasks, or the MCP get_startup_context tool. Use -Profile Full and -Search with -Budget, -Limit, or -AllDossiers for detail. Use -Report to measure character counts and directive size. Scripts/prompts.ps1 -Context -RepositoryPath resolves only the dossier paths.
+- Initial reads do not use Hold sessions. For extended writes, use scripts/access.ps1 with Start and End in the same try/finally script and pass SessionId to the CLIs. Preserve locks and incomplete transaction markers.
+- Use sb attiva (SYS03) for discovery and confirmation before each write, sb controlla (SYS04) for verification, sb allinea to apply approved texts while preserving conflicts and proposing new assets, and sb compatta (SYS05) for dossier compaction. The command sb prompt returns the full prompt home from scripts/prompts.ps1 or MCP get_prompt_home. Keep the initial steps read-only. The command sb prompt list returns the complete compact list (-List -Compact), one line per prompt. The commands sb prompt ambito AREA, sb prompt mostra CHIAVE, and sb prompt CHIAVE: objective use the same stable ID (pmt-…) or code and load only the required card.
+- The single prompt list contains cards with role, context, inputs, procedure, constraints, exit criteria, and output format. Composition uses structured XML. Ask a structured question when in doubt.
+- SYS01 distinguishes local file, installation, profile, environment, and account. Verify loading separately from file alignment. Login is manual. Scripts/trace.ps1 -InstallHook starts with a preview. Pass -Apply to install the Claude Code Stop hook that signals compaction.
+- For managed blocks, change generators. Leave snapshots and generated blocks to those generators. New common directives require a concrete proposal, explicit approval, and verified hashes before distribution.

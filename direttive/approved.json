@@ -1,15 +1,15 @@
 {
-  "approvedAt": "2026-11-10T19:21:45.6676963+01:00",
-  "authorization": "Approvazione esplicita utente del 10 novembre 2026 (Approvo, implementa) per la mappa delle scritture",
+  "approvedAt": "2026-11-11T09:21:28.2205770+01:00",
+  "authorization": "Richiesta della persona titolare 2026-11-11: aggiornare la direttiva globale al tetto di 50.000 caratteri",
   "files": {
-    "direttive/AGENTS.global_ide.md": "32580DF64FED42B75A25141DF839A704F984B2E2946E25CCAB91191A7FDF9C83",
+    "direttive/AGENTS.global_ide.md": "C985B7798485F70BE1A45CF57A8B19DA3C07D1A2D543A31A106B7EC3F3B04B7B",
     "direttive/AGENTS.repo.managed.md": "19485A056F41ECFB21606F6BA7DAC66B93D93D57B232C04B03844DD03A1CC1E4",
     "direttive/workstation.template.md": "0D7C7667F4003AA5041CC43071CAED6B4745B351F4B1D296237DD3A6025C6F9E"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-10-write-map",
-    "readmeHash": "BEA509F5B3F0487A23433F13D434FFCE39F0DBB08C9C8094D1A7B5CC5AAD6C4E",
-    "sha256": "1D4954B2CFE2D7F1FA746D3EFCF3646A9FD6C1CD6C3FE4F2A45DC91655C85C6F"
+    "path": "direttive/proposals/2026-11-11-startup-cap-50k",
+    "readmeHash": "33889D9815C0D19653AC6A64969148CF21F676F1B4F99520A7C8529C861BA5DA",
+    "sha256": "AEE73CBFBC2997F09050F193C777931DC2FBC9341D47313E2998CD190796C209"
   },
   "schemaVersion": 1
 }

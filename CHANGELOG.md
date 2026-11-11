@@ -2,7 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.20.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.21.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.21.0] - 2026-11-11
+
+### Aggiunto
+- Runner (`run-ready-tasks.ps1`): i task con `extensions.requires` = `computer-use` sono esclusi con motivo `requires:computer-use`, perché `claude -p` non può approvare le app.
+- `Invoke-SBPendingWrites -WaitMs`: le scritture differite attendono il lock in modo limitato (`SECONDBRAIN_PENDING_WAIT_SECONDS`, predefinito 8 s); `knowledge.ps1 -FlushPending` attende la durata standard del lock e il runner integra i pendenti dopo ogni task.
+
+### Modificato
+- Tetto del primo caricamento Slim da 30.000 a 50.000 caratteri, con fonte unica `Get-SBSlimStartupBudget` (rimossi i default duplicati); direttiva globale aggiornata con la proposta `2026-11-11-startup-cap-50k`.
+- `test-secondbrain.ps1 -Full`: il gruppo `concurrency` gira da solo dopo i gruppi paralleli.
+- Documentato il codice di uscita di `secondbrain.ps1 -Check` e `ide-map.ps1 -Verify`.
 
 ## [1.20.0] - 2026-11-10
 

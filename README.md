@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 1.20.0](https://img.shields.io/badge/version-1.20.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
+![Version 1.21.0](https://img.shields.io/badge/version-1.21.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE)
 
 English · [Italiano](#italiano)
 
