@@ -2,7 +2,16 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.23.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.23.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.23.1] - 2026-11-11
+
+### Corretto
+- `app/orchestrator`: su Windows la radice di SecondBrain risolta con `canonicalize` aveva il prefisso `\\?\` e gli script segnalavano «Postazione non attivata»; il prefisso viene rimosso (`plain_path`, con test). I messaggi di errore mostrano il codice di uscita come numero invece di `Some(2)`.
+
+### Modificato
+- `app/orchestrator/src-tauri/Cargo.lock` tracciato in Git per build riproducibili.
+- `docs/orchestratore.md` e `docs/orchestratore.it.md`: limiti aggiornati con le prove locali (build Rust, finestra fino all'anteprima della coda) e con GitHub Actions disabilitato sul repository.
 
 ## [1.23.0] - 2026-11-11
 

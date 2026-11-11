@@ -17,10 +17,30 @@ pub fn resolve_root(setting: &str) -> Result<PathBuf, String> {
     candidates.push(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../.."));
     for c in candidates {
         if c.join("scripts").join("agents.ps1").is_file() {
-            return Ok(c.canonicalize().unwrap_or(c));
+            return Ok(c.canonicalize().map(|p| plain_path(&p)).unwrap_or(c));
         }
     }
     Err("SecondBrain non trovato: imposta la radice nelle Impostazioni o la variabile SECONDBRAIN_HOME (deve contenere scripts/agents.ps1).".into())
+}
+
+/// On Windows `canonicalize` returns verbatim paths (`\\?\D:\x`, `\\?\UNC\server\share`); the PowerShell scripts derive the
+/// workstation state from the plain form, so the prefix is removed. Other paths are returned unchanged.
+pub fn plain_path(path: &Path) -> PathBuf {
+    let text = path.to_string_lossy();
+    if let Some(rest) = text.strip_prefix(r"\\?\UNC\") {
+        return PathBuf::from(format!(r"\\{rest}"));
+    }
+    if let Some(rest) = text.strip_prefix(r"\\?\") {
+        if rest.len() >= 2 && rest.as_bytes()[1] == b':' {
+            return PathBuf::from(rest);
+        }
+    }
+    path.to_path_buf()
+}
+
+/// Exit code as text: the number, or a note when the process was ended by a signal.
+fn exit_code_text(code: Option<i32>) -> String {
+    code.map(|c| c.to_string()).unwrap_or_else(|| "assente (processo terminato da un segnale)".into())
 }
 
 /// pwsh from the setting, PATH, or the usual install locations (GUI apps on macOS do not inherit the shell PATH).
@@ -102,7 +122,7 @@ pub fn run_json(pwsh: &str, root: &Path, script: &str, args: &[String]) -> Resul
     let stderr = String::from_utf8_lossy(&output.stderr);
     if !output.status.success() {
         let text = format!("{}\n{}", stderr.trim(), stdout.trim());
-        return Err(format!("{script} terminato con codice {:?}: {}", output.status.code(), text.trim()));
+        return Err(format!("{script} terminato con codice {}: {}", exit_code_text(output.status.code()), text.trim()));
     }
     parse_json_output(&stdout)
 }
@@ -123,7 +143,7 @@ pub fn kill_tree(pid: u32) -> Result<(), String> {
     };
     match status {
         Ok(s) if s.success() => Ok(()),
-        Ok(s) => Err(format!("Arresto del processo {pid} non riuscito (codice {:?})", s.code())),
+        Ok(s) => Err(format!("Arresto del processo {pid} non riuscito (codice {})", exit_code_text(s.code()))),
         Err(e) => Err(format!("Arresto del processo {pid} non riuscito: {e}")),
     }
 }
@@ -136,6 +156,20 @@ mod tests {
     fn json_after_noise() {
         let v = parse_json_output("WARNING: x\n{\"a\":1}\n").unwrap();
         assert_eq!(v["a"], 1);
+    }
+
+    #[test]
+    fn verbatim_prefix_is_removed() {
+        let drive = format!("{}:{}", "X", r"\repo\sb");
+        assert_eq!(plain_path(Path::new(&format!(r"\\?\{drive}"))), PathBuf::from(&drive));
+        assert_eq!(plain_path(Path::new(r"\\?\UNC\server\share\sb")), PathBuf::from(r"\\server\share\sb"));
+        assert_eq!(plain_path(Path::new("/opt/sb")), PathBuf::from("/opt/sb"));
+    }
+
+    #[test]
+    fn exit_code_is_plain_text() {
+        assert_eq!(exit_code_text(Some(2)), "2");
+        assert!(!exit_code_text(None).contains("None"));
     }
 
     #[test]
