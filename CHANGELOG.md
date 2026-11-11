@@ -2,7 +2,16 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.22.2**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.22.3**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.22.3] - 2026-11-11
+
+### Aggiunto
+- Test Quick: nessun ciclo nel grafo dei moduli (compresi gli `Import-Module` tardivi), con prova su un ciclo sintetico.
+
+### Modificato
+- Refactoring interno senza cambi ai contratti: `Get-SBParaRuntimePaths` passa da `SecondBrain.Para.psm1` a `SecondBrain.TrackerImport.psm1` (spezza il ciclo Tracker/Para/TrackerImport; `para.ps1` e `recover.ps1` importano TrackerImport).
+- Il vocabolario dei valori di `extensions.requires` e il nome `computer-use` stanno in `SecondBrain.ComputerUse.psm1`; Tracker (`Get-SBTaskRequiresValues`, wrapper omonimo) e TaskRunner li leggono da lì.
 
 ## [1.22.2] - 2026-11-11
 

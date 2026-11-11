@@ -318,15 +318,6 @@ function Remove-SBParaEmptyTree([string]$Path,[string]$BrainRoot) {
     }
 }
 
-function Get-SBParaRuntimePaths($Config) {
-    $registry=Read-SBJson (Join-Path $Config.coordinationRoot 'workstations.json') @{}
-    foreach($runtime in @($Config.runtimeRoot)+@($registry.Values|ForEach-Object runtimeRoot)|Sort-Object -Unique){
-        foreach($name in @('state.json','inventory.json','workstation.json')){[IO.Path]::GetFullPath((Join-Path $runtime $name))}
-    }
-    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1')
-    foreach($registration in @(Get-SBTrackerManifestRegistrations $Config)){$registration.path}
-}
-
 Export-ModuleMember -Function @(
     'Resolve-SBParaPath',
     'Get-SBParaEntities',
@@ -337,6 +328,5 @@ Export-ModuleMember -Function @(
     'New-SBParaMetadata',
     'Convert-SBParaReferences',
     'Get-SBParaReferenceOperations',
-    'Remove-SBParaEmptyTree',
-    'Get-SBParaRuntimePaths'
+    'Remove-SBParaEmptyTree'
 )

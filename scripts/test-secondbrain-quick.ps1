@@ -169,6 +169,32 @@ try {
         $missingRows=@($documentedCodes|Where-Object {$guideText -notmatch ('(?m)^\|\s*'+$_+'\s*\|')})
         Assert-Quick (!$missingRows.Count) ('tabella dei codici di uscita completa in '+$guide)
     }
+    # Module graph: no import cycle (late Import-Module calls inside functions count too).
+    function Find-QuickModuleCycle([hashtable]$Graph){
+        $state=@{};$stack=[Collections.Generic.List[string]]::new();$found=$null
+        function Visit([string]$Node){
+            if($script:found){return}
+            $state[$Node]=1;$stack.Add($Node)
+            foreach($next in @($Graph[$Node])){
+                if(!$Graph.ContainsKey($next)){continue}
+                if($state[$next] -eq 1){$script:found=(@($stack[$stack.IndexOf($next)..($stack.Count-1)])+$next) -join ' -> ';return}
+                if(!$state.ContainsKey($next)){Visit $next}
+                if($script:found){return}
+            }
+            $stack.RemoveAt($stack.Count-1);$state[$Node]=2
+        }
+        $script:found=$null
+        foreach($node in @($Graph.Keys|Sort-Object)){if(!$state.ContainsKey($node)){Visit $node}}
+        $script:found
+    }
+    $moduleGraph=@{}
+    foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter 'SecondBrain.*.psm1' -File){
+        $moduleGraph[$file.BaseName]=@([regex]::Matches((Read-SBText $file.FullName),"Import-Module \(Join-Path \$PSScriptRoot '(SecondBrain\.[A-Za-z]+)\.psm1'\)")|ForEach-Object {$_.Groups[1].Value}|Sort-Object -Unique)
+    }
+    $cycle=Find-QuickModuleCycle $moduleGraph
+    Assert-Quick (!$cycle) ('nessun ciclo tra i moduli'+$(if($cycle){': '+$cycle}))
+    Assert-Quick ((Find-QuickModuleCycle @{A=@('B');B=@('C');C=@('A')}) -eq 'A -> B -> C -> A') 'il controllo anti-ciclo fallisce su un ciclo di prova'
+    Assert-Quick (!(Find-QuickModuleCycle @{A=@('B','C');B=@('C');C=@()})) 'il controllo anti-ciclo accetta un grafo aciclico'
     $readmeText=Read-SBText (Join-Path $productRoot 'README.md')
     Assert-Quick (!([regex]::IsMatch($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b') -and ([regex]::Matches($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b')|Where-Object {$_.Groups[2].Value -ne $productVersion}).Count)) 'il README non cita versioni diverse da VERSION'
     # Task runner selection on synthetic tasks.

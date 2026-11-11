@@ -25,6 +25,10 @@ $script:SBComputerUseCapabilities=@(
     @{ide='VS Code (Copilot)';unattended='mcp-tools-only';mechanism='';platforms=@();note='No native computer use documented; only MCP tools.'},
     @{ide='Windsurf';unattended='not-documented';mechanism='';platforms=@();note='Nothing documented about computer use.'}
 )
+# Vocabulary of capabilities a task may require (extensions.requires): this module owns the list.
+$script:SBTaskRequiresValues=@('computer-use')
+function Get-SBComputerUseRequiresValues { ,@($script:SBTaskRequiresValues) }
+function Get-SBComputerUseRequirement { 'computer-use' }
 function Get-SBComputerUseCapabilities { ,@($script:SBComputerUseCapabilities|ForEach-Object {$_.Clone()}) }
 function Get-SBComputerUseAgentName([string]$AgentPath) {
     # Agent identity from the executable name only; any other agent is unknown and gets no pre-approval.
@@ -121,4 +125,4 @@ function Test-SBAgentUnattendedComputerUse([string]$AgentPath,[string]$CodexConf
     $apps=Read-SBCodexAllowedApps ([IO.File]::ReadAllText($CodexConfigPath))
     ($apps.status -eq 'ok' -and @($apps.ids).Count -gt 0)
 }
-Export-ModuleMember -Function @('Get-SBComputerUseCapabilities','Get-SBComputerUseAgentName','ConvertTo-SBCodexAppIds','Read-SBCodexAllowedApps','Get-SBCodexComputerUsePlan','Get-SBCodexConfigPath','Set-SBCodexComputerUseApps','Test-SBAgentUnattendedComputerUse')
+Export-ModuleMember -Function @('Get-SBComputerUseRequiresValues','Get-SBComputerUseRequirement','Get-SBComputerUseCapabilities','Get-SBComputerUseAgentName','ConvertTo-SBCodexAppIds','Read-SBCodexAllowedApps','Get-SBCodexComputerUsePlan','Get-SBCodexConfigPath','Set-SBCodexComputerUseApps','Test-SBAgentUnattendedComputerUse')

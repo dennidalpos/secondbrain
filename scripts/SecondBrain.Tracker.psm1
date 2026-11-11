@@ -3,6 +3,7 @@ Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -ReadRepositories, -Requires o -StateReason'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -ReadRepositories, -Requires or -StateReason' }
@@ -832,12 +833,12 @@ function Invoke-SBTrackerHistoryMigration {
 }
 
 # Capabilities a task may require; the runner leaves such tasks to an attended session (extensions.requires).
-$script:SBTaskRequiresValues=@('computer-use')
-function Get-SBTaskRequiresValues { ,@($script:SBTaskRequiresValues) }
+# The vocabulary lives in SecondBrain.ComputerUse.psm1; this wrapper keeps the public name used by callers.
+function Get-SBTaskRequiresValues { Get-SBComputerUseRequiresValues }
 function ConvertTo-SBTaskRequires([string[]]$Value) {
     # Lists arrive as one ';'-separated string with pwsh -File; unknown values are rejected, duplicates dropped, empty clears.
     $items=@($Value|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
-    foreach($item in $items){if($item -cnotin $script:SBTaskRequiresValues){throw (New-SBError 'tracker.requires.invalid' @($item,($script:SBTaskRequiresValues -join ', ')))}}
+    foreach($item in $items){if($item -cnotin (Get-SBComputerUseRequiresValues)){throw (New-SBError 'tracker.requires.invalid' @($item,((Get-SBComputerUseRequiresValues) -join ', ')))}}
     ,$items
 }
 function Update-SBTrackerTask {

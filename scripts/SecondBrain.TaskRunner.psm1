@@ -5,6 +5,7 @@
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Add-SBMessages @{
     'isolation.cross.refused' = @{it='Isolamento per progetto: la vista globale o la ricerca senza progetto risolto e rifiutata; indicare il repository in lavoro (o abilitare crossProjectReads in config/shared.json)';en='Project isolation: the global view or a search without a resolved project is refused; give the working repository (or enable crossProjectReads in config/shared.json)'}
     'runner.scope.global' = @{it='Lettura globale rifiutata in una sessione del runner per {0}: -All, -AllDossiers e all=true non sono consentiti; usare il repository del task o uno della sua allowlist di lettura';en='Global read refused in a runner session for {0}: -All, -AllDossiers and all=true are not allowed; use the task repository or one from its read allowlist'}
@@ -78,7 +79,7 @@ function Get-SBRunnerExclusionReason($Task,[switch]$AllowComputerUse){
     # A task that declares extensions.requires=computer-use is left for an attended session instead of failing midway.
     $requires=@(Get-SBRunnerValue $ext 'requires'|Where-Object {$_}|ForEach-Object {[string]$_})
     # -AllowComputerUse comes from the preflight of the capability table (SecondBrain.ComputerUse.psm1): the agent has a documented, present pre-approval.
-    if('computer-use' -in $requires -and !$AllowComputerUse){return 'requires:computer-use'}
+    if((Get-SBComputerUseRequirement) -in $requires -and !$AllowComputerUse){return 'requires:computer-use'}
     $null
 }
 function Test-SBRunnableTask($Task,[switch]$AllowComputerUse){
