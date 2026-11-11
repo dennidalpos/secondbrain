@@ -39,6 +39,8 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 ~~~
 
+
+**Exit code.** `-Check` and `ide-map.ps1 -Verify` exit 1 whenever `aligned` is false, that is on any issue, not only on file misalignment (exit 2 = error, 3 = writer busy, 4 = write denied). Expected on a workstation without live evidence: `ide-write-scope-unverified`, `ide-loading-unverified`, `account-unverified` (manual Claude account instructions) and `candidate-pending` are environmental and clear only with a real session receipt, a write-scope probe or a reviewed account; `changed` and `authoritative-source` entries need `resources.ps1 -Sync` or SYS05. Exit 0 requires none of them.
 Check first attempts already-authorized deferred writes with zero lock wait. Asset checks do not apply their corrections. concurrent-writer/pending-transaction warnings mean the observed state may be intermediate.
 
 Sync writes immediately through coordination, backups and hashes. It generates approved managed blocks/local views, preserves unrelated text and reports conflicts. New assets require explicit Setup selection; unapproved source text is not distributed. Neither command schedules monitoring.
@@ -47,7 +49,7 @@ Use NoRecovery-capable knowledge lookup/server startup when the session forbids 
 
 ## Knowledge and closure
 
-Slim selects whole Markdown blocks deterministically, with a first-load default of 30,000 characters. Without explicit TaskIds it includes no task detail. Full and deeper lookups remain available; essential content is not silently discarded.
+Slim selects whole Markdown blocks deterministically, with a first-load default of 50,000 characters. Without explicit TaskIds it includes no task detail. Full and deeper lookups remain available; essential content is not silently discarded.
 
 A permitted transition to done records closure advice/lastClosure. The closure-memory-pending timestamp warning is advisory and does not certify content quality. Do not invent closure dates for historic tasks. An audit that proposes tracker corrections leaves the tracker untouched.
 
@@ -96,7 +98,7 @@ SecondBrain has no launcher: use `scripts/run-ready-tasks.ps1` there. Tasks in t
 
 **Progress.** The console shows the tracker being read, the number of runnable tasks, `[n/total]` when a task starts and ends (exit code, status change, seconds), a heartbeat every minute while an agent works, and a final summary. Progress lines go to standard error; standard output carries only the final JSON, so `> file` keeps the console readable and the file clean (it stays empty until the run ends).
 
-**Selection.** Only `todo` tasks with `execution=autonomous` outside the `qualifica-finale`, `intervento-su-richiesta` and `coordinamento-prodotti` streams and not waiting on a person. Order is priority, then number. When the checkout is not the SecondBrain checkout (for example through the launcher), the agent starts inside it and its prompt names the absolute SecondBrain tools to use. A checkout with no active dossier is reported in `skipped`; so is every ready task left out, as `{repository,id,seq,reason}` with the reason `stream:<name>`, `execution:<mode>`, `awaiting:<value>`, `status:<value>` or `max-tasks` (cut by `-MaxTasks`).
+**Selection.** Only `todo` tasks with `execution=autonomous` outside the `qualifica-finale`, `intervento-su-richiesta` and `coordinamento-prodotti` streams and not waiting on a person. Order is priority, then number. When the checkout is not the SecondBrain checkout (for example through the launcher), the agent starts inside it and its prompt names the absolute SecondBrain tools to use. A checkout with no active dossier is reported in `skipped`; so is every ready task left out, as `{repository,id,seq,reason}` with the reason `stream:<name>`, `execution:<mode>`, `awaiting:<value>`, `status:<value>`, `requires:computer-use` (the task declares `extensions.requires` with `computer-use`, which needs an attended session: `claude -p` cannot approve apps) or `max-tasks` (cut by `-MaxTasks`).
 
 **Safety.** The prompt forbids commit, push, publication, deletion, SYS05 and other tasks, and the agent is started with `--disallowedTools` for `git commit`, `git push`, `git tag`, `git reset`, `git clean`, `rm` and `Remove-Item`. The agent is allowed `Bash`, `Read`, `Edit`, `Write`, `Grep`, `Glob` and `Skill` (`--allowedTools`); the last three only read or consult. These are not a sandbox: the agent can still edit files and write the dossier through its own coordinated session, so review `git status` and the reports afterwards. The script never writes the tracker.
 

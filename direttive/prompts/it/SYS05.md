@@ -9,7 +9,7 @@ Da usare su richiesta esplicita (`sb compatta`) o quando gli indici consigliano 
 </context>
 
 <inputs>
-- il dossier attivo del repository, le fonti, i task aperti e il default di 30.000 caratteri, salvo budget esplicito.
+- il dossier attivo del repository, le fonti, i task aperti e il default di 50.000 caratteri, salvo budget esplicito.
 - per grandi storici, `memory-cycle.ps1 -Operation Maintenance -Repository <identita>` restituisce inventario con hash e lotti tematici senza scrivere.
 </inputs>
 

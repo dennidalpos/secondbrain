@@ -62,14 +62,15 @@ try {
         @{id='X-2';priority='P0';execution='autonomous';stream='intervento-su-richiesta'},
         @{id='X-3';priority='P0';execution='autonomous';stream='coordinamento-prodotti'},
         @{id='X-4';priority='P0';execution='user_required';stream='evoluzione-team'},
-        @{id='X-5';priority='P0';execution='autonomous';stream='evoluzione-team';awaiting='owner-confirmation'}
+        @{id='X-5';priority='P0';execution='autonomous';stream='evoluzione-team';awaiting='owner-confirmation'},
+        @{id='X-6';priority='P0';execution='autonomous';stream='evoluzione-team';requires=@('computer-use')}
     )
     $tasks=@();$number=0
     foreach($spec in $specs){
         $number++
         $task=New-SBTrackerTask @{id=$spec.id;title=('Task '+$spec.id);status='todo'} $identity 'fixture' 'history/seed/report.md' (Get-SBTextHash 'Synthetic provenance') 'fixture'
         $task.seq=$number;$task.title='#'+$number.ToString('000')+' — Task '+$spec.id;$task.priority=$spec.priority;$task.execution=$spec.execution
-        $ext=@{stream=$spec.stream};if($spec.ContainsKey('awaiting')){$ext.awaiting=$spec.awaiting};if($spec.ContainsKey('reads')){$ext.readRepositories=$spec.reads};$task.extensions=$ext
+        $ext=@{stream=$spec.stream};if($spec.ContainsKey('awaiting')){$ext.awaiting=$spec.awaiting};if($spec.ContainsKey('reads')){$ext.readRepositories=$spec.reads};if($spec.ContainsKey('requires')){$ext.requires=$spec.requires};$task.extensions=$ext
         $tasks+=,$task
     }
     Put-Runner $trackerPath (ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=$tasks;history=@();extensions=@{lastSeq=$number}})
@@ -176,7 +177,8 @@ switch($Mode){
     $reasons=@{};foreach($s in @($preview.data.skipped)){if($s.Contains('id')){$reasons[[string]$s.id]=[string]$s.reason}}
     Assert-Runner ($reasons['X-1'] -ceq 'stream:qualifica-finale' -and $reasons['X-2'] -ceq 'stream:intervento-su-richiesta' -and $reasons['X-3'] -ceq 'stream:coordinamento-prodotti') ('preview skipped explains the excluded streams: '+($reasons|ConvertTo-Json -Compress))
     Assert-Runner ($reasons['X-4'] -ceq 'execution:user_required' -and $reasons['X-5'] -ceq 'awaiting:owner-confirmation') 'preview skipped explains execution mode and human wait'
-    Assert-Runner ($reasons.Count -eq 5) 'preview skipped lists only the excluded ready tasks'
+    Assert-Runner ($reasons['X-6'] -ceq 'requires:computer-use') 'preview skipped explains a task that needs computer use'
+    Assert-Runner ($reasons.Count -eq 6) 'preview skipped lists only the excluded ready tasks'
     $cut=Invoke-Runner @('-MaxTasks','2')
     $cutReasons=@($cut.data.skipped|Where-Object {$_.Contains('id') -and $_.reason -ceq 'max-tasks'}|ForEach-Object id)
     Assert-Runner (($cutReasons -join ',') -ceq 'R-3,R-4,R-5') ('preview skipped reports the tasks cut by MaxTasks: '+$cut.text)

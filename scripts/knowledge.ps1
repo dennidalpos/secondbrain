@@ -68,12 +68,14 @@ try{
     $pendingResult=$null
     if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending -or $DiscardPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
     if($readOnly -and !$bufferedWrite -and !$ArchiveTasks -and !$NoRecovery){
-        $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
+        # -FlushPending waits for the writer lock (shared policy); startup reads never wait.
+        $flushWait=if($FlushPending){Get-SBLockWaitMs $config}else{0}
+        $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId -WaitMs $flushWait
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
-    # Full is unlimited unless -Budget is explicit; Slim and Compact share the 30,000 default.
+    # Full is unlimited unless -Budget is explicit; Slim and Compact share the 50,000 default (Get-SBSlimStartupBudget).
     # Search has a default limit (-1: 20 matches and 10,000 characters); explicit -Limit 0 / -Budget 0 removes it.
-    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Compact -or ($Startup -and $Profile -eq 'Slim')){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } else { 30000 }
+    $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Compact -or ($Startup -and $Profile -eq 'Slim')){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } else { Get-SBSlimStartupBudget }
     $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
     # Cooperative scope: explicit repository, otherwise the working checkout's repository (current directory).
     $resolveWorkingRaw={

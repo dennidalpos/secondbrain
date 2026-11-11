@@ -470,7 +470,8 @@ function Save-SBCycleKnowledgeIndex([string]$BrainRoot,[string]$Repository,[stri
     @{repository=$Repository;revision=$index.revision;entries=$index.entries.Count;operations=$ops.Count;applied=[bool]($Apply -and $ops.Count)}
 }
 
-function Get-SBCycleContext([string]$BrainRoot,[string]$Repository,[string[]]$TaskIds=@(),[string]$PreviousRevision,[int]$Budget=30000) {
+function Get-SBCycleContext([string]$BrainRoot,[string]$Repository,[string[]]$TaskIds=@(),[string]$PreviousRevision,[int]$Budget=-1) {
+    if($Budget -lt 0){$Budget=Get-SBSlimStartupBudget}
     $dir=Resolve-SBCycleDossier $BrainRoot $Repository
     $index=Get-SBCycleKnowledgeIndex $BrainRoot $Repository
     $revision=Get-SBTextHash ($index.revision+':'+(ConvertTo-SBJson @($TaskIds))+':'+$Budget)

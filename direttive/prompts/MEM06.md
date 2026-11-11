@@ -10,7 +10,7 @@ Use at the start of a session, before planning or before picking the next task i
 </inputs>
 <procedure>
 1. Resolve the dossier of this repository from `para.json` and `repository.json`; read `index.md`.
-2. Load summary context, essential memory and the open-task projection in the lean profile (30,000 characters, first load only); request the rest with `knowledge.ps1 -Startup -Profile Full` or `-Search`.
+2. Load summary context, essential memory and the open-task projection in the lean profile (50,000 characters, first load only); request the rest with `knowledge.ps1 -Startup -Profile Full` or `-Search`.
 3. Read the authoritative tracker source declared by `repository.json`, without fallback; create no stubs or redundant memories.
 4. Group tasks by status (open, in progress, blocked, done); for each open task summarize the goal, the real problem it solves, acceptance criteria and blocking dependencies; order by priority and show which tasks are ready and which wait to be unblocked.
 5. To measure the package run `knowledge.ps1 -Startup -Report` (characters per part, saturation, directive weight); if over the cap plan SYS05.

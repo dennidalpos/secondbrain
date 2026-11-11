@@ -3,7 +3,7 @@
 param(
     [Parameter(Mandatory)][ValidateSet('Capture','Promote','Index','Context','Maintenance','Adapter','Permit')][string]$Operation,
     [string]$Repository,[string]$InputPath,[string]$Workspace,[string[]]$AttachmentPath=@(),
-    [string[]]$TaskIds=@(),[string]$PreviousRevision,[int]$Budget=30000,
+    [string[]]$TaskIds=@(),[string]$PreviousRevision,[int]$Budget=-1,
     [ValidateSet('claude-code','codex','antigravity','vscode','android-studio','claude','cursor','windsurf','continue','jetbrains')][string]$Client='codex',
     [string]$ConfigPath,[string]$SessionId,[string]$ObservationPath,[string]$PreviewSha256,[switch]$Apply,[ValidateSet('it','en')][string]$Language
 )

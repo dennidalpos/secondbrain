@@ -52,7 +52,7 @@ flowchart TB
 
     TRACKER["SecondBrain.Tracker.psm1<br/>- Validazione tracker.json su JSON Schema Draft 2020-12<br/>- Risoluzione dipendenze cross-repository<br/>- Rilevamento cicli e calcolo compiti -ReadyOnly"]
 
-    KNOWLEDGE["SecondBrain.Knowledge.psm1<br/>- Composizione avvio snello <= 30.000 caratteri (livelli a richiesta)<br/>- Proiezione task attivi e memoria essenziale<br/>- Compattazione conservativa per hash (SYS05)"]
+    KNOWLEDGE["SecondBrain.Knowledge.psm1<br/>- Composizione avvio snello <= 50.000 caratteri (livelli a richiesta)<br/>- Proiezione task attivi e memoria essenziale<br/>- Compattazione conservativa per hash (SYS05)"]
 
     PORTABLE["SecondBrain.Portable.psm1<br/>- Discovery e attivazione postazione (SYS03)<br/>- Check deterministico e Sync direttive (SYS04)<br/>- Mappatura configurazioni e profili IDE (SYS01)"]
 
@@ -92,7 +92,7 @@ flowchart TB
 
 ---
 
-## 3. Sequenza di Risoluzione Contesto e Avvio Agente (Avvio Snello 30.000 Caratteri)
+## 3. Sequenza di Risoluzione Contesto e Avvio Agente (Avvio Snello 50.000 Caratteri)
 
 Quando un coding agent opera all'interno di un repository satellite, risolve il contesto storico e i task dal dossier SecondBrain corrispondente tramite `scripts/prompts.ps1 -Context` o `scripts/knowledge.ps1 -Startup`:
 
@@ -116,7 +116,7 @@ sequenceDiagram
     KnowledgeMod->>TrackerMod: Ottieni task pronti (-ReadyOnly)
     TrackerMod-->>KnowledgeMod: Grafo task filtrato senza blocchi
     KnowledgeMod->>KnowledgeMod: Aggrega index.md + context.md + memory.md + task
-    KnowledgeMod->>KnowledgeMod: Verifica rispetto al tetto del primo caricamento (<= 30.000 caratteri)
+    KnowledgeMod->>KnowledgeMod: Verifica rispetto al tetto del primo caricamento (<= 50.000 caratteri)
     alt Budget rispettato
         KnowledgeMod-->>PromptsCLI: Pacchetto di avvio strutturato
     else Budget superato

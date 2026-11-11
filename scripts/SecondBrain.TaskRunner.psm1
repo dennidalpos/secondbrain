@@ -74,6 +74,10 @@ function Get-SBRunnerExclusionReason($Task){
     if($stream -in $script:SBRunnerExcludedStreams){return "stream:$stream"}
     $awaiting=Get-SBRunnerValue $ext 'awaiting'
     if($awaiting -and $awaiting -notin @('structural-completion')){return "awaiting:$awaiting"}
+    # Computer use needs an attended session: `claude -p` cannot approve apps, and no IDE documents a persistent pre-approval for it (Codex on Windows aside).
+    # A task that declares extensions.requires=computer-use is left for an attended session instead of failing midway.
+    $requires=@(Get-SBRunnerValue $ext 'requires'|Where-Object {$_}|ForEach-Object {[string]$_})
+    if('computer-use' -in $requires){return 'requires:computer-use'}
     $null
 }
 function Test-SBRunnableTask($Task){

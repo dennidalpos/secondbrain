@@ -53,7 +53,7 @@ try {
             if($parallel){
                 # Portable's extended checks use an independent fixture. Run them
                 # alongside the remaining groups; Sequential keeps the original order.
-                $specs=@($extras|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
+                $specs=@($extras|Where-Object {$_ -ne 'concurrency'}|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
                 $specs+=@{key='essential-portable';file=(Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1');arguments=@('-Groups','portable','-Extended')}
                 $groups=@($groups|Where-Object {$_ -ne 'portable'})
                 $jobs=@($specs|ForEach-Object {
@@ -65,7 +65,8 @@ try {
                         [pscustomobject]@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;output=$output}
                     }
                 })
-                $extras=@()
+                # concurrency measures lock contention and failed under the load of the parallel suites (#431): it runs alone after them.
+                $extras=@($extras|Where-Object {$_ -eq 'concurrency'})
             }
             try{
                 if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}

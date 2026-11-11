@@ -73,7 +73,7 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Profile Full -NoRecovery
 pwsh -NoProfile -File scripts/knowledge.ps1 -Search "terms" -NoRecovery
 ~~~
 
-Slim composes index, essential context/memory, explicitly selected TaskIds and references to deeper layers. Its first-load default is 30,000 characters, not tokens. Without TaskIds it does not include tasks. Full has no default budget; search separately defaults to 20 matches and 10,000 characters, with paging/overrides.
+Slim composes index, essential context/memory, explicitly selected TaskIds and references to deeper layers. Its first-load default is 50,000 characters, not tokens. Without TaskIds it does not include tasks. Full has no default budget; search separately defaults to 20 matches and 10,000 characters, with paging/overrides.
 
 Selection keeps whole blocks in deterministic order. If the essential minimum exceeds budget, report withinBudget=false/minimumCharacters rather than dropping essentials. PreviousRevision can suppress repeated unchanged parts. After the first package, load relevant sections/task/history through the documented commands; the initial ceiling is not a permanent conversation cap.
 

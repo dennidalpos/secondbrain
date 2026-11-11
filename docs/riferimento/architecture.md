@@ -38,7 +38,7 @@ The exact current decomposition is in scripts/SecondBrain.*.psm1. The brain may 
 
 Resolve checkout identity from Git/bindings, map it through PARA and verify repository.json. Its declared tracker is authoritative; missing/invalid data is an error.
 
-prompts Context resolves paths. knowledge Startup builds index, context, essential memory, selected tasks and references to deeper levels. Slim defaults to 30,000 characters on first load; without TaskIds it does not include task details. Full has no default budget. Insufficient essential budget reports minimumCharacters/withinBudget rather than silently dropping essential content.
+prompts Context resolves paths. knowledge Startup builds index, context, essential memory, selected tasks and references to deeper levels. Slim defaults to 50,000 characters on first load; without TaskIds it does not include task details. Full has no default budget. Insufficient essential budget reports minimumCharacters/withinBudget rather than silently dropping essential content.
 
 PreviousRevision can suppress unchanged parts. Search uses separate paging/budget defaults. Complete historical evidence is loaded only when pertinent.
 

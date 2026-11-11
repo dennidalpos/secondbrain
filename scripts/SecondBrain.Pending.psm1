@@ -241,9 +241,15 @@ function Get-SBPendingWrites([string]$BrainRoot) {
     }
 }
 
+function Get-SBPendingSubmitWaitMs {
+    # Bounded wait of a submission drain: SECONDBRAIN_PENDING_WAIT_SECONDS (0-120), default 8 s.
+    if($env:SECONDBRAIN_PENDING_WAIT_SECONDS -match '^\d{1,3}$'){return [Math]::Min([int]$env:SECONDBRAIN_PENDING_WAIT_SECONDS,120)*1000}
+    8000
+}
+
 function Invoke-SBPendingWrites {
     [CmdletBinding()]
-    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId)
+    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId,[ValidateRange(0,600000)][int]$WaitMs=0)
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     if($clock){$Diagnostics.lockAttemptMs=0.0;$Diagnostics.lockAttempts=0}
     try {
@@ -279,7 +285,8 @@ function Invoke-SBPendingWrites {
         $scope=$null;$sourceLease=$null
         try{
             if($clock){$lockStart=$clock.Elapsed.TotalMilliseconds;$Diagnostics.lockAttempts++}
-            try{$scope=Enter-SBOperation $Config -SessionId $SessionId -WaitMs 0}
+            # Startup flushes never wait (WaitMs 0); submissions and -FlushPending wait a bounded time so concurrent tasks do not leave requests deferred.
+            try{$scope=Enter-SBOperation $Config -SessionId $SessionId -WaitMs $WaitMs}
             finally{if($clock){$Diagnostics.lockAttemptMs+=$clock.Elapsed.TotalMilliseconds-$lockStart}}
             # Another importer may have completed this request while we acquired the lock.
             if(Test-Path -LiteralPath $entry.receiptPath){$summary.pending--;continue}
@@ -383,7 +390,7 @@ function Invoke-SBPendingWrites {
 function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[hashtable]$Diagnostics,[switch]$OnlySubmission) {
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     try {
-    $drainOptions=@{BrainRoot=$Config.brainRoot;Config=$Config;SessionId=$SessionId;Diagnostics=$Diagnostics}
+    $drainOptions=@{BrainRoot=$Config.brainRoot;Config=$Config;SessionId=$SessionId;Diagnostics=$Diagnostics;WaitMs=(Get-SBPendingSubmitWaitMs)}
     if($OnlySubmission){$drainOptions.RequestId=$Submission.id}
     $drain=Invoke-SBPendingWrites @drainOptions
     $paths=Get-SBPendingPaths $Config.brainRoot

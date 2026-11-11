@@ -10,7 +10,7 @@ Da usare a inizio sessione, prima di pianificare o di scegliere il prossimo task
 </inputs>
 <procedure>
 1. Risolvi il dossier di questo repository da `para.json` e `repository.json`; leggi `index.md`.
-2. Carica contesto sintetico, memoria essenziale e proiezione dei task aperti nel profilo snello (30.000 caratteri, solo primo caricamento); chiedi il resto con `knowledge.ps1 -Startup -Profile Full` o `-Search`.
+2. Carica contesto sintetico, memoria essenziale e proiezione dei task aperti nel profilo snello (50.000 caratteri, solo primo caricamento); chiedi il resto con `knowledge.ps1 -Startup -Profile Full` o `-Search`.
 3. Leggi la fonte autorevole del tracker dichiarata da `repository.json`, senza ripiego; non creare stub o memorie ridondanti.
 4. Raggruppa i task per stato (aperti, in corso, bloccati, chiusi); per ogni task aperto riassumi l'obiettivo, il problema reale che risolve, i criteri di accettazione e le dipendenze bloccanti; ordina per priorità e mostra quali task sono pronti e quali attendono di essere sbloccati.
 5. Per misurare il pacchetto esegui `knowledge.ps1 -Startup -Report` (caratteri per parte, saturazione, peso delle direttive); se supera il tetto pianifica SYS05.

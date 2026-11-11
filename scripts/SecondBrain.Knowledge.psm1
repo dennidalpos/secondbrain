@@ -364,7 +364,7 @@ function New-SBStartupPackage {
       parts=$parts;loadedParts=@($parts.Keys|Sort-Object);omittedParts=@($omitted);taskSource=$tracker.path;originalsTruncated=$false;unit='characters-not-tokens'}
 }
 # Initial loading limit (Slim profile): single source for knowledge.ps1 -Startup and secondbrain.ps1 -Check.
-function Get-SBSlimStartupBudget { 30000 }
+function Get-SBSlimStartupBudget { 50000 }
 # Read-only compaction advice: hard when the Slim package exceeds the limit, soft when near it or when many turns have elapsed
 # since the last compaction. Never compacts automatically: application remains on request (SYS05).
 function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[int]$SoftPercent=80,[int]$SoftTurns=50,[int]$SoftTurnsPercent=60) {
@@ -796,7 +796,7 @@ function Get-SBSection {
     @{repository=$record.identity;section=$Title;matchKind=$(if($exact.Count){'exact'}else{'partial'});count=$found.Count;matches=$found}
 }
 function Invoke-SBDossierCompaction {
-    param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=30000)
+    param([string]$BrainRoot,[string]$Dossier,[string]$CandidatePath,[string]$BackupRoot,[switch]$Apply,[string]$CheckoutPath,[int]$Budget=(Get-SBSlimStartupBudget))
     if([string]::IsNullOrWhiteSpace($Dossier)){throw (New-SBError 'knowledge.dossier.unspecified')}
     $root=[IO.Path]::GetFullPath($BrainRoot);$dir=[IO.Path]::GetFullPath($Dossier)
     [void](Assert-SBPlainPath $dir)
