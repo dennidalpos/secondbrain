@@ -25,9 +25,12 @@ For a workstation with existing state, `cleanup.ps1 -Migrate -LocalState` lists 
 ~~~powershell
 pwsh -NoProfile -File scripts/cleanup.ps1 -RuntimeReport
 pwsh -NoProfile -File scripts/cleanup.ps1 -ListRuntime
+pwsh -NoProfile -File scripts/cleanup.ps1 -CheckRuntime
 ~~~
 
 RuntimeReport without ReportPath prints a derived index. ReportPath .runtime/INDEX.md regenerates that view; another report target must be new and inside runtime. Neither inspection removes or moves data.
+
+CheckRuntime (read-only) verifies that every hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> folder has a schema-1 MANIFEST.json whose hostId, repository, category and name match its path. It lists folders out of schema with a reason code (repository-mismatch, host-mismatch, category-mismatch, name-mismatch, manifest-missing, manifest-invalid, unsupported-name, unknown-area, legacy-layout) and exits 1 if any; RuntimeReport shows the same list in its Out-of-schema section. Nothing is moved or removed.
 
 ## Work folders and sessions
 

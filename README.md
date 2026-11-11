@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 1.23.1](https://img.shields.io/badge/version-1.23.1-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.0.0](https://img.shields.io/badge/version-2.0.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 

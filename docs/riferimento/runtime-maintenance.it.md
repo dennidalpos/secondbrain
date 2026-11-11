@@ -39,6 +39,8 @@ Ogni cartella nuova ha un `MANIFEST.json`: schema, categoria, nome, data, host, 
 
 `cleanup.ps1 -RuntimeReport` aggiunge all'indice due sezioni in sola lettura: **Livelli annidati** (le cartelle sotto `hosts/<id>/repos`, con categoria e conformità del nome) e **Cartelle legacy**, cioè le cartelle di primo livello fuori dalle voci gestite (`work-<data>-<slug>`, `t77`, `lotto-*`, …) e `hosts/<id>/repositories/…`, ciascuna con la destinazione proposta nel nuovo layout. ``cleanup.ps1 -Migrate` ne prepara lo spostamento: in anteprima elenca ogni mossa (origine, destinazione, byte), con `-Apply -Authorization "<richiesta>"` sposta solo con rinomina nello stesso volume, scrive il `MANIFEST.json` per work/evidence/report e un registro in `.runtime/cleanup/migrate-*.json`; salta cartelle recenti, reparse point e destinazioni già esistenti. La proposta di pulizia (`-ProposeRuntime`) elenca le stesse legacy e valuta le cartelle annidate di lavoro oltre soglia; le prove (`evidence`, `report`) non sono mai candidate.
 
+`cleanup.ps1 -CheckRuntime` controlla in sola lettura che ogni cartella `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` abbia un `MANIFEST.json` di schema 1 con postazione, repository, categoria e nome uguali al percorso; elenca le cartelle fuori schema con un codice di motivo (`repository-mismatch`, `host-mismatch`, `category-mismatch`, `name-mismatch`, `manifest-missing`, `manifest-invalid`, `unsupported-name`, `unknown-area`, `legacy-layout`) ed esce 1 se ne trova. Lo stesso elenco compare nella sezione **Cartelle fuori schema** di `-RuntimeReport`. Non sposta né rimuove nulla.
+
 ## Routine di manutenzione (una volta al mese)
 
 ```powershell

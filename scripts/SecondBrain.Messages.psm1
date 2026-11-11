@@ -107,6 +107,13 @@ Add-SBMessages @{
     'core.runtime.reason.foreign-owner' = @{ it = 'manifest di un altro proprietario: dati conservati'; en = 'manifest belongs to another owner: data retained' }
     'core.runtime.reason.manifest-missing' = @{ it = 'MANIFEST.json assente: dati conservati'; en = 'MANIFEST.json missing: data retained' }
     'core.runtime.reason.manifest-invalid' = @{ it = 'manifest illeggibile, non supportato o incoerente con il percorso'; en = 'manifest unreadable, unsupported or inconsistent with its path' }
+    'core.runtime.reason.unknown-area' = @{ it = 'area sconosciuta sotto repos/<repo>: attese work, evidence, report, fixture, tmp o temp'; en = 'unknown area under repos/<repo>: expected work, evidence, report, fixture, tmp or temp' }
+    'core.runtime.reason.unsupported-name' = @{ it = 'nome di cartella fuori dalla forma <yyyyMMdd>-<slug>'; en = 'folder name outside the <yyyyMMdd>-<slug> form' }
+    'core.runtime.reason.repository-mismatch' = @{ it = 'il manifest dichiara un repository diverso dal segmento del percorso'; en = 'the manifest declares a repository different from the path segment' }
+    'core.runtime.reason.host-mismatch' = @{ it = 'il manifest dichiara una postazione diversa dal percorso'; en = 'the manifest declares a workstation different from the path' }
+    'core.runtime.reason.category-mismatch' = @{ it = 'il manifest dichiara una categoria diversa dal percorso'; en = 'the manifest declares a category different from the path' }
+    'core.runtime.reason.name-mismatch' = @{ it = 'il manifest dichiara un nome diverso dalla cartella'; en = 'the manifest declares a name different from the folder' }
+    'core.runtime.reason.legacy-layout' = @{ it = 'cartella precedente al layout annidato (riordino con cleanup.ps1 -Migrate)'; en = 'folder predates the nested layout (reorganize with cleanup.ps1 -Migrate)' }
     'core.runtime.reason.manifest-not-closed' = @{ it = 'manifest non chiuso: dati conservati'; en = 'manifest is not closed: data retained' }
     'core.runtime.reason.manifest-expiry-invalid' = @{ it = 'scadenza del manifest assente o non valida'; en = 'manifest expiry missing or invalid' }
     'core.runtime.reason.manifest-not-expired' = @{ it = 'scadenza non trascorsa (il giorno di scadenza e incluso)'; en = 'expiry has not passed (the expiry day is included)' }

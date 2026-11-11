@@ -15,6 +15,8 @@ protection (configuration, workstation registry, access), category (protected, e
 It is not an executable manifest and removes nothing. -ProposalPath saves the proposal (a new file under .runtime, never overwritten).
 -RuntimeReport (read-only) produces a readable Markdown index of .runtime: entries sorted by category and size, their writers, references and recovery instructions.
 -ReportPath saves it to a new .md file under .runtime (never overwritten) or regenerates .runtime/INDEX.md, a derived view with no independent data. Removes nothing.
+-CheckRuntime (read-only) checks that every hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> folder has a schema-1 MANIFEST.json whose hostId, repository, category and name match its path,
+and reports folders out of schema (unknown areas, non-conforming names, missing or inconsistent manifests, legacy layout) with a reason code; exits 1 if any. Moves or removes nothing.
 -Migrate previews (without -Apply) or applies (with -Apply and -Authorization) the move into the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>:
 flat work/evidence/report folders, host-level evidence/report folders, duplicate repository segments, non-conforming names, backup-<date>-* folders (hosts/<id>/install-backups),
 backup/* into backups/*, root *.log into logs/. Rename on the same volume only (no copies, no content deletion); writes MANIFEST.json for work/evidence/report folders;
@@ -31,7 +33,7 @@ junctions/symlinks; rechecks eligibility and content hashes before each removal,
 No backup (recreated with the owning suite/command), but records a .runtime/cleanup journal with entries, sizes, outcomes and recovery instructions.
 #>
 [CmdletBinding()]
-param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[switch]$LocalState,[switch]$ListInstallBackups,[ValidateRange(1,3650)][int]$InstallBackupDays=7,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
+param([string]$ConfigPath,[string]$SessionId,[switch]$Apply,[string]$ManifestPath,[string]$Authorization,[switch]$ListStageRecords,[switch]$ListRuntime,[switch]$ProposeRuntime,[switch]$RuntimeReport,[switch]$CheckRuntime,[string]$ReportPath,[switch]$Regenerable,[switch]$Migrate,[switch]$LocalState,[switch]$ListInstallBackups,[ValidateRange(1,3650)][int]$InstallBackupDays=7,[string]$Repository='github.com/dennidalpos/secondbrain',[ValidateRange(0,1000)][int]$KeepFixtures=5,[ValidateRange(0,10080)][int]$MinAgeMinutes=10,[string]$ProposalPath,[ValidateRange(1,3650)][int]$OlderThanDays=90)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
@@ -57,7 +59,7 @@ Add-SBMessages @{
 # Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }
 if($LocalState){
-    if(!$Migrate -or $Apply -or $ListInstallBackups -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $ManifestPath -or $ReportPath -or $ProposalPath){throw (New-SBError 'cleanup.state.preview')}
+    if(!$Migrate -or $Apply -or $ListInstallBackups -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $CheckRuntime -or $ManifestPath -or $ReportPath -or $ProposalPath){throw (New-SBError 'cleanup.state.preview')}
     if(!$env:SECONDBRAIN_STATE_ROOT){throw (New-SBError 'cleanup.state.override')}
     $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     $hostId=Get-SBHostId
@@ -76,7 +78,7 @@ if($LocalState){
     ConvertTo-SBJson @{scope='local-state-preview';applied=$false;hostId=$hostId;source=$legacyRoot;destination=$stateRoot;files=@($files);repositoryData=(Join-Path $legacyRoot 'repos');repositoryAction='retain';pythonAction='recreate-from-lock';coordination=(Join-Path $brain '.runtime/access')}
     exit 0
 }
-if($ListInstallBackups -and ($Apply -or $Migrate -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $ManifestPath -or $ReportPath -or $ProposalPath)){throw (New-SBError 'cleanup.install.preview')}
+if($ListInstallBackups -and ($Apply -or $Migrate -or $Regenerable -or $ListRuntime -or $ProposeRuntime -or $ListStageRecords -or $RuntimeReport -or $CheckRuntime -or $ManifestPath -or $ReportPath -or $ProposalPath)){throw (New-SBError 'cleanup.install.preview')}
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:($ListInstallBackups)
 if($ListInstallBackups){
     $root=Join-Path $config.localStateRoot 'install-backups'
@@ -101,7 +103,7 @@ if($ListInstallBackups){
 $operation=Enter-SBOperation $config $SessionId -ReadOnly:(!$Apply -and !($RuntimeReport -and $ReportPath))
 try {
     if($Migrate){
-        if($Regenerable -or $ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
+        if($Regenerable -or $ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport -or $CheckRuntime){throw (New-SBError 'cleanup.regenerable.exclusive')}
         $segment=Get-SBRuntimeRepoSegment $Repository
         $plan=Get-SBRuntimeMigrationPlan $config.brainRoot $config.workstationId $segment $MinAgeMinutes
         $summary=@{applied=$false;scope='runtime-migrate';hostId=$config.workstationId;segment=$segment;moves=@($plan.moves);skipped=@($plan.skipped);files=$plan.files;bytes=$plan.bytes}
@@ -124,7 +126,7 @@ try {
         exit $(if($result.failed.Count){1}else{0})
     }
     if($Regenerable){
-        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){throw (New-SBError 'cleanup.regenerable.exclusive')}
+        if($ManifestPath -or $ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport -or $CheckRuntime){throw (New-SBError 'cleanup.regenerable.exclusive')}
         $protectedRoots=@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)
         # Resolve from the OS, never from a manifest or an arbitrary host configuration.
         $identity=@{HostId=(Get-SBHostId);OwnerUser=([Security.Principal.WindowsIdentity]::GetCurrent().Name -split '\\')[-1];OwnerComputer=[Environment]::MachineName}
@@ -160,13 +162,19 @@ try {
         ConvertTo-SBJson $summary
         exit $(if($failures.Count -or $changed.Count){1}else{0})
     }
-    if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport){
-        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport)|Where-Object {$_}).Count -gt 1){throw (New-SBError 'cleanup.modes.exclusive')}
+    if($ListStageRecords -or $ListRuntime -or $ProposeRuntime -or $RuntimeReport -or $CheckRuntime){
+        if((@($ListStageRecords,$ListRuntime,$ProposeRuntime,$RuntimeReport,$CheckRuntime)|Where-Object {$_}).Count -gt 1){throw (New-SBError 'cleanup.modes.exclusive')}
         if($Apply -or $ManifestPath){throw (New-SBError 'cleanup.readonly.modes')}
         # All known backupRoot locations: the current one and those of workstations registered under .runtime.
         $stageRoots=@($config.backupRoot)
         $registry=Read-SBJson (Join-Path $config.coordinationRoot 'workstations.json') @{}
         foreach($station in $registry.Values){if($station -is [Collections.IDictionary] -and $station.ContainsKey('backupRoot') -and $station.backupRoot){try{$stageRoots+=Assert-SBCentralDataPath $config.brainRoot $station.backupRoot}catch { Write-Verbose $_.Exception.Message }}}
+        if($CheckRuntime){
+            $retention=Get-SBRuntimeRetention $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
+            $ownership=Get-SBRuntimeOwnership $config.brainRoot $retention.nested $retention.legacy
+            ConvertTo-SBJson @{scope='runtime-ownership-check';applied=$false;passed=($ownership.outOfSchemaCount -eq 0);checked=$ownership.checked;owned=$ownership.owned;outOfSchemaCount=$ownership.outOfSchemaCount;byReason=$ownership.byReason;outOfSchema=$ownership.outOfSchema}
+            exit $(if($ownership.outOfSchemaCount){1}else{0})
+        }
         if($RuntimeReport){
             $index=Get-SBRuntimeIndex $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
             if($ReportPath){

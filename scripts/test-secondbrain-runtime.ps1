@@ -197,6 +197,50 @@ Assert-Runtime (!$outcome.removed -and (Test-Path -LiteralPath $protected)) 'pro
 $selected=Get-SafeTarget $tmp
 $outcome=Remove-SafeTarget $selected
 Assert-Runtime ($outcome.removed -and !(Test-Path -LiteralPath $tmp)) 'target tmp invariato rimosso solo nella fixture sintetica'
+# Ownership check (#477): a work folder belongs to the repository, host, category and name declared by its manifest.
+$ownBrain=Join-Path $root 'ownership';$ownRuntime=Join-Path $ownBrain '.runtime'
+function New-OwnFolder([string]$Relative,[hashtable]$Overrides=@{},[switch]$NoManifest){
+    $path=Join-Path $ownRuntime $Relative;[IO.Directory]::CreateDirectory($path)|Out-Null
+    $parts=$Relative -split '/'
+    if(!$NoManifest){
+        $record=@{schemaVersion=1;hostId=$parts[1];repository=$parts[3];category=$parts[4];name=$parts[5];owner=@{user='fixture-user';computer='fixture-pc'};status='open';expires='2099-01-01'}
+        foreach($key in $Overrides.Keys){$record[$key]=$Overrides[$key]}
+        Write-RuntimeFixture (Join-Path $path 'MANIFEST.json') (ConvertTo-SBJson $record)
+    }
+    Write-RuntimeFixture (Join-Path $path 'data.txt') 'own'
+    $path
+}
+$ownBase='hosts/'+$hostId+'/repos/'+$segment
+$null=New-OwnFolder ($ownBase+'/work/20261101-ok')
+$null=New-OwnFolder ($ownBase+'/temp') -NoManifest
+$null=New-OwnFolder ($ownBase+'/work/20261101-foreign') @{repository='other-0f0f0f0f'}
+$null=New-OwnFolder ($ownBase+'/evidence/20261101-host') @{hostId='ws-ffffffffffffffff'}
+$null=New-OwnFolder ($ownBase+'/report/20261101-cat') @{category='work'}
+$null=New-OwnFolder ($ownBase+'/work/20261101-name') @{name='20261101-other'}
+$null=New-OwnFolder ($ownBase+'/tmp/20261101-nomanifest') -NoManifest
+$null=New-OwnFolder ($ownBase+'/fixture/20261101-bad') @{schemaVersion=2}
+$null=New-OwnFolder ($ownBase+'/work/Bad Name') -NoManifest
+$null=New-OwnFolder ($ownBase+'/masked-http-x') -NoManifest
+$null=New-OwnFolder 'work-20261101-flat' -NoManifest
+$ownBefore=@(Get-ChildItem -LiteralPath $ownRuntime -Recurse -Force -File|ForEach-Object {$_.FullName+"|"+(Get-SBFileHash $_.FullName)})
+$ownReport=Get-SBRuntimeRetention $ownBrain @() 90
+$own=Get-SBRuntimeOwnership $ownBrain $ownReport.nested $ownReport.legacy
+$codeOf={param([string]$Leaf) @($own.outOfSchema|Where-Object {$_.path -like ('*'+$Leaf)}|ForEach-Object reasonCode)}
+Assert-Runtime ($own.owned -eq 2 -and !(& $codeOf '20261101-ok')) 'cartella con manifest coerente e area temp appartengono al repository'
+Assert-Runtime ((& $codeOf '20261101-foreign') -ceq 'repository-mismatch') 'repository del manifest diverso dal segmento: fuori schema'
+Assert-Runtime ((& $codeOf '20261101-host') -ceq 'host-mismatch') 'postazione del manifest diversa dal percorso'
+Assert-Runtime ((& $codeOf '20261101-cat') -ceq 'category-mismatch') 'categoria del manifest diversa dal percorso'
+Assert-Runtime ((& $codeOf '20261101-name') -ceq 'name-mismatch') 'nome del manifest diverso dalla cartella'
+Assert-Runtime ((& $codeOf '20261101-nomanifest') -ceq 'manifest-missing') 'manifest assente segnalato'
+Assert-Runtime ((& $codeOf '20261101-bad') -ceq 'manifest-invalid') 'schema del manifest non supportato'
+Assert-Runtime ((& $codeOf 'Bad Name') -ceq 'unsupported-name') 'nome non conforme segnalato'
+Assert-Runtime ((& $codeOf 'masked-http-x') -ceq 'unknown-area') 'area sconosciuta sotto repos/<repo> segnalata'
+Assert-Runtime ((& $codeOf 'work-20261101-flat') -ceq 'legacy-layout') 'cartella piatta segnalata come layout legacy'
+Assert-Runtime ($own.outOfSchemaCount -eq 9 -and $own.byReason.Count -eq 9) 'rapporto con un motivo per ogni cartella fuori schema'
+$ownIndex=Get-SBRuntimeIndex $ownBrain @() 90
+Assert-Runtime ($ownIndex.markdown -match '## Cartelle fuori schema' -and $ownIndex.markdown -match 'repository-mismatch' -and $ownIndex.ownership.outOfSchemaCount -eq 9) 'indice di .runtime con la sezione delle cartelle fuori schema'
+$ownAfter=@(Get-ChildItem -LiteralPath $ownRuntime -Recurse -Force -File|ForEach-Object {$_.FullName+'|'+(Get-SBFileHash $_.FullName)})
+Assert-Runtime ($ownBefore.Count -eq 17 -and ($ownBefore -join ';') -ceq ($ownAfter -join ';')) 'controllo in sola lettura: nessun file creato o rimosso'
 # Test-runner fixture lifecycle: managed manifest opens with the run, closes on every outcome and is selected only after expiry.
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
 $runnerIdentity=@{HostId=$hostId;OwnerUser="$env:USERNAME";OwnerComputer="$env:COMPUTERNAME"}

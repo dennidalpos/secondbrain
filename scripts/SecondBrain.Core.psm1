@@ -509,6 +509,32 @@ function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
     }
     $legacy
 }
+# Read-only ownership check of hosts/<id>/repos/<repo>/<category>/<folder>: each work folder must carry a schema-1 MANIFEST.json
+# whose hostId, repository segment, category and name match its path. Legacy and unknown areas are reported as out of schema.
+function Get-SBRuntimeOwnership([string]$BrainRoot,$Nested,$Legacy) {
+    $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
+    $out=[Collections.Generic.List[object]]::new();$owned=0;$checked=0
+    $add={param([string]$Path,[string]$Repo,[string]$Code) $out.Add(@{path=$Path;repo=$Repo;reasonCode=$Code;reason=(Get-SBMessage ('core.runtime.reason.'+$Code))})}
+    foreach($entry in @($Nested)){
+        $checked++
+        if($entry.area -ceq 'temp'){$owned++;continue}
+        if($entry.area -cnotin @('work','evidence','report','fixture','tmp')){& $add $entry.path $entry.repo 'unknown-area';continue}
+        $name=Split-Path $entry.path -Leaf
+        if($name -cnotmatch '^\d{8}-[a-z0-9][a-z0-9-]*$'){& $add $entry.path $entry.repo 'unsupported-name';continue}
+        $manifestPath=Join-Path (Join-Path $runtime $entry.path) 'MANIFEST.json'
+        if(![IO.File]::Exists($manifestPath)){& $add $entry.path $entry.repo 'manifest-missing';continue}
+        $manifest=$null;try{$manifest=Read-SBJson $manifestPath $null}catch{Write-Verbose $_.Exception.Message}
+        if($manifest -isnot [Collections.IDictionary] -or $manifest.schemaVersion -ne 1 -or @(@('hostId','repository','category','name')|Where-Object {!$manifest.ContainsKey($_) -or $manifest[$_] -isnot [string]}).Count){& $add $entry.path $entry.repo 'manifest-invalid';continue}
+        if($manifest.repository -cne $entry.repo){& $add $entry.path $entry.repo 'repository-mismatch';continue}
+        if($manifest.hostId -cne $entry.host){& $add $entry.path $entry.repo 'host-mismatch';continue}
+        if($manifest.category -cne $entry.area){& $add $entry.path $entry.repo 'category-mismatch';continue}
+        if($manifest.name -cne $name){& $add $entry.path $entry.repo 'name-mismatch';continue}
+        $owned++
+    }
+    foreach($entry in @($Legacy)){$checked++;& $add $entry.path.TrimEnd('/') '' 'legacy-layout'}
+    $byReason=[ordered]@{};foreach($group in @($out|Group-Object {$_.reasonCode}|Sort-Object Name)){$byReason[$group.Name]=$group.Count}
+    @{checked=$checked;owned=$owned;outOfSchemaCount=$out.Count;byReason=$byReason;outOfSchema=@($out|Sort-Object {$_.path})}
+}
 # Readable .runtime index (read-only): top-level entries sorted by category, then size, with writers and recovery instructions.
 function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90) {
     $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
@@ -550,8 +576,17 @@ function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[in
         $lines+=@('','## Cartelle legacy (spostamento proposto, non eseguito)','','Precedono il layout annidato. Questa vista non sposta, non rinomina e non rimuove nulla: `<id>` e `<repo>` vanno risolti prima di un eventuale spostamento deciso dall''utente.','','| Cartella | Tipo | Dimensione | File | Ultima scrittura | Destinazione proposta |','|---|---|---:|---:|---|---|')
         foreach($l in @($report.legacy|Sort-Object path)){$lines+='| `'+$l.path+'` | '+$l.kind+' | '+(& $format $l.bytes)+' | '+$l.files+' | '+$l.newestWriteUtc.Substring(0,10)+' | `'+$l.suggestedPath+'` |'}
     }
+    $ownership=Get-SBRuntimeOwnership $BrainRoot $report.nested $report.legacy
+    if($ownership.outOfSchemaCount){
+        $lines+=@('','## Cartelle fuori schema','',('Controllo di appartenenza (`cleanup.ps1 -CheckRuntime`): '+$ownership.outOfSchemaCount+' cartelle su '+$ownership.checked+' non hanno un MANIFEST.json coerente con postazione, repository, categoria e nome del percorso. Nulla è stato spostato o rimosso.'),'','| Motivo | Cartelle |','|---|---:|')
+        foreach($key in $ownership.byReason.Keys){$lines+='| '+$key+' — '+(Get-SBMessage ('core.runtime.reason.'+$key))+' | '+$ownership.byReason[$key]+' |'}
+        $shown=@($ownership.outOfSchema|Select-Object -First 50)
+        $lines+=@('','| Cartella | Motivo |','|---|---|')
+        foreach($o in $shown){$lines+='| `'+$o.path+'/` | '+$o.reasonCode+' |'}
+        if($ownership.outOfSchemaCount -gt $shown.Count){$lines+=('','Elenco completo: `cleanup.ps1 -CheckRuntime` ('+($ownership.outOfSchemaCount-$shown.Count)+' cartelle non mostrate).')}
+    }
     if($details.Count){$lines+=@('','## Dettaglio delle voci grandi')+$details}
-    @{markdown=($lines -join "`n")+"`n";entries=$report.entries;totalBytes=$report.totalBytes;byCategory=$report.byCategory;nested=$report.nested;legacy=$report.legacy}
+    @{markdown=($lines -join "`n")+"`n";entries=$report.entries;totalBytes=$report.totalBytes;byCategory=$report.byCategory;nested=$report.nested;legacy=$report.legacy;ownership=$ownership}
 }
 # Read-only .runtime cleanup proposal, NOT an executable manifest. Lists candidate folders with size, age, references and recovery instructions.
 function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90,[int]$KeepFixtures=5) {
@@ -1324,6 +1359,7 @@ Export-ModuleMember -Function @(
     'Get-SBStageRetention',
     'Get-SBRuntimeRetention',
     'Get-SBRuntimeIndex',
+    'Get-SBRuntimeOwnership',
     'Get-SBRuntimeCleanupProposal',
     'Get-SBRegenerableRuntimeTargets',
     'Remove-SBRegenerableRuntimeTarget',

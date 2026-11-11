@@ -2,7 +2,26 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.23.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.0.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.0.0] - 2026-11-12
+
+### Rimosso (incompatibile)
+- Letture tra progetti: `crossProjectReads` in `config/shared.json`, `extensions.readRepositories` dei task e `SECONDBRAIN_RUNNER_READS` non esistono più; ogni repository legge e scrive solo il proprio dossier (#475).
+
+### Modificato (incompatibile)
+- Letture pure: `knowledge.ps1`, `prompts.ps1`, `secondbrain.ps1 -Check` e il server MCP non integrano più le scritture accodate; il recupero avviene solo con `knowledge.ps1 -FlushPending`, limitato al dossier in lavoro. Tutti gli strumenti MCP tranne `submit_dossier_write` dichiarano `readOnlyHint=true` (#474).
+- `03-resources` è tracciato in Git (metadati, trascrizioni, evidenze delle fonti riusabili), esclusi gli originali scaricabili e gli screenshot QA; `resources.ps1 -Restore` e `-Sync` ripristinano gli originali con verifica SHA-256. `check-distribution` controlla originali e licenze (#478).
+
+### Aggiunto
+- Gruppo di test `cleanclone` (Full e CI): attivazione da un clone pulito (#479).
+- Gruppo di test `lint` (`-Only lint`, incluso in `-Full`); rilievi ammessi documentati in `PSScriptAnalyzerSettings.psd1`.
+- `cleanup.ps1 -CheckRuntime` (sola lettura): ogni cartella `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` deve avere un `MANIFEST.json` coerente con postazione, repository, categoria e nome; elenca le cartelle fuori schema con il motivo ed esce 1 se ne trova. `-RuntimeReport` aggiunge la sezione «Cartelle fuori schema» (`Get-SBRuntimeOwnership`, #477).
+
+### Corretto
+- `Invoke-SBPendingWrites -Repository` integra solo le richieste del dossier indicato; le voci differite riportano il proprio repository (#473).
+- Lint: catch vuoti registrati con `Write-Verbose`, assegnazioni inutilizzate e confronti con null corretti (rilievi da 160 a 107).
+- `app/orchestrator`: la coda non preseleziona alcun task (#517); vite 6.4.6 azzera il rilievo di npm audit (#518).
 
 ## [1.23.1] - 2026-11-11
 
