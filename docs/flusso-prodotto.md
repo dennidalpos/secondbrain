@@ -16,7 +16,7 @@ Use chat conventions or the same PowerShell scripts. Run central scripts from th
 | Close authorized work | `sb prompt MEM03` | Update permitted tracker/context/memory, then Sync and Check |
 | Compact only when necessary | `sb compatta` | `knowledge.ps1 -Compact -CandidatePath <file>`; inspect before Apply |
 
-Add `-NoRecovery` to knowledge lookups when writes are prohibited. Without it, lookups may process previously authorized pending writes. Audits that propose tracker changes leave the tracker unchanged; do not close a task simply because some code exists.
+Knowledge lookups never write; pending writes are integrated only by an explicit `knowledge.ps1 -FlushPending`. Audits that propose tracker changes leave the tracker unchanged; do not close a task simply because some code exists.
 
 ## Show the current next step
 

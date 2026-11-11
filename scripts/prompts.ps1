@@ -53,8 +53,7 @@ Add-SBMessages @{
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $lock=$null
 try {
-    $pendingWrites=Invoke-SBPendingWrites -BrainRoot $brain -ConfigPath $ConfigPath -SessionId $SessionId
-    if($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingWrites))}
+    # #474: prompt reads never integrate pending writes (knowledge.ps1 -FlushPending does).
     # Memory discovery must remain available even if the prompt catalog is broken.
     if(!$Context){$catalog=Read-SBWorkflowCatalog $brain}
     if(!$ConfigPath -and $PSCmdlet.ParameterSetName -in @('Context','Compose')){

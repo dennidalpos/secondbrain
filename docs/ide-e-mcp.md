@@ -52,9 +52,9 @@ The server exposes eleven tools. The compact `tools/list` response (`id=2`) meas
 
 ## Reads may have side effects
 
-The server runs over stdio and does not listen on a network port. At startup and during lookups it can apply already-authorized queued dossier writes; the knowledge tools advertise readOnlyHint=false; preview_dossier_write advertises readOnlyHint=true, and submit_dossier_write requires a local approval receipt. Knowledge tools and the publication gate have distinct consent requirements.
+The server runs over stdio and does not listen on a network port. It never applies queued dossier writes at startup or during lookups; every tool advertises readOnlyHint=true except submit_dossier_write, which requires a local approval receipt. Knowledge tools and the publication gate have distinct consent requirements.
 
-For a strict no-recovery session start `mcp-server.ps1 -NoRecovery`. Per-call `noRecovery=true` only prevents recovery during that call, not startup recovery. The CLI equivalent for knowledge reads is `knowledge.ps1 -NoRecovery`.
+To forbid new writes for a session start `mcp-server.ps1 -NoRecovery`; per-call `noRecovery=true` forbids them for that call. Queued writes are integrated only by `knowledge.ps1 -FlushPending`.
 
 Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle and known limits](riferimento/memory-cycle.md#known-limits).
 

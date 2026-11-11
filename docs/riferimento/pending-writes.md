@@ -26,9 +26,13 @@ Configuration, directives, PARA operations and arbitrary attachments are outside
 
 ## Automatic integration
 
-Default MCP startup/lookups, knowledge reads, prompts.ps1 and Check attempt up to 10 requests per invocation. Each uses a short transaction. Busy centers leave requests pending while lookup continues. No extra periodic polling service is installed.
+Reads never write (#474): MCP startup and lookups, knowledge -Startup/-Tasks/-Task/-Section/-Search/-Roadmap/-PendingWrites, prompts.ps1 and secondbrain.ps1 -Check leave the queue and the dossier unchanged. Queued requests are integrated only by an explicit command, and only those of the dossier in work:
 
-Strict no-write policy also forbids persistence, queues and recovery. Use knowledge NoRecovery or start the server with NoRecovery. Per-call noRecovery cannot undo startup recovery.
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -FlushPending -CheckoutPath $checkout
+~~~
+
+-FlushPending waits for the writer lock (shared policy), takes -Repository or the checkout's repository and refuses to run without one; submit_dossier_write integrates its own reviewed request. No periodic polling service is installed. NoRecovery (CLI switch, MCP server switch or per-call noRecovery) is kept for compatibility: on the CLI it is a no-op for reads, on MCP it forbids new writes.
 
 Requests and receipts remain under .runtime/access/pending-writes and pending-receipts. Extended task.update requests use a task-update subdirectory; updated consumers also recognize compatible earlier layouts. Older consumers cannot apply the new extended operations. Separate Git clones do not share these ignored files.
 
@@ -52,7 +56,7 @@ Only conflict, invalid and invalid-receipt states are accepted; deferred and app
 
 ## MCP contract
 
-The eight original tools advertise readOnlyHint=false, destructiveHint=true, idempotentHint=false and openWorldHint=false. For the two reviewed-write tools, preview_dossier_write has readOnlyHint=true and destructiveHint=false; preview_dossier_write and submit_dossier_write both have idempotentHint=true. These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.
+Every tool advertises readOnlyHint=true, destructiveHint=false, idempotentHint=true and openWorldHint=false, except submit_dossier_write (readOnlyHint=false, destructiveHint=true, idempotentHint=true). These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.
 
 ApproveKnowledgeTools prepares named knowledge-tool consent; ApproveReadTools remains an alias. check_publication requires separate consent. No arbitrary shell is exposed. The two additional reviewed-write tools are documented in [MCP writes](mcp-writes.md); they do not inherit the existing named preauthorization scopes.
 

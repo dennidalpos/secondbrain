@@ -19,7 +19,7 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Profile Slim -NoRecovery -
 
 Run from the SecondBrain checkout; $project is the path selected in the quick start. In the isolated one-project run, Check exited with 0 and Startup returned profile=Slim and withinBudget=true. Your existing dossier can exceed the budget or have pending conflicts: read the actual issues before proceeding.
 
-Check may process previously authorized pending writes. Knowledge with NoRecovery does not perform that recovery. File alignment and actual loading in an agent session are different evidence.
+Check and knowledge lookups never process pending writes; only `knowledge.ps1 -FlushPending` does. File alignment and actual loading in an agent session are different evidence.
 
 ## Optional interactive setup
 

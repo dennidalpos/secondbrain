@@ -196,7 +196,7 @@ foreach($plan in $plans){
             if($code -lt 0){$state='crashed'}elseif($code -eq 0 -and [string]::IsNullOrWhiteSpace($outText)){$state='no-output'}
         }
         # Concurrent runners on other repositories can leave this task's dossier writes deferred: apply them now, waiting for the writer lock, so the status read below is current.
-        try{& pwsh -NoProfile -File $knowledge -FlushPending @configArgs *>$null}catch{[void]$_}
+        try{& pwsh -NoProfile -File $knowledge -FlushPending -CheckoutPath $checkout @configArgs *>$null}catch{[void]$_}
         $statusAfter=$null
         if($plan.source){$tr=Read-SBJson $plan.source $null;if($tr){$hit=@($tr.tasks|Where-Object {[string]$_.id -eq [string]$task.id});if($hit.Count -eq 1){$statusAfter=$hit[0].status}}}
         if(!$statusAfter){

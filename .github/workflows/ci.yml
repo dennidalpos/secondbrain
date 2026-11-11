@@ -43,6 +43,11 @@ jobs:
           & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/test-secondbrain.ps1 -Only quick
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
 
+      - name: Clean-clone activation (clone, Setup with -Roots, Startup, search)
+        run: |
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/test-secondbrain.ps1 -Only cleanclone
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
       - name: Prompt indexes match the catalog
         run: |
           & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/build-prompts.ps1 -Check

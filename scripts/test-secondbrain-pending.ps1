@@ -95,8 +95,14 @@ try {
     $init='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}'
     $mcpStderr=Join-Path $fixture 'mcp.stderr'
     $wire=$init|& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -BrainRoot $brain -ConfigPath $configPath 2> $mcpStderr
-    Assert-Pending ($LASTEXITCODE -eq 0 -and ($wire|ConvertFrom-Json).result.protocolVersion -eq '2025-03-26') 'MCP starts with the recovery contract and clean stdio'
-    Assert-Pending ((Read-SBJson $trackerPath $null).tasks[0].status -eq 'in_progress' -and (Read-SBText (Join-Path $dossier 'history/session/report.md')) -eq "Pending report`n") 'a later MCP startup integrates a terminated producer requests'
+    Assert-Pending ($LASTEXITCODE -eq 0 -and ($wire|ConvertFrom-Json).result.protocolVersion -eq '2025-03-26') 'MCP starts with the read-only contract and clean stdio'
+    Assert-Pending ((Read-SBJson $trackerPath $null).tasks[0].status -eq 'todo' -and !(Test-Path -LiteralPath (Join-Path $dossier 'history/session/report.md')) -and (Get-SBPendingWrites $brain|Where-Object id -eq $first.id).state -eq 'deferred') '#474: MCP startup leaves a terminated producer requests deferred'
+    foreach($readArgs in @(@('-Startup'),@('-Tasks'),@('-Search','Task'),@('-Task','T-1'),@('-PendingWrites'))){
+        $readOnlyRun=Invoke-PendingCli 'knowledge.ps1' (@('-CheckoutPath',$checkout)+$readArgs)
+        Assert-Pending ($readOnlyRun.code -eq 0 -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'todo' -and (Get-SBPendingWrites $brain|Where-Object id -eq $first.id).state -eq 'deferred') ('#474: knowledge '+($readArgs -join ' ')+' never integrates pending writes')
+    }
+    $explicitFlush=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-FlushPending')
+    Assert-Pending ($explicitFlush.code -eq 0 -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'in_progress' -and (Read-SBText (Join-Path $dossier 'history/session/report.md')) -eq "Pending report`n") '#474: explicit -FlushPending integrates the requests of the own dossier'
     $firstReceipt=(Get-SBPendingWrites $brain|Where-Object id -eq $first.id).receipt
     Assert-Pending ($firstReceipt.repository -eq $identity -and $firstReceipt.appliedBy.workstationId -eq $hostId) 'receipts identify the repository and importing workstation without ambiguous task IDs'
     Assert-Pending ((Read-SBText (Join-Path $dossier 'history/index.md')).Contains('session/')) 'report integration regenerates the history index in the same journal'
@@ -132,7 +138,8 @@ try {
     Assert-Pending ((Read-SBText (Join-Path $dossier 'memory.agent.md')) -eq (ConvertTo-SBAgentMemoryView (Read-SBText (Join-Path $dossier 'memory.md')))) 'memory integration regenerates its agent view atomically'
     $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Root override recovery`n"} -Config $cfg
     $rootInit=Invoke-SBMcpMessage $brain @{jsonrpc='2.0';id=100;method='initialize';params=@{}}|ConvertFrom-Json
-    Assert-Pending (!$rootInit.error -and (Read-SBText (Join-Path $dossier 'memory.md')).Contains('Root override recovery')) 'MCP code outside the selected brain uses that brain configuration'
+    Assert-Pending (!$rootInit.error -and !(Read-SBText (Join-Path $dossier 'memory.md')).Contains('Root override recovery')) '#474: MCP initialize does not integrate queued writes'
+    [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg -Repository $identity)
 
     $serverStart=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source)
     $serverStart.UseShellExecute=$false;$serverStart.CreateNoWindow=$true;$serverStart.RedirectStandardInput=$true;$serverStart.RedirectStandardOutput=$true
@@ -146,11 +153,11 @@ try {
         $server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture tool timeout'}
         $response=$read.Result|ConvertFrom-Json
-        Assert-Pending (!$response.result.isError -and $response.result.content.Count -ge 2 -and (Read-SBText (Join-Path $dossier 'memory.md')).Contains('MCP read recovery')) 'an already running MCP server integrates new requests before reading'
+        Assert-Pending (!$response.result.isError -and $response.result.content.Count -eq 1 -and !(Read-SBText (Join-Path $dossier 'memory.md')).Contains('MCP read recovery')) '#474: a running MCP server reads without integrating new requests'
         $server.StandardInput.WriteLine('{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}');$server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture definitions timeout'}
         $definitions=($read.Result|ConvertFrom-Json).result.tools
-        Assert-Pending ($definitions.Count -eq 11 -and @($definitions|Where-Object {$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {$_.annotations.readOnlyHint})[0].name -eq 'preview_dossier_write') 'only pure preview is read-only; recovery-enabled tools declare their write side effects'
+        Assert-Pending ($definitions.Count -eq 11 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint})[0].name -eq 'submit_dossier_write') '#474: every MCP tool but submit_dossier_write declares readOnlyHint=true'
     }finally{$server.StandardInput.Close();if(!$server.WaitForExit(5000)){$server.Kill();$server.WaitForExit()};$server.Dispose()}
 
     $txFirst=Join-Path $brain '.runtime/interruption-first.txt';$txSecond=Join-Path $brain '.runtime/interruption-second.txt'

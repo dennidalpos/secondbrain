@@ -9,7 +9,7 @@ SecondBrain manages instructions, configuration and local knowledge. Its core wo
 | Command | Effects to review |
 |---|---|
 | `knowledge.ps1 -Startup/-Tasks -NoRecovery` | Knowledge lookup without pending-write recovery |
-| `knowledge.ps1` lookups without NoRecovery | May integrate already-authorized pending dossier writes |
+| `knowledge.ps1` lookups | Never write; only `-FlushPending` integrates already-authorized pending writes of the own dossier |
 | `prompts.ps1`, `secondbrain.ps1 -Check`, default MCP startup/lookups | May process already-authorized pending dossier writes |
 | `-Setup -Interactive` | Selected workstation configuration and integrations after confirmation; optional user environment registration |
 | `-Sync` | Approved managed blocks, generated local views and configured instruction files |

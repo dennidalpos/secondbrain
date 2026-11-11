@@ -57,7 +57,7 @@ One request ID maps to one queue file. Replays return/integrate the existing rec
 
 Expired unconsumed receipts cannot create requests. Once queued, a request is already authorized and can be recovered by normal consumers, including another host. Expiry or disabling a policy does not revoke an existing queued authorization. Backups, queue files, receipts and journals remain retained.
 
-Submit integrates only its request and leaves unrelated entries waiting. Both new tools skip pre-call automatic recovery; a denial does not drain the queue. Existing knowledge tools keep their documented recovery behavior. A NoRecovery server, or submit with noRecovery=true, refuses submissions while still allowing previews.
+Submit integrates only its request and leaves unrelated entries waiting. No MCP tool performs automatic recovery; a denial does not drain the queue. A NoRecovery server, or submit with noRecovery=true, refuses submissions while still allowing previews.
 
 ## Activity transport
 

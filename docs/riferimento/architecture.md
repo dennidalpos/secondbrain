@@ -58,4 +58,4 @@ check-distribution examines the Git distribution boundary. publication inventori
 
 ready=true is bounded by those checks. Binary contents, external copies, undiscovered secrets and legal compliance are not certified. Explicit remote/source operations and dependency acquisition can use networking; do not claim every command is offline.
 
-MCP uses stdio without a listening port. Startup/lookups may integrate already-authorized writes, so it is not strictly read-only. NoRecovery is needed when writes are forbidden. Live collectors/client loading and real two-host SMB remain distinct from local fixture qualification.
+MCP uses stdio without a listening port. Startup/lookups never integrate queued writes; only submit_dossier_write writes, with a local approval receipt. Live collectors/client loading and real two-host SMB remain distinct from local fixture qualification.

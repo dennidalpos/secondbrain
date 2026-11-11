@@ -600,7 +600,15 @@ if('pending' -in $Groups){
     $memoryBefore=Get-SBFileHash (Join-Path $dossier 'memory.md')
     $pureRead=Invoke-EssentialCli @('-Startup','-NoRecovery')
     Check ($pureRead.code -eq 0 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and (Get-SBPendingWrites $brain|Where-Object id -eq $noRecoveryRequest.id).state -eq 'deferred') 'CLI NoRecovery preserves an authorized pending write without applying it'
+    # #474: no read integrates queued writes, with or without -NoRecovery; only -FlushPending does, for the own dossier.
+    foreach($readArgs in @(@('-Startup'),@('-Tasks'),@('-Search','memory'),@('-PendingWrites'),@('-Task','1'))){
+        $readRun=Invoke-EssentialCli $readArgs
+        Check ($readRun.code -eq 0 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and (Get-SBPendingWrites $brain|Where-Object id -eq $noRecoveryRequest.id).state -eq 'deferred') ('#474: knowledge '+($readArgs -join ' ')+' leaves the dossier and the queue unchanged')
+    }
     $mcpModule=Get-Module SecondBrain.Mcp
+    $pureMcpDefault=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=30;method='tools/list';params=@{}}} $brain
+    $pureTools=@(($pureMcpDefault|ConvertFrom-Json -AsHashtable).result.tools)
+    Check ((Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint})[0].name -ceq 'submit_dossier_write') '#474: MCP lists tools without draining the queue; only submit_dossier_write is not read-only'
     $pureMcp=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=31;method='tools/list';params=@{_meta=@{noRecovery=$true}}}} $brain
     Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 11 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
     [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg)

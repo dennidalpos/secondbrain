@@ -67,7 +67,7 @@ SecondBrain work folders use work Init with category, slug, manifest and session
 
 Slim defaults to 50,000 characters for first load and explicitly selected tasks; Full has no default budget. Search defaults to 20 matches/10,000 characters unless overridden. Compact previews a candidate; Apply needs review/confirmation and preserves originals by hash.
 
-MCP is optional and exposes eleven tools through stdio, including reviewed write preview and submission; see [MCP writes](mcp-writes.md). Use Pair preview before Apply; default startup/reads may process pending writes. For strict read-only knowledge use NoRecovery. Publication, source collection, task import and memory-cycle permission each retain their own contracts.
+MCP is optional and exposes eleven tools through stdio, including reviewed write preview and submission; see [MCP writes](mcp-writes.md). Use Pair preview before Apply; startup and reads never process pending writes (only knowledge.ps1 -FlushPending does). Publication, source collection, task import and memory-cycle permission each retain their own contracts.
 
 See [safe writes](safety-backups.md), [MCP](mcp-setup.md), [trackers](trackers.md), [runtime](runtime-maintenance.md).
 

@@ -33,7 +33,7 @@ Sessions expire after 30 minutes without renewal; use Renew with the same Sessio
 
 writer.lock admits one writer; operation.lock serializes central operations, including operations from the same session. FIFO tickets have exclusive leases. Recovery of a dead process's ticket does not steal a live lock.
 
-The default writer wait is 60 seconds, controlled by WaitSeconds, SECONDBRAIN_LOCK_WAIT_SECONDS or shared lockWaitSeconds. Timeout returns exit 3 and reports the owner. Readers avoid blocking locks and report active writers or incomplete transactions. Default knowledge reads may still integrate already-authorized queued writes through zero-wait transactions; use NoRecovery when writes are prohibited.
+The default writer wait is 60 seconds, controlled by WaitSeconds, SECONDBRAIN_LOCK_WAIT_SECONDS or shared lockWaitSeconds. Timeout returns exit 3 and reports the owner. Readers avoid blocking locks and report active writers or incomplete transactions. Knowledge reads never integrate queued writes; only an explicit knowledge.ps1 -FlushPending does, for the own dossier.
 
 Custom central writes require Enter-SBOperation/Exit-SBOperation and expected hashes. A session alone does not protect direct filesystem edits from external editors. Use [deferred writes](pending-writes.md) for supported dossier changes.
 

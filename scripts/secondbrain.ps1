@@ -176,10 +176,7 @@ try {
         exit 0
     }
     $config = Read-SBConfiguration $ConfigPath -ReadOnly:(!$Sync)
-    if(!$Sync){
-        $pendingWrites=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
-        if($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingWrites))}
-    }
+    # #474: -Check is a pure read; pending writes are integrated only by knowledge.ps1 -FlushPending.
     $result = Invoke-SBPortableSync -Config $config -Check:(!$Sync) -SessionId $SessionId -ObservationPath $ObservationPath -Repository $Repository
     ConvertTo-SBJson $result
     if (!$result.aligned) { exit 1 }

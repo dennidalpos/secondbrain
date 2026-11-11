@@ -69,14 +69,11 @@ try{
     if($readOnly){Write-SBReadWarnings $lock $config}
     $pendingResult=$null
     if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending -or $DiscardPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
-    if($readOnly -and !$bufferedWrite -and !$ArchiveTasks -and !$NoRecovery){
-        # -FlushPending waits for the writer lock (shared policy); startup reads never wait.
-        $flushWait=if($FlushPending){Get-SBLockWaitMs $config}else{0}
-        # #473: recovery integrates only the requests of the dossier in work (explicit -Repository or the checkout's); with none resolvable it keeps the whole-queue behavior.
+    # #474: reads (-Startup, -Search, -Task, -Section, -Tasks, -Roadmap, -PendingWrites) never write. Only an explicit -FlushPending integrates queued requests, and only those of the dossier in work (-Repository or the checkout's).
+    if($FlushPending){
         $flushRepository=if($Repository){$Repository}else{Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)}
-        $flushOptions=@{BrainRoot=$brain;Config=$config;SessionId=$SessionId;WaitMs=$flushWait}
-        if($flushRepository -and !$AllDossiers -and !$All){$flushOptions.Repository=$flushRepository}
-        $pendingResult=Invoke-SBPendingWrites @flushOptions
+        if(!$flushRepository){throw (New-SBError 'knowledgecli.repository.checkout')}
+        $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId -WaitMs (Get-SBLockWaitMs $config) -Repository $flushRepository
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
     # Full is unlimited unless -Budget is explicit; Slim and Compact share the 50,000 default (Get-SBSlimStartupBudget).

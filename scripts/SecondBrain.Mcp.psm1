@@ -23,8 +23,8 @@ Add-SBMessages @{
     'mcp.write.preview.description' = @{it='Prepara senza scrivere un piano per stato o campi di un task, nuovo task, memoria, attività o history. Richiede checkout gestito, repository e ID richiesta esadecimale di 32 caratteri. Approvare il piano con mcp-write.ps1 prima di submit_dossier_write.';en='Previews a task status or field update, new task, memory, activity or history write without persistence. Requires a managed checkout, repository and 32-character lowercase hex request ID. Approve the returned plan with mcp-write.ps1 before submit_dossier_write.'}
     'mcp.write.submit.description' = @{it='Verifica la ricevuta CLI locale del piano e accoda una sola richiesta idempotente con precondizioni hash. Nessuna approvazione viene accettata dal payload MCP. NoRecovery vieta nuovi invii; il registro attività resta soggetto alla procedura di attivazione.';en='Verifies the local CLI approval receipt and queues one idempotent request with hash preconditions. MCP arguments cannot grant approval. NoRecovery forbids submissions; activity logging still requires its activation procedure.'}
     'mcp.package.destination' = @{it='Scegliere una cartella nuova sotto .runtime: {0}';en='Choose a new folder under .runtime: {0}'}
-    'mcp.pending.disabled' = @{it='Consultazione senza recupero delle scritture pendenti per questa sessione o richiesta.';en='Consultation without pending-write recovery for this session or request.'}
-    'mcp.description.noRecovery' = @{it='Non integrare scritture pendenti in questa chiamata; usare -NoRecovery all avvio del server per disabilitare anche il recupero iniziale';en='Skip pending-write recovery for this call; start the server with -NoRecovery to disable startup recovery too'}
+    'mcp.pending.disabled' = @{it='Consultazione senza scritture: nuove scritture MCP disabilitate per questa sessione o richiesta.';en='Read-only consultation: new MCP writes disabled for this session or request.'}
+    'mcp.description.noRecovery' = @{it='Vieta nuove scritture in questa chiamata (le letture non scrivono mai); -NoRecovery all avvio del server le vieta per tutta la sessione';en='Forbid new writes for this call (reads never write); -NoRecovery at server start forbids them for the whole session'}
     'mcp.title.get_startup_context' = @{ it = 'Contesto iniziale'; en = 'Startup context' }
     'mcp.title.get_ready_tasks' = @{ it = 'Attività pronte'; en = 'Ready tasks' }
     'mcp.title.get_task' = @{ it = 'Dettaglio attività'; en = 'Task details' }
@@ -36,7 +36,7 @@ Add-SBMessages @{
     'mcp.title.list_ides' = @{ it = 'IDE rilevate'; en = 'Detected IDEs' }
     'mcp.description.list_ides' = @{ it = 'Elenca in sola lettura le IDE e i client AI rilevati su questa postazione, con affidabilità, evidenze e ambiti ammessi (user, project, system). Serve a proporre la scelta multipla e dell''ambito; non scrive nulla.'; en = 'Read-only list of the IDEs and AI clients detected on this workstation, with confidence, evidence and the scopes each supports (user, project, system). Use it to offer the multiple choice and the scope question; it writes nothing.' }
     'mcp.description.list_ides.workspacePath' = @{ it = 'Percorso del progetto per l''ambito project; facoltativo'; en = 'Project path for the project scope (optional)' }
-    'mcp.pending.contract' = @{it='All avvio e durante le letture integra scritture di dossier gia autorizzate e accodate, senza attendere il lock; puo quindi modificare dati locali.';en='At startup and during reads, applies previously authorized queued dossier writes without waiting for the lock; it can therefore modify local data.'}
+    'mcp.pending.contract' = @{it='Sola lettura: non integra mai scritture accodate. Il recupero e solo esplicito (knowledge.ps1 -FlushPending, limitato al proprio dossier).';en='Read-only: never integrates queued writes. Recovery is explicit only (knowledge.ps1 -FlushPending, limited to the own dossier).'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
     'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
@@ -114,17 +114,6 @@ Add-SBMessages @{
 function ConvertTo-SBMcpJson($Value) {
     if ($null -eq $Value) { return $null }
     ConvertTo-SBStableValue $Value | ConvertTo-Json -Depth 40 -Compress
-}
-
-function Invoke-SBMcpPendingRecovery([string]$BrainRoot,[string]$ConfigPath) {
-    $summary=$null
-    # Storage diagnostics must never become stray lines on the JSON-RPC stdout channel.
-    foreach($record in @(Invoke-SBPendingWrites -BrainRoot $BrainRoot -ConfigPath $ConfigPath *>&1)){
-        if($record -is [Collections.IDictionary] -and $record.ContainsKey('pending') -and $record.ContainsKey('applied')){$summary=$record}
-        else{[Console]::Error.WriteLine([string]$record)}
-    }
-    if($summary){return $summary}
-    @{state='unavailable';applied=@();conflicts=@();pending=$null;errors=@(@{code='pending.recovery.no-result'})}
 }
 
 function Get-SBMcpToolDefinitions {
@@ -268,11 +257,9 @@ function Get-SBMcpToolDefinitions {
     foreach($definition in $definitions){
         $definition.inputSchema.properties.noRecovery=@{type='boolean';description=(Get-SBMessage 'mcp.description.noRecovery')}
         if($definition.name -notin @('preview_dossier_write','submit_dossier_write')){$definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')}
-        $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$false;destructiveHint=$true;idempotentHint=$false;openWorldHint=$false}
-        if($definition.name -in @('preview_dossier_write','submit_dossier_write')){
-            $definition.annotations.idempotentHint=$true
-            if($definition.name -eq 'preview_dossier_write'){$definition.annotations.readOnlyHint=$true;$definition.annotations.destructiveHint=$false}
-        }
+        # #474: every tool except submit_dossier_write is a pure read (readOnlyHint); submit applies one reviewed request.
+        $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$true;destructiveHint=$false;idempotentHint=$true;openWorldHint=$false}
+        if($definition.name -eq 'submit_dossier_write'){$definition.annotations.readOnlyHint=$false;$definition.annotations.destructiveHint=$true}
         $definition
     }
 }
@@ -520,15 +507,11 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
     }
     
     try {
-        $pendingWrites=$null
+        # #474: no method integrates pending writes; the server only reads. noRecovery now only forbids new writes.
         $skipRecovery=([bool](Get-Variable -Name SBMcpNoRecovery -Scope Script -ValueOnly -ErrorAction SilentlyContinue))
         if($params -is [Collections.IDictionary]){
             if($params.ContainsKey('_meta') -and $params._meta -is [Collections.IDictionary] -and $params._meta.ContainsKey('noRecovery') -and $params._meta.noRecovery -eq $true){$skipRecovery=$true}
             if($params.ContainsKey('arguments') -and $params.arguments -is [Collections.IDictionary] -and $params.arguments.ContainsKey('noRecovery') -and $params.arguments.noRecovery -eq $true){$skipRecovery=$true}
-        }
-        if($method -eq 'tools/call' -and $params.ContainsKey('name') -and $params.name -in @('preview_dossier_write','submit_dossier_write')){$skipRecovery=$true}
-        if(!$skipRecovery -and $method -in @('initialize','tools/list','tools/call','prompts/list','prompts/get','resources/list','resources/read')){
-            $pendingWrites=Invoke-SBMcpPendingRecovery $BrainRoot $script:SBMcpConfigPath
         }
         switch ($method) {
             'initialize' {
@@ -538,7 +521,7 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                     result = @{
                         protocolVersion = $(if($params.ContainsKey('protocolVersion') -and $params.protocolVersion -eq '2024-11-05'){'2024-11-05'}else{'2025-03-26'})
                         instructions = $(if($skipRecovery){Get-SBMessage 'mcp.pending.disabled'}else{Get-SBMessage 'mcp.pending.contract'})
-                        _meta = @{pendingWrites=$pendingWrites;noRecovery=$skipRecovery}
+                        _meta = @{noRecovery=$skipRecovery}
                         capabilities = @{
                             tools = @{ listChanged = $false }
                             prompts = @{ listChanged = $false }
@@ -575,9 +558,6 @@ function Invoke-SBMcpMessage([string]$BrainRoot, $Message) {
                 try {
                     $output = Invoke-SBMcpToolCall -BrainRoot $BrainRoot -ToolName $toolName -Arguments $args
                     $contentBlocks = @(@{ type = 'text'; text = $output })
-                    if($pendingWrites -and ($pendingWrites.applied.Count -or $pendingWrites.conflicts.Count -or $pendingWrites.pending -or $pendingWrites.errors.Count)){
-                        $contentBlocks+=@{type='text';text=((Format-SBPendingNotice $pendingWrites)+"`n"+(ConvertTo-SBMcpJson $pendingWrites))}
-                    }
                     $notice = Get-SBMcpDeprecationNotice $toolName
                     if ($notice) { $contentBlocks += @{ type = 'text'; text = (Get-SBMessage 'mcp.notice' @($notice)) } }
                     return ConvertTo-SBMcpJson @{
@@ -726,10 +706,6 @@ function Start-SBMcpServer {
     }
     $script:SBMcpConfigPath=$ConfigPath
     $script:SBMcpNoRecovery=[bool]$NoRecovery
-    if(!$NoRecovery){
-        $startupPending=Invoke-SBMcpPendingRecovery $BrainRoot $ConfigPath
-        if($startupPending.applied.Count -or $startupPending.conflicts.Count -or $startupPending.pending -or $startupPending.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $startupPending))}
-    }
     
     # Stdio loop
     # MCP stdio is UTF-8 (no BOM); [Console]::In/Out follow the OEM code page on Windows and corrupt non-ASCII text.

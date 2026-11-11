@@ -62,4 +62,4 @@ Tool-description language follows server Language/SECONDBRAIN_LANG; per-call lan
 
 A successful synthetic handshake does not prove live GUI integration. Missing tools can reflect registration, scope, environment or stale client cache. Invalid paths/root should be fixed at the selected configuration, not by broadening filesystem permissions.
 
-Strict read-only work needs NoRecovery; client approval settings cannot undo already integrated requests. Native memory collectors and real multi-PC SMB need separate qualification. See [adapters](adapters.md), [pending writes](pending-writes.md), [safe writes](safety-backups.md).
+The server never integrates queued requests; NoRecovery additionally forbids new writes. Native memory collectors and real multi-PC SMB need separate qualification. See [adapters](adapters.md), [pending writes](pending-writes.md), [safe writes](safety-backups.md).
