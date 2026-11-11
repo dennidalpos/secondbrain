@@ -31,7 +31,7 @@ function Resolve-SBTraceRepository([string]$BrainRoot,[string]$Cwd) {
 # Append an event. Uses no writer lock (one file per workstation/day; appends serialized by a short day lock) and never writes prompt contents.
 function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$InputJson='',[string]$Ide='claude-code') {
     $payload=@{}
-    if($InputJson.Trim()){try{$parsed=$InputJson|ConvertFrom-Json -AsHashtable -ErrorAction Stop;if($parsed -is [Collections.IDictionary]){$payload=$parsed}}catch{}}
+    if($InputJson.Trim()){try{$parsed=$InputJson|ConvertFrom-Json -AsHashtable -ErrorAction Stop;if($parsed -is [Collections.IDictionary]){$payload=$parsed}}catch { Write-Verbose $_.Exception.Message }}
     # A legacy hook without per-turn permission is intentionally silent. Installation grants no consent.
     if(!$payload.ContainsKey('persistence') -or $payload.persistence -cne 'allowed' -or
        !$payload.ContainsKey('policyEvidence') -or [string]::IsNullOrWhiteSpace([string]$payload.policyEvidence)){return $null}

@@ -152,7 +152,7 @@ switch($Mode){
         $lines=@(& pwsh -NoProfile -File $runner -CheckoutPath $checkout -ConfigPath $configPath -AgentPath $fake @RunnerArguments 2>&1|ForEach-Object {[string]$_})
         $code=$LASTEXITCODE;$text=$lines -join "`n"
         $i=$text.IndexOf('{');$data=$null
-        if($i -ge 0){try{$data=$text.Substring($i)|ConvertFrom-Json -AsHashtable}catch{}}
+        if($i -ge 0){try{$data=$text.Substring($i)|ConvertFrom-Json -AsHashtable}catch { Write-Verbose $_.Exception.Message }}
         @{code=$code;text=$text;data=$data}
     }
     function Assert-Folder($Record,[string]$Label){

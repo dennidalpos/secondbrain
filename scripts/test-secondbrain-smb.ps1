@@ -43,7 +43,7 @@ if (!$ShareRoot) {
     $ShareLocalPath = $drive + ':\'
 }
 if (!$ShareLocalPath) { throw 'Con -ShareRoot indicare anche -ShareLocalPath (percorso locale della share)' }
-$shareHost = if ($ShareRoot -match '^\\\\([^\\]+)\\') { $Matches[1] } else { throw 'ShareRoot deve essere un percorso UNC' }
+$null = if ($ShareRoot -match '^\\\\([^\\]+)\\') { $Matches[1] } else { throw 'ShareRoot deve essere un percorso UNC' }
 $shareName = ($ShareRoot -replace '^\\\\[^\\]+\\', '').TrimEnd('\')
 if (!$Aliases) {
     $fqdn = try { [Net.Dns]::GetHostEntry([Net.Dns]::GetHostName()).HostName } catch { $null }
@@ -168,7 +168,7 @@ if (Wait-File $ready) {
 
 # 3. Concurrent writes with the module's Open-SBLockFile, a different alias per process.
 $log = Join-Path $localFixture 'writers.log'
-$writerLock = Get-UncPath $Aliases[0] 'writer.lock'
+$null = Get-UncPath $Aliases[0] 'writer.lock'
 New-Item -ItemType Directory -Force -Path (Split-Path (Get-UncPath $Aliases[0] 'x')) | Out-Null
 $procs = for ($n = 0; $n -lt $Writers; $n++) {
     $alias = $Aliases[$n % $Aliases.Count]

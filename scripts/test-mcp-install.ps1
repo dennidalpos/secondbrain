@@ -71,7 +71,7 @@ Reject-Portable {Set-SBMcpConfiguration -BrainRoot $brain -Target cursor -Config
 # Existing restrictive Claude rules and unrelated settings must survive.
 $claudeSettings=Join-Path $installRoot 'claude-code/.claude/settings.json'
 Put-Portable $claudeSettings (ConvertTo-SBJson @{theme='keep';permissions=@{deny=@('mcp__secondbrain__search_knowledge');ask=@('mcp__secondbrain__get_task');allow=@('unrelated')}})
-$claudeAgain=Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -ConfigFile (Join-Path $installRoot 'claude-code/config.json') -ApproveReadTools -CliInvoker $installNative
+$null = Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -ConfigFile (Join-Path $installRoot 'claude-code/config.json') -ApproveReadTools -CliInvoker $installNative
 $preserved=Read-SBJson $claudeSettings @{}
 Assert-Portable ($preserved.theme -eq 'keep' -and $preserved.permissions.deny -contains 'mcp__secondbrain__search_knowledge' -and $preserved.permissions.ask -contains 'mcp__secondbrain__get_task' -and $preserved.permissions.allow -contains 'unrelated') 'existing ask/deny and unrelated settings preserved'
 # Exact PowerShell quoting round-trip: metacharacters remain data.

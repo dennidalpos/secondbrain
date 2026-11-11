@@ -638,7 +638,7 @@ function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Contex
             foreach($task in @(Get-SBGlobalTasks -BrainRoot $BrainRoot -Repository $record.identity -ReadyOnly)){
                 if($task -is [Collections.IDictionary] -and $task.ContainsKey('id') -and $task.ContainsKey('title')){$tasks+=$task}
             }
-        }catch{}
+        }catch { Write-Verbose $_.Exception.Message }
     }
     @{prompts=@($prompts|Select-Object -First 4);tasks=@($tasks|Select-Object -First 4)}
 }

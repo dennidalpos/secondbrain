@@ -135,7 +135,7 @@ function Get-SBTrackerRelocationData($Config,$Area,[hashtable]$Mapping) {
     # Bind the transformed data and removal precondition to the same byte snapshot.
     $snapshot=[IO.File]::ReadAllBytes($resolved.path);$previous=Get-SBHash $snapshot
     $original=([Text.UTF8Encoding]::new($false,$true)).GetString($snapshot).TrimStart([char]0xFEFF)|ConvertFrom-Json -AsHashtable -DateKind String
-    $entities=@(Get-SBParaEntities $Config.brainRoot $Config.allowedOwners)
+    $null = @(Get-SBParaEntities $Config.brainRoot $Config.allowedOwners)
     Assert-SBTrackerWriteData $Config.brainRoot $Area.repository $original $resolved.path
     $data=Convert-SBTrackerLocation $original $Mapping $Config.brainRoot $Area.path
     $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))

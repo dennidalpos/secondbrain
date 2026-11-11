@@ -166,7 +166,7 @@ try {
         # All known backupRoot locations: the current one and those of workstations registered under .runtime.
         $stageRoots=@($config.backupRoot)
         $registry=Read-SBJson (Join-Path $config.coordinationRoot 'workstations.json') @{}
-        foreach($station in $registry.Values){if($station -is [Collections.IDictionary] -and $station.ContainsKey('backupRoot') -and $station.backupRoot){try{$stageRoots+=Assert-SBCentralDataPath $config.brainRoot $station.backupRoot}catch{}}}
+        foreach($station in $registry.Values){if($station -is [Collections.IDictionary] -and $station.ContainsKey('backupRoot') -and $station.backupRoot){try{$stageRoots+=Assert-SBCentralDataPath $config.brainRoot $station.backupRoot}catch { Write-Verbose $_.Exception.Message }}}
         if($RuntimeReport){
             $index=Get-SBRuntimeIndex $config.brainRoot (@($config.configPath,$config.runtimeRoot,$config.coordinationRoot)+$stageRoots) $OlderThanDays
             if($ReportPath){

@@ -173,6 +173,7 @@ function New-SBPendingWrite {
             $baseValid=$false
             try{Assert-SBTrackerWriteData $BrainRoot $Repository $tracker.data $tracker.path;$baseValid=$true}catch{
                 # The request envelope and task hash are known even when the rest of the graph cannot be read.
+                Write-Verbose $_.Exception.Message
             }
             if($baseValid){throw $failure}
         }
@@ -238,7 +239,7 @@ function Get-SBPendingWrites([string]$BrainRoot) {
         Assert-SBPlainPath $receiptPath -VerifiedAncestors $verified
         $receipt=Read-SBPendingReceipt $receiptPath $file.FullName $id -VerifiedAncestors $verified
         $createdAt=$file.CreationTimeUtc.ToString('o')
-        if(!$receipt -and $file.Length -le 2MB){try{$header=Read-SBJson $file.FullName $null;if($header -and $header.ContainsKey('createdAt')){$createdAt=[DateTimeOffset]::Parse($header.createdAt).UtcDateTime.ToString('o')}}catch{}}
+        if(!$receipt -and $file.Length -le 2MB){try{$header=Read-SBJson $file.FullName $null;if($header -and $header.ContainsKey('createdAt')){$createdAt=[DateTimeOffset]::Parse($header.createdAt).UtcDateTime.ToString('o')}}catch { Write-Verbose $_.Exception.Message }}
         $repository=if($receipt -and $receipt.ContainsKey('repository')){$receipt.repository}else{$null}
         @{id=$id;repository=$repository;path=$file.FullName;state=$(if($receipt){$receipt.state}else{'deferred'});receipt=$receipt;receiptPath=$receiptPath;createdAt=$createdAt}
     }

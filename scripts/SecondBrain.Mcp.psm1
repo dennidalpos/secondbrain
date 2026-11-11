@@ -283,7 +283,7 @@ function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     if ($Arguments.ContainsKey('repository') -and $Arguments.repository) { Assert-SBRunnerReadScope -Repository ([string]$Arguments.repository); return [string]$Arguments.repository }
     $checkout = if ($Arguments.ContainsKey('checkoutPath') -and $Arguments.checkoutPath) { [string]$Arguments.checkoutPath } else { '' }
     $bindings = @()
-    try { $bindings = @((Read-SBConfiguration -ReadOnly).bindings) } catch { }
+    try { $bindings = @((Read-SBConfiguration -ReadOnly).bindings) } catch { Write-Verbose $_.Exception.Message }
     $resolved = Resolve-SBWorkingRepository $checkout $bindings
     if (!$resolved) { throw (New-SBError 'mcp.repository.unresolved') }
     # Runner sessions (#382): only the task repository or its read allowlist; no effect outside a runner session.
@@ -772,7 +772,7 @@ function Test-SBClaudeCodeRegistration([string]$ConfigFile) {
                 if ($project -is [System.Collections.IDictionary] -and $project.ContainsKey('mcpServers') -and $project.mcpServers -is [System.Collections.IDictionary] -and $project.mcpServers.ContainsKey('secondbrain')) { return $true }
             }
         }
-    } catch { }
+    } catch { Write-Verbose $_.Exception.Message }
     $false
 }
 Add-SBMessages @{
@@ -951,7 +951,7 @@ function Test-SBMcpNativeDefinition($Pairing) {
             $body=$section.Groups['body'].Value
             $command=[regex]::Match($body,'(?m)^command\s*=\s*"pwsh"\s*(?:#.*)?\r?$')
             $argsMatch=[regex]::Match($body,'(?m)^args\s*=\s*(\[[^\r\n]*\])\s*$')
-            if($command.Success -and $argsMatch.Success){try{$nativeArgs=ConvertFrom-Json $argsMatch.Groups[1].Value;$matches=(ConvertTo-SBJson @($nativeArgs)) -ceq (ConvertTo-SBJson @($Pairing.ServerDefinition.args))}catch{}}
+            if($command.Success -and $argsMatch.Success){try{$nativeArgs=ConvertFrom-Json $argsMatch.Groups[1].Value;$matches=(ConvertTo-SBJson @($nativeArgs)) -ceq (ConvertTo-SBJson @($Pairing.ServerDefinition.args))}catch { Write-Verbose $_.Exception.Message }}
         }
     }
     @{present=$present;matches=$matches}

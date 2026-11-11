@@ -26,7 +26,7 @@ try {
     if ([Console]::OutputEncoding.CodePage -ne 65001) {
         [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
     }
-} catch { }
+} catch { Write-Verbose $_.Exception.Message }
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
@@ -51,7 +51,7 @@ if ($Verify) {
     $targetZip = $BackupPath
     if (!$targetZip) {
         $cfg = $null
-        try { $cfg = Read-SBConfiguration $ConfigPath } catch { }
+        try { $cfg = Read-SBConfiguration $ConfigPath } catch { Write-Verbose $_.Exception.Message }
         $backupDirs = @()
         if ($cfg -and $cfg.backupRoot) { $backupDirs += $cfg.backupRoot }
         $backupDirs += (Join-Path $brain '.runtime/backups')

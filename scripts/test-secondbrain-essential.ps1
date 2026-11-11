@@ -191,7 +191,7 @@ if('portable' -in $Groups){
                 Put $file (ConvertTo-SBJson @{mcpServers=@{secondbrain=$pair.ServerDefinition}})
                 Put $pair.PermissionPlan.path (ConvertTo-SBJson @{permissions=@{deny=@('mcp__other__write');ask=@('mcp__secondbrain__check_publication')}})
             }
-            $installed=Set-SBMcpConfiguration -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools -BackupRoot $cfg.backupRoot
+            $null = Set-SBMcpConfiguration -BrainRoot $brain -Target $target -ConfigFile $file -Scope user -ApproveAllTools -BackupRoot $cfg.backupRoot
             if($target -eq 'codex'){
                 $text=Read-SBText $file
                 Check ([regex]::Matches($text,'approval_mode = "approve"').Count -eq 8 -and $text.Contains('default_tools_approval_mode = "prompt"')) 'Codex approves all eight names and retains the default for future tools'
@@ -612,7 +612,7 @@ if('pending' -in $Groups){
     $holder=Enter-SBOperation $cfg -WaitMs 0
     try{
         $first=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Priority='P0';Stream='queued'} -Config $cfg
-        $second=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Priority='P3'} -Config $cfg
+        $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Priority='P3'} -Config $cfg
         $deferred=Complete-SBPendingSubmission $first $cfg
         Check (!$deferred.applied -and $deferred.state -eq 'deferred') 'busy writer preserves durable request without applying'
     }finally{Exit-SBOperation $holder}

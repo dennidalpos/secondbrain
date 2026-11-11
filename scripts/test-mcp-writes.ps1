@@ -193,7 +193,7 @@ Put (Join-Path $f5Dossier memory.md) ((Read-SBText (Join-Path $f5Dossier memory.
     $f5Utf8In=Join-Path $f5Dossier 'utf8-wire-in.jsonl'; $f5Utf8OutFile=Join-Path $f5Dossier 'utf8-wire-out.jsonl'
     [IO.File]::WriteAllBytes($f5Utf8In,[Text.UTF8Encoding]::new($false).GetBytes((($f5Utf8Msgs|ForEach-Object {$_|ConvertTo-Json -Depth 30 -Compress}) -join "`n")+"`n"))
     $f5PwshPath=(Get-Process -Id $PID).Path
-    $f5Cp=0; try {$f5Cp=[Console]::OutputEncoding.CodePage} catch {}
+    $f5Cp=0; try {$f5Cp=[Console]::OutputEncoding.CodePage} catch { Write-Verbose $_.Exception.Message }
     try {
         # Console code page 850 emulates an OEM console: the server must still read and write UTF-8.
         & cmd.exe /d /c "chcp 850>nul & type `"$f5Utf8In`" | `"$f5PwshPath`" -NoProfile -File `"$(Join-Path $f5Brain 'scripts/mcp-server.ps1')`" -BrainRoot `"$f5Brain`" -ConfigPath `"$f5ConfigPath`" -NoRecovery > `"$f5Utf8OutFile`""

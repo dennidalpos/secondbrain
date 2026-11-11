@@ -16,7 +16,7 @@ $history = @(
 $data = @{schemaVersion=1;repository=$identity;updatedAt='2026-11-03T00:00:00Z';tasks=@();history=$history;extensions=@{}}
 Put-Tracker $trackerPath (ConvertTo-SBJson $data)
 Put-Tracker $archivePath (ConvertTo-SBJson @{schemaVersion=1;repository=$identity;tasks=@();description=$note})
-$trackerHash = Get-SBFileHash $trackerPath; $archiveHash = Get-SBFileHash $archivePath
+$null = Get-SBFileHash $trackerPath; $null = Get-SBFileHash $archivePath
 $before = Snapshot-Tracker $contractRoot
 $preview = Invoke-SBTrackerHistoryMigration -BrainRoot $contractRoot -Identity $identity -Path $trackerPath
 Assert-Tracker ($preview.changed -and !$preview.applied -and $preview.files.Count -eq 2 -and (Snapshot-Tracker $contractRoot) -ceq $before) 'history migration preview preserves bytes, timestamps and directories'

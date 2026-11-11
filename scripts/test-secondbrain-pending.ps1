@@ -26,7 +26,7 @@ function Invoke-PendingCli([string]$Script,[string[]]$CliArguments){
     $lines=@(& pwsh -NoProfile -File (Join-Path $brain ('scripts/'+$Script)) -ConfigPath $configPath @CliArguments 2> $stderr)
     $code=$LASTEXITCODE
     $text=$lines -join "`n"
-    $data=$null;try{$data=$text|ConvertFrom-Json -AsHashtable}catch{}
+    $data=$null;try{$data=$text|ConvertFrom-Json -AsHashtable}catch { Write-Verbose $_.Exception.Message }
     @{code=$code;text=$text;data=$data;stderr=$stderr}
 }
 try {
@@ -130,7 +130,7 @@ try {
     Put-Pending (Join-Path $dossier 'memory.md') "Other agent note`n"
     Assert-Pending ((Complete-SBPendingSubmission $append $cfg).applied -and (Read-SBText (Join-Path $dossier 'memory.md')) -eq "Other agent note`nVerified note`n") 'explicit append preserves intervening text'
     Assert-Pending ((Read-SBText (Join-Path $dossier 'memory.agent.md')) -eq (ConvertTo-SBAgentMemoryView (Read-SBText (Join-Path $dossier 'memory.md')))) 'memory integration regenerates its agent view atomically'
-    $override=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Root override recovery`n"} -Config $cfg
+    $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Root override recovery`n"} -Config $cfg
     $rootInit=Invoke-SBMcpMessage $brain @{jsonrpc='2.0';id=100;method='initialize';params=@{}}|ConvertFrom-Json
     Assert-Pending (!$rootInit.error -and (Read-SBText (Join-Path $dossier 'memory.md')).Contains('Root override recovery')) 'MCP code outside the selected brain uses that brain configuration'
 
@@ -141,7 +141,7 @@ try {
     try{
         $server.StandardInput.WriteLine($init);$server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture initialization timeout'}
-        $duringRead=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="MCP read recovery`n"} -Config $cfg
+        $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="MCP read recovery`n"} -Config $cfg
         $server.StandardInput.WriteLine('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_task","arguments":{"task":"T-1","repository":"github.com/test/pending"}}}')
         $server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture tool timeout'}
@@ -220,7 +220,7 @@ try {
     $saveCli=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-SaveFile','context.md','-ContentPath',$inputFile,'-ExpectedHash',(Get-SBFileHash (Join-Path $dossier 'context.md')))
     Assert-Pending ($saveCli.code -eq 0 -and $saveCli.data.applied -and (Read-SBText (Join-Path $dossier 'context.md')) -eq 'Saved context') 'CLI saves a context file with its expected hash'
 
-    $last=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Exactly once`n"} -Config $cfg
+    $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Exactly once`n"} -Config $cfg
     $workers=@()
     foreach($number in @(1,2)){
         $start=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source);$start.UseShellExecute=$false;$start.CreateNoWindow=$true

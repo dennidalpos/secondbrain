@@ -108,7 +108,7 @@ foreach ($pairing in $pairings) {
             } catch { $invalidLines++ }
         }
         $stderrText = $stderr.GetAwaiter().GetResult().Trim()
-    } finally { if (!$process.HasExited) { try { $process.Kill($true) } catch { } }; $process.Dispose() }
+    } finally { if (!$process.HasExited) { try { $process.Kill($true) } catch { Write-Verbose $_.Exception.Message } }; $process.Dispose() }
     $watch.Stop()
     $checks = @()
     $checks += Assert-Handshake ($exit -eq 0) 'processo terminato con exit 0 alla chiusura di stdin' $ide

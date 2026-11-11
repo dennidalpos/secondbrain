@@ -34,7 +34,7 @@ function Get-SBUiLanguage {
     if ($fromEnvironment) { return $fromEnvironment }
     if ($script:SBLanguageProvider) {
         $fromConfiguration = $null
-        try { $fromConfiguration = ConvertTo-SBLanguageCode (& $script:SBLanguageProvider) } catch { }
+        try { $fromConfiguration = ConvertTo-SBLanguageCode (& $script:SBLanguageProvider) } catch { Write-Verbose $_.Exception.Message }
         if ($fromConfiguration) { return $fromConfiguration }
     }
     $fromCulture = ConvertTo-SBLanguageCode ([Globalization.CultureInfo]::CurrentUICulture.TwoLetterISOLanguageName)

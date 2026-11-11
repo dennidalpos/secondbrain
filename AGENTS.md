@@ -27,7 +27,7 @@ Common directives and repository knowledge live in the SecondBrain dossier. Keep
 - Il clone è la radice SecondBrain: `.runtime/` (ignorata da Git) contiene configurazione, sessioni, fixture e backup della postazione.
 
 ## Verifiche
-- Rapida e pura: `pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick`; predefinita: senza opzioni; completa: `-Full`; un gruppo: `-Only quick|workflows|trackers|audit2|trace|concurrency|pending|sources|external-audit|git-environment|runtime|prompts|tracker-audit|mcp-writes|runner|ide|agents` (`-Full` esegue le suite extra, `tracker-audit` compreso, in parallelo come processi separati; `-Sequential` le esegue una alla volta).
+- Rapida e pura: `pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick`; predefinita: senza opzioni; completa: `-Full`; un gruppo: `-Only quick|workflows|trackers|audit2|trace|concurrency|pending|sources|external-audit|git-environment|runtime|prompts|tracker-audit|mcp-writes|runner|ide|agents|lint` (`-Full` esegue le suite extra, `tracker-audit` compreso, in parallelo come processi separati; `-Sequential` le esegue una alla volta).
 - App desktop `app/orchestrator` (Tauri 2): `npm ci` e `npm run build` (controllo TypeScript e build), `cargo test --manifest-path src-tauri/Cargo.toml`; guida in `docs/orchestratore.it.md`.
 - Prompt: `scripts/build-prompts.ps1` rigenera gli indici dal catalogo e dalle schede, `-Check` segnala lo scostamento. Non modificare a mano i `README*.md` di `direttive/prompts/`.
 - `scripts/secondbrain.ps1 -Check` e `scripts/ide-map.ps1 -Verify` verificano direttive, IDE e dossier.

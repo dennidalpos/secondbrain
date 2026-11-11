@@ -251,7 +251,7 @@ $cliArgs=@('-NoProfile','-File',(Join-Path $cliScripts 'cleanup.ps1'),'-ConfigPa
 $preview=@(& pwsh @cliArgs);$previewCode=$LASTEXITCODE
 $previewData=($preview -join [Environment]::NewLine)|ConvertFrom-Json
 Assert-Runtime ($previewCode -eq 0 -and !$previewData.applied -and $previewData.targets.Count -eq 1 -and (Test-Path -LiteralPath $cliFolder) -and !(Test-Path -LiteralPath (Join-Path $cliBrain '.runtime/cleanup'))) 'CLI anteprima: target valido, nessuna rimozione o journal'
-$denied=@(& pwsh @cliArgs -Apply 2>&1);$deniedCode=$LASTEXITCODE
+$null = @(& pwsh @cliArgs -Apply 2>&1);$deniedCode=$LASTEXITCODE
 Assert-Runtime ($deniedCode -ne 0 -and (Test-Path -LiteralPath $cliFolder)) 'CLI Apply senza Authorization rifiutato'
 $application=@(& pwsh @cliArgs -Apply -Authorization 'Task 328 approved plan: removal only inside this newly created synthetic CLI fixture')
 $applicationCode=$LASTEXITCODE;$appliedData=($application -join [Environment]::NewLine)|ConvertFrom-Json

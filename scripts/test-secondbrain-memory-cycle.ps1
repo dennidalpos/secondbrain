@@ -87,7 +87,7 @@ Assert-Cycle ((Get-SBCycleContext $brain $repo -PreviousRevision $context.revisi
 $small=Get-SBCycleContext $brain $repo -Budget 50
 Assert-Cycle (!$small.startup.withinBudget -and $small.startup.minimumCharacters -gt 50 -and $small.startup.parts.context.Contains('Vincolo importante')) 'mandatory context never silently dropped'
 Assert-Cycle ((Remove-SBPrivateText "visible`n<private>hidden`nsecret</private>`nend") -notmatch 'hidden|secret') 'private text excluded from legacy knowledge reads'
-$task=New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repo -Id 'CYCLE-TASK' -Title 'Synthetic verified task' -Acceptance @('Synthetic criterion') -ProvenanceReference 'context.md' -BackupRoot $backups
+$null = New-SBTrackerTaskEntry -BrainRoot $brain -Identity $repo -Id 'CYCLE-TASK' -Title 'Synthetic verified task' -Acceptance @('Synthetic criterion') -ProvenanceReference 'context.md' -BackupRoot $backups
 $candidate.sources['memory.md']=Get-SBFileHash (Join-Path $d 'memory.md');$candidate.sources['tracker.json']=Get-SBFileHash (Join-Path $d 'tracker.json')
 $candidate.changes=@(@{kind='decision';id='decision-atomic';text='Memoria e tracker insieme';reason='Coerenza';verified=$true;eventIds=@('a2')},@{kind='task';id='CYCLE-TASK';status='done';verified=$true;eventIds=@('a2');verifiedAcceptance=@('Wrong criterion');evidenceReference='synthetic-capture'})
 $before=Get-SBFileHash (Join-Path $d 'memory.md')

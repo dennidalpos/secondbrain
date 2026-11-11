@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
     [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
     [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
-    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents')][string[]]$Only,
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint')][string[]]$Only,
     [switch]$KeepFixtures,[switch]$Sequential
 )
 $profileWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -46,7 +46,7 @@ try {
         if(!$Only -or 'quick' -in $Only){Invoke-MinimalSuite 'quick' {& (Join-Path $PSScriptRoot 'test-secondbrain-quick.ps1')}}
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents')})}elseif($Full){@('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint')})}elseif($Full){@('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint')}else{@()}
             # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
             $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
             function Start-SuiteJob($Spec){

@@ -312,7 +312,7 @@ function Get-SBCycleAttachment($Attachment,[string[]]$AllowedAttachmentPaths,[ha
             $text=[Text.UTF8Encoding]::new($false,$true).GetString($bytes)
             if(Test-SBCyclePrivate $text){return @{state='omitted';persist=$false}}
             $result.text=$text;$result.method='utf8-strict';$result.state='extracted';$result.coverage='text-only'
-        }catch [Text.DecoderFallbackException]{}
+        }catch [Text.DecoderFallbackException] { Write-Verbose $_.Exception.Message }
     }
     $result
 }

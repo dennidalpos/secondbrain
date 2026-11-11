@@ -18,7 +18,7 @@ try {
     Assert-Quick ((ConvertTo-SBRepositoryIdentity "git${at}gitlab.example:group/nested/repo.git") -eq 'gitlab.example/group/nested/repo') 'GitLab annidato senza vincolo owner'
     Assert-Quick ((ConvertTo-SBRepositoryIdentity "https://user:private${at}github.com/OWNER/REPO.git") -eq 'github.com/owner/repo') 'identita normalizzata senza credenziali'
     Assert-Quick ((ConvertTo-SBRepositoryIdentity "git${at}ssh.dev.azure.com:v3/org/project/repo") -eq 'dev.azure.com/org/project/_git/repo') 'alias SSH Azure DevOps'
-    Assert-Quick ((ConvertTo-SBRepositoryIdentity 'file:///not-a-remote') -eq $null) 'remoto file non promosso a identita globale'
+    Assert-Quick ($null -eq (ConvertTo-SBRepositoryIdentity 'file:///not-a-remote')) 'remoto file non promosso a identita globale'
     Assert-Quick (Test-SBRepositoryIdentity ('local:'+('a'*32))) 'identita locale persistente'
     # Deterministic JSON.
     Assert-Quick ((ConvertTo-SBJson @{b=2;a=@{z=3;y=@()}}) -ceq (ConvertTo-SBJson @{a=@{y=@();z=3};b=2})) 'JSON deterministico'

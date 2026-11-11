@@ -156,7 +156,7 @@ try {
     "SUCCESS SOURCE: $passed verifiche; runtime=$($PSVersionTable.PSVersion)"
 }finally{
     if($success){
-        $resolved=[IO.Path]::GetFullPath($root);$allowed=[IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
+        $resolved=[IO.Path]::GetFullPath($root);$null = [IO.Path]::GetFullPath((Get-SBTestRoot)).TrimEnd('\','/')+[IO.Path]::DirectorySeparatorChar
 
         Write-Output ('Fixture conservata: '+$resolved)
     }else{"Fixture fonti conservata: $root"}

@@ -283,10 +283,10 @@ function Get-SBActivityBackupPlan([string]$Dossier,[DateTimeOffset]$AsOf,[string
         foreach($meta in @(Get-ChildItem -LiteralPath $root -File -Filter '*.bin.json'|Sort-Object Name)){
             if($meta.Name -cnotmatch '^[0-9a-f]{32}\.bin\.json$' -or ($meta.Attributes -band [IO.FileAttributes]::ReparsePoint)){continue}
             $info=$null
-            try{$info=Read-SBJson $meta.FullName $null}catch{}
+            try{$info=Read-SBJson $meta.FullName $null}catch { Write-Verbose $_.Exception.Message }
             if($info -isnot [Collections.IDictionary] -or $info.path -isnot [string] -or [string]::IsNullOrWhiteSpace($info.path)){continue}
             $target=$null
-            try{$target=$targets[[IO.Path]::GetFullPath($info.path)]}catch{}
+            try{$target=$targets[[IO.Path]::GetFullPath($info.path)]}catch { Write-Verbose $_.Exception.Message }
             if(!$target){continue}
             $bin=$meta.FullName.Substring(0,$meta.FullName.Length-5)
             $entry=[ordered]@{backup=$bin;metadata=$meta.FullName;target=$target;sha256=(Get-SBFileHash $bin);metadataSha256=(Get-SBFileHash $meta.FullName)}

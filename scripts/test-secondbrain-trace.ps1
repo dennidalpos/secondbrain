@@ -14,14 +14,14 @@ try {
     [IO.File]::WriteAllText((Join-Path $hostDir 'workstation.json'),(ConvertTo-SBJson @{schemaVersion=1;bindings=@(@{identity='github.com/acme/repo-a';path=$checkout})}))
 
     # Event: metadata only, repository resolved from path, no prompt text.
-    $stdin=ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='synthetic fixture';session_id='sess-1';cwd=(Join-Path $checkout 'src');prompt='SEGRETO-DEL-PROMPT';transcript_path='C:/x/y.jsonl'}
+    $stdin=ConvertTo-Json -Compress -InputObject @{persistence='allowed';policyEvidence='synthetic fixture';session_id='sess-1';cwd=(Join-Path $checkout 'src');prompt='SEGRETO-DEL-PROMPT';transcript_path='C:/x/y.jsonl'}
     $file=Add-SBTraceEvent $brain 'stop' $stdin
     $line=@([IO.File]::ReadAllLines($file))[0];$entry=$line|ConvertFrom-Json -AsHashtable
     Assert-Trace ($file.StartsWith((Join-Path $brain '.runtime/trace'),[StringComparison]::OrdinalIgnoreCase) -and $file.EndsWith('.jsonl') -and $entry.repository -ceq 'github.com/acme/repo-a' -and $entry.sessionId -eq 'sess-1' -and $entry.event -eq 'stop') 'evento accodato in .runtime/trace con repository risolto'
     Assert-Trace (!$line.Contains('SEGRETO-DEL-PROMPT') -and !$line.Contains('transcript') -and !$line.Contains($checkout)) 'la riga non contiene prompt, trascrizione né percorsi'
-    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';session_id='sess-1';cwd=$other}))
-    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';cwd=$other}))
-    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress @{persistence='allowed';policyEvidence='fixture';session_id='../../x';cwd=$checkout}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress -InputObject @{persistence='allowed';policyEvidence='fixture';session_id='sess-1';cwd=$other}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress -InputObject @{persistence='allowed';policyEvidence='fixture';cwd=$other}))
+    [void](Add-SBTraceEvent $brain 'stop' (ConvertTo-Json -Compress -InputObject @{persistence='allowed';policyEvidence='fixture';session_id='../../x';cwd=$checkout}))
     [void](Add-SBTraceEvent $brain 'stop' 'non-e-json{')
     [void](Add-SBTraceEvent $brain 'stop' '{"persistence":"disabled"}')
     $rows=@([IO.File]::ReadAllLines($file)|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
@@ -51,7 +51,7 @@ try {
     $counted=Get-SBDirectiveCharacters $directiveFiles
     Assert-Trace ($counted.agents -eq 1234 -and $counted.total -eq (1234+$counted.globalLargest) -and (Get-SBDirectiveCharacters '').agents -eq 0) 'le direttive contano AGENTS.md del checkout e la direttiva globale piu grande'
     $heavy=Join-Path (Split-Path $file) 'altro-giorno.jsonl'
-    [IO.File]::WriteAllLines($heavy,@(1..60|ForEach-Object {ConvertTo-Json -Compress @{schemaVersion=1;ts=[DateTimeOffset]::Now.ToString('o');ide='claude-code';sessionId='s';event='stop';repository='github.com/acme/repo-a';cwdHash='0'}}))
+    [IO.File]::WriteAllLines($heavy,@(1..60|ForEach-Object {ConvertTo-Json -Compress -InputObject @{schemaVersion=1;ts=[DateTimeOffset]::Now.ToString('o');ide='claude-code';sessionId='s';event='stop';repository='github.com/acme/repo-a';cwdHash='0'}}))
     $many=Get-SBCompactionAdvice (& $startup 12000) $brain $dossier
     Assert-Trace ($many.level -eq 'soft' -and $many.turnsSinceCompaction -ge 60 -and (Get-SBCompactionAdvice (& $startup 9000) $brain $dossier).level -eq 'none') 'molti turni con contesto al 60%: avviso soft; sotto il 60% nessuno'
     $manifest=Join-Path $dossier 'history/compaction/aaaa.json';[IO.File]::WriteAllText($manifest,'{}');(Get-Item $manifest).LastWriteTimeUtc=[DateTime]::UtcNow.AddMinutes(10)

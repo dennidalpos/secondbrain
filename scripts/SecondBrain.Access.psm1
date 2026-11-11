@@ -153,7 +153,7 @@ function Test-SBQueueTicketAlive([string]$LeasePath) {
     finally { if ($probe) { $probe.Dispose() } }
 }
 function Remove-SBQueueTicketFiles([string]$Root, [string]$Name) {
-    foreach ($suffix in @('.json','.lease')) { try { [IO.File]::Delete((Join-Path $Root ($Name+$suffix))) } catch {} }
+    foreach ($suffix in @('.json','.lease')) { try { [IO.File]::Delete((Join-Path $Root ($Name+$suffix))) } catch { Write-Verbose $_.Exception.Message } }
 }
 function Get-SBQueueTicketNames([string]$Root) {
     # Arrival order: the name starts with fixed-width UTC ticks, followed by a GUID tie-breaker.
@@ -252,7 +252,7 @@ function Get-SBAccessStatus($Config, [switch]$Repair) {
             } finally { if ($lease) { $lease.Dispose() } }
             # Status is read-only: persisting abandonment requires -Repair (or Clear-SBStaleSessions).
             if ($Repair -and $entry.status -eq 'abandoned') {
-                try { Write-SBAccessMetadata $file.FullName $entry } catch {}
+                try { Write-SBAccessMetadata $file.FullName $entry } catch { Write-Verbose $_.Exception.Message }
                 foreach ($suffix in @('.stop','.renew','.lease')) { [IO.File]::Delete((Join-Path $root ($entry.sessionId+$suffix))) }
             }
         }
@@ -282,11 +282,11 @@ function Clear-SBStaleSessions($Config, [int]$MaxAgeMinutes = 60) {
                 $lease = [IO.File]::Open((Join-Path $root ($entry.sessionId+'.lease')),[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
                 $status = 'abandoned'
             } catch [IO.FileNotFoundException] { $status = 'abandoned' }
-            catch [IO.IOException] {}
+            catch [IO.IOException] { Write-Verbose $_.Exception.Message }
             finally { if ($lease) { $lease.Dispose() } }
             if ($status -eq 'abandoned') {
                 $entry.status = 'abandoned'
-                try { Write-SBAccessMetadata $file.FullName $entry } catch {}
+                try { Write-SBAccessMetadata $file.FullName $entry } catch { Write-Verbose $_.Exception.Message }
                 foreach ($suffix in @('.stop','.renew','.lease')) { [IO.File]::Delete((Join-Path $root ($entry.sessionId+$suffix))) }
             }
         }

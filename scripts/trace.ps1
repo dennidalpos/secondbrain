@@ -40,7 +40,7 @@ if($PSCmdlet.ParameterSetName -eq 'Event'){
         try {
             Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
             [Console]::Error.WriteLine('[trace.event.lost] ' + (Get-SBMessage 'trace.event.lost' @($_.Exception.Message)))
-        } catch {}
+        } catch { Write-Verbose $_.Exception.Message }
     }
     exit 0
 }

@@ -6,7 +6,7 @@ try {
     if ([Console]::OutputEncoding.CodePage -ne 65001) {
         [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
     }
-} catch { }
+} catch { Write-Verbose $_.Exception.Message }
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
 $script:SBWriteGuard = $null
 
@@ -357,7 +357,7 @@ function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
         foreach($file in @(Get-ChildItem -LiteralPath $root -Filter '*.stage' -File -Recurse)){
             if($seenRecords.ContainsKey($file.FullName)){continue};$seenRecords[$file.FullName]=$true
             $record=$null
-            try{$record=Read-SBJson $file.FullName $null}catch{}
+            try{$record=Read-SBJson $file.FullName $null}catch { Write-Verbose $_.Exception.Message }
             if($record -isnot [Collections.IDictionary] -or $record.schemaVersion -ne 1 -or !$record.ContainsKey('status')){$retained.unreadable++;continue}
             if($record.status -ne 'completed'){$retained.notCompleted++;continue}
             if([DateTimeOffset]$file.LastWriteTimeUtc -gt $cutoff){$retained.recent++;continue}
@@ -781,7 +781,7 @@ function Get-SBRuntimeMigrationPlan([string]$BrainRoot,[string]$HostId,[string]$
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $hostRoot=Join-Path $runtime ('hosts/'+$HostId)
     $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
-    $moves=@();$skipped=@();$taken=@{}
+    $taken=@{}
     $newestOf={param([string]$Path) $t=[DateTime]::MinValue;foreach($f in ([IO.DirectoryInfo]::new($Path)).EnumerateFiles('*',$options)){if($f.LastWriteTimeUtc -gt $t){$t=$f.LastWriteTimeUtc}};if($t -eq [DateTime]::MinValue){$t=(Get-Item -LiteralPath $Path -Force).LastWriteTimeUtc};$t}
     $sizeOf={param([string]$Path) $n=0;$b=0L;foreach($f in ([IO.DirectoryInfo]::new($Path)).EnumerateFiles('*',$options)){$n++;$b+=$f.Length};@{files=$n;bytes=$b}}
     $rel={param([string]$Path) $Path.Substring($runtime.Length+1).Replace('\','/')}
@@ -981,7 +981,7 @@ public sealed class SBGitBatchReader {
             $start = New-SBGitStartInfo $Root $gitArguments
             $start.RedirectStandardInput = $true; $start.StandardInputEncoding = [Text.UTF8Encoding]::new($false)
             $process = [Diagnostics.Process]::Start($start)
-            $stderr = $process.StandardError.ReadToEndAsync()
+            $null = $process.StandardError.ReadToEndAsync()
             $writer = $process.StandardInput.WriteAsync((($wanted -join "`n") + "`n"))
             $reader = [SBGitBatchReader]::new($process.StandardOutput.BaseStream, $ReadTimeoutMs)
         }
@@ -996,7 +996,7 @@ public sealed class SBGitBatchReader {
         }
         if ($process) { $writer.Wait(); $process.StandardInput.Close(); if (!$process.WaitForExit($ReadTimeoutMs)) { throw (New-SBError 'core.git.timeout' @($Root)) } }
     } finally {
-        if ($process) { if (!$process.HasExited) { try { $process.Kill($true) } catch {} }; $process.Dispose() }
+        if ($process) { if (!$process.HasExited) { try { $process.Kill($true) } catch { Write-Verbose $_.Exception.Message } }; $process.Dispose() }
     }
 }
 function ConvertTo-SBRepositoryIdentity([string]$Remote) {

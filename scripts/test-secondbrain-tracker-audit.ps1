@@ -55,7 +55,7 @@ try {
         Assert-Audit ($LASTEXITCODE -eq 0 -and $preview.mode -ceq 'preview' -and $preview.tasks -eq 1 -and (Get-SBFileHash $f.source) -ceq $originalHash) 'anteprima esplicita greenfield legge la sorgente approvabile'
         $foreignSource=Join-Path $f.checkout 'other.json'
         Put-Audit $foreignSource '{"tasks":[]}'
-        $ignored=@(& pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $foreignSource 2>&1)
+        $null = @(& pwsh -NoProfile -File $cli -ConfigPath $f.config.configPath -Repository $f.identity -SourcePath $foreignSource 2>&1)
         Assert-Audit ($LASTEXITCODE -ne 0 -and (Get-SBFileHash $f.source) -ceq $originalHash) 'anteprima esplicita rifiuta una sorgente diversa'
         $stop={param($phase) if($phase -eq 'prepared'){throw 'synthetic stop before archive creation'}}
         Reject-Audit {Invoke-SBTrackerImport -Config $f.config -Identity $f.identity -SourcePath $f.source -AfterPhase $stop} 'preparazione esplicita greenfield arriva al backup verificato'

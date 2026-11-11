@@ -28,7 +28,7 @@ if($Operation -in @('Capture','Promote','Permit')){
     $Repository=$inputObject.repository
 }
 if(!$Repository){throw (New-SBError 'cycle.invalid' @('Repository'))}
-$dossier=Resolve-SBCycleDossier $brain $Repository
+$null = Resolve-SBCycleDossier $brain $Repository
 if($Operation -eq 'Context'){ConvertTo-SBJson (Get-SBCycleContext $brain $Repository $TaskIds $PreviousRevision $Budget);exit 0}
 if($Operation -eq 'Maintenance'){
     if($Apply){throw (New-SBError 'cycle.invalid' @('Maintenance is inventory only; apply reviewed SYS05 candidates separately'))}

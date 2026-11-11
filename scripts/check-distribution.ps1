@@ -20,7 +20,7 @@ try {
     if ([Console]::OutputEncoding.CodePage -ne 65001) {
         [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
     }
-} catch { }
+} catch { Write-Verbose $_.Exception.Message }
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 $repo = if ($RepositoryPath) { [IO.Path]::GetFullPath($RepositoryPath) } else { [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
