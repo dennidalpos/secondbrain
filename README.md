@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 1.22.3](https://img.shields.io/badge/version-1.22.3-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 1.23.0](https://img.shields.io/badge/version-1.23.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -77,6 +77,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 
 - **Read project knowledge:** use Startup, task lookup or search; [daily use](docs/uso-quotidiano.md) explains the CLI and chat conventions.
 - **Change a task or memory:** review the operation and its approval requirements. The [MCP write guide](docs/riferimento/mcp-writes.md) covers the local receipt for each submitted operation.
+- **Run the ready tasks:** `scripts/run-ready-tasks.ps1` runs them one at a time with Claude Code, Codex or Gemini CLI; the [desktop orchestrator](docs/orchestratore.md) picks the repository, the directives, the model and the effort level.
 - **Use prompt cards:** 114 English cards with Italian counterparts cover development, review, documentation and maintenance. [Prompt guide](docs/prompt.md).
 - **Back up private knowledge:** preserve the dossier and recovery records separately from Git. [Backup and recovery](docs/sicurezza.md).
 

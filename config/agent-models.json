@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "description": "Fallback models and effort levels per agent CLI, used only where the installed CLI and its local configuration expose nothing. Every entry is marked source=fallback in the probe; a local override in .runtime/hosts/<host>/agent-models.local.json adds entries.",
+  "providers": {
+    "claude": {
+      "models": [
+        { "id": "fable", "label": "Fable (alias)" },
+        { "id": "opus", "label": "Opus (alias)" },
+        { "id": "sonnet", "label": "Sonnet (alias)" },
+        { "id": "haiku", "label": "Haiku (alias)" },
+        { "id": "claude-fable-5-2", "label": "Claude Fable 5.2" },
+        { "id": "claude-opus-5-5", "label": "Claude Opus 5.5" },
+        { "id": "claude-sonnet-5-5", "label": "Claude Sonnet 5.5" },
+        { "id": "claude-haiku-5-5", "label": "Claude Haiku 5.5" }
+      ],
+      "efforts": []
+    },
+    "codex": {
+      "models": [],
+      "efforts": ["low", "medium", "high", "xhigh"]
+    },
+    "gemini": {
+      "models": [
+        { "id": "gemini-2.5-pro", "label": "Gemini 2.5 Pro" },
+        { "id": "gemini-2.5-flash", "label": "Gemini 2.5 Flash" }
+      ],
+      "efforts": []
+    }
+  }
+}

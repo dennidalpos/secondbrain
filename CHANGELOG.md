@@ -2,7 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.22.3**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.23.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.23.0] - 2026-11-11
+
+### Aggiunto
+- `app/orchestrator`: app desktop Tauri 2 (Windows, macOS, Linux) che sceglie un checkout gestito, prepara e approva le direttive specifiche del repository, compone la coda dei task pronti con provider, modello e impegno e la esegue in sequenza con avanzamento in tempo reale. Guida in `docs/orchestratore.md`.
+- `scripts/SecondBrain.AgentAdapters.psm1` e `scripts/agents.ps1`: probe delle CLI Claude Code, Codex e Gemini (`--version`, `--help`, configurazione locale, tabella di riserva `config/agent-models.json` con override per postazione), argomenti headless con profilo di permessi fisso; `-Directives` legge le direttive e prepara o applica una proposta tramite `approve-revision.ps1` e `secondbrain.ps1 -Sync`.
+- `run-ready-tasks.ps1`: `-Provider claude|codex|gemini`, `-Model`, `-Effort` validati sul probe (`-AllowCustomModel`), `-TaskIds` per una coda esplicita ordinata, `-Events` (righe JSON su standard error), `-StopFile`; schema di quota esteso a Codex e Gemini.
+- Gruppo di test `agents` (36 verifiche) e nuove verifiche nel gruppo `runner`; job CI `orchestrator` su Ubuntu, macOS e Windows.
+
+### Modificato
+- `check-distribution.ps1` ammette `app/` nel perimetro pubblico.
 
 ## [1.22.3] - 2026-11-11
 
@@ -213,7 +224,8 @@ Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazi
 
 ### Modificato
 
-- un-ready-tasks.ps1: l agente del runner può usare anche Grep, Glob e Skill (--allowedTools), strumenti di sola lettura o consultazione; i divieti su commit, push, tag, reset, clean e rimozioni restano invariati. Documentato in operations.
+- 
+un-ready-tasks.ps1: l agente del runner può usare anche Grep, Glob e Skill (--allowedTools), strumenti di sola lettura o consultazione; i divieti su commit, push, tag, reset, clean e rimozioni restano invariati. Documentato in operations.
 
 ## [1.10.0] - 2026-11-08
 

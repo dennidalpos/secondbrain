@@ -63,3 +63,40 @@ jobs:
         run: |
           & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/publication.ps1 -RepositoryPath $env:GITHUB_WORKSPACE
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+  orchestrator:
+    name: Desktop orchestrator (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: app/orchestrator
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux system libraries for Tauri
+        if: runner.os == 'Linux'
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Frontend type check and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Rust unit tests and build
+        run: |
+          cargo test --manifest-path src-tauri/Cargo.toml
+          cargo build --manifest-path src-tauri/Cargo.toml

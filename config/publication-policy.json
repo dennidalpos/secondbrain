@@ -1,5 +1,48 @@
 {
-  "schemaVersion": 1,
   "allowances": [],
-  "binaryReviews": []
+  "binaryReviews": [
+    {
+      "gitBlob": "e75f188dee2c083431b7b4a982dea64f8b7d33d8",
+      "path": "app/orchestrator/src-tauri/icons/128x128.png",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "CAA0DE6DFBED31FD55886E702BE7B9FAF9F876D2C59BDF33FE8ABF9FEC0E5404"
+    },
+    {
+      "gitBlob": "5d023d7f9e2486a290d8e7a12b5eb3649ba6c0a7",
+      "path": "app/orchestrator/src-tauri/icons/256x256.png",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "EC500DAF6BCE807622098A21C122155118716E1A4159EE18A7CB83BAC701AC66"
+    },
+    {
+      "gitBlob": "7e3a9fc005a158e2bb735086b1aab200b342727f",
+      "path": "app/orchestrator/src-tauri/icons/32x32.png",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "31C4B3EF63877ADF75C7FBA3A5CE38346D33626E43B037708390579893C77D2D"
+    },
+    {
+      "gitBlob": "6aa3c4fe7971eb24e4a86ff7ff206b9690472b45",
+      "path": "app/orchestrator/src-tauri/icons/icon.icns",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "CAE30C2F02D9C5DC39B5EEF576C64FE494F30B2BEE762D94D8438C3DEBD8D3A0"
+    },
+    {
+      "gitBlob": "d7c69993eb232c91f98f05c4d4072c312fbb72c3",
+      "path": "app/orchestrator/src-tauri/icons/icon.ico",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "60CB52FA11AC49435B321890ECC1C91A1502E27626ED3DF8431A90EADA002A57"
+    },
+    {
+      "gitBlob": "a0b6e54cdcbd343cf56e32b42974b35539fc214b",
+      "path": "app/orchestrator/src-tauri/icons/icon.png",
+      "reason": "App icon generated in this repository with tauri icon from a drawn shape (circle and three lines); no text, photo or personal data.",
+      "reviewed": true,
+      "sha256": "DFC2D4F203233B218C5F68D18AA52EE6564AA376EB508D933E7F18A2D88DCE23"
+    }
+  ],
+  "schemaVersion": 1
 }

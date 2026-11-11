@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecondBrain Orchestrator</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>SecondBrain Orchestrator</h1>
+      <span id="repo-label" class="muted">Nessun repository</span>
+    </header>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="repo" aria-selected="true">1 · Repository</button>
+      <button role="tab" data-tab="directives">2 · Direttive</button>
+      <button role="tab" data-tab="queue">3 · Coda</button>
+      <button role="tab" data-tab="run">4 · Esecuzione</button>
+      <button role="tab" data-tab="settings">Impostazioni</button>
+    </nav>
+    <main>
+      <section id="tab-repo" class="panel">
+        <h2>Repository in sviluppo</h2>
+        <p class="muted">Il checkout deve essere registrato in SecondBrain (dossier con tracker.json).</p>
+        <div class="row">
+          <input id="repo-path" type="text" placeholder="Percorso del checkout" />
+          <button id="repo-browse">Sfoglia…</button>
+          <button id="repo-load" class="primary">Carica</button>
+        </div>
+        <div id="recent" class="chips"></div>
+        <pre id="repo-info" class="box"></pre>
+      </section>
+
+      <section id="tab-directives" class="panel" hidden>
+        <h2>Direttive del repository</h2>
+        <div class="row">
+          <input id="dir-file" type="text" placeholder="File delle direttive (AGENTS.md)" />
+          <button id="dir-browse">Scegli file…</button>
+          <button id="dir-read">Leggi</button>
+        </div>
+        <p class="muted">Il blocco gestito di AGENTS.md (CLAUDE.md e GEMINI.md lo importano) si aggiorna solo tramite proposta approvata e <code>secondbrain.ps1 -Sync</code>.</p>
+        <details><summary>Contenuto attuale del file</summary><pre id="dir-current" class="box"></pre></details>
+        <label for="dir-text">Direttive specifiche del repository (sviluppo e tracciamento dei task)</label>
+        <textarea id="dir-text" rows="14"></textarea>
+        <div class="row">
+          <button id="dir-template">Inserisci modello</button>
+          <button id="dir-preview" class="primary">Anteprima proposta</button>
+          <button id="dir-apply" disabled>Approva e applica</button>
+        </div>
+        <pre id="dir-result" class="box"></pre>
+      </section>
+
+      <section id="tab-queue" class="panel" hidden>
+        <h2>Coda dei task</h2>
+        <div class="grid">
+          <label>Provider <select id="q-provider"></select></label>
+          <label>Modello <select id="q-model"></select></label>
+          <label>Modello personalizzato <input id="q-custom" type="text" placeholder="facoltativo" /></label>
+          <label>Impegno <select id="q-effort"></select></label>
+          <label>Timeout (min) <input id="q-timeout" type="number" min="1" max="240" value="30" /></label>
+        </div>
+        <p id="q-agent" class="muted"></p>
+        <div class="row">
+          <button id="q-refresh">Aggiorna task</button>
+          <button id="q-all">Seleziona tutti</button>
+          <button id="q-start" class="primary">Avvia la coda</button>
+        </div>
+        <table class="tasks">
+          <thead><tr><th></th><th>#</th><th>ID</th><th>Titolo</th><th>Priorità</th><th></th></tr></thead>
+          <tbody id="q-tasks"></tbody>
+        </table>
+        <h3>Esclusi</h3>
+        <ul id="q-skipped" class="muted"></ul>
+      </section>
+
+      <section id="tab-run" class="panel" hidden>
+        <h2>Esecuzione</h2>
+        <div class="row">
+          <span id="run-status" class="status">Inattivo</span>
+          <button id="run-stop">Ferma dopo il task corrente</button>
+          <button id="run-abort" class="danger">Interrompi subito</button>
+        </div>
+        <table class="tasks">
+          <thead><tr><th>#</th><th>ID</th><th>Esito</th><th>Stato</th><th>Secondi</th><th>Cartella</th></tr></thead>
+          <tbody id="run-results"></tbody>
+        </table>
+        <pre id="run-log" class="box log"></pre>
+      </section>
+
+      <section id="tab-settings" class="panel" hidden>
+        <h2>Impostazioni</h2>
+        <label>Radice SecondBrain <input id="s-home" type="text" placeholder="predefinito: SECONDBRAIN_HOME" /></label>
+        <label>Eseguibile PowerShell 7 <input id="s-pwsh" type="text" placeholder="pwsh" /></label>
+        <div class="row"><button id="s-save" class="primary">Salva</button><button id="s-probe">Rileva agenti</button></div>
+        <pre id="s-info" class="box"></pre>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -13,10 +13,16 @@ Each repository carries its own thin launcher (.secondbrain/run-tasks.ps1, insta
 When the checkout is not the SecondBrain checkout, the agent starts inside it and its prompt names the SecondBrain tools to use. -MaxTasks 0 = no limit.
 Quota exhaustion or three consecutive failures stop the run.
 Progress lines (selection, start and end of every task, a heartbeat each minute, summary) go to standard error; standard output carries only the final JSON, so redirecting it to a file keeps the console readable.
+-Provider claude|codex|gemini picks the agent CLI (default claude) and builds its headless arguments with the fixed permission profile
+(file edits in the checkout, no git history changes, no deletion); -Model and -Effort are validated against scripts/agents.ps1 -Probe
+(-AllowCustomModel accepts a model the probe does not list). -AgentPath and -AgentArguments stay as an advanced override.
+-TaskIds runs only the named ready tasks, in the given order, after the same selection rules. -Events writes progress as one JSON
+object per line on standard error (for the desktop orchestrator). -StopFile <path> ends the run before the next task when the file exists.
 #>
 [CmdletBinding()]
-param([string]$CheckoutPath='.',[int]$MaxTasks=3,[ValidateRange(1,240)][int]$TimeoutMinutes=30,[string]$AgentPath='claude',
-    [string[]]$AgentArguments=@('-p','--output-format','json','--permission-mode','acceptEdits','--allowedTools','Bash,Read,Edit,Write,Grep,Glob,Skill','--disallowedTools','Bash(git commit:*)','Bash(git push:*)','Bash(git tag:*)','Bash(git reset:*)','Bash(git clean:*)','Bash(rm:*)','Bash(Remove-Item:*)'),
+param([string]$CheckoutPath='.',[int]$MaxTasks=3,[ValidateRange(1,240)][int]$TimeoutMinutes=30,
+    [ValidateSet('claude','codex','gemini')][string]$Provider='claude',[string]$Model,[string]$Effort,[switch]$AllowCustomModel,
+    [string]$AgentPath,[string[]]$AgentArguments,[string[]]$TaskIds,[switch]$Events,[string]$StopFile,
     [string]$ConfigPath,[switch]$Run)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
@@ -25,6 +31,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.AgentAdapters.psm1')
+# -AgentPath alone keeps the provider adapter; -AgentArguments replaces the adapter arguments entirely (advanced override, no validation).
+$customArguments=$PSBoundParameters.ContainsKey('AgentArguments')
+if(!$AgentPath){$AgentPath=(Get-SBAgentProvider $Provider).command}
+$TaskIds=@($TaskIds|ForEach-Object {[string]$_ -split '[,;]'}|ForEach-Object {$_.Trim()}|Where-Object {$_})
 # Preflight from the IDE capability table: tasks that require computer use run only when this agent has a documented, present pre-approval.
 $allowComputerUse=Test-SBAgentUnattendedComputerUse $AgentPath
 Add-SBMessages @{
@@ -39,9 +50,30 @@ Add-SBMessages @{
     'runner.progress.stop' = @{it='Arresto del giro: {0}';en='Run stopped: {0}'}
     'runner.progress.summary' = @{it='Riepilogo: {0} eseguiti, {1} riusciti, {2} non riusciti, {3} repository saltati';en='Summary: {0} run, {1} succeeded, {2} failed, {3} repositories skipped'}
     'runner.progress.preview' = @{it='Anteprima: {0} task eseguibili in {1} repository (nessuna modifica; usa -Run per eseguirli)';en='Preview: {0} runnable tasks in {1} repositories (no change; use -Run to execute them)'}
+    'runner.progress.omitted' = @{it='  Opzioni non disponibili nella CLI installata e omesse: {0}';en='  Options missing from the installed CLI and left out: {0}'}
 }
 # Progress goes to standard error so that `> file` keeps only the final JSON while the console still shows the advance.
-function Show-RunnerLine([string]$Key,[object[]]$Arguments=@()){[Console]::Error.WriteLine((Get-SBMessage $Key $Arguments))}
+# With -Events each line is one JSON object (event name from the message key, the message and its data) for the desktop orchestrator.
+function Show-RunnerLine([string]$Key,[object[]]$Arguments=@(),$Data){
+    $text=Get-SBMessage $Key $Arguments
+    if($Events){
+        $event=[ordered]@{event=($Key -replace '^runner\.(progress\.)?','');message=$text;time=[DateTimeOffset]::UtcNow.ToString('o')}
+        if($Data){foreach($k in $Data.Keys){$event[$k]=$Data[$k]}}
+        [Console]::Error.WriteLine(($event|ConvertTo-Json -Compress -Depth 8))
+    }else{[Console]::Error.WriteLine($text)}
+}
+# Adapter arguments from the probe of the installed CLI (validated model and effort); an unprobed custom agent keeps every flag.
+$capabilities=$null;$omitted=@()
+if(!$customArguments){
+    $needsProbe=[bool]($Run -or $Model -or $Effort)
+    if($needsProbe){
+        $capabilities=Get-SBAgentCapabilities -Provider $Provider -AgentPath $AgentPath
+        try{[void](Test-SBAgentSelection $capabilities $Model $Effort -AllowCustomModel:$AllowCustomModel)}catch{[Console]::Error.WriteLine($_.Exception.Message);exit 2}
+    }
+    $invocation=New-SBAgentInvocation -Provider $Provider -Capabilities $capabilities -Model $Model -Effort $Effort
+    $AgentArguments=@($invocation.arguments);$omitted=@($invocation.omitted)
+}
+if($omitted.Count){Show-RunnerLine 'runner.progress.omitted' @(($omitted -join ', ')) @{omitted=$omitted}}
 function Invoke-Json([string[]]$ScriptArgs){
     $out=(& pwsh -NoProfile -File @ScriptArgs 2>&1|Out-String)
     $i=$out.IndexOfAny([char[]]@('[','{'))
@@ -78,6 +110,17 @@ function Read-RunnerTasks($Target,$Index,$Count){
     $excluded=@(Get-SBRunnerExclusions $detail -AllowComputerUse:$allowComputerUse)
     $all=Select-SBRunnableTasks $detail 0 -AllowComputerUse:$allowComputerUse
     $picked=Select-SBRunnableTasks $detail $MaxTasks -AllowComputerUse:$allowComputerUse
+    if($TaskIds.Count){
+        # Explicit queue: the named runnable tasks in the given order; the others are reported as not queued, unknown IDs as not ready.
+        $byRunnable=@{};foreach($t in @($all)){$byRunnable[[string]$t.id]=$t}
+        $queued=@($TaskIds|Where-Object {$byRunnable.ContainsKey($_)}|ForEach-Object {$byRunnable[$_]})
+        $excluded=@($excluded|Where-Object {[string]$_.id -in $TaskIds})
+        $known=@(@($detail)|ForEach-Object {[string]$_.id})
+        foreach($id in $TaskIds){if($id -notin $known){$excluded+=,[ordered]@{id=$id;seq=$null;reason='not-ready'}}}
+        foreach($t in @($all)){if([string]$t.id -notin $TaskIds){$excluded+=,[ordered]@{id=[string]$t.id;seq=$t.seq;reason='not-queued'}}}
+        $all=$queued
+        $picked=if($MaxTasks -gt 0){@($queued|Select-Object -First $MaxTasks)}else{$queued}
+    }
     $pickedIds=@($picked|ForEach-Object {[string]$_.id})
     foreach($t in $all){if([string]$t.id -notin $pickedIds){$excluded+=,[ordered]@{id=[string]$t.id;seq=$t.seq;reason='max-tasks'}}}
     @{tasks=$picked;excluded=$excluded;ready=$ready.Count;source=$(if($source.Count -eq 1){[string]$source[0].source}else{$null})}
@@ -105,23 +148,19 @@ if(!$Run){
         $preview+=,[ordered]@{repository=$p.target.identity;id=$t.id;seq=$t.seq;priority=$t.priority;title=$t.title;prompt=$prompt}
     }}
     Show-RunnerLine 'runner.progress.preview' @($totalSelected,$plans.Count)
-    ConvertTo-SBJson @{run=$false;agent=$AgentPath;computerUse=$allowComputerUse;timeoutMinutes=$TimeoutMinutes;tasks=$preview;skipped=$skipped};exit 0
+    ConvertTo-SBJson @{run=$false;agent=$AgentPath;provider=$Provider;model=$Model;effort=$Effort;arguments=@($AgentArguments);omitted=$omitted;computerUse=$allowComputerUse;timeoutMinutes=$TimeoutMinutes;tasks=$preview;skipped=$skipped};exit 0
 }
 if(!(Get-Command $AgentPath -ErrorAction SilentlyContinue)){[Console]::Error.WriteLine((New-SBError 'runner.agent.missing' $AgentPath).Message);exit 2}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
-$found=@(Get-Command $AgentPath -All -ErrorAction SilentlyContinue)
-$app=@($found|Where-Object {$_.CommandType -eq 'Application' -and $_.Source -match '\.(exe|cmd|bat)$'}|Sort-Object @{e={if($_.Source -like '*.exe'){0}else{1}}})|Select-Object -First 1
-$agentPrefix=@()
-if($app){$agent=$app.Source}else{
-    $agent=(Get-Command $AgentPath).Source
-    if($agent -like '*.ps1'){$agentPrefix=@('-NoProfile','-File',$agent);$agent=(Get-Process -Id $PID).Path}
-}
+$resolved=Resolve-SBAgentExecutable $AgentPath
+$agent=$resolved.path;$agentPrefix=@($resolved.prefix)
 $results=@();$consecutiveFailures=0;$stopReason=$null;$position=0
 foreach($plan in $plans){
     $checkout=$plan.target.path
     foreach($task in $plan.tasks){
+        if($StopFile -and (Test-Path -LiteralPath $StopFile)){$stopReason='requested';break}
         $position++
-        Show-RunnerLine 'runner.progress.start' @($position,$totalSelected,$task.seq,$(if($plan.target.identity){$plan.target.identity}else{[string]$task.id}))
+        Show-RunnerLine 'runner.progress.start' @($position,$totalSelected,$task.seq,$(if($plan.target.identity){$plan.target.identity}else{[string]$task.id})) @{position=$position;total=$totalSelected;id=[string]$task.id;seq=$task.seq;title=[string]$task.title}
         $repo=$task.PSObject.Properties['repository']
         $identity=if($plan.target.identity){$plan.target.identity}elseif($repo){$repo.Value}else{$null}
         if(!$identity){$identity=(Invoke-Json (@($knowledge,'-Task',[string]$task.seq,'-CheckoutPath',$checkout)+$configArgs)).repository}
@@ -145,7 +184,7 @@ foreach($plan in $plans){
             while(!$process.WaitForExit(1000)){
                 $elapsed=((Get-Date)-$began).TotalSeconds
                 if($elapsed -ge $TimeoutMinutes*60){$process.Kill($true);$process.WaitForExit();$state='timeout';break}
-                if($elapsed -ge $nextTick){Show-RunnerLine 'runner.progress.tick' @($task.seq,[int]$elapsed,$TimeoutMinutes);$nextTick+=60}
+                if($elapsed -ge $nextTick){Show-RunnerLine 'runner.progress.tick' @($task.seq,[int]$elapsed,$TimeoutMinutes) @{id=[string]$task.id;seconds=[int]$elapsed};$nextTick+=60}
             }
             $code=$process.ExitCode
             $outText=$outTask.GetAwaiter().GetResult();$errText=$errTask.GetAwaiter().GetResult()
@@ -172,19 +211,19 @@ foreach($plan in $plans){
         }
         # Stop the whole run when the plan quota is exhausted, or after three consecutive failures (no retry loops).
         # Classified before report.json is written, so the report and the run summary agree.
-        if(($code -ne 0 -or $outText -match '"is_error"\s*:\s*true') -and ($outText+$errText) -match 'usage_limit_reached|usage limit|weekly limit|rate_limit_error|quota'){$record.state='quota';$stopReason='quota'}
+        if(($code -ne 0 -or (Test-SBAgentErrorOutput $outText)) -and ($outText+$errText) -match (Get-SBAgentQuotaPattern)){$record.state='quota';$stopReason='quota'}
         elseif($state -ne 'finished' -or $code -ne 0){$consecutiveFailures++}else{$consecutiveFailures=0}
         if($consecutiveFailures -ge 3){$stopReason='failures'}
         [IO.File]::WriteAllText((Join-Path $root 'report.json'),(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'work.ps1') -Repository $identity -Category report -Slug $slug -Close @configArgs|Out-Null
         $results+=$record
-        Show-RunnerLine 'runner.progress.done' @($position,$totalSelected,$task.seq,$record.state,$code,$record.statusBefore,$record.statusAfter,$record.seconds)
+        Show-RunnerLine 'runner.progress.done' @($position,$totalSelected,$task.seq,$record.state,$code,$record.statusBefore,$record.statusAfter,$record.seconds) @{record=$record}
         if($stopReason){break}
     }
     if($stopReason){break}
 }
 $failed=@($results|Where-Object {$_.state -ne 'finished' -or $_.exitCode -ne 0}).Count
-if($stopReason){Show-RunnerLine 'runner.progress.stop' @($stopReason)}
+if($stopReason){Show-RunnerLine 'runner.progress.stop' @($stopReason) @{reason=$stopReason}}
 Show-RunnerLine 'runner.progress.summary' @($results.Count,($results.Count-$failed),$failed,@($skipped|Where-Object {!$_.Contains('id')}).Count)
-ConvertTo-SBJson @{run=$true;stopReason=$stopReason;tasks=$results;skipped=$skipped}
+ConvertTo-SBJson @{run=$true;provider=$Provider;model=$Model;effort=$Effort;stopReason=$stopReason;tasks=$results;skipped=$skipped}
 exit $(if($failed -gt 0){1}else{0})

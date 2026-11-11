@@ -40,6 +40,7 @@ try {
     Put-Runner (Join-Path $brain 'VERSION') (Read-SBText (Join-Path $PSScriptRoot '../VERSION'))
     Put-Runner (Join-Path $brain 'config/shared.json') (ConvertTo-SBJson @{schemaVersion=1;allowedOwners=@('test');excludedDirectories=@('.git')})
     Put-Runner (Join-Path $brain 'config/tracker.schema.json') (Read-SBText (Join-Path $PSScriptRoot '../config/tracker.schema.json'))
+    Put-Runner (Join-Path $brain 'config/agent-models.json') (Read-SBText (Join-Path $PSScriptRoot '../config/agent-models.json'))
     Put-Runner (Join-Path $brain 'direttive/AGENTS.global_ide.md') '# Synthetic directives'
     Put-Runner (Join-Path $brain 'direttive/workstation.template.md') '<!-- secondbrain:tracker-contract:1 -->'
     $approval=@{authorization='isolated runner fixture';files=@{}}
@@ -365,6 +366,39 @@ $r|ConvertTo-Json -Compress
     Assert-Runner ((Get-SBFileHash $trackerPath2) -ceq $hash2) 'launcher previews write nothing'
 
     Close-RunnerPhase 'launcher'
+    # Provider adapters, explicit queue, stop file and JSON events (desktop orchestrator), on the second repository.
+    function Invoke-Runner2([string[]]$RunnerArguments){
+        $errFile=Join-Path $fixture ('runner2-'+[guid]::NewGuid().ToString('N')+'.err')
+        $out=(& pwsh -NoProfile -File $runner -CheckoutPath $checkout2 -ConfigPath $configPath @RunnerArguments 2>$errFile|Out-String)
+        $code=$LASTEXITCODE;$err=[IO.File]::ReadAllText($errFile)
+        $i=$out.IndexOf('{');$data=if($i -ge 0){$out.Substring($i)|ConvertFrom-Json -AsHashtable}else{$null}
+        @{code=$code;text=$out+$err;err=$err;data=$data}
+    }
+    $hash2=Get-SBFileHash $trackerPath2
+    $queue=Invoke-Runner2 @('-AgentPath',$fake,'-AgentArguments','ok','-MaxTasks','0','-TaskIds','S-2,S-1;Y-1,NOPE')
+    $queueReasons=@{};foreach($s in @($queue.data.skipped)){if($s.Contains('id')){$queueReasons[[string]$s.id]=[string]$s.reason}}
+    Assert-Runner ($queue.code -eq 0 -and (@($queue.data.tasks|ForEach-Object id) -join ',') -ceq 'S-2,S-1') ('-TaskIds keeps the given order of runnable tasks: '+$queue.text)
+    Assert-Runner ($queueReasons['Y-1'] -ceq 'stream:qualifica-finale' -and $queueReasons['NOPE'] -ceq 'not-ready' -and $queueReasons.Count -eq 2) ('-TaskIds reports excluded and unknown IDs: '+($queueReasons|ConvertTo-Json -Compress))
+    $codexHomeFixture=Join-Path $fixture 'codex-home';[IO.Directory]::CreateDirectory($codexHomeFixture)|Out-Null
+    $savedCodexHome=$env:CODEX_HOME
+    try{
+        $env:CODEX_HOME=$codexHomeFixture
+        $fakeCodex=Join-Path $fixture 'agent/codex.ps1'
+        Put-Runner $fakeCodex "if(`$args -contains '--version'){'codex-cli 0.1.0';exit 0}`n'Usage: codex exec [OPTIONS] [PROMPT]'`n'  -c, --config <key=value>  Override'`n'  -m, --model <MODEL>  Model'`n'  -s, --sandbox <MODE>  Sandbox'`n'      --json  JSONL'`n"
+        $codexPreview=Invoke-Runner2 @('-Provider','codex','-AgentPath',$fakeCodex,'-Model','m1','-AllowCustomModel','-Effort','high','-MaxTasks','1')
+        $codexArgs=@($codexPreview.data.arguments) -join ' '
+        Assert-Runner ($codexPreview.code -eq 0 -and $codexPreview.data.provider -eq 'codex' -and $codexArgs -ceq 'exec --json --sandbox workspace-write --model m1 --config model_reasoning_effort="high" -') ('-Provider codex builds the headless arguments from the probed help: '+$codexArgs)
+        Assert-Runner ((@($codexPreview.data.omitted) -join ',') -ceq '--skip-git-repo-check' -and $codexPreview.err -match 'skip-git-repo-check') 'a flag missing from the installed help is omitted and reported'
+        $badModel=Invoke-Runner2 @('-Provider','codex','-AgentPath',$fakeCodex,'-Model','m1','-MaxTasks','1')
+        Assert-Runner ($badModel.code -eq 2 -and $badModel.err -match 'AllowCustomModel') ('an unknown model stops before any run with the next step: '+$badModel.text)
+    }finally{$env:CODEX_HOME=$savedCodexHome}
+    $stopFile=Join-Path $fixture 'stop.flag';Put-Runner $stopFile 'stop'
+    $stopped=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','ok','-MaxTasks','2','-StopFile',$stopFile,'-Events')
+    Assert-Runner ($stopped.code -eq 0 -and $stopped.data.stopReason -eq 'requested' -and @($stopped.data.tasks).Count -eq 0) ('an existing stop file ends the run before the next task: '+$stopped.text)
+    $events=@($stopped.err -split "`r?`n"|Where-Object {$_.Trim()}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
+    Assert-Runner (@($events|Where-Object {$_.event -eq 'repo'}).Count -eq 1 -and @($events|Where-Object {$_.event -eq 'stop' -and $_.reason -eq 'requested'}).Count -eq 1 -and @($events|Where-Object {!$_.message}).Count -eq 0) ('-Events writes one JSON object per progress line: '+$stopped.err)
+    Assert-Runner ((Get-SBFileHash $trackerPath2) -ceq $hash2) 'queue previews and a stopped run leave the tracker unchanged'
+    Close-RunnerPhase 'orchestrator'
     $realAfter=Get-RealTrackerHashes
     # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session
     # itself): a plain before/after hash comparison failed intermittently (#460). The guard checks the actual risk instead: every real tracker

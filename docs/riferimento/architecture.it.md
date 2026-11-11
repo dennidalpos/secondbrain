@@ -218,7 +218,7 @@ sequenceDiagram
 
 Due controlli distinti, entrambi in sola lettura:
 
-- `scripts/check-distribution.ps1` verifica che l'indice Git contenga solo il perimetro pubblico (`scripts/`, `config/`, `direttive/`, `docs/` e i file di radice ammessi) e nessun percorso PARA o `.runtime`; exit 1 in presenza di violazioni.
+- `scripts/check-distribution.ps1` verifica che l'indice Git contenga solo il perimetro pubblico (`scripts/`, `config/`, `direttive/`, `docs/`, `app/` e i file di radice ammessi) e nessun percorso PARA o `.runtime`; exit 1 in presenza di violazioni.
 - `scripts/publication.ps1` (`Test-SBPublication`, modulo `SecondBrain.Publication.psm1`) analizza working tree, indice e blob storici:
 
 ```mermaid
