@@ -24,6 +24,8 @@ function Get-SBResourceControl([string]$Folder) {
         Assert-SBPlainPath $file.FullName
         $relative=$file.FullName.Substring($base.Length).Replace('\','/')
         if($relative -in @($script:ResourceControlName,$script:ResourceIndexName) -or $relative -match '(^|/)\.(secondbrain-.*|gitkeep)$|\.(tmp|lock)$'){continue}
+        # #478: originals (restored by Sync, hash in the manifest) and QA screenshots are not in Git, so they are not part of the control.
+        if($relative -match '(^|/)versions/[^/]+/originals/' -or $relative -match '(^|/)census/qa/'){continue}
         $files+=@{path=$relative;sha256=(Get-SBFileHash $file.FullName);bytes=[int64]$file.Length}
     }
     $files=@($files|Sort-Object {$_.path})
@@ -91,6 +93,8 @@ function Test-SBResourceStale($Config,[int]$MaxAgeDays=14) {
 }
 function Invoke-SBResourceSync($Config,$Registry,[string]$PythonPath,[ValidateRange(0,10)][int]$MaxDepth=3,[ValidateRange(1,500)][int]$MaxSources=50,[scriptblock]$Transport) {
     if($Registry.archived){throw (New-SBError 'resources.sync.archived')}
+    # 0. Originals are not in Git (#478): restore the missing ones, hash-verified, before anything else.
+    $restore=Restore-SBSourceOriginals $Config $Registry $Transport
     # 1. Probe every endpoint and keep the report.
     $report=Invoke-SBSourceProbe $Registry $Transport
     $reportPath=Save-SBSourceReport $Config $report
@@ -116,7 +120,7 @@ function Invoke-SBResourceSync($Config,$Registry,[string]$PythonPath,[ValidateRa
         Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($view.text)) (Get-SBFileHash $path) $Config.backupRoot|Out-Null
     }
     $views=@(Update-SBResourceViews $Config)
-    @{schemaVersion=1;reportPath=$reportPath;complete=$report.complete;closure=@($closure.sources).Count;queued=@($closure.queue).Count;collected=$collected;viewsWritten=$views.Count}
+    @{schemaVersion=1;restored=@($restore.restored).Count;restoreFailed=@($restore.failed);reportPath=$reportPath;complete=$report.complete;closure=@($closure.sources).Count;queued=@($closure.queue).Count;collected=$collected;viewsWritten=$views.Count}
 }
 Export-ModuleMember -Function @(
     'Get-SBResourceFolders',

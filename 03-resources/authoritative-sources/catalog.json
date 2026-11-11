@@ -1,0 +1,518 @@
+{
+  "resourceId": "resource-authoritative-sources",
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "anthropic-code-workflows",
+      "kind": "technical-documentation",
+      "metadataSha256": "C10332EC3273472564E6A39CEEBE54E39A882191D37B658A045740E4078D4A16",
+      "path": "entries/anthropic-code-workflows/metadata.json",
+      "title": "Common workflows e prompt library Claude Code",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "sectoral"
+      ],
+      "id": "arera-135-2022",
+      "kind": "decision",
+      "metadataSha256": "64ECE373FDEABE9B4257530D9FCB3E6EE60D024E9622562A10442C7A479AA464",
+      "path": "entries/arera-135-2022/metadata.json",
+      "title": "ARERA 135/2022/R/com - riferimento da qualificare",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "security",
+        "identity",
+        "cloud-infrastructure"
+      ],
+      "id": "cis-benchmarks",
+      "kind": "standard",
+      "metadataSha256": "12EA09B94FFCB36AA84891ECD72B1B80931CDE8DBD880E46402F30A53D2300CF",
+      "path": "entries/cis-benchmarks/metadata.json",
+      "title": "CIS Benchmarks - configurazioni di sicurezza",
+      "versions": []
+    },
+    {
+      "acceptedVersion": "20261108-b0c5ea0a77cfa07f",
+      "domains": [
+        "ai",
+        "privacy"
+      ],
+      "id": "ec-ai-framework",
+      "kind": "guideline",
+      "metadataSha256": "F8D76504C62ED75C0DCD3293FC3526741C4208B45DF1A6B8C51CA021B0DB25E2",
+      "path": "entries/ec-ai-framework/metadata.json",
+      "title": "AI Act - quadro e calendario della Commissione europea",
+      "versions": [
+        {
+          "id": "20261027-bf8da5718e67b96a",
+          "reviewStatus": "verified"
+        },
+        {
+          "id": "20261104-91f3a7480ab0adf0",
+          "reviewStatus": "verified"
+        },
+        {
+          "id": "20261108-b0c5ea0a77cfa07f",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261104-e3ece462f199b730",
+      "domains": [
+        "privacy"
+      ],
+      "id": "edpb-legal-framework",
+      "kind": "guideline",
+      "metadataSha256": "2F4CAC3C0252C0C899884EF344D4425E16D509ED889A585DDA3020174246C9FB",
+      "path": "entries/edpb-legal-framework/metadata.json",
+      "title": "Quadro giuridico della protezione dati UE",
+      "versions": [
+        {
+          "id": "20261027-aef2d5a00be06ca9",
+          "reviewStatus": "verified"
+        },
+        {
+          "id": "20261104-e3ece462f199b730",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261027-842a8d865f7cc8dd",
+      "domains": [
+        "identity",
+        "security",
+        "official-data"
+      ],
+      "id": "eff-diceware",
+      "kind": "dataset",
+      "metadataSha256": "6CAF2309B9976E3EC175B0FF5AF4AC6C60E1610A54E814C6E9DD6910C190827B",
+      "path": "entries/eff-diceware/metadata.json",
+      "title": "EFF Large Wordlist for Passphrases",
+      "versions": [
+        {
+          "id": "20261027-842a8d865f7cc8dd",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261028-92a8c1b9e066aa7c",
+      "domains": [
+        "ai",
+        "privacy"
+      ],
+      "id": "eu-ai-act",
+      "kind": "regulation",
+      "metadataSha256": "96523C21515C8ADA6EF6025E37ED1DDE3E78DC1C441987244F84DB340EA5DC84",
+      "path": "entries/eu-ai-act/metadata.json",
+      "title": "Regolamento (UE) 2024/1689 - AI Act",
+      "versions": [
+        {
+          "id": "20261028-92a8c1b9e066aa7c",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261028-d98dc2ed94de1c6f",
+      "domains": [
+        "ai"
+      ],
+      "id": "eu-ai-omnibus-2026",
+      "kind": "regulation",
+      "metadataSha256": "CD39E6EFEDD2BFE8E383610F1B8DB0AC346B1CE00DE93B27E63F6BAD796DF4EE",
+      "path": "entries/eu-ai-omnibus-2026/metadata.json",
+      "title": "Regolamento (UE) 2026/1744 - modifiche AI Act",
+      "versions": [
+        {
+          "id": "20261028-d98dc2ed94de1c6f",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261027-ca7f8150ca790e24",
+      "domains": [
+        "privacy"
+      ],
+      "id": "eu-gdpr",
+      "kind": "regulation",
+      "metadataSha256": "563F3308C5CE018D19378765CC0C70A16FD8946AAE05A820CC7EFA9CD4AF273C",
+      "path": "entries/eu-gdpr/metadata.json",
+      "title": "Regolamento (UE) 2016/679 - edizione Garante, rettifiche 2018",
+      "versions": [
+        {
+          "id": "20261027-ca7f8150ca790e24",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261028-6a31d0a65d635c77",
+      "domains": [
+        "privacy"
+      ],
+      "id": "eu-gdpr-consolidation",
+      "kind": "regulation",
+      "metadataSha256": "351D4D23FB69A3D33D1AA64663AFB8934CF16DF08ACD15FDAD53AE2AE3DDBDB6",
+      "path": "entries/eu-gdpr-consolidation/metadata.json",
+      "title": "GDPR - verifica del testo consolidato EUR-Lex",
+      "versions": [
+        {
+          "id": "20261028-6a31d0a65d635c77",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "github-awesome-copilot",
+      "kind": "guideline",
+      "metadataSha256": "00B01F1E01C6872330986F239BDC638E93F9777AAAF38471BC05A473E925BC8E",
+      "path": "entries/github-awesome-copilot/metadata.json",
+      "title": "Awesome GitHub Copilot - esempi comunitari",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "github-copilot-cookbook",
+      "kind": "technical-documentation",
+      "metadataSha256": "D6A870B5EFAF161FA1776941017ADBAAE51122E9366A733AD6F46F135192C842",
+      "path": "entries/github-copilot-cookbook/metadata.json",
+      "title": "GitHub Copilot Cookbook",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "github-prompt-files",
+      "kind": "technical-documentation",
+      "metadataSha256": "6C00AB20A800661EA3DB515BC98193AEE1263648BF829A4C37EF9BBEAB4CC220",
+      "path": "entries/github-prompt-files/metadata.json",
+      "title": "GitHub reusable prompt files",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "google-prompt-strategies",
+      "kind": "technical-documentation",
+      "metadataSha256": "CF79437C2F6E430A24D2A7778830A5B1A3244D6569FE5D1A284281F163CB0516",
+      "path": "entries/google-prompt-strategies/metadata.json",
+      "title": "Gemini prompt design strategies",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "govtech-costar",
+      "kind": "guideline",
+      "metadataSha256": "FCDC05C890BFF16055EFCAA94DDC2A3DAB03A43A03F55F3534BB8F34D7E07FC2",
+      "path": "entries/govtech-costar/metadata.json",
+      "title": "GovTech CO-STAR framework",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "security",
+        "identity"
+      ],
+      "id": "iso-27001",
+      "kind": "standard",
+      "metadataSha256": "A9C82BF91A8EEFE5D5846E1B80E6157E0CB02C1161C69828AD55A96738457D77",
+      "path": "entries/iso-27001/metadata.json",
+      "title": "ISO/IEC 27001 - sistemi di gestione della sicurezza",
+      "versions": []
+    },
+    {
+      "acceptedVersion": "20261027-55cc325c4c47b78f",
+      "domains": [
+        "ai",
+        "work",
+        "privacy"
+      ],
+      "id": "it-ai-law-132-2025",
+      "kind": "regulation",
+      "metadataSha256": "A37211AD48788873AA8E07869E9AD7E840D07FB9D1159A6708AA155CC4105C97",
+      "path": "entries/it-ai-law-132-2025/metadata.json",
+      "title": "Legge 23 settembre 2025 n. 132 - intelligenza artificiale",
+      "versions": [
+        {
+          "id": "20261027-55cc325c4c47b78f",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261107-9bd9938c01d80c1c",
+      "domains": [
+        "work"
+      ],
+      "id": "it-dlgs-151-2015",
+      "kind": "regulation",
+      "metadataSha256": "DDC921C670103DCB392EDF35B6EB269F2623CE18C36E6CB4F77D8A862A6EAFC5",
+      "path": "entries/it-dlgs-151-2015/metadata.json",
+      "title": "D.Lgs. 151/2015 - art. 23, controlli a distanza (GU)",
+      "versions": [
+        {
+          "id": "20261107-9bd9938c01d80c1c",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261107-89a10c7f213e5fb0",
+      "domains": [
+        "work"
+      ],
+      "id": "it-dlgs-185-2016",
+      "kind": "regulation",
+      "metadataSha256": "F7593BBD81C86F5614BF17E26DC7D6156CC954501912C3D2909FC6915B7E70CF",
+      "path": "entries/it-dlgs-185-2016/metadata.json",
+      "title": "D.Lgs. 185/2016 - art. 5, modifica art. 4 Statuto (GU)",
+      "versions": [
+        {
+          "id": "20261107-89a10c7f213e5fb0",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "work",
+        "privacy"
+      ],
+      "id": "it-statuto-lavoratori-art4",
+      "kind": "regulation",
+      "metadataSha256": "65B0BEC98D72BD78C1F03565AD102C25AA2F407552A420398A5530C105A95AAE",
+      "path": "entries/it-statuto-lavoratori-art4/metadata.json",
+      "title": "Statuto dei lavoratori art. 4 - controlli a distanza",
+      "versions": []
+    },
+    {
+      "acceptedVersion": "20261027-beb0b6d126f7d291",
+      "domains": [
+        "identity",
+        "security"
+      ],
+      "id": "nist-digital-identity",
+      "kind": "standard",
+      "metadataSha256": "FBBCB07CFF624355B8EC6B882F3FE02695B3C6AA8F8D1FDB8201D79F7E895245",
+      "path": "entries/nist-digital-identity/metadata.json",
+      "title": "NIST SP 800-63B-4 - Authentication and Authenticator Management",
+      "versions": [
+        {
+          "id": "20261027-beb0b6d126f7d291",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261027-4db66862b8cebd1b",
+      "domains": [
+        "development",
+        "security"
+      ],
+      "id": "nist-ssdf",
+      "kind": "standard",
+      "metadataSha256": "A340839A9D682161E06F408F39B519B25CF34F9C8D2EB64876E42CC69AC0A7D3",
+      "path": "entries/nist-ssdf/metadata.json",
+      "title": "NIST SP 800-218 - SSDF 1.1, final 2022",
+      "versions": [
+        {
+          "id": "20261027-4db66862b8cebd1b",
+          "reviewStatus": "verified"
+        },
+        {
+          "id": "20261110-1241458c6d8c85b3",
+          "reviewStatus": "candidate"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "official-data",
+        "sectoral"
+      ],
+      "id": "official-energy-data",
+      "kind": "dataset",
+      "metadataSha256": "D0F5D814BD24825508E4F32F6B0D40719BE0FC386998DF751B3F1CBFF125F68C",
+      "path": "entries/official-energy-data/metadata.json",
+      "title": "ARERA - registro degli operatori",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "official-data",
+        "sectoral"
+      ],
+      "id": "official-insurance-data",
+      "kind": "dataset",
+      "metadataSha256": "FBB6070F471CD0592A76E4E2422B0D8382884A844C4864EF42DFA51B9E7735DE",
+      "path": "entries/official-insurance-data/metadata.json",
+      "title": "IVASS - siti delle imprese e degli intermediari vigilati",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "official-data",
+        "sectoral"
+      ],
+      "id": "official-telecom-data",
+      "kind": "dataset",
+      "metadataSha256": "8D626B3601239AF40435BD212B08131DD6A065AAE75DB959EF61D78E14A0BE4E",
+      "path": "entries/official-telecom-data/metadata.json",
+      "title": "AGCOM - elenco pubblico ROC",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "openai-development-workflows",
+      "kind": "technical-documentation",
+      "metadataSha256": "F84AE41F98DA560889FE16D38B60800CFF4B9D2080136335B7B0D7BA361DAA2F",
+      "path": "entries/openai-development-workflows/metadata.json",
+      "title": "Iterating Development Workflows with Codex",
+      "versions": []
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "ai",
+        "development"
+      ],
+      "id": "openai-prompt-engineering",
+      "kind": "technical-documentation",
+      "metadataSha256": "AEBB6DABBC87AA831AEB36551D25C6A9D5FC02132B90FB6019B1F9EEC4A42F5C",
+      "path": "entries/openai-prompt-engineering/metadata.json",
+      "title": "Prompt engineering OpenAI",
+      "versions": []
+    },
+    {
+      "acceptedVersion": "20261027-214690bf36fdea07",
+      "domains": [
+        "development",
+        "security"
+      ],
+      "id": "owasp-asvs",
+      "kind": "standard",
+      "metadataSha256": "615E691B0E0DF05FEFC23FE4D7B3710EC6D0964099E48785A8A3A92301E244B0",
+      "path": "entries/owasp-asvs/metadata.json",
+      "title": "OWASP Application Security Verification Standard 5.0.0",
+      "versions": [
+        {
+          "id": "20261027-214690bf36fdea07",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261027-af7d03c7c740eee2",
+      "domains": [
+        "development",
+        "security"
+      ],
+      "id": "owasp-file-upload",
+      "kind": "guideline",
+      "metadataSha256": "948D60DE3A913E1B95BC157F77490EA37595611ACA16CE9CD048E5FC647EEC40",
+      "path": "entries/owasp-file-upload/metadata.json",
+      "title": "OWASP File Upload Cheat Sheet",
+      "versions": [
+        {
+          "id": "20261027-af7d03c7c740eee2",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": "20261104-3c8c9aa16d71d7d8",
+      "domains": [
+        "identity",
+        "security"
+      ],
+      "id": "owasp-password-storage",
+      "kind": "guideline",
+      "metadataSha256": "0ECE6924EF8BADB75031314436C50AFB9D488268A27ECB719D06E4A693132DC2",
+      "path": "entries/owasp-password-storage/metadata.json",
+      "title": "OWASP Password Storage Cheat Sheet",
+      "versions": [
+        {
+          "id": "20261027-5d11165f77236888",
+          "reviewStatus": "verified"
+        },
+        {
+          "id": "20261104-3c8c9aa16d71d7d8",
+          "reviewStatus": "verified"
+        }
+      ]
+    },
+    {
+      "acceptedVersion": null,
+      "domains": [
+        "identity",
+        "security",
+        "sectoral"
+      ],
+      "id": "pci-dss",
+      "kind": "standard",
+      "metadataSha256": "6AC5EC97F0E91009ECAA17C0A804FB60B42E7E9663C829BAB2B4C6F30CB8157D",
+      "path": "entries/pci-dss/metadata.json",
+      "title": "PCI DSS - riferimento di sicurezza dei dati di pagamento",
+      "versions": []
+    },
+    {
+      "acceptedVersion": "20261027-99c47346a5064e4a",
+      "domains": [
+        "development"
+      ],
+      "id": "w3c-wcag",
+      "kind": "standard",
+      "metadataSha256": "4E01B1E45AF39E033726A87BBD7284A91B95CDB99EB482749F43A36443D3AA21",
+      "path": "entries/w3c-wcag/metadata.json",
+      "title": "W3C Web Content Accessibility Guidelines 2.2",
+      "versions": [
+        {
+          "id": "20261027-99c47346a5064e4a",
+          "reviewStatus": "verified"
+        }
+      ]
+    }
+  ]
+}

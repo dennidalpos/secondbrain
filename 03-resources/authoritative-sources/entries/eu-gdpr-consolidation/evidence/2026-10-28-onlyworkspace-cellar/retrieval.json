@@ -1,0 +1,27 @@
+[
+  {
+    "celex": "02016R0679-20160504",
+    "request": {
+      "url": "https://publications.europa.eu/resource/celex/02016R0679-20160504",
+      "headers": {
+        "Accept": "application/xhtml+xml",
+        "Accept-Language": "ita"
+      }
+    },
+    "redirect": {
+      "status": 303,
+      "location": "http://publications.europa.eu/resource/cellar/5f2552c2-cc45-11e6-ad7c-01aa75ed71a1.0002.02/DOC_3"
+    },
+    "httpsUrl": "https://publications.europa.eu/resource/cellar/5f2552c2-cc45-11e6-ad7c-01aa75ed71a1.0002.02/DOC_3",
+    "status": 200,
+    "contentType": "application/xhtml+xml;charset=UTF-8",
+    "length": 502024,
+    "hash": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209",
+    "sameHashViaHttpRedirect": true,
+    "serverDates": [
+      "Tue, 27 Oct 2026 23:13:29 GMT",
+      "Tue, 27 Oct 2026 23:13:30 GMT",
+      "Tue, 27 Oct 2026 23:14:03 GMT"
+    ]
+  }
+]

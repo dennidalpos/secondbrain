@@ -1,0 +1,49 @@
+{
+  "acceptedVersion": "20261027-af7d03c7c740eee2",
+  "domains": [
+    "development",
+    "security"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "raw.githubusercontent.com"
+      ],
+      "expectedText": "File Upload",
+      "fileName": "File_Upload_Cheat_Sheet.md",
+      "format": "text",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/File_Upload_Cheat_Sheet.md"
+    }
+  ],
+  "id": "owasp-file-upload",
+  "issuer": "OWASP Cheat Sheet Series contributors",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "guideline",
+  "language": "en",
+  "notes": [
+    "OWASP Cheat Sheet Series, CC BY-SA 4.0, attribuzione agli autori. Controlli per formati, dimensioni, percorsi e contenuti non attendibili.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "File Upload Cheat Sheet",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "OWASP Cheat Sheet Series, CC BY-SA 4.0, attribuzione agli autori. Controlli per formati, dimensioni, percorsi e contenuti non attendibili.",
+    "reference": "https://github.com/OWASP/CheatSheetSeries/blob/master/LICENSE.md",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "OWASP File Upload Cheat Sheet",
+  "versions": [
+    {
+      "id": "20261027-af7d03c7c740eee2",
+      "reviewStatus": "verified"
+    }
+  ]
+}

@@ -1,0 +1,847 @@
+{
+  "fileCount": 168,
+  "files": [
+    {
+      "bytes": 371,
+      "path": ".gitattributes",
+      "sha256": "D0D9B3E51DBFF942FD7C4F2C9DA8EDDA34D342759C7D11A46C1B32A7F739DD0D"
+    },
+    {
+      "bytes": 1017,
+      "path": "brief.md",
+      "sha256": "79111AA25D249719BB78DE518F1E0B74E649738FD0EAF9B8473C07E35ECE0B9E"
+    },
+    {
+      "bytes": 15595,
+      "path": "catalog.json",
+      "sha256": "4BEDD8BA26DAE6AC229E285DCCF5069DBCDB469B159669A7D9CD29E635B4115E"
+    },
+    {
+      "bytes": 87002,
+      "path": "census/2026-10-27.json",
+      "sha256": "E7CC22080C84AB0274C06517FF51381ABEF8CC723286B660F347D15ABFD039A3"
+    },
+    {
+      "bytes": 11074,
+      "path": "census/transcription-review.json",
+      "sha256": "C8010D40CC3ABBC6810E0A95B6AB0B1AA9048EAEB338A30E7969F9147B13D2F6"
+    },
+    {
+      "bytes": 558,
+      "path": "domains.json",
+      "sha256": "B298159903E9231EFF3EFC4E06285F5CD5276F07CC6C21084CD76F4371102460"
+    },
+    {
+      "bytes": 1266,
+      "path": "entries/anthropic-code-workflows/metadata.json",
+      "sha256": "C10332EC3273472564E6A39CEEBE54E39A882191D37B658A045740E4078D4A16"
+    },
+    {
+      "bytes": 1132,
+      "path": "entries/arera-135-2022/metadata.json",
+      "sha256": "64ECE373FDEABE9B4257530D9FCB3E6EE60D024E9622562A10442C7A479AA464"
+    },
+    {
+      "bytes": 1146,
+      "path": "entries/cis-benchmarks/metadata.json",
+      "sha256": "12EA09B94FFCB36AA84891ECD72B1B80931CDE8DBD880E46402F30A53D2300CF"
+    },
+    {
+      "bytes": 1751,
+      "path": "entries/ec-ai-framework/metadata.json",
+      "sha256": "F8D76504C62ED75C0DCD3293FC3526741C4208B45DF1A6B8C51CA021B0DB25E2"
+    },
+    {
+      "bytes": 263,
+      "path": "entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/conversion.json",
+      "sha256": "001A8E2E7CD2B9C6A0A659A829B40E53E16270F560E820DBBC0D7DAB2E796D9A"
+    },
+    {
+      "bytes": 1611,
+      "path": "entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/manifest.json",
+      "sha256": "05BE3E8D2179BEEF3B34BF5267215C16BE4B5732BAA71C5CE62163B6DF138924"
+    },
+    {
+      "bytes": 1660,
+      "path": "entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/review.json",
+      "sha256": "59A44835FCDA7E6D04CC5F611B5E3696A642EECE34B50364C71B74EE1789FC5B"
+    },
+    {
+      "bytes": 30601,
+      "path": "entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/transcript.md",
+      "sha256": "511B7AB8E0F1F8A5CA820262C567365FFA3B9D28E77F3F6C7F646C6337877C5E"
+    },
+    {
+      "bytes": 30590,
+      "path": "entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/transcript.verified.md",
+      "sha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1"
+    },
+    {
+      "bytes": 263,
+      "path": "entries/ec-ai-framework/versions/20261104-91f3a7480ab0adf0/conversion.json",
+      "sha256": "649F1338762C83EFD47FAC0CB5ABBB845712225C46FE7169F20B189CAE2C8F13"
+    },
+    {
+      "bytes": 1410,
+      "path": "entries/ec-ai-framework/versions/20261104-91f3a7480ab0adf0/manifest.json",
+      "sha256": "1D6BA2934132BED41D038695554831DA966F3FE877C4793611A687B7CDF22247"
+    },
+    {
+      "bytes": 1729,
+      "path": "entries/ec-ai-framework/versions/20261104-91f3a7480ab0adf0/review.json",
+      "sha256": "DE53D4AC2B58B9485CE97C1F5648E74BFFD314F9291E5D1E2345257CCA77F682"
+    },
+    {
+      "bytes": 30592,
+      "path": "entries/ec-ai-framework/versions/20261104-91f3a7480ab0adf0/transcript.md",
+      "sha256": "EF2ADA78F1B2157750B4D95EA0ED474C9056E26089D1A5ABB3ADBA9A43B2DFA8"
+    },
+    {
+      "bytes": 263,
+      "path": "entries/ec-ai-framework/versions/20261108-b0c5ea0a77cfa07f/conversion.json",
+      "sha256": "0E04789A42CE6C1D3A86495F87BA62F95A28B4ADA4B4BBE8BECF4740D6EFBFB4"
+    },
+    {
+      "bytes": 1410,
+      "path": "entries/ec-ai-framework/versions/20261108-b0c5ea0a77cfa07f/manifest.json",
+      "sha256": "DE6CEECD17EC8E04ADFCFFD7C63423CECB1CBD63C99CA15C2FDE7327FF13ED13"
+    },
+    {
+      "bytes": 1589,
+      "path": "entries/ec-ai-framework/versions/20261108-b0c5ea0a77cfa07f/review.json",
+      "sha256": "1CC8316B935DC134FD9366A2CE540F88AC2F7FB6E2594C1B14A5CE8765BEA987"
+    },
+    {
+      "bytes": 30664,
+      "path": "entries/ec-ai-framework/versions/20261108-b0c5ea0a77cfa07f/transcript.md",
+      "sha256": "40271EAABD40424107056406B35063381DEEBD3F5D4EE47E268606CA81938FE8"
+    },
+    {
+      "bytes": 1560,
+      "path": "entries/edpb-legal-framework/metadata.json",
+      "sha256": "2F4CAC3C0252C0C899884EF344D4425E16D509ED889A585DDA3020174246C9FB"
+    },
+    {
+      "bytes": 261,
+      "path": "entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/conversion.json",
+      "sha256": "996A5B525F8EB18F6BCB9F480D714DCDB574DD4E3236117753C59541EF533696"
+    },
+    {
+      "bytes": 1602,
+      "path": "entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/manifest.json",
+      "sha256": "F33B3D6B55009620286031B702248E8E6A7DD074A2A6B8CF0A6989BFECF1F7F2"
+    },
+    {
+      "bytes": 1664,
+      "path": "entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/review.json",
+      "sha256": "825794F31D2514070230838E764F3852714BBC6451B7DDB7BADA737A7D87AF2B"
+    },
+    {
+      "bytes": 6826,
+      "path": "entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/transcript.md",
+      "sha256": "C5F78EB0FAF70945E5D7E3A1821248F6ECC80830CD92892792244A9AF8FB0AE6"
+    },
+    {
+      "bytes": 6815,
+      "path": "entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/transcript.verified.md",
+      "sha256": "4C102F6E40A00964B3A8EACFA1A3D1D2D723EEAE29DE1057257CB72AF39CD202"
+    },
+    {
+      "bytes": 261,
+      "path": "entries/edpb-legal-framework/versions/20261104-e3ece462f199b730/conversion.json",
+      "sha256": "D7316D64291591CD86FF49C7C2DFA013535DC66111DA6255C03D3160AAACF7BD"
+    },
+    {
+      "bytes": 1401,
+      "path": "entries/edpb-legal-framework/versions/20261104-e3ece462f199b730/manifest.json",
+      "sha256": "4550B18CFC5C729144D3A9AB72C77EB01294B20F67EAB598622347E64E90D9AA"
+    },
+    {
+      "bytes": 1543,
+      "path": "entries/edpb-legal-framework/versions/20261104-e3ece462f199b730/review.json",
+      "sha256": "93C5113CE091AE81B614F2CBDEBDB37B0CE95F62F3C1F83B76485C6D0FB2B9BA"
+    },
+    {
+      "bytes": 6826,
+      "path": "entries/edpb-legal-framework/versions/20261104-e3ece462f199b730/transcript.md",
+      "sha256": "B3751548ABE7E1E34F9FF73C0E9D7AABB589C51A93D1AD63A0ED6DA29DA3E1C1"
+    },
+    {
+      "bytes": 1845,
+      "path": "entries/eff-diceware/metadata.json",
+      "sha256": "6CAF2309B9976E3EC175B0FF5AF4AC6C60E1610A54E814C6E9DD6910C190827B"
+    },
+    {
+      "bytes": 254,
+      "path": "entries/eff-diceware/versions/20261027-842a8d865f7cc8dd/conversion.json",
+      "sha256": "2E161AE37C0BF0AE66F7636243F25573B646469B656AF82E718250A2A7E6BFE3"
+    },
+    {
+      "bytes": 1542,
+      "path": "entries/eff-diceware/versions/20261027-842a8d865f7cc8dd/manifest.json",
+      "sha256": "F1937BEAF4B50247BBDBDD3947B937D264499A0C7FBEDF2FC8F82EEC549B58B9"
+    },
+    {
+      "bytes": 1530,
+      "path": "entries/eff-diceware/versions/20261027-842a8d865f7cc8dd/review.json",
+      "sha256": "12708F681CCD1B630611AC347FF577107CB6905A7FF2226C905558D10170C0B7"
+    },
+    {
+      "bytes": 109817,
+      "path": "entries/eff-diceware/versions/20261027-842a8d865f7cc8dd/transcript.md",
+      "sha256": "CCEBEE5F5A073FC512426385AC947DB324A8F004730D72599EB0B655C7F3B7E2"
+    },
+    {
+      "bytes": 109807,
+      "path": "entries/eff-diceware/versions/20261027-842a8d865f7cc8dd/transcript.verified.md",
+      "sha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9"
+    },
+    {
+      "bytes": 429673,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/02024R1689-20260727.txt",
+      "sha256": "6C0505500FE11232FB3268AA78D0F8103536FF2147026F883527B2F28082EE10"
+    },
+    {
+      "bytes": 889040,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/02024R1689-20260727.xhtml",
+      "sha256": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E"
+    },
+    {
+      "bytes": 653085,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/32024R1689.txt",
+      "sha256": "EF571D4B141E3A260E60A32C9DBA5DDC032F353FDD8F04417B1B831546F66A5A"
+    },
+    {
+      "bytes": 1327017,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/32024R1689.xhtml",
+      "sha256": "BA2CA075FAA2CCFC19C57185692771DB11319ECC3B4E5BB067A90F63AA8B2C86"
+    },
+    {
+      "bytes": 1168,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/manifest.json",
+      "sha256": "8B42A8852344516BBA8EA5BF2C4D5DAA13BEE05698FC52C6E57C3661B4603D32"
+    },
+    {
+      "bytes": 819,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/README.md",
+      "sha256": "4F7BEABF92F6B1E33CBC2C1243FA8A800DB63D65A96B897F126315902100DDBD"
+    },
+    {
+      "bytes": 1772,
+      "path": "entries/eu-ai-act/evidence/2026-10-28-onlyworkspace-cellar/retrieval.json",
+      "sha256": "D0B1B1574BC95DEA9FE4B7D1CE61FE277E40C6BD7A3A8D383BE4F26B2490CA7A"
+    },
+    {
+      "bytes": 6282,
+      "path": "entries/eu-ai-act/metadata.json",
+      "sha256": "96523C21515C8ADA6EF6025E37ED1DDE3E78DC1C441987244F84DB340EA5DC84"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/eu-ai-act/versions/20261028-92a8c1b9e066aa7c/conversion.json",
+      "sha256": "AE3F2641340942C65704232889C12D750B1A893BD1CA17A8552492E1D848452A"
+    },
+    {
+      "bytes": 1907,
+      "path": "entries/eu-ai-act/versions/20261028-92a8c1b9e066aa7c/manifest.json",
+      "sha256": "02C452E18087DEC20A0B4D39C54E8E78355BF2B62E29C1A4BB690CFA042926E5"
+    },
+    {
+      "bytes": 1742,
+      "path": "entries/eu-ai-act/versions/20261028-92a8c1b9e066aa7c/review.json",
+      "sha256": "30FDCB8AB88EA18C1F90179BC7F516F6E2BF7713F0FF5D1B3AD6646CA8EF72C6"
+    },
+    {
+      "bytes": 444498,
+      "path": "entries/eu-ai-act/versions/20261028-92a8c1b9e066aa7c/transcript.md",
+      "sha256": "A1527436190F124390E932444D07A24F4EA262B6C77C7CE60C2CFBA551A7D9D6"
+    },
+    {
+      "bytes": 167031,
+      "path": "entries/eu-ai-omnibus-2026/evidence/2026-10-28-onlyworkspace-cellar/32026R1744.txt",
+      "sha256": "E5A08B9B9BAAA0AF75C3DFCD7B18AA8ABDEFD4BB9BD920DF70854B2EA7565891"
+    },
+    {
+      "bytes": 368928,
+      "path": "entries/eu-ai-omnibus-2026/evidence/2026-10-28-onlyworkspace-cellar/32026R1744.xhtml",
+      "sha256": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE"
+    },
+    {
+      "bytes": 901,
+      "path": "entries/eu-ai-omnibus-2026/evidence/2026-10-28-onlyworkspace-cellar/manifest.json",
+      "sha256": "4D797F19CBA377AC22D188F9DA5B7ED499D5F4C320E53F8A35282955DC371D71"
+    },
+    {
+      "bytes": 639,
+      "path": "entries/eu-ai-omnibus-2026/evidence/2026-10-28-onlyworkspace-cellar/README.md",
+      "sha256": "670C83433D5B41D944B0E3B84A2CEB005107ABAFC98355CA946D41884B41CFEC"
+    },
+    {
+      "bytes": 878,
+      "path": "entries/eu-ai-omnibus-2026/evidence/2026-10-28-onlyworkspace-cellar/retrieval.json",
+      "sha256": "520EF958D4531A14C881AC45E5981011C710E4E38719189BA4E5E6B4321551E4"
+    },
+    {
+      "bytes": 2866,
+      "path": "entries/eu-ai-omnibus-2026/metadata.json",
+      "sha256": "CD39E6EFEDD2BFE8E383610F1B8DB0AC346B1CE00DE93B27E63F6BAD796DF4EE"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/eu-ai-omnibus-2026/versions/20261028-d98dc2ed94de1c6f/conversion.json",
+      "sha256": "B3250E263479934660D5473DAB9F6560EC6274664BA80DCD1C6C9E7444B37208"
+    },
+    {
+      "bytes": 1412,
+      "path": "entries/eu-ai-omnibus-2026/versions/20261028-d98dc2ed94de1c6f/manifest.json",
+      "sha256": "7EFE8A9D27958CD6983BF0D766A7CC8610DC1BC1BBB3B92B13CBB2C5CF920738"
+    },
+    {
+      "bytes": 1742,
+      "path": "entries/eu-ai-omnibus-2026/versions/20261028-d98dc2ed94de1c6f/review.json",
+      "sha256": "4B8BCC519EE9BED3342D1B4D4F5861634565DCCF42C4620FD7477186D210A368"
+    },
+    {
+      "bytes": 181098,
+      "path": "entries/eu-ai-omnibus-2026/versions/20261028-d98dc2ed94de1c6f/transcript.md",
+      "sha256": "BF30F2EEA398C40A3DA8E66720F86664E0CF8178E1EF55A487B8C4D86A33542C"
+    },
+    {
+      "bytes": 208675,
+      "path": "entries/eu-gdpr-consolidation/evidence/2026-10-28-onlyworkspace-cellar/02016R0679-20160504.txt",
+      "sha256": "EA1B6CCB86C7FEEF4A8E73B497B094A7863AD10406E0FEB3F684D173791B3222"
+    },
+    {
+      "bytes": 502024,
+      "path": "entries/eu-gdpr-consolidation/evidence/2026-10-28-onlyworkspace-cellar/02016R0679-20160504.xhtml",
+      "sha256": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209"
+    },
+    {
+      "bytes": 922,
+      "path": "entries/eu-gdpr-consolidation/evidence/2026-10-28-onlyworkspace-cellar/manifest.json",
+      "sha256": "9E5CE073170188CF9F1228DDADE3973BA8AB10E6EB08B754FEF7659E57E6F10B"
+    },
+    {
+      "bytes": 730,
+      "path": "entries/eu-gdpr-consolidation/evidence/2026-10-28-onlyworkspace-cellar/README.md",
+      "sha256": "C32EA95E75D27F31AC642CA5568CEBEAA42093B6DCE8A676F6FB26B686315FA3"
+    },
+    {
+      "bytes": 896,
+      "path": "entries/eu-gdpr-consolidation/evidence/2026-10-28-onlyworkspace-cellar/retrieval.json",
+      "sha256": "F481CDF13C3649D4F418FE2E198E2F2D7A72381A46A63850324D5064169075E0"
+    },
+    {
+      "bytes": 3003,
+      "path": "entries/eu-gdpr-consolidation/metadata.json",
+      "sha256": "351D4D23FB69A3D33D1AA64663AFB8934CF16DF08ACD15FDAD53AE2AE3DDBDB6"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/eu-gdpr-consolidation/versions/20261028-6a31d0a65d635c77/conversion.json",
+      "sha256": "4503D3ED8DA4868DEB24197613E89BEBDE267E5EA693AA26C1FBA854164FAAE2"
+    },
+    {
+      "bytes": 1492,
+      "path": "entries/eu-gdpr-consolidation/versions/20261028-6a31d0a65d635c77/manifest.json",
+      "sha256": "0DD67FBE599B634718CE2F3B33384D66941FA4518A0E53F1EC933818E26C1E57"
+    },
+    {
+      "bytes": 1754,
+      "path": "entries/eu-gdpr-consolidation/versions/20261028-6a31d0a65d635c77/review.json",
+      "sha256": "BEDA7A0B46BD0443DEAB24F5FD43EF635C8DB973442D85A665AFF60A636B2A63"
+    },
+    {
+      "bytes": 219790,
+      "path": "entries/eu-gdpr-consolidation/versions/20261028-6a31d0a65d635c77/transcript.md",
+      "sha256": "8EC06E17A7FE39DADA1EA5AFBEC8765A3B06645FB305CAF2E3137090D422CAC3"
+    },
+    {
+      "bytes": 2159,
+      "path": "entries/eu-gdpr/metadata.json",
+      "sha256": "563F3308C5CE018D19378765CC0C70A16FD8946AAE05A820CC7EFA9CD4AF273C"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/conversion.json",
+      "sha256": "ADC4C6D6927B1D72F15295EC8FD0B70410C150E741C83FE7DC3B0C59D11DD148"
+    },
+    {
+      "bytes": 2017,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/manifest.json",
+      "sha256": "D978306CCE36E4FACB046A48082F7BAF3608E87FECCCE22CAD6DC2C01C07E69E"
+    },
+    {
+      "bytes": 1866,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/review.json",
+      "sha256": "3A651BB8A53133D5E0B7D5F65D155447AD17A4896C4A099477B49D2323BD48AB"
+    },
+    {
+      "bytes": 1086167,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/transcript.layout.md",
+      "sha256": "E5FFD4F04F2C0CB878EA9E507B2F9D33C8940336C8CE8347EEB13D2B21EEF9B8"
+    },
+    {
+      "bytes": 420237,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/transcript.md",
+      "sha256": "FFA646A48CD6C5C1F47505EC00C5A62E77CFAD273B1C6D568121E9ADAC22C77A"
+    },
+    {
+      "bytes": 666868,
+      "path": "entries/eu-gdpr/versions/20261027-ca7f8150ca790e24/transcript.verified.md",
+      "sha256": "88E9FAA5887677279E4C1DA8D3DFF2AC5497120ADB351FAA7185FC3EABC9CB0C"
+    },
+    {
+      "bytes": 1293,
+      "path": "entries/github-awesome-copilot/metadata.json",
+      "sha256": "00B01F1E01C6872330986F239BDC638E93F9777AAAF38471BC05A473E925BC8E"
+    },
+    {
+      "bytes": 1225,
+      "path": "entries/github-copilot-cookbook/metadata.json",
+      "sha256": "D6A870B5EFAF161FA1776941017ADBAAE51122E9366A733AD6F46F135192C842"
+    },
+    {
+      "bytes": 1288,
+      "path": "entries/github-prompt-files/metadata.json",
+      "sha256": "6C00AB20A800661EA3DB515BC98193AEE1263648BF829A4C37EF9BBEAB4CC220"
+    },
+    {
+      "bytes": 1266,
+      "path": "entries/google-prompt-strategies/metadata.json",
+      "sha256": "CF79437C2F6E430A24D2A7778830A5B1A3244D6569FE5D1A284281F163CB0516"
+    },
+    {
+      "bytes": 1326,
+      "path": "entries/govtech-costar/metadata.json",
+      "sha256": "FCDC05C890BFF16055EFCAA94DDC2A3DAB03A43A03F55F3534BB8F34D7E07FC2"
+    },
+    {
+      "bytes": 1189,
+      "path": "entries/iso-27001/metadata.json",
+      "sha256": "A9C82BF91A8EEFE5D5846E1B80E6157E0CB02C1161C69828AD55A96738457D77"
+    },
+    {
+      "bytes": 1203,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/art11-transcript.txt",
+      "sha256": "171FF8C68DF267836AE95867156CFE48BE850E8DBED18D3E53DA1984B8824FA8"
+    },
+    {
+      "bytes": 1133,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/manifest.json",
+      "sha256": "15DCF5B6F44C87326538492C4661E300BEB89945F0C9B413C0A4404D241D130A"
+    },
+    {
+      "bytes": 11191,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/normattiva-art11.html",
+      "sha256": "E01919F54471AC210BADD3C464B0534ADA7133B598DFE63EE289AC4703291729"
+    },
+    {
+      "bytes": 82454,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/normattiva-main.html",
+      "sha256": "47C1669337B73E8F6B245BAE2F67577B9CDDB3E617348A46688287C572BCF94F"
+    },
+    {
+      "bytes": 580,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/README.md",
+      "sha256": "2329905ED90E54AAC6DFB135A9C12110EC2F15F8B8497FF969E5737C95237C97"
+    },
+    {
+      "bytes": 435,
+      "path": "entries/it-ai-law-132-2025/evidence/2026-10-27-onlyworkspace/retrieval.json",
+      "sha256": "385C2AED6D457319A7889762B4EF3946C776986A6BD7F5B31F9A79F05CC442A7"
+    },
+    {
+      "bytes": 2092,
+      "path": "entries/it-ai-law-132-2025/metadata.json",
+      "sha256": "A37211AD48788873AA8E07869E9AD7E840D07FB9D1159A6708AA155CC4105C97"
+    },
+    {
+      "bytes": 368,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/conversion.columns.json",
+      "sha256": "627C1B724171F5832C57664D43B8140BB7CF32FB01C94B98957A060BEA8F324A"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/conversion.json",
+      "sha256": "14EA1B7448D0259020C83B67240644B8E9754646B7D3400B1FDDAF04A597D5BD"
+    },
+    {
+      "bytes": 2242,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/manifest.json",
+      "sha256": "DAFE6D2F517985573A1DCB09F528FC5D33D66EAD264710FF8D1FCCA7B7BD5A98"
+    },
+    {
+      "bytes": 1814,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/review.json",
+      "sha256": "C77F221B0DB8FDDD0F1EACD9588FBF4312C5FD4CC82EB5278A8AFFED5F9284EE"
+    },
+    {
+      "bytes": 613927,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.columns.md",
+      "sha256": "FA90515A541372437954116A62060F60F65111F80A1919646E1F273905BE0C5B"
+    },
+    {
+      "bytes": 1187230,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.layout.md",
+      "sha256": "42DDCDAEF418CB8B943B4CD50313BCE63066B6E832151D6596D6627A3B0DA9DD"
+    },
+    {
+      "bytes": 511697,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.md",
+      "sha256": "354D6A7D8A69019E59DA9FF68A8161C275D2D83D95A926CFD748610AB831A57E"
+    },
+    {
+      "bytes": 676461,
+      "path": "entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.verified.md",
+      "sha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75"
+    },
+    {
+      "bytes": 1975,
+      "path": "entries/it-dlgs-151-2015/metadata.json",
+      "sha256": "DDC921C670103DCB392EDF35B6EB269F2623CE18C36E6CB4F77D8A862A6EAFC5"
+    },
+    {
+      "bytes": 372,
+      "path": "entries/it-dlgs-151-2015/versions/20261107-9bd9938c01d80c1c/conversion.json",
+      "sha256": "FE98D7A24F61C5A6281A273EB8D232798543063006A3DBFEFB70E7651CFD98BD"
+    },
+    {
+      "bytes": 1604,
+      "path": "entries/it-dlgs-151-2015/versions/20261107-9bd9938c01d80c1c/manifest.json",
+      "sha256": "5984BBDE0C6DC82B46CFA96BE55C2A701996E80C55B7802137502060C6391C74"
+    },
+    {
+      "bytes": 1107,
+      "path": "entries/it-dlgs-151-2015/versions/20261107-9bd9938c01d80c1c/review.json",
+      "sha256": "BDE1F72C8B8E3CC6A3651545239A1B36D965B1F00F3DFFDD9FE4791A3D62AD73"
+    },
+    {
+      "bytes": 1724155,
+      "path": "entries/it-dlgs-151-2015/versions/20261107-9bd9938c01d80c1c/transcript.md",
+      "sha256": "71C5AEF1DF7D70327B97B3D074CA5B5047AF004EF2F83F0685AAE0D44F1EFD62"
+    },
+    {
+      "bytes": 1963,
+      "path": "entries/it-dlgs-185-2016/metadata.json",
+      "sha256": "F7593BBD81C86F5614BF17E26DC7D6156CC954501912C3D2909FC6915B7E70CF"
+    },
+    {
+      "bytes": 368,
+      "path": "entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/conversion.json",
+      "sha256": "0178D615395C804B697790CEEF51BA3F369C315F14A3189D09F3F488468679A5"
+    },
+    {
+      "bytes": 1571,
+      "path": "entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/manifest.json",
+      "sha256": "A77715429F311273D2B41641178925CF953C62B22CABA866847C75065726A1A1"
+    },
+    {
+      "bytes": 1196,
+      "path": "entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/review.json",
+      "sha256": "75FB2CC857C838860FCE9A691C710EF838AB25B89907E1C7890A94B6D7C0605A"
+    },
+    {
+      "bytes": 733099,
+      "path": "entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/transcript.md",
+      "sha256": "C68FE0121D00D098A5D9B2053A80D6052E17C2A420746B58465B8F1900E754FA"
+    },
+    {
+      "bytes": 3247,
+      "path": "entries/it-statuto-lavoratori-art4/metadata.json",
+      "sha256": "65B0BEC98D72BD78C1F03565AD102C25AA2F407552A420398A5530C105A95AAE"
+    },
+    {
+      "bytes": 1703,
+      "path": "entries/nist-digital-identity/metadata.json",
+      "sha256": "FBBCB07CFF624355B8EC6B882F3FE02695B3C6AA8F8D1FDB8201D79F7E895245"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/conversion.json",
+      "sha256": "16A9BE9A5812F9B247720F96C94DA14F8A95ECC47DA7B2E47EC13DFDF21D9916"
+    },
+    {
+      "bytes": 2134,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/manifest.json",
+      "sha256": "B6925D20D9450B9E7B36C36F10C1E0B46383D2CE7E2AA6D6E07870A10B7F3B46"
+    },
+    {
+      "bytes": 1894,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/review.json",
+      "sha256": "80F577EE687C8DA6367A99FE16DA2720045F950177D0B64B6147D22796805FD9"
+    },
+    {
+      "bytes": 948338,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.layout.md",
+      "sha256": "BCB751BFBC09B04409485109ECEA35798D4AFD40A0A41CD18C978FF4B3ED2D9E"
+    },
+    {
+      "bytes": 294407,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.md",
+      "sha256": "3094128139B407BBB163348CA8ECB7EB3D050D0C97D5DF90DC12E2097F88AE00"
+    },
+    {
+      "bytes": 654568,
+      "path": "entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.verified.md",
+      "sha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247"
+    },
+    {
+      "bytes": 1706,
+      "path": "entries/nist-ssdf/metadata.json",
+      "sha256": "A340839A9D682161E06F408F39B519B25CF34F9C8D2EB64876E42CC69AC0A7D3"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/conversion.json",
+      "sha256": "BB8A30297E7D3CAAC935D0A3A76531A99CEF7DA6CA2C4B6A512777298D629082"
+    },
+    {
+      "bytes": 2143,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/manifest.json",
+      "sha256": "E6D18592D699E7A1047FBF2EC9FFE05ED1759423504D9ABEFF494870DBEDE96B"
+    },
+    {
+      "bytes": 1869,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/review.json",
+      "sha256": "9823F4D1D991D04895AEEFE586DF69EC44FB43F5707A238F7ACD4F09D4E6DAEE"
+    },
+    {
+      "bytes": 469842,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.layout.md",
+      "sha256": "48E87C9B00C6D5591526EECB8DD7F517BBC05C87190D7ABC16F37744665B3FF4"
+    },
+    {
+      "bytes": 125492,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.md",
+      "sha256": "9B1BD48AEE04FCD7F91B466DD62B864BBDD2EAE02D6CCE010C4E12334A624634"
+    },
+    {
+      "bytes": 344981,
+      "path": "entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.verified.md",
+      "sha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F"
+    },
+    {
+      "bytes": 1500,
+      "path": "entries/nist-ssdf/versions/20261110-1241458c6d8c85b3/manifest.json",
+      "sha256": "A125B642AEEAE008BC0F3AC9EE121883EB12560D1A5FB35F3200D7B319826D08"
+    },
+    {
+      "bytes": 1486,
+      "path": "entries/official-energy-data/metadata.json",
+      "sha256": "D0F5D814BD24825508E4F32F6B0D40719BE0FC386998DF751B3F1CBFF125F68C"
+    },
+    {
+      "bytes": 1449,
+      "path": "entries/official-insurance-data/metadata.json",
+      "sha256": "FBB6070F471CD0592A76E4E2422B0D8382884A844C4864EF42DFA51B9E7735DE"
+    },
+    {
+      "bytes": 1369,
+      "path": "entries/official-telecom-data/metadata.json",
+      "sha256": "8D626B3601239AF40435BD212B08131DD6A065AAE75DB959EF61D78E14A0BE4E"
+    },
+    {
+      "bytes": 1366,
+      "path": "entries/openai-development-workflows/metadata.json",
+      "sha256": "F84AE41F98DA560889FE16D38B60800CFF4B9D2080136335B7B0D7BA361DAA2F"
+    },
+    {
+      "bytes": 1296,
+      "path": "entries/openai-prompt-engineering/metadata.json",
+      "sha256": "AEBB6DABBC87AA831AEB36551D25C6A9D5FC02132B90FB6019B1F9EEC4A42F5C"
+    },
+    {
+      "bytes": 2683,
+      "path": "entries/owasp-asvs/metadata.json",
+      "sha256": "615E691B0E0DF05FEFC23FE4D7B3710EC6D0964099E48785A8A3A92301E244B0"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/conversion.json",
+      "sha256": "A1F632A873C1C6FC806E2920042B9251192B5A5E5C01238C4E840A07F3861E24"
+    },
+    {
+      "bytes": 3749,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/manifest.json",
+      "sha256": "15203BFA5658C4079BCCBDC7FDD5B9D6EB27EA1B08BC876EB73350F9D2F09A1D"
+    },
+    {
+      "bytes": 2893,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/review.json",
+      "sha256": "9A751944A55AEFD7D99A4D9AC5264E7DBA3B5A352F670E2E2FEB24CD6A5732E0"
+    },
+    {
+      "bytes": 896503,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/transcript.layout.md",
+      "sha256": "4FE212CB27C22D013D7EF68D73B53FD413593CA02305B3D8514DAB27B9399FC6"
+    },
+    {
+      "bytes": 253261,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/transcript.md",
+      "sha256": "38A985971F52FBCB49DAD31EAFB6BD951375F408A1F7A121A59EBC0647AE15BA"
+    },
+    {
+      "bytes": 271363,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/transcript.reviewed.md",
+      "sha256": "EE19AC3F01B8A259A380D563DAB733D7B00537BFF492D37784CF86F06A94545D"
+    },
+    {
+      "bytes": 643968,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/transcript.verified.md",
+      "sha256": "24EA3F29724D2176D66749B00FE6DBD36653CFC5DD51111632C6F30D075FD2A3"
+    },
+    {
+      "bytes": 271377,
+      "path": "entries/owasp-asvs/versions/20261027-214690bf36fdea07/transcript.word.md",
+      "sha256": "AE1C6E8B4000C4604080B5A80E1E8218C7BDAEB38EC390F1ABB92D7C3A72BD04"
+    },
+    {
+      "bytes": 1587,
+      "path": "entries/owasp-file-upload/metadata.json",
+      "sha256": "948D60DE3A913E1B95BC157F77490EA37595611ACA16CE9CD048E5FC647EEC40"
+    },
+    {
+      "bytes": 251,
+      "path": "entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/conversion.json",
+      "sha256": "9E6CE39AE3CFC3EF471312FCDE0F6D9264981D562CED5225F674AB5B4225FD71"
+    },
+    {
+      "bytes": 1648,
+      "path": "entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/manifest.json",
+      "sha256": "6E219A09553F7C96422675D4914E0B517715333BC409C3D20752A2450A5010C5"
+    },
+    {
+      "bytes": 1502,
+      "path": "entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/review.json",
+      "sha256": "B6F073463D8BD4C08FD0CC124CD3A4F107CF842531DB24E4B01B786F0CBF7558"
+    },
+    {
+      "bytes": 15623,
+      "path": "entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/transcript.md",
+      "sha256": "19203E266013E8DB74922EC634FD5052285A6B6875A11064C94B5DF9496AEC7A"
+    },
+    {
+      "bytes": 15615,
+      "path": "entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/transcript.verified.md",
+      "sha256": "B47EA011A0ABC69F33FF74EC4348253B293DD723326FE5B136C8F7763C5F874B"
+    },
+    {
+      "bytes": 1731,
+      "path": "entries/owasp-password-storage/metadata.json",
+      "sha256": "0ECE6924EF8BADB75031314436C50AFB9D488268A27ECB719D06E4A693132DC2"
+    },
+    {
+      "bytes": 252,
+      "path": "entries/owasp-password-storage/versions/20261027-5d11165f77236888/conversion.json",
+      "sha256": "0160108CE21B765EB76FB8F321761392D10B189B645036D9B9F24B38AF90084A"
+    },
+    {
+      "bytes": 1664,
+      "path": "entries/owasp-password-storage/versions/20261027-5d11165f77236888/manifest.json",
+      "sha256": "5E86E8C910249F08D27D5BB71236BC5D80D53C402DF9B4205F3410F1E68BB2D8"
+    },
+    {
+      "bytes": 1507,
+      "path": "entries/owasp-password-storage/versions/20261027-5d11165f77236888/review.json",
+      "sha256": "880FE4CFC0086C6A0565AD3E941275EC5D74D429EFEB9BBFBA902C3F2C2B557D"
+    },
+    {
+      "bytes": 21241,
+      "path": "entries/owasp-password-storage/versions/20261027-5d11165f77236888/transcript.md",
+      "sha256": "C6F765D7ED0835B000C8D1FF860DB5B0D9FAA3240052E7874CC3C1E3592B401E"
+    },
+    {
+      "bytes": 21233,
+      "path": "entries/owasp-password-storage/versions/20261027-5d11165f77236888/transcript.verified.md",
+      "sha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1"
+    },
+    {
+      "bytes": 252,
+      "path": "entries/owasp-password-storage/versions/20261104-3c8c9aa16d71d7d8/conversion.json",
+      "sha256": "8116404522EA747575AF0110E7115F9490BA31F88FBD11A0D85220CF29FE7680"
+    },
+    {
+      "bytes": 1463,
+      "path": "entries/owasp-password-storage/versions/20261104-3c8c9aa16d71d7d8/manifest.json",
+      "sha256": "0BB907C616F0603553A4EAF7B7B2719146C7054BE986D947CD0B7B46761C586E"
+    },
+    {
+      "bytes": 1485,
+      "path": "entries/owasp-password-storage/versions/20261104-3c8c9aa16d71d7d8/review.json",
+      "sha256": "7876CE033FBA61C6900EB1F6D43BDF1CE016F54F62A014C266D4AFF83E4D45F6"
+    },
+    {
+      "bytes": 21244,
+      "path": "entries/owasp-password-storage/versions/20261104-3c8c9aa16d71d7d8/transcript.md",
+      "sha256": "CFECC18F534C2A3E12249F349963BB23980DCB701F52F1A8FF770680521921D8"
+    },
+    {
+      "bytes": 1214,
+      "path": "entries/pci-dss/metadata.json",
+      "sha256": "6AC5EC97F0E91009ECAA17C0A804FB60B42E7E9663C829BAB2B4C6F30CB8157D"
+    },
+    {
+      "bytes": 1503,
+      "path": "entries/w3c-wcag/metadata.json",
+      "sha256": "4E01B1E45AF39E033726A87BBD7284A91B95CDB99EB482749F43A36443D3AA21"
+    },
+    {
+      "bytes": 265,
+      "path": "entries/w3c-wcag/versions/20261027-99c47346a5064e4a/conversion.json",
+      "sha256": "34FBCBAF784C622D44AD8AEA295EC59FD775340B76A06334D15AFA5A24098B26"
+    },
+    {
+      "bytes": 1567,
+      "path": "entries/w3c-wcag/versions/20261027-99c47346a5064e4a/manifest.json",
+      "sha256": "AD5C2769456F1DBFA97F833FD30F5520301AEC12134CC1D265249E45CF4502AE"
+    },
+    {
+      "bytes": 1654,
+      "path": "entries/w3c-wcag/versions/20261027-99c47346a5064e4a/review.json",
+      "sha256": "F0620520A78327E4D8901E2C24D0EC94017995A24CAD684405137348DA164A2E"
+    },
+    {
+      "bytes": 267698,
+      "path": "entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.md",
+      "sha256": "E5939EA8B6B032172CBDA71977B91C624E6297F36EADC141BC402FAE264AAAAB"
+    },
+    {
+      "bytes": 267687,
+      "path": "entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.verified.md",
+      "sha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1"
+    },
+    {
+      "bytes": 25784,
+      "path": "normative-queue.json",
+      "sha256": "0AE32E012CC998C2AAE9CD20EDE6BBE4A8CF11EB80938BE1D97D736CDFB60F34"
+    },
+    {
+      "bytes": 164,
+      "path": "para.json",
+      "sha256": "2DE07A0710A19C6A90783189C21B9726101A309CF649384209364000F271917C"
+    },
+    {
+      "bytes": 1790,
+      "path": "profiles/ai-v1.md",
+      "sha256": "64D84ECBE79F7E1B9D5ABE3AD6FC29A9B99E1792700EB7E6C2EACB972F5EA62D"
+    },
+    {
+      "bytes": 1912,
+      "path": "profiles/privacy-v1.md",
+      "sha256": "3DB7430943B376EB5EADCC513375B71C3ACCD3D794FF544AC99E6BED67A9976E"
+    },
+    {
+      "bytes": 1769,
+      "path": "profiles/secure-development-v1.md",
+      "sha256": "E903EA85AF0C06C57ECC7DDABDB1772C60789B864196E9A126337D31FAA5551E"
+    },
+    {
+      "bytes": 5161,
+      "path": "README.md",
+      "sha256": "CEC8AEFAA61AD0DB6DC8AA2FC7B3B3C844DA2795D75525DEE6148CC98C017646"
+    }
+  ],
+  "resource": "authoritative-sources",
+  "schemaVersion": 1
+}

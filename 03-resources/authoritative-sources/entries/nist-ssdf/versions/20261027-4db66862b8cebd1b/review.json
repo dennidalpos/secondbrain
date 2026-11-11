@@ -1,0 +1,42 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "noImageOnlyPages": true,
+      "noReplacementCharacters": true,
+      "pageCountIndependent": true
+    },
+    "fingerprint": "4DB66862B8CEBD1B45C02CC632C1E955F48962695DB71CB5A7D832D3235D3632",
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "9B1BD48AEE04FCD7F91B466DD62B864BBDD2EAE02D6CCE010C4E12334A624634",
+    "originalSha256": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+    "pdf": {
+      "imageOnlyPages": [],
+      "pageCount": 36
+    },
+    "sampledPages": [
+      1,
+      19
+    ],
+    "sourceId": "nist-ssdf",
+    "status": "candidate",
+    "transcriptSha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F",
+    "versionId": "20261027-4db66862b8cebd1b",
+    "visualSample": "census/qa/nist-ssdf.png"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "4DB66862B8CEBD1B45C02CC632C1E955F48962695DB71CB5A7D832D3235D3632",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:17.8618404+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "All pages extracted with page boundaries, independent page count, no image-only pages detected; rendered cover and body/table sample reviewed and passages referenced by profiles checked. Images remain in original; current legal applicability not qualified.",
+  "structure": true,
+  "transcriptSha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F"
+}

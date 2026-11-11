@@ -6,10 +6,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -ReadRepositories, -Requires o -StateReason'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -ReadRepositories, -Requires or -StateReason' }
+    'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires o -StateReason'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires or -StateReason' }
     'tracker.priority.invalid' = @{it='Priorità non valida: usare P0, P1, P2, P3 o P4';en='Invalid priority: use P0, P1, P2, P3 or P4'}
     'tracker.execution.invalid' = @{ it = 'Modalità di esecuzione non valida: usare autonomous, user_required o unspecified'; en = 'Invalid execution mode: use autonomous, user_required or unspecified' }
-    'tracker.readrepositories.invalid' = @{ it = 'Identità di repository non valida per la lettura: {0}; usare host/owner/repo'; en = 'Invalid repository identity for reading: {0}; use host/owner/repo' }
     'tracker.requires.invalid' = @{it='Capacità richiesta non valida: {0} (ammessi: {1})';en='Invalid required capability: {0} (allowed: {1})'}
     'tracker.closure.advice' = @{ it = 'Aggiornare memoria e contesto, proporre il riepilogo minimo (memoria, storico o salta), poi eseguire Sync e Check.'; en = 'Update memory and context, offer a minimal summary (memory, history or skip), then run Sync and Check.' }
     'tracker.closure.invalid' = @{ it = 'Metadati di chiusura del tracker non validi: correggere extensions.closure o rimuoverlo'; en = 'Invalid tracker closure metadata: fix extensions.closure or remove it' }
@@ -855,14 +854,13 @@ function Update-SBTrackerTask {
         [AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn,
         [AllowEmptyString()][string]$Stream,
         [AllowEmptyString()][string]$Awaiting,
-        [AllowEmptyCollection()][AllowEmptyString()][string[]]$ReadRepositories,
         [AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
         $Evidence=@(),
         [string]$BackupRoot,
         [switch]$WhatIf,
         [string]$WorkingRepository
     )
-    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires','Evidence')
+    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence')
     if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
     if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
     if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
@@ -884,12 +882,6 @@ function Update-SBTrackerTask {
             $value=$PSBoundParameters[$field].Trim()
             if($value){$task.extensions[$key]=$value}else{[void]$task.extensions.Remove($key)}
         }
-    }
-    if($PSBoundParameters.ContainsKey('ReadRepositories')){
-        # Read-only allowlist of other repositories a task may read; writes and tasks of other repositories stay forbidden.
-        $reads=@($ReadRepositories|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
-        foreach($r in $reads){if($r -cnotmatch '^(github\.com/[a-z0-9._-]+/[a-z0-9._-]+|local:[0-9a-f]{32})$'){throw (New-SBError 'tracker.readrepositories.invalid' @($r))}}
-        if($reads.Count){$task.extensions.readRepositories=@($reads)}else{[void]$task.extensions.Remove('readRepositories')}
     }
     if($PSBoundParameters.ContainsKey('Requires')){
         if($requiresList.Count){$task.extensions.requires=@($requiresList)}else{[void]$task.extensions.Remove('requires')}

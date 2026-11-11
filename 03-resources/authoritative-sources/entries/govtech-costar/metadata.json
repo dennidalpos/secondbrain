@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "govtech-costar",
+  "title": "GovTech CO-STAR framework",
+  "issuer": "Government Technology Agency of Singapore",
+  "kind": "guideline",
+  "domains": [
+    "ai",
+    "development"
+  ],
+  "jurisdictions": [
+    "Global"
+  ],
+  "language": "en",
+  "officialId": null,
+  "edition": "Pagina web consultata il 2026-10-28; contenuto corrente, senza supporto retroattivo garantito",
+  "publicationDate": null,
+  "rights": {
+    "status": "reference-only",
+    "reference": "https://www.tech.gov.sg/technews/mastering-the-art-of-prompt-engineering-with-empower/",
+    "notes": "Registrati URL, data di consultazione e sintesi originali; nessun originale o trascrizione integrale acquisiti, diritti di riutilizzo non qualificati."
+  },
+  "endpoints": [],
+  "versions": [],
+  "acceptedVersion": null,
+  "relatedSources": [],
+  "effectiveDates": [],
+  "notes": [
+    "URL primario: https://www.tech.gov.sg/technews/mastering-the-art-of-prompt-engineering-with-empower/",
+    "Consultata online il 2026-10-28 nella ricerca e progettazione del catalogo v2.",
+    "Riferimento storico CO-STAR. Il catalogo v2 sceglie campi orientati ai workflow, senza dichiarare CO-STAR inefficace.",
+    "Riferimento consultivo. Nessuna prescrizione comune attivata; nessuna prova di efficacia di un modello o IDE."
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "acceptedVersion": "20261027-842a8d865f7cc8dd",
+  "dataset": {
+    "geography": "Globale, parole inglesi",
+    "period": "Edizione 2016-07-18, acquisizione datata nel manifest",
+    "schema": "TSV: codice [1-6]{5}, parola; 7776 righe attese",
+    "units": "Codice di cinque lanci di dado e parola",
+    "usage": "Riferimento per passphrase; la lista da sola non qualifica casualita o conformita del generatore."
+  },
+  "domains": [
+    "identity",
+    "security",
+    "official-data"
+  ],
+  "edition": "Large Wordlist 2016-07-18",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.eff.org"
+      ],
+      "expectedText": "11111",
+      "fileName": "eff_large_wordlist.txt",
+      "format": "text",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt"
+    }
+  ],
+  "id": "eff-diceware",
+  "issuer": "Electronic Frontier Foundation",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "dataset",
+  "language": "en",
+  "notes": [
+    "Electronic Frontier Foundation, CC BY 4.0 salvo diversa indicazione. Lista originale mantenuta integralmente; confrontare separatamente i dizionari del prodotto, che si dichiarano ispirati a EFF."
+  ],
+  "officialId": "EFF Large Wordlist, 2016-07-18",
+  "publicationDate": "2016-07-18",
+  "relatedSources": [],
+  "rights": {
+    "notes": "Electronic Frontier Foundation, CC BY 4.0 salvo diversa indicazione. Lista originale mantenuta integralmente; confrontare separatamente i dizionari del prodotto, che si dichiarano ispirati a EFF.",
+    "reference": "https://www.eff.org/copyright",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "EFF Large Wordlist for Passphrases",
+  "versions": [
+    {
+      "id": "20261027-842a8d865f7cc8dd",
+      "reviewStatus": "verified"
+    }
+  ]
+}

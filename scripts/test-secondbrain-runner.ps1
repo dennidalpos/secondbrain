@@ -58,7 +58,7 @@ try {
         @{id='R-2';priority='P2';execution='autonomous';stream='evoluzione-team'},
         @{id='R-3';priority='P2';execution='autonomous';stream='evoluzione-team'},
         @{id='R-4';priority='P2';execution='autonomous';stream='evoluzione-team'},
-        @{id='R-5';priority='P3';execution='autonomous';stream='evoluzione-team';reads=@('github.com/test/runner2')},
+        @{id='R-5';priority='P3';execution='autonomous';stream='evoluzione-team'},
         @{id='X-1';priority='P0';execution='autonomous';stream='qualifica-finale'},
         @{id='X-2';priority='P0';execution='autonomous';stream='intervento-su-richiesta'},
         @{id='X-3';priority='P0';execution='autonomous';stream='coordinamento-prodotti'},
@@ -71,7 +71,7 @@ try {
         $number++
         $task=New-SBTrackerTask @{id=$spec.id;title=('Task '+$spec.id);status='todo'} $identity 'fixture' 'history/seed/report.md' (Get-SBTextHash 'Synthetic provenance') 'fixture'
         $task.seq=$number;$task.title='#'+$number.ToString('000')+' — Task '+$spec.id;$task.priority=$spec.priority;$task.execution=$spec.execution
-        $ext=@{stream=$spec.stream};if($spec.ContainsKey('awaiting')){$ext.awaiting=$spec.awaiting};if($spec.ContainsKey('reads')){$ext.readRepositories=$spec.reads};if($spec.ContainsKey('requires')){$ext.requires=$spec.requires};$task.extensions=$ext
+        $ext=@{stream=$spec.stream};if($spec.ContainsKey('awaiting')){$ext.awaiting=$spec.awaiting};if($spec.ContainsKey('requires')){$ext.requires=$spec.requires};$task.extensions=$ext
         $tasks+=,$task
     }
     Put-Runner $trackerPath (ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=$tasks;history=@();extensions=@{lastSeq=$number}})
@@ -126,15 +126,14 @@ switch($Mode){
     'guard' {
         $k=Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1';$c=@('-ConfigPath',$env:SB_RUNNER_FAKE_CONFIG,'-CheckoutPath',(Get-Location).Path)
         function Probe([string[]]$A){$o=(& pwsh -NoProfile -File $k @A 2>&1|Out-String);@{code=$LASTEXITCODE;text=$o}}
-        $r=[ordered]@{repository=$env:SECONDBRAIN_RUNNER_REPOSITORY;reads=$env:SECONDBRAIN_RUNNER_READS}
+        $r=[ordered]@{repository=$env:SECONDBRAIN_RUNNER_REPOSITORY}
         $r.all=Probe (@('-Tasks','-All')+$c)
         $r.allDossiers=Probe (@('-Search','Context','-AllDossiers')+$c)
         $r.own=Probe (@('-Tasks')+$c)
-        $r.allowed=Probe (@('-Tasks','-Repository','github.com/test/runner2')+$c)
-        $r.allowedSearch=Probe (@('-Search','Context','-Repository','github.com/test/runner2')+$c)
-        $r.allowedCheckout=Probe @('-Tasks','-ConfigPath',$env:SB_RUNNER_FAKE_CONFIG,'-CheckoutPath',$env:SB_RUNNER_FAKE_CHECKOUT2)
+        $r.notAllowed=Probe (@('-Tasks','-Repository','github.com/test/runner2')+$c)
+        $r.notAllowedSearch=Probe (@('-Search','Context','-Repository','github.com/test/runner2')+$c)
+        $r.foreignCheckout=Probe @('-Tasks','-ConfigPath',$env:SB_RUNNER_FAKE_CONFIG,'-CheckoutPath',$env:SB_RUNNER_FAKE_CHECKOUT2)
         $r.foreignWrite=Probe @('-UpdateTaskId','S-1','-Status','in_progress','-ConfigPath',$env:SB_RUNNER_FAKE_CONFIG,'-CheckoutPath',$env:SB_RUNNER_FAKE_CHECKOUT2)
-        $saved=$env:SECONDBRAIN_RUNNER_READS;$env:SECONDBRAIN_RUNNER_READS='';$r.notAllowed=Probe (@('-Tasks','-Repository','github.com/test/runner2')+$c);$r.foreignCheckout=Probe @('-Tasks','-ConfigPath',$env:SB_RUNNER_FAKE_CONFIG,'-CheckoutPath',$env:SB_RUNNER_FAKE_CHECKOUT2);$env:SECONDBRAIN_RUNNER_READS=$saved
         & pwsh -NoProfile -File $k -UpdateTaskId $id -Status in_progress -StateReason 'Fake agent guard' @c|Out-Null
         if($LASTEXITCODE){[Console]::Error.WriteLine('update failed');exit 5}
         [Console]::Out.Write((@{type='result';is_error=$false;result=($r|ConvertTo-Json -Compress -Depth 4)}|ConvertTo-Json -Compress));exit 0
@@ -258,24 +257,24 @@ switch($Mode){
     $after=Invoke-Runner @('-MaxTasks','10')
     Assert-Runner ((@($after.data.tasks|ForEach-Object id) -join ',') -ceq 'R-5') ('parked, done and blocked tasks leave the selection: '+$after.text)
     Close-RunnerPhase 'parking'
-    # Read-scope guard (#382): the runner passes the task repository and its read allowlist to the agent; global reads, foreign repositories and writes outside the task repository are refused in code.
+    # Read-scope guard (#382, #475): the runner passes the task repository to the agent; global reads, foreign repositories and writes outside the task repository are refused in code.
     $hash2=Get-SBFileHash $trackerPath2
     $guard=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','guard')
     $guardRecord=@($guard.data.tasks)[0]
     Assert-Runner ($guard.code -eq 0 -and $guardRecord.id -eq 'R-5' -and $guardRecord.statusAfter -eq 'in_progress') ('guard run finishes: '+$guard.text)
     $probe=(Read-SBJson (Join-Path $guardRecord.folder 'agent-output.json') $null).result|ConvertFrom-Json -AsHashtable
-    Assert-Runner ($probe.repository -ceq $identity -and $probe.reads -ceq 'github.com/test/runner2') ('the agent session receives the task repository and its read allowlist: '+($probe|ConvertTo-Json -Compress -Depth 4))
+    Assert-Runner ($probe.repository -ceq $identity) ('the agent session receives the task repository: '+($probe|ConvertTo-Json -Compress -Depth 4))
     $scopeText='runner session|sessione del runner'
     Assert-Runner ($probe.all.code -eq 2 -and $probe.all.text -match $scopeText) ('-All is refused in a runner session: '+$probe.all.text)
     Assert-Runner ($probe.allDossiers.code -eq 2 -and $probe.allDossiers.text -match $scopeText) ('-AllDossiers is refused in a runner session: '+$probe.allDossiers.text)
-    Assert-Runner ($probe.notAllowed.code -eq 2 -and $probe.notAllowed.text -match $scopeText) ('a repository outside the allowlist is refused: '+$probe.notAllowed.text)
-    Assert-Runner ($probe.foreignCheckout.code -eq 2 -and $probe.foreignCheckout.text -match $scopeText) ('-CheckoutPath of a repository outside the allowlist is refused: '+$probe.foreignCheckout.text)
-    Assert-Runner ($probe.foreignWrite.code -eq 2 -and $probe.foreignWrite.text -match $scopeText -and (Get-SBFileHash $trackerPath2) -ceq $hash2) ('the allowlist is read-only: a write to it is refused and its tracker unchanged: '+$probe.foreignWrite.text)
-    Assert-Runner ($probe.own.code -eq 0 -and $probe.allowed.code -eq 0 -and $probe.allowedCheckout.code -eq 0 -and $probe.allowed.text -match 'S-1' -and $probe.allowedSearch.code -eq 0) ('the task repository and the allowlisted repository stay readable: '+$probe.allowed.text+$probe.allowedSearch.text)
-    # MCP tools in a runner session, in a separate process so the variables never reach this test: all=true and allDossiers=true refused, allowlist readable.
+    Assert-Runner ($probe.notAllowed.code -eq 2 -and $probe.notAllowed.text -match $scopeText -and $probe.notAllowedSearch.code -eq 2 -and $probe.notAllowedSearch.text -match $scopeText) ('another repository is refused for reads: '+$probe.notAllowed.text)
+    Assert-Runner ($probe.foreignCheckout.code -eq 2 -and $probe.foreignCheckout.text -match $scopeText) ('-CheckoutPath of another repository is refused: '+$probe.foreignCheckout.text)
+    Assert-Runner ($probe.foreignWrite.code -eq 2 -and $probe.foreignWrite.text -match $scopeText -and (Get-SBFileHash $trackerPath2) -ceq $hash2) ('a write to another repository is refused and its tracker unchanged: '+$probe.foreignWrite.text)
+    Assert-Runner ($probe.own.code -eq 0) 'the task repository stays readable'
+    # MCP tools in a runner session, in a separate process so the variables never reach this test: global views and foreign repositories refused.
     $mcpProbe=Join-Path $fixture 'agent/mcp-probe.ps1'
     Put-Runner $mcpProbe @'
-param([string]$Brain,[string]$Config,[string]$Checkout,[string]$Reads)
+param([string]$Brain,[string]$Config,[string]$Checkout)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $Brain 'scripts/SecondBrain.Mcp.psm1')
 $env:SECONDBRAIN_CONFIG=$Config
@@ -284,35 +283,23 @@ function Probe($Tool,$Arguments){try{[void](Invoke-SBMcpToolCall $Brain $Tool $A
 $r=[ordered]@{}
 $r.userAll=Probe 'get_ready_tasks' @{all=$true}
 $r.userSearch=Probe 'search_knowledge' @{query='Context';allDossiers=$true}
-$env:SECONDBRAIN_RUNNER_REPOSITORY='github.com/test/runner';$env:SECONDBRAIN_RUNNER_READS=$Reads
+$env:SECONDBRAIN_RUNNER_REPOSITORY='github.com/test/runner'
 $r.all=Probe 'get_ready_tasks' @{all=$true}
 $r.allDossiers=Probe 'search_knowledge' @{query='Context';allDossiers=$true}
-$r.allowed=Probe 'get_ready_tasks' @{repository='github.com/test/runner2'}
-$r.foreignWrite=Probe 'preview_dossier_write' @{repository='github.com/test/runner2';checkoutPath='x';requestId=('0'*32);operation='task.status';payload=@{taskId='S-1';status='done'}}
-$env:SECONDBRAIN_RUNNER_READS=''
 $r.notAllowed=Probe 'get_ready_tasks' @{repository='github.com/test/runner2'}
+$r.foreignWrite=Probe 'preview_dossier_write' @{repository='github.com/test/runner2';checkoutPath='x';requestId=('0'*32);operation='task.status';payload=@{taskId='S-1';status='done'}}
 $r|ConvertTo-Json -Compress
 '@
-    # Project isolation is the default: global views and unscoped searches are refused until crossProjectReads is enabled.
+    # Project isolation has no switch (#475): global views and unscoped searches are always refused, for a person and for the runner.
     $isolated=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -Tasks -All -ConfigPath $configPath -CheckoutPath $checkout 2>&1|Out-String)
-    Assert-Runner ($LASTEXITCODE -ne 0 -and $isolated -match 'Isolamento per progetto|Project isolation') ('by default -All is refused by project isolation: '+$isolated)
+    Assert-Runner ($LASTEXITCODE -ne 0 -and $isolated -match 'Isolamento per progetto|Project isolation') ('-All is refused by project isolation: '+$isolated)
     $isolatedSearch=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -Search 'Context' -AllDossiers -ConfigPath $configPath -CheckoutPath $checkout 2>&1|Out-String)
-    Assert-Runner ($LASTEXITCODE -ne 0 -and $isolatedSearch -match 'Isolamento per progetto|Project isolation') ('by default -AllDossiers is refused by project isolation: '+$isolatedSearch)
-    $sharedFile=Join-Path $brain 'config/shared.json';[void](New-Item -ItemType Directory -Force (Split-Path $sharedFile))
-    $sharedPolicy=Get-Content -LiteralPath $sharedFile -Raw -ErrorAction SilentlyContinue|ConvertFrom-Json -AsHashtable
-    if(!$sharedPolicy){$sharedPolicy=@{allowedOwners=@();excludedDirectories=@('.git');forbiddenRepositories=@();schemaVersion=1}}
-    $sharedPolicy.crossProjectReads=$true
-    [IO.File]::WriteAllText($sharedFile,($sharedPolicy|ConvertTo-Json -Depth 5))
-    $mcp=(& pwsh -NoProfile -File $mcpProbe -Brain $brain -Config $configPath -Checkout $checkout -Reads 'github.com/test/runner2' 2>&1|Out-String)
+    Assert-Runner ($LASTEXITCODE -ne 0 -and $isolatedSearch -match 'Isolamento per progetto|Project isolation') ('-AllDossiers is refused by project isolation: '+$isolatedSearch)
+    $mcp=(& pwsh -NoProfile -File $mcpProbe -Brain $brain -Config $configPath -Checkout $checkout 2>&1|Out-String)
     $mcpResult=$mcp.Substring($mcp.IndexOf('{'))|ConvertFrom-Json -AsHashtable
-    Assert-Runner ($mcpResult.userAll -eq 'ok' -and $mcpResult.userSearch -eq 'ok') ('outside a runner session MCP all=true and allDossiers=true keep working: '+$mcp)
+    Assert-Runner ($mcpResult.userAll -match 'Isolamento per progetto|Project isolation' -and $mcpResult.userSearch -match 'Isolamento per progetto|Project isolation') ('outside a runner session MCP all=true and allDossiers=true are refused by isolation: '+$mcp)
     Assert-Runner ($mcpResult.all -match $scopeText -and $mcpResult.allDossiers -match $scopeText) ('MCP all=true and allDossiers=true are refused in a runner session: '+$mcp)
-    Assert-Runner ($mcpResult.allowed -eq 'ok' -and $mcpResult.notAllowed -match $scopeText -and $mcpResult.foreignWrite -match $scopeText) ('MCP reads follow the allowlist and writes stay in the task repository: '+$mcp)
-    # No regression: without the runner variables a person keeps the global views.
-    $userAll=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -Tasks -All -ConfigPath $configPath -CheckoutPath $checkout 2>&1|Out-String)
-    Assert-Runner ($LASTEXITCODE -eq 0 -and $userAll -match 'S-1' -and $userAll -match 'R-5') ('outside a runner session -All lists every repository: '+$userAll)
-    $userSearch=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -Search 'Context' -AllDossiers -ConfigPath $configPath -CheckoutPath $checkout 2>&1|Out-String)
-    Assert-Runner ($LASTEXITCODE -eq 0) ('outside a runner session -AllDossiers works: '+$userSearch)
+    Assert-Runner ($mcpResult.notAllowed -match $scopeText -and $mcpResult.foreignWrite -match $scopeText) ('MCP reads and writes stay in the task repository: '+$mcp)
     Close-RunnerPhase 'guard'
     # Per-repository launcher: the generator previews by default, writes only new files, never overwrites a different one and skips SecondBrain itself.
     $hash2=Get-SBFileHash $trackerPath2

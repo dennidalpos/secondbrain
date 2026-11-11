@@ -1,0 +1,33 @@
+{
+  "acceptedVersion": null,
+  "domains": [
+    "identity",
+    "security",
+    "sectoral"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "pci-dss",
+  "issuer": "PCI Security Standards Council",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Solo riferimento: verificare versione applicabile e condizioni di distribuzione prima di acquisire documenti. Nessuna equivalenza fra un preset password e conformita PCI DSS.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "PCI DSS; versione citata dai prodotti: 4.0",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Solo riferimento: verificare versione applicabile e condizioni di distribuzione prima di acquisire documenti. Nessuna equivalenza fra un preset password e conformita PCI DSS.",
+    "reference": "https://www.pcisecuritystandards.org/document_library/",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "PCI DSS - riferimento di sicurezza dei dati di pagamento",
+  "versions": []
+}

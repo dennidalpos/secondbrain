@@ -212,7 +212,9 @@ function Test-SBPublication {
                 $markdown=Read-SBText $full
                 $markdown=[regex]::Replace($markdown,'(?ms)^```.*?^```[^\r\n]*$','')
                 $markdown=[regex]::Replace($markdown,'`[^`\r\n]*`','')
-                foreach($match in [regex]::Matches($markdown,'!?\[[^\]]*\]\(([^)\s]+)\)')){
+                # #478: stored source versions are verbatim third-party documents; their relative links point into the original publication, not into this repository.
+                $verbatimSource=($relative -match '^03-resources/authoritative-sources/entries/[^/]+/(versions|evidence)/')
+                foreach($match in $(if($verbatimSource){@()}else{[regex]::Matches($markdown,'!?\[[^\]]*\]\(([^)\s]+)\)')})){
                     $target=$match.Groups[1].Value
                     if($target -match '^(?:[a-z][a-z0-9+.-]*:|#)' ){continue}
                     $target=($target -split '[?#]',2)[0]

@@ -1,0 +1,48 @@
+{
+  "acquiredAt": "2026-10-27T10:13:05.9984970+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "Initial extraction, retained before provenance and layout review",
+      "sha256": "FFA646A48CD6C5C1F47505EC00C5A62E77CFAD273B1C6D568121E9ADAC22C77A"
+    },
+    {
+      "path": "transcript.layout.md",
+      "reason": "First layout comparison with retained original preamble",
+      "sha256": "E5FFD4F04F2C0CB878EA9E507B2F9D33C8940336C8CE8347EEB13D2B21EEF9B8"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "16C0BB358414707B194678BDF80D7E4BA721A0D9CB0E76965569257B75BE3E58",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/gdpr-garante-2018.pdf",
+      "sha256": "16C0BB358414707B194678BDF80D7E4BA721A0D9CB0E76965569257B75BE3E58",
+      "url": "https://www.garanteprivacy.it/documents/10160/0/Regolamento+UE+2016+679.+Arricchito+con+riferimenti+ai+Considerando+Aggiornato+alle+rettifiche+pubblicate+sulla+Gazzetta+Ufficiale++dell%27Unione+europea+127+del+23+maggio+2018.pdf/1bd9bde0-d074-4ca8-b37d-82a3478fd5d3?version=1.9"
+    }
+  ],
+  "configurationHash": "471FAFC208B636B16DFEEB58AE87E6D81C2D6C89C5AD1AF1DE41B386E05E6FCB",
+  "edition": "Testo 2016, rettifiche 23 maggio 2018, PDF Garante versione 1.9",
+  "fingerprint": "CA7F8150CA790E247F1385423A570B8F0A84B5C69C636A971475BCCC7F5CD3BC",
+  "language": "it",
+  "publicationDate": "2016-05-04",
+  "schemaVersion": 1,
+  "sourceId": "eu-gdpr",
+  "transcription": {
+    "diagnostics": {
+      "characters": 417110,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 2031,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "16C0BB358414707B194678BDF80D7E4BA721A0D9CB0E76965569257B75BE3E58",
+      "status": "extracted"
+    },
+    "path": "transcript.verified.md",
+    "sha256": "88E9FAA5887677279E4C1DA8D3DFF2AC5497120ADB351FAA7185FC3EABC9CB0C",
+    "status": "extracted"
+  },
+  "versionId": "20261027-ca7f8150ca790e24"
+}

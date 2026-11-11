@@ -1,0 +1,33 @@
+{
+  "sourceId": "eu-ai-act",
+  "observedAt": "2026-10-27T23:17:06.055Z",
+  "api": "https://publications.europa.eu/webapi/rdf/sparql e /resource/celex",
+  "scope": "Riscontro OnlyWorkspace SRC-BASELINE-20261027; non nuova acceptedVersion.",
+  "review": "Vedi README; rapporto nel dossier OnlyWorkspace history/2026-10-28-src-baseline-20261027-cellar/report.md",
+  "artifacts": [
+    {
+      "path": "02024R1689-20260727.txt",
+      "sha256": "6C0505500FE11232FB3268AA78D0F8103536FF2147026F883527B2F28082EE10"
+    },
+    {
+      "path": "02024R1689-20260727.xhtml",
+      "sha256": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E"
+    },
+    {
+      "path": "32024R1689.txt",
+      "sha256": "EF571D4B141E3A260E60A32C9DBA5DDC032F353FDD8F04417B1B831546F66A5A"
+    },
+    {
+      "path": "32024R1689.xhtml",
+      "sha256": "BA2CA075FAA2CCFC19C57185692771DB11319ECC3B4E5BB067A90F63AA8B2C86"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4F7BEABF92F6B1E33CBC2C1243FA8A800DB63D65A96B897F126315902100DDBD"
+    },
+    {
+      "path": "retrieval.json",
+      "sha256": "D0B1B1574BC95DEA9FE4B7D1CE61FE277E40C6BD7A3A8D383BE4F26B2490CA7A"
+    }
+  ]
+}

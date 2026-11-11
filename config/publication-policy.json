@@ -1,5 +1,240 @@
 {
-  "allowances": [],
+  "allowances": [
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/ec-ai-framework/versions/20261027-bf8da5718e67b96a/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/ec-ai-framework/versions/20261104-91f3a7480ab0adf0/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/ec-ai-framework/versions/20261108-b0c5ea0a77cfa07f/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/edpb-legal-framework/versions/20261027-aef2d5a00be06ca9/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/edpb-legal-framework/versions/20261104-e3ece462f199b730/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/eu-ai-omnibus-2026/versions/20261028-d98dc2ed94de1c6f/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": "390D7152614A8C23A53CDC6785A8C5D058C09DB2DAACF920E1995BC30D095808",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.columns.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "B4898275E807CE451B715FEE36FCCEF0D80EA87CB70BB76DDAB79C9B7A75ADA6",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.columns.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "72C1226167BE504FEE1EF786CD6104AAEA809A1C1FF65B6652254E3C3FA1F379",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "961474FE9792F57BFD049DB19BC66068A0E46C3996880228836788D8953AA095",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "E6611E58EC187FCF3A1AF0F8743FFA742D67070284F3B045DF0C0D92880210D7",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "9E2D12782A894106D6A779E115152855229A85737558EC5C9CCF01A9D29B2396",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "1CE65A9D10A3934EBA291BE6F5B64456926013C85BFC893897AABA541A6B039B",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "FBEFFEA980FF1E5527659343D007784711DBC4AA9294EDFA00EEEC432DE55435",
+      "path": "03-resources/authoritative-sources/entries/it-ai-law-132-2025/versions/20261027-55cc325c4c47b78f/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "87D98A96A09F8E227892DA17B712700D1B7500ED594B8CE0D3F0FC2522E9B9D8",
+      "path": "03-resources/authoritative-sources/entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "9806670E9807361032B2A2629696E66F586445AAC088D38FB7A007D855093820",
+      "path": "03-resources/authoritative-sources/entries/it-dlgs-185-2016/versions/20261107-89a10c7f213e5fb0/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "215A751E151D0AF82E0837B3EEA390B747C7AAFA3D39347FB888C3A1412EB949",
+      "path": "03-resources/authoritative-sources/entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "7D94DC8C44BEBEFC7A847D0C73027E81A90BCA683FAC13C8EC1E265FC3A31142",
+      "path": "03-resources/authoritative-sources/entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "FF0E5762833A756573A4600785B4D333A6025F2066095021E8EBB8765381084B",
+      "path": "03-resources/authoritative-sources/entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "1B36A6D8189244510254C0668AD75BAA84A04D0BF420AD0EAB426BC352CFF55E",
+      "path": "03-resources/authoritative-sources/entries/nist-digital-identity/versions/20261027-beb0b6d126f7d291/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "4B52193E9E1871113D21ABD44309417F0887A28BFB8373C582CF374B40988523",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "4D6EE8E2F7872C9A500493AF2D0123CEB97AF35BBB28A532811CB16C02C4673C",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "CA8F8709CC831492DBD3D3733237B17C7B0B6250E3AF2996ADDA5E14EEB7253A",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "F772E10E7E5E83FEF6F58A70755C6957BF79840FE87257DD8885157522C64013",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.layout.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "52BFF0AC1855AAE974B5F22994045EE83F4C892AF2521B27E489AADB174F5BD0",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "533B4CC3F441E86F1AA36FA437C285E77203C241C8F9E73B71A3A68C1624B470",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "0EF760CC4D033DF73DBC4B53B9AA594B818C761541BC5FD2B6FB6CEE2873D35C",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": "5671875B3F14C6104508B6B7CB9E47975D4E55F87D24DB2EC3377B24351611B2",
+      "path": "03-resources/authoritative-sources/entries/nist-ssdf/versions/20261027-4db66862b8cebd1b/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/owasp-file-upload/versions/20261027-af7d03c7c740eee2/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/owasp-password-storage/versions/20261027-5d11165f77236888/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/owasp-password-storage/versions/20261027-5d11165f77236888/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/owasp-password-storage/versions/20261104-3c8c9aa16d71d7d8/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": "465CFEFA130B8C676C40F6C6F78D898FFEF93CF7F5E53D89DE269DDAC8E602E4",
+      "path": "03-resources/authoritative-sources/entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    },
+    {
+      "fingerprint": null,
+      "path": "03-resources/authoritative-sources/entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: relative link of the upstream document kept verbatim in a public-reusable source transcript (the target lives in the original publication, not in this repository).",
+      "rule": "broken-local-link"
+    },
+    {
+      "fingerprint": "6BA25F1ADF605278DC8DEC21D256C53C8DFD7D845A2550E0315C1D5FE87DFA48",
+      "path": "03-resources/authoritative-sources/entries/w3c-wcag/versions/20261027-99c47346a5064e4a/transcript.verified.md",
+      "reason": "Reviewed 2026-11-11: institutional contact address printed in a third-party public legal or technical text kept verbatim in a public-reusable source transcript; not a personal address of this project.",
+      "rule": "personal-email"
+    }
+  ],
   "binaryReviews": [
     {
       "gitBlob": "e75f188dee2c083431b7b4a982dea64f8b7d33d8",

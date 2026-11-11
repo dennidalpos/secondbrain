@@ -1,0 +1,88 @@
+{
+  "acceptedVersion": "20261027-214690bf36fdea07",
+  "domains": [
+    "development",
+    "security"
+  ],
+  "edition": "5.0.0, 30 May 2025",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "raw.githubusercontent.com"
+      ],
+      "expectedText": "ASVS",
+      "format": "pdf",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/OWASP_Application_Security_Verification_Standard_5.0.0_en.pdf"
+    },
+    {
+      "allowedHosts": [
+        "raw.githubusercontent.com"
+      ],
+      "expectedText": "ASVS",
+      "format": "docx",
+      "id": "word",
+      "role": "original",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.docx"
+    },
+    {
+      "allowedHosts": [
+        "raw.githubusercontent.com"
+      ],
+      "expectedText": "5.0.0",
+      "format": "json",
+      "id": "requirements",
+      "role": "original",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.json"
+    },
+    {
+      "allowedHosts": [
+        "raw.githubusercontent.com"
+      ],
+      "expectedText": "Attribution-ShareAlike",
+      "fileName": "LICENSE.md",
+      "format": "text",
+      "id": "license",
+      "role": "original",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/LICENSE.md"
+    },
+    {
+      "allowedHosts": [
+        "asvs.owasp.org"
+      ],
+      "expectedText": "ASVS",
+      "format": "html",
+      "id": "publication",
+      "role": "discovery",
+      "url": "https://asvs.owasp.org/"
+    }
+  ],
+  "id": "owasp-asvs",
+  "issuer": "OWASP ASVS contributors",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "OWASP e autori ASVS, CC BY-SA 4.0. Trascrizione derivata per sola conversione di formato, stessa licenza. Requisiti per applicazioni e servizi web; citare sempre versione e identificatore."
+  ],
+  "officialId": "OWASP ASVS v5.0.0",
+  "publicationDate": "2025-05-30",
+  "relatedSources": [],
+  "rights": {
+    "notes": "OWASP e autori ASVS, CC BY-SA 4.0. Trascrizione derivata per sola conversione di formato, stessa licenza. Requisiti per applicazioni e servizi web; citare sempre versione e identificatore.",
+    "reference": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/LICENSE.md",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "OWASP Application Security Verification Standard 5.0.0",
+  "versions": [
+    {
+      "id": "20261027-214690bf36fdea07",
+      "reviewStatus": "verified"
+    }
+  ]
+}

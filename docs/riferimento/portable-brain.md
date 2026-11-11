@@ -73,7 +73,7 @@ See [safe writes](safety-backups.md), [MCP](mcp-setup.md), [trackers](trackers.m
 
 ## Project isolation
 
-Each managed repository has its own dossier in `01-projects/<name>--<hash>/` (kind project with `repository.json`, plus `specs/`, `material/` and `data/` for the material to implement in that repository). Only `03-resources/` is shared between repositories. By default every read is scoped to the working repository: `-All`, `-AllDossiers`, `all=true` and a search with no resolved repository are refused with a project-isolation error. A brain that really needs the cross-repository views sets `"crossProjectReads": true` in `config/shared.json`.
+Each managed repository has its own dossier in `01-projects/<name>--<hash>/` (kind project with `repository.json`, plus `specs/`, `material/` and `data/` for the material to implement in that repository). Only `03-resources/` is shared between repositories. By default every read is scoped to the working repository: `-All`, `-AllDossiers`, `all=true` and a search with no resolved repository are refused with a project-isolation error. There is no switch to lift the isolation (#475).
 
 Dossiers created before this layout live in `02-areas/products/`. Preview the move with `pwsh -NoProfile -File scripts/para.ps1 -MigrateToProjects`, then run it with `-Apply` (optionally `-Only <id or identity>`). Each dossier moves in its own PARA transaction with a backup, keeps its id and files, and gets `specs/`, `material/` and `data/`; bindings and state files are rewritten to the new paths. Take a verified `backup.ps1` archive first.
 

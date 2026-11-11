@@ -1,0 +1,31 @@
+{
+  "acceptedVersion": null,
+  "domains": [
+    "sectoral"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "arera-135-2022",
+  "issuer": "Autorita di Regolazione per Energia Reti e Ambiente",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "decision",
+  "language": "it",
+  "notes": [
+    "Citazione in OnlyBollette docs/SOURCES-AND-COMPARISON.md: verificare testo e articolo prima di attribuire alla delibera i criteri tariffari dichiarati.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "135/2022/R/com",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Citazione in OnlyBollette docs/SOURCES-AND-COMPARISON.md: verificare testo e articolo prima di attribuire alla delibera i criteri tariffari dichiarati.",
+    "reference": "https://www.arera.it/atti-e-provvedimenti/dettaglio/22/135-22",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "ARERA 135/2022/R/com - riferimento da qualificare",
+  "versions": []
+}

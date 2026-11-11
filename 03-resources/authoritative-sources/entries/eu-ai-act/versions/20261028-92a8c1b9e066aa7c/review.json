@@ -1,0 +1,38 @@
+{
+  "automatedEvidence": {
+    "articleHeadings": {
+      "original": 119,
+      "transcript": 119
+    },
+    "method": "Testo XHTML senza markup e trascrizione normalizzata (link, marcatori ▼, punteggiatura Markdown)",
+    "numericTokens": {
+      "missing": 33,
+      "original": 3423,
+      "transcript": 3391
+    },
+    "originalSha256": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E",
+    "replacementCharacters": 0,
+    "windows": {
+      "missing": 50,
+      "sampled": 1592,
+      "size": 12,
+      "step": 40
+    }
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "92A8C1B9E066AA7CCD8FC3A6561782C2916AAD849A08CDBFEFAC58D435125ACF",
+  "limitations": [
+    "Revisione strutturale e a campione, non lettura integrale; allegati e tabelle non confrontati singolarmente oltre ai token numerici.",
+    "Il consolidato non produce effetti giuridici: fa fede la GU. La verifica riguarda la trascrizione, non vigenza completa, applicabilita o conformita dei prodotti."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-28T08:52:24.0386838+01:00",
+  "reviewer": "Claude Code - revisione centrale SecondBrain",
+  "schemaVersion": 1,
+  "scope": "Confronto automatico con il testo dell originale XHTML canonico: intestazioni Articolo 119/119, 0 caratteri sostitutivi, token numerici mancanti 33 su 3423, finestre di 12 parole presenti 1542/1592; finestre mancanti esaminate a campione (numerazione su righe separate, note, marcatori di consolidamento). Passaggi citati verificati: artt. 3, 4, 5, 6, 50, 111, 113.",
+  "sourceId": "eu-ai-act",
+  "structure": true,
+  "transcriptSha256": "A1527436190F124390E932444D07A24F4EA262B6C77C7CE60C2CFBA551A7D9D6",
+  "versionId": "20261028-92a8c1b9e066aa7c"
+}

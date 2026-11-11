@@ -1,0 +1,71 @@
+{
+  "automatedEvidence": {
+    "asvsRequirementsTotal": 345,
+    "automatedChecksPassed": true,
+    "checks": {
+      "noImageOnlyPages": true,
+      "noReplacementCharacters": true,
+      "pageCountIndependent": true,
+      "requirementsPresent": true
+    },
+    "corrections": [
+      {
+        "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+        "requirement": "V1.2.10",
+        "source": "originals/requirements.json"
+      },
+      {
+        "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+        "requirement": "V4.2.4",
+        "source": "originals/requirements.json"
+      }
+    ],
+    "fingerprint": "214690BF36FDEA0752FE17D82813EF76681FF8F01F1834F9F12A1D4C27494013",
+    "missingDescriptionsAfterReconciliation": [],
+    "missingRequirementIds": [],
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "24EA3F29724D2176D66749B00FE6DBD36653CFC5DD51111632C6F30D075FD2A3",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "38A985971F52FBCB49DAD31EAFB6BD951375F408A1F7A121A59EBC0647AE15BA",
+    "originalSha256": "A2FA1BBE38F12CAC86D3A0F0023327E9772201F65A7F741F282F5E785D268FC5",
+    "pdf": {
+      "imageOnlyPages": [],
+      "pageCount": 120
+    },
+    "requirementsChecked": 345,
+    "sampledPages": [
+      1,
+      61
+    ],
+    "sourceEndpoint": "requirements",
+    "sourceId": "owasp-asvs",
+    "status": "candidate",
+    "transcriptSha256": "24EA3F29724D2176D66749B00FE6DBD36653CFC5DD51111632C6F30D075FD2A3",
+    "versionId": "20261027-214690bf36fdea07",
+    "visualSample": "census/qa/owasp-asvs.png"
+  },
+  "citedPassages": true,
+  "corrections": [
+    {
+      "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+      "requirement": "V1.2.10",
+      "source": "originals/requirements.json"
+    },
+    {
+      "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+      "requirement": "V4.2.4",
+      "source": "originals/requirements.json"
+    }
+  ],
+  "fingerprint": "214690BF36FDEA0752FE17D82813EF76681FF8F01F1834F9F12A1D4C27494013",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:18.0878961+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "DOCX structure, all 345 requirement identifiers and descriptions compared to official JSON; two escaped sequences restored explicitly. PDF cover and table sample inspected.",
+  "structure": true,
+  "transcriptSha256": "EE19AC3F01B8A259A380D563DAB733D7B00537BFF492D37784CF86F06A94545D"
+}

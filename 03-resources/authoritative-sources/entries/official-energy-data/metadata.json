@@ -1,0 +1,39 @@
+{
+  "acceptedVersion": null,
+  "dataset": {
+    "geography": "Italia",
+    "period": "Non qualificato",
+    "schema": "Da verificare alla fonte; nessuna copia acquisita",
+    "units": "Da qualificare",
+    "usage": "Riferimento al registro ufficiale usato dal prodotto, non catalogo di offerte."
+  },
+  "domains": [
+    "official-data",
+    "sectoral"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "official-energy-data",
+  "issuer": "Autorita di Regolazione per Energia Reti e Ambiente",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "dataset",
+  "language": "it",
+  "notes": [
+    "Endpoint effettivamente citato da OnlyBollette. Solo metadati: diritti di riutilizzo, formato e condizioni di aggiornamento non ancora qualificati; nessun dato ricostruito.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "https://www.arera.it/area-operatori/ricerca-operatori",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Endpoint effettivamente citato da OnlyBollette. Solo metadati: diritti di riutilizzo, formato e condizioni di aggiornamento non ancora qualificati; nessun dato ricostruito.",
+    "reference": "https://www.arera.it/area-operatori/ricerca-operatori",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "ARERA - registro degli operatori",
+  "versions": []
+}

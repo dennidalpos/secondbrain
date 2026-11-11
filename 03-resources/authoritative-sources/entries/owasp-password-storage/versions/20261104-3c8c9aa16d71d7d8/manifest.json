@@ -1,0 +1,38 @@
+{
+  "acquiredAt": "2026-11-04T23:03:40.1818403+00:00",
+  "artifacts": [
+    {
+      "contentHash": "5004D1EAD2DFA8270DF8BE7789C9DECB39746261639DDF271E24BA1AC68B32A1",
+      "contentType": "text/plain; charset=utf-8",
+      "endpointId": "canonical",
+      "path": "originals/Password_Storage_Cheat_Sheet.md",
+      "sha256": "5004D1EAD2DFA8270DF8BE7789C9DECB39746261639DDF271E24BA1AC68B32A1",
+      "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Password_Storage_Cheat_Sheet.md"
+    }
+  ],
+  "configurationHash": "5C0B38F8D87D12AC749716E3D6964469F848DB0F19D10A7B1B5F09E59AB628E8",
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "fingerprint": "3C8C9AA16D71D7D8294FD27E1D3A46E8D4205B774FF6E92B31D6E574D6B725B5",
+  "language": "en",
+  "publicationDate": null,
+  "schemaVersion": 1,
+  "sourceId": "owasp-password-storage",
+  "transcription": {
+    "diagnostics": {
+      "characters": 20540,
+      "code": null,
+      "converter": "stdlib",
+      "message": null,
+      "numericTokens": 209,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "5004D1EAD2DFA8270DF8BE7789C9DECB39746261639DDF271E24BA1AC68B32A1",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "CFECC18F534C2A3E12249F349963BB23980DCB701F52F1A8FF770680521921D8",
+    "status": "extracted"
+  },
+  "versionId": "20261104-3c8c9aa16d71d7d8"
+}

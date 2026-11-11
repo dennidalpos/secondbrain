@@ -1,0 +1,31 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "literalTextPreserved": true
+    },
+    "fingerprint": "5D11165F772368885EDB8D4F531DFED9E895D7E1725C0B80F7C03820F7E6139F",
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "C6F765D7ED0835B000C8D1FF860DB5B0D9FAA3240052E7874CC3C1E3592B401E",
+    "originalSha256": "3869A8BF0A5144EF5C741B74FB3739BF10EB16AF669C65A60A233AAD943A9323",
+    "sourceId": "owasp-password-storage",
+    "status": "candidate",
+    "transcriptSha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1",
+    "versionId": "20261027-5d11165f77236888"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "5D11165F772368885EDB8D4F531DFED9E895D7E1725C0B80F7C03820F7E6139F",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:18.2042520+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "Native Markdown source retained literally below separate provenance header. Source and licence attribution retained.",
+  "structure": true,
+  "transcriptSha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1"
+}

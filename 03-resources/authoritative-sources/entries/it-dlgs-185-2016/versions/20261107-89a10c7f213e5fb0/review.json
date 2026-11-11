@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "it-dlgs-185-2016",
+  "versionId": "20261107-89a10c7f213e5fb0",
+  "reviewer": "Claude Code - revisione centrale SecondBrain",
+  "reviewedAt": "2026-11-07T23:29:47.2513363+01:00",
+  "fingerprint": "89A10C7F213E5FB0E1D648F3D0A2FFE1030FA7D67D190129ABAC2027197FB49F",
+  "transcriptSha256": "C68FE0121D00D098A5D9B2053A80D6052E17C2A420746B58465B8F1900E754FA",
+  "structure": true,
+  "numbersAndTables": true,
+  "citedPassages": true,
+  "corrections": [],
+  "scope": "Pagina 10 del PDF (stampa 6): art. 5, comma 2, D.Lgs. 185/2016 (modifica del terzo periodo dell art. 4, comma 1, L. 300/1970 con Ispettorato nazionale del lavoro) confrontata visivamente con l immagine renderizzata, insieme all intestazione dell art. 5; identita del decreto confermata dall intestazione nella trascrizione; 88 pagine, nessuna pagina solo immagine. Il resto del fascicolo non e stato rivisto.",
+  "limitations": [
+    "Qualifica la trascrizione del testo originario del 2016 nella pagina indicata. Non stabilisce la vigenza: modifiche successive e il testo consolidato vanno verificati in Normattiva e Gazzetta Ufficiale.",
+    "Non stabilisce la conformita di un prodotto."
+  ]
+}

@@ -77,7 +77,7 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request.arguments -isnot [Collections.IDictionary] -or $Request.expected -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('arguments'))}
     $allowed=switch($Request.operation){
         'task.status' {@('TaskId','Status','StateReason','Evidence')}
-        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires','Evidence')}
+        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence')}
         'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer','Requires')}
         'file.save' {@('relativePath','content')}
         'file.append' {@('relativePath','content')}

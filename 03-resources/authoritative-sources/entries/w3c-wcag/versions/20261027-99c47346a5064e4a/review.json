@@ -1,0 +1,35 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "noReplacementCharacters": true,
+      "numbersPreserved": true,
+      "structurePresent": true
+    },
+    "fingerprint": "99C47346A5064E4A8E9D04666DC5D861221BF915D2318841C16FCA3F5077304F",
+    "headings": 143,
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1",
+    "numericTokensMissing": {},
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "E5939EA8B6B032172CBDA71977B91C624E6297F36EADC141BC402FAE264AAAAB",
+    "originalSha256": "6E3C5FE397257CAE509A2FB4752B73062CF8CBEB92C2CEC618989B17E4CF7057",
+    "sourceId": "w3c-wcag",
+    "status": "candidate",
+    "transcriptSha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1",
+    "versionId": "20261027-99c47346a5064e4a"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "99C47346A5064E4A8E9D04666DC5D861221BF915D2318841C16FCA3F5077304F",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:18.2602464+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "HTML headings and numeric tokens compared with original; substantive text reviewed. Menus and related links remain source context; not a legal consolidation.",
+  "structure": true,
+  "transcriptSha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1"
+}

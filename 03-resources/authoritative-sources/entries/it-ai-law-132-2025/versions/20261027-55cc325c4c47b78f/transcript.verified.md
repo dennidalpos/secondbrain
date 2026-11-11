@@ -1,0 +1,6417 @@
+# Trascrizione della fonte: Legge 23 settembre 2025 n. 132 - intelligenza artificiale
+
+Ente: Repubblica italiana - Gazzetta Ufficiale
+Fonte originale: https://www.gazzettaufficiale.it/do/gazzetta/downloadPdf?dataPubblicazioneGazzetta=20250925&edizione=0&estensione=pdf&home=true&numeroGazzetta=223&numeroSupplemento=0&progressivo=0&tipoSerie=SG&tipoSupplemento=GU
+SHA-256 originale: 4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339
+Riutilizzo: Atti normativi ufficiali: art. 5 L. 633/1941. Originale integrale del fascicolo GU: la legge 132 occupa le pagine stampate 1-28; altri atti del fascicolo sono conservati come contesto, non assimilati alla legge. Vigenza successiva da verificare in Normattiva.
+Condizioni: https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1941-04-22;633~art5
+
+Conversione locale di formato. Revisione della trascrizione distinta dalla vigenza e dalla conformita dei prodotti.
+
+---
+
+## Pagina 1
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                               SERIE   GENERALE                                   
+                                                                                  
+       SSppeeddiizz.. aabbbb. .p opsots. t-. a4r5t.% 1 , -c oamrtm. a2 1, comma 20/b Anno 166° - Numero 223
+       LLeeggggee 2273--0122--21090946, ,n .n 4. 66 -6 F2i li-a lFe idliia Rleo mdai Roma
+       GAZZETTA                                UFFICIALE                          
+                                                                                  
+                                                                                  
+                                                                                  
+                   DELLA      REPUBBLICA          ITALIANA                        
+                                                                                  
+       PARTE   PRIMA         Roma - Giovedì, 25 settembre 2025    SI PUBBLICA TUTTI I
+                                                                  GIORNI NON FESTIVI
+       DIREZIONE E REDAZIONE PRESSO IL MINISTERO DELLA GIUSTIZIA - UFFICIO PUBBLICAZIONE LEGGI E DECRETI - VIA ARENULA, 70 - 00186 ROMA
+       DIREZIONE E REDAZIONE PRESSO IL MINISTERO DELLA GIUSTIZIA - UFFICIO PUBBLICAZIONE LEGGI E DECRETI - VIA ARENULA 70 - 00186 ROMA
+       AMMINISTRAZIONE PRESSO L’ISTITUTO POLIGRAFICO E ZECCA DELLO STATO - VIA SALARIA, 691 - 00138 ROMA - CENTRALINO 06-85081 - LIBRERIA DELLO STATO
+       PAIMAMZZINA IGS.T RVEARZDIOI,N 1E -P 0R0E1S9S8O R OL'MISATITUTO POLIGRAFICO E ZECCA DELLO STATO - LIBRERIA DELLO STATO - PIAZZA G. VERDI 10 - 00198 ROMA - CENTRALINO 06-85081
+       La Gazzetta Ufficiale, Parte Prima, oltre alla Serie Generale, pubblica cinque Serie speciali, ciascuna contraddistinta
+         da autonoma numerazione:                                                 
+         1ª Serie speciale: Corte costituzionale (pubblicata il mercoledì)        
+         2ª Serie speciale: Unione europea (pubblicata il lunedì e il giovedì)    
+         3ª Serie speciale: Regioni (pubblicata il sabato)                        
+         4ª Serie speciale: Concorsi ed esami (pubblicata il martedì e il venerdì)
+         5ª Serie speciale: Contratti pubblici (pubblicata il lunedì, il mercoledì e il venerdì)
+       La Gazzetta Ufficiale, Parte Seconda, “Foglio delle inserzioni”, è pubblicata il martedì, il giovedì e il sabato
+                            AVVISO ALLE AMMINISTRAZIONI                           
+          Al fi ne di ottimizzare la procedura di pubblicazione degli atti in Gazzetta Ufficiale, le Amministrazioni
+       sono pregate di inviare, contemporaneamente e parallelamente alla trasmissione su carta, come da norma,
+       anche copia telematica dei medesimi (in formato word) al seguente indirizzo di posta elettronica certifi cata:
+       gazzettaufficiale@giustiziacert.it, curando che, nella nota cartacea di trasmissione, siano chiaramente riportati gli
+       estremi dell’invio telematico (mittente, oggetto e data).                  
+          Nel caso non si disponga ancora di PEC, e fi no all’adozione della stessa, sarà possibile trasmettere gli atti a:
+       gazzettaufficiale@giustizia.it                                             
+                                S O M  M  A  R I O                                
+                                                                                  
+            LEGGI ED ALTRI ATTI NORMATIVI DECRETO DEL PRESIDENTE DELLA REPUBBLICA 
+                                           8 agosto 2025, n. 135.                 
+                                           Regolamento recante modifiche al decreto
+       LEGGE 23 settembre 2025, n. 132.                                           
+                                          del Presidente della Repubblica 22 giugno 2009,
+        Disposizioni e deleghe al Governo in materia n. 122, in materia di valutazione degli studenti
+       di intelligenza artificiale. (25G00143) . . . . . . . . . Pag. 1 del secondo ciclo di istruzione. (25G00141) . . . . Pag. 42
+       LEGGE 24 settembre 2025, n. 133.                                           
+                                          DECRETI, DELIBERE E ORDINANZE MINISTERIALI
+        Conversione in legge, con modificazioni, del                              
+       decreto-legge 1° agosto 2025, n. 110, recante mi-                          
+       sure urgenti per il commissariamento dell’Agen-                            
+       zia nazionale per i servizi sanitari regionali e per Ministero delle infrastrutture
+       il finanziamento dell’Ospedale pediatrico Bam-  e dei trasporti            
+       bino Gesù. (25G00144) . . . . . . . . . . . . . . . . . . . . . Pag. 29    
+                                          DECRETO 14 agosto 2025.                 
+       DECRETO DEL PRESIDENTE DELLA REPUBBLICA Modifiche al decreto 26 aprile 2022 concer-
+        8 agosto 2025, n. 134.                                                    
+                                          nente la ripartizione delle risorse, per le annuali-
+        Regolamento concernente modifiche al decreto tà dal 2025 al 2029, per le strade delle province e
+       del Presidente della Repubblica 24 giugno 1998, delle città metropolitane. Integrazione al decreto
+       n. 249, recante lo statuto delle studentesse e degli 19 marzo 2020, relativo a programmi straordina-
+       studenti della scuola secondaria. (25G00140) . . Pag. 30 ri di manutenzione della rete viaria. (25A05209) Pag. 52
+````
+
+## Pagina 2
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+            TESTI COORDINATI E AGGIORNATI         Istituto nazionale di statistica
+                                           Indici dei prezzi al consumo per le famiglie
+        Testo del decreto-legge 1° agosto 2025, n. 110,                           
+                                          di operai e impiegati, relativi al mese di luglio
+       coordinato con la legge di conversione 24 set- 2025, che si pubblicano ai sensi dell’articolo 81
+       tembre 2025, n. 133, recante: «Misure urgenti della legge 27 luglio 1978, n. 392 (Disciplina delle
+       per il commissariamento dell’Agenzia naziona- locazioni di immobili urbani), ed ai sensi dell’arti-
+       le per i servizi sanitari regionali e per il finan- colo 54 della legge del 27 dicembre 1997, n. 449
+       ziamento dell’Ospedale pediatrico Bambino (Misure per la stabilizzazione della finanza pubbli-
+       Gesù». (25A05291) . . . . . . . . . . . . . . . . . . . . . . . . Pag. 55 ca). (25A05217) . . . . . . . . . . . . . . . . . . . . . . . . . . . Pag. 59
+                                                   Ministero degli affari esteri  
+                                                 e della cooperazione internazionale
+             ESTRATTI, SUNTI E COMUNICATI                                         
+                                           Limitazione delle funzioni del titolare del Conso-
+                                          lato onorario in Limassol (Cipro) (25A05204) . . . Pag. 59
+               Agenzia italiana del farmaco                                       
+        Autorizzazione all’importazione parallela del me-                         
+                                                    Ministero dell’interno        
+       dicinale per uso umano «Buscopan» (25A05094) . Pag. 57                     
+                                           Classificazione di un prodotto esplosi-
+        Autorizzazione all’immissione in commercio del vo (25A05143) . . . . . . . . . . . . . . . . . . . . . . . . . . . . Pag. 60
+       medicinale per uso umano, a base di vareniclina,                           
+       «Civarenix» (25A05095) . . . . . . . . . . . . . . . . . . . . Pag. 57 Classificazione di un prodotto esplosi-
+                                          vo (25A05144) . . . . . . . . . . . . . . . . . . . . . . . . . . . . Pag. 60
+        Revoca, su rinuncia, dell’autorizzazione all’im-                          
+       missione in commercio del medicinale per uso uma- Classificazione di un prodotto esplosi-
+       no «Osteocis» (25A05096) . . . . . . . . . . . . . . . . . . Pag. 59 vo (25A05145) . . . . . . . . . . . . . . . . . . . . . . . . . . . . Pag. 61
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                      —  II —
+````
+
+## Pagina 3
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                LEGGI     ED   ALTRI     ATTI    NORMATIVI                        
+                                                                                  
+                                                                                  
+                                                                                  
+       LEGGE 23 settembre 2025 , n. 1 32 . princìpi di trasparenza, proporzionalità, sicurezza, pro-
+                                          tezione dei dati personali, riservatezza, accuratezza, non
+        Disposizioni e deleghe al Governo in materia di intelligen-               
+                                          discriminazione, parità dei sessi e sostenibilità.
+       za artificiale.                                                            
+                                           2. Lo sviluppo di sistemi e di modelli di intelligenza
+        La Camera dei deputati ed il Senato della Repubblica artificiale per finalità generali avviene su dati e tramite
+       hanno approvato;                   processi di cui devono essere garantite e vigilate la corret-
+                                          tezza, l’attendibilità, la sicurezza, la qualità, l’appropria-
+           IL PRESIDENTE DELLA REPUBBLICA                                         
+                                          tezza e la trasparenza, secondo il principio di proporzio-
+                    PROMULGA              nalità in relazione ai settori nei quali sono utilizzati.
+       la seguente legge:                  3. I sistemi e i modelli di intelligenza artificiale per fi-
+                                          nalità generali devono essere sviluppati e applicati nel ri-
+                                          spetto dell’autonomia e del potere decisionale dell’uomo,
+                     Capo I                                                       
+                                          della prevenzione del danno, della conoscibilità, della
+                  PRINCIPI E FINALITÀ     trasparenza, della spiegabilità e dei princìpi di cui al com-
+                                          ma 1, assicurando la sorveglianza e l’intervento umano.
+                     Art. 1.               4. L’utilizzo di sistemi di intelligenza artificiale non
+                                          deve pregiudicare lo svolgimento con metodo democra-
+              Finalità e ambito di applicazione tico della vita istituzionale e politica e l’esercizio delle
+                                          competenze e funzioni delle istituzioni territoriali sulla
+        1. La presente legge reca princìpi in materia di ricer-                   
+                                          base dei princìpi di autonomia e sussidiarietà e non deve
+       ca, sperimentazione, sviluppo, adozione e applicazione di                  
+                                          altresì pregiudicare la libertà del dibattito democratico da
+       sistemi e di modelli di intelligenza artificiale. Promuo-                  
+                                          interferenze illecite, da chiunque provocate, tutelando gli
+       ve un utilizzo corretto, trasparente e responsabile, in una                
+                                          interessi della sovranità dello Stato nonché i diritti fonda-
+       dimensione antropocentrica, dell’intelligenza artificiale,                 
+                                          mentali di ogni cittadino riconosciuti dagli ordinamenti
+       volto a coglierne le opportunità. Garantisce la vigilanza                  
+                                          nazionale ed europeo.                   
+       sui rischi economici e sociali e sull’impatto sui diritti fon-             
+       damentali dell’intelligenza artificiale. 5. La presente legge non produce nuovi obblighi rispet-
+                                          to a quelli previsti dal regolamento (UE) 2024/1689 per i
+        2. Le disposizioni della presente legge si interpreta-                    
+                                          sistemi di intelligenza artificiale e per i modelli di intelli-
+       no e si applicano conformemente al regolamento (UE)                        
+                                          genza artificiale per finalità generali.
+       2024/1689 del Parlamento europeo e del Consiglio, del                      
+       13 giugno 2024.                     6. Al fine di garantire il rispetto dei diritti e dei princìpi
+                                          di cui al presente articolo deve essere assicurata, quale
+                     Art. 2.              precondizione essenziale, la cybersicurezza lungo tutto
+                                          il ciclo di vita dei sistemi e dei modelli di intelligenza
+                    Definizioni           artificiale per finalità generali, secondo un approccio
+                                          proporzionale e basato sul rischio, nonché l’adozione di
+        1. Ai fini della presente legge, si intendono per:                        
+                                          specifici controlli di sicurezza, anche al fine di assicurar-
+          a) sistema di intelligenza artificiale: il sistema de- ne la resilienza contro tentativi di alterarne l’utilizzo, il
+       finito dall’articolo 3, punto 1), del regolamento (UE) comportamento previsto, le prestazioni o le impostazioni
+       2024/1689;                         di sicurezza.                           
+          b) dato: qualsiasi rappresentazione digitale di atti, 7. La presente legge garantisce alle persone con disabili-
+       fatti o informazioni e qualsiasi raccolta di tali atti, fatti o tà il pieno accesso ai sistemi di intelligenza artificiale e alle
+       informazioni, anche sotto forma di registrazione sonora, relative funzionalità o estensioni, su base di uguaglianza e
+       visiva o audiovisiva;              senza alcuna forma di discriminazione e di pregiudizio, in
+          c) modelli di intelligenza artificiale: i modelli de- conformità alle disposizioni della Convenzione delle Na-
+       finiti dall’articolo 3, punto 63), del regolamento (UE) zioni Unite sui diritti delle persone con disabilità, fatta a
+       2024/1689.                         New York il 13 dicembre 2006, ratificata e resa esecutiva
+        2. Per quanto non espressamente previsto, si rimanda in Italia ai sensi della legge 3 marzo 2009, n. 18.
+       alle definizioni di cui al regolamento (UE) 2024/1689.                     
+                                                         Art. 4.                  
+                     Art. 3.                                                      
+                                                Princìpi in materia di informazione
+                  Princìpi generali             e di riservatezza dei dati personali
+        1. La ricerca, la sperimentazione, lo sviluppo, l’ado- 1. L’utilizzo di sistemi di intelligenza artificiale nell’in-
+       zione, l’applicazione e l’utilizzo di sistemi e di modelli formazione avviene senza recare pregiudizio alla libertà e
+       di intelligenza artificiale per finalità generali avvengono al pluralismo dei mezzi di comunicazione, alla libertà di
+       nel rispetto dei diritti fondamentali e delle libertà previste espressione e all’obiettività, completezza, imparzialità e
+       dalla Costituzione, del diritto dell’Unione europea e dei lealtà dell’informazione.
+                                       — 1 —
+````
+
+## Pagina 4
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+        2. L’utilizzo di sistemi di intelligenza artificiale garan- sparenza nelle modalità di addestramento e di sviluppo
+       tisce il trattamento lecito, corretto e trasparente dei dati di applicazioni basate sull’intelligenza artificiale genera-
+       personali e la compatibilità con le finalità per le quali sono tiva, nel rispetto della normativa sulla concorrenza e dei
+       stati raccolti, in conformità al diritto dell’Unione europea princìpi di non discriminazione e proporzionalità;
+       in materia di dati personali e di tutela della riservatezza. e) favoriscono la ricerca collaborativa tra imprese,
+        3. Le informazioni e le comunicazioni relative al trat- organismi di ricerca e centri di trasferimento tecnologico
+       tamento dei dati connesse all’utilizzo di sistemi di intel- in materia di intelligenza artificiale al fine di incoraggiare
+       ligenza artificiale sono rese con linguaggio chiaro e sem- la valorizzazione economica e commerciale dei risultati
+       plice, in modo da garantire all’utente la conoscibilità dei della ricerca. 
+       relativi rischi e il diritto di opporsi ai trattamenti autoriz-            
+       zati dei propri dati personali.                   Art. 6.                  
+        4. L’accesso alle tecnologie di intelligenza artificiale da               
+                                                Disposizioni in materia di sicurezza
+       parte dei minori di anni quattordici nonché il conseguen-                  
+                                                     e difesa nazionale           
+       te trattamento dei dati personali richiedono il consenso                   
+       di chi esercita la responsabilità genitoriale, nel rispetto 1. Le attività di cui all’articolo 3, comma 1, svolte per
+       di quanto previsto dal regolamento (UE) 2016/679 del scopi di sicurezza nazionale con le finalità e le modalità
+       Parlamento europeo e del Consiglio, del 27 aprile 2016, di cui alla legge 3 agosto 2007, n. 124, dagli organismi di
+       e dal codice in materia di protezione dei dati persona- cui agli articoli 4, 6 e 7 della medesima legge, quelle di
+       li, di cui al decreto legislativo 30 giugno 2003, n. 196. Il cybersicurezza e di resilienza di cui all’articolo 1, com-
+       minore di anni diciotto, che abbia compiuto quattordici ma 1, lettere a ) e b ) , del decreto-legge 14 giugno 2021,
+       anni, può esprimere il proprio consenso per il trattamento n. 82, convertito, con modificazioni, dalla legge 4 agosto
+       dei dati personali connessi all’utilizzo di sistemi di intel- 2021, n. 109, svolte dall’Agenzia per la cybersicurezza
+       ligenza artificiale, purché le informazioni e le comuni- nazionale a tutela della sicurezza nazionale nello spazio
+       cazioni di cui al comma 3 siano facilmente accessibili e cibernetico, quelle svolte per scopi di difesa nazionale
+       comprensibili.                     dalle Forze armate nonché quelle svolte dalle Forze di
+                                          polizia dirette a prevenire e contrastare, ai fini della si-
+                     Art. 5.              curezza nazionale, i reati di cui all’articolo 9, comma 1,
+                                          lettere b ) e b- ter ), della legge 16 marzo 2006, n. 146, sono
+           Princìpi in materia di sviluppo economico                              
+                                          escluse dall’ambito applicativo della presente legge. Le
+                                          medesime attività sono comunque effettuate nel rispetto
+        1. Lo Stato e le altre autorità pubbliche:                                
+                                          dei diritti fondamentali e delle libertà previste dalla Co-
+          a) promuovono lo sviluppo e l’utilizzo dell’intelli-                    
+                                          stituzione e di quanto disposto dall’articolo 3, comma 4,
+       genza artificiale come strumento per migliorare l’inte-                    
+                                          della presente legge.                   
+       razione uomo-macchina, anche mediante l’applicazione                       
+                                           2. Lo sviluppo di sistemi e di modelli di intelligenza
+       della robotica, nei settori produttivi, la produttività in tut-            
+                                          artificiale avviene nel rispetto delle condizioni e delle fi-
+       te le catene del valore e le funzioni organizzative, nonché                
+                                          nalità di cui all’articolo 3, comma 2. Ai trattamenti di dati
+       quale strumento utile all’avvio di nuove attività economi-                 
+                                          personali mediante l’utilizzo di sistemi di intelligenza ar-
+       che e di supporto al tessuto nazionale produttivo, costitu-                
+                                          tificiale effettuati dagli organismi di cui agli articoli 4, 6
+       ito principalmente di microimprese e di piccole e medie                    
+                                          e 7 della legge n. 124 del 2007 si applica quanto previsto
+       imprese, al fine di accrescere la competitività del sistema                
+                                          dall’articolo 58, commi 1 e 3, del codice in materia di
+       economico nazionale e la sovranità tecnologica della Na-                   
+                                          protezione dei dati personali, di cui al decreto legislativo
+       zione nel quadro della strategia europea;                                  
+                                          30 giugno 2003, n. 196. Ai trattamenti di dati persona-
+          b) favoriscono la creazione di un mercato dell’intel-                   
+                                          li mediante l’utilizzo di sistemi di intelligenza artificiale
+       ligenza artificiale innovativo, equo, aperto e concorren-                  
+                                          effettuati dall’Agenzia per la cybersicurezza nazionale si
+       ziale e di ecosistemi innovativi;                                          
+                                          applicano le disposizioni di cui all’articolo 13 del citato
+          c) facilitano la disponibilità e l’accesso a dati di alta decreto-legge n. 82 del 2021.
+       qualità per le imprese che sviluppano o utilizzano sistemi 3. Con regolamento adottato ai sensi dell’articolo 43
+       di intelligenza artificiale e per la comunità scientifica e della legge n. 124 del 2007, sono definite le modalità di
+       dell’innovazione;                  applicazione dei princìpi e delle disposizioni di cui al pre-
+          d) indirizzano le piattaforme di e -procurement delle sente articolo alle attività di cui all’articolo 3, comma 1,
+       amministrazioni pubbliche di cui all’articolo 1, comma 2, della presente legge effettuate dagli organismi di cui agli
+       del decreto legislativo 30 marzo 2001, n. 165, in modo articoli 4, 6 e 7 della legge n. 124 del 2007, nonché alle
+       che, nella scelta dei fornitori di sistemi e di modelli di medesime attività attinenti a sistemi di intelligenza ar-
+       intelligenza artificiale, possano essere privilegiate quelle tificiale, funzionali all’attività degli organismi stessi e
+       soluzioni che garantiscono la localizzazione e l’elabora- alle medesime attività svolte da altri soggetti pubblici e
+       zione dei dati strategici presso d ata center posti nel ter- da soggetti privati esclusivamente per scopi di sicurezza
+       ritorio nazionale, le cui procedure di d isaster recovery nazionale. Analogamente, per l’Agenzia per la cybersi-
+       e b usiness continuity siano implementate in d ata center curezza nazionale si procede con regolamento adottato
+       posti nel territorio nazionale, nonché modelli in grado di secondo le modalità di cui all’articolo 11, comma 4, del
+       assicurare elevati standard in termini di sicurezza e tra- citato decreto-legge n. 82 del 2021.
+                                       — 2 —
+````
+
+## Pagina 5
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+                     Capo II              e 33 della Costituzione e nel rispetto di quanto previsto
+                 DISPOSIZIONI DI SETTORE  dall’articolo 9, paragrafo 2, lettera g ) , del regolamento
+                                          (UE) 2016/679 del Parlamento europeo e del Consiglio,
+                                          del 27 aprile 2016.                     
+                     Art. 7.                                                      
+                                           2. Ai medesimi fini, fermo restando l’obbligo di infor-
+              Uso dell’intelligenza artificiale mativa in favore dell’interessato, che può essere assolto
+              in ambito sanitario e di disabilità anche mediante un’informativa generale messa a disposi-
+                                          zione nel sito w eb del titolare del trattamento e senza ulte-
+        1. L’utilizzo di sistemi di intelligenza artificiale con- riore consenso dell’interessato ove inizialmente previsto
+       tribuisce al miglioramento del sistema sanitario, alla dalla legge, è sempre autorizzato l’uso secondario di dati
+       prevenzione, alla diagnosi e alla cura delle malattie, nel personali privi degli elementi identificativi diretti, anche
+       rispetto dei diritti, delle libertà e degli interessi della per- appartenenti alle categorie indicate all’articolo 9 del re-
+       sona, anche in materia di protezione dei dati personali. golamento (UE) 2016/679, da parte dei soggetti di cui al
+        2. L’introduzione di sistemi di intelligenza artificiale comma 1, salvi i casi nei quali la conoscenza dell’identità
+       nel sistema sanitario non può selezionare e condizio- degli interessati sia inevitabile o necessaria al fine della
+       nare l’accesso alle prestazioni sanitarie secondo criteri tutela della loro salute.
+       discriminatori.                     3. Negli ambiti di cui al comma 1 o per le finalità di
+        3. L’interessato ha diritto di essere informato sull’im- cui all’articolo 2- sexies , comma 2, lettera v ) , del codice in
+       piego di tecnologie di intelligenza artificiale. materia di protezione dei dati personali, di cui al decreto
+                                          legislativo 30 giugno 2003, n. 196, è sempre consentito,
+        4. La presente legge promuove lo sviluppo, lo studio e                    
+                                          previa informativa all’interessato ai sensi dell’articolo 13
+       la diffusione di sistemi di intelligenza artificiale che mi-               
+                                          del regolamento (UE) 2016/679, il trattamento per finali-
+       gliorano le condizioni di vita delle persone con disabili-                 
+                                          tà di anonimizzazione, pseudonimizzazione o sintetizza-
+       tà, agevolano l’accessibilità, la mobilità indipendente e                  
+                                          zione dei dati personali, anche appartenenti alle categorie
+       l’autonomia, la sicurezza e i processi di inclusione sociale               
+                                          particolari di cui all’articolo 9, paragrafo 1, del medesimo
+       delle medesime persone anche ai fini dell’elaborazione                     
+                                          regolamento (UE) 2016/679. È consentito altresì il pre-
+       del progetto di vita di cui all’articolo 2, comma 1, lettera               
+                                          detto trattamento finalizzato allo studio e alla ricerca sui
+       n) , del decreto legislativo 3 maggio 2024, n. 62.                         
+                                          gesti atletici, sui movimenti e sulle prestazioni nell’atti-
+        5. I sistemi di intelligenza artificiale in ambito sanita-                
+                                          vità sportiva in tutte le sue forme, nel rispetto dei princìpi
+       rio costituiscono un supporto nei processi di prevenzione,                 
+                                          generali di cui alla presente legge e dei diritti di sfrutta-
+       diagnosi, cura e scelta terapeutica, lasciando impregiudi-                 
+                                          mento economico dei dati relativi alle attività agonistiche
+       cata la decisione, che è sempre rimessa agli esercenti la                  
+                                          che spettano a chi le organizza.        
+       professione medica.                                                        
+                                           4. L’Agenzia nazionale per i servizi sanitari regionali
+        6. I sistemi di intelligenza artificiale utilizzati in am-                
+                                          (AGENAS), previo parere del Garante per la protezione
+       bito sanitario e i relativi dati impiegati devono essere af-               
+                                          dei dati personali, tenendo conto di s tandard internazio-
+       fidabili, periodicamente verificati e aggiornati al fine di                
+                                          nali e dello stato dell’arte e della tecnica, può stabilire e
+       minimizzare il rischio di errori e migliorare la sicurezza                 
+                                          aggiornare linee guida per le procedure di anonimizzazio-
+       dei pazienti.                                                              
+                                          ne di dati personali, di cui al comma 3, e per la creazione
+                                          di dati sintetici, anche per categorie di dati e finalità di
+                     Art. 8.                                                      
+                                          trattamento.                            
+       Ricerca e sperimentazione scientifica nella realizzazione 5. I trattamenti di dati di cui ai commi 1 e 2 devono
+        di sistemi di intelligenza artificiale in ambito sanitario essere comunicati al Garante per la protezione dei dati
+                                          personali con l’indicazione di tutte le informazioni pre-
+        1. I trattamenti di dati, anche personali, eseguiti da sog-               
+                                          viste dagli articoli 24, 25, 32 e 35 del regolamento (UE)
+       getti pubblici e privati senza scopo di lucro, dagli Istituti              
+                                          2016/679, nonché con l’indicazione espressa, ove pre-
+       di ricovero e cura a carattere scientifico (IRCCS), di cui                 
+                                          senti, dei soggetti individuati ai sensi dell’articolo 28 del
+       al decreto legislativo 16 ottobre 2003, n. 288, nonché da                  
+                                          medesimo regolamento (UE) 2016/679, e possono essere
+       soggetti privati operanti nel settore sanitario nell’ambito                
+                                          avviati decorsi trenta giorni dalla predetta comunicazio-
+       di progetti di ricerca a cui partecipano soggetti pubblici                 
+                                          ne se non sono stati oggetto di provvedimento di blocco
+       e privati senza scopo di lucro o IRCCS, per la ricerca e                   
+                                          disposto dal Garante per la protezione dei dati personali.
+       la sperimentazione scientifica nella realizzazione di siste-               
+                                           6. Restano fermi i poteri ispettivi, interdittivi e sanzio-
+       mi di intelligenza artificiale per finalità di prevenzione,                
+                                          natori del Garante per la protezione dei dati personali.
+       diagnosi e cura di malattie, sviluppo di farmaci, terapie                  
+       e tecnologie riabilitative, realizzazione di apparati medi-                
+                                                         Art. 9.                  
+       cali, incluse protesi e interfacce fra il corpo e strumenti                
+       di sostegno alle condizioni del paziente, salute pubbli- Disposizioni in materia di trattamento di dati personali
+       ca, incolumità della persona, salute e sicurezza sanitaria                 
+       nonché studio della fisiologia, della biomeccanica e della 1. Il trattamento dei dati personali anche particola-
+       biologia umana anche in ambito non sanitario, in quanto ri come definiti dall’articolo 9 del regolamento (UE)
+       necessari ai fini della realizzazione e dell’utilizzazione 2016/679, con il massimo delle modalità semplificate
+       di banche di dati e modelli di base, sono dichiarati di ri- consentite dal predetto regolamento per finalità di ricer-
+       levante interesse pubblico in attuazione degli articoli 32 ca e sperimentazione anche tramite sistemi di intelligen-
+                                       — 3 —
+````
+
+## Pagina 6
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       za artificiale e m achine learning , inclusi la costituzione provvedimento, valutato l’impatto del trattamento, speci-
+       e l’utilizzo di spazi speciali di sperimentazione a fini di fica i tipi di dati trattati e le operazioni eseguite all’interno
+       ricerca, anche mediante l’uso secondario dei dati perso- della piattaforma, nonché le misure tecniche e organiz-
+       nali, è disciplinato con decreto del Ministro della salute zative per garantire un livello di sicurezza adeguato al
+       da emanare entro centoventi giorni dalla data di entra- rischio e per tutelare i diritti fondamentali e gli interessi
+       ta in vigore della presente legge, sentiti il Garante per la dell’interessato, in coerenza con le disposizioni del rego-
+       protezione dei dati personali, gli enti di ricerca, i presidi lamento (UE) 2016/679».
+       sanitari nonché le autorità e gli operatori del settore. 2. Dall’attuazione del presente articolo non devono de-
+                                          rivare nuovi o maggiori oneri a carico della finanza pub-
+                     Art. 10.             blica. L’AGENAS provvede alle attività di cui al presente
+                                          articolo con le risorse umane, strumentali e finanziarie
+       Disposizioni in materia di fascicolo sanitario elettronico,                
+                                          disponibili a legislazione vigente.     
+        sistemi di sorveglianza nel settore sanitario e governo                   
+        della sanità digitale                                                     
+                                                        Art. 11.                  
+        1. Al decreto-legge 18 ottobre 2012, n. 179, convertito,                  
+                                            Disposizioni sull’uso dell’intelligenza artificiale
+       con modificazioni, dalla legge 17 dicembre 2012, n. 221,                   
+                                                     in materia di lavoro         
+       dopo l’articolo 12 è inserito il seguente:                                 
+          «Art. 12 -bis (Intelligenza artificiale nel settore sa- 1. L’intelligenza artificiale è impiegata per migliorare
+       nitario) . — 1. Al fine di garantire strumenti e tecnologie le condizioni di lavoro, tutelare l’integrità psicofisica dei
+       avanzate nel settore sanitario, con uno o più decreti del lavoratori, accrescere la qualità delle prestazioni lavorati-
+       Ministro della salute, di concerto con l’Autorità politica ve e la produttività delle persone in conformità al diritto
+       delegata in materia di innovazione tecnologica e transi- dell’Unione europea.
+       zione digitale e con l’Autorità delegata per la sicurezza                  
+                                           2. L’utilizzo dell’intelligenza artificiale in ambito la-
+       della Repubblica e per la cybersicurezza e sentita la Con-                 
+                                          vorativo deve essere sicuro, affidabile, trasparente e non
+       ferenza permanente per i rapporti tra lo Stato, le regio-                  
+                                          può svolgersi in contrasto con la dignità umana né violare
+       ni e le province autonome di Trento e di Bolzano, sono                     
+                                          la riservatezza dei dati personali. Il datore di lavoro o il
+       disciplinate le soluzioni di intelligenza artificiale aventi               
+                                          committente è tenuto a informare il lavoratore dell’utiliz-
+       funzione di supporto alle finalità di cui all’articolo 12,                 
+                                          zo dell’intelligenza artificiale nei casi e con le modalità
+       comma 2. Con i decreti di cui al primo periodo sono in-                    
+                                          di cui all’articolo 1- bis del decreto legislativo 26 maggio
+       dividuati i soggetti che, nell’esercizio delle proprie fun-                
+                                          1997, n. 152.                           
+       zioni, accedono alle soluzioni di intelligenza artificiale                 
+       secondo le modalità ivi definite.   3. L’intelligenza artificiale nell’organizzazione e nella
+                                          gestione del rapporto di lavoro garantisce l’osservanza
+          2. Per il supporto alle finalità di cura, e in particolare              
+                                          dei diritti inviolabili del lavoratore senza discriminazioni
+       per l’assistenza territoriale, è istituita una piattaforma di              
+                                          in funzione del sesso, dell’età, delle origini etniche, del
+       intelligenza artificiale. La progettazione, la realizzazione,              
+                                          credo religioso, dell’orientamento sessuale, delle opinio-
+       la messa in servizio e la titolarità della piattaforma di cui              
+                                          ni politiche e delle condizioni personali, sociali ed econo-
+       al primo periodo sono attribuite all’AGENAS in qualità                     
+                                          miche, in conformità al diritto dell’Unione europea.
+       di Agenzia nazionale per la sanità digitale. La piattaforma                
+       di cui al primo periodo eroga servizi di supporto:                         
+                                                        Art. 12.                  
+           a) ai professionisti sanitari per la presa in ca-                      
+       rico della popolazione assistita con suggerimenti non Osservatorio sull’adozione di sistemi di intelligenza
+       vincolanti;                               artificiale nel mondo del lavoro 
+           b) ai medici nella pratica clinica quotidiana con                      
+                                           1. Al fine di massimizzare i benefici e contenere i rischi
+       suggerimenti non vincolanti;                                               
+                                          derivanti dall’impiego di sistemi di intelligenza artificia-
+           c) agli utenti per l’accesso ai servizi sanitari delle                 
+                                          le in ambito lavorativo, è istituito presso il Ministero del
+       Case della comunità.                                                       
+                                          lavoro e delle politiche sociali l’Osservatorio sull’ado-
+          3. Previa intesa in sede di Conferenza permanente zione di sistemi di intelligenza artificiale nel mondo del
+       per i rapporti tra lo Stato, le regioni e le province auto- lavoro, con il compito di definire una strategia sull’utiliz-
+       nome di Trento e di Bolzano, l’AGENAS, con proprio zo dell’intelligenza artificiale in ambito lavorativo, mo-
+       provvedimento, esplicita i servizi di supporto di cui al nitorare l’impatto sul mercato del lavoro e identificare i
+       comma 2.                           settori lavorativi maggiormente interessati dall’avvento
+          4. La piattaforma di cui al comma 2 è alimentata con dell’intelligenza artificiale. L’Osservatorio promuove la
+       i dati strettamente necessari per l’erogazione dei servizi formazione dei lavoratori e dei datori di lavoro in materia
+       di cui al medesimo comma 2, trasmessi dai relativi titolari di intelligenza artificiale.
+       del trattamento. L’AGENAS è titolare del trattamento dei 2. L’Osservatorio è presieduto dal Ministro del lavoro
+       dati raccolti e generati all’interno della piattaforma. e delle politiche sociali o da un suo rappresentante. Con
+          5. Previo parere del Ministero della salute, del Ga- decreto del Ministro del lavoro e delle politiche sociali,
+       rante per la protezione dei dati personali e dell’Agenzia da adottare entro novanta giorni dalla data di entrata in
+       per la cybersicurezza nazionale, l’AGENAS, con proprio vigore della presente legge, sono stabiliti i componenti, le
+                                       — 4 —
+````
+
+## Pagina 7
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       modalità di funzionamento, nonché gli ulteriori compiti ne dei servizi relativi alla giustizia, per la semplificazio-
+       e funzioni dell’Osservatorio medesimo. Ai componenti ne del lavoro giudiziario e per le attività amministrative
+       dell’Osservatorio non spettano compensi, gettoni di pre- accessorie.       
+       senza, rimborsi di spese o altri emolumenti comunque                       
+                                           3. Fino alla compiuta attuazione del regolamento (UE)
+       denominati.                                                                
+                                          2024/1689, la sperimentazione e l’impiego dei sistemi di
+        3. All’istituzione e al funzionamento dell’Osservatorio intelligenza artificiale negli uffici giudiziari ordinari sono
+       si provvede nell’ambito delle risorse umane, strumentali autorizzati dal Ministero della giustizia, sentite le Autori-
+       e finanziarie disponibili a legislazione vigente. tà nazionali di cui all’articolo 20.
+                                           4. Il Ministro della giustizia, nell’elaborazione delle
+                     Art. 13.                                                     
+                                          linee programmatiche sulla formazione dei magistrati di
+         Disposizioni in materia di professioni intellettuali cui all’articolo 12, comma 1, lettera a ) , del decreto le-
+                                          gislativo 30 gennaio 2006, n. 26, promuove attività di-
+        1. L’utilizzo di sistemi di intelligenza artificiale nel- dattiche sul tema dell’intelligenza artificiale e sugli im-
+       le professioni intellettuali è finalizzato al solo esercizio pieghi dei sistemi di intelligenza artificiale nell’attività
+       delle attività strumentali e di supporto all’attività profes- giudiziaria, finalizzate alla formazione digitale di base e
+       sionale e con prevalenza del lavoro intellettuale oggetto avanzata, all’acquisizione e alla condivisione di compe-
+       della prestazione d’opera.         tenze digitali, nonché alla sensibilizzazione sui benefici e
+        2. Per assicurare il rapporto fiduciario tra professionista rischi, anche nel quadro regolatorio di cui ai commi 2 e
+       e cliente, le informazioni relative ai sistemi di intelligenza 3 del presente articolo. Per le medesime finalità di cui al
+       artificiale utilizzati dal professionista sono comunicate al primo periodo, il Ministro cura altresì la formazione del
+       soggetto destinatario della prestazione intellettuale con personale amministrativo.
+       linguaggio chiaro, semplice ed esaustivo.                                  
+                                                        Art. 16.                  
+                     Art. 14.                                                     
+                                          Delega al Governo in materia di dati, algoritmi e
+              Uso dell’intelligenza artificiale metodi matematici per l’addestramento di sistemi di
+              nella pubblica amministrazione intelligenza artificiale             
+        1. Le pubbliche amministrazioni utilizzano l’intelli-                     
+                                           1. Il Governo è delegato ad adottare, entro dodici mesi
+       genza artificiale allo scopo di incrementare l’efficienza                  
+                                          dalla data di entrata in vigore della presente legge, uno o
+       della propria attività, di ridurre i tempi di definizione dei              
+                                          più decreti legislativi per definire una disciplina organica
+       procedimenti e di aumentare la qualità e la quantità dei                   
+                                          relativa all’utilizzo di dati, algoritmi e metodi matematici
+       servizi erogati ai cittadini e alle imprese, assicurando agli              
+                                          per l’addestramento di sistemi di intelligenza artificiale
+       interessati la conoscibilità del suo funzionamento e la                    
+                                          senza obblighi ulteriori, negli ambiti soggetti al regola-
+       tracciabilità del suo utilizzo.                                            
+                                          mento (UE) 2024/1689, rispetto a quanto già ivi stabilito.
+        2. L’utilizzo dell’intelligenza artificiale avviene in fun-               
+                                           2. Gli schemi dei decreti legislativi di cui al comma 1
+       zione strumentale e di supporto all’attività provvedimen-                  
+                                          sono adottati su proposta del Presidente del Consiglio dei
+       tale, nel rispetto dell’autonomia e del potere decisionale                 
+                                          ministri e del Ministro della giustizia e sono successiva-
+       della persona che resta l’unica responsabile dei provvedi-                 
+                                          mente trasmessi alle Camere per l’espressione del parere
+       menti e dei procedimenti in cui sia stata utilizzata l’intel-              
+                                          delle Commissioni parlamentari competenti. Decorsi ses-
+       ligenza artificiale.                                                       
+                                          santa giorni dalla data della trasmissione, i decreti posso-
+        3. Le pubbliche amministrazioni adottano misure tec-                      
+                                          no essere emanati anche in mancanza dei pareri. Qualora
+       niche, organizzative e formative finalizzate a garantire un                
+                                          detto termine venga a scadere nei trenta giorni anteceden-
+       utilizzo responsabile dell’intelligenza artificiale e a svi-               
+                                          ti alla scadenza del termine previsto per l’esercizio della
+       luppare le capacità trasversali degli utilizzatori.                        
+                                          delega o successivamente, quest’ultimo è prorogato di
+        4. Le pubbliche amministrazioni provvedono agli sessanta giorni.          
+       adempimenti previsti dal presente articolo con le risorse                  
+                                           3. Nell’esercizio della delega di cui al comma 1, il Go-
+       umane, strumentali e finanziarie disponibili a legislazione                
+                                          verno si attiene ai seguenti princìpi e criteri direttivi:
+       vigente.                                                                   
+                                             a) individuare ipotesi per le quali appare necessario
+                     Art. 15.             dettare il regime giuridico dell’utilizzo di dati, algoritmi e
+                                          metodi matematici per l’addestramento di sistemi di intel-
+          Impiego dei sistemi di intelligenza artificiale ligenza artificiale, nonché i diritti e gli obblighi gravanti
+                 nell’attività giudiziaria sulla parte che intenda procedere al suddetto utilizzo;
+        1. Nei casi di impiego dei sistemi di intelligenza artifi- b) prevedere strumenti di tutela, di carattere risarci-
+       ciale nell’attività giudiziaria è sempre riservata al magi- torio o inibitorio, e individuare un apparato sanzionatorio
+       strato ogni decisione sull’interpretazione e sull’applica- per il caso di violazione delle disposizioni introdotte ai
+       zione della legge, sulla valutazione dei fatti e delle prove sensi della lettera a ) ;
+       e sull’adozione dei provvedimenti.    c) attribuire alle sezioni specializzate in materia di
+        2. Il Ministero della giustizia disciplina gli impieghi impresa le controversie relative alla disciplina introdotta
+       dei sistemi di intelligenza artificiale per l’organizzazio- ai sensi delle lettere a ) e b ) .
+                                       — 5 —
+````
+
+## Pagina 8
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+                     Art. 17.              3. La strategia di cui al comma 1 tiene conto dei princì-
+                                          pi del diritto internazionale umanitario, al fine dello svi-
+            Modifica al codice di procedura civile                                
+                                          luppo e della promozione di sistemi di intelligenza artifi-
+                                          ciale che tutelino i diritti umani.     
+        1. All’articolo 9, secondo comma, del codice di pro-                      
+       cedura civile, dopo le parole: «esecuzione forzata» sono 4. La struttura della Presidenza del Consiglio dei mi-
+       inserite le seguenti: «, per le cause che hanno ad oggetto nistri competente in materia di innovazione tecnologi-
+       il funzionamento di un sistema di intelligenza artificiale». ca e transizione digitale provvede al coordinamento e
+                                          al monitoraggio dell’attuazione della strategia di cui al
+                                          comma 1, avvalendosi dell’Agenzia per l’Italia digitale,
+                     Art. 18.                                                     
+                                          d’intesa, per gli aspetti di competenza, con l’Agenzia
+        Uso dell’intelligenza artificiale per il rafforzamento per la cybersicurezza nazionale e sentiti la Banca d’Ita-
+              della cybersicurezza nazionale lia, la Commissione nazionale per le società e la borsa
+                                          (CONSOB) e l’Istituto per la vigilanza sulle assicurazio-
+        1. All’articolo 7, comma 1, del decreto-legge 14 giu- ni (IVASS) in qualità di autorità di vigilanza del mercato.
+       gno 2021, n. 82, convertito, con modificazioni, dalla leg- I risultati del monitoraggio sono trasmessi annualmente
+       ge 4 agosto 2021, n. 109, dopo la lettera m- ter ) è inserita alle Camere. 
+       la seguente:                                                               
+                                           5. All’articolo 8, comma 3, primo periodo, del decreto-
+          «m- quater ) promuove e sviluppa ogni iniziativa, an- legge 1° marzo 2021, n. 22, convertito, con modificazio-
+       che attraverso la conclusione di accordi di collaborazione ni, dalla legge 22 aprile 2021, n. 55, dopo le parole: «delle
+       con i privati, comunque denominati, nonché di partena- imprese e del made in Italy» sono inserite le seguenti: «,
+       riato pubblico-privato, volta a valorizzare l’intelligenza dell’università e della ricerca» e sono aggiunte, in fine,
+       artificiale come risorsa per il rafforzamento della cybersi- le seguenti parole: «nonché dall’Autorità delegata per la
+       curezza nazionale».                sicurezza della Repubblica e per la cybersicurezza, ove
+                                          nominata».                              
+                     Capo III              6. È istituito il Comitato di coordinamento delle attività
+                                          di indirizzo su enti, organismi e fondazioni che operano
+           STRATEGIA NAZIONALE, AUTORITÀ NAZIONALI nel campo dell’innovazione digitale e dell’intelligenza
+                 E AZIONI DI PROMOZIONE   artificiale, presieduto dal Presidente del Consiglio dei
+                                          ministri o dall’Autorità politica delegata e composto dal
+                     Art. 19.             Ministro dell’economia e delle finanze, dal Ministro delle
+                                          imprese e del made in Italy, dal Ministro dell’università
+       Strategia nazionale per l’intelligenza artificiale e e della ricerca, dal Ministro della salute, dal Ministro per
+        Comitato di coordinamento delle attività di indirizzo la pubblica amministrazione, dall’Autorità delegata per
+        su enti, organismi e fondazioni che operano nel campo la sicurezza della Repubblica e per la cybersicurezza e
+        dell’innovazione digitale e dell’intelligenza artificiale dall’Autorità politica delegata in materia di innovazione
+                                          tecnologica e transizione digitale o da loro delegati. Alle
+        1. La strategia nazionale per l’intelligenza artificiale è sedute del Comitato possono essere invitati rappresentan-
+       predisposta e aggiornata dalla struttura della Presidenza ti delle Autorità nazionali di cui all’articolo 20 nonché
+       del Consiglio dei ministri competente in materia di in- altri soggetti interessati agli argomenti trattati. Per la par-
+       novazione tecnologica e transizione digitale, d’intesa tecipazione al Comitato non spettano compensi, gettoni
+       con le Autorità nazionali per l’intelligenza artificiale di di presenza, rimborsi di spese o altri emolumenti comun-
+       cui all’articolo 20, sentiti il Ministro delle imprese e del que denominati.
+       made in Italy per i profili di politica industriale e di incen-            
+                                           7. Il Comitato di cui al comma 6, per assicurare la mi-
+       tivazione, il Ministro dell’università e della ricerca per i               
+                                          gliore realizzazione della strategia di cui al comma 1,
+       profili relativi alla formazione superiore e alla ricerca e                
+                                          svolge funzioni di coordinamento dell’azione di indirizzo
+       il Ministro della difesa per gli aspetti relativi ai sistemi               
+                                          e di promozione delle attività di ricerca, di sperimenta-
+       di intelligenza artificiale impiegabili in chiave duale, ed                
+                                          zione, di sviluppo, di adozione e di applicazione di si-
+       è approvata con cadenza almeno biennale dal Comitato stemi e modelli di intelligenza artificiale svolte da enti e
+       interministeriale per la transizione digitale (CITD) di cui organismi nazionali pubblici o privati soggetti a vigilanza
+       all’articolo 8, comma 2, del decreto-legge 1° marzo 2021, o destinatari di finanziamento pubblico, ivi comprese le
+       n. 22, convertito, con modificazioni, dalla legge 22 aprile fondazioni pubbliche o private vigilate o finanziate dallo
+       2021, n. 55.                       Stato, che operano nel campo dell’innovazione digitale
+        2. La strategia di cui al comma 1 favorisce la colla- e dell’intelligenza artificiale. Gli enti, gli organismi e le
+       borazione tra le amministrazioni pubbliche e i soggetti fondazioni di cui al periodo precedente sono individuati
+       privati relativamente allo sviluppo e all’adozione di si- dal medesimo Comitato. Il Comitato svolge altresì fun-
+       stemi di intelligenza artificiale, coordina l’attività della zioni di coordinamento delle attività di indirizzo sulle po-
+       pubblica amministrazione in materia, promuove la ricerca litiche di formazione nelle competenze digitali e dell’in-
+       e la diffusione della conoscenza in materia di intelligenza telligenza artificiale svolte dai medesimi enti.
+       artificiale e indirizza le misure e gli incentivi finalizzati 8. Dall’istituzione e dal funzionamento del Comitato
+       allo sviluppo imprenditoriale e industriale dell’intelligen- di cui al comma 6 non devono derivare nuovi o mag-
+       za artificiale.                    giori oneri per la finanza pubblica. Le amministrazioni
+                                       — 6 —
+````
+
+## Pagina 9
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       competenti vi provvedono nell’ambito delle risorse uma- e punto di contatto unico con le istituzioni dell’Unione
+       ne, finanziarie e strumentali disponibili a legislazione europea ai sensi del medesimo articolo 70.
+       vigente.                                                                   
+                                           3. Le Autorità nazionali per l’intelligenza artificiale di
+                                          cui al comma 1 assicurano il coordinamento e la collabo-
+                     Art. 20.             razione con le altre pubbliche amministrazioni e le autori-
+                                          tà indipendenti, nonché ogni opportuno raccordo tra loro
+          Autorità nazionali per l’intelligenza artificiale                       
+                                          per l’esercizio delle funzioni di cui al presente articolo. A
+                                          quest’ultimo fine, presso la Presidenza del Consiglio dei
+        1. Al fine di garantire l’applicazione e l’attuazione                     
+                                          ministri è istituito un Comitato di coordinamento, com-
+       della normativa nazionale e dell’Unione europea in ma-                     
+                                          posto dai direttori generali delle due citate Agenzie e dal
+       teria di intelligenza artificiale, l’Agenzia per l’Italia di-              
+                                          capo del Dipartimento per la trasformazione digitale della
+       gitale (AgID) e l’Agenzia per la cybersicurezza nazio-                     
+                                          Presidenza del Consiglio dei ministri medesima. Al sud-
+       nale (ACN) sono designate quali Autorità nazionali per                     
+                                          detto Comitato partecipano, quando si trattano questioni
+       l’intelligenza artificiale, ferma restando l’attribuzione                  
+                                          di rispettiva competenza, rappresentanti di vertice della
+       alla Banca d’Italia, alla CONSOB e all’IVASS del ruo-                      
+                                          Banca d’Italia, della CONSOB e dell’IVASS. Ai com-
+       lo di autorità di vigilanza del mercato ai sensi e secondo                 
+                                          ponenti del Comitato non spettano compensi, gettoni di
+       quanto previsto dall’articolo 74, paragrafo 6, del regola-                 
+                                          presenza, rimborsi di spese o altri emolumenti comunque
+       mento (UE) 2024/1689. Conseguentemente, nel rispetto                       
+                                          denominati.                             
+       dei princìpi di cui alla presente legge e ferme restando le                
+                                           4. Restano fermi le competenze, i compiti e i poteri
+       funzioni già rispettivamente attribuite:                                   
+                                          del Garante per la protezione dei dati personali e dell’Au-
+          a) l’AgID è responsabile di promuovere l’innova- torità per le garanzie nelle comunicazioni, quale Coor-
+       zione e lo sviluppo dell’intelligenza artificiale, fatto salvo dinatore dei Servizi Digitali ai sensi dell’articolo 15 del
+       quanto previsto dalla lettera b ) . L’AgID provvede altresì decreto-legge 15 settembre 2023, n. 123, convertito, con
+       a definire le procedure e a esercitare le funzioni e i com- modificazioni, dalla legge 13 novembre 2023, n. 159.
+       piti in materia di notifica, valutazione, accreditamento e                 
+                                           5. All’articolo 8, comma 2, primo periodo, del decreto-
+       monitoraggio dei soggetti incaricati di verificare la con-                 
+                                          legge 14 giugno 2021, n. 82, convertito, con modifica-
+       formità dei sistemi di intelligenza artificiale, secondo                   
+                                          zioni, dalla legge 4 agosto 2021, n. 109, dopo le parole:
+       quanto previsto dalla normativa nazionale e dell’Unione                    
+                                          «Presidenza del Consiglio dei ministri» sono aggiunte
+       europea;                                                                   
+                                          le seguenti: «nonché dell’Agenzia per l’Italia digitale
+          b) l’ACN, anche ai fini di assicurare la tutela della (AgID)».          
+       cybersicurezza, come definita dall’articolo 1, comma 1,                    
+       del decreto-legge 14 giugno 2021, n. 82, convertito, con                   
+                                                        Art. 21.                  
+       modificazioni, dalla legge 4 agosto 2021, n. 109, è re-                    
+       sponsabile per la vigilanza, ivi incluse le attività ispet- Applicazione sperimentale dell’intelligenza artificiale ai
+       tive e sanzionatorie, dei sistemi di intelligenza artificia- servizi forniti dal Ministero degli affari esteri e della
+       le, secondo quanto previsto dalla normativa nazionale e cooperazione internazionale
+       dell’Unione europea. L’ACN è altresì responsabile per la                   
+       promozione e lo sviluppo dell’intelligenza artificiale re- 1. È autorizzata la spesa di euro 300.000 annui per cia-
+       lativamente ai profili di cybersicurezza; scuno degli anni 2025 e 2026 per la realizzazione di pro-
+                                          getti sperimentali volti all’applicazione dell’intelligenza
+          c) l’AgID e l’ACN, ciascuna per quanto di rispet-                       
+                                          artificiale ai servizi forniti dal Ministero degli affari esteri
+       tiva competenza, assicurano l’istituzione e la gestione                    
+                                          e della cooperazione internazionale a cittadini e imprese.
+       congiunta di spazi di sperimentazione finalizzati alla re-                 
+       alizzazione di sistemi di intelligenza artificiale conformi 2. Agli oneri derivanti dal comma 1, pari a euro 300.000
+       alla normativa nazionale e dell’Unione europea, sentiti annui per ciascuno degli anni 2025 e 2026, si provvede
+       il Ministero della difesa per gli aspetti relativi ai sistemi mediante corrispondente riduzione dello stanziamento
+       di intelligenza artificiale impiegabili in chiave duale e il del fondo speciale di parte corrente iscritto, ai fini del bi-
+       Ministero della giustizia per i modelli e i sistemi di intel- lancio triennale 2025-2027, nell’ambito del programma
+       ligenza artificiale applicabili all’attività giudiziaria. Resta «Fondi di riserva e speciali» della missione «Fondi da
+       fermo quanto previsto dall’articolo 36, commi da 2- bis ripartire» dello stato di previsione del Ministero dell’eco-
+       a 2- novies , del decreto-legge 30 aprile 2019, n. 34, con- nomia e delle finanze per l’anno 2025, allo scopo parzial-
+       vertito, con modificazioni, dalla legge 28 giugno 2019, mente utilizzando l’accantonamento relativo al Ministero
+       n. 58, per quanto concerne la sperimentazione di sistemi degli affari esteri e della cooperazione internazionale.
+       di intelligenza artificiale destinati ad essere immessi sul                
+       mercato, messi in servizio o usati da istituti finanziari. Art. 22.        
+        2. Ferma restando l’attribuzione alla Banca d’Ita- Misure di sostegno ai giovani e allo sport
+       lia, alla CONSOB e all’IVASS del ruolo di autorità di                      
+       vigilanza del mercato ai sensi e secondo quanto previ- 1. All’articolo 5, comma 1, lettera d ) , del decreto legi-
+       sto dall’articolo 74, paragrafo 6, del regolamento (UE) slativo 27 dicembre 2023, n. 209, sono aggiunte, in fine,
+       2024/1689, l’AgID è designata quale autorità di notifi- le seguenti parole: «, oppure hanno svolto un’attività di
+       ca ai sensi dell’articolo 70 del medesimo regolamento e ricerca anche applicata nell’ambito delle tecnologie di in-
+       l’ACN è designata quale autorità di vigilanza del mercato telligenza artificiale».
+                                       — 7 —
+````
+
+## Pagina 10
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+        2. Nel piano didattico personalizzato (PDP) adottato 2. Gli investimenti di cui al comma 1 sono effettua-
+       dall’istituzione scolastica secondaria di secondo grado ti mediante utilizzo delle risorse del Fondo di sostegno
+       nell’ambito della propria autonomia, per le studentesse e al v enture capital di cui all’articolo 1, comma 209, della
+       gli studenti ad alto potenziale cognitivo possono essere in- legge 30 dicembre 2018, n. 145, secondo le disposizioni
+       serite attività volte all’acquisizione di ulteriori competenze di cui al decreto del Ministro dello sviluppo economi-
+       attraverso esperienze di apprendimento presso le istituzio- co 27 giugno 2019, pubblicato nella G azzetta Ufficiale
+       ni della formazione superiore, in deroga a quanto previsto n. 176 del 29 luglio 2019, sia mediante la sottoscrizione,
+       dall’articolo 6 del regolamento di cui al decreto del Mini- direttamente o indirettamente, di quote o azioni di uno
+       stro dell’istruzione, dell’università e della ricerca 22 otto- o più fondi per il v enture capital appositamente istituiti
+       bre 2004, n. 270, in materia di previo possesso del titolo, e gestiti dalla società di gestione del risparmio di cui al
+       in coerenza con il profilo in uscita dell’indirizzo di studio. comma 1, sia mediante coinvestimento da parte di altri
+       I crediti formativi acquisiti nell’ambito delle attività di cui fondi per il v enture capital istituiti e gestiti dalla mede-
+       al primo periodo sono valutati nell’ambito dei percorsi for- sima società di gestione del risparmio. La normativa di
+       mativi della formazione superiore intrapresi dopo il con- attuazione di cui al citato decreto del Ministro dello svi-
+       seguimento del titolo di cui al medesimo primo periodo. luppo economico 27 giugno 2019 è aggiornata alle di-
+                                          sposizioni del presente articolo, con adeguamento per gli
+        3. Lo Stato favorisce l’accessibilità ai sistemi di intelli-              
+                                          investimenti nelle imprese di cui al comma 1, lettera b ) ,
+       genza artificiale per il miglioramento del benessere psico-                
+                                          non rientranti nella definizione di PMI.
+       fisico attraverso l’attività sportiva, anche ai fini dello svi-            
+       luppo di soluzioni innovative finalizzate a una maggiore 3. Oltre al Ministero delle imprese e del made in Italy
+       inclusione in ambito sportivo delle persone con disabilità. in qualità di investitore, partecipano con propri rappre-
+       Nel rispetto dei princìpi generali di cui alla presente leg- sentanti agli organi di governo dei fondi di v enture ca-
+       ge, i sistemi di intelligenza artificiale possono essere uti- pital di cui al presente articolo, in ragione delle proprie
+       lizzati anche per l’organizzazione delle attività sportive. competenze, la struttura della Presidenza del Consiglio
+                                          dei ministri competente in materia di innovazione tecno-
+                     Art. 23.             logica e transizione digitale e l’Agenzia per la cybersicu-
+                                          rezza nazionale, in ogni caso senza compensi o indennità.
+        Investimenti nei settori dell’intelligenza artificiale,                   
+          della cybersicurezza e del calcolo quantistico Art. 24.                 
+        1. In linea con la strategia nazionale di cui all’artico- Deleghe al Governo in materia di intelligenza artificiale
+       lo 19, al fine di supportare lo sviluppo di imprese operanti               
+                                           1. Il Governo è delegato ad adottare, entro dodici
+       nei settori dell’intelligenza artificiale e della cybersicu-               
+                                          mesi dalla data di entrata in vigore della presente legge,
+       rezza e delle tecnologie per essi abilitanti, ivi compresi le              
+                                          con le procedure di cui all’articolo 31 della legge 24 di-
+       tecnologie quantistiche e i sistemi di telecomunicazioni,                  
+                                          cembre 2012, n. 234, acquisiti i pareri delle competenti
+       anche tramite la creazione di poli di trasferimento tecno-                 
+                                          Commissioni parlamentari, della Conferenza unificata di
+       logico e programmi di accelerazione operanti nei mede-                     
+                                          cui all’articolo 8 del decreto legislativo 28 agosto 1997,
+       simi settori, avvalendosi dell’operatività della società di                
+                                          n. 281, e del Garante per la protezione dei dati personali,
+       gestione del risparmio di cui all’articolo 1, comma 116,                   
+                                          uno o più decreti legislativi per l’adeguamento della nor-
+       della legge 30 dicembre 2018, n. 145, è autorizzato, fino                  
+                                          mativa nazionale al regolamento (UE) 2024/1689.
+       all’ammontare complessivo di un miliardo di euro, l’in-                    
+       vestimento, sotto forma di e quity e q uasi equity , nel capi- 2. Nell’esercizio della delega di cui al comma 1 il Go-
+       tale di rischio direttamente o indirettamente di: verno si attiene, oltre che ai princìpi e criteri direttivi ge-
+                                          nerali di cui all’articolo 32 della legge 24 dicembre 2012,
+          a) piccole e medie imprese (PMI) con elevato po-                        
+                                          n. 234, ai seguenti princìpi e criteri direttivi specifici:
+       tenziale di sviluppo e innovative, aventi sede operativa in                
+       Italia, che operano nei settori dell’intelligenza artificiale a) attribuire alle autorità di cui all’articolo 20, nei li-
+       e della cybersicurezza e delle tecnologie per essi abili- miti della designazione operata ai sensi del medesimo ar-
+       tanti, ivi compresi le tecnologie quantistiche e i sistemi ticolo 20, tutti i poteri di vigilanza, ispettivi e sanzionatori
+       di telecomunicazioni, con particolare riferimento al 5G previsti dal regolamento (UE) 2024/1689 per la verifica
+       e alle sue evoluzioni, al m obile edge computing , alle ar- del rispetto delle norme del regolamento stesso e dalla
+       chitetture aperte basate su soluzioni s oftware , al W eb 3 , normativa dell’Unione europea attuativa del medesimo
+       all’elaborazione del segnale, anche in relazione ai profili regolamento;   
+       di sicurezza e integrità delle reti di comunicazione elet- b) apportare alla normativa vigente, ivi inclusa quel-
+       troniche, e che si trovano in fase di sperimentazione (s eed la in materia di servizi bancari, finanziari, assicurativi e di
+       financing ), di costituzione (s tart up financing ), di avvio pagamento, le modifiche, le integrazioni e le abrogazioni
+       dell’attività (e arly-stage financing ) o di sviluppo del pro- necessarie al corretto e integrale adeguamento al regola-
+       dotto (e xpansion, scale up financing ); mento (UE) 2024/1689;             
+          b) imprese, aventi sede operativa in Italia, anche di- c) ricorrere alla disciplina secondaria adottata dalle
+       verse da quelle di cui alla lettera a ) , operanti nei settori e autorità individuate ai sensi dell’articolo 20, ove oppor-
+       nelle tecnologie di cui alla medesima lettera a ) , con ele- tuno e nel rispetto delle competenze alle stesse spettanti,
+       vato potenziale di sviluppo e altamente innovative, al fine nell’ambito e per le finalità specificamente previsti dal re-
+       di promuoverne lo sviluppo come campioni tecnologici golamento (UE) 2024/1689 e dalla normativa dell’Unio-
+       nazionali.                         ne europea attuativa del medesimo regolamento;
+                                       — 8 —
+````
+
+## Pagina 11
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          d) attribuire alle autorità di cui all’articolo 20 il pote- smettere informazioni, di effettuare ispezioni a distanza o
+       re di imporre le sanzioni e le altre misure amministrative in loco , anche senza preavviso, e di svolgere controlli sul-
+       previste dall’articolo 99 del regolamento (UE) 2024/1689 la conduzione delle prove in condizioni reali e sui relativi
+       per la violazione delle norme del regolamento stesso e sistemi di intelligenza artificiale ad alto rischio;
+       degli atti di attuazione, nel rispetto dei limiti edittali e n) adeguamento del quadro sanzionatorio, anche in
+       delle procedure previsti dal medesimo articolo 99 e dalle deroga ai criteri e ai limiti previsti dall’articolo 32, com-
+       disposizioni nazionali che disciplinano l’irrogazione del- ma 1, lettera d ) , della legge 24 dicembre 2012, n. 234,
+       le sanzioni e l’applicazione delle altre misure amministra- e alla legge 24 novembre 1981, n. 689, ivi compresa la
+       tive da parte delle autorità anzidette; definizione delle misure di esecuzione applicabili ai sensi
+          e) previsione di percorsi di alfabetizzazione e for- del regolamento (UE) 2024/1689, nonché del procedi-
+       mazione in materia di utilizzo dei sistemi di intelligenza mento applicabile per l’irrogazione delle sanzioni o l’ap-
+       artificiale;                       plicazione delle misure di esecuzione, anche in coerenza
+                                          con quanto previsto dall’articolo 17, comma 4- quater , del
+          f) previsione, da parte degli ordini professionali e                    
+                                          decreto-legge 14 giugno 2021, n. 82, convertito, con mo-
+       delle associazioni di categoria maggiormente rappresen-                    
+                                          dificazioni, dalla legge 4 agosto 2021, n. 109.
+       tative, nonché da parte delle forme aggregative delle asso-                
+       ciazioni di cui all’articolo 3 della legge 14 gennaio 2013, 3. Il Governo è altresì delegato ad adottare, entro dodi-
+       n. 4, di percorsi di alfabetizzazione e formazione, per i ci mesi dalla data di entrata in vigore della presente legge,
+       professionisti e per gli operatori dello specifico settore, uno o più decreti legislativi per adeguare e specificare la
+       all’uso dei sistemi di intelligenza artificiale; previsione disciplina dei casi di realizzazione e di impiego illeciti di
+       della possibilità di riconoscimento di un equo compen- sistemi di intelligenza artificiale.
+       so modulabile sulla base delle responsabilità e dei rischi 4. Gli schemi dei decreti legislativi di cui al comma 3
+       connessi all’uso dei sistemi di intelligenza artificiale; sono adottati su proposta del Presidente del Consiglio dei
+          g) potenziamento, all’interno dei curricoli scolasti- ministri e del Ministro della giustizia, di concerto con il
+       ci, dello sviluppo di competenze scientifiche, tecnologi- Ministro dell’interno, e sono successivamente trasmessi
+       che, ingegneristiche e matematiche legate alle discipline alle Camere per l’espressione del parere delle Commis-
+       STEM, nonché artistiche, al fine di promuovere la scelta sioni parlamentari competenti. Decorsi sessanta giorni
+       da parte delle studentesse e degli studenti, anche attra- dalla data della trasmissione, i decreti possono essere
+       verso mirate attività di orientamento personalizzato, di emanati anche in mancanza dei pareri. Qualora detto ter-
+       percorsi di formazione superiore relativi alle menzionate mine venga a scadere nei trenta giorni antecedenti alla
+       discipline;                        scadenza del termine previsto per l’esercizio della delega
+                                          o successivamente, quest’ultimo è prorogato di sessanta
+          h) previsione di un’apposita disciplina per l’utilizzo                  
+                                          giorni.                                 
+       di sistemi di intelligenza artificiale per l’attività di polizia;          
+                                           5. Nell’esercizio della delega di cui al comma 3, il Go-
+          i) previsione, nei corsi universitari e delle istitu-                   
+                                          verno si attiene ai seguenti princìpi e criteri direttivi:
+       zioni di alta formazione artistica, musicale e coreutica                   
+       (AFAM), nonché nei percorsi di istruzione tecnologica a) previsione di strumenti, anche cautelari, finalizza-
+       superiore offerti dagli istituti tecnologici superiori (ITS ti a inibire la diffusione e a rimuovere contenuti generati
+       Academy ), coerentemente con i rispettivi profili culturali illecitamente anche con sistemi di intelligenza artificiale,
+       e professionali, di attività formative per la comprensione assistiti da un sistema di sanzioni effettive, proporzionate
+       tecnica e l’utilizzo consapevole anche sotto il profilo giu- e dissuasive; 
+       ridico delle tecnologie, anche con riferimento ai sistemi b) introduzione di autonome fattispecie di reato, pu-
+       di intelligenza artificiale come definiti dalla disciplina nite a titolo di dolo o di colpa, incentrate sull’omessa ado-
+       europea, nonché per la corretta interpretazione della pro- zione o sull’omesso adeguamento di misure di sicurezza
+       duzione di tali sistemi in termini di previsioni, contenuti, per la produzione, la messa in circolazione e l’utilizzo
+       raccomandazioni o decisioni;       professionale di sistemi di intelligenza artificiale, quan-
+          l) valorizzazione delle attività di ricerca e di trasfe- do da tali omissioni deriva pericolo concreto per la vita
+       rimento tecnologico in materia di intelligenza artificiale o l’incolumità pubblica o individuale o per la sicurezza
+       svolte da università, istituzioni AFAM, ITS A cademy ed dello Stato;       
+       enti pubblici di ricerca, mediante disposizioni finalizzate c) precisazione dei criteri di imputazione della re-
+       al perseguimento dei seguenti obiettivi: sponsabilità penale delle persone fisiche e amministrativa
+           1) agevolare il coinvolgimento del sistema degli enti per gli illeciti inerenti a sistemi di intelligenza
+       dell’università e della ricerca nella promozione, nella artificiale, che tenga conto del livello effettivo di control-
+       realizzazione e nell’utilizzo di spazi di sperimentazione lo dei sistemi predetti da parte dell’agente;
+       normativa in collaborazione con il mondo produttivo;                       
+                                             d) nei casi di responsabilità civile, previsione di
+           2) incentivare le attività di supporto e semplificare strumenti di tutela del danneggiato, anche attraverso
+       gli strumenti di collaborazione tra il sistema dell’univer- una specifica regolamentazione dei criteri di ripartizione
+       sità e della ricerca e degli ITS A cademy e le Autorità na- dell’onere della prova, tenuto conto della classificazione
+       zionali di cui all’articolo 20;    dei sistemi di intelligenza artificiale e dei relativi obblighi
+                                          come individuati dal regolamento (UE) 2024/1689;
+          m) definizione dei poteri di vigilanza dell’autorità di                 
+       vigilanza del mercato che conferiscano all’autorità i po- e) regolazione dell’utilizzo dei sistemi di intelligen-
+       teri di imporre ai fornitori e ai potenziali fornitori di tra- za artificiale nelle indagini preliminari, nel rispetto delle
+                                       — 9 —
+````
+
+## Pagina 12
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       garanzie inerenti al diritto di difesa e ai dati personali dei b) all’articolo 294 è aggiunto, in fine, il seguente
+       terzi, nonché dei princìpi di proporzionalità, non discri- comma:          
+       minazione e trasparenza;               «La pena è della reclusione da due a sei anni se
+          f) modifica, a fini di coordinamento e di razionaliz- l’inganno è posto in essere mediante l’impiego di sistemi
+       zazione del sistema, della normativa sostanziale e proces- di intelligenza artificiale»;
+       suale vigente, in conformità ai princìpi e ai criteri enun- c) dopo l’articolo 612- ter è inserito il seguente:
+       ciati nelle lettere a ) , b) , c) , d) ed e ) .                            
+                                              «Art. 612 -quater ( Illecita diffusione di contenuti
+        6. Dall’attuazione del presente articolo non devono generati o alterati con sistemi di intelligenza artificiale).
+       derivare nuovi o maggiori oneri a carico della finanza — Chiunque cagiona un danno ingiusto ad una persona,
+       pubblica. Le amministrazioni competenti provvedono ai cedendo, pubblicando o altrimenti diffondendo, senza il
+       relativi adempimenti con le risorse umane, strumentali e suo consenso, immagini, video o voci falsificati o alterati
+       finanziarie disponibili a legislazione vigente. mediante l’impiego di sistemi di intelligenza artificiale e
+                                          idonei a indurre in inganno sulla loro genuinità, è punito
+                                          con la reclusione da uno a cinque anni. Il delitto è pu-
+                     Capo IV                                                      
+                                          nibile a querela della persona offesa. Si procede tuttavia
+             DISPOSIZIONI A TUTELA DEGLI UTENTI d’ufficio se il fatto è connesso con altro delitto per il qua-
+              E IN MATERIA DI DIRITTO D’AUTORE le si deve procedere d’ufficio ovvero se è commesso nei
+                                          confronti di persona incapace, per età o per infermità, o
+                                          di una pubblica autorità a causa delle funzioni esercitate».
+                     Art. 25.                                                     
+                                           2. All’articolo 2637 del codice civile è aggiunto, in
+          Tutela del diritto d’autore delle opere generate fine, il seguente periodo: «La pena è della reclusione da
+            con l’ausilio dell’intelligenza artificiale due a sette anni se il fatto è commesso mediante l’impie-
+                                          go di sistemi di intelligenza artificiale».
+        1. Alla legge 22 aprile 1941, n. 633, sono apportate le                   
+                                           3. All’articolo 171, primo comma, della legge 22 aprile
+       seguenti modificazioni:                                                    
+                                          1941, n. 633, dopo la lettera a- bis ) è inserita la seguente:
+          a) all’articolo 1, primo comma, dopo le parole: «ope-                   
+                                             «a- ter ) riproduce o estrae testo o dati da opere o altri
+       re dell’ingegno» è inserita la seguente: «umano» e dopo                    
+                                          materiali disponibili in rete o in banche di dati in viola-
+       le parole: «forma di espressione» sono aggiunte le se-                     
+                                          zione degli articoli 70 - ter e 70- quater , anche attraverso
+       guenti: «, anche laddove create con l’ausilio di strumenti                 
+                                          sistemi di intelligenza artificiale».   
+       di intelligenza artificiale, purché costituenti risultato del              
+       lavoro intellettuale dell’autore»;  4. All’articolo 185, comma 1, del testo unico delle di-
+                                          sposizioni in materia di intermediazione finanziaria, di cui
+          b) dopo l’articolo 70- sexies è inserito il seguente:                   
+                                          al decreto legislativo 24 febbraio 1998, n. 58, è aggiunto,
+           «Art. 70 -septies . — 1. Fermo restando quanto pre-                    
+                                          in fine, il seguente periodo: «La pena è della reclusione
+       visto dalla Convenzione di Berna per la protezione delle                   
+                                          da due a sette anni e della multa da euro venticinquemila
+       opere letterarie ed artistiche, ratificata e resa esecutiva ai             
+                                          a euro sei milioni se il fatto è commesso mediante l’im-
+       sensi della legge 20 giugno 1978, n. 399, le riproduzioni e                
+                                          piego di sistemi di intelligenza artificiale».
+       le estrazioni da opere o da altri materiali contenuti in rete              
+       o in banche di dati a cui si ha legittimamente accesso, ai                 
+                                                        Capo VI                   
+       fini dell’estrazione di testo e di dati attraverso modelli e               
+       sistemi di intelligenza artificiale, anche generativa, sono DISPOSIZIONI FINANZIARIE E FINALI
+       consentite in conformità alle disposizioni di cui agli arti-               
+       coli 70- ter e 70- quater ».                                               
+                                                        Art. 27.                  
+                                                 Clausola di invarianza finanziaria
+                     Capo V                                                       
+                  DISPOSIZIONI PENALI      1. Dall’attuazione della presente legge, ad esclusione
+                                          dell’articolo 21, non devono derivare nuovi o maggiori
+                                          oneri a carico della finanza pubblica. Le amministrazioni
+                     Art. 26.             pubbliche interessate provvedono all’adempimento delle
+                                          disposizioni della presente legge con le risorse umane,
+               Modifiche al codice penale                                         
+                                          strumentali e finanziarie disponibili a legislazione vigente.
+              e ad ulteriori disposizioni penali                                  
+        1. Al codice penale sono apportate le seguenti  Art. 28.                  
+       modificazioni:                                                             
+                                                     Disposizioni finali          
+          a) all’articolo 61, dopo il numero 11- novies ) è ag-                   
+       giunto il seguente:                 1. All’articolo 7, comma 1, del decreto-legge 14 giu-
+           «11 -decies ) l’avere commesso il fatto mediante gno 2021, n. 82, convertito, con modificazioni, dalla leg-
+       l’impiego di sistemi di intelligenza artificiale, quando gli ge 4 agosto 2021, n. 109, la lettera z ) è sostituita dalla
+       stessi, per la loro natura o per le modalità di utilizzo, ab- seguente:    
+       biano costituito mezzo insidioso, ovvero quando il loro « z) per le finalità di cui al presente articolo, può con-
+       impiego abbia comunque ostacolato la pubblica o la pri- cludere accordi di collaborazione, comunque denominati,
+       vata difesa, ovvero aggravato le conseguenze del reato»; con soggetti privati, costituire e partecipare a partenariati
+                                      — 10 —
+````
+
+## Pagina 13
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       pubblico-privato nel territorio nazionale, nonché, previa Esaminato dalle Commissioni riunite 8ª (Ambiente, transizione
+       autorizzazione del Presidente del Consiglio dei ministri, a ecologica, energia, lavori pubblici, comunicazioni, innovazione tecno-
+                                          logica) e 10ª (Affari sociali, sanità, lavoro pubblico e privato, previ-
+       consorzi, fondazioni o società con soggetti pubblici e pri-                
+                                          denza sociale), in sede referente, l’11 e il 13 giugno 2024; il 22 e il
+       vati, italiani o di Paesi appartenenti all’Unione europea.                 
+                                          29 ottobre 2024; il 12, il 20 e il 27 novembre 2024; l’11, il 12, il 18 e il
+       Sulla base dell’interesse nazionale e previa autorizzazio- 19 marzo 2025.  
+       ne del Presidente del Consiglio dei ministri, può altresì                  
+                                            Esaminato in Aula il 19 marzo 2025 e approvato il 20 marzo 2025.
+       partecipare a consorzi, fondazioni o società con soggetti                  
+       pubblici e privati di Paesi della NATO ovvero di Paesi                     
+       extraeuropei con i quali siano stati sottoscritti accordi di Camera dei deputati ( atto n. 2316):
+       cooperazione o di partenariato per lo sviluppo di sistemi                  
+                                            Assegnato alle Commissioni riunite X (Attività produttive, com-
+       di intelligenza artificiale».                                              
+                                          mercio e turismo) e IX (Trasporti, poste e telecomunicazioni), in sede
+        2. Alla legge 28 giugno 2024, n. 90, sono apportate le referente, il 24 marzo 2025, con i pareri delle Commissioni I (Affari co-
+       seguenti modificazioni:            stituzionali, della Presidenza del Consiglio e interni), II (Giustizia), III
+                                          (Affari esteri e comunitari), IV (Difesa), V (Bilancio, tesoro e program-
+          a) all’articolo 1, comma 1, le parole: «di cui all’ar- mazione), VI (Finanze), VII (Cultura, scienza e istruzione), XI (Lavo-
+       ticolo 1, comma 3- bis , del decreto-legge 21 settembre ro pubblico e privato), XII (Affari sociali), XIV (Politiche dell’unione
+       2019, n. 105, convertito, con modificazioni, dalla legge europea) e per le Questioni regionali.
+       18 novembre 2019, n. 133, come modificato dall’artico- Esaminato dalle Commissioni riunite X (Attività produttive, com-
+       lo 3 della presente legge» sono sostituite dalle seguenti: mercio e turismo) e IX (Trasporti, poste e telecomunicazioni), in sede
+       «adottata con determinazione tecnica del direttore gene- referente, il 16 aprile 2025; il 20, il 27 e il 28 maggio 2025; il 12 e il
+                                          17 giugno 2025.                         
+       rale dell’Agenzia per la cybersicurezza nazionale»;                        
+                                            Esaminato in Aula il 23 e il 24 giugno 2025 e approvato, con mo-
+          b) nel capo I, dopo l’articolo 15 è aggiunto il                         
+                                          dificazioni, il 25 giugno 2025.         
+       seguente:                                                                  
+           «Art. 15 -bis (Disposizioni di coordinamento) .                        
+                                          Senato della Repubblica (atto n. 1146-B):
+       — 1. Ogni riferimento al decreto legislativo 18 maggio                     
+       2018, n. 65, è da intendersi alle corrispondenti disposizio-               
+                                            Nuovamente assegnato alle Commissioni riunite 8ª (Ambiente,
+       ni di cui al decreto legislativo 4 settembre 2024, n. 138, a transizione ecologica, energia, lavori pubblici, comunicazioni, innova-
+       decorrere dalla data in cui le stesse acquistano efficacia». zione tecnologica) e 10ª (Affari sociali, sanità, lavoro pubblico e privato,
+                                          previdenza sociale), in sede referente, il 2 luglio 2025, con i pareri delle
+        La presente legge, munita del sigillo dello Stato, sarà                   
+                                          Commissioni 1ª (Affari costituzionali, affari della Presidenza del Con-
+       inserita nella Raccolta ufficiale degli atti normativi della siglio e dell’Interno, ordinamento generale dello Stato e della Pubblica
+       Repubblica italiana. È fatto obbligo a chiunque spetti di Amministrazione, editoria, digitalizzazione), 2ª (Giustizia), 3ª (Affari
+       osservarla e di farla osservare come legge dello Stato. esteri e difesa), 4ª (Politiche dell’Unione europea), 5ª (Programmazio-
+                                          ne economica, bilancio), 7ª (Cultura e patrimonio culturale, istruzione
+          Data a Roma, addì 23 settembre 2025 pubblica, ricerca scientifica, spettacolo e sport) e 9ª Commissione (In-
+                                          dustria, commercio, turismo, agricoltura e produzione agroalimentare).
+                                            Esaminato dalle Commissioni riunite 8ª (Ambiente, transizione
+                  MATTARELLA              ecologica, energia, lavori pubblici, comunicazioni, innovazione tecno-
+                                          logica) e 10ª (Affari sociali, sanità, lavoro pubblico e privato, previden-
+                                          za sociale), in sede referente, il 9, il 16, il 23 e il 30 luglio 2025.
+                       MELONI, Presidente del Con-                                
+                         siglio dei ministri Esaminato in Aula e approvato, definitivamente, il 17 settembre
+                                          2025.                                   
+                       NORDIO, Ministro della giu-                                
+                         stizia                                                   
+       Visto, il Guardasigilli: NORDIO                                            
+                                                         N O T E                  
+                                          AVVERTENZA:                             
+                 LAVORI PREPARATORI         Il testo delle note qui pubblicato è stato redatto dall’amministra-
+                                          zione competente per materia ai sensi dell’articolo 10, commi 2 e 3, del
+                                          testo unico delle disposizioni sulla promulgazione delle leggi, sull’ema-
+                                          nazione dei decreti del Presidente della Repubblica e sulle pubblicazioni
+       Senato della Repubblica ( atto n. 1146):                                   
+                                          ufficiali della Repubblica italiana, approvato con D.P.R. 28 dicembre
+                                          1985, n. 1092, al solo fine di facilitare la lettura delle disposizioni di leg-
+         Presentato dal Presidente del Consiglio G IORGIA MELONI e dal Mi- ge modificate o alle quali è operato il rinvio. Restano invariati il valore
+       nistro della giustizia CARLO NORDIO (Governo MELONI -I), il 20 maggio      
+                                          e l’efficacia degli atti legislativi qui trascritti.
+       2024.                                                                      
+         Assegnato alle Commissioni riunite 8ª (Ambiente, transizione Per gli atti dell’Unione europea vengono forniti gli estremi di pub-
+       ecologica, energia, lavori pubblici, comunicazioni, innovazione tecno- blicazione nella Gazzetta Ufficiale dell’Unione Europea (GUUE).
+       logica) e 10ª (Affari sociali, sanità, lavoro pubblico e privato, previ-   
+       denza sociale), in sede referente, il 29 maggio 2024, con i pareri delle Note all’art. 1:
+       Commissioni 1ª (Affari costituzionali, affari della Presidenza del Con-    
+       siglio e dell’Interno, ordinamento generale dello Stato e della pubblica — Il regolamento (UE) 2024/1689 del Parlamento europeo e del
+       amministrazione, editoria, digitalizzazione), 2ª (Giustizia), 3ª (Affari Consiglio, del 13 giugno 2024 che stabilisce regole armonizzate sull’in-
+       esteri e difesa), 4ª (Politiche dell’Unione europea), 5ª (Programmazione telligenza artificiale e modifica i regolamenti (CE) n. 300/2008, (UE)
+       economica, bilancio), 6ª (Finanze e tesoro), 7ª (Cultura e patrimonio n. 167/2013, (UE) n. 168/2013, (UE) 2018/858, (UE) 2018/1139 e (UE)
+       culturale, istruzione pubblica, ricerca scientifica, spettacolo e sport) e 9ª 2019/2144 e le direttive 2014/90/UE, (UE) 2016/797 e (UE) 2020/1828
+       Commissione (Industria, commercio, turismo, agricoltura e produzione (regolamento sull’intelligenza artificiale) è pubblicato nella GUUE, del
+       agroalimentare).                   12 luglio 2024.                         
+                                      — 11 —
+````
+
+## Pagina 14
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       Note all’art. 2:                   Note all’art. 6:                        
+         — Per i riferimenti al regolamento (UE) 2024/1689 del Parla- — Si riporta il testo degli articoli 4, 6,7, 11 e 13 della legge 3 ago-
+       mento europeo e del Consiglio, del 13 giugno 2024 si vedano le note sto 2007, n. 124, recante: «Sistema di informazione per la sicurezza del-
+       all’articolo 1.                    la Repubblica e nuova disciplina del segreto», pubblicato nella G azzetta
+                                          Ufficiale n. 187 del 13 agosto 2007:    
+       Note all’art. 3:                                                           
+                                            «Art. 4 (Dipartimento delle informazioni per la sicurezza). —
+         — La legge 3 marzo 2009, n. 1 recante: «Ratifica ed esecuzione 1. Per lo svolgimento dei compiti di cui al comma 3 è istituito, presso la
+       della Convenzione delle Nazioni Unite sui diritti delle persone con disa- Presidenza del Consiglio dei ministri, il Dipartimento delle informazio-
+       bilità, con Protocollo opzionale, fatta a New York il 13 dicembre 2006 ni per la sicurezza (DIS).
+       e istituzione dell’Osservatorio nazionale sulla condizione delle persone 2. Il Presidente del Consiglio dei ministri e l’Autorità delegata, ove
+       con disabilità» è pubblicata nella G azzetta Ufficiale n. 61 del 14 marzo istituita, si avvalgono del DIS per l’esercizio delle loro competenze, al
+       2009.                              fine di assicurare piena unitarietà nella programmazione della ricerca
+                                          informativa del Sistema di informazione per la sicurezza, nonché nel-
+       Note all’art. 4:                   le analisi e nelle attività operative dei servizi di informazione per la
+                                          sicurezza.                              
+         — Il Regolamento (UE) 2016/679, del Parlamento europeo e del             
+       Consiglio del 27 aprile 2016 relativo alla protezione delle persone fi- 3. Il DIS svolge i seguenti compiti:
+       siche con riguardo al trattamento dei dati personali, nonché alla libera a) coordina l’intera attività di informazione per la sicurezza, ve-
+       circolazione di tali dati e che abroga la direttiva 95/46/CE (regolamento rificando altresì i risultati delle attività svolte dall’AISE e dall’AISI,
+       generale sulla protezione dei dati) è pubblicato GUUE del 4 maggio ferma restando la competenza dei predetti servizi relativamente alle at-
+       2016, n. L119.                     tività di ricerca informativa e di collaborazione con i servizi di sicurezza
+         — Il decreto legislativo 30 giugno 2003, n.196, recante: «Codice in degli Stati esteri;
+       materia di protezione dei dati personali, recante disposizioni per l’ade- b) è costantemente informato delle operazioni di competenza dei
+       guamento dell’ordinamento nazionale al regolamento (UE) n. 2016/679 servizi di informazione per la sicurezza e trasmette al Presidente del
+       del Parlamento europeo e del Consiglio, del 27 aprile 2016, relativo alla Consiglio dei ministri le informative e le analisi prodotte dal Sistema di
+       protezione delle persone fisiche con riguardo al trattamento dei dati per- informazione per la sicurezza;
+       sonali, nonché alla libera circolazione di tali dati e che abroga la diretti-
+                                             c) raccoglie le informazioni, le analisi e i rapporti provenienti
+       va 95/46/CE» è pubblicato nella G azzetta Ufficiale n. 174 del 29 luglio   
+                                          dai servizi di informazione per la sicurezza, dalle Forze armate e di po-
+       2003, S.O. n. 123.                                                         
+                                          lizia, dalle amministrazioni dello Stato e da enti di ricerca anche privati;
+                                          ferma l’esclusiva competenza dell’AISE e dell’AISI per l’elaborazio-
+       Note all’art. 5:                                                           
+                                          ne dei rispettivi piani di ricerca operativa, elabora analisi strategiche o
+         — Si riporta il testo dell’articolo 1 del decreto legislativo 30 marzo relative a particolari situazioni; formula valutazioni e previsioni, sulla
+       2001, n. 165, recante: «Norme generali sull’ordinamento del lavoro alle scorta dei contributi analitici settoriali dell’AISE e dell’AISI;
+       dipendenze delle amministrazioni pubbliche», pubblicato nella G azzet- d) elabora, anche sulla base delle informazioni e dei rapporti di
+       ta Ufficiale n. 106 del 9 maggio 2001: cui alla lettera c ) , analisi globali da sottoporre al CISR, nonché progetti
+         «Art. 1 (Finalità ed ambito di applicazione) . — 1. Le disposizioni di ricerca informativa, sui quali decide il Presidente del Consiglio dei
+       del presente decreto disciplinano l’organizzazione degli uffici e i rap- ministri, dopo avere acquisito il parere del CISR;
+       porti di lavoro e di impiego alle dipendenze delle amministrazioni pub-    
+                                             d -bis ) sulla base delle direttive di cui all’articolo 1, comma 3-
+       bliche, tenuto conto delle autonomie locali e di quelle delle regioni e    
+                                          bis , nonché delle informazioni e dei rapporti di cui alla lettera c ) del
+       delle province autonome, nel rispetto dell’articolo 97, comma primo,       
+                                          presente comma, coordina le attività di ricerca informativa finalizzate a
+       della Costituzione, al fine di:                                            
+                                          rafforzare la protezione cibernetica e la sicurezza informatica nazionali;
+          a) accrescere l’efficienza delle amministrazioni in relazione a         
+                                             e) promuove e garantisce, anche attraverso riunioni periodiche,
+       quella dei corrispondenti uffici e servizi dei Paesi dell’Unione europea,  
+                                          lo scambio informativo tra l’AISE, l’AISI e le Forze di polizia; comu-
+       anche mediante il coordinato sviluppo di sistemi informativi pubblici;     
+                                          nica al Presidente del Consiglio dei ministri le acquisizioni provenienti
+          b) razionalizzare il costo del lavoro pubblico, contenendo la spe- dallo scambio informativo e i risultati delle riunioni periodiche;
+       sa complessiva per il personale, diretta e indiretta, entro i vincoli di   
+                                             f) trasmette, su disposizione del Presidente del Consiglio dei mi-
+       finanza pubblica;                                                          
+                                          nistri, sentito il CISR, informazioni e analisi ad amministrazioni pubbli-
+          c) realizzare la migliore utilizzazione delle risorse umane nel- che o enti, anche ad ordinamento autonomo, interessati all’acquisizione
+       le pubbliche amministrazioni, assicurando la formazione e lo sviluppo di informazioni per la sicurezza;
+       professionale dei dipendenti, applicando condizioni uniformi rispetto a    
+                                             g) elabora, d’intesa con l’AISE e l’AISI, il piano di acquisi-
+       quelle del lavoro privato, garantendo pari opportunità alle lavoratrici ed 
+                                          zione delle risorse umane e materiali e di ogni altra risorsa comunque
+       ai lavoratori nonché l’assenza di qualunque forma di discriminazione e     
+                                          strumentale all’attività dei servizi di informazione per la sicurezza, da
+       di violenza morale o psichica.                                             
+                                          sottoporre all’approvazione del Presidente del Consiglio dei ministri;
+         2. Per amministrazioni pubbliche si intendono tutte le amministra-       
+                                             h) sentite l’AISE e l’AISI, elabora e sottopone all’approvazione
+       zioni dello Stato, ivi compresi gli istituti e scuole di ogni ordine e grado
+                                          del Presidente del Consiglio dei ministri lo schema del regolamento di
+       e le istituzioni educative, le aziende ed amministrazioni dello Stato ad   
+                                          cui all’articolo 21, comma 1;           
+       ordinamento autonomo, le Regioni, le Province, i Comuni, le Comuni-        
+       tà montane, e loro consorzi e associazioni, le istituzioni universitarie, i) esercita il controllo sull’AISE e sull’AISI, verificando la con-
+       gli Istituti autonomi case popolari, le Camere di commercio, industria, formità delle attività di informazione per la sicurezza alle leggi e ai re-
+       artigianato e agricoltura e loro associazioni, tutti gli enti pubblici non golamenti, nonché alle direttive e alle disposizioni del Presidente del
+       economici nazionali, regionali e locali, le amministrazioni, le aziende e Consiglio dei ministri. Per tale finalità, presso il DIS è istituito un uffi-
+       gli enti del Servizio sanitario nazionale, l’Agenzia per la rappresentanza cio ispettivo le cui modalità di organizzazione e di funzionamento sono
+       negoziale delle pubbliche amministrazioni (ARAN) e le Agenzie di cui definite con il regolamento di cui al comma 7. Con le modalità previste
+       al decreto legislativo 30 luglio 1999, n. 300. Fino alla revisione organica da tale regolamento è approvato annualmente, previo parere del Comi-
+       della disciplina di settore, le disposizioni di cui al presente decreto con- tato parlamentare di cui all’articolo 30, il piano annuale delle attività
+       tinuano ad applicarsi anche al CONI. dell’ufficio ispettivo. L’ufficio ispettivo, nell’ambito delle competenze
+         3. Le disposizioni del presente decreto costituiscono principi fon- definite con il predetto regolamento, può svolgere, anche a richiesta del
+       damentali ai sensi dell’articolo 117 della Costituzione. Le Regioni a sta- direttore generale del DIS, autorizzato dal Presidente del Consiglio dei
+       tuto ordinario si attengono ad esse tenendo conto delle peculiarità dei ministri, inchieste interne su specifici episodi e comportamenti verifica-
+       rispettivi ordinamenti. I principi desumibili dall’articolo 2 della legge tisi nell’ambito dei servizi di informazione per la sicurezza;
+       23 ottobre 1992, n. 421, e successive modificazioni, e dall’articolo 11, l) assicura l’attuazione delle disposizioni impartite dal Presiden-
+       comma 4, della legge 15 marzo 1997, n. 59, e successive modificazioni te del Consiglio dei Ministri con apposito regolamento adottato ai sensi
+       ed integrazioni, costituiscono altresì, per le Regioni a statuto speciale e dell’articolo 1, comma 2, ai fini della tutela amministrativa del segreto
+       per le province autonome di Trento e di Bolzano, norme fondamentali di Stato e delle classifiche di segretezza, vigilando altresì sulla loro cor-
+       di riforma economico-sociale della Repubblica.». retta applicazione;       
+                                      — 12 —
+````
+
+## Pagina 15
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          m) cura le attività di promozione e diffusione della cultura della 5.L’AISE risponde al Presidente del Consiglio dei ministri.
+       sicurezza e la comunicazione istituzionale;                                
+                                            6. L’AISE informa tempestivamente e con continuità il Ministro
+          n) impartisce gli indirizzi per la gestione unitaria del personale della difesa, il Ministro degli affari esteri e il Ministro dell’interno per i
+       di cui all’articolo 21, secondo le modalità definite dal regolamento di profili di rispettiva competenza.
+       cui al comma 1 del medesimo articolo;                                      
+                                            7. Il Presidente del Consiglio dei ministri, con proprio decreto, no-
+          n -bis ) gestisce unitariamente, ferme restando le competenze mina e revoca il direttore dell’AISE, scelto tra dirigenti di prima fascia o
+       operative dell’AISE e dell’AISI, gli approvvigionamenti e i servizi lo- equiparati dell’amministrazione dello Stato, sentito il CISR. L’incarico
+       gistici comuni.                    ha la durata massima di otto anni ed è conferibile, senza soluzione di
+         4. Fermo restando quanto previsto dall’articolo 118- bis del codi- continuità, anche con provvedimenti successivi, ciascuno dei quali di
+       ce di procedura penale, introdotto dall’articolo 14 della presente legge, durata non superiore al quadriennio.
+       qualora le informazioni richieste alle Forze di polizia, ai sensi delle let- 8. Il direttore dell’AISE riferisce costantemente sull’attività svolta
+       tere c ) ed e) del comma 3 del presente articolo, siano relative a indagini al Presidente del Consiglio dei ministri o all’Autorità delegata, ove isti-
+       di polizia giudiziaria, le stesse, se coperte dal segreto di cui all’artico- tuita, per il tramite del direttore generale del DIS. Riferisce direttamente
+       lo 329 del codice di procedura penale, possono essere acquisite solo pre- al Presidente del Consiglio dei ministri in caso di urgenza o quando
+       vio nulla osta della autorità giudiziaria competente. L’autorità giudizia- altre particolari circostanze lo richiedano, informandone senza ritardo il
+       ria può trasmettere gli atti e le informazioni anche di propria iniziativa. direttore generale del DIS; presenta al CISR, per il tramite del direttore
+         5. La direzione generale del DIS è affidata ad un dirigente di prima generale del DIS, un rapporto annuale sul funzionamento e sull’organiz-
+       fascia o equiparato dell’amministrazione dello Stato, la cui nomina e zazione dell’Agenzia.
+       revoca spettano in via esclusiva al Presidente del Consiglio dei ministri, 9. Il Presidente del Consiglio dei ministri nomina e revoca, sentito
+       sentito il CISR. L’incarico ha la durata massima di otto anni ed è confe- il direttore dell’AISE, uno o più vicedirettori. Il direttore dell’AISE af-
+       ribile, senza soluzione di continuità, anche con provvedimenti successi- fida gli altri incarichi nell’ambito dell’Agenzia.
+       vi, ciascuno dei quali di durata non superiore al quadriennio. Per quanto  
+                                            10. L’organizzazione e il funzionamento dell’AISE sono discipli-
+       previsto dalla presente legge, il direttore del DIS è il diretto referente 
+                                          nati con apposito regolamento.          
+       del Presidente del Consiglio dei ministri e dell’Autorità delegata, ove    
+       istituita, salvo quanto previsto dall’articolo 6, comma 5, e dall’artico- Art. 7 (Agenzia informazioni e sicurezza interna). — 1. È istituita
+       lo 7, comma 5, ed è gerarchicamente e funzionalmente sovraordinato l’Agenzia informazioni e sicurezza interna (AISI), alla quale è affidato
+       al personale del DIS e degli uffici istituiti nell’ambito del medesimo il compito di ricercare ed elaborare nei settori di competenza tutte le
+       Dipartimento.                      informazioni utili a difendere, anche in attuazione di accordi internazio-
+         6. Il Presidente del Consiglio dei ministri, sentito il direttore gene- nali, la sicurezza interna della Repubblica e le istituzioni democratiche
+       rale del DIS, nomina uno o più vicedirettori generali; il direttore gene- poste dalla Costituzione a suo fondamento da ogni minaccia, da ogni
+       rale affida gli altri incarichi nell’ambito del Dipartimento, ad eccezione attività eversiva e da ogni forma di aggressione criminale o terroristica.
+       degli incarichi il cui conferimento spetta al Presidente del Consiglio dei 2. Spettano all’AISI le attività di informazione per la sicurezza,
+       ministri.                          che si svolgono all’interno del territorio nazionale, a protezione degli
+         7. L’ordinamento e l’organizzazione del DIS e degli uffici istituiti interessi politici, militari, economici, scientifici e industriali dell’Italia.
+       nell’ambito del medesimo Dipartimento sono disciplinati con apposito 3. È, altresì, compito dell’AISI individuare e contrastare all’interno
+       regolamento.                       del territorio nazionale le attività di spionaggio dirette contro l’Italia e le
+         8. Il regolamento previsto dal comma 7 definisce le modalità di attività volte a danneggiare gli interessi nazionali.
+       organizzazione e di funzionamento dell’ufficio ispettivo di cui al com- 4. L’AISI può svolgere operazioni all’estero soltanto in collabora-
+       ma 3, lettera i ) , secondo i seguenti criteri: zione con l’AISE, quando tali operazioni siano strettamente connesse ad
+          a) agli ispettori è garantita piena autonomia e indipendenza di attività che la stessa AISI svolge all’interno del territorio nazionale. A
+       giudizio nell’esercizio delle funzioni di controllo; tal fine il direttore generale del DIS provvede ad assicurare le necessarie
+                                          forme di coordinamento e di raccordo informativo, anche al fine di evi-
+          b) salva specifica autorizzazione del Presidente del Consiglio          
+                                          tare sovrapposizioni funzionali o territoriali.
+       dei ministri o dell’Autorità delegata, ove istituita, i controlli non devono
+       interferire con le operazioni in corso; 5. L’AISI risponde al Presidente del Consiglio dei ministri.
+          c) sono previste per gli ispettori specifiche prove selettive e 6. L’AISI informa tempestivamente e con continuità il Ministro
+       un’adeguata formazione;            dell’interno, il Ministro degli affari esteri e il Ministro della difesa per i
+          d) non è consentito il passaggio di personale dall’ufficio ispetti- profili di rispettiva competenza.
+       vo ai servizi di informazione per la sicurezza; 7. Il Presidente del Consiglio dei ministri nomina e revoca, con
+          e) gli ispettori, previa autorizzazione del Presidente del Consi- proprio decreto, il direttore dell’AISI, scelto tra i dirigenti di prima fa-
+       glio dei ministri o dell’Autorità delegata, ove istituita, possono accedere scia o equiparati dell’amministrazione dello Stato, sentito il CISR. L’in-
+       a tutti gli atti conservati presso i servizi di informazione per la sicurezza carico ha la durata massima di otto anni ed è conferibile, senza soluzio-
+       e presso il DIS; possono altresì acquisire, tramite il direttore generale ne di continuità, anche con provvedimenti successivi, ciascuno dei quali
+       del DIS, altre informazioni da enti pubblici e privati.». di durata non superiore al quadriennio.
+         «Art. 6 (Agenzia informazioni e sicurezza esterna). — 1. È istituita 8. Il direttore dell’AISI riferisce costantemente sull’attività svolta
+       l’Agenzia informazioni e sicurezza esterna (AISE), alla quale è affidato al Presidente del Consiglio dei ministri o all’Autorità delegata, ove isti-
+       il compito di ricercare ed elaborare nei settori di competenza tutte le tuita, per il tramite del direttore generale del DIS. Riferisce direttamente
+       informazioni utili alla difesa dell’indipendenza, dell’integrità e della si- al Presidente del Consiglio dei ministri in caso di urgenza o quando
+       curezza della Repubblica, anche in attuazione di accordi internazionali, altre particolari circostanze lo richiedano, informandone senza ritardo il
+       dalle minacce provenienti dall’estero. direttore generale del DIS; presenta al CISR, per il tramite del direttore
+                                          generale del DIS, un rapporto annuale sul funzionamento e sull’organiz-
+         2. Spettano all’AISE, inoltre, le attività in materia di controprolife-  
+                                          zazione dell’Agenzia.                   
+       razione concernenti i materiali strategici, nonché le attività di informa- 
+       zione per la sicurezza, che si svolgono al di fuori del territorio naziona- 9. Il Presidente del Consiglio dei ministri nomina e revoca, sentito
+       le, a protezione degli interessi politici, militari, economici, scientifici e il direttore dell’AISI, uno o più vicedirettori. Il direttore dell’AISI affida
+       industriali dell’Italia.           gli altri incarichi nell’ambito dell’Agenzia.
+         3. È, altresì, compito dell’AISE individuare e contrastare al di fuori 10. L’organizzazione e il funzionamento dell’AISI sono disciplina-
+       del territorio nazionale le attività di spionaggio dirette contro l’Italia e le ti con apposito regolamento.».
+       attività volte a danneggiare gli interessi nazionali. «Art. 43 (Procedura per l’adozione dei regolamenti). — 1. Salvo
+         4. L’AISE può svolgere operazioni sul territorio nazionale soltanto che non sia diversamente stabilito, le disposizioni regolamentari pre-
+       in collaborazione con l’AISI, quando tali operazioni siano strettamente viste dalla presente legge sono emanate entro centottanta giorni dalla
+       connesse ad attività che la stessa AISE svolge all’estero. A tal fine il data della sua entrata in vigore, con uno o più decreti del Presidente del
+       direttore generale del DIS provvede ad assicurare le necessarie forme Consiglio dei ministri adottati anche in deroga all’articolo 17 della legge
+       di coordinamento e di raccordo informativo, anche al fine di evitare 23 agosto 1988, n. 400, e successive modificazioni, previo parere del
+       sovrapposizioni funzionali o territoriali. Comitato parlamentare di cui all’articolo 30 e sentito il CISR.
+                                      — 13 —
+````
+
+## Pagina 16
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+         2. I suddetti decreti stabiliscono il regime della loro pubblicità, an- centoventi giorni dalla data di entrata in vigore della legge di conver-
+       che in deroga alle norme vigenti.». sione del presente decreto, anche in deroga all’articolo 17 della legge
+         — Si riporta il testo degli articoli 1, 11 e 13 del decreto-legge 23 agosto 1988, n. 400, e alle norme in materia di contratti pubblici, pre-
+       14 giugno 2021, n. 82, recante: «Disposizioni urgenti in materia di vio parere del COPASIR e sentito il CIC, sono definite le procedure per
+       cybersicurezza, definizione dell’architettura nazionale di cybersicurez- la stipula di contratti di appalti di lavori e forniture di beni e servizi per
+       za e istituzione dell’Agenzia per la cybersicurezza nazionale», pubbli- le attività dell’Agenzia finalizzate alla tutela della sicurezza nazionale
+       cato nella G azzetta Ufficiale n. 140 del 14 giugno 2021, convertito con nello spazio cibernetico, ferma restando la disciplina dell’articolo 162
+       modificazioni dalla legge 4 agosto 2021, n. 109: del codice dei contratti pubblici relativi a lavori, servizi e forniture, di
+                                          cui al decreto legislativo 18 aprile 2016, n. 50.».
+         «Art. 1 (Definizioni). — 1. Ai fini del presente decreto si intende      
+       per:                                 «Art. 13 (Trattamento dei dati personali). — 1. Il trattamento dei
+                                          dati personali svolto per finalità di sicurezza nazionale in applicazione
+          a) cybersicurezza, l’insieme delle attività, fermi restando le at-      
+                                          del presente decreto è effettuato ai sensi dell’articolo 58, commi 2 e 3,
+       tribuzioni di cui alla legge 3 agosto 2007, n. 124, e gli obblighi deri-   
+                                          del decreto legislativo 30 giugno 2003, n. 196.».
+       vanti da trattati internazionali, necessarie per proteggere dalle minacce  
+       informatiche reti, sistemi informativi, servizi informatici e comunica- — Si riporta il testo dell’articolo 9, comma 1, della legge 16 mar-
+       zioni elettroniche, assicurandone la disponibilità, la confidenzialità e zo 2006, n. 146 recante: «Ratifica ed esecuzione della Convenzione e
+       l’integrità e garantendone la resilienza, anche ai fini della tutela della dei Protocolli delle Nazioni Unite contro il crimine organizzato tran-
+       sicurezza nazionale e dell’interesse nazionale nello spazio cibernetico; snazionale, adottati dall’Assemblea generale il 15 novembre 2000 ed il
+          b) resilienza nazionale nello spazio cibernetico, le attività vol- 31 maggio 2001» pubblicato nella G azzetta Ufficiale n. 85, del 11 aprile
+       te a prevenire un pregiudizio per la sicurezza nazionale come definito 2006.
+       dall’articolo 1, comma 1, lettera f ) , del regolamento di cui al decreto del «Art. 9 ( Operazioni sotto copertura). — 1. Fermo quanto disposto
+       Presidente del Consiglio dei ministri 30 luglio 2020, n. 131. dall’articolo 51 del Codice penale, non sono punibili:
+          c) decreto-legge perimetro, il decreto-legge 21 settembre 2019, a) gli ufficiali di polizia giudiziaria della Polizia di Stato,
+       n. 105, convertito, con modificazioni, dalla legge 18 novembre 2019, dell’Arma dei carabinieri e del Corpo della guardia di finanza, apparte-
+       n. 133, recante disposizioni urgenti in materia di perimetro di sicurezza nenti alle strutture specializzate o alla Direzione investigativa antima-
+       nazionale cibernetica e di disciplina dei poteri speciali nei settori di ri- fia, nei limiti delle proprie competenze, i quali, nel corso di specifiche
+       levanza strategica;                operazioni di polizia e, comunque, al solo fine di acquisire elementi di
+          d) decreto legislativo NIS, il decreto legislativo di recepimento prova in ordine ai delitti previsti dagli articoli 317, 318, 319, 319- bis ,
+       della direttiva (UE) 2022/2555, del Parlamento europeo e del Consiglio, 319 -ter , 319 -quater , primo comma, 320, 321, 322, 322- bis , 346 -bis ,
+       del 14 dicembre 2022, relativa a misure per un livello comune elevato 353, 353 -bis , 452 -bis , 452 -ter , 452 -quater , 452 -sexies , 452 -quaterde-
+       di cibersicurezza nell’Unione, recante modifica del regolamento (UE) cies , 453, 454, 455, 460, 461, 473, 474, 517 -quater , 629, 630, 644, 648-
+       n. 910/2014 e della direttiva (UE) 2018/1972 e che abroga la direttiva bis e 648- ter , nonché nel libro secondo, titolo XII, capo III, sezione I,
+       (UE) 2016/1148;                    del codice penale, ai delitti concernenti armi, munizioni, esplosivi, ai
+                                          delitti previsti dall’articolo 12, commi 1, 3, 3- bis e 3- ter , del testo unico
+          e) strategia nazionale di cybersicurezza, la strategia (di cui          
+                                          delle disposizioni concernenti la disciplina dell’immigrazione e norme
+       all’articolo 9) del decreto legislativo NIS.».                             
+                                          sulla condizione dello straniero, di cui al decreto legislativo 25 luglio
+         «Art. 11 (Norme di contabilità e disposizioni finanziarie). —            
+                                          1998, n. 286, nonché in ordine ai delitti previsti dagli articoli 255- bis ,
+       1. Con la legge di bilancio è determinato lo stanziamento annuale da       
+                                          255 -ter , 256, commi 1, secondo periodo, 1- bis , 3 e 3- bis , 256 -bis e 259
+       assegnare all’Agenzia da iscrivere sul capitolo di cui all’articolo 18,    
+                                          del decreto legislativo 3 aprile 2006, n. 152, e ai delitti previsti dal testo
+       comma 1, sulla base della determinazione del fabbisogno annuo operata      
+                                          unico delle leggi in materia di disciplina degli stupefacenti e sostanze
+       dal Presidente del Consiglio dei ministri, previamente comunicata al       
+                                          psicotrope, prevenzione, cura e riabilitazione dei relativi stati di tossico-
+       COPASIR.                                                                   
+                                          dipendenza, di cui al decreto del Presidente della Repubblica 9 ottobre
+         2. Le entrate dell’Agenzia sono costituite da: 1990, n. 309, e dall’articolo 3 della legge 20 febbraio 1958, n. 75, anche
+          a) dotazioni finanziarie e contributi ordinari di cui all’artico- per interposta persona, danno rifugio o comunque prestano assistenza
+       lo 18 del presente decreto;        agli associati, acquistano, ricevono, sostituiscono od occultano denaro
+                                          o altra utilità, armi, documenti, sostanze stupefacenti o psicotrope, beni
+          b) corrispettivi per i servizi prestati a soggetti pubblici o privati;  
+                                          ovvero cose che sono oggetto, prodotto, profitto, prezzo o mezzo per
+          c) proventi derivanti dallo sfruttamento della proprietà industria- commettere il reato o ne accettano l’offerta o la promessa o altrimen-
+       le, dei prodotti dell’ingegno e delle invenzioni dell’Agenzia; ti ostacolano l’individuazione della loro provenienza o ne consentono
+          d) altri proventi patrimoniali e di gestione; l’impiego ovvero corrispondono denaro o altra utilità in esecuzione di
+          e) contributi dell’Unione europea o di organismi internazionali, un accordo illecito già concluso da altri, promettono o danno denaro o
+       anche a seguito della partecipazione a specifici bandi, progetti e pro- altra utilità richiesti da un pubblico ufficiale o da un incaricato di un
+       grammi di collaborazione;          pubblico servizio o sollecitati come prezzo della mediazione illecita
+                                          verso un pubblico ufficiale o un incaricato di un pubblico servizio o per
+          f) proventi delle sanzioni irrogate dall’Agenzia ai sensi di quan-      
+                                          remunerarlo o compiono attività prodromiche e strumentali;
+       to previsto dal decreto legislativo NIS, dal decreto-legge perimetro e     
+       dal decreto legislativo 1° agosto 2003, n. 259, e relative disposizioni b) gli ufficiali di polizia giudiziaria appartenenti agli organismi
+       attuative;                         investigativi della Polizia di Stato e dell’Arma dei carabinieri specializ-
+          g) ogni altra eventuale entrata. zati nell’attività di contrasto al terrorismo e all’eversione e del Corpo
+                                          della guardia di finanza competenti nelle attività di contrasto al finan-
+         3. Il regolamento di contabilità dell’Agenzia, che ne assicura l’au-     
+                                          ziamento del terrorismo, i quali, nel corso di specifiche operazioni di
+       tonomia gestionale e contabile, è adottato con decreto del Presidente del  
+                                          polizia e, comunque, al solo fine di acquisire elementi di prova in ordi-
+       Consiglio dei ministri, di concerto con il Ministro dell’economia e delle  
+                                          ne ai delitti commessi con finalità di terrorismo o di eversione, anche
+       finanze, su proposta del direttore generale dell’Agenzia, previo parere    
+                                          per interposta persona, compiono le attività di cui alla lettera a ) ovvero
+       del COPASIR e sentito il CIC, entro centoventi giorni dalla data di en-    
+                                          si introducono all’interno di un sistema informatico o telematico, dan-
+       trata in vigore della legge di conversione del presente decreto, anche in  
+                                          neggiano, deteriorano, cancellano, alterano o comunque intervengono
+       deroga all’articolo 17 della legge 23 agosto 1988, n. 400, e alle norme di 
+                                          su un sistema informatico o telematico ovvero su informazioni, dati e
+       contabilità generale dello Stato e nel rispetto dei principi fondamentali  
+                                          programmi in esso contenuti, attivano identità, anche digitali, domini e
+       da esse stabiliti, nonché delle seguenti disposizioni:                     
+                                          spazi informatici comunque denominati, anche attraverso il trattamento
+          a) il bilancio preventivo e il bilancio consuntivo adottati dal di- di dati personali di terzi, ovvero assumono il controllo o comunque si
+       rettore generale dell’Agenzia sono approvati con decreto del Presidente avvalgono dell’altrui dominio e spazio informatico comunque denomi-
+       del Consiglio dei ministri, previo parere del CIC, e sono trasmessi alla nato o compiono attività prodromiche o strumentali;
+       Corte dei conti che esercita il controllo previsto dall’articolo 3, com-   
+                                             b -bis ) gli ufficiali di polizia giudiziaria degli organismi specia-
+       ma 4, della legge 14 gennaio 1994, n. 20;                                  
+                                          lizzati nel settore dei beni culturali, nell’attività di contrasto dei delitti
+          b) il bilancio consuntivo e la relazione della Corte dei conti sono di cui agli articoli 518- sexies e 518- septies del codice penale, i quali nel
+       trasmessi alle Commissioni parlamentari competenti e al COPASIR. corso di specifiche operazioni di polizia e, comunque, al solo fine di
+         4. Con regolamento adottato con decreto del Presidente del Consi- acquisire elementi di prova, anche per interposta persona, compiono le
+       glio dei ministri, su proposta del direttore generale dell’Agenzia, entro attività di cui alla lettera a ) ;
+                                      — 14 —
+````
+
+## Pagina 17
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          b -ter ) gli ufficiali di polizia giudiziaria dell’organo del Ministe- stipulato a New York il 22 luglio 1946, reso esecutivo con decreto legi-
+       ro dell’interno per la sicurezza e la regolarità dei servizi di telecomuni- slativo del Capo provvisorio dello Stato 4 marzo 1947, n. 1068;
+       cazione di cui all’articolo 7- bis del decreto-legge 27 luglio 2005, n. 144, d) “ICD”: Classificazione internazionale delle malattie - Inter-
+       convertito, con modificazioni, dalla legge 31 luglio 2005, n. 155, i quali, national Classification of Diseases (ICD), adottata dall’Organizzazione
+       nel corso di specifiche operazioni di polizia finalizzate al contrasto dei mondiale della sanità conformemente agli articoli 21, lettera b ) , e 22
+       reati informatici commessi ai danni delle infrastrutture critiche infor- del Protocollo concernente la costituzione dell’Organizzazione mondia-
+       matizzate individuate dalla normativa nazionale e internazionale e, co- le della sanità, stipulato a New York il 22 luglio 1946, reso esecutivo
+       munque, al solo fine di acquisire elementi di prova, anche per interposta con decreto legislativo del Capo provvisorio dello Stato 4 marzo 1947,
+       persona, compiono le attività di cui alla lettera a ) ovvero si introducono n. 1068;
+       all’interno di un sistema informatico o telematico, danneggiano, dete-     
+       riorano, cancellano, alterano o comunque intervengono su un sistema e) “duratura compromissione”: compromissione derivante da
+       informatico o telematico ovvero su informazioni, dati e programmi in qualsiasi perdita, limitazione o anomalia a carico di strutture o di funzio-
+       esso contenuti, attivano identità, anche digitali, domini e spazi informa- ni corporee, come classificate dalla ICF, che persiste nel tempo o per la
+       tici comunque denominati, anche attraverso il trattamento di dati per- quale è possibile una regressione o attenuazione solo nel lungo periodo;
+       sonali di terzi, ovvero assumono il controllo o comunque si avvalgono f) “profilo di funzionamento”: descrizione dello stato di salute di
+       dell’altrui dominio e spazio informatico comunque denominato o com- una persona attraverso la codificazione delle funzioni e strutture corpo-
+       piono attività prodromiche o strumentali. ree, delle attività e della partecipazione secondo la ICF tenendo conto
+         Omissis .».                      della ICD, quale variabile evolutiva correlata all’età, alla condizione di
+                                          salute, ai fattori personali e ai determinanti di contesto, che può ricom-
+         — Si riporta il testo dell’articolo 58 del citato decreto legislativo    
+                                          prendere anche il profilo di funzionamento ai fini scolastici;
+       30 giugno 2003, n. 196:                                                    
+                                             g) “WHODAS”: WHO Disability Assessment Schedule, que-
+         «Art. 58 (Trattamenti di dati personali per fini di sicurezza na-        
+                                          stionario di valutazione basato sull’ICF che misura la salute e la con-
+       zionale o difesa). — 1. Ai trattamenti di dati personali effettuati dagli  
+                                          dizione di disabilità;                  
+       organismi di cui agli articoli 4, 6 e 7 della legge 3 agosto 2007, n. 124, 
+       sulla base dell’articolo 26 della predetta legge o di altre disposizioni di h) “sostegnii servizi, gli interventi, le prestazioni e i benefici in-
+       legge o regolamento o previste da atti amministrativi generali, ovvero dividuati a conclusione dell’accertamento della condizione di disabilità
+       relativi a dati coperti da segreto di Stato ai sensi degli articoli 39 e se- e nel progetto di vita per migliorare le capacità della persona e la sua in-
+       guenti della medesima legge, si applicano le disposizioni di cui all’arti- clusione, nonché per contrastare la restrizione nella sua partecipazione
+       colo 160, comma 4, nonché, in quanto compatibili, le disposizioni di cui sociale, graduati in “sostegno” e “sostegno intensivo”, in ragione della
+       agli articoli 2, 3, 8, 15, 16, 18, 25, 37, 41, 42 e 43 del decreto legislativo frequenza, della durata e della continuità del sostegno;
+       18 maggio 2018, n. 51.                i) “piano di intervento”: documento di pianificazione e di co-
+         2. Fermo restando quanto previsto dal comma 1, ai trattamenti ef- ordinamento dei sostegni individuali relativi ad un’area di intervento;
+       fettuati da soggetti pubblici per finalità di difesa o di sicurezza dello l) “valutazione di base”: procedimento volto ad accertare, at-
+       Stato, in base a disposizioni di legge o di regolamento o previste da atti traverso l’utilizzo delle classificazioni ICD e ICF e dei correlati stru-
+       amministrativi generali, che prevedano specificamente il trattamento, si menti tecnici operativi di valutazione, la condizione di disabilità ai fini
+       applicano le disposizioni di cui al comma 1 del presente articolo, non- dell’accesso al sostegno, lieve o medio, o al sostegno intensivo, elevato
+       ché quelle di cui agli articoli 23 e 24 del decreto legislativo 18 maggio o molto elevato;
+       2018, n. 51.                                                               
+                                             m) “valutazione multidimensionale”: procedimento volto a
+         3. Con uno o più regolamenti sono individuate le modalità di ap-         
+                                          delineare con la persona con disabilità il suo profilo di funzionamen-
+       plicazione delle disposizioni di cui ai commi 1 e 2, in riferimento alle   
+                                          to all’interno dei suoi contesti di vita, anche rispetto agli ostacoli e ai
+       tipologie di dati, di interessati, di operazioni di trattamento eseguibili 
+                                          facilitatori in essi presenti, e a definire, anche in base ai suoi desideri e
+       e di persone autorizzate al trattamento dei dati personali sotto l’auto-   
+                                          alle sue aspettative e preferenze, gli obiettivi a cui deve essere diretto il
+       rità diretta del titolare o del responsabile ai sensi dell’articolo 2- qua-
+                                          progetto di vita;                       
+       terdecies , anche in relazione all’aggiornamento e alla conservazione.     
+       I regolamenti, negli ambiti di cui al comma 1, sono adottati ai sensi n) “progetto di vita”: progetto individuale, personalizzato e par-
+       dell’articolo 43 della legge 3 agosto 2007, n. 124, e, negli ambiti di cui tecipato della persona con disabilità che, partendo dai suoi desideri e
+       al comma 2, sono adottati con decreto del Presidente del Consiglio dei dalle sue aspettative e preferenze, è diretto ad individuare, in una visio-
+       ministri, ai sensi dell’articolo 17, comma 3, della legge 23 agosto 1988, ne esistenziale unitaria, i sostegni, formali e informali, per consentire
+       n. 400, su proposta dei Ministri competenti. alla persona stessa di migliorare la qualità della propria vita, di svilup-
+                                          pare tutte le sue potenzialità, di poter scegliere i contesti di vita e parte-
+         4. Con uno o più regolamenti adottati con decreto del Presidente         
+                                          cipare in condizioni di pari opportunità rispetto agli altri;
+       della Repubblica su proposta del Ministro della difesa, sono disciplina-   
+       te le misure attuative del presente decreto in materia di esercizio delle o) “domini della qualità di vita”: ambiti o dimensioni rilevan-
+       funzioni di difesa e sicurezza nazionale da parte delle Forze armate.». ti nella vita di una persona con disabilità valutabili con appropriati
+                                          indicatori;                             
+       Note all’art. 7:                      p) “budget di progetto”: insieme delle risorse umane, professio-
+                                          nali, tecnologiche, strumentali ed economiche, pubbliche e private, at-
+         — Si riporta il testo all’articolo 2 del decreto legislativo 3 maggio    
+                                          tivabili anche in seno alla comunità territoriale e al sistema dei supporti
+       2024, n.62 recante: «Definizione della condizione di disabilità, della     
+                                          informali, da destinare al progetto di vita.».
+       valutazione di base, di accomodamento ragionevole, della valutazione       
+       multidimensionale per l’elaborazione e attuazione del progetto di vita     
+       individuale personalizzato e partecipato», pubblicato nella G azzetta Uf- Note all’art. 8:
+       ficiale n. 111 del 14 maggio 2024:   — Il decreto legislativo 16 ottobre 2003, n. 288, recante: «Riordino
+         «Art. 2 (Definizioni). — 1. Ai fini del presente decreto, si applicano della disciplina degli Istituti di ricovero e cura a carattere scientifico, a
+       le seguenti definizioni:           norma dell’articolo 42, comma 1, della legge 16 gennaio 2003, n. 3», è
+          a) “condizione di disabilità”: una duratura compromissione fi- pubblicato nella G azzetta Ufficiale n. 250 del 27 ottobre 2003.
+       sica, mentale, intellettiva, del neurosviluppo o sensoriale che, in intera- — Si riporta il testo degli articoli 32 e 33 della Costituzione:
+       zione con barriere di diversa natura, può ostacolare la piena ed effettiva 
+                                            «Art. 32. — La Repubblica tutela la salute come fondamentale di-
+       partecipazione nei diversi contesti di vita su base di uguaglianza con     
+                                          ritto dell’individuo e interesse della collettività, e garantisce cure gra-
+       gli altri;                                                                 
+                                          tuite agli indigenti.                   
+          b) “persona con disabilità”: persona definita dall’articolo 3,          
+                                            Nessuno può essere obbligato a un determinato trattamento sani-
+       comma 1, della legge 5 febbraio 1992, n. 104, come modificato dal pre-     
+                                          tario se non per disposizione di legge. La legge non può in nessun caso
+       sente decreto;                                                             
+                                          violare i limiti imposti dal rispetto della persona umana.
+          c) “ICF”: Classificazione internazionale del funzionamento, del-        
+       la disabilità e della salute - International Classification of Functioning Art. 33. — L’arte e la scienza sono libere e libero ne è
+       Disability and Health (ICF), adottata dall’Organizzazione mondiale del- l’insegnamento.
+       la sanità conformemente agli articoli 21, lettera b ) , e 22 del Protocollo La Repubblica detta le norme generali sull’istruzione ed istituisce
+       concernente la costituzione dell’Organizzazione mondiale della sanità, scuole statali per tutti gli ordini e gradi.
+                                      — 15 —
+````
+
+## Pagina 18
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+         Enti e privati hanno il diritto di istituire scuole ed istituti di educa- zione di verbali e resoconti dell’attività di assemblee rappresentative,
+       zione, senza oneri per lo Stato.   commissioni e di altri organi collegiali o assembleari;
+         La legge, nel fissare i diritti e gli obblighi delle scuole non statali g) esercizio del mandato degli organi rappresentativi, ivi com-
+       che chiedono la parità, deve assicurare ad esse piena libertà e ai loro presa la loro sospensione o il loro scioglimento, nonché l’accertamento
+       alunni un trattamento scolastico equipollente a quello degli alunni di delle cause di ineleggibilità, incompatibilità o di decadenza, ovvero di
+       scuole statali.                    rimozione o sospensione da cariche pubbliche;
+         È prescritto un esame di Stato per l’ammissione ai vari ordini e h) svolgimento delle funzioni di controllo, indirizzo politico,
+       gradi di scuole o per la conclusione di essi e per l’abilitazione all’eser- inchiesta parlamentare o sindacato ispettivo e l’accesso a documenti
+       cizio professionale.               riconosciuto dalla legge e dai regolamenti degli organi interessati per
+                                          esclusive finalità direttamente connesse all’espletamento di un mandato
+         Le istituzioni di alta cultura, università ed accademie, hanno il di-    
+                                          elettivo;                               
+       ritto di darsi ordinamenti autonomi nei limiti stabiliti dalle leggi dello 
+       Stato.                                i) attività dei soggetti pubblici dirette all’applicazione, anche
+                                          tramite i loro concessionari, delle disposizioni in materia tributaria e do-
+         La Repubblica riconosce il valore educativo, sociale e di promozio-      
+                                          ganale, comprese quelle di prevenzione e contrasto all’evasione fiscale;
+       ne del benessere psicofisico dell’attività sportiva in tutte le sue forme.».
+                                             l) attività di controllo e ispettive;
+         — Per i riferimenti al Regolamento (UE) 2016/679 del parlamento          
+       europeo e del consiglio del 27 aprile 2016 si vedano le note all’articolo 4. m) concessione, liquidazione, modifica e revoca di benefici eco-
+                                          nomici, agevolazioni, elargizioni, altri emolumenti e abilitazioni;
+         — Si riporta il testo dell’articolo 2- sexies del citato decreto legisla-
+       tivo 30 giugno 2003, n.196, recante:  n) conferimento di onorificenze e ricompense, riconoscimento
+                                          della personalità giuridica di associazioni, fondazioni ed enti, anche di
+         «Art. 2 -sexies ( Trattamento di categorie particolari di dati perso-    
+                                          culto, accertamento dei requisiti di onorabilità e di professionalità per
+       nali necessario per motivi di interesse pubblico rilevante). — 1. I trat-  
+                                          le nomine, per i profili di competenza del soggetto pubblico, ad uffici
+       tamenti delle categorie particolari di dati personali di cui all’articolo 9,
+                                          anche di culto e a cariche direttive di persone giuridiche, imprese e di
+       paragrafo 1, del Regolamento, necessari per motivi di interesse pubblico   
+                                          istituzioni scolastiche non statali, nonché rilascio e revoca di autorizza-
+       rilevante ai sensi del paragrafo 2, lettera g ) , del medesimo articolo, sono
+                                          zioni o abilitazioni, concessione di patrocini, patronati e premi di rap-
+       ammessi qualora siano previsti dal diritto dell’Unione europea ovvero,     
+                                          presentanza, adesione a comitati d’onore e ammissione a cerimonie ed
+       nell’ordinamento interno, da disposizioni di legge o di regolamento o da   
+                                          incontri istituzionali;                 
+       atti amministrativi generali che specifichino i tipi di dati che possono   
+       essere trattati, le operazioni eseguibili e il motivo di interesse pubblico o) rapporti tra i soggetti pubblici e gli enti del terzo settore;
+       rilevante, nonché le misure appropriate e specifiche per tutelare i diritti p) obiezione di coscienza;
+       fondamentali e gli interessi dell’interessato.                             
+                                             q) attività sanzionatorie e di tutela in sede amministrativa o
+         1 -bis . I dati personali relativi alla salute, pseudonimizzati, sono giudiziaria;
+       trattati, anche mediante interconnessione, dal Ministero della salu-       
+       te, dall’Istituto superiore di sanità (ISS), dall’Agenzia nazionale per i r) rapporti istituzionali con enti di culto, confessioni religiose e
+       servizi sanitari regionali (AGENAS), dall’Agenzia italiana del farma- comunità religiose;
+       co (AIFA), dall’Istituto nazionale per la promozione della salute del- s) attività socio-assistenziali a tutela dei minori e soggetti biso-
+       le popolazioni migranti e per il contrasto delle malattie della povertà gnosi, non autosufficienti e incapaci;
+       (INMP), nonché, relativamente ai propri assistiti, dalle regioni e dalle   
+                                             t) attività amministrative e certificatorie correlate a quelle di
+       province autonome, nel rispetto delle finalità istituzionali di ciascuno,  
+                                          diagnosi, assistenza o terapia sanitaria o sociale, ivi incluse quelle cor-
+       secondo le modalità individuate con decreto del Ministro della salute,     
+                                          relate ai trapianti d’organo e di tessuti nonché alle trasfusioni di sangue
+       adottato ai sensi del comma 1 previo parere del Garante per la protezio-   
+                                          umano;                                  
+       ne dei dati personali.                                                     
+                                             u) compiti del servizio sanitario nazionale e dei soggetti operanti
+         1 -ter . Il Ministero della salute disciplina, con uno o più decreti     
+                                          in ambito sanitario, nonché compiti di igiene e sicurezza sui luoghi di
+       adottati ai sensi del comma 1, l’interconnessione a livello nazionale dei  
+                                          lavoro e sicurezza e salute della popolazione, protezione civile, salva-
+       sistemi informativi su base individuale, pseudonomizzati, vi incluso il    
+                                          guardia della vita e incolumità fisica; 
+       fascicolo sanitario elettronico (FSE), compresi quelli gestiti dai soggetti
+       di cui al comma 1- bis o da altre pubbliche amministrazioni che a tal fine v) programmazione, gestione, controllo e valutazione dell’assi-
+       adeguano i propri sistemi informativi. stenza sanitaria, ivi incluse l’instaurazione, la gestione, la pianificazione
+                                          e il controllo dei rapporti tra l’amministrazione ed i soggetti accreditati
+         I decreti di cui al primo periodo adottati, previo parere del Garan-     
+                                          o convenzionati con il servizio sanitario nazionale;
+       te per la protezione dei dati personali, nel rispetto del Regolamento,     
+       del presente codice, del codice dell’amministrazione digitale di cui al z) vigilanza sulle sperimentazioni, farmacovigilanza, autorizza-
+       decreto legislativo 7 marzo 2005, n. 82, e delle linee guida emanate zione all’immissione in commercio e all’importazione di medicinali e di
+       dall’Agenzia per l’Italia digitale in materia di interoperabilità, defini- altri prodotti di rilevanza sanitaria;
+       scono le caratteristiche e disciplinano un ambiente di trattamento sicuro aa) tutela sociale della maternità ed interruzione volontaria del-
+       all’interno del quale vengono messi a disposizione dati anonimi o pseu- la gravidanza, dipendenze, assistenza, integrazione sociale e diritti dei
+       donimizzati, per le finalità istituzionali di ciascuno, secondo le modalità disabili;
+       individuate al comma 1.                                                    
+                                             bb) istruzione e formazione in ambito scolastico, professionale,
+         2. Fermo quanto previsto dal comma 1, si considera rilevante l’in- superiore o universitario;
+       teresse pubblico relativo a trattamenti effettuati da soggetti che svol-   
+                                             cc) trattamenti effettuati a fini di archiviazione nel pubblico in-
+       gono compiti di interesse pubblico o connessi all’esercizio di pubblici    
+                                          teresse o di ricerca storica, concernenti la conservazione, l’ordinamento
+       poteri nelle seguenti materie:                                             
+                                          e la comunicazione dei documenti detenuti negli archivi di Stato negli
+          a) accesso a documenti amministrativi e accesso civico; archivi storici degli enti pubblici, o in archivi privati dichiarati di inte-
+          b) tenuta degli atti e dei registri dello stato civile, delle anagra- resse storico particolarmente importante, per fini di ricerca scientifica,
+       fi della popolazione residente in Italia e dei cittadini italiani residenti nonché per fini statistici da parte di soggetti che fanno parte del sistema
+       all’estero, e delle liste elettorali, nonché rilascio di documenti di ricono- statistico nazionale (Sistan);
+       scimento o di viaggio o cambiamento delle generalità; dd) instaurazione, gestione ed estinzione, di rapporti di lavoro
+          c) tenuta di registri pubblici relativi a beni immobili o mobili; di qualunque tipo, anche non retribuito o onorario, e di altre forme di
+                                          impiego, materia sindacale, occupazione e collocamento obbligato-
+          d) tenuta dell’anagrafe nazionale degli abilitati alla guida e          
+                                          rio, previdenza e assistenza, tutela delle minoranze e pari opportunità
+       dell’archivio nazionale dei veicoli;                                       
+                                          nell’ambito dei rapporti di lavoro, adempimento degli obblighi retributi-
+          e) cittadinanza, immigrazione, asilo, condizione dello straniero e vi, fiscali e contabili, igiene e sicurezza del lavoro o di sicurezza o salute
+       del profugo, stato di rifugiato;   della popolazione, accertamento della responsabilità civile, disciplinare
+                                          e contabile, attività ispettiva.        
+          f) elettorato attivo e passivo ed esercizio di altri diritti politici,  
+       protezione diplomatica e consolare, nonché documentazione delle atti- 3. Per i dati genetici, biometrici e relativi alla salute il trattamento av-
+       vità istituzionali di organi pubblici, con particolare riguardo alla reda- viene comunque nel rispetto di quanto previsto dall’articolo 2- septies .».
+                                      — 16 —
+````
+
+## Pagina 19
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       Note all’art. 9:                   nazionale del lavoro possono richiedere la comunicazione delle medesi-
+                                          me informazioni e dati e l’accesso agli stessi.
+         — Per i riferimenti al Regolamento (UE) 2016/679 del parlamento          
+                                            7. Gli obblighi informativi di cui al presente articolo gravano an-
+       europeo e del consiglio del 27 aprile 2016 si vedano le note all’articolo 4.
+                                          che sul committente nell’ambito dei rapporti di lavoro di cui all’artico-
+                                          lo 409, n. 3, del codice di procedura civile e di cui all’articolo 2, com-
+       Note all’art. 10:                                                          
+                                          ma 1, del decreto legislativo 15 giugno 2015, n. 81.
+         — Il decreto-legge 18 ottobre 2012, n. 179 recante: «Ulteriori mi- 8. Gli obblighi informativi di cui al presente articolo non si appli-
+       sure urgenti per la crescita del Paese» è pubblicato nella G azzetta Uffi- cano ai sistemi protetti da segreto industriale e commerciale.».
+       ciale n. 245 del 19 ottobre 2012.                                          
+                                          Note all’art. 15:                       
+       Note all’art. 11:                                                          
+                                            — Per i riferimenti al regolamento (UE) 2024/1689 del Parla-
+         — Si riporta il testo dell’articolo 1- bis , del decreto legislativo mento europeo e del Consiglio del 13 giugno 2024, si vedano le note
+       26 maggio 1997, n. 152 recante: «Attuazione della direttiva 91/533/ all’articolo 1.
+       CEE concernente l’obbligo del datore di lavoro di informare il lavo- — Si riporta il testo dell’articolo 12 decreto legislativo 30 gen-
+       ratore delle condizioni applicabili al contratto o al rapporto di lavoro», naio 2006, n. 26, recante: «Attuazione della direttiva (UE) 2019/1024
+       pubblicato nella G azzetta Ufficiale n. 135 del 12 giugno 1997: relativa all’apertura dei dati e al riutilizzo dell’informazione del setto-
+         «Art. 1- bis (Ulteriori obblighi informativi nel caso di utilizzo di re pubblico che ha abrogato la direttiva 2003/98/CE», pubblicato nella
+       sistemi decisionali o di monitoraggio automatizzati). — 1. Il datore di Gazzetta Ufficiale n. 28 del 3 febbraio 2006:
+       lavoro o il committente pubblico e privato è tenuto a informare il lavora- «Art. 12 (Funzioni). — 1. I componenti del comitato direttivo svol-
+       tore dell’utilizzo di sistemi decisionali o di monitoraggio integralmente gono anche i compiti di responsabili di settore, curando, nell’ambito
+       automatizzati deputati a fornire indicazioni rilevanti ai fini della assun- assegnato dallo stesso comitato direttivo:
+       zione o del conferimento dell’incarico, della gestione o della cessazione  
+                                             a) la predisposizione della bozza di programma annuale delle
+       del rapporto di lavoro, dell’assegnazione di compiti o mansioni nonché     
+                                          attività didattiche, da sottoporre al comitato direttivo, elaborata tenendo
+       indicazioni incidenti sulla sorveglianza, la valutazione, le prestazioni e 
+                                          conto delle linee programmatiche sulla formazione pervenute dal Con-
+       l’adempimento delle obbligazioni contrattuali dei lavoratori. Resta fer-   
+                                          siglio superiore della magistratura e dal Ministro della giustizia, nonché
+       mo quanto disposto dall’articolo 4 della legge 20 maggio 1970, n. 300.     
+                                          delle proposte pervenute dal Consiglio nazionale forense e dal Consi-
+         2. Ai fini dell’adempimento degli obblighi di cui al comma 1, il da- glio universitario nazionale;
+       tore di lavoro o il committente è tenuto a fornire al lavoratore, unitamen-
+                                             b) l’attuazione del programma annuale dell’attività didattica ap-
+       te alle informazioni di cui all’ articolo 1, prima dell’inizio dell’attività
+                                          provato dal comitato direttivo;         
+       lavorativa, le seguenti ulteriori informazioni:                            
+                                             c) la definizione del contenuto analitico di ciascuna sessione;
+          a) gli aspetti del rapporto di lavoro sui quali incide l’utilizzo dei   
+       sistemi di cui al comma 1;            d) l’individuazione dei docenti chiamati a svolgere l’incarico di
+                                          insegnamento in ciascuna sessione, utilizzando lo specifico albo tenuto
+          b) gli scopi e le finalità dei sistemi di cui al comma 1;               
+                                          presso la Scuola, e la proposta dei relativi nominativi, in numero doppio
+          c) la logica ed il funzionamento dei sistemi di cui al comma 1; rispetto agli incarichi, al comitato direttivo;
+          d) le categorie di dati e i parametri principali utilizzati per pro- e) la proposta dei criteri di ammissione alle sessioni di
+       grammare o addestrare i sistemi di cui al comma 1, inclusi i meccanismi formazione;
+       di valutazione delle prestazioni;     f) l’offerta di sussidio didattico e di sperimentazione di nuove
+          e) le misure di controllo adottate per le decisioni automatizzate, formule didattiche;
+       gli eventuali processi di correzione e il responsabile del sistema di ge- g) lo svolgimento delle sessioni presentando, all’esito di ciascu-
+       stione della qualità;              na di esse, relazioni consuntive;       
+          f) il livello di accuratezza, robustezza e cybersicurezza dei siste- g -bis ) l’individuazione di esperti formatori, scelti tra magistrati,
+       mi di cui al comma 1 e le metriche utilizzate per misurare tali parametri, docenti universitari e avvocati con adeguata qualificazione professio-
+       nonché gli impatti potenzialmente discriminatori delle metriche stesse. nale ed esperienza organizzativa e formativa, nonché tra altri esperti
+         3. Il lavoratore, direttamente o per il tramite delle rappresentanze qualificati, per i compiti previsti dal regolamento interno.».
+       sindacali aziendali o territoriali, ha diritto di accedere ai dati e di richie-
+       dere ulteriori informazioni concernenti gli obblighi di cui al comma 2. Il Note all’art. 16:
+       datore di lavoro o il committente sono tenuti a trasmettere i dati richiesti
+                                            — Per i riferimenti al regolamento (UE) 2024/1689 del Parla-
+       e a rispondere per iscritto entro trenta giorni.                           
+                                          mento europeo e del Consiglio del 13 giugno 2024, si vedano le note
+         4. Il datore di lavoro o il committente sono tenuti a integrare l’in- all’articolo 1.
+       formativa con le istruzioni per il lavoratore in merito alla sicurezza dei 
+       dati e l’aggiornamento del registro dei trattamenti riguardanti le attività Note all’art. 17:
+       di cui al comma 1, incluse le attività di sorveglianza e monitoraggio.     
+       Al fine di verificare che gli strumenti utilizzati per lo svolgimento della — Si riporta il testo dell’articolo 9 del codice di procedura civile,
+       prestazione lavorativa siano conformi alle disposizioni previste dal Re- come modificato dalla presente legge:
+       golamento (UE) 2016/679 del Parlamento europeo e del Consiglio, del «Art. 9 (Competenza del tribunale). — Il tribunale è competente
+       27 aprile 2016, il datore di lavoro o il committente effettuano un’analisi per tutte le cause che non sono di competenza di altro giudice.
+       dei rischi e una valutazione d’impatto degli stessi trattamenti, proce-    
+                                            Il tribunale è altresì esclusivamente competente per le cause in ma-
+       dendo a consultazione preventiva del Garante per la protezione dei dati    
+                                          teria di imposte e tasse, per quelle relative allo stato e alla capacità delle
+       personali ove sussistano i presupposti di cui all’articolo 36 del Regola-  
+                                          persone e ai diritti onorifici, per la querela di falso, per l’esecuzione
+       mento medesimo.                                                            
+                                          forzata , per le cause che hanno ad oggetto il funzionamento di un si-
+         5. I lavoratori, almeno 24 ore prima, devono essere informati per stema di intelligenza artificiale e, in generale, per ogni causa di valore
+       iscritto di ogni modifica incidente sulle informazioni fornite ai sensi del indeterminabile.».
+       comma 2 che comportino variazioni delle condizioni di svolgimento del      
+       lavoro.                            Note all’art. 18:                       
+         6. Le informazioni e i dati di cui ai commi da 1 a 5 del presente        
+                                            — Si riporta il testo dell’articolo 7, comma 1, del citato decreto-
+       articolo devono essere comunicati dal datore di lavoro o dal commit-       
+                                          legge 14 giugno 2021, n. 82, come modificato dalla presente legge:
+       tente ai lavoratori in modo trasparente, in formato strutturato, di uso    
+       comune e leggibile da dispositivo automatico. La comunicazione delle «Art. 7 ( Funzioni dell’Agenzia per la cybersicurezza nazionale) .
+       medesime informazioni e dati deve essere effettuata anche alle rappre- — 1. L’Agenzia:
+       sentanze sindacali aziendali ovvero alla rappresentanza sindacale unita- a) è Autorità nazionale per la cybersicurezza e, in relazione a
+       ria e, in assenza delle predette rappresentanze, alle sedi territoriali delle tale ruolo, assicura, nel rispetto delle competenze attribuite dalla nor-
+       associazioni sindacali comparativamente più rappresentative sul piano mativa vigente ad altre amministrazioni, ferme restando le attribuzioni
+       nazionale. Il Ministero del lavoro e delle politiche sociali e l’Ispettorato del Ministro dell’interno in qualità di autorità nazionale di pubblica si-
+                                      — 17 —
+````
+
+## Pagina 20
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       curezza, ai sensi della legge 1° aprile 1981, n. 121, il coordinamento tra i) assume tutte le funzioni già attribuite al Dipartimento delle
+       i soggetti pubblici coinvolti in materia di cybersicurezza a livello nazio- informazioni per la sicurezza (DIS), di cui all’articolo 4 della legge
+       nale e promuove la realizzazione di azioni comuni dirette ad assicurare 3 agosto 2007, n. 124, dal decreto-legge perimetro e dai relativi prov-
+       la sicurezza e la resilienza cibernetiche per lo sviluppo della digitalizza- vedimenti attuativi e supporta il Presidente del Consiglio dei ministri ai
+       zione del Paese, del sistema produttivo e delle pubbliche amministrazio- fini dell’articolo 1, comma 19 - bis , del decreto-legge perimetro;
+       ni, nonché per il conseguimento dell’autonomia, nazionale ed europea,      
+                                             l) provvede, sulla base delle attività di competenza del Nucleo
+       riguardo a prodotti e processi informatici di rilevanza strategica a tutela
+                                          per la cybersicurezza di cui all’articolo 8, alle attività necessarie per
+       degli interessi nazionali nel settore. Per le reti, i sistemi informativi e i
+                                          l’attuazione e il controllo dell’esecuzione dei provvedimenti assunti dal
+       servizi informatici attinenti alla gestione delle informazioni classifica- 
+                                          Presidente del Consiglio dei ministri ai sensi dell’articolo 5 del decreto-
+       te restano fermi sia quanto previsto dal regolamento adottato ai sensi     
+                                          legge perimetro;                        
+       dell’articolo 4, comma 3, lettera l ) , della legge n. 124 del 2007, sia le
+       competenze dell’Ufficio centrale per la segretezza di cui all’articolo 9 m) assume tutte le funzioni in materia di cybersicurezza già at-
+       della medesima legge n. 124 del 2007; tribuite all’Agenzia per l’Italia digitale dalle disposizioni vigenti e, in
+                                          particolare, quelle di cui all’articolo 51 del decreto legislativo 7 marzo
+          b) predispone la strategia nazionale di cybersicurezza;                 
+                                          2005, n. 82, nonché quelle in materia di adozione di linee guida con-
+          c) svolge ogni necessaria attività di supporto al funzionamento         
+                                          tenenti regole tecniche di cybersicurezza ai sensi dell’articolo 71 del
+       del Nucleo per la cybersicurezza, di cui all’articolo 8;                   
+                                          medesimo decreto legislativo. L’Agenzia assume, altresì, i compiti di
+          d) è Autorità nazionale competente NIS e Punto di contatto uni- cui all’articolo 33- septies , comma 4, del decreto-legge 18 ottobre 2012,
+       co NIS di cui all’articolo 2, comma 1, lettere d ) ed e ) , del decreto legi- n. 179, convertito, con modificazioni, dalla legge 17 dicembre 2012,
+       slativo NIS, a tutela dell’unità giuridica dell’ordinamento; n. 221, già attribuiti all’Agenzia per l’Italia digitale;
+          d -bis ) è Autorità nazionale di gestione delle crisi informatiche m- bis ) provvede, anche attraverso un’apposita sezione nell’am-
+       di cui all’articolo 2, comma 1, lettera g ) , del decreto legislativo NIS; bito della strategia di cui alla lettera b ) , allo sviluppo e alla diffusio-
+          d -ter ) è CSIRT nazionale, denominato CSIRT Italia, di cui ne di standard, linee guida e raccomandazioni al fine di rafforzare la
+       all’articolo 2, comma 1, lettera i ) , del decreto legislativo NIS; cybersicurezza dei sistemi informatici, alla valutazione della sicurezza
+          e) è Autorità nazionale di certificazione della cybersicurezza ai dei sistemi crittografici nonché all’organizzazione e alla gestione di at-
+       sensi dell’articolo 58 del regolamento (UE) 2019/881 del Parlamento tività di divulgazione finalizzate a promuovere l’utilizzo della crittogra-
+       europeo e del Consiglio, del 17 aprile 2019, e assume tutte le funzioni fia, anche a vantaggio della tecnologia blockchain, come strumento di
+       in materia di certificazione di sicurezza cibernetica già attribuite al Mi- cybersicurezza. L’Agenzia, anche per il rafforzamento dell’autonomia
+       nistero dello sviluppo economico dall’ordinamento vigente, comprese industriale e tecnologica dell’Italia, promuove altresì la collaborazione
+       quelle relative all’accertamento delle violazioni e all’irrogazione delle con centri universitari e di ricerca per la valorizzazione dello sviluppo
+       sanzioni; nello svolgimento dei compiti di cui alla presente lettera: di nuovi algoritmi proprietari, la ricerca e il conseguimento di nuove ca-
+           1) accredita, ai sensi dell’articolo 60, paragrafo 1, del regola- pacità crittografiche nazionali nonché la collaborazione internazionale
+       mento (UE) 2019/881 del Parlamento europeo e del Consiglio, le strut- con gli organismi esteri che svolgono analoghe funzioni. A tale fine, è
+       ture specializzate del Ministero della difesa e del Ministero dell’interno istituito presso l’Agenzia, nell’ambito delle risorse umane, strumentali
+       quali organismi di valutazione della conformità per i sistemi di rispet- e finanziarie disponibili a legislazione vigente e senza nuovi o maggiori
+       tiva competenza;                   oneri a carico della finanza pubblica, il Centro nazionale di crittogra-
+           2) delega, ai sensi dell’articolo 56, paragrafo 6, lettera b ) , del fia, il cui funzionamento è disciplinato con provvedimento del direttore
+       regolamento (UE) 2019/881 del Parlamento europeo e del Consiglio, il generale dell’Agenzia stessa. Il Centro nazionale di crittografia svolge
+       Ministero della difesa e il Ministero dell’interno, attraverso le rispettive le funzioni di centro di competenza nazionale per tutti gli aspetti della
+       strutture accreditate di cui al numero 1) della presente legge, al rilascio crittografia in ambito non classificato, ferme restando le competenze
+       del certificato europeo di sicurezza cibernetica; dell’Ufficio centrale per la segretezza, di cui all’articolo 9 della legge
+                                          3 agosto 2007, n. 124, con riferimento alle informazioni e alle attività
+          e- bis ) è Autorità competente per l’esecuzione dei compiti pre-        
+                                          previste dal regolamento adottato ai sensi dell’articolo 4, comma 3, let-
+       visti dal regolamento delegato (UE) 2024/1366 della Commissione,           
+                                          tera l ) , della citata legge n. 124 del 2007, nonché le competenze degli
+       dell’11 marzo 2024, che integra il regolamento (UE) 2019/943 del Par-      
+                                          organismi di cui agli articoli 4, 6 e 7 della medesima legge;
+       lamento europeo e del Consiglio;                                           
+          f) assume tutte le funzioni in materia di cybersicurezza già attri- m- ter ) provvede alla qualificazione dei servizi cloud per la pub-
+       buite dalle disposizioni vigenti al Ministero dello sviluppo economico, blica amministrazione nel rispetto della disciplina dell’Unione europea
+       ivi comprese quelle relative:      e del regolamento di cui all’articolo 33- septies , comma 4, del decreto-
+                                          legge 18 ottobre 2012, n. 179, convertito, con modificazioni, dalla legge
+           1) al perimetro di sicurezza nazionale cibernetica, di cui al          
+                                          17 dicembre 2012, n. 221;               
+       decreto-legge perimetro e ai relativi provvedimenti attuativi, ivi incluse 
+       le funzioni attribuite al Centro di valutazione e certificazione nazionale m -quater) promuove e sviluppa ogni iniziativa, anche attraverso
+       ai sensi del decreto-legge perimetro, le attività di ispezione e verifica la conclusione di accordi di collaborazione con i privati, comunque de-
+       di cui all’articolo 1, comma 6, lettera c ) , del decreto-legge perimetro e nominati, nonché di partenariato pubblico-privato, volta a valorizzare
+       quelle relative all’accertamento delle violazioni e all’irrogazione delle l’intelligenza artificiale come risorsa per il rafforzamento della cyber-
+       sanzioni amministrative previste dal medesimo decreto, fatte salve quel- sicurezza nazionale;
+       le di cui all’articolo 3 del regolamento adottato con decreto del Presi- n) sviluppa capacità nazionali di prevenzione, monitoraggio,
+       dente del Consiglio dei ministri 30 luglio 2020, n. 131; rilevamento, analisi e risposta, per prevenire e gestire gli incidenti di si-
+           2) alla sicurezza e all’integrità delle comunicazioni elettroni- curezza informatica e gli attacchi informatici, anche attraverso il CSIRT
+       che, di cui agli articoli 16 - bis e 16- ter del decreto legislativo 1° agosto Italia di cui all’articolo 2, comma 1, lettera i ) del decreto legislativo
+       2003, n. 259, e relative disposizioni attuative; NIS. A tale fine, promuove iniziative di partenariato pubblico-privato
+           3) alla sicurezza delle reti e dei sistemi informativi, di cui al per rendere effettive tali capacità;
+       decreto legislativo NIS;              n -bis ) nell’ambito delle funzioni di cui al primo periodo della
+          g) partecipa, per gli ambiti di competenza, al gruppo di coordi- lettera n ) , svolge ogni attività diretta all’analisi e al supporto per il con-
+       namento istituito ai sensi dei regolamenti di cui all’articolo 1, comma 8, tenimento e il ripristino dell’operatività dei sistemi compromessi, con la
+       del decreto-legge 15 marzo 2012, n. 21, convertito, con modificazioni, collaborazione dei soggetti pubblici o privati che hanno subito incidenti
+       dalla legge 11 maggio 2012, n. 56; di sicurezza informatica o attacchi informatici. La mancata collabora-
+          h) assume tutte le funzioni attribuite alla Presidenza del Consi- zione di cui al primo periodo è valutata ai fini dell’applicazione delle
+       glio dei ministri in materia di perimetro di sicurezza nazionale ciberneti- sanzioni previste dall’articolo 1, commi 10 e 14, del decreto-legge pe-
+       ca, di cui al decreto-legge perimetro e ai relativi provvedimenti attuativi, rimetro, per i soggetti di cui all’articolo 1, comma 2- bis , del medesimo
+       ivi incluse le attività di ispezione e verifica di cui all’articolo 1, com- decreto-legge perimetro, i soggetti essenziali e i soggetti importanti di
+       ma 6, lettera c ) , del decreto-legge perimetro e quelle relative all’accer- cui all’articolo 6 del decreto legislativo NIS, del decreto legislativo NIS
+       tamento delle violazioni e all’irrogazione delle sanzioni amministrative e di cui all’articolo 40, comma 3, alinea, del codice delle comunicazioni
+       previste dal medesimo decreto, fatte salve quelle di cui all’articolo 3 elettroniche, di cui al decreto legislativo 1° agosto 2003, n. 259; restano
+       del regolamento adottato con decreto del Presidente del Consiglio dei esclusi gli organi dello Stato preposti alla prevenzione, all’accertamento
+       ministri n. 131 del 2020;          e alla repressione dei reati, alla tutela dell’ordine e della sicurezza pub-
+                                      — 18 —
+````
+
+## Pagina 21
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       blica e alla difesa e sicurezza militare dello Stato, nonché gli organismi del Consiglio dei ministri, del Ministero della difesa e del Ministero
+       di informazione per la sicurezza di cui agli articoli 4, 6 e 7 della legge dell’interno, secondo termini e modalità da definire con apposito decre-
+       3 agosto 2007, n. 124;             to del Presidente del Consiglio dei ministri, di concerto con i Ministri
+          n -ter ) provvede alla raccolta, all’elaborazione e alla classifica- interessati;
+       zione dei dati relativi alle notifiche di incidenti ricevute dai soggetti che v -bis ) può predisporre attività di formazione specifica riservate
+       a ciò siano tenuti in osservanza delle disposizioni vigenti. Tali dati sono ai giovani che aderiscono al servizio civile regolate sulla base di appo-
+       resi pubblici nell’ambito della relazione prevista dall’articolo 14, com- site convenzioni. In ogni caso, il servizio prestato è, a tutti gli effetti,
+       ma 1, quali dati ufficiali di riferimento degli attacchi informatici portati riconosciuto come servizio civile;
+       ai soggetti che operano nei settori rilevanti per gli interessi nazionali nel z) per le finalità di cui al presente articolo, può costituire e par-
+       campo della cybersicurezza. Agli adempimenti previsti dalla presente tecipare a partenariati pubblico-privato sul territorio nazionale, non-
+       lettera si provvede con le risorse umane, strumentali e finanziarie dispo- ché, previa autorizzazione del Presidente del Consiglio dei ministri, a
+       nibili a legislazione vigente;     consorzi, fondazioni o società con soggetti pubblici e privati, italiani e
+          o) partecipa alle esercitazioni nazionali e internazionali che ri- stranieri;
+       guardano la simulazione di eventi di natura cibernetica al fine di innal- aa) è designata quale Centro nazionale di coordinamento ai sensi
+       zare la resilienza del Paese;      dell’articolo 6 del regolamento (UE) 2021/887 del Parlamento europeo
+                                          e del Consiglio del 20 maggio 2021, che istituisce il Centro europeo di
+          p) cura e promuove la definizione ed il mantenimento di un              
+                                          competenza per la cybersicurezza nell’ambito industriale, tecnologico e
+       quadro giuridico nazionale aggiornato e coerente nel dominio della         
+                                          della ricerca e la rete dei centri nazionali di coordinamento.
+       cybersicurezza, tenendo anche conto degli orientamenti e degli svilup-     
+       pi in ambito internazionale. A tal fine, l’Agenzia esprime pareri non Omissis .».
+       vincolanti sulle iniziative legislative o regolamentari concernenti la     
+       cybersicurezza;                    Note all’art. 19:                       
+          q) coordina, in raccordo con il Ministero degli affari esteri e — Si riporta il testo dell’articolo 8, commi da 1 a 3, del decreto-
+       della cooperazione internazionale, la cooperazione internazionale nella legge 1° marzo 2021, n. 22 recante: «Disposizioni urgenti in materia
+       materia della cybersicurezza. Nell’ambito dell’Unione europea e a livel- di riordino delle attribuzioni dei Ministeri», pubblicato nella G azzetta
+       lo internazionale, l’Agenzia cura i rapporti con i competenti organismi, Ufficiale n. 51 del 1° marzo 2021, convertito, con modificazioni, dalla
+       istituzioni ed enti, nonché segue nelle competenti sedi istituzionali le legge 22 aprile 2021, n. 55, come modificato dalla presente legge:
+       tematiche di cybersicurezza, fatta eccezione per gli ambiti in cui la legge «Art. 8 (Funzioni in materia di innovazione tecnologica e transi-
+       attribuisce specifiche competenze ad altre amministrazioni. In tali casi, zione digitale e istituzione del Comitato interministeriale per la tran-
+       è comunque assicurato il raccordo con l’Agenzia al fine di garantire sizione digitale). — 1. All’articolo 5, comma 3, della legge 23 agosto
+       posizioni nazionali unitarie e coerenti con le politiche di cybersicurezza 1988, n. 400, dopo la lettera b ) , è aggiunta la seguente:
+       definite dal Presidente del Consiglio dei ministri; “b- bis ) promuove, indirizza, coordina l’azione del Governo nel-
+          r) perseguendo obiettivi di eccellenza, supporta negli ambiti di le materie dell’innovazione tecnologica, dell’attuazione dell’agenda di-
+       competenza, mediante il coinvolgimento del sistema dell’università e gitale italiana ed europea, della strategia italiana per la banda ultralarga,
+       della ricerca nonché del sistema produttivo nazionali, lo sviluppo di della digitalizzazione delle pubbliche amministrazioni e delle imprese,
+       competenze e capacità industriali, tecnologiche e scientifiche. A tali fini, nonché della trasformazione, crescita e transizione digitale del Paese, in
+       l’Agenzia può promuovere, sviluppare e finanziare specifici progetti ed ambito pubblico e privato, dell’accesso ai servizi in rete, della connetti-
+       iniziative, volti anche a favorire il trasferimento tecnologico dei risultati vità, delle infrastrutture digitali materiali e immateriali e della strategia
+       della ricerca nel settore.         nazionale dei dati pubblici.”.          
+         L’Agenzia assicura il necessario raccordo con le altre amministra- 2. È istituito presso la Presidenza del Consiglio dei ministri il Comi-
+       zioni a cui la legge attribuisce competenze in materia di cybersicurezza tato interministeriale per la transizione digitale (CITD), con il compito
+                                          di assicurare, nelle materie di cui all’articolo 5, comma 3, lettera b- bis ),
+       e, in particolare, con il Ministero della difesa per gli aspetti inerenti  
+                                          della legge 23 agosto 1988, n. 400, come modificato dal presente decre-
+       alla ricerca militare. L’Agenzia può altresì promuovere la costituzione    
+                                          to, il coordinamento e il monitoraggio dell’attuazione delle iniziative di
+       di aree dedicate allo sviluppo dell’innovazione finalizzate a favorire la  
+                                          innovazione tecnologica e transizione digitale delle pubbliche ammi-
+       formazione e il reclutamento di personale nei settori avanzati dello svi-  
+                                          nistrazioni competenti in via ordinaria. Sono in ogni caso ricomprese
+       luppo della cybersicurezza, nonché promuovere la realizzazione di studi    
+                                          prioritariamente nelle materie di competenza del Comitato, le attività di
+       di fattibilità e di analisi valutative finalizzati a tale scopo;           
+                                          coordinamento e monitoraggio dell’attuazione delle iniziative relative:
+          s) stipula accordi bilaterali e multilaterali, anche mediante il        
+                                             a) alla strategia nazionale italiana per la banda ultralarga, alle
+       coinvolgimento del settore privato e industriale, con istituzioni, enti e  
+                                          reti di comunicazione elettronica satellitari, terrestri mobili e fisse;
+       organismi di altri Paesi per la partecipazione dell’Italia a programmi di  
+                                             b) al fascicolo sanitario elettronico e alla piattaforma dati
+       cybersicurezza, assicurando il necessario raccordo con le altre ammini-    
+                                          sanitari;                               
+       strazioni a cui la legge attribuisce competenze in materia di cybersicu-   
+       rezza, ferme restando le competenze del Ministero degli affari esteri e c) allo sviluppo e alla diffusione delle tecnologie emergen-
+       della cooperazione internazionale; ti dell’intelligenza artificiale, dell’internet delle cose (IoT) e della
+                                          blockchain.                             
+          t) promuove, sostiene e coordina la partecipazione italiana a pro-      
+       getti e iniziative dell’Unione europea e internazionali, anche mediante il 3. Il Comitato è presieduto dal Presidente del Consiglio dei ministri
+       coinvolgimento di soggetti pubblici e privati nazionali, nel campo della o dalla Autorità delegata per l’innovazione tecnologica e la transizio-
+                                          ne digitale, ove nominata, ed è composto dai Ministri per la pubblica
+       cybersicurezza e dei correlati servizi applicativi, ferme restando le com- 
+                                          amministrazione, ove nominato, dell’economia e delle finanze, della
+       petenze del Ministero degli affari esteri e della cooperazione internazio- 
+                                          giustizia, delle imprese e del made in Italy, dell’università e della ricer-
+       nale. L’Agenzia assicura il necessario raccordo con le altre amministra-   
+                                          ca e della salute, n onché dall’Autorità delegata per la sicurezza della
+       zioni a cui la legge attribuisce competenze in materia di cybersicurezza   
+                                          Repubblica e per la cybersicurezza, ove nominata . Ad esso partecipano
+       e, in particolare, con il Ministero della difesa per gli aspetti inerenti a
+                                          altresì gli altri Ministri o loro delegati aventi competenza nelle materie
+       progetti e iniziative in collaborazione con la NATO e con l’Agenzia        
+                                          oggetto dei provvedimenti e delle tematiche poste all’ordine del giorno.
+       europea per la difesa;                                                     
+                                            Omissis .».                           
+          u) svolge attività di comunicazione e promozione della consape-         
+       volezza in materia di cybersicurezza, al fine di contribuire allo sviluppo 
+                                          Note all’art. 20:                       
+       di una cultura nazionale in materia;                                       
+                                            — Per i riferimenti al regolamento (UE) 2024/1689 del Parla-
+          v) promuove la formazione, la crescita tecnico-professionale e          
+                                          mento europeo e del Consiglio del 13 giugno 2024, si vedano le note
+       la qualificazione delle risorse umane nel campo della cybersicurezza, in   
+                                          all’articolo 1.                         
+       particolare favorendo l’attivazione di percorsi formativi universitari in  
+       materia, anche attraverso l’assegnazione di borse di studio, di dottora- — Per il testo dell’articolo 1 del citato decreto-legge 14 giugno
+       to e assegni di ricerca, sulla base di apposite convenzioni con soggetti 2021, n. 82, si vedano le note all’articolo 6.
+       pubblici e privati; nello svolgimento di tali compiti, l’Agenzia può av- — Si riporta il testo dell’articolo 36 del decreto-legge 30 aprile
+       valersi anche delle strutture formative e delle capacità della Presidenza 2019, n. 34, recante: «Misure urgenti di crescita economica e per la
+                                      — 19 —
+````
+
+## Pagina 22
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       risoluzione di specifiche situazioni di crisi», pubblicato nella G azzetta oggettivi previsti nel presente comma, hanno diritto all’erogazione da
+       Ufficiale n. 100 del 30 aprile 2019, convertito, con modificazioni, dalla parte del FIR di un indennizzo forfettario dell’ammontare determinato
+       legge 28 giugno 2019, n. 58:       ai sensi dei precedenti commi 496 e 497 i risparmiatori persone fisiche,
+         «Art. 36 (Banche popolari e Fondo indennizzo risparmiatori) . — imprenditori individuali, anche agricoli, coltivatori diretti, in posses-
+       1. All’articolo 1, comma 2, del decreto-legge 24 gennaio 2015, n. 3, so delle azioni e delle obbligazioni subordinate delle banche di cui al
+       convertito, con modificazioni, dalla legge 24 marzo 2015, n. 33, la pa- comma 493 alla data del provvedimento di messa in liquidazione coatta
+       rola: «2019» è sostituita dalla seguente: «2020». amministrativa - ovvero i loro successori mortis causa o il coniuge, il
+                                          soggetto legato da unione civile, il convivente more uxorio o di fat-
+         2. All’articolo 1 della legge 30 dicembre 2018, n. 145, sono appor-      
+                                          to, i parenti entro il secondo grado in possesso dei suddetti strumenti
+       tate le seguenti modifiche:                                                
+                                          finanziari a seguito di trasferimento con atto tra vivi - che soddisfano
+          a) al comma 494, le parole «e aventi causa» sono sostituite dalle una delle seguenti condizioni: a ) patrimonio mobiliare di proprietà del
+       seguenti: «mortis causa, o il coniuge, il soggetto legato da unione civile, risparmiatore di valore inferiore a 100.000 euro; b ) ammontare del red-
+       il convivente more uxorio o di fatto di cui alla legge 20 maggio 2016, dito complessivo del risparmiatore ai fini dell’imposta sul reddito delle
+       n. 76, i parenti entro il secondo grado, ove siano succeduti nel possesso persone fisiche inferiore a 35.000 euro nell’anno 2018 , al netto di even-
+       dei predetti strumenti finanziari in forza di trasferimento a titolo parti- tuali prestazioni di previdenza complementare erogate sotto forma di
+       colare per atto tra vivi»;         rendita. Il valore del patrimonio mobiliare di cui alla suddetta lettera a )
+          b) al comma 496, primo periodo, dopo le parole «costo di acqui- risulta dal patrimonio mobiliare posseduto al 31 dicembre 2018, esclusi
+       sto,» sono inserite le seguenti: «inclusi gli oneri fiscali,»; gli strumenti finanziari di cui al comma 494, nonché i contratti di assicu-
+                                          razione a capitalizzazione o mista sulla vita, calcolato secondo i criteri
+          c) al comma 497, primo periodo, dopo le parole «costo di acqui-         
+                                          e le istruzioni approvati con decreto del Ministero del lavoro e delle po-
+       sto,» sono inserite le seguenti: «inclusi gli oneri fiscali,»;             
+                                          litiche sociali, Direzione generale per l’inclusione e le politiche sociali,
+          d) al comma 500, secondo periodo, dopo le parole «titoli di Sta-        
+                                          di concerto con il Ministero dell’economia e delle finanze, Dipartimento
+       to con scadenza equivalente» sono aggiunte le seguenti: «determinato       
+                                          delle finanze del 13 aprile 2017, n. 138, recante approvazione del mo-
+       ai sensi dei commi 3, 4 e 5 dell’articolo 9 del decreto-legge 3 maggio     
+                                          dello tipo di dichiarazione sostitutiva unica (DSU), nonché delle relative
+       2016, n. 59, convertito, con modificazioni, dalla legge 30 giugno 2016,    
+                                          istruzioni per la compilazione, ai sensi dell’articolo 10, comma 3, del
+       n. 119»;                                                                   
+                                          decreto del Presidente del Consiglio dei ministri del 5 dicembre 2013,
+          e) al comma 501, i periodi secondo, terzo, quarto, quinto e sesto n. 159. Con il decreto del Ministro dell’economia e delle finanze pre-
+       sono sostituiti dai seguenti:      visto dal precedente comma 501 sono stabilite le modalità di presenta-
+           «Con decreto del Ministro dell’economia e delle finanze sono zione dell’istanza di erogazione del menzionato indennizzo forfettario.
+       definite le modalità di presentazione della domanda di indennizzo non- Nell’erogazione degli indennizzi effettuata ai sensi del presente comma
+       ché i piani di riparto delle risorse disponibili. Con il medesimo decreto è data precedenza ai pagamenti di importo non superiore a 50.000 euro.
+       è istituita e disciplinata una Commissione tecnica per: l’esame delle do- 502 -ter . Il limite di valore del patrimonio mobiliare di pro-
+       mande e l’ammissione all’indennizzo del FIR; la verifica delle violazio- prietà del risparmiatore, di cui al comma 502- bis , lettera a ) , può essere
+       ni massive, nonché della sussistenza del nesso di causalità tra le mede- elevato fino a 200.000 euro con decreto del Presidente del Consiglio dei
+       sime e il danno subito dai risparmiatori; l’erogazione dell’indennizzo da ministri, su proposta del Ministro dell’economia e delle finanze, previo
+       parte del FIR. Le suddette verifiche possono avvenire anche attraverso assenso della Commissione europea. Il decreto del Ministro dell’econo-
+       la preventiva tipizzazione delle violazioni massive e la corrispondente mia e delle finanze di cui al comma 501, secondo periodo, è conseguen-
+       identificazione degli elementi oggettivi e/o soggettivi in presenza dei temente adeguato.».
+       quali l’indennizzo può essere direttamente erogato. Il decreto indica i    
+                                            2 -bis . Al fine di promuovere e sostenere l’imprenditoria, di stimo-
+       tempi delle procedure di definizione delle istanze presentate entro il ter-
+                                          lare la competizione nel mercato e di assicurare la protezione adeguata
+       mine di cui al penultimo periodo e, in modo non tassativo, le fattispecie  
+                                          dei consumatori, degli investitori e del mercato dei capitali, nonché di
+       di violazioni massive. Il suddetto procedimento non si applica ai casi     
+                                          favorire il raccordo tra le istituzioni, le autorità e gli operatori del setto-
+       di cui al comma 502 - bis . La citata Commissione è composta da nove       
+                                          re, il Ministro dell’economia e delle finanze, sentiti la Banca d’Italia, la
+       membri in possesso di idonei requisiti di competenza, indipendenza,        
+                                          Commissione nazionale per le società e la borsa (CONSOB) e l’Istituto
+       onorabilità e probità. Con successivo decreto del Ministro dell’econo-     
+                                          per la vigilanza sulle assicurazioni (IVASS), adotta, entro il 31 gennaio
+       mia e delle finanze sono nominati i componenti della Commissione tec-      
+                                          2021, uno o più regolamenti per definire le condizioni e le modalità
+       nica e determinati gli emolumenti da attribuire ai medesimi, nel limite    
+                                          di svolgimento di una sperimentazione relativa alle attività di tecno-
+       massimo di 1,2 milioni di euro per ciascuno degli anni 2019, 2020 e        
+                                          finanza (Fin.Tech) volte al perseguimento, mediante nuove tecnologie
+       2021. Ai relativi oneri si provvede mediante la corrispondente riduzione   
+                                          quali l’intelligenza artificiale e i registri distribuiti, dell’innovazione di
+       della dotazione del FIR. Qualora l’importo dei compensi da attribuire      
+                                          servizi e di prodotti nei settori finanziario, creditizio, assicurativo e dei
+       ai componenti della Commissione tecnica risulti inferiore al predetto      
+                                          mercati regolamentati.                  
+       limite massimo, con decreto del Ministro dell’economia e delle finan-      
+       ze, l’importo eccedente confluisce nel FIR. Il Ministro dell’economia e 2 -ter. La sperimentazione di cui al comma 2- bis si conforma al
+       delle finanze è autorizzato ad apportare le occorrenti variazioni di bi- principio di proporzionalità previsto dalla normativa dell’Unione euro-
+       lancio. La domanda di indennizzo, corredata di idonea documentazione pea ed è caratterizzata da:
+       attestante i requisiti di cui al comma 494, è inviata entro il termine di a) una durata massima di diciotto mesi prorogabili per un massi-
+       centottanta giorni decorrenti dalla data individuata con apposito decreto mo di ulteriori dodici mesi;
+       del Ministro dell’economia e delle finanze.»;                              
+                                             b) requisiti patrimoniali ridotti;   
+          f) dopo il comma 501 è inserito il seguente comma:                      
+                                             c) adempimenti semplificati e proporzionati alle attività che si
+           «501 -bis . Le attività di supporto per l’espletamento delle intende svolgere;
+       funzioni della Commissione tecnica di cui al comma 501 sono affidate       
+                                             d) tempi ridotti delle procedure autorizzative;
+       dal Ministero dell’economia e delle finanze, nel rispetto dei pertinenti   
+       principi dell’ordinamento nazionale e di quello dell’Unione europea, a e) definizione di perimetri e limiti di operatività.
+       società a capitale interamente pubblico, su cui l’amministrazione dello 2 -quater. Nel rispetto della normativa inderogabile dell’Unione eu-
+       Stato esercita un controllo analogo a quello esercitato su propri servizi ropea, i regolamenti di cui al comma 2- bis stabiliscono o individuano i
+       e che svolge la propria attività quasi esclusivamente nei confronti della criteri per determinare:
+       predetta amministrazione.                                                  
+                                             a) i requisiti di ammissione alla sperimentazione;
+           Gli oneri e le spese relative alle predette attività sono a carico     
+                                             a- bis ) i casi in cui un’attività può essere ammessa a
+       delle risorse finanziarie del FIR non oltre il limite massimo complessivo  
+                                          sperimentazione;                        
+       di 12,5 milioni di euro.»;                                                 
+                                             a- ter ) i casi in cui è ammessa la proroga;
+          g) il comma 502 è sostituito dal seguente:                              
+                                             b) i requisiti patrimoniali;         
+           «502. I risparmiatori di cui al comma 502- bis sono soddisfatti        
+       con priorità a valere sulla dotazione del FIR.»; c) gli adempimenti semplificati e proporzionati alle attività che
+                                          si intende svolgere;                    
+          h) dopo il comma 502, sono aggiunti i seguenti:                         
+           «502 -bis . Previo accertamento da parte della Commissione d) i perimetri di operatività;
+       tecnica di cui al comma 501 esclusivamente dei requisiti soggettivi e e) gli obblighi informativi;
+                                      — 20 —
+````
+
+## Pagina 23
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          f) i tempi per il rilascio di autorizzazioni; formazioni, e non possono reciprocamente opporsi il segreto d’ufficio.
+          g) i requisiti di professionalità degli esponenti aziendali; Dall’attuazione delle disposizioni dei commi da 2- bis al presente com-
+                                          ma non devono derivare nuovi o maggiori oneri per la finanza pubblica.
+          h) i profili di governo societario e di gestione del rischio;           
+                                            2 -novies . Le autorità di vigilanza e di controllo sono autorizzate,
+          i) le forme societarie ammissibili anche in deroga alle forme singolarmente o in collaborazione tra loro, a stipulare accordi con una
+       societarie previste dal testo unico delle leggi in materia bancaria e cre- o più università sottoposte alla vigilanza del Ministro dell’istruzione,
+       ditizia, di cui al decreto legislativo 1° settembre 1993, n. 385, dal testo dell’università e della ricerca e con centri di ricerca ad esse collegati,
+       unico delle disposizioni in materia di intermediazione finanziaria, di cui aventi ad oggetto lo studio dell’applicazione alla loro attività istituzio-
+       al decreto legislativo 24 febbraio 1998, n. 58, e dal codice delle assicu- nale degli strumenti di intelligenza artificiale, di registri contabili crip-
+       razioni private, di cui al decreto legislativo 7 settembre 2005, n. 209; tati e di registri distribuiti, nonché la formazione del proprio personale.
+          l) le eventuali garanzie finanziarie;                                   
+                                            Agli oneri derivanti dagli accordi di cui al presente comma le auto-
+          m) l’i ter successivo al termine della sperimentazione. rità provvedono nell’ambito dei rispettivi stanziamenti di bilancio.
+         2 -quinquies . Le misure di cui ai commi 2- ter e 2- quater possono 2 -decies . All’articolo 24- bis del decreto-legge 23 dicembre 2016,
+       essere differenziate e adeguate in considerazione delle particolarità e n. 237, convertito, con modificazioni, dalla legge 17 febbraio 2017,
+       delle esigenze dei casi specifici; esse hanno carattere temporaneo e ga- n. 15, sono apportate le seguenti modificazioni:
+       rantiscono adeguate forme di informazione e di protezione a favore di      
+                                             a) il comma 7 è sostituito dal seguente:
+       consumatori e investitori, nonché del corretto funzionamento dei merca-    
+       ti. L’operatività delle misure cessa al termine del relativo periodo, ovve- “7. Dall’istituzione del Comitato di cui al comma 6 non devo-
+       ro alla perdita dei requisiti o al superamento dei limiti operativi stabiliti, no derivare oneri a carico della finanza pubblica, salvo quanto previsto
+       nonché negli altri casi previsti dai regolamenti di cui al comma 2- bis . dal comma 9”;
+         2 -sexies . La sperimentazione non comporta il rilascio di autorizza- b) il comma 9 è sostituito dal seguente:
+       zioni per l’esercizio di attività riservate da svolgersi al di fuori di essa. “9. Il Comitato opera attraverso riunioni periodiche, preve-
+       Lo svolgimento, nell’ambito della sperimentazione e nel rispetto dei li- dendo, ove necessario, la costituzione di specifici gruppi di ricerca cui
+       miti stabiliti dai provvedimenti di ammissione, di attività che rientrano possono partecipare accademici ed esperti nella materia.
+       nella nozione di servizi e attività di investimento non implica l’esercizio
+                                            La partecipazione al Comitato non dà titolo ad alcun emolumento o
+       a titolo abituale di attività riservate e, pertanto, non necessita del rila-
+                                          compenso o gettone di presenza. È fatta salva la corresponsione ai com-
+       scio di autorizzazioni ove sia prevista una durata massima di sei mesi,    
+                                          ponenti del Comitato dei rimborsi delle spese di viaggio e di alloggio,
+       salvo il maggior termine della sperimentazione, che non può superare       
+                                          sostenute per la partecipazione alle riunioni periodiche di cui al primo
+       complessivamente il limite massimo di diciotto mesi, nei casi in cui sia   
+                                          periodo, a valere sui fondi previsti dal comma 11”.
+       concessa una proroga funzionale all’ottenimento dell’autorizzazione o      
+       dell’iscrizione prevista dalla legge per lo svolgimento abituale e a titolo 2 -undecies . All’articolo 48- bis , comma 1, secondo periodo, del de-
+       professionale dell’attività medesima. Nel rispetto delle norme stabilite creto del Presidente della Repubblica 29 settembre 1973, n. 602, sono
+       dai regolamenti di cui al comma 2- bis e delle finalità del periodo di aggiunte, in fine, le seguenti parole: “nonché ai risparmiatori di cui
+       sperimentazione, la Banca d’Italia, la CONSOB e l’IVASS, nell’ambito all’articolo 1, comma 494, della legge 30 dicembre 2018, n. 145, che
+       delle proprie competenze e delle materie seguite, adottano i provvedi- hanno subito un pregiudizio ingiusto da parte di banche e loro controlla-
+       menti per l’ammissione alla sperimentazione delle attività di cui al com- te aventi sede legale in Italia, poste in liquidazione coatta amministrati-
+       ma 2- bis e ogni altra iniziativa ad essi propedeutica. I provvedimenti va dopo il 16 novembre 2015 e prima del 16 gennaio 2018”.
+       per l’ammissione alla sperimentazione stabiliscono i limiti dell’attività 2 -duodecies . All’articolo 5, comma 1, del decreto-legge 25 mar-
+       di partecipazione alla sperimentazione con riguardo alla tipologia e alle zo 2019, n. 22, convertito, con modificazioni, dalla legge 20 maggio
+       modalità di prestazione del servizio di investimento, alla tipologia e al 2019, n. 41, le parole: “ad operarvi nel periodo transitorio,” sono sosti-
+       numero di utenti finali, al numero di operazioni, ai volumi complessivi tuite dalle seguenti: “ad operare con le medesime modalità nel periodo
+       dell’attività. Nel rispetto della normativa inderogabile dell’Unione eu- transitorio,”.
+       ropea, l’ammissione alla sperimentazione può comportare la deroga o la     
+       disapplicazione temporanee degli orientamenti di vigilanza o degli atti 2 -terdecies . La CONSOB ordina ai fornitori di connettività alla
+       di carattere generale emanati dalle autorità di vigilanza, nonché delle rete internet ovvero ai gestori di altre reti telematiche o di telecomu-
+       norme o dei regolamenti emanati dalle medesime autorità di vigilanza, nicazione, o agli operatori che in relazione ad esse forniscono servizi
+       concernenti i profili di cui al comma 2- quater , lettere b ) , c) , d) , e) , f) , g) , telematici o di telecomunicazione, la rimozione delle iniziative di chiun-
+       h) , i) e l ) . Alle attività della Banca d’Italia, della CONSOB e dell’IVASS que nel territorio della Repubblica, attraverso le reti telematiche o di te-
+       relative alla sperimentazione si applicano gli articoli 7 del testo unico di lecomunicazione, offre o svolge servizi o attività di investimento senza
+       cui al decreto legislativo 1° settembre 1993, n. 385, 4 del testo unico di esservi abilitato. I destinatari degli ordini comunicati ai sensi del primo
+       cui al decreto legislativo 24 febbraio 1998, n. 58, e 10 del codice di cui periodo hanno l’obbligo di inibire l’utilizzazione delle reti delle quali
+       al decreto legislativo 7 settembre 2005, n. 209, nonché gli articoli 21 e sono gestori o in relazione alle quali forniscono servizi. La CONSOB
+       24, comma 6- bis , della legge 28 dicembre 2005, n. 262. può stabilire con regolamento le modalità e i termini degli adempimenti
+                                          previsti dal presente comma.            
+         2 -septies . La Banca d’Italia, la CONSOB e l’IVASS redigono an-         
+       nualmente, ciascuno per quanto di propria competenza, una relazione 2 -quaterdecies . La Consob può ordinare ai soggetti di cui al com-
+       d’analisi sul settore tecno-finanziario, riportando quanto emerge dall’ap- ma 2- terdecies la rimozione delle campagne pubblicitarie condotte at-
+       plicazione del regime di sperimentazione di cui al comma 2- bis , e se- traverso le reti telematiche o di telecomunicazione, aventi ad oggetto
+       gnalano eventuali modifiche normative o regolamentari necessarie per servizi o attività di investimento prestati da chi non vi è abilitato.».
+       lo sviluppo del settore, la tutela del risparmio e la stabilità finanziaria.
+                                            — Si riporta il testo dell’articolo 15 del decreto-legge 15 settembre
+         2 -octies . È istituito presso il Ministero dell’economia e delle fi- 2023, n. 123, recante: «Misure urgenti di contrasto al disagio giovanile,
+       nanze il Comitato FinTech. Il Comitato ha il compito di individuare gli alla povertà educativa e alla criminalità minorile, nonché per la sicurez-
+       obiettivi, definire i programmi e porre in essere le azioni per favorire lo za dei minori in ambito digitale», pubblicato nella G azzetta Ufficiale
+       sviluppo della tecno-finanza, anche in cooperazione con soggetti este- n. 216 del 15 settembre 2023, convertito, con modificazioni, dalla legge
+       ri, nonché di formulare proposte di carattere normativo e agevolare il 13 novembre 2023, n. 159:
+       contatto degli operatori del settore con le istituzioni e con le autorità. 
+       Sono membri permanenti del Comitato il Ministro dell’economia e delle «Art. 15 (Designazione del coordinatore dei servizi digitali in at-
+       finanze, il Ministro dello sviluppo economico, il Ministro per gli affa- tuazione del Regolamento (UE) 2022/2065 sui servizi digitali) . — 1. Al
+       ri europei, la Banca d’Italia, la CONSOB, l’IVASS, l’Autorità garante fine di garantire l’effettività dei diritti e l’efficacia degli obblighi sta-
+       della concorrenza e del mercato, il Garante per la protezione dei dati biliti dal Regolamento (UE) 2022/2065 del Parlamento europeo e del
+       personali, l’Agenzia per l’Italia digitale e l’Agenzia delle entrate. Il Co- Consiglio del 19 ottobre 2022 relativo a un mercato unico dei servizi
+       mitato può invitare alle proprie riunioni, con funzioni consultive e senza digitali, nonché la relativa vigilanza e il conseguimento degli obiettivi
+       diritto di voto, ulteriori istituzioni e autorità, nonché associazioni di ca- previsti, anche con riguardo alla protezione dei minori in relazione ai
+       tegoria, imprese, enti e soggetti operanti nel settore della tecno-finanza. contenuti pornografici disponibili on line, nonché agli altri contenuti
+       I regolamenti di cui al comma 2- bis stabiliscono le attribuzioni del Co- illegali o comunque vietati, veicolati da piattaforme on line o altri gesto-
+       mitato. Per le attività svolte dal Comitato relative alla sperimentazione, i ri di servizi intermediari, e contribuire alla definizione di un ambiente
+       membri permanenti collaborano tra loro, anche mediante scambio di in- digitale sicuro, l’Autorità per le garanzie nelle comunicazioni è desi-
+                                      — 21 —
+````
+
+## Pagina 24
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       gnata quale Coordinatore dei Servizi Digitali, ai sensi dell’articolo 49, per mille del fatturato realizzato nell’anno contabile 2022 secondo le
+       paragrafo 2, del Regolamento (UE) 2022/2065. modalità determinate dall’Autorità medesima con propria deliberazio-
+         2. L’Autorità garante della concorrenza e del mercato, il Garan- ne. Eventuali variazioni della misura e delle modalità di contribuzione,
+       te per la protezione dei dati personali e ogni altra Autorità nazionale per gli anni successivi, possono essere motivatamente adottate dall’Au-
+       competente, nell’ambito delle rispettive competenze, assicurano ogni torità, con propria deliberazione, nel limite massimo dello 0,5 per mille
+       necessaria collaborazione ai fini dell’esercizio da parte dell’Autorità per del fatturato risultante dall’ultimo bilancio approvato. L’Autorità indi-
+       le garanzie nelle comunicazioni delle funzioni di Coordinatore dei Ser- vidua, con la collaborazione dell’Istituto nazionale di statistica (ISTAT)
+       vizi Digitali. Le Autorità possono disciplinare con protocolli di intesa e dell’Agenzia delle entrate, l’elenco dei soggetti tenuti al versamento
+       gli aspetti applicativi e procedimentali della reciproca collaborazione. del contributo.
+         3. L’Autorità per le garanzie nelle comunicazioni definisce, con 6. A decorrere dal 2024, nelle more delle procedure concorsuali
+       proprio provvedimento, le condizioni, le procedure e le modalità ope- per l’assunzione del personale di cui al comma 5 e fino al termine delle
+       rative per l’esercizio dei poteri e delle funzioni di cui è titolare, qua- procedure di reclutamento, l’Autorità provvede all’esercizio dei compiti
+       le Coordinatore dei Servizi Digitali, ai sensi del Regolamento (UE) derivanti dalla designazione di cui al presente articolo mediante l’utiliz-
+       2022/2065 e svolge i relativi compiti in modo imparziale, trasparente zazione di personale, nel limite massimo di 10 unità, posto in posizione
+       e tempestivo.                      di comando, distacco, fuori ruolo o aspettativa o in analoghe posizioni
+                                          secondo i rispettivi ordinamenti, ai sensi dell’articolo 17, comma 14,
+         4. All’articolo 1 della legge 31 luglio 1997, n. 249, sono apportate     
+                                          della legge 15 maggio 1997, n. 127. Per la durata del collocamento fuori
+       le seguenti modificazioni:                                                 
+                                          ruolo è reso indisponibile un numero di posti nella dotazione organica
+          a) al comma 6, lettera c ) , dopo il numero 14- bis ) è aggiunto dell’amministrazione di provenienza equivalente dal punto di vista fi-
+       il seguente: «14- ter ) esercita la funzione di Coordinatore dei Servizi nanziario. Il personale di cui al primo periodo, non rientrante nella pian-
+       Digitali e i relativi poteri previsti dal Regolamento (UE) 2022/2065 del ta organica dell’Autorità, è individuato a seguito di apposito interpello,
+       Parlamento europeo e del Consiglio del 19 ottobre 2022 relativo a un in cui sono specificati i profili professionali richiesti, cui possono ade-
+       mercato unico dei servizi digitali.»; rire i dipendenti appartenenti ai ruoli delle amministrazioni pubbliche
+          b) dopo il comma 32, è aggiunto il seguente: di cui all’articolo 1, comma 2, del decreto legislativo 30 marzo 2001,
+                                          n. 165, con esclusione del personale docente, educativo, amministrati-
+           «32 -bis . In caso di violazione degli obblighi previsti agli ar-      
+                                          vo, tecnico e ausiliario delle istituzioni scolastiche, e mantiene il tratta-
+       ticoli 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21, 22, 23, 24, 26, 27, 28,
+                                          mento economico fondamentale delle amministrazioni di appartenenza,
+       30 e 45 del Regolamento (UE) 2022/2065 del Parlamento europeo e del        
+                                          compresa l’indennità di amministrazione, i cui oneri restano a carico
+       Consiglio del 19 ottobre 2022 relativo a un mercato unico dei servizi      
+                                          delle stesse. L’Autorità provvede agli oneri del trattamento economico
+       digitali, l’Autorità, nell’esercizio dei poteri di cui al combinato dispo- 
+                                          accessorio mediante i contributi previsti al comma 5.».
+       sto degli articoli 51 e 52 del medesimo Regolamento (UE) 2022/2065,        
+       applica, in base a principi di proporzionalità, adeguatezza e rispetto — Si riporta il testo dell’articolo 8 del citato decreto-legge 14 giu-
+       del contraddittorio, secondo le procedure stabilite con proprio regola- gno 2021, n. 82, come modificato dalla presente legge:
+       mento, sanzioni amministrative pecuniarie fino ad un massimo del 6%        
+                                            «Art. 8 (Nucleo per la cybersicurezza) . — 1. Presso l’Agenzia è
+       del fatturato annuo mondiale nell’esercizio finanziario precedente alla    
+                                          costituito, in via permanente, il Nucleo per la cybersicurezza, a supporto
+       comunicazione di avvio del procedimento al prestatore di un servizio       
+                                          del Presidente del Consiglio dei ministri nella materia della cybersicu-
+       intermediario rientrante nella propria sfera di competenza, anche nella    
+                                          rezza, per gli aspetti relativi alla prevenzione e preparazione ad eventua-
+       sua qualità di Coordinatore dei Servizi Digitali, ai sensi del diritto na- 
+                                          li situazioni di crisi e per l’attivazione delle procedure di allertamento.
+       zionale e dell’Unione europea applicabile alla fattispecie di illecito. In 
+       caso di comunicazione di informazioni inesatte, incomplete o fuorvian- 2. Il Nucleo per la cybersicurezza è presieduto dal direttore genera-
+       ti, di mancata risposta o rettifica di informazioni inesatte, incomplete o le dell’Agenzia o, per sua delega, dal vice direttore generale ed è com-
+       fuorvianti e di inosservanza dell’obbligo di sottoporsi a un’ispezione, posto dal Consigliere militare del Presidente del Consiglio dei ministri,
+       l’Autorità, nell’esercizio dei poteri di cui al combinato disposto degli da un rappresentante, rispettivamente, del DIS, dell’Agenzia informa-
+       articoli 51 e 52 del medesimo Regolamento (UE) 2022/2065, applica zioni e sicurezza esterna (AISE), di cui all’articolo 6 della legge 3 ago-
+       una sanzione amministrativa pecuniaria fino ad un massimo dell’1% del sto 2007, n. 124, dell’Agenzia informazioni e sicurezza interna (AISI),
+       fatturato mondiale realizzato nell’esercizio finanziario precedente dal di cui all’articolo 7 della legge n. 124 del 2007, di ciascuno dei Ministeri
+       fornitore di un servizio intermediario o dalla persona interessata rien- rappresentati nel CIC e del Dipartimento della protezione civile della
+       tranti nella propria sfera di competenza, anche nella sua qualità di Coor- Presidenza del Consiglio dei ministri, n onché dell’Agenzia per l’Italia
+       dinatore dei Servizi Digitali, ai sensi del diritto nazionale e dell’Unione digitale (AgID) . Per gli aspetti relativi alla trattazione di informazioni
+       europea applicabile alla fattispecie di illecito. L’importo massimo gior- classificate il Nucleo è integrato da un rappresentante dell’Ufficio cen-
+       naliero delle penalità di mora che l’Autorità può applicare è pari al 5% trale per la segretezza di cui all’articolo 9 della legge n. 124 del 2007.
+       del fatturato giornaliero medio mondiale del fornitore di un servizio in- 3. I componenti del Nucleo possono farsi assistere alle riunioni
+       termediario interessato realizzato nell’esercizio finanziario precedente, da altri rappresentanti delle rispettive amministrazioni in relazione alle
+       calcolato a decorrere dalla data specificata nella decisione in questione. materie oggetto di trattazione. In base agli argomenti delle riunioni pos-
+       Nell’applicazione della sanzione l’Autorità tiene conto, in particolare, sono anche essere chiamati a partecipare rappresentanti di altre ammini-
+       della gravità del fatto e delle conseguenze che ne sono derivate, nonché strazioni, di università o di enti e istituti di ricerca, nonché di operatori
+       della durata e dell’eventuale reiterazione delle violazioni. Per le sanzio- privati interessati alla materia della cybersicurezza.
+       ni amministrative previste dal presente comma è escluso il beneficio del   
+                                            4. Il Nucleo può essere convocato in composizione ristretta con la
+       pagamento in misura ridotta previsto dall’articolo 16 della legge 24 no-   
+                                          partecipazione dei rappresentanti delle sole amministrazioni e soggetti
+       vembre 1981, n. 689.».                                                     
+                                          interessati, anche relativamente ai compiti di gestione delle crisi di cui
+         5. La pianta organica dell’Autorità per le garanzie nelle comunica- all’articolo 10.
+       zioni è incrementata in misura di 23 unità con le seguenti qualifiche: n. 1
+       dirigente, n. 20 funzionari, n. 2 operativi. Gli oneri derivanti dal presente 4.1. In relazione a specifiche questioni di particolare rilevanza con-
+       articolo sono determinati in 4.005.457 euro per l’anno 2024, 4.125.590 cernenti i compiti di cui all’articolo 9, comma 1, lettera a ) , il Nucleo può
+       euro per l’anno 2025, 3.903.136 euro per l’anno 2026, 4.081.636 euro essere convocato nella composizione di cui al comma 4 del presente
+       per l’anno 2027, 4.267.375 euro per l’anno 2028, 4.527.751 euro per articolo, di volta in volta estesa alla partecipazione di un rappresentante
+       l’anno 2029, 4.737.357 euro per l’anno 2030, 4.971.989 euro per l’an- della Direzione nazionale antimafia e antiterrorismo, della Banca d’Ita-
+       no 2031, 5.434.808 euro per l’anno 2032 e 5.694.052 euro a decorrere lia o di uno o più operatori di cui all’articolo 1, comma 2- bis , del de-
+       dall’anno 2033. Ad essi si provvede mediante un contributo di impor- creto-legge perimetro, nonché di eventuali altri soggetti, interessati alle
+       to pari allo 0,135 per mille del fatturato risultante dall’ultimo bilancio stesse questioni. Le amministrazioni e i soggetti convocati partecipano
+       approvato dai prestatori dei servizi intermediari stabiliti in Italia, così alle suddette riunioni a livello di vertice.».
+       come definiti dal Regolamento (UE) 2022/2065 del Parlamento europeo 4 -bis . Ai componenti del Nucleo non spettano compensi, gettoni di
+       e del Consiglio del 19 ottobre 2022 relativo a un mercato unico dei ser- presenza, rimborsi di spese o altri emolumenti comunque denominati.».
+       vizi digitali e che modifica la Direttiva 2000/31/CE (Regolamento sui      
+       servizi digitali). Ferme restando tutte le attuali forme di finanziamento Note all’art. 22:
+       e nel rispetto delle esenzioni previste dal Regolamento medesimo, in       
+       sede di prima applicazione, per l’anno 2024, il contributo è versato di- — Si riporta il testo dell’articolo 5, comma 1, del decreto legi-
+       rettamente all’Autorità entro il 1° marzo 2024 nella misura dello 0,135 slativo 27 dicembre 2023, n. 209, recante: «Attuazione della riforma
+                                      — 22 —
+````
+
+## Pagina 25
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       fiscale in materia di fiscalità internazionale», pubblicato nella G azzetta 4. Per essere ammessi ad un corso di specializzazione occorre es-
+       Ufficiale n. 3 del 4 gennaio 2013, come modificato dalla presente legge: sere in possesso almeno della laurea, ovvero di altro titolo di studio con-
+         «Art. 5 (Nuovo regime agevolativo a favore dei lavoratori impa- seguito all’estero, riconosciuto idoneo. Nel rispetto delle norme e delle
+       triati) . — 1. I redditi di lavoro dipendente, i redditi assimilati a quelli di direttive di cui all’articolo 3, comma 6, i decreti ministeriali stabiliscono
+       lavoro dipendente, i redditi di lavoro autonomo derivanti dall’esercizio gli specifici requisiti di ammissione ad un corso di specializzazione, ivi
+       di arti e professioni prodotti in Italia da lavoratori che trasferiscono la compresi gli eventuali crediti formativi universitari aggiuntivi rispetto
+       residenza nel territorio dello Stato ai sensi dell’articolo 2 del testo unico al titolo di studio già conseguito.
+       delle imposte sui redditi di cui al decreto del Presidente della Repub- 5. Per essere ammessi ad un corso di dottorato di ricerca occorre
+       blica 22 dicembre 1986, n. 917, entro il limite annuo di 600.000 euro essere in possesso della laurea magistrale ovvero di altro titolo di studio
+       concorrono alla formazione del reddito complessivo limitatamente al conseguito all’estero e riconosciuto idoneo.
+       50 per cento del loro ammontare al ricorrere delle seguenti condizioni: 6. Il riconoscimento dell’idoneità dei titoli di studio conseguiti
+          a) i lavoratori si impegnano a risiedere fiscalmente in Italia per all’estero ai soli fini dell’ammissione a corsi di studio e di dottorato di
+       un periodo di tempo corrispondente a quello di cui al comma 3, secondo ricerca è deliberata dall’università interessata, nel rispetto degli accordi
+       periodo;                           internazionali vigenti.».               
+          b) i lavoratori non sono stati fiscalmente residenti in Italia nei tre  
+       periodi d’imposta precedenti il loro trasferimento. Se il lavoratore presta Note all’art. 23:
+       l’attività lavorativa nel territorio dello Stato in favore dello stesso sog-
+                                            — Si riporta il testo dei commi 116 e 209, della legge 30 dicembre
+       getto presso il quale è stato impiegato all’estero prima del trasferimento 
+                                          2018, n. 145, recante: «Bilancio di previsione dello Stato per l’anno
+       oppure in favore di un soggetto appartenente al suo stesso gruppo, il      
+                                          finanziario 2019 e bilancio pluriennale per il triennio 2019-2021», pub-
+       requisito minimo di permanenza all’estero è di:                            
+                                          blicata nella G azzetta Ufficiale n. 302 del 31 dicembre 2012:
+           1) sei periodi d’imposta, se il lavoratore non è stato in prece-       
+                                            «116. Al fine di semplificare e rafforzare il settore del venture ca-
+       denza impiegato in Italia in favore dello stesso soggetto oppure di un     
+                                          pital e il tessuto economico-produttivo del Paese, il Ministero dello svi-
+       soggetto appartenente al suo stesso gruppo;                                
+                                          luppo economico può autorizzare la cessione, a condizioni di mercato,
+           2) sette periodi d’imposta, se il lavoratore, prima del suo tra- da parte dell’Agenzia nazionale per l’attrazione degli investimenti e lo
+       sferimento all’estero, è stato impiegato in Italia in favore dello stesso sviluppo d’impresa Spa - Invitalia, di una quota di partecipazione, anche
+       soggetto oppure di un soggetto appartenente al suo stesso gruppo; di controllo, detenuta nella società di gestione del risparmio Invitalia
+          c) l’attività lavorativa è prestata per la maggior parte del periodo Ventures SGR Spa - Invitalia SGR, nonché di una quota di partecipazio-
+       d’imposta nel territorio dello Stato; ne in fondi da essa gestiti, per favorire la gestione sinergica delle risorse
+                                          di cui all’articolo 23 del decreto-legge 22 giugno 2012, n. 83, converti-
+          d) i lavoratori sono in possesso dei requisiti di elevata qualifica-    
+                                          to, con modificazioni, dalla legge 7 agosto 2012, n. 134, all’articolo 1,
+       zione o specializzazione come definiti dal decreto legislativo 28 giugno   
+                                          comma 897, della legge 27 dicembre 2017, n. 205, e al comma 121 del
+       2012, n. 108 e dal decreto legislativo 9 novembre 2007, n. 206, o ppure    
+                                          presente articolo, già affidate a Invitalia SGR, e a condizione che dal-
+       hanno svolto un’attività di ricerca anche applicata nell’ambito delle      
+                                          la cessione derivi l’apporto di risorse aggiuntive da parte del soggetto
+       tecnologie di intelligenza artificiale .                                   
+                                          acquirente. Con direttiva del Ministro dello sviluppo economico a In-
+         Omissis .».                      vitalia sono stabiliti i contenuti e i termini della cessione, anche ai fini
+         — Si riporta l’articolo 6, del decreto 22 ottobre 2004, n. 270, recan- dell’esercizio del diritto di opzione di cui al comma 117, unitamente ai
+       te: «Modifiche al regolamento recante norme concernenti l’autonomia criteri di governance per l’esercizio dei diritti di azionista sull’eventuale
+       didattica degli atenei, approvato con decreto del Ministro dell’università quota di minoranza e di titolare di quote dei fondi di investimento.».
+       e della ricerca scientifica e tecnologica 3 novembre 1999, n. 509», pub-   
+                                            «209. Per le finalità di cui al comma 206, è istituito, nello stato di
+       blicato nella G azzetta Ufficiale 12 novembre 2004, n. 266:                
+                                          previsione del Ministero dello sviluppo economico, il Fondo di sostegno
+         «Art. 6 ( Requisiti di ammissione ai corsi di studio). — 1. Per es- al Venture Capital con una dotazione di 30 milioni di euro per ciascuno
+       sere ammessi ad un corso di laurea occorre essere in possesso di un degli anni 2019, 2020 e 2021 e di 5 milioni di euro per ciascuno degli
+       diploma di scuola secondaria superiore o di altro titolo di studio conse- anni dal 2022 al 2025.».
+       guito all’estero, riconosciuto idoneo. I regolamenti didattici di ateneo,  
+       ferme restando le attività di orientamento, coordinate e svolte ai sensi Note all’art. 24:
+       dell’articolo 11, comma 7, lettera g ) , richiedono altresì il possesso o  
+       l’acquisizione di un’adeguata preparazione iniziale. A tal fine gli stessi — Si riporta il testo degli articolo 31 e 32 della legge 24 dicembre
+       regolamenti didattici definiscono le conoscenze richieste per l’accesso 2012, n. 234, recante: «Norme generali sulla partecipazione dell’Ita-
+       e ne determinano le modalità di verifica, anche a conclusione di attività lia alla formazione e all’attuazione della normativa e delle politiche
+       formative propedeutiche, svolte eventualmente in collaborazione con dell’Unione europea», pubblicata nella G azzetta Ufficiale n. 3 del
+       istituti di istruzione secondaria superiore. Se la verifica non è positiva 4 gennaio 2013:
+       vengono indicati specifici obblighi formativi aggiuntivi da soddisfare «Art. 31 (Procedure per l’esercizio delle deleghe legislative confe-
+       nel primo anno di corso. Tali obblighi formativi aggiuntivi sono asse- rite al Governo con la legge di delegazione europea). — 1. In relazione
+       gnati anche agli studenti dei corsi di laurea ad accesso programmato che alle deleghe legislative conferite con la legge di delegazione europea per
+       siano stati ammessi ai corsi con una votazione inferiore ad una prefissa- il recepimento delle direttive, il Governo adotta i decreti legislativi entro
+       ta votazione minima.               il termine di quattro mesi antecedenti a quello di recepimento indicato in
+         2. Per essere ammessi ad un corso di laurea magistrale occorre esse- ciascuna delle direttive; per le direttive il cui termine così determinato
+       re in possesso della laurea o del diploma universitario di durata triennale, sia già scaduto alla data di entrata in vigore della legge di delegazione
+       ovvero di altro titolo di studio conseguito all’estero, riconosciuto idoneo. europea, ovvero scada nei tre mesi successivi, il Governo adotta i decre-
+       Nel caso di corsi di laurea magistrale per i quali non sia previsto il nu- ti legislativi di recepimento entro tre mesi dalla data di entrata in vigore
+       mero programmato dalla normativa vigente in materia di accessi ai corsi della medesima legge; per le direttive che non prevedono un termine di
+       universitari, l’università stabilisce per ogni corso di laurea magistrale, recepimento, il Governo adotta i relativi decreti legislativi entro dodici
+       specifici criteri di accesso che prevedono, comunque, il possesso di re- mesi dalla data di entrata in vigore della legge di delegazione europea.
+       quisiti curriculari e l’adeguatezza della personale preparazione verificata 2. I decreti legislativi sono adottati, nel rispetto dell’articolo 14 del-
+       dagli atenei, con modalità definite nei regolamenti didattici. L’iscrizione la legge 23 agosto 1988, n. 400, su proposta del Presidente del Consiglio
+       ai corsi di laurea magistrale può essere consentita dall’università anche dei Ministri o del Ministro per gli affari europei e del Ministro con com-
+       ad anno accademico iniziato, purché in tempo utile per la partecipazione petenza prevalente nella materia, di concerto con i Ministri degli affari
+       ai corsi nel rispetto delle norme stabilite nei regolamenti stessi. esteri, della giustizia, dell’economia e delle finanze e con gli altri Mini-
+         3. In deroga al comma 2, e all’articolo 7, comma 2, i decreti mini- stri interessati in relazione all’oggetto della direttiva. I decreti legislativi
+       steriali possono prevedere l’ammissione ad un corso di laurea magistra- sono accompagnati da una tabella di concordanza tra le disposizioni in
+       le con il possesso del diploma di scuola secondaria superiore, esclusiva- essi previste e quelle della direttiva da recepire, predisposta dall’ammi-
+       mente per corsi di studio regolati da normative dell’Unione europea che nistrazione con competenza istituzionale prevalente nella materia.
+       non prevedano, per tali corsi, titoli universitari di primo livello, ovvero, 3. La legge di delegazione europea indica le direttive in relazione
+       fermo restando il periodo formativo iniziale comune di cui all’artico- alle quali sugli schemi dei decreti legislativi di recepimento è acquisito
+       lo 11, comma 7, lettera a ) , per i corsi di studio finalizzati all’accesso il parere delle competenti Commissioni parlamentari della Camera dei
+       alle professioni legali.           deputati e del Senato della Repubblica. In tal caso gli schemi dei decreti
+                                      — 23 —
+````
+
+## Pagina 26
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       legislativi sono trasmessi, dopo l’acquisizione degli altri pareri previsti d) al di fuori dei casi previsti dalle norme penali vigenti, ove
+       dalla legge, alla Camera dei deputati e al Senato della Repubblica af- necessario per assicurare l’osservanza delle disposizioni contenute nei
+       finché su di essi sia espresso il parere delle competenti Commissioni decreti legislativi, sono previste sanzioni amministrative e penali per
+       parlamentari. Decorsi quaranta giorni dalla data di trasmissione, i de- le infrazioni alle disposizioni dei decreti stessi. Le sanzioni penali, nei
+       creti sono emanati anche in mancanza del parere. Qualora il termine per limiti, rispettivamente, dell’ammenda fino a 150.000 euro e dell’arre-
+       l’espressione del parere parlamentare di cui al presente comma ovvero sto fino a tre anni, sono previste, in via alternativa o congiunta, solo
+       i diversi termini previsti dai commi 4 e 9 scadano nei trenta giorni che nei casi in cui le infrazioni ledano o espongano a pericolo interessi
+       precedono la scadenza dei termini di delega previsti ai commi 1 o 5 o costituzionalmente protetti. In tali casi sono previste: la pena dell’am-
+       successivamente, questi ultimi sono prorogati di tre mesi. menda alternativa all’arresto per le infrazioni che espongano a pericolo
+         4. Gli schemi dei decreti legislativi recanti recepimento delle di- o danneggino l’interesse protetto; la pena dell’arresto congiunta a quel-
+       rettive che comportino conseguenze finanziarie sono corredati della la dell’ammenda per le infrazioni che rechino un danno di particolare
+       relazione tecnica di cui all’articolo 17, comma 3, della legge 31 di- gravità. Nelle predette ipotesi, in luogo dell’arresto e dell’ammenda,
+       cembre 2009, n. 196. Su di essi è richiesto anche il parere delle Com- possono essere previste anche le sanzioni alternative di cui agli articoli
+       missioni parlamentari competenti per i profili finanziari. Il Governo, 53 e seguenti del decreto legislativo 28 agosto 2000, n. 274, e la relativa
+       ove non intenda conformarsi alle condizioni formulate con riferimento competenza del giudice di pace. La sanzione amministrativa del paga-
+       all’esigenza di garantire il rispetto dell’articolo 81, quarto comma, del- mento di una somma non inferiore a 150 euro e non superiore a 150.000
+       la Costituzione, ritrasmette alle Camere i testi, corredati dei necessari euro è prevista per le infrazioni che ledono o espongono a pericolo
+       elementi integrativi d’informazione, per i pareri definitivi delle Com- interessi diversi da quelli indicati dalla presente lettera. Nell’ambito
+       missioni parlamentari competenti per i profili finanziari, che devono dei limiti minimi e massimi previsti, le sanzioni indicate dalla presente
+       essere espressi entro venti giorni. lettera sono determinate nella loro entità, tenendo conto della diversa
+         5. Entro ventiquattro mesi dalla data di entrata in vigore di cia- potenzialità lesiva dell’interesse protetto che ciascuna infrazione pre-
+       scuno dei decreti legislativi di cui al comma 1, nel rispetto dei principi senta in astratto, di specifiche qualità personali del colpevole, compre-
+       e criteri direttivi fissati dalla legge di delegazione europea, il Governo se quelle che impongono particolari doveri di prevenzione, controllo
+       può adottare, con la procedura indicata nei commi 2, 3 e 4, disposizioni o vigilanza, nonché del vantaggio patrimoniale che l’infrazione può
+       integrative e correttive dei decreti legislativi emanati ai sensi del citato recare al colpevole ovvero alla persona o all’ente nel cui interesse egli
+       comma 1, fatto salvo il diverso termine previsto dal comma 6. agisce. Ove necessario per assicurare l’osservanza delle disposizioni
+                                          contenute nei decreti legislativi, sono previste inoltre le sanzioni am-
+         6. Con la procedura di cui ai commi 2, 3 e 4 il Governo può adot-        
+                                          ministrative accessorie della sospensione fino a sei mesi e, nei casi più
+       tare disposizioni integrative e correttive di decreti legislativi emanati ai
+                                          gravi, della privazione definitiva di facoltà e diritti derivanti da provve-
+       sensi del comma 1, al fine di recepire atti delegati dell’Unione europea   
+                                          dimenti dell’amministrazione, nonché sanzioni penali accessorie nei li-
+       di cui all’articolo 290 del Trattato sul funzionamento dell’Unione euro-   
+       pea, che modificano o integrano direttive recepite con tali decreti legi- miti stabiliti dal codice penale. Al medesimo fine è prevista la confisca
+       slativi. Le disposizioni integrative e correttive di cui al primo periodo obbligatoria delle cose che servirono o furono destinate a commettere
+       sono adottate nel termine di cui al comma 5 o nel diverso termine fis- l’illecito amministrativo o il reato previsti dai medesimi decreti legi-
+       sato dalla legge di delegazione europea. Resta ferma la disciplina di cui slativi, nel rispetto dei limiti stabiliti dall’articolo 240, terzo e quarto
+       all’articolo 36 per il recepimento degli atti delegati dell’Unione europea comma, del codice penale e dall’articolo 20 della legge 24 novembre
+       che recano meri adeguamenti tecnici. 1981, n. 689, e successive modificazioni. Entro i limiti di pena indicati
+                                          nella presente lettera sono previste sanzioni anche accessorie identiche
+         7. I decreti legislativi di recepimento delle direttive previste dalla   
+                                          a quelle eventualmente già comminate dalle leggi vigenti per violazioni
+       legge di delegazione europea, adottati, ai sensi dell’articolo 117, quin-  
+                                          omogenee e di pari offensività rispetto alle infrazioni alle disposizioni
+       to comma, della Costituzione, nelle materie di competenza legislativa      
+                                          dei decreti legislativi. Nelle materie di cui all’articolo 117, quarto com-
+       delle regioni e delle province autonome, si applicano alle condizioni e    
+                                          ma, della Costituzione, le sanzioni amministrative sono determinate
+       secondo le procedure di cui all’articolo 41, comma 1.                      
+                                          dalle regioni;                          
+         8. I decreti legislativi adottati ai sensi dell’articolo 33 e attinenti a
+                                             e) al recepimento di direttive o all’attuazione di altri atti
+       materie di competenza legislativa delle regioni e delle province autono-   
+                                          dell’Unione europea che modificano precedenti direttive o atti già at-
+       me sono emanati alle condizioni e secondo le procedure di cui all’arti-    
+                                          tuati con legge o con decreto legislativo si procede, se la modificazione
+       colo 41, comma 1.                                                          
+                                          non comporta ampliamento della materia regolata, apportando le corri-
+         9. Il Governo, quando non intende conformarsi ai pareri parlamen- spondenti modificazioni alla legge o al decreto legislativo di attuazione
+       tari di cui al comma 3, relativi a sanzioni penali contenute negli schemi della direttiva o di altro atto modificato;
+       di decreti legislativi recanti attuazione delle direttive, ritrasmette i testi,
+                                             f) nella redazione dei decreti legislativi di cui all’articolo 31
+       con le sue osservazioni e con eventuali modificazioni, alla Camera dei     
+                                          si tiene conto delle eventuali modificazioni delle direttive dell’Unio-
+       deputati e al Senato della Repubblica. Decorsi venti giorni dalla data     
+       di ritrasmissione, i decreti sono emanati anche in mancanza di nuovo ne europea comunque intervenute fino al momento dell’esercizio della
+       parere.                            delega;                                 
+                                             g) quando si verifichino sovrapposizioni di competenze tra am-
+         Art. 32 ( Principi e criteri direttivi generali di delega per l’attua-   
+       zione del diritto dell’Unione europea). — 1. Salvi gli specifici principi ministrazioni diverse o comunque siano coinvolte le competenze di
+       e criteri direttivi stabiliti dalla legge di delegazione europea e in ag- più amministrazioni statali, i decreti legislativi individuano, attraver-
+       giunta a quelli contenuti nelle direttive da attuare, i decreti legislativi di so le più opportune forme di coordinamento, rispettando i principi di
+       cui all’articolo 31 sono informati ai seguenti principi e criteri direttivi sussidiarietà, differenziazione, adeguatezza e leale collaborazione e le
+       generali:                          competenze delle regioni e degli altri enti territoriali, le procedure per
+                                          salvaguardare l’unitarietà dei processi decisionali, la trasparenza, la ce-
+          a) le amministrazioni direttamente interessate provvedono               
+                                          lerità, l’efficacia e l’economicità nell’azione amministrativa e la chiara
+       all’attuazione dei decreti legislativi con le ordinarie strutture ammini-  
+                                          individuazione dei soggetti responsabili;
+       strative, secondo il principio della massima semplificazione dei proce-    
+       dimenti e delle modalità di organizzazione e di esercizio delle funzioni h) qualora non siano di ostacolo i diversi termini di recepimen-
+       e dei servizi;                     to, vengono attuate con un unico decreto legislativo le direttive che ri-
+                                          guardano le stesse materie o che comunque comportano modifiche degli
+          b) ai fini di un migliore coordinamento con le discipline vigenti       
+                                          stessi atti normativi;                  
+       per i singoli settori interessati dalla normativa da attuare, sono introdot-
+       te le occorrenti modificazioni alle discipline stesse, anche attraverso il i) è assicurata la parità di trattamento dei cittadini italiani ri-
+       riassetto e la semplificazione normativi con l’indicazione esplicita delle spetto ai cittadini degli altri Stati membri dell’Unione europea e non
+       norme abrogate, fatti salvi i procedimenti oggetto di semplificazione può essere previsto in ogni caso un trattamento sfavorevole dei cittadini
+       amministrativa ovvero le materie oggetto di delegificazione; italiani.».   
+          c) gli atti di recepimento di direttive dell’Unione europea non — Si riporta il testo dell’articolo 8, del decreto legislativo 28 ago-
+       possono prevedere l’introduzione o il mantenimento di livelli di rego- sto 1997, n. 281, recante: «Definizione ed ampliamento delle attribuzio-
+       lazione superiori a quelli minimi richiesti dalle direttive stesse, ai sensi ni della Conferenza permanente per i rapporti tra lo Stato, le regioni e le
+       dell’articolo 14, commi 24 - bis , 24 -ter e 24 -quater , della legge 28 no- province autonome di Trento e Bolzano ed unificazione, per le materie
+       vembre 2005, n. 246;               ed i compiti di interesse comune delle regioni, delle province e dei co-
+                                      — 24 —
+````
+
+## Pagina 27
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       muni, con la Conferenza Stato - città ed autonomie locali», pubblicato Note all’art. 25:
+       nella G azzetta Ufficiale 30 agosto 1997, n. 202:                          
+                                            — Si riporta il testo dell’articolo 1 della legge 22 aprile 1941,
+         «Art. 8 (Conferenza Stato-città ed autonomie locali e Conferenza n. 633, recante: «Protezione del diritto d’autore e di altri diritti connessi
+       unificata). — 1. La Conferenza Stato-città ed autonomie locali è unifi- al suo esercizio», pubblicata nella G azzetta Ufficiale n. 166 del 16 lu-
+       cata per le materie ed i compiti di interesse comune delle regioni, del- glio 1941, come modificato dalla presente legge:
+       le province, dei comuni e delle comunità montane, con la Conferenza        
+                                            «Art. 1. — Sono protette ai sensi di questa legge le opere dell’in-
+       Stato-regioni.                                                             
+                                          gegno u mano di carattere creativo che appartengono alla letteratura, alla
+         2. La Conferenza Stato-città ed autonomie locali è presieduta dal musica, alle arti figurative, all’architettura, al teatro ed alla cinemato-
+       Presidente del Consiglio dei Ministri o, per sua delega, dal Ministro grafia, qualunque ne sia il modo o la forma di espressione, anche lad-
+       dell’interno o dal Ministro per gli affari regionali nella materia di ri- dove create con l’ausilio di strumenti di intelligenza artificiale, purché
+       spettiva competenza; ne fanno parte altresì il Ministro del tesoro e del costituenti risultato del lavoro intellettuale dell’autore .
+       bilancio e della programmazione economica, il Ministro delle finanze,      
+                                            Sono altresì protetti i programmi per elaboratore come opere let-
+       il Ministro dei lavori pubblici, il Ministro della sanità, il presidente   
+                                          terarie ai sensi della Convenzione di Berna sulla protezione delle opere
+       dell’Associazione nazionale dei comuni d’Italia - ANCI, il presidente      
+                                          letterarie ed artistiche ratificata e resa esecutiva con legge 20 giugno
+       dell’Unione province d’Italia - UPI ed il presidente dell’Unione nazio-    
+                                          1978, n. 399, nonché le banche di dati che per la scelta o la disposizione
+       nale comuni, comunità ed enti montani - UNCEM. Ne fanno parte inol-        
+                                          del materiale costituiscono una creazione intellettuale dell’autore.».
+       tre quattordici sindaci designati dall’ANCI e sei presidenti di provincia  
+       designati dall’UPI. Dei quattordici sindaci designati dall’ANCI cinque     
+       rappresentano le città individuate dall’articolo 17 della legge 8 giugno Note all’art. 26:
+       1990, n. 142. Alle riunioni possono essere invitati altri membri del Go-   
+                                            — Si riporta il testo degli articoli 61 e 294 codice penale, come
+       verno, nonché rappresentanti di amministrazioni statali, locali o di enti  
+                                          modificato dalla presente legge:        
+       pubblici.                                                                  
+                                            Art. 61. — Circostanze aggravanti comuni o circostanze aggravan-
+         3. La Conferenza Stato-città ed autonomie locali è convocata al-         
+                                          ti speciali, le circostanze seguenti:   
+       meno ogni tre mesi, e comunque in tutti i casi il presidente ne ravvisi la 
+       necessità o qualora ne faccia richiesta il presidente dell’ANCI, dell’UPI 1° l’avere agito per motivi abietti o futili;
+       o dell’UNCEM.                         2° l’aver commesso il reato per eseguirne od occultarne un altro,
+         4. La Conferenza unificata di cui al comma 1 è convocata dal Presi- ovvero per conseguire o assicurare a sé o ad altri il prodotto o il profitto
+       dente del Consiglio dei Ministri. Le sedute sono presiedute dal Presiden- o il prezzo ovvero la impunità di un altro reato;
+       te del Consiglio dei Ministri o, su sua delega, dal Ministro per gli affari 3° l’avere, nei delitti colposi, agito nonostante la previsione
+       regionali o, se tale incarico non è conferito, dal Ministro dell’interno.». dell’evento;
+         — Per i riferimenti al regolamento (UE) 2024/1689 del Parla- 4° l’avere adoperato sevizie, o l’aver agito con crudeltà verso
+       mento europeo e del Consiglio, del 13 giugno 2024 si vedano le note le persone;
+       all’articolo 1.                                                            
+                                             5) l’avere profittato di circostanze di tempo, di luogo o di perso-
+         — Si riporta il testo dell’articolo 3, della legge 14 gennaio 2013, na, anche in riferimento all’età, tali da ostacolare la pubblica o privata
+       n. 4, recante: «Disposizioni in materia di professioni non organizzate», difesa;
+       pubblicata nella G azzetta Ufficiale 26 gennaio 2013, n. 22:               
+                                             6° l’avere il colpevole commesso il reato durante il tempo, in
+         «Art. 3 (Forme aggregative delle associazioni). — 1. Le associa- cui si è sottratto volontariamente alla esecuzione di un mandato o di un
+       zioni professionali di cui all’art. 2, mantenendo la propria autonomia, ordine di arresto o di cattura o di carcerazione, spedito per un precedente
+       possono riunirsi in forme aggregative da esse costituite come associa- reato;
+       zioni di natura privatistica.                                              
+                                             7° l’avere, nei delitti contro il patrimonio, o che comunque of-
+         2. Le forme aggregative rappresentano le associazioni aderenti e fendono il patrimonio, ovvero nei delitti determinati da motivi di lucro,
+       agiscono in piena indipendenza e imparzialità. cagionato alla persona offesa dal reato un danno patrimoniale di rile-
+         3. Le forme aggregative hanno funzioni di promozione e quali- vante gravità;
+       ficazione delle attività professionali che rappresentano, nonché di di- 8° l’avere aggravato o tentato di aggravare le conseguenze del
+       vulgazione delle informazioni e delle conoscenze ad esse connesse e delitto commesso;
+       di rappresentanza delle istanze comuni nelle sedi politiche e istituzio-   
+                                             9° l’avere commesso il fatto con abuso dei poteri, o con viola-
+       nali. Su mandato delle singole associazioni, esse possono controllare      
+                                          zione dei doveri inerenti a una pubblica funzione o a un pubblico servi-
+       l’operato delle medesime associazioni, ai fini della verifica del rispetto 
+                                          zio, ovvero alla qualità di ministro di un culto;
+       e della congruità degli standard professionali e qualitativi dell’esercizio
+       dell’attività e dei codici di condotta definiti dalle stesse associazioni.». 10° l’avere commesso il fatto contro un pubblico ufficiale o una
+                                          persona incaricata di un pubblico servizio, o rivestita della qualità di
+         — La legge 24 novembre 1981, n. 689, recante: «Modifiche al si- ministro del culto cattolico o di un culto ammesso nello Stato, ovvero
+       stema penale», è pubblicata nella G azzetta Ufficiale n. 329 del 30 no- contro un agente diplomatico o consolare di uno Stato estero, nell’atto o
+       vembre 1981.                       a causa dell’adempimento delle funzioni o del servizio;
+         — Si riporta il testo dell’articolo 17, comma 4- quater , del citato 11° l’avere commesso il fatto con abuso di autorità o di relazio-
+       decreto-legge 14 giugno 2021, n. 82: ni domestiche, ovvero con abuso di relazioni di ufficio, di prestazione
+         «Art. 17 (Disposizioni transitorie e finali). — Omissis . d’opera, di coabitazione, o di ospitalità.
+         4 -quater . La disciplina del procedimento sanzionatorio ammini- 11 -bis . l’avere il colpevole commesso il fatto mentre si trova
+       strativo dell’Agenzia è definita con regolamento che stabilisce, in parti- illegalmente sul territorio nazionale.
+       colare, termini e modalità per l’accertamento, la contestazione e la no- 11 -ter ) l’aver commesso un delitto contro la persona ai danni di
+       tificazione delle violazioni della normativa in materia di cybersicurezza un soggetto minore all’interno o nelle adiacenze di istituti di istruzione
+       e l’irrogazione delle relative sanzioni di competenza dell’Agenzia ai o di formazione.
+       sensi del presente decreto e delle altre disposizioni che assegnano poteri 
+       accertativi e sanzionatori all’Agenzia. Il regolamento di cui al primo 11 -quater . l’avere il colpevole commesso un delitto non colposo
+       periodo è adottato, entro novanta giorni dalla data di entrata in vigore durante il periodo in cui era ammesso ad una misura alternativa alla
+       della presente disposizione, con decreto del Presidente del Consiglio detenzione in carcere.
+       dei ministri, anche in deroga all’articolo 17 della legge 23 agosto 1988, 11 -quinquies ) l’avere, nei delitti non colposi contro la vita e l’in-
+       n. 400, sentito il Comitato interministeriale per la cybersicurezza e ac- columità individuale e contro la libertà personale, commesso il fatto in
+       quisito il parere delle competenti Commissioni parlamentari. Fino alla presenza o in danno di un minore di anni diciotto ovvero in danno di
+       data di entrata in vigore del regolamento di cui al presente comma, ai persona in stato di gravidanza.
+       procedimenti sanzionatori si applicano, per ciascuna fase procedimen-      
+                                             11 -sexies ) l’avere, nei delitti non colposi, commesso il fatto in
+       tale di cui al primo periodo, le disposizioni contenute nelle sezioni I e II
+                                          danno di persone ricoverate presso strutture sanitarie o presso strutture
+       del capo I della legge 24 novembre 1981, n. 689.                           
+                                          sociosanitarie residenziali o semiresidenziali, pubbliche o private, ovve-
+         Omissis ».                       ro presso strutture socio-educative.    
+                                      — 25 —
+````
+
+## Pagina 28
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          11 -septies ) l’avere commesso il fatto in occasione o a causa di spondente alla metà del massimo della pena stabilita dal primo comma
+       manifestazioni sportive o durante i trasferimenti da o verso i luoghi in per il reato commesso, oltre le spese del procedimento. Il pagamento
+       cui si svolgono dette manifestazioni. estingue il reato.                   
+          11 -octies ) l’avere agito, nei delitti commessi con violenza o mi- La pena è della reclusione fine ad un anno o della multa non infe-
+       naccia, in danno degli esercenti le professioni sanitarie e socio-sanitarie riore a lire cinquemila se i reati di cui sopra sono commessi sopra una
+       nonché di chiunque svolga attività ausiliarie di cura, assistenza sanitaria opera altrui non destinata alla pubblicità, ovvero con usurpazione della
+       o soccorso, funzionali allo svolgimento di dette professioni, a causa o paternità dell’opera, ovvero con deformazione, mutilazione o altra mo-
+       nell’esercizio di tali professioni o attività. dificazione dell’opera medesima, qualora ne risulti offesa all’onore od
+          11 -novies ) l’avere agito, nei delitti commessi con violenza o mi- alla reputazione dell’autore.
+       naccia, in danno di un dirigente scolastico o di un membro del personale La violazione delle disposizioni di cui al terzo ed al quarto com-
+       docente, educativo, amministrativo, tecnico o ausiliario della scuola, a ma dell’articolo 68 comporta la sospensione della attività di fotocopia,
+       causa o nell’esercizio delle loro funzioni. xerocopia o analogo sistema di riproduzione da sei mesi ad un anno
+         11 -decies) l’avere commesso il fatto mediante l’impiego di sistemi nonché la sanzione amministrativa pecuniaria da due a dieci milioni di
+       di intelligenza artificiale, quando gli stessi, per la loro natura o per le lire.».
+       modalità di utilizzo, abbiano costituito mezzo insidioso, ovvero quando — Si riporta il testo dell’articolo articolo 185 del decreto legisla-
+       il loro impiego abbia comunque ostacolato la pubblica o la privata di- tivo 24 febbraio 1998, n. 58, recante: «Testo unico delle disposizioni in
+       fesa, ovvero aggravato le conseguenze del reato .». materia di intermediazione finanziaria, ai sensi degli articoli 8 e 21 della
+                                          legge 6 febbraio 1996, n. 52», pubblicato nella G azzetta Ufficiale n. 71
+         «Art. 294 ( Attentati contro i diritti politici del cittadino). — Chiun- 
+                                          del 26 marzo 1998, come modificato dalla presente legge:
+       que con violenza, minaccia o inganno impedisce in tutto o in parte         
+       l’esercizio di un diritto politico, ovvero determina taluno a esercitarlo in «Art. 185 ( Manipolazione del mercato) . — 1. Chiunque diffonde
+       senso difforme dalla sua volontà, è punito con la reclusione da uno a cin- notizie false o pone in essere operazioni simulate o altri artifizi con-
+       que anni. L a pena è della reclusione da due a sei anni se l’inganno è po- cretamente idonei a provocare una sensibile alterazione del prezzo di
+       sto in essere mediante l’impiego di sistemi di intelligenza artificiale .». strumenti finanziari, è punito con la reclusione da due a dodici anni e
+                                          con la multa da euro ventimila a euro cinque milioni. L a pena è della
+         — Si riporta il testo dell’articolo 2637 codice civile, come modifi-     
+                                          reclusione da due a sette anni e della multa da euro venticinquemila a
+       cato dalla presente legge:                                                 
+                                          euro sei milioni se il fatto è commesso mediante l’impiego di sistemi di
+         «Art. 2637 ( Aggiotaggio). — Chiunque diffonde notizie false, ov- intelligenza artificiale.
+       vero pone in essere operazioni simulate o altri artifici concretamente     
+                                            1 -bis . Non è punibile chi ha commesso il fatto per il tramite di
+       idonei a provocare una sensibile alterazione del prezzo di strumenti fi-   
+                                          ordini di compravendita o operazioni effettuate per motivi legittimi e
+       nanziari non quotati o per i quali non è stata presentata una richiesta di 
+                                          in conformità a prassi di mercato ammesse, ai sensi dell’articolo 13 del
+       ammissione alle negoziazioni in un mercato regolamentato, ovvero ad        
+                                          regolamento (UE) n. 596/2014.           
+       incidere in modo significativo sull’affidamento che il pubblico ripone     
+       nella stabilità patrimoniale di banche o di gruppi bancari, è punito con 2. Il giudice può aumentare la multa fino al triplo o fino al mag-
+       la pena della reclusione da uno a cinque anni. L a pena è della reclusione giore importo di dieci volte il prodotto o il profitto conseguito dal reato
+       da due a sette anni se il fatto è commesso mediante l’impiego di sistemi quando, per la rilevante offensività del fatto, per le qualità personali del
+       di intelligenza artificiale .».    colpevole o per l’entità del prodotto o del profitto conseguito dal reato,
+                                          essa appare inadeguata anche se applicata nel massimo.
+         — Si riporta il testo dell’articolo 171 della citata legge 22 aprile     
+       1941, n. 633, come modificato dalla presente legge: 2 -bis .               
+         «Art. 171. — Salvo quanto previsto dall’art. 171- bis e dall’artico- 2 -ter .».
+       lo 171- ter è punito con la multa da euro 51 (lire 100.000) a euro 2.065   
+       (lire 4 milioni) 277 chiunque senza averne diritto, a qualsiasi scopo e in Note all’art. 28:
+       qualsiasi forma:                                                           
+                                            — Si riporta il testo dell’articolo 7, comma 1, lettera z ) , del citato
+          a) riproduce, trascrive, recita in pubblico, diffonde, vende o met- decreto-legge 14 giugno 2021, n. 82:
+       te in vendita o pone altrimenti in commercio un’opera altrui o ne rivela   
+                                            «Art. 7 ( Funzioni dell’Agenzia per la cybersicurezza nazionale).
+       il contenuto prima che sia reso pubblico, o introduce e mette in circola-  
+                                          — 1. L’Agenzia:                         
+       zione nello Stato esemplari prodotti all’estero contrariamente alla legge  
+       italiana;                             a) è Autorità nazionale per la cybersicurezza e, in relazione a
+                                          tale ruolo, assicura, nel rispetto delle competenze attribuite dalla nor-
+          a- bis ) mette a disposizione del pubblico, immettendola in un          
+                                          mativa vigente ad altre amministrazioni, ferme restando le attribuzioni
+       sistema di reti telematiche, mediante connessioni di qualsiasi genere,     
+                                          del Ministro dell’interno in qualità di autorità nazionale di pubblica si-
+       un’opera dell’ingegno protetta, o parte di essa;                           
+                                          curezza, ai sensi della legge 1° aprile 1981, n. 121, il coordinamento tra
+          a -ter) riproduce o estrae testo o dati da opere o altri materiali i soggetti pubblici coinvolti in materia di cybersicurezza a livello nazio-
+       disponibili in rete o in banche di dati in violazione degli articoli 70 -ter e nale e promuove la realizzazione di azioni comuni dirette ad assicurare
+       70 -quater, anche attraverso sistemi di intelligenza artificiale ; la sicurezza e la resilienza cibernetiche per lo sviluppo della digitalizza-
+          b) rappresenta, esegue o recita in pubblico o diffonde, con o sen- zione del Paese, del sistema produttivo e delle pubbliche amministrazio-
+       za variazioni od aggiunte, un’opera altrui adatta a pubblico spettacolo ni, nonché per il conseguimento dell’autonomia, nazionale ed europea,
+       od una composizione musicale. La rappresentazione o esecuzione com- riguardo a prodotti e processi informatici di rilevanza strategica a tutela
+       prende la proiezione pubblica dell’opera cinematografica, l’esecuzione degli interessi nazionali nel settore. Per le reti, i sistemi informativi e i
+       in pubblico delle composizioni musicali inserite nelle opere cinemato- servizi informatici attinenti alla gestione delle informazioni classifica-
+       grafiche e la radiodiffusione mediante altoparlante azionato in pubblico; te restano fermi sia quanto previsto dal regolamento adottato ai sensi
+                                          dell’articolo 4, comma 3, lettera l ) , della legge n. 124 del 2007, sia le
+          c) compie i fatti indicati nelle precedenti lettere mediante una        
+                                          competenze dell’Ufficio centrale per la segretezza di cui all’articolo 9
+       delle forme di elaborazione previste da questa legge;                      
+                                          della medesima legge n. 124 del 2007;   
+          d) riproduce un numero di esemplari o esegue o rappresenta un           
+                                             b) predispone la strategia nazionale di cybersicurezza;
+       numero di esecuzioni o di rappresentazioni maggiore di quello che ave-     
+       va il diritto rispettivamente di riprodurre o di rappresentare; c) svolge ogni necessaria attività di supporto al funzionamento
+                                          del Nucleo per la cybersicurezza, di cui all’articolo 8;
+          e) riproduce con qualsiasi processo di duplicazione dischi o altri      
+       apparecchi analoghi o li smercia, ovvero introduce nel territorio dello d) è Autorità nazionale competente NIS e Punto di contatto uni-
+       Stato le riproduzioni così fatte all’estero; co NIS di cui all’articolo 2, comma 1, lettere d ) ed e ) , del decreto legi-
+                                          slativo NIS, a tutela dell’unità giuridica dell’ordinamento;
+          f) in violazione dell’art. 79 ritrasmette su filo o per radio o re-     
+       gistra in dischi fonografici o altri apparecchi analoghi le trasmissioni o d -bis ) è Autorità nazionale di gestione delle crisi informatiche
+       ritrasmissioni radiofoniche o smercia i dischi fonografici o altri appa- di cui all’articolo 2, comma 1, lettera g ) , del decreto legislativo NIS;
+       recchi indebitamente registrati.      d -ter ) è CSIRT nazionale, denominato CSIRT Italia, di cui
+         Chiunque commette la violazione di cui al primo comma, lettera a- all’articolo 2, comma 1, lettera i ) , del decreto legislativo NIS;
+       bis ), è ammesso a pagare, prima dell’apertura del dibattimento, ovvero e) è Autorità nazionale di certificazione della cybersicurezza ai
+       prima dell’emissione del decreto penale di condanna, una somma corri- sensi dell’articolo 58 del regolamento (UE) 2019/881 del Parlamento
+                                      — 26 —
+````
+
+## Pagina 29
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       europeo e del Consiglio, del 17 aprile 2019, e assume tutte le funzioni fia, anche a vantaggio della tecnologia blockchain, come strumento di
+       in materia di certificazione di sicurezza cibernetica già attribuite al Mi- cybersicurezza. L’Agenzia, anche per il rafforzamento dell’autonomia
+       nistero dello sviluppo economico dall’ordinamento vigente, comprese industriale e tecnologica dell’Italia, promuove altresì la collaborazione
+       quelle relative all’accertamento delle violazioni e all’irrogazione delle con centri universitari e di ricerca per la valorizzazione dello sviluppo
+       sanzioni; nello svolgimento dei compiti di cui alla presente lettera: di nuovi algoritmi proprietari, la ricerca e il conseguimento di nuove ca-
+           1) accredita, ai sensi dell’articolo 60, paragrafo 1, del regola- pacità crittografiche nazionali nonché la collaborazione internazionale
+       mento (UE) 2019/881 del Parlamento europeo e del Consiglio, le strut- con gli organismi esteri che svolgono analoghe funzioni. A tale fine, è
+       ture specializzate del Ministero della difesa e del Ministero dell’interno istituito presso l’Agenzia, nell’ambito delle risorse umane, strumentali
+       quali organismi di valutazione della conformità per i sistemi di rispet- e finanziarie disponibili a legislazione vigente e senza nuovi o maggiori
+       tiva competenza;                   oneri a carico della finanza pubblica, il Centro nazionale di crittogra-
+                                          fia, il cui funzionamento è disciplinato con provvedimento del direttore
+           2) delega, ai sensi dell’articolo 56, paragrafo 6, lettera b ) , del   
+                                          generale dell’Agenzia stessa. Il Centro nazionale di crittografia svolge
+       regolamento (UE) 2019/881 del Parlamento europeo e del Consiglio, il       
+                                          le funzioni di centro di competenza nazionale per tutti gli aspetti della
+       Ministero della difesa e il Ministero dell’interno, attraverso le rispettive
+                                          crittografia in ambito non classificato, ferme restando le competenze
+       strutture accreditate di cui al numero 1) della presente legge, al rilascio
+                                          dell’Ufficio centrale per la segretezza, di cui all’articolo 9 della legge
+       del certificato europeo di sicurezza cibernetica;                          
+                                          3 agosto 2007, n. 124, con riferimento alle informazioni e alle attività
+          e- bis ) è Autorità competente per l’esecuzione dei compiti pre- previste dal regolamento adottato ai sensi dell’articolo 4, comma 3, let-
+       visti dal regolamento delegato (UE) 2024/1366 della Commissione, tera l ) , della citata legge n. 124 del 2007, nonché le competenze degli
+       dell’11 marzo 2024, che integra il regolamento (UE) 2019/943 del Par- organismi di cui agli articoli 4, 6 e 7 della medesima legge;
+       lamento europeo e del Consiglio                                            
+                                             m- ter ) provvede alla qualificazione dei servizi cloud per la pub-
+          f) assume tutte le funzioni in materia di cybersicurezza già attri- blica amministrazione nel rispetto della disciplina dell’Unione europea
+       buite dalle disposizioni vigenti al Ministero dello sviluppo economico, e del regolamento di cui all’articolo 33- septies , comma 4, del decreto-
+       ivi comprese quelle relative:      legge 18 ottobre 2012, n. 179, convertito, con modificazioni, dalla legge
+           1) al perimetro di sicurezza nazionale cibernetica, di cui al 17 dicembre 2012, n. 221;
+       decreto-legge perimetro e ai relativi provvedimenti attuativi, ivi incluse n) sviluppa capacità nazionali di prevenzione, monitoraggio,
+       le funzioni attribuite al Centro di valutazione e certificazione nazionale rilevamento, analisi e risposta, per prevenire e gestire gli incidenti di si-
+       ai sensi del decreto-legge perimetro, le attività di ispezione e verifica curezza informatica e gli attacchi informatici, anche attraverso il CSIRT
+       di cui all’articolo 1, comma 6, lettera c ) , del decreto-legge perimetro e Italia di cui all’articolo 2, comma 1, lettera i ) del decreto legislativo
+       quelle relative all’accertamento delle violazioni e all’irrogazione delle NIS. A tale fine, promuove iniziative di partenariato pubblico-privato
+       sanzioni amministrative previste dal medesimo decreto, fatte salve quel- per rendere effettive tali capacità;
+       le di cui all’articolo 3 del regolamento adottato con decreto del Presi-   
+       dente del Consiglio dei ministri 30 luglio 2020, n. 131; n -bis ) nell’ambito delle funzioni di cui al primo periodo della
+                                          lettera n ) , svolge ogni attività diretta all’analisi e al supporto per il con-
+           2) alla sicurezza e all’integrità delle comunicazioni elettroni-       
+                                          tenimento e il ripristino dell’operatività dei sistemi compromessi, con la
+       che, di cui agli articoli 16 - bis e 16- ter del decreto legislativo 1° agosto
+                                          collaborazione dei soggetti pubblici o privati che hanno subito incidenti
+       2003, n. 259, e relative disposizioni attuative;                           
+                                          di sicurezza informatica o attacchi informatici. La mancata collabora-
+           3) alla sicurezza delle reti e dei sistemi informativi, di cui al zione di cui al primo periodo è valutata ai fini dell’applicazione delle
+       decreto legislativo NIS;           sanzioni previste dall’articolo 1, commi 10 e 14, del decreto-legge pe-
+          g) partecipa, per gli ambiti di competenza, al gruppo di coordi- rimetro, per i soggetti di cui all’articolo 1, comma 2- bis , del medesimo
+       namento istituito ai sensi dei regolamenti di cui all’articolo 1, comma 8, decreto-legge perimetro, i soggetti essenziali e i soggetti importanti di
+       del decreto-legge 15 marzo 2012, n. 21, convertito, con modificazioni, cui all’articolo 6 del decreto legislativo NIS, del decreto legislativo NIS
+       dalla legge 11 maggio 2012, n. 56; e di cui all’articolo 40, comma 3, alinea, del codice delle comunicazioni
+                                          elettroniche, di cui al decreto legislativo 1° agosto 2003, n. 259; restano
+          h) assume tutte le funzioni attribuite alla Presidenza del Consi-       
+                                          esclusi gli organi dello Stato preposti alla prevenzione, all’accertamento
+       glio dei ministri in materia di perimetro di sicurezza nazionale ciberneti-
+                                          e alla repressione dei reati, alla tutela dell’ordine e della sicurezza pub-
+       ca, di cui al decreto-legge perimetro e ai relativi provvedimenti attuativi,
+                                          blica e alla difesa e sicurezza militare dello Stato, nonché gli organismi
+       ivi incluse le attività di ispezione e verifica di cui all’articolo 1, com-
+                                          di informazione per la sicurezza di cui agli articoli 4, 6 e 7 della legge
+       ma 6, lettera c ) , del decreto-legge perimetro e quelle relative all’accer-
+                                          3 agosto 2007, n. 124;                  
+       tamento delle violazioni e all’irrogazione delle sanzioni amministrative   
+       previste dal medesimo decreto, fatte salve quelle di cui all’articolo 3 n -ter ) provvede alla raccolta, all’elaborazione e alla classifica-
+       del regolamento adottato con decreto del Presidente del Consiglio dei zione dei dati relativi alle notifiche di incidenti ricevute dai soggetti che
+       ministri n. 131 del 2020;          a ciò siano tenuti in osservanza delle disposizioni vigenti. Tali dati sono
+                                          resi pubblici nell’ambito della relazione prevista dall’articolo 14, com-
+          i) assume tutte le funzioni già attribuite al Dipartimento delle        
+                                          ma 1, quali dati ufficiali di riferimento degli attacchi informatici portati
+       informazioni per la sicurezza (DIS), di cui all’articolo 4 della legge     
+                                          ai soggetti che operano nei settori rilevanti per gli interessi nazionali nel
+       3 agosto 2007, n. 124, dal decreto-legge perimetro e dai relativi prov-    
+                                          campo della cybersicurezza. Agli adempimenti previsti dalla presente
+       vedimenti attuativi e supporta il Presidente del Consiglio dei ministri ai 
+                                          lettera si provvede con le risorse umane, strumentali e finanziarie dispo-
+       fini dell’articolo 1, comma 19- bis , del decreto-legge perimetro;         
+                                          nibili a legislazione vigente;          
+          l) provvede, sulla base delle attività di competenza del Nucleo         
+       per la cybersicurezza di cui all’articolo 8, alle attività necessarie per o) partecipa alle esercitazioni nazionali e internazionali che ri-
+       l’attuazione e il controllo dell’esecuzione dei provvedimenti assunti dal guardano la simulazione di eventi di natura cibernetica al fine di innal-
+       Presidente del Consiglio dei ministri ai sensi dell’articolo 5 del decreto- zare la resilienza del Paese;
+       legge perimetro;                      p) cura e promuove la definizione ed il mantenimento di un
+          m) assume tutte le funzioni in materia di cybersicurezza già at- quadro giuridico nazionale aggiornato e coerente nel dominio della
+       tribuite all’Agenzia per l’Italia digitale dalle disposizioni vigenti e, in cybersicurezza, tenendo anche conto degli orientamenti e degli svilup-
+       particolare, quelle di cui all’articolo 51 del decreto legislativo 7 marzo pi in ambito internazionale. A tal fine, l’Agenzia esprime pareri non
+       2005, n. 82, nonché quelle in materia di adozione di linee guida con- vincolanti sulle iniziative legislative o regolamentari concernenti la
+       tenenti regole tecniche di cybersicurezza ai sensi dell’articolo 71 del cybersicurezza;
+       medesimo decreto legislativo. L’Agenzia assume, altresì, i compiti di q) coordina, in raccordo con il Ministero degli affari esteri e
+       cui all’articolo 33- septies , comma 4, del decreto-legge 18 ottobre 2012, della cooperazione internazionale, la cooperazione internazionale nella
+       n. 179, convertito, con modificazioni, dalla legge 17 dicembre 2012, materia della cybersicurezza. Nell’ambito dell’Unione europea e a livel-
+       n. 221, già attribuiti all’Agenzia per l’Italia digitale; lo internazionale, l’Agenzia cura i rapporti con i competenti organismi,
+          m- bis ) provvede, anche attraverso un’apposita sezione nell’am- istituzioni ed enti, nonché segue nelle competenti sedi istituzionali le
+       bito della strategia di cui alla lettera b ) , allo sviluppo e alla diffusio- tematiche di cybersicurezza, fatta eccezione per gli ambiti in cui la legge
+       ne di standard, linee guida e raccomandazioni al fine di rafforzare la attribuisce specifiche competenze ad altre amministrazioni. In tali casi,
+       cybersicurezza dei sistemi informatici, alla valutazione della sicurezza è comunque assicurato il raccordo con l’Agenzia al fine di garantire
+       dei sistemi crittografici nonché all’organizzazione e alla gestione di at- posizioni nazionali unitarie e coerenti con le politiche di cybersicurezza
+       tività di divulgazione finalizzate a promuovere l’utilizzo della crittogra- definite dal Presidente del Consiglio dei ministri;
+                                      — 27 —
+````
+
+## Pagina 30
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          r) perseguendo obiettivi di eccellenza, supporta negli ambiti di gnati con decreto del Presidente del Consiglio dei ministri. La com-
+       competenza, mediante il coinvolgimento del sistema dell’università e posizione e l’organizzazione del Comitato tecnico-scientifico sono
+       della ricerca nonché del sistema produttivo nazionali, lo sviluppo di disciplinate secondo le modalità e i criteri definiti dal regolamento di
+       competenze e capacità industriali, tecnologiche e scientifiche. A tali fini, cui all’articolo 6, comma 1.
+       l’Agenzia può promuovere, sviluppare e finanziare specifici progetti ed Per la partecipazione al Comitato tecnico-scientifico non sono pre-
+       iniziative, volti anche a favorire il trasferimento tecnologico dei risultati visti gettoni di presenza, compensi o rimborsi di spese.
+       della ricerca nel settore.                                                 
+                                            2. Nell’ambito dell’Agenzia sono nominati, con decreto del Presi-
+         L’Agenzia assicura il necessario raccordo con le altre amministra- dente del Consiglio dei ministri, il rappresentante nazionale, e il suo so-
+       zioni a cui la legge attribuisce competenze in materia di cybersicurezza stituto, nel Consiglio di direzione del Centro europeo di competenza per
+       e, in particolare, con il Ministero della difesa per gli aspetti inerenti la cybersicurezza nell’ambito industriale, tecnologico e della ricerca, ai
+       alla ricerca militare. L’Agenzia può altresì promuovere la costituzione sensi dell’articolo 12 del regolamento (UE) 2021/887.
+       di aree dedicate allo sviluppo dell’innovazione finalizzate a favorire la  
+                                            3.                                    
+       formazione e il reclutamento di personale nei settori avanzati dello svi-  
+       luppo della cybersicurezza, nonché promuovere la realizzazione di studi 4. Il Centro di valutazione e certificazione nazionale, istituito pres-
+                                          so il Ministero dello sviluppo economico, è trasferito presso l’Agenzia.
+       di fattibilità e di analisi valutative finalizzati a tale scopo;           
+                                            5. Nel rispetto delle competenze del Garante per la protezione dei
+          s) stipula accordi bilaterali e multilaterali, anche mediante il        
+                                          dati personali, l’Agenzia, per le finalità di cui al presente decreto, con-
+       coinvolgimento del settore privato e industriale, con istituzioni, enti e  
+                                          sulta il Garante e collabora con esso, anche in relazione agli inciden-
+       organismi di altri Paesi per la partecipazione dell’Italia a programmi di  
+                                          ti che comportano violazioni di dati personali. L’Agenzia e il Garante
+       cybersicurezza, assicurando il necessario raccordo con le altre ammini-    
+                                          possono stipulare appositi protocolli d’intenti che definiscono altresì le
+       strazioni a cui la legge attribuisce competenze in materia di cybersicu-   
+                                          modalità della loro collaborazione nell’ambito delle risorse disponibili
+       rezza, ferme restando le competenze del Ministero degli affari esteri e    
+                                          a legislazione vigente e senza nuovi o maggiori oneri per la finanza
+       della cooperazione internazionale;                                         
+                                          pubblica.».                             
+          t) promuove, sostiene e coordina la partecipazione italiana a pro-      
+                                            — Si riporta il testo degli articoli 1 della legge 28 giugno 2024
+       getti e iniziative dell’Unione europea e internazionali, anche mediante il n. 901, recante: «Disposizioni in materia di rafforzamento della cyber-
+       coinvolgimento di soggetti pubblici e privati nazionali, nel campo della sicurezza nazionale e di reati informatici.», pubblicata nella G azzetta
+       cybersicurezza e dei correlati servizi applicativi, ferme restando le com- Ufficiale 2 luglio 2024, n. 153, come modificato dalla presente legge:
+       petenze del Ministero degli affari esteri e della cooperazione internazio- 
+                                            «Art. 1 (Obblighi di notifica di incidenti). — 1. Le pubbliche am-
+       nale. L’Agenzia assicura il necessario raccordo con le altre amministra-   
+                                          ministrazioni centrali individuate ai sensi dell’articolo 1, comma 3, del-
+       zioni a cui la legge attribuisce competenze in materia di cybersicurezza   
+                                          la legge 31 dicembre 2009, n. 196, le regioni e le province autonome di
+       e, in particolare, con il Ministero della difesa per gli aspetti inerenti a
+                                          Trento e di Bolzano, le città metropolitane, i comuni con popolazione
+       progetti e iniziative in collaborazione con la NATO e con l’Agenzia        
+                                          superiore a 100.000 abitanti e, comunque, i comuni capoluoghi di regio-
+       europea per la difesa;                                                     
+                                          ne, nonché le società di trasporto pubblico urbano con bacino di utenza
+          u) svolge attività di comunicazione e promozione della consape- non inferiore a 100.000 abitanti, le società di trasporto pubblico extraur-
+       volezza in materia di cybersicurezza, al fine di contribuire allo sviluppo bano operanti nell’ambito delle città metropolitane e le aziende sanitarie
+       di una cultura nazionale in materia; locali segnalano e notificano, con le modalità e nei termini di cui al
+          v) promuove la formazione, la crescita tecnico-professionale e comma 2 del presente articolo, gli incidenti indicati nella tassonomia
+                                          adottata con determinazione tecnica del direttore generale dell’Agenzia
+       la qualificazione delle risorse umane nel campo della cybersicurezza, in   
+                                          per la cybersicurezza nazionale , aventi impatto su reti, sistemi informa-
+       particolare favorendo l’attivazione di percorsi formativi universitari in  
+                                          tivi e servizi informatici. Tra i soggetti di cui al presente comma sono
+       materia, anche attraverso l’assegnazione di borse di studio, di dottora-   
+                                          altresì comprese le rispettive società in house che forniscono servizi
+       to e assegni di ricerca, sulla base di apposite convenzioni con soggetti   
+                                          informatici, i servizi di trasporto di cui al primo periodo del presente
+       pubblici e privati; nello svolgimento di tali compiti, l’Agenzia può av-   
+                                          comma ovvero servizi di raccolta, smaltimento o trattamento di acque
+       valersi anche delle strutture formative e delle capacità della Presidenza  
+                                          reflue urbane, domestiche o industriali, come definite ai sensi dell’arti-
+       del Consiglio dei ministri, del Ministero della difesa e del Ministero     
+                                          colo 2, punti 1), 2) e 3), della direttiva 91/271/CEE del Consiglio, del
+       dell’interno, secondo termini e modalità da definire con apposito decre-   
+                                          21 maggio 1991, o di gestione dei rifiuti, come definita ai sensi dell’ar-
+       to del Presidente del Consiglio dei ministri, di concerto con i Ministri   
+                                          ticolo 3, punto 9), della direttiva 2008/98/CE del Parlamento europeo e
+       interessati;                                                               
+                                          del Consiglio, del 19 novembre 2008.    
+          v -bis ) può predisporre attività di formazione specifica riservate 2. I soggetti di cui al comma 1 segnalano, senza ritardo e comun-
+       ai giovani che aderiscono al servizio civile regolate sulla base di appo- que entro il termine massimo di ventiquattro ore dal momento in cui ne
+       site convenzioni. In ogni caso, il servizio prestato è, a tutti gli effetti, sono venuti a conoscenza a seguito delle evidenze comunque ottenute,
+       riconosciuto come servizio civile; qualunque incidente riconducibile a una delle tipologie individuate nel-
+          z) per le finalità di cui al presente articolo, può concludere ac- la tassonomia di cui al comma 1 ed effettuano, entro settantadue ore a
+       cordi di collaborazione, comunque denominati, con soggetti privati, decorrere dal medesimo momento, la notifica completa di tutti gli ele-
+       costituire e partecipare a partenariati pubblico-privato nel territorio menti informativi disponibili. La segnalazione e la successiva notifica
+       nazionale, nonché, previa autorizzazione del Presidente del Consiglio sono effettuate tramite le apposite procedure disponibili nel sito internet
+       dei ministri, a consorzi, fondazioni o società con soggetti pubblici e istituzionale dell’Agenzia per la cybersicurezza nazionale.
+       privati, italiani o di Paesi appartenenti all’Unione europea. Sulla base 3. Per i comuni con popolazione superiore a 100.000 abitanti e
+       dell’interesse nazionale e previa autorizzazione del Presidente del Con- i comuni capoluoghi di regione, per le società di trasporto pubblico
+       siglio dei ministri, può altresì partecipare a consorzi, fondazioni o so- urbano con bacino di utenza non inferiore a 100.000 abitanti, per le
+       cietà con soggetti pubblici e privati di Paesi della NATO ovvero di Paesi società di trasporto pubblico extraurbano operanti nell’ambito delle
+       extraeuropei con i quali siano stati sottoscritti accordi di cooperazione città metropolitane, per le aziende sanitarie locali e per le società in
+       o di partenariato per lo sviluppo di sistemi di intelligenza artificiale . house che forniscono servizi informatici, i servizi di trasporto di cui al
+                                          presente comma ovvero servizi di raccolta, smaltimento o trattamen-
+          aa) è designata quale Centro nazionale di coordinamento ai sensi        
+                                          to di acque reflue urbane, domestiche o industriali, come definite ai
+       dell’articolo 6 del regolamento (UE) 2021/887 del Parlamento europeo       
+                                          sensi dell’articolo 2, punti 1), 2) e 3), della direttiva 91/271/CEE del
+       e del Consiglio del 20 maggio 2021, che istituisce il Centro europeo di    
+                                          Consiglio, del 21 maggio 1991, o di gestione dei rifiuti, come definita
+       competenza per la cybersicurezza nell’ambito industriale, tecnologico e    
+                                          ai sensi dell’articolo 3, punto 9), della direttiva 2008/98/CE del Par-
+       della ricerca e la rete dei centri nazionali di coordinamento.             
+                                          lamento europeo e del Consiglio, del 19 novembre 2008, gli obblighi
+         1 -bis . Anche ai fini dell’esercizio delle funzioni di cui al com- di cui ai commi 1 e 2 del presente articolo si applicano a decorrere dal
+       ma 1, lettere r ) , s) , t) , u) , v) , z) e a a) , presso l’Agenzia è istituito, con centottantesimo giorno successivo alla data di entrata in vigore della
+       funzioni di consulenza e di proposta, un Comitato tecnico-scientifico, presente legge.
+       presieduto dal direttore generale della medesima Agenzia, o da un 4. Qualora i soggetti di cui al comma 1 effettuino notifiche volon-
+       dirigente da lui delegato, e composto da personale della stessa Agen- tarie di incidenti al di fuori dei casi indicati nella tassonomia di cui al
+       zia e da qualificati rappresentanti dell’industria, degli enti di ricerca, medesimo comma 1, si applicano le disposizioni dell’articolo 18, com-
+       dell’accademia e delle associazioni del settore della sicurezza, desi- mi 3, 4 e 5, del decreto legislativo 18 maggio 2018, n. 65.
+                                      — 28 —
+````
+
+## Pagina 31
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+         5. Nel caso di inosservanza dell’obbligo di notifica di cui ai commi La presente legge, munita del sigillo dello Stato, sarà
+       1 e 2, l’Agenzia per la cybersicurezza nazionale comunica all’interessato inserita nella Raccolta ufficiale degli atti normativi della
+       che la reiterazione dell’inosservanza, nell’arco di cinque anni, compor-   
+                                          Repubblica italiana. È fatto obbligo a chiunque spetti di
+       terà l’applicazione delle disposizioni di cui al comma 6 e può disporre,   
+                                          osservarla e di farla osservare come legge dello Stato.
+       nei dodici mesi successivi all’accertamento del ritardo o dell’omissione,  
+       l’invio di ispezioni, anche al fine di verificare l’attuazione, da parte dei
+                                             Data a Roma, addì 24 settembre 2025  
+       soggetti interessati dall’incidente, di interventi di rafforzamento della  
+       resilienza agli stessi, direttamente indicati dall’Agenzia per la cybersi- 
+       curezza nazionale ovvero previsti da apposite linee guida adottate dalla   
+       medesima Agenzia. Le modalità di tali ispezioni sono disciplinate con MATTARELLA
+       determinazione del direttore generale dell’Agenzia per la cybersicurez-    
+       za nazionale, pubblicata nella G azzetta Ufficiale . MELONI, Presidente del Con-
+                                                            siglio dei ministri   
+         6. Nei casi di reiterata inosservanza, nell’arco di cinque anni,         
+       dell’obbligo di notifica di cui ai commi 1 e 2, l’Agenzia per la cybersi- SCHILLACI, Ministro della sa-
+       curezza nazionale applica altresì, nel rispetto delle disposizioni dell’ar- lute
+       ticolo 17, comma 4- quater , del decreto-legge 14 giugno 2021, n. 82,      
+       convertito, con modificazioni, dalla legge 4 agosto 2021, n. 109, intro- Visto, il Guardasigilli: NORDIO
+       dotto dall’articolo 11 della presente legge, una sanzione amministra-      
+       tiva pecuniaria da euro 25.000 a euro 125.000 a carico dei soggetti di     
+       cui al comma 1 del presente articolo. La violazione delle disposizioni     
+       del comma 1 del presente articolo può costituire causa di responsabili-    
+       tà disciplinare e amministrativo-contabile per i funzionari e i dirigenti ALLEGATO
+       responsabili.                                                              
+         7. Fermi restando gli obblighi e le sanzioni, anche penali, previ- MODIFICAZIONI APPORTATE IN SEDE DI CONVERSIONE AL
+       sti da altre norme di legge, le disposizioni del presente articolo non si  
+                                               DECRETO-LEGGE 1° AGOSTO 2025, N. 110
+       applicano:                                                                 
+          a) ai soggetti di cui all’articolo 3, comma 1, lettere g ) e i ) , del All’articolo 1:
+       decreto legislativo 18 maggio 2018, n. 65, e a quelli di cui all’articolo 1,
+                                              al comma 3, le parole: «in diritto sanitario, orga-
+       comma 2- bis , del decreto-legge 21 settembre 2019, n. 105, convertito,    
+       con modificazioni, dalla legge 18 novembre 2019, n. 133; nizzazione» sono sostituite dalle seguenti: «in materia
+                                          di diritto sanitario e di organizzazione» e le parole: «se
+          b) agli organi dello Stato preposti alla prevenzione, all’accerta-      
+       mento e alla repressione dei reati, alla tutela dell’ordine e della sicurezza non incompatibile con il decreto» sono sostituite dalle se-
+       pubblica e alla difesa e sicurezza militare dello Stato e agli organismi guenti: «se esso non è incompatibile ai sensi del decreto».
+       di informazione per la sicurezza di cui agli articoli 4, 6 e 7 della legge 
+                                             All’articolo 2:                      
+       3 agosto 2007, n. 124.».                                                   
+                                              al comma 1, le parole: «stante la natura di extrater-
+                                          ritorialità della struttura,» sono soppresse, dopo le parole:
+       25G00143                                                                   
+                                          «ai sensi del comma 2» sono inserite le seguenti: «del
+                                          presente articolo», dopo le parole: «all’Ospedale pedia-
+                                          trico Bambino Gesù (OPBG),» sono inserite le seguenti:
+       LEGGE 24 settembre 2025 , n. 1 33 . «di cui all’accordo tra il Governo italiano e la Santa Sede,
+                                          fatto nella Città del Vaticano il 15 febbraio 1995, ratifica-
+        Conversione in legge, con modificazioni, del decreto-legge                
+                                          to e reso esecutivo ai sensi della legge 18 maggio 1995,
+       1° agosto 2025, n. 110, recante misure urgenti per il com-                 
+                                          n. 187,», la parola: «fermo» è sostituita dalla seguente:
+       missariamento dell’Agenzia nazionale per i servizi sanita-                 
+                                          «fermi» e le parole: «dall’articolo 8- sexies , comma 1, del
+       ri regionali e per il finanziamento dell’Ospedale pediatrico               
+                                          citato decreto legislativo» sono sostituite dalle seguenti:
+       Bambino Gesù.                                                              
+                                          «dal comma 1 del medesimo articolo 8- sexies »;
+        La Camera dei deputati ed il Senato della Repubblica al comma 2, le parole: «nel limite massimo
+       hanno approvato;                   di cui al comma 1, sono stabilite le funzioni attribuite
+                                          all’Ospedale pediatrico Bambino Gesù e conseguente-
+                                          mente l’importo della quota da assegnare annualmente
+           IL PRESIDENTE DELLA REPUBBLICA                                         
+                                          allo stesso» sono sostituite dalle seguenti: «sono stabiliti
+                                          le funzioni attribuite all’Ospedale pediatrico Bambino
+                    PROMULGA              Gesù e conseguentemente l’importo della quota da asse-
+                                          gnare annualmente allo stesso, nel limite massimo di cui
+       la seguente legge:                 al comma 1».                            
+                     Art. 1.                                                      
+        1. Il decreto-legge 1° agosto 2025, n. 110, recante mi- LAVORI PREPARATORI
+       sure urgenti per il commissariamento dell’Agenzia nazio-                   
+                                          Senato della Repubblica (atto n. 1611): 
+       nale per i servizi sanitari regionali e per il finanziamento               
+       dell’Ospedale pediatrico Bambino Gesù, è convertito in                     
+                                            Presentato dal Presidente del Consiglio dei ministri Giorgia MELO-
+                                          NI e dal Ministro della Salute Orazio S CHILLACI (Governo MELONI -I), il
+       legge con le modificazioni riportate in allegato alla pre- 1° agosto 2025. 
+       sente legge.                         Assegnato alla Commissione 10ª (Affari sociali, sanità, lavoro
+                                          pubblico e privato, previdenza sociale), in sede referente, il 4 agosto
+        2. La presente legge entra in vigore il giorno successivo                 
+                                          2025, con i pareri del Comitato per la Legislazione e delle Commis-
+       a quello della sua pubblicazione nella G azzetta Ufficiale . sioni 1ª (Affari costituzionali, affari della Presidenza del Consiglio e
+                                      — 29 —
+````
+
+## Pagina 32
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       dell’Interno, ordinamento generale dello Stato e della Pubblica Ammi- di tossicodipendenza» e, in particolare, gli articoli 104,
+       nistrazione, editoria, digitalizzazione), 5ª (Programmazione economica, 105 e 106;
+       bilancio) e per le Questioni regionali.                                    
+                                           Vista la legge 27 maggio 1991, n. 176, recante «Ratifi-
+         Esaminato dalla Commissione 10ª (Affari sociali, sanità, lavoro          
+       pubblico e privato, previdenza sociale), in sede referente, il 5 agosto ca ed esecuzione della convenzione sui diritti del fanciul-
+       2025, l’8 e il 9 settembre 2025.   lo, fatta a New York il 20 novembre 1989»;
+         Esaminato in Aula e approvato il 10 settembre 2025. Vista la legge 5 febbraio 1992, n. 104, recante «Legge-
+       Camera dei deputati (atto n. 2586): quadro per l’assistenza, l’integrazione sociale e i diritti
+         Assegnato alla Commissione XII (Affari sociali), in sede referente, delle persone handicappate» e, in particolare, gli articoli
+       il 10 settembre 2025, con i pareri del Comitato per la Legislazione e 12, 13, 14, 15 e 16;
+       delle Commissioni I (Affari Costituzionali, della Presidenza del Consi-    
+       glio e interni), V (Bilancio, tesoro e programmazione) e per le Questioni Visto il decreto legislativo 16 aprile 1994, n. 297, re-
+       regionali.                         cante «Approvazione del testo unico delle disposizioni
+         Esaminato dalla Commissione XII (Affari sociali), in sede referen- legislative vigenti in materia di istruzione, relative alle
+       te, il 16 e il 18 settembre 2025.  scuole di ogni ordine e grado»;         
+         Esaminato in Aula il 22 settembre 2025 e approvato, definitiva- Vista la legge 15 marzo 1997, n. 59, recante «Delega
+       mente, il 23 settembre 2025.                                               
+                                          al Governo per il conferimento di funzioni e compiti alle
+                                          regioni ed enti locali, per la riforma della pubblica ammi-
+                                          nistrazione e per la semplificazione amministrativa» e, in
+       AVVERTENZA:                                                                
+                                          particolare, l’articolo 21, commi 1, 2 e 13;
+         Il decreto-legge 1° agosto 2025, n. 110, è stato pubblicato nella Vista la legge 6 marzo 1998, n. 40, recante «Disciplina
+       Gazzetta Ufficiale - Serie generale - n. 177 del 1° agosto 2025.           
+                                          dell’immigrazione e norme sulla condizione dello stra-
+         A norma dell’art. 15, comma 5, della legge 23 agosto 1988, n. 400 niero» e, in particolare, l’articolo 36;
+       (Disciplina dell’attività di Governo e ordinamento della Presidenza del    
+       Consiglio dei ministri), le modifiche apportate dalla presente legge di Visto il decreto legislativo 15 aprile 2005, n. 76, recan-
+       conversione hanno efficacia dal giorno successivo a quello della sua te «Definizione delle norme generali sul diritto-dovere
+       pubblicazione.                                                             
+                                          all’istruzione e alla formazione, a norma dell’articolo 2,
+         Il testo del decreto-legge coordinato con la legge di conversione è comma 1, lettera c ) , della legge 28 marzo 2003, n. 53»;
+       pubblicato in questa stessa G azzetta Ufficiale alla pag. 55.              
+                                           Visto il decreto legislativo 17 ottobre 2005, n. 226, re-
+       25G00144                           cante «Norme generali e livelli essenziali delle prestazio-
+                                          ni relativi al secondo ciclo del sistema educativo di istru-
+                                          zione e formazione, a norma dell’articolo 2 della legge
+                                          28 marzo 2003, n. 53»;                  
+       DECRETO DEL PRESIDENTE DELLA REPUBBLICA                                    
+                                           Vista la legge 27 dicembre 2006, n. 296, recante
+        8 agosto 2025 , n. 1 34 .                                                 
+                                          «Disposizioni per la formazione del bilancio annuale e
+        Regolamento concernente modifiche al decreto del Pre- pluriennale dello Stato» e, in particolare l’articolo 1,
+       sidente della Repubblica 24 giugno 1998, n. 249, recante lo comma 622;     
+       statuto delle studentesse e degli studenti della scuola secon-             
+                                           Vista la legge 27 giugno 2013, n. 77, recante «Ratifica
+       daria.                                                                     
+                                          ed esecuzione della Convenzione del Consiglio d’Europa
+                                          sulla prevenzione e la lotta contro la violenza nei con-
+           IL PRESIDENTE DELLA REPUBBLICA fronti delle donne e la violenza domestica, fatta a Istanbul
+                                          l’11 maggio 2011»;                      
+        Visti gli articoli 87, quinto comma, e 117, secondo Visto il decreto-legge 14 agosto 2013, n. 93, converti-
+       comma, lettera n ) , della Costituzione; to, con modificazioni, dalla legge 15 ottobre 2013, n. 119,
+        Vista la legge 23 agosto 1988, n. 400, recante «Disci- recante «Disposizioni urgenti in materia di sicurezza e per
+       plina dell’attività di Governo e ordinamento della Presi- il contrasto della violenza di genere, nonché in tema di
+       denza del Consiglio dei ministri» e, in particolare, l’arti- protezione civile e di commissariamento delle province»;
+       colo 17, comma 1;                   Vista la legge 13 luglio 2015, n. 107, recante «Riforma
+        Vista la legge 17 maggio 2024, n. 70, recante «Dispo- del sistema nazionale di istruzione e formazione e delega
+       sizioni e delega al Governo in materia di prevenzione e per il riordino delle disposizioni legislative vigenti»;
+       contrasto del bullismo e del cyberbullismo» e, in partico- Visto il decreto legislativo 13 aprile 2017, n. 62, recan-
+       lare, l’articolo 5;                te «Norme in materia di valutazione e certificazione delle
+        Vista la legge 1° ottobre 2024, n. 150, recante «Re- competenze nel primo ciclo ed esami di Stato, a norma
+       visione della disciplina in materia di valutazione delle dell’articolo 1, commi 180 e 181, lettera i ) , della legge
+       studentesse e degli studenti, di tutela dell’autorevolezza 13 luglio 2015, n. 107»;
+       del personale scolastico nonché di indirizzi scolastici Visto il decreto legislativo 13 aprile 2017, n. 66, re-
+       differenziati» e, in particolare, l’articolo 1, commi 4 e 5, cante «Norme per la promozione dell’inclusione scola-
+       lettera a ) ;                      stica degli studenti con disabilità, a norma dell’articolo 1,
+        Visto il decreto del Presidente della Repubblica 9 ot- commi 180 e 181, lettera c ) , della legge 13 luglio 2015,
+       tobre 1990, n. 309, recante «Testo unico delle leggi in n. 107»;           
+       materia di disciplina degli stupefacenti o sostanze psico- Vista la legge 19 luglio 2019, n. 69, recante «Modifi-
+       trope, prevenzione, cura e riabilitazione dei relativi stati che al codice penale, al codice di procedura penale e altre
+                                      — 30 —
+````
+
+## Pagina 33
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       disposizioni in materia di tutela delle vittime di violenza Vista la deliberazione del Consiglio dei ministri, adot-
+       domestica e di genere»;            tata nella riunione del 30 luglio 2025; 
+        Vista la legge 20 agosto 2019, n. 92, recante «Intro- Sulla proposta del Ministro dell’istruzione e del merito;
+       duzione dell’insegnamento scolastico dell’educazione                       
+       civica»;                                          EMANA                    
+                                                   il seguente regolamento:       
+        Visto il decreto-legge 11 novembre 2022, n. 173, con-                     
+       vertito, con modificazioni, dalla legge 16 dicembre 2022,                  
+       n. 204, recante «Disposizioni urgenti in materia di riordi- Art. 1.        
+       no delle attribuzioni dei Ministeri»;                                      
+                                           Modifiche al decreto del Presidente della Repubblica
+        Vista la legge 24 novembre 2023, n. 168, recante «Di-                     
+                                                    24 giugno 1998, n. 249        
+       sposizioni per il contrasto della violenza sulle donne e                   
+       della violenza domestica»;          1. Al decreto del Presidente della Repubblica 24 giugno
+        Visto il decreto del Presidente della Repubblica 10 ot- 1998, n. 249, sono apportate le seguenti modificazioni:
+       tobre 1996, n. 567, recante «Regolamento recante la di- a) all’articolo 2, comma 8:
+       sciplina delle iniziative complementari e delle attività in-               
+                                              1) alla lettera d ) , la parola: «handicap» è sostituita
+       tegrative nelle istituzioni scolastiche»;                                  
+                                          dalla seguente: «disabilità»;           
+        Visto il decreto del Presidente della Repubblica 24 giu- 2) dopo la lettera f ) , è aggiunta la seguente:
+       gno 1998, n. 249, concernente «Regolamento recante                         
+                                                «f -bis ) l’emersione di episodi riconducibili ai
+       lo statuto delle studentesse e degli studenti della scuola                 
+                                          fenomeni del bullismo e del cyberbullismo, di situazioni
+       secondaria»;                                                               
+                                          di uso o abuso di alcool o di sostanze stupefacenti e di
+        Visto il decreto del Presidente della Repubblica 8 mar- altre forme di dipendenza.»;
+       zo 1999, n. 275, concernente «Regolamento recante nor-                     
+                                             b) all’articolo 4:                   
+       me in materia di autonomia delle istituzioni scolastiche, ai               
+                                              1) al comma 1, dopo le parole: «delle singole isti-
+       sensi dell’articolo 21 della legge 15 marzo 1997, n. 59»;                  
+                                          tuzioni scolastiche» sono inserite le seguenti: «del siste-
+        Visto il decreto del Presidente della Repubblica 22 giu- ma nazionale di istruzione»;
+       gno 2009, n. 122, concernente «Regolamento recante co-                     
+                                              2) al comma 3, il terzo periodo è sostituito dai
+       ordinamento delle norme vigenti per la valutazione degli                   
+                                          seguenti:                               
+       alunni e ulteriori modalità applicative in materia, ai sensi               
+                                                «Nessuna infrazione disciplinare connessa al
+       degli articoli 2 e 3 del decreto-legge 1° settembre 2008,                  
+                                          comportamento può influire sulla valutazione degli ap-
+       n. 137, convertito, con modificazioni, dalla legge 30 otto-                
+                                          prendimenti delle singole discipline. L’infrazione disci-
+       bre 2008, n. 169»;                                                         
+                                          plinare influisce sul voto di comportamento.»;
+        Visto il decreto del Presidente della Repubblica                          
+                                              3) al comma 5, il terzo periodo è soppresso;
+       28 marzo 2013, n. 80, recante «Regolamento sul siste-                      
+                                              4) al comma 6:                      
+       ma nazionale di valutazione in materia di istruzione e                     
+       formazione»;                             4.1) al primo periodo, le parole: «e i provvedi-
+                                          menti» sono soppresse e le parole: «dalla comunità scola-
+        Considerata la necessità di dare attuazione all’arti-                     
+                                          stica» sono sostituite dalle seguenti: «dalle lezioni»;
+       colo 1, commi 4 e 5 della citata legge 1° ottobre 2024,                    
+       n. 150, recante «Revisione della disciplina in materia di 4.2) al secondo periodo, dopo la parola: «al-
+       valutazione delle studentesse e degli studenti, di tutela lontanamento» sono inserite le seguenti: «dalla comunità
+       dell’autorevolezza del personale scolastico nonché di in- scolastica»;     
+       dirizzi scolastici differenziati» e all’articolo 5 della legge 5) al comma 7, le parole: «dalla comunità scola-
+       17 maggio 2024, n. 70, recante «Disposizioni e delega al stica» sono sostituite dalle seguenti: «dalle lezioni»;
+       Governo in materia di prevenzione e contrasto del bulli- 6) al comma 8:    
+       smo e del cyberbullismo»;                                                  
+                                                6.1) il primo periodo è sostituito dal seguente:
+        Ravvisata l’esigenza di ripristinare la cultura del rispet-               
+                                                 «8. Nei periodi di allontanamento non supe-
+       to e l’autorevolezza del personale docente delle istituzio-                
+                                          riori a quindici giorni deve essere previsto un rapporto tra
+       ni scolastiche secondarie di primo e secondo grado del                     
+                                          la comunità scolastica, lo studente e i suoi genitori tale da
+       sistema nazionale di istruzione e formazione, nonché di                    
+                                          preparare il rientro nel gruppo classe.»;
+       conferire maggiore rilevanza al comportamento delle stu-                   
+                                                6.2) il secondo periodo è soppresso;
+       dentesse e degli studenti;                                                 
+                                              7) dopo il comma 8 sono inseriti i seguenti:
+        Acquisito il parere del Consiglio superiore della pub-                    
+                                                «8 -bis . Nel periodo di allontanamento dello stu-
+       blica istruzione, reso nella seduta plenaria n. 140 del                    
+                                          dente dalle lezioni fino a due giorni, il consiglio di classe
+       31 gennaio 2025;                                                           
+                                          delibera, con adeguata motivazione, attività di approfon-
+        Vista la preliminare deliberazione del Consiglio dei                      
+                                          dimento sulle conseguenze dei comportamenti che hanno
+       ministri, adottata nella riunione del 30 aprile 2025;                      
+                                          determinato il provvedimento disciplinare. Tali attivi-
+        Udito il parere del Consiglio di Stato, espresso dalla tà sono svolte presso l’istituzione scolastica. Le scuole,
+       Sezione consultiva per gli atti normativi nell’adunanza nell’ambito della loro autonomia, individuano i docenti
+       del 27 maggio 2025;                incaricati di realizzare le attività di cui al primo periodo.
+                                      — 31 —
+````
+
+## Pagina 34
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+             8 -ter . Nel periodo di allontanamento dello stu- corrispondente ai giorni di allontanamento deliberato, e
+       dente dalle lezioni per un periodo compreso fra tre e quin- nel rispetto dei principi di temporaneità, proporzionalità e
+       dici giorni, il consiglio di classe delibera, con adeguata gradualità di cui al comma 5.
+       motivazione, attività di cittadinanza attiva e solidale, 8 -sexies . Nei periodi di allontanamento supe-
+       commisurate all’orario scolastico relativo al numero di riori a quindici giorni, la scuola promuove, in coordina-
+       giorni per i quali è deliberato l’allontanamento. Le atti- mento con la famiglia e, ove necessario, anche con i servi-
+       vità di cui al primo periodo, inserite all’interno del Pia- zi sociali e l’autorità giudiziaria, un percorso di recupero
+       no triennale dell’offerta formativa (PTOF), si svolgono educativo mirato all’inclusione, alla responsabilizzazione
+       presso le strutture ospitanti di cui al quinto periodo, con e al reintegro, ove possibile, nella comunità scolastica.»;
+       le quali l’istituzione scolastica, nell’ambito della propria               
+                                              8) il comma 9 è sostituito dal seguente:
+       autonomia, stipula convenzioni, assicurando il raccordo                    
+                                                «9. L’allontanamento dello studente dalla co-
+       e il coordinamento con le medesime. Le convenzioni di                      
+                                          munità scolastica superiore a quindici giorni può essere
+       cui al secondo periodo disciplinano il percorso formativo                  
+                                          disposto anche quando siano stati commessi reati che
+       personalizzato di attività di cittadinanza attiva e solidale,              
+                                          violano la dignità e il rispetto della persona umana o vi
+       i tempi, le modalità, il contesto e i limiti del suo svolgi-               
+                                          sia pericolo per l’incolumità delle persone, nonché in pre-
+       mento presso le strutture ospitanti, nonché le rispettive                  
+                                          senza di atti violenti o di aggressione nei confronti del
+       figure di riferimento. Durante le attività di cittadinanza                 
+                                          personale scolastico, delle studentesse e degli studenti.
+       attiva e solidale, l’obbligo di vigilanza sulle studentes-                 
+                                          In tale caso, la durata dell’allontanamento è commisurata
+       se e sugli studenti è in capo alle strutture ospitanti che                 
+                                          alla gravità del reato ovvero al permanere della situazione
+       comunicano tempestivamente alle istituzioni scolastiche                    
+                                          di pericolo. Si applica, per quanto possibile, il disposto
+       eventuali assenze. Gli enti, le associazioni e gli enti del                
+                                          del comma 8.»;                          
+       Terzo settore possono manifestare la propria disponibilità                 
+                                              9) al comma 9- ter , la parola: «concreti» è sostitui-
+       ad accogliere lo studente in attività di cittadinanza attiva               
+                                          ta dalla seguente: «circostanziati» e la parola: «incolpato»
+       e solidale attraverso la partecipazione all’avviso pubbli-                 
+                                          è sostituita dalla seguente: «responsabile»;
+       co, contenente i requisiti e i criteri definiti dal Ministe-               
+                                              10) al comma 11, la parola: «inflitte» è sostituita
+       ro dell’istruzione e del merito, predisposto dall’Ufficio                  
+                                          dalla seguente: «irrogate»;             
+       scolastico regionale competente il quale, con successivo                   
+       provvedimento, approva gli elenchi degli enti, delle asso- c) all’articolo 5- bis :
+       ciazioni e degli enti del Terzo settore idonei ad accogliere 1) dopo il comma 1, sono inseriti i seguenti:
+       lo studente. A seguito delle attività di verifica del mante- «1- bis . Nel Patto di cui al comma 1, è inclu-
+       nimento dei requisiti citati, svolte dal medesimo Ufficio so l’impegno dell’istituzione scolastica e delle famiglie
+       scolastico regionale, e dell’acquisizione delle ulteriori a collaborare per consentire l’emersione di episodi ricon-
+       manifestazioni di interesse pervenute, il competente Uf- ducibili ai fenomeni del bullismo e del cyberbullismo, di
+       ficio aggiorna annualmente gli elenchi di cui al quinto situazioni di uso o abuso di alcool o di sostanze stupefa-
+       periodo. Le istituzioni scolastiche, nell’ambito della loro centi, nonché di altre forme di dipendenza.
+       autonomia, individuano le figure referenti per la realizza-                
+                                                1- ter . Le istituzioni scolastiche integrano il Pat-
+       zione di tali attività, nell’ambito del personale scolastico,              
+                                          to educativo di corresponsabilità, definendo in maniera
+       da remunerare a carico del Fondo per il Miglioramento                      
+                                          dettagliata le attività formative e informative che intendo-
+       dell’Offerta Formativa. Il mancato o parziale svolgimen- no programmare a favore delle studentesse, degli studenti
+       to delle attività di cittadinanza attiva e solidale viene con- e delle loro famiglie, con particolare riferimento all’uso
+       siderato dal consiglio di classe ai fini dell’attribuzione del sicuro e consapevole della rete internet.»;
+       voto di comportamento. Le ore di attività di cittadinanza                  
+                                              2) al comma 3, dopo le parole: «del piano» è inse-
+       attiva e solidale sono computate nei tre quarti dell’ora-                  
+                                          rita la seguente: «triennale»;          
+       rio annuale personalizzato richiesto ai fini della validità                
+                                             d) all’articolo 6:                   
+       dell’anno scolastico, pur non influendo sulla valutazione                  
+       degli apprendimenti delle singole discipline. 1) la rubrica è sostituita dalla seguente: «Disposi-
+                                          zioni transitorie e finali»;            
+             8 -quater . In caso di indisponibilità delle strut-                  
+                                              2) al comma 1, la parola: «media» è sostituita dal-
+       ture ospitanti di cui al comma 8- ter , dovuta all’inidoneità              
+                                          le seguenti: «secondaria di primo grado»;
+       delle stesse a causa dell’assenza dei requisiti individua-                 
+                                              3) dopo il comma 1, è inserito il seguente:
+       ti dal comma 8- ter , quinto periodo, ovvero alla mancata                  
+                                                «1- bis . Le istituzioni scolastiche, nell’ambito
+       presentazione di manifestazioni di interesse di cui al me-                 
+                                          della loro autonomia e, comunque, entro il termine di
+       desimo comma, le attività di cittadinanza attiva e solida-                 
+                                          trenta giorni dalla data di entrata in vigore del presen-
+       le ivi contemplate, sono svolte a favore della comunità                    
+                                          te regolamento, adeguano il Regolamento di istituto alle
+       scolastica.                                                                
+                                          previsioni di cui all’articolo 4, commi 8- bis , 8 -ter , 8- qua-
+             8 -quinquies . Il consiglio di classe, al fine di ga- ter , 8- quinquies e 8- sexies .»;
+       rantire la piena consapevolezza, da parte dello studente, 4) dopo il comma 3, è aggiunto il seguente:
+       dei comportamenti coerenti con i principi ispiratori della «3- bis . Nelle more della definizione degli elen-
+       vita della comunità scolastica, può deliberare, ove neces- chi regionali delle strutture ospitanti, di cui all’articolo 4,
+       sario, la prosecuzione delle attività di cittadinanza attiva comma 8- ter , quinto periodo, le attività di cittadinanza
+       e solidale anche dopo il rientro nel gruppo classe, per un attiva e solidale sono effettuate a favore della comunità
+       periodo massimo pari ai tre quarti dell’orario scolastico scolastica.».    
+                                      — 32 —
+````
+
+## Pagina 35
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+                     Art. 2.                2. Con decreto del Presidente della Repubblica, previa delibera-
+                                          zione del Consiglio dei ministri, sentito il Consiglio di Stato e previo
+             Clausola di invarianza finanziaria parere delle Commissioni parlamentari competenti in materia, che si
+                                          pronunciano entro trenta giorni dalla richiesta, sono emanati i regola-
+        1. Dall’attuazione del presente regolamento non devo- menti per la disciplina delle materie, non coperte da riserva assoluta di
+       no derivare nuovi o maggiori oneri a carico della finanza legge prevista dalla Costituzione, per le quali le leggi della Repubbli-
+                                          ca, autorizzando l’esercizio della potestà regolamentare del Governo,
+       pubblica. Le amministrazioni interessate provvedono agli                   
+                                          determinano le norme generali regolatrici della materia e dispongono
+       adempimenti ivi previsti con le risorse umane, finanziarie l’abrogazione delle norme vigenti, con effetto dall’entrata in vigore del-
+       e strumentali previste a legislazione vigente. le norme regolamentari.     
+        Il presente decreto, munito di sigillo dello Stato, sarà 3. Con decreto ministeriale possono essere adottati regolamen-
+                                          ti nelle materie di competenza del ministro o di autorità sottordinate
+       inserito nella Raccolta ufficiale degli atti normativi della               
+                                          al ministro, quando la legge espressamente conferisca tale potere. Tali
+       Repubblica italiana. È fatto obbligo a chiunque spetti di regolamenti, per materie di competenza di più ministri, possono esse-
+       osservarlo e di farlo osservare.   re adottati con decreti interministeriali, ferma restando la necessità di
+                                          apposita autorizzazione da parte della legge. I regolamenti ministeriali
+          Dato a Roma, addì 8 agosto 2025 ed interministeriali non possono dettare norme contrarie a quelle dei
+                                          regolamenti emanati dal Governo. Essi debbono essere comunicati al
+                                          Presidente del Consiglio dei ministri prima della loro emanazione.
+                  MATTARELLA                4. I regolamenti di cui al comma 1 ed i regolamenti ministeriali ed
+                                          interministeriali, che devono recare la denominazione di “regolamen-
+                                          to”, sono adottati previo parere del Consiglio di Stato, sottoposti al visto
+                       MELONI, Presidente del Con-                                
+                                          ed alla registrazione della Corte dei conti e pubblicati nella G azzetta
+                         siglio dei ministri Ufficiale .                          
+                       VALDITARA, Ministro dell’istru- 4 -bis . L’organizzazione e la disciplina degli uffici dei Ministeri
+                         zione e del merito sono determinate, con regolamenti emanati ai sensi del comma 2, su
+                                          proposta del Ministro competente d’intesa con il Presidente del Con-
+       Visto, il Guardasigilli: NORDIO    siglio dei ministri e con il Ministro del tesoro, nel rispetto dei principi
+                                          posti dal decreto legislativo 3 febbraio 1993, n. 29, e successive mo-
+       Registrato alla Corte dei conti il 9 settembre 2025 dificazioni, con i contenuti e con l’osservanza dei criteri che seguono:
+        Ufficio di controllo sugli atti del Ministero dell’istruzione e del a) riordino degli uffici di diretta collaborazione con i Ministri
+        merito, del Ministero dell’università e della ricerca e del Ministero ed i Sottosegretari di Stato, stabilendo che tali uffici hanno esclusive
+        della cultura, n. 1896            competenze di supporto dell’organo di direzione politica e di raccordo
+                                          tra questo e l’amministrazione;         
+                                             b) individuazione degli uffici di livello dirigenziale generale,
+                                          centrali e periferici, mediante diversificazione tra strutture con funzio-
+                     NOTE                 ni finali e con funzioni strumentali e loro organizzazione per funzioni
+                                          omogenee e secondo criteri di flessibilità eliminando le duplicazioni
+       AVVERTENZA:                        funzionali;                             
+                                             c) previsione di strumenti di verifica periodica dell’organizza-
+         Il testo delle note qui pubblicato è stato redatto dall’amministrazio-   
+                                          zione e dei risultati;                  
+       ne competente per materia, ai sensi dell’art. 10, commi 2 e 3, del testo   
+       unico delle disposizioni sulla promulgazione delle leggi, sull’emanazio- d) indicazione e revisione periodica della consistenza delle pian-
+       ne dei decreti del Presidente della Repubblica e sulle pubblicazioni uffi- te organiche;
+       ciali della Repubblica italiana, approvato con D.P.R. 28 dicembre 1985, e) previsione di decreti ministeriali di natura non regolamentare
+       n. 1092, al solo fine di facilitare la lettura delle disposizioni di legge per la definizione dei compiti delle unità dirigenziali nell’ambito degli
+       modificate o alle quali è operato il rinvio. Restano invariati il valore e uffici dirigenziali generali.
+       l’efficacia degli atti legislativi qui trascritti.                         
+                                            4 -ter . Con regolamenti da emanare ai sensi del comma 1 del pre-
+                                          sente articolo, si provvede al periodico riordino delle disposizioni rego-
+       Note alle premesse:                                                        
+                                          lamentari vigenti, alla ricognizione di quelle che sono state oggetto di
+         — L’art. 87, quinto comma, della Costituzione conferisce al Pre- abrogazione implicita e all’espressa abrogazione di quelle che hanno
+       sidente della Repubblica il potere di promulgare le leggi ed emanare i esaurito la loro funzione o sono prive di effettivo contenuto normativo o
+       decreti aventi valore di legge e i regolamenti. sono comunque obsolete.».  
+         — L’art. 117 della Costituzione dispone, tra l’altro, che lo Stato ha — Si riporta l’articolo 5 della legge 17 maggio 2024, n. 70, re-
+       legislazione esclusiva nelle norme generali sull’istruzione. cante: «Disposizioni e delega al Governo in materia di prevenzione e
+         — Si riporta l’articolo 17 della legge 23 agosto 1988, n. 400, recan- contrasto del bullismo e del cyberbullismo», pubblicata nella G azzetta
+       te: «Disciplina dell’attività di Governo e ordinamento della Presidenza Ufficiale n. 125 del 30 maggio 2024:
+       del Consiglio dei ministri», pubblicata nella G azzetta Ufficiale n. 214 «Art. 5 ( Adeguamento del regolamento di cui al decreto del Presi-
+       del 12 settembre 1988:             dente della Repubblica 24 giugno 1998, n. 249 ). — 1. Con regolamento
+         «Art. 17 ( Regolamenti ). — 1. Con decreto del Presidente della adottato ai sensi dell’articolo 17, comma 1, della legge 23 agosto 1988,
+       Repubblica, previa deliberazione del Consiglio dei ministri, sentito il n. 400, sono apportate al regolamento di cui al decreto del Presidente
+       parere del Consiglio di Stato che deve pronunziarsi entro novanta giorni della Repubblica 24 giugno 1998, n. 249, le modificazioni necessarie
+       dalla richiesta, possono essere emanati regolamenti per disciplinare: per adeguarlo ai seguenti principi:
+          a) l’esecuzione delle leggi e dei decreti legislativi nonché dei a) prevedere, nell’ambito dei diritti e doveri dello studente enun-
+       regolamenti comunitari;            ciati agli articoli 2 e 3 del citato regolamento di cui al decreto del Presi-
+                                          dente della Repubblica n. 249 del 1998, che la scuola si impegni a porre
+          b) l’attuazione e l’integrazione delle leggi e dei decreti legisla-     
+                                          progressivamente in essere le condizioni per assicurare l’emersione di
+       tivi recanti norme di principio, esclusi quelli relativi a materie riservate
+                                          episodi riconducibili ai fenomeni del bullismo e del cyberbullismo, di
+       alla competenza regionale;                                                 
+                                          situazioni di uso o abuso di alcool o di sostanze stupefacenti e di forme
+          c) le materie in cui manchi la disciplina da parte di leggi o di di dipendenza;
+       atti aventi forza di legge, sempre che non si tratti di materie comunque   
+                                             b) integrare la disciplina relativa al Patto educativo di correspon-
+       riservate alla legge;                                                      
+                                          sabilità, di cui all’articolo 5- bis del citato regolamento di cui al decreto
+          d) l’organizzazione ed il funzionamento delle amministrazioni del Presidente della Repubblica n. 249 del 1998, prevedendo che nel
+       pubbliche secondo le disposizioni dettate dalla legge; Patto siano espressamente indicate tutte le attività di formazione, curri-
+          e) .                            culari ed extracurriculari, che la scuola o i docenti della classe intendono
+                                      — 33 —
+````
+
+## Pagina 36
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       organizzare a favore degli studenti e delle loro famiglie, con particolare studio previste dalle Indicazioni nazionali per i licei, adottate ai sensi
+       riferimento all’uso della rete internet e delle comunità virtuali, e sia al- dell’articolo 13, comma 10, lettera a ) , del regolamento di cui al decreto
+       tresì previsto l’impegno, da parte delle famiglie e dell’istituto scolasti- del Presidente della Repubblica 15 marzo 2010, n. 89, e dalle Linee
+       co, a collaborare per consentire l’emersione di episodi riconducibili ai guida per gli istituti tecnici e professionali, adottate, rispettivamente,
+       fenomeni del bullismo e del cyberbullismo, di situazioni di uso o abuso ai sensi dell’articolo 8, comma 3, del regolamento di cui al decreto del
+       di alcool o di sostanze stupefacenti e di forme di dipendenza, dei quali i Presidente della Repubblica 15 marzo 2010, n. 88, e dell’articolo 3,
+       genitori o gli operatori scolastici dovessero avere notizia.». comma 3, del decreto legislativo 13 aprile 2017, n. 61.».
+         — Si riporta l’articolo 1, commi 4 e 5, della legge 1° ottobre 2024, — Si riportano gli articoli 104, 105 e 106 del decreto del Presidente
+       n. 150, recante: «Revisione della disciplina in materia di valutazione della Repubblica 9 ottobre 1990, n. 309, recante: «Testo unico delle leg-
+       delle studentesse e degli studenti, di tutela dell’autorevolezza del per- gi in materia di disciplina degli stupefacenti o sostanze psicotrope, pre-
+       sonale scolastico nonché di indirizzi scolastici differenziati», pubblicata venzione, cura e riabilitazione dei relativi stati di tossicodipendenza»,
+       nella G azzetta Ufficiale n. 243 del 16 ottobre 2024: pubblicato nella G azzetta Ufficiale n. 255 del 31 ottobre 1990:
+         «Art. 1 ( Disposizioni in materia di valutazione delle studentesse e «Art. 104 (P romozione e coordinamento, a livello nazionale, delle
+       degli studenti ). — ( Omissis ).   attività di educazione ed informazione ). — 1. Il Ministero della pubbli-
+                                          ca istruzione promuove e coordina le attività di educazione alla salute
+         4. Al fine di ripristinare la cultura del rispetto, di affermare l’au-   
+                                          e di informazione sui danni derivanti dall’alcoolismo, dal tabagismo,
+       torevolezza dei docenti delle istituzioni scolastiche secondarie di primo  
+                                          dall’uso delle sostanze stupefacenti o psicotrope, nonché dalle patologie
+       e secondo grado del sistema nazionale di istruzione e formazione, di       
+                                          correlate.                              
+       rimettere al centro il principio della responsabilità e di restituire piena
+       serenità al contesto lavorativo degli insegnanti e del personale scola- 2. Le attività di cui al comma 1 si inquadrano nello svolgimento or-
+       stico, nonché al percorso formativo delle studentesse e degli studenti, dinario dell’attività educativa e didattica, attraverso l’approfondimento
+       con uno o più regolamenti adottati ai sensi dell’articolo 17, comma 1, di specifiche tematiche nell’ambito delle discipline curricolari.
+       della legge 23 agosto 1988, n. 400, entro centottanta giorni dalla data 3. Il Ministro della pubblica istruzione approva programmi annuali
+       di entrata in vigore della presente legge, si provvede alla revisione della differenziati per tipologie di iniziative e relative metodologie di applica-
+       disciplina in materia di valutazione del comportamento delle studentes- zione, per la promozione di attività da realizzarsi nelle scuole, sulla base
+       se e degli studenti.               delle proposte formulate da un apposito comitato tecnico-scientifico da
+         5. I regolamenti di cui al comma 4 sono adottati nel rispetto dell’au- lui costituito con decreto, composto da venticinque membri, di cui di-
+       tonomia scolastica nonché nel rispetto dei seguenti principi: ciotto esperti nel campo della prevenzione, compreso almeno un esperto
+                                          di mezzi di comunicazione sociale, e rappresentanti delle amministra-
+          a) apportare modifiche al regolamento di cui al decreto del Pre-        
+                                          zioni statali che si occupano di prevenzione, repressione e recupero nel-
+       sidente della Repubblica 24 giugno 1998, n. 249, al fine di riformare      
+                                          le materie di cui al comma 1 e sette esponenti di associazioni giovanili
+       l’istituto dell’allontanamento della studentessa e dello studente dalla    
+                                          e dei genitori.                         
+       scuola per un periodo non superiore a quindici giorni, in modo che:        
+                                            4. Il comitato, che funziona sia unitariamente che attraverso gruppi
+           1) l’allontanamento dalla scuola, fino a un massimo di due             
+                                          di lavoro individuati nel decreto istitutivo, deve approfondire, nella for-
+       giorni, comporti il coinvolgimento della studentessa e dello studente in   
+                                          mulazione dei programmi, le tematiche:  
+       attività di approfondimento sulle conseguenze dei comportamenti che        
+                                             a) della pedagogia preventiva;       
+       hanno determinato il provvedimento disciplinare;                           
+                                             b) dell’impiego degli strumenti didattici, con particolare riferi-
+           2) l’allontanamento dalla scuola di durata superiore a due             
+                                          mento ai libri di testo, ai sussidi audiovisivi, ai mezzi di comunicazione
+       giorni comporti lo svolgimento, da parte della studentessa e dello stu-    
+                                          di massa;                               
+       dente, di attività di cittadinanza solidale presso strutture convenzionate 
+       con le istituzioni scolastiche e individuate nell’ambito degli elenchi pre- c) dell’incentivazione di attività culturali, ricreative e sportive,
+       disposti dall’amministrazione periferica del Ministero dell’istruzione e da svolgersi eventualmente anche all’esterno della scuola;
+       del merito. Tali attività, se deliberate dal consiglio di classe, possono d) del coordinamento con le iniziative promosse o attuate da al-
+       proseguire anche dopo il rientro in classe della studentessa e dello stu- tre amministrazioni pubbliche con particolare riguardo alla prevenzione
+       dente, secondo principi di temporaneità, gradualità e proporzionalità; primaria.
+          b) apportare modifiche al regolamento di cui al decreto del Pre- 5. Alle riunioni del comitato, quando vengono trattati argomenti di
+       sidente della Repubblica 22 giugno 2009, n. 122, in modo da: loro interesse, possono essere invitati rappresentanti delle regioni, delle
+           1) prevedere che l’attribuzione del voto di comportamento province autonome e dei comuni.
+       inferiore a sei decimi e la conseguente non ammissione alla classe suc- 6. In sede di formazione di piani di aggiornamento e formazione
+       cessiva e all’esame di Stato avvengano anche a fronte di comportamenti del personale della scuola sarà data priorità alle iniziative in materia di
+       che configurano mancanze disciplinari gravi e reiterate, anche con rife- educazione alla salute e di prevenzione delle tossicodipendenze.
+       rimento alle violazioni previste dal regolamento di istituto; Art. 105 ( Promozione e coordinamento, a livello provinciale, del-
+           2) prevedere che l’attribuzione del voto di comportamento le iniziative di educazione e di prevenzione. Corsi di studio per inse-
+       inferiore a sei decimi in fase di valutazione periodica comporti il coin- gnanti e corsi sperimentali di scuola media) . — 1. Il provveditore agli
+       volgimento della studentessa e dello studente oggetto della valutazione studi promuove e coordina, nell’ambito provinciale, la realizzazione
+       in attività di approfondimento in materia di cittadinanza attiva e solida- delle iniziative previste nei programmi annuali e di quelle che possono
+       le, finalizzate alla comprensione delle ragioni e delle conseguenze dei essere deliberate dalle istituzioni scolastiche nell’esercizio della loro
+       comportamenti che hanno determinato tale voto; autonomia.                  
+           3) conferire maggiore peso al voto di comportamento del- 2. Nell’esercizio di tali compiti il provveditore si avvale di un
+       la studentessa e dello studente nella valutazione complessiva, riferito comitato tecnico provinciale o, in relazione alle esigenze emergenti
+       all’intero anno scolastico, in particolar modo in presenza di atti violenti nell’ambito distrettuale o interdistrettuale, di comitati distrettuali o in-
+       o di aggressione nei confronti del personale scolastico nonché delle stu- terdistrettuali, costituiti con suo decreto, i cui membri sono scelti tra
+       dentesse e degli studenti;         esperti nei campi dell’educazione alla salute e della prevenzione e recu-
+                                          pero dalle tossicodipendenze nonché tra rappresentanti di associazioni
+           4) prevedere che, per le studentesse e gli studenti delle scuo-        
+                                          familiari. Detti comitati sono composti da sette membri.
+       le secondarie di secondo grado che abbiano riportato una valutazione       
+       pari a sei decimi nel comportamento, il consiglio di classe, in sede di 3. Alle riunioni dei comitati possono essere invitati a partecipare
+       valutazione finale, sospenda il giudizio senza riportare immediatamente rappresentanti delle autorità di pubblica sicurezza, degli enti locali ter-
+       un giudizio di ammissione alla classe successiva e assegni alle studen- ritoriali e delle unità sanitarie locali, nonché esponenti di associazioni
+       tesse e agli studenti un elaborato critico in materia di cittadinanza atti- giovanili.
+       va e solidale; la mancata presentazione dell’elaborato prima dell’inizio 4. All’attuazione delle iniziative concorrono gli organi collegiali
+       dell’anno scolastico successivo o la valutazione non sufficiente da parte della scuola, nel rispetto dell’autonomia ad essi riconosciuta dalle di-
+       del consiglio di classe comportano la non ammissione della studentessa sposizioni in vigore. Le istituzioni scolastiche interessate possono avva-
+       e dello studente all’anno scolastico successivo; lersi anche dell’assistenza del servizio ispettivo tecnico.
+           5) prevedere la votazione in decimi per la valutazione perio- 5. Il provveditore agli studi, d’intesa con il consiglio provinciale
+       dica e per quella finale degli apprendimenti delle studentesse e degli scolastico e sentito il comitato tecnico provinciale, organizza corsi di
+       studenti del secondo ciclo di istruzione, in ciascuna delle discipline di studio per gli insegnanti delle scuole di ogni ordine e grado sulla edu-
+                                      — 34 —
+````
+
+## Pagina 37
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       cazione sanitaria e sui danni derivanti ai giovani dall’uso di sostanze 4. L’esercizio del diritto all’educazione e all’istruzione non può
+       stupefacenti o psicotrope, nonché sul fenomeno criminoso nel suo in- essere impedito da difficoltà di apprendimento né da altre difficoltà de-
+       sieme, con il supporto di mezzi audiovisivi ed opuscoli. A tal fine può rivanti dalle disabilità connesse all’handicap.
+       stipulare, con i fondi a sua disposizione, apposite convenzioni con enti   
+                                            5. Contestualmente all’accertamento previsto dall’articolo 4 per le
+       locali, università, istituti di ricerca ed enti, cooperative di solidarietà
+                                          bambine e i bambini, le alunne e gli alunni, le studentesse e gli studenti,
+       sociale e associazioni iscritti all’albo regionale o provinciale da istituirsi
+                                          le commissioni mediche di cui alla legge 15 ottobre 1990, n. 295, effet-
+       a norma dell’art. 116.                                                     
+                                          tuano, ove richiesto dai genitori della bambina o del bambino, dell’alun-
+         6. I corsi statali sperimentali di scuola media per lavoratori pos- na o dell’alunno, della studentessa o dello studente certificati ai sensi
+       sono essere istituiti anche presso gli enti, le cooperative di solidarietà del citato articolo 4, o da chi esercita la responsabilità genitoriale, l’ac-
+       sociale e le associazioni iscritti nell’albo di cui all’art. 116 entro i limiti certamento della condizione di disabilità in età evolutiva ai fini dell’in-
+       numerici e con le modalità di svolgimento di cui alle vigenti disposizio- clusione scolastica. Tale accertamento è propedeutico alla redazione del
+       ni. I corsi saranno finalizzati anche all’inserimento o al reinserimento profilo di funzionamento, predisposto secondo i criteri del modello bio-
+       nell’attività lavorativa.          psico-sociale della Classificazione internazionale del funzionamento,
+                                          della disabilità e della salute (ICF) dell’Organizzazione mondiale della
+         7. Le utilizzazioni del personale docente di ruolo di cui all’art. 14,   
+                                          sanità (OMS), ai fini della formulazione del Piano educativo individua-
+       decimo comma, della legge 20 maggio 1982, n. 270, possono essere di-       
+                                          lizzato (PEI) facente parte del progetto individuale di cui all’articolo 14
+       sposte, nel limite massimo di cento unità, ai fini del recupero scolastico 
+                                          della legge 8 novembre 2000, n. 328.    
+       e dell’acquisizione di esperienze educative, anche presso gli enti e le as-
+       sociazioni iscritti nell’albo di cui all’art. 116, a condizione che tale per- 6. abrogato
+       sonale abbia documentatamente frequentato i corsi di cui al comma 5.       
+                                            7. abrogato                           
+         8. Il Ministro della pubblica istruzione assegna annualmente ai          
+                                            8. abrogato                           
+       provveditorati agli studi, in proporzione alla popolazione scolastica di   
+       ciascuno, fondi per le attività di educazione alla salute e di prevenzione 9. Ai minori handicappati soggetti all’obbligo scolastico, tempo-
+       delle tossicodipendenze da ripartire tra le singole scuole sulla base dei raneamente impediti per motivi di salute a frequentare la scuola, sono
+       criteri elaborati dai comitati provinciali, con particolare riguardo alle comunque garantite l’educazione e l’istruzione scolastica. A tal fine il
+       iniziative di cui all’art. 106.    provveditore agli studi, d’intesa con le unità sanitarie locali e i centri
+                                          di recupero e di riabilitazione, pubblici e privati, convenzionati con i
+         9. L’onere derivante dal funzionamento del comitato tecnico-scien-       
+                                          Ministeri della sanità e del lavoro e della previdenza sociale, provvede
+       tifico di cui all’art. 104 e dei comitati di cui al presente articolo è valu-
+                                          alla istituzione, per i minori ricoverati, di classi ordinarie quali sezioni
+       tato in complessivi euro 2.065.827,60 (lire 4 miliardi) in ragione d’anno  
+                                          staccate della scuola statale. A tali classi possono essere ammessi anche
+       a decorrere dall’anno 1990. Il Ministro della pubblica istruzione con      
+                                          i minori ricoverati nei centri di degenza, che non versino in situazioni di
+       proprio decreto disciplina l’istituzione e il funzionamento del comitato   
+                                          handicap e per i quali sia accertata l’impossibilità della frequenza della
+       tecnico-scientifico e dei comitati provinciali, distrettuali e interdistret-
+                                          scuola dell’obbligo per un periodo non inferiore a trenta giorni di lezio-
+       tuali e l’attribuzione dei compensi ai componenti dei comitati stessi.     
+                                          ne. La frequenza di tali classi, attestata dall’autorità scolastica mediante
+         Art. 106 ( Centri di informazione e consulenza nelle scuole. Inizia- una relazione sulle attività svolte dai docenti in servizio presso il centro
+       tive di studenti animatori ). — 1. I provveditori agli studi, di intesa con i di degenza, è equiparata ad ogni effetto alla frequenza delle classi alle
+       consigli di istituto e con i servizi pubblici per l’assistenza socio-sanitaria quali i minori sono iscritti.
+       ai tossicodipendenti, istituiscono centri di informazione e consulenza     
+                                            10. Negli ospedali, nelle cliniche e nelle divisioni pediatriche gli
+       rivolti agli studenti all’interno delle scuole secondarie superiori.       
+                                          obiettivi di cui al presente articolo possono essere perseguiti anche me-
+         2. I centri possono realizzare progetti di attività informativa e di diante l’utilizzazione di personale in possesso di specifica formazione
+       consulenza concordati dagli organi collegiali della scuola con i servizi psico-pedagogica che abbia una esperienza acquisita presso i nosocomi
+       pubblici e con gli enti ausiliari presenti sul territorio. Le informazioni e o segua un periodo di tirocinio di un anno sotto la guida di personale
+       le consulenze sono erogate nell’assoluto rispetto dell’anonimato di chi esperto.
+       si rivolge al servizio.                                                    
+                                            Art. 13 ( Integrazione scolastica ). — 1. L’integrazione scolastica
+         3. Gruppi di almeno venti studenti anche di classi e di corsi diversi, della persona handicappata nelle sezioni e nelle classi comuni delle
+       allo scopo di far fronte alle esigenze di formazione, approfondimento scuole di ogni ordine e grado e nelle università si realizza, fermo re-
+       ed orientamento sulle tematiche relative all’educazione alla salute ed stando quanto previsto dalla legge 11 maggio 1976, n. 360, e dalla legge
+       alla prevenzione delle tossicodipendenze, possono proporre iniziative 4 agosto 1977, n. 517, e successive modificazioni, anche attraverso:
+       da realizzare nell’ambito dell’istituto con la collaborazione del persona- 
+                                             a) la programmazione coordinata dei servizi scolastici con quel-
+       le docente, che abbia dichiarato la propria disponibilità. Nel formulare   
+                                          li sanitari, socio-assistenziali, culturali, ricreativi, sportivi e con altre
+       le proposte i gruppi possono esprimere le loro preferenze in ordine ai     
+                                          attività sul territorio gestite da enti pubblici o privati. A tale scopo gli
+       docenti chiamati a collaborare alle iniziative.                            
+                                          enti locali, gli organi scolastici e le unità sanitarie locali, nell’ambito
+         4. Le iniziative di cui al comma 3 rientrano tra quelle previste delle rispettive competenze, stipulano gli accordi di programma di cui
+       dall’art. 6, secondo comma, lettera d ) , del decreto del Presidente della all’articolo 27 della legge 8 giugno 1990, n. 142. Entro tre mesi dalla
+       Repubblica 31 maggio 1974, n. 416, e sono deliberate dal consiglio di data di entrata in vigore della presente legge, con decreto del Ministro
+       istituto, sentito, per gli aspetti didattici, il collegio dei docenti. della pubblica istruzione, d’intesa con i Ministri per gli affari sociali
+         5. La partecipazione degli studenti alle iniziative, che si svolgono e della sanità, sono fissati gli indirizzi per la stipula degli accordi di
+       in orario aggiuntivo a quello delle materie curricolari, è volontaria.». programma. Tali accordi di programma sono finalizzati alla predisposi-
+                                          zione, attuazione e verifica congiunta di progetti educativi, riabilitativi
+         — La legge 27 maggio 1991, n. 176, recante: «ratifica ed esecuzio- e di socializzazione individualizzati, nonché a forme di integrazione tra
+       ne della convenzione sui diritti del fanciullo, fatta a New York il 20 no- attività scolastiche e attività integrative extrascolastiche. Negli accordi
+       vembre 1989» è pubblicata nella G azzetta Ufficiale n. 135 dell’11 giu- sono altresì previsti i requisiti che devono essere posseduti dagli enti
+       gno 1991.                          pubblici e privati ai fini della partecipazione alle attività di collabora-
+         — Si riportano gli articoli 12, 13, 14, 15 e 16 della legge 5 febbra- zione coordinate;
+       io 1992, n. 104, recante: «Legge-quadro per l’assistenza, l’integrazione b) la dotazione alle scuole e alle università di attrezzature tecni-
+       sociale e i diritti delle persone handicappate», pubblicata nella G azzetta che e di sussidi didattici nonché di ogni altra forma di ausilio tecnico,
+       Ufficiale n. 39 del 17 febbraio 1992: ferma restando la dotazione individuale di ausili e presidi funzionali
+         «Art. 12 (D iritto all’educazione e all’istruzione ). — 1. Al bambino all’effettivo esercizio del diritto allo studio, anche mediante convenzio-
+       da 0 a 3 anni handicappato è garantito l’inserimento negli asili nido. ni con centri specializzati, aventi funzione di consulenza pedagogica, di
+                                          produzione e adattamento di specifico materiale didattico;
+         2. È garantito il diritto all’educazione e all’istruzione della per-     
+       sona handicappata nelle sezioni di scuola materna, nelle classi comu- c) la programmazione da parte dell’università di interventi ade-
+       ni delle istituzioni scolastiche di ogni ordine e grado e nelle istituzioni guati sia al bisogno della persona sia alla peculiarità del piano di studio
+       universitarie.                     individuale;                            
+         3. L’integrazione scolastica ha come obiettivo lo sviluppo delle d) l’attribuzione, con decreto del Ministro dell’università e della
+       potenzialità della persona handicappata nell’apprendimento, nella co- ricerca scientifica e tecnologica, da emanare entro tre mesi dalla data
+       municazione, nelle relazioni e nella socializzazione. di entrata in vigore della presente legge, di incarichi professionali ad
+                                      — 35 —
+````
+
+## Pagina 38
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       interpreti da destinare alle università, per facilitare la frequenza e l’ap- 3. La tabella del corso di laurea definita ai sensi dell’articolo 3,
+       prendimento di studenti non udenti; comma 3, della citata legge n. 341 del 1990 comprende, nei limiti de-
+          e) la sperimentazione di cui al decreto del Presidente della Re- gli stanziamenti già preordinati in base alla legislazione vigente per la
+       pubblica 31 maggio 1974, n. 419, da realizzare nelle classi frequentate definizione delle tabelle dei corsi di laurea, insegnamenti facoltativi at-
+       da alunni con handicap.            tinenti all’integrazione scolastica degli alunni handicappati. Il diploma
+                                          di laurea per l’insegnamento nelle scuole materne ed elementari di cui
+         2. Per le finalità di cui al comma 1, gli enti locali e le unità sanita- 
+                                          all’articolo 3, comma 2, della citata legge n. 341 del 1990 costituisce
+       rie locali possono altresì prevedere l’adeguamento dell’organizzazione     
+                                          titolo per l’ammissione ai concorsi per l’attività didattica di sostegno
+       e del funzionamento degli asili nido alle esigenze dei bambini con han-    
+                                          solo se siano stati sostenuti gli esami relativi, individuati come obbli-
+       dicap, al fine di avviarne precocemente il recupero, la socializzazione e  
+                                          gatori per la preparazione all’attività didattica di sostegno, nell’ambito
+       l’integrazione, nonché l’assegnazione di personale docente specializza-    
+                                          della tabella suddetta definita ai sensi dell’articolo 3, comma 3, della
+       to e di operatori ed assistenti specializzati.                             
+                                          medesima legge n. 341 del 1990.         
+         3. Nelle scuole di ogni ordine e grado, fermo restando, ai sensi del     
+                                            4. L’insegnamento delle discipline facoltative previste nei piani di
+       decreto del Presidente della Repubblica 24 luglio 1977, n. 616, e suc-     
+                                          studio delle scuole di specializzazione di cui al comma 2 e dei corsi di
+       cessive modificazioni, l’obbligo per gli enti locali di fornire l’assistenza
+                                          laurea di cui al comma 3 può essere impartito anche da enti o istituti spe-
+       per l’autonomia e la comunicazione personale degli alunni con handicap     
+                                          cializzati all’uopo convenzionati con le università, le quali disciplinano
+       fisici o sensoriali, sono garantite attività di sostegno mediante l’assegna-
+                                          le modalità di espletamento degli esami e i relativi controlli. I docenti
+       zione di docenti specializzati.                                            
+                                          relatori dei corsi di specializzazione devono essere in possesso del di-
+         4. I posti di sostegno per la scuola secondaria di secondo grado ploma di laurea e del diploma di specializzazione.
+       sono determinati nell’ambito dell’organico del personale in servizio alla  
+       data di entrata in vigore della presente legge in modo da assicurare un 5. Fino alla prima applicazione dell’articolo 9 della citata legge
+       rapporto almeno pari a quello previsto per gli altri gradi di istruzione e n. 341 del 1990, relativamente alle scuole di specializzazione si appli-
+       comunque entro i limiti delle disponibilità finanziarie all’uopo preordi- cano le disposizioni di cui al decreto del Presidente della Repubblica
+       nate dall’articolo 42, comma 6, lettera h ) . 31 maggio 1974, n. 417, e successive modificazioni, al decreto del Pre-
+                                          sidente della Repubblica 31 ottobre 1975, n. 970, e all’articolo 65 della
+         5. Nella scuola secondaria di primo e secondo grado sono garan-          
+                                          legge 20 maggio 1982, n. 270.           
+       tite attività didattiche di sostegno, con priorità per le iniziative speri-
+       mentali di cui al comma 1, lettera e ) , realizzate con docenti di sostegno 6. L’utilizzazione in posti di sostegno di docenti privi dei prescritti
+       specializzati.                     titoli di specializzazione è consentita unicamente qualora manchino do-
+                                          centi di ruolo o non di ruolo specializzati.
+         6. Gli insegnanti di sostegno assumono la contitolarità delle sezioni    
+       e delle classi in cui operano, partecipano alla programmazione educati- 7. Gli accordi di programma di cui all’articolo 13, comma 1, lettera
+       va e didattica e alla elaborazione e verifica delle attività di competenza a) , possono prevedere lo svolgimento di corsi di aggiornamento comuni
+       dei consigli di interclasse, dei consigli di classe e dei collegi dei docenti. per il personale delle scuole, delle unità sanitarie locali e degli enti loca-
+                                          li, impegnati in piani educativi e di recupero individualizzati.
+         6 -bis . Agli studenti handicappati iscritti all’università sono ga-     
+       rantiti sussidi tecnici e didattici specifici, realizzati anche attraverso le Art. 15 ( Gruppi per l’inclusione scolastica) . — 1. Presso ogni Uf-
+       convenzioni di cui alla lettera b ) del comma 1, nonché il supporto di ap- ficio scolastico regionale (USR) è istituito il Gruppo di lavoro interisti-
+       positi servizi di tutorato specializzato, istituiti dalle università nei limiti tuzionale regionale (GLIR) con compiti di:
+       del proprio bilancio e delle risorse destinate alla copertura degli oneri a) consulenza e proposta all’USR per la definizione, l’attua-
+       di cui al presente comma, nonché ai commi 5 e 5 - bis dell’articolo 16. zione e la verifica degli accordi di programma di cui agli articoli 13,
+         Art. 14 ( Modalità di attuazione dell’integrazione ). — 1. Il Ministro 39 e 40 della presente legge, integrati con le finalità di cui alla leg-
+       della pubblica istruzione provvede alla formazione e all’aggiornamen- ge 13 luglio 2015, n. 107, con particolare riferimento alla continui-
+       to del personale docente per l’acquisizione di conoscenze in materia tà delle azioni sul territorio, all’orientamento e ai percorsi integrati
+       di integrazione scolastica degli studenti handicappati, ai sensi dell’ar- scuola-territorio-lavoro;
+       ticolo 26 del decreto del Presidente della Repubblica 23 agosto 1988, b) supporto ai Gruppi per l’inclusione territoriale (GIT);
+       n. 399, nel rispetto delle modalità di coordinamento con il Ministero      
+       dell’università e della ricerca scientifica e tecnologica di cui all’arti- c) supporto alle reti di scuole per la progettazione e la realiz-
+       colo 4 della legge 9 maggio 1989, n. 168. Il Ministro della pubblica zazione dei Piani di formazione in servizio del personale della scuola.
+       istruzione provvede altresì:         2. Il GLIR è presieduto dal dirigente preposto all’USR o da un suo
+          a) all’attivazione di forme sistematiche di orientamento, parti- delegato. Nell’ambito del decreto di cui al comma 3 è garantita la parte-
+       colarmente qualificate per la persona handicappata, con inizio almeno cipazione paritetica dei rappresentanti delle Regioni, degli Enti locali e
+       dalla prima classe della scuola secondaria di primo grado; delle associazioni delle persone con disabilità maggiormente rappresen-
+                                          tative a livello regionale nel campo dell’inclusione scolastica.
+          b) all’organizzazione dell’attività educativa e didattica secon-        
+       do il criterio della flessibilità nell’articolazione delle sezioni e del- 3. La composizione, l’articolazione, le modalità di funzionamen-
+       le classi, anche aperte, in relazione alla programmazione scolastica to, la sede, la durata, nonché l’assegnazione di ulteriori funzioni per
+       individualizzata;                  il supporto all’inclusione scolastica del GLIR, fermo restando quanto
+                                          previsto al comma 2, sono definite con decreto del Ministro dell’istru-
+          c) a garantire la continuità educativa fra i diversi gradi di scuola,   
+                                          zione, dell’università e della ricerca, nell’ambito delle risorse umane,
+       prevedendo forme obbligatorie di consultazione tra insegnanti del ciclo    
+                                          strumentali e finanziarie disponibili, sentito l’Osservatorio permanente
+       inferiore e del ciclo superiore ed il massimo sviluppo dell’esperienza     
+                                          per l’inclusione scolastica istituito presso il Ministero dell’istruzione,
+       scolastica della persona handicappata in tutti gli ordini e gradi di scuola,
+                                          dell’università e della ricerca.        
+       consentendo il completamento della scuola dell’obbligo anche sino al       
+       compimento del diciottesimo anno di età; nell’interesse dell’alunno, con 4. Per ciascun ambito territoriale provinciale, ovvero a livello delle
+       deliberazione del collegio dei docenti, sentiti gli specialisti di cui all’ar- città metropolitane, è costituito il Gruppo per l’Inclusione Territoria-
+       ticolo 4, secondo comma, lettera l ) , del decreto del Presidente della Re- le (GIT). Il GIT è composto da personale docente esperto nell’ambito
+       pubblica 31 maggio 1974, n. 416, su proposta del consiglio di classe o dell’inclusione, anche con riferimento alla prospettiva bio-psico-socia-
+       di interclasse, può essere consentita una terza ripetenza in singole classi. le, e nelle metodologie didattiche inclusive e innovative. Il GIT è nomi-
+         2. I piani di studio delle scuole di specializzazione di cui all’arti- nato con decreto del direttore generale dell’ufficio scolastico regionale
+       colo 4 della legge 19 novembre 1990, n. 341, per il conseguimento del ed è coordinato da un dirigente tecnico o da un dirigente scolastico che
+       diploma abilitante all’insegnamento nelle scuole secondarie, compren- lo presiede. Il GIT conferma la richiesta inviata dal dirigente scolastico
+       dono, nei limiti degli stanziamenti già preordinati in base alla legisla- all’ufficio scolastico regionale relativa al fabbisogno delle misure di so-
+       zione vigente per la definizione dei suddetti piani di studio, discipline stegno ovvero può esprimere su tale richiesta un parere difforme. Agli
+       facoltative, attinenti all’integrazione degli alunni handicappati, deter- oneri relativi al personale docente di cui al presente comma, si provvede
+       minate ai sensi dell’articolo 4, comma 3, della citata legge n. 341 del ai sensi dell’articolo 20, comma 4.
+       1990. Nel diploma di specializzazione conseguito ai sensi del predetto 5. Il GIT, che agisce in coordinamento con l’ufficio scolastico
+       articolo 4 deve essere specificato se l’insegnante ha sostenuto gli esami regionale, supporta le istituzioni scolastiche nella definizione dei PEI
+       relativi all’attività didattica di sostegno per le discipline cui il diploma secondo la prospettiva bio-psico-sociale alla base della classificazione
+       stesso si riferisce, nel qual caso la specializzazione ha valore abilitante ICF, nell’uso ottimale dei molteplici sostegni disponibili, previsti nel
+       anche per l’attività didattica di sostegno. Piano per l’Inclusione della singola istituzione scolastica, nel poten-
+                                      — 36 —
+````
+
+## Pagina 39
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       ziamento della corresponsabilità educativa e delle attività di didattica 4. Gli alunni handicappati sostengono le prove finalizzate alla va-
+       inclusiva.                         lutazione del rendimento scolastico o allo svolgimento di esami anche
+                                          universitari con l’uso degli ausili loro necessari.
+         6. Per lo svolgimento di ulteriori compiti di consultazione e pro-       
+       grammazione delle attività nonché per il coordinamento degli interven- 5. Il trattamento individualizzato previsto dai commi 3 e 4 in favo-
+       ti di competenza dei diversi livelli istituzionali sul territorio, il GIT è re degli studenti handicappati è consentito per il superamento degli esa-
+       integrato:                         mi universitari previa intesa con il docente della materia e con l’ausilio
+                                          del servizio di tutorato di cui all’articolo 13, comma 6- bis . È consentito,
+          a) dalle associazioni maggiormente rappresentative delle perso-         
+                                          altresì, sia l’impiego di specifici mezzi tecnici in relazione alla tipologia
+       ne con disabilità nell’inclusione scolastica;                              
+                                          di handicap, sia la possibilità di svolgere prove equipollenti su proposta
+          b) dagli enti locali e dalle aziende sanitarie locali. del servizio di tutorato specializzato.
+         7. Con decreto del Ministro dell’istruzione, dell’università e del- 5 -bis . Le università e le istituzioni di alta formazione artistica,
+       la ricerca, di concerto con il Ministro dell’economia e delle finanze, musicale e coreutica, nell’ambito della propria autonomia, conferisco-
+       da adottare entro sessanta giorni dalla data di entrata in vigore della no a un docente delegato, rispettivamente, dal rettore e dal direttore
+       presente disposizione, nell’ambito delle risorse umane, strumentali e fi- le funzioni di coordinamento, monitoraggio e supporto delle iniziati-
+       nanziarie disponibili, sentito l’Osservatorio permanente per l’inclusione ve concernenti l’integrazione nonché di sostegno ad azioni specifiche
+       scolastica, sono definite le modalità di funzionamento del GIT, la sua volte a promuovere l’inclusione degli studenti, compresi l’attivazione o
+       composizione, le modalità per la selezione nazionale dei componenti, il potenziamento dei servizi per il sostegno del benessere psicologico,
+       gli ulteriori compiti attribuiti, le forme di monitoraggio del suo funzio- nell’ambito dell’università o dell’istituzione stessa. L’incarico è confe-
+       namento, la sede, la durata, nonché l’assegnazione di ulteriori funzioni rito a personale docente in servizio presso l’università o l’istituzione,
+       per il supporto all’inclusione scolastica. senza nuovi o maggiori oneri a carico delle medesime.».
+         8. Presso ciascuna istituzione scolastica è istituito il Gruppo di — Il decreto legislativo 16 aprile 1994, n. 297, recante: «Approva-
+       lavoro per l’inclusione (GLI). Il GLI è composto da docenti curricola- zione del testo unico delle disposizioni legislative vigenti in materia di
+       ri, docenti di sostegno e, eventualmente da personale ATA, nonché da istruzione, relative alle scuole di ogni ordine e grado» è pubblicato nella
+       specialisti della Azienda sanitaria locale e del territorio di riferimento Gazzetta Ufficiale n. 115 del 19 maggio 1994.
+       dell’istituzione scolastica. Il gruppo è nominato e presieduto dal diri- — Si riporta l’articolo 21 della legge 15 marzo 1997, n. 59, recan-
+       gente scolastico ed ha il compito di supportare il collegio dei docenti te: «Delega al Governo per il conferimento di funzioni e compiti alle re-
+       nella definizione e realizzazione del Piano per l’inclusione nonché i do- gioni ed enti locali, per la riforma della pubblica amministrazione e per
+       centi contitolari e i consigli di classe nell’attuazione dei PEI. la semplificazione amministrativa», pubblicata nella G azzetta Ufficiale
+         9. In sede di definizione e attuazione del Piano di inclusione, il n. 63 del 17 marzo 1997:
+       GLI si avvale della consulenza e del supporto degli studenti, dei genitori «Art. 21. — 1. L’autonomia delle istituzioni scolastiche e degli
+       e può avvalersi della consulenza dei rappresentanti delle associazioni istituti educativi si inserisce nel processo di realizzazione della autono-
+       delle persone con disabilità maggiormente rappresentative del territorio mia e della riorganizzazione dell’intero sistema formativo. Ai fini della
+       nell’inclusione scolastica. In sede di definizione dell’utilizzazione delle realizzazione della autonomia delle istituzioni scolastiche le funzioni
+       risorse complessive destinate all’istituzione scolastica ai fini dell’assi- dell’Amministrazione centrale e periferica della pubblica istruzione in
+       stenza di competenza degli enti locali, alle riunioni del GLI partecipa un materia di gestione del servizio di istruzione, fermi restando i livelli
+       rappresentante dell’ente territoriale competente, secondo quanto previ- unitari e nazionali di fruizione del diritto allo studio nonché gli elementi
+       sto dall’accordo di cui all’articolo 3, comma 5- bis . Al fine di realizzare comuni all’intero sistema scolastico pubblico in materia di gestione e
+       il Piano di inclusione e il PEI, il GLI collabora con il GIT di cui al programmazione definiti dallo Stato, sono progressivamente attribuite
+       comma 4 e con le istituzioni pubbliche e private presenti sul territorio. alle istituzioni scolastiche, attuando a tal fine anche l’estensione ai cir-
+         10. Al fine della definizione dei PEI e della verifica del processo di coli didattici, alle scuole medie, alle scuole e agli istituti di istruzione
+       inclusione, compresa la proposta di quantificazione di ore di sostegno e secondaria, della personalità giuridica degli istituti tecnici e professio-
+       delle altre misure di sostegno, tenuto conto del profilo di funzionamen- nali e degli istituti d’arte ed ampliando l’autonomia per tutte le tipologie
+       to, presso ogni Istituzione scolastica sono costituiti i Gruppi di lavoro degli istituti di istruzione, anche in deroga alle norme vigenti in materia
+       operativo per l’inclusione dei singoli alunni con accertata condizione di contabilità dello Stato. Le disposizioni del presente articolo si ap-
+       di disabilità ai fini dell’inclusione scolastica. Ogni Gruppo di lavoro plicano anche agli istituti educativi, tenuto conto delle loro specificità
+       operativo è composto dal team dei docenti contitolari o dal consiglio ordinamentali.
+       di classe, con la partecipazione dei genitori della bambina o del bam- 2. Ai fini di quanto previsto nel comma 1, si provvede con uno o
+       bino, dell’alunna o dell’alunno, della studentessa o dello studente con più regolamenti da adottare ai sensi dell’articolo 17, comma 2, della leg-
+       disabilità, o di chi esercita la responsabilità genitoriale, delle figure ge 23 agosto 1988, n. 400, nel termine di nove mesi dalla data di entrata
+       professionali specifiche, interne ed esterne all’istituzione scolastica che in vigore della presente legge, sulla base dei criteri generali e principi
+       interagiscono con la classe e con la bambina o il bambino, l’alunna o direttivi contenuti nei commi 3, 4, 5, 7, 8, 9, 10 e 11 del presente artico-
+       l’alunno, la studentessa o lo studente con disabilità nonché con il neces- lo. Sugli schemi di regolamento è acquisito, anche contemporaneamente
+       sario supporto dell’unità di valutazione multidisciplinare. Ai componen- al parere del Consiglio di Stato, il parere delle competenti Commis-
+       ti del Gruppo di lavoro operativo non spetta alcun compenso, indennità, sioni parlamentari. Decorsi sessanta giorni dalla richiesta di parere alle
+       gettone di presenza, rimborso spese e qualsivoglia altro emolumento. Commissioni, i regolamenti possono essere comunque emanati. Con i
+       Dall’attivazione dei Gruppi di lavoro operativo non devono derivare, regolamenti predetti sono dettate disposizioni per armonizzare le norme
+       anche in via indiretta, maggiori oneri di personale. di cui all’articolo 355 del testo unico approvato con decreto legislativo
+                                          16 aprile 1994, n. 297, con quelle della presente legge.
+         11. All’interno del Gruppo di lavoro operativo, di cui al comma 10,      
+       è assicurata la partecipazione attiva degli studenti con accertata condi- 3. I requisiti dimensionali ottimali per l’attribuzione della persona-
+       zione di disabilità in età evolutiva ai fini dell’inclusione scolastica nel lità giuridica e dell’autonomia alle istituzioni scolastiche di cui al com-
+       rispetto del principio di autodeterminazione. ma 1, anche tra loro unificate nell’ottica di garantire agli utenti una più
+                                          agevole fruizione del servizio di istruzione, e le deroghe dimensionali
+         Art. 16 ( Valutazione del rendimento e prove d’esame ). — 1. Nella       
+                                          in relazione a particolari situazioni territoriali o ambientali sono indivi-
+       valutazione degli alunni handicappati da parte degli insegnanti è indica-  
+                                          duati in rapporto alle esigenze e alla varietà delle situazioni locali e alla
+       to, sulla base del piano educativo individualizzato, per quali discipline  
+                                          tipologia dei settori di istruzione compresi nell’istituzione scolastica. Le
+       siano stati adottati particolari criteri didattici, quali attività integrative e
+                                          deroghe dimensionali saranno automaticamente concesse nelle province
+       di sostegno siano state svolte, anche in sostituzione parziale dei conte-  
+                                          il cui territorio è per almeno un terzo montano, in cui le condizioni di
+       nuti programmatici di alcune discipline.                                   
+                                          viabilità statale e provinciale siano disagevoli e in cui vi sia una disper-
+         2. Nella scuola dell’obbligo sono predisposte, sulla base degli ele- sione e rarefazione di insediamenti abitativi.
+       menti conoscitivi di cui al comma 1, prove d’esame corrispondenti agli     
+                                            4. La personalità giuridica e l’autonomia sono attribuite alle istitu-
+       insegnamenti impartiti e idonee a valutare il progresso dell’allievo in    
+                                          zioni scolastiche di cui al comma 1 a mano a mano che raggiungono i
+       rapporto alle sue potenzialità e ai livelli di apprendimento iniziali.     
+                                          requisiti dimensionali di cui al comma 3 attraverso piani di dimensiona-
+         3. Nell’ambito della scuola secondaria di secondo grado, per gli mento della rete scolastica, e comunque non oltre il 31 dicembre 2000
+       alunni handicappati sono consentite prove equipollenti e tempi più lun- contestualmente alla gestione di tutte le funzioni amministrative che per
+       ghi per l’effettuazione delle prove scritte o grafiche e la presenza di loro natura possono essere esercitate dalle istituzioni autonome. In ogni
+       assistenti per l’autonomia e la comunicazione. caso il passaggio al nuovo regime di autonomia sarà accompagnato da
+                                      — 37 —
+````
+
+## Pagina 40
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       apposite iniziative di formazione del personale, da una analisi delle real- legge 23 dicembre 1996, n. 662, sono definiti criteri per la determinazio-
+       tà territoriali, sociali ed economiche delle singole istituzioni scolastiche ne degli organici funzionali di istituto, fermi restando il monte annuale
+       per l’adozione dei conseguenti interventi perequativi e sarà realizzato orario complessivo previsto per ciascun curriculum e quello previsto
+       secondo criteri di gradualità che valorizzino le capacità di iniziativa del- per ciascuna delle discipline ed attività indicate come fondamentali di
+       le istituzioni stesse.             ciascun tipo o indirizzo di studi e l’obbligo di adottare procedure e stru-
+         5. La dotazione finanziaria essenziale delle istituzioni scolastiche menti di verifica e valutazione della produttività scolastica e del rag-
+       già in possesso di personalità giuridica e di quelle che l’acquistano ai giungimento degli obiettivi.
+       sensi del comma 4 è costituita dall’assegnazione dello Stato per il fun-   
+                                            10. Nell’esercizio dell’autonomia organizzativa e didattica le isti-
+       zionamento amministrativo e didattico, che si suddivide in assegnazio-     
+                                          tuzioni scolastiche realizzano, sia singolarmente che in forme consor-
+       ne ordinaria e assegnazione perequativa. Tale dotazione finanziaria è      
+                                          ziate, ampliamenti dell’offerta formativa che prevedano anche percorsi
+       attribuita senza altro vincolo di destinazione che quello dell’utilizza-   
+                                          formativi per gli adulti, iniziative di prevenzione dell’abbandono e della
+       zione prioritaria per lo svolgimento delle attività di istruzione, di for- 
+                                          dispersione scolastica, iniziative di utilizzazione delle strutture e delle
+       mazione e di orientamento proprie di ciascuna tipologia e di ciascun       
+       indirizzo di scuola. L’attribuzione senza vincoli di destinazione com- tecnologie anche in orari extrascolastici e a fini di raccordo con il mondo
+       porta l’utilizzabilità della dotazione finanziaria, indifferentemente, per del lavoro, iniziative di partecipazione a programmi nazionali, regionali
+       spese in conto capitale e di parte corrente, con possibilità di variare le o comunitari e, nell’ambito di accordi tra le regioni e l’amministrazione
+       destinazioni in corso d’anno. Con decreto del Ministro della pubblica scolastica, percorsi integrati tra diversi sistemi formativi. Le istituzioni
+       istruzione, di concerto con il Ministro del tesoro, del bilancio e della scolastiche autonome hanno anche autonomia di ricerca, sperimentazio-
+       programmazione economica, sentito il parere delle Commissioni parla- ne e sviluppo nei limiti del proficuo esercizio dell’autonomia didattica e
+       mentari competenti, sono individuati i parametri per la definizione della organizzativa. Gli istituti regionali di ricerca, sperimentazione e aggior-
+       dotazione finanziaria ordinaria delle scuole. Detta dotazione ordinaria è namento educativi, il Centro europeo dell’educazione, la Biblioteca di
+       stabilita in misura tale da consentire l’acquisizione da parte delle istitu- documentazione pedagogica e le scuole ed istituti a carattere atipico di
+       zioni scolastiche dei beni di consumo e strumenti necessari a garantire cui alla parte I, titolo II, capo III, del testo unico approvato con decreto
+       l’efficacia del processo di insegnamento-apprendimento nei vari gradi legislativo 16 aprile 1994, n. 297, sono riformati come enti finalizzati al
+       e tipologie dell’istruzione. La stessa dotazione ordinaria, nella quale supporto dell’autonomia delle istituzioni scolastiche autonome.
+       possono confluire anche i finanziamenti attualmente allocati in capitoli   
+       diversi da quelli intitolati al funzionamento amministrativo e didattico, 11. Con regolamento adottato ai sensi del comma 2 sono altresì
+       è spesa obbligatoria ed è rivalutata annualmente sulla base del tasso attribuite la personalità giuridica e l’autonomia alle Accademie di belle
+       di inflazione programmata. In sede di prima determinazione, la dota- arti, agli Istituti superiori per le industrie artistiche, ai Conservatori di
+       zione perequativa è costituita dalle disponibilità finanziarie residue sui musica, alle Accademie nazionali di arte drammatica e di danza, secon-
+       capitoli di bilancio riferiti alle istituzioni scolastiche non assorbite dalla do i principi contenuti nei commi 8, 9 e 10 e con gli adattamenti resi
+       dotazione ordinaria.               necessari dalle specificità proprie di tali istituzioni.
+         La dotazione perequativa è rideterminata annualmente sulla base 12. Le università e le istituzioni scolastiche possono stipulare con-
+       del tasso di inflazione programmata e di parametri socio-economici e venzioni allo scopo di favorire attività di aggiornamento, di ricerca e di
+       ambientali individuati di concerto dai Ministri della pubblica istruzione orientamento scolastico e universitario.
+       e del tesoro, del bilancio e della programmazione economica, sentito il    
+                                            13. Con effetto dalla data di entrata in vigore delle norme regola-
+       parere delle commissioni parlamentari competenti.                          
+                                          mentari di cui ai commi 2 e 11 sono abrogate le disposizioni vigenti con
+         6. Sono abrogate le disposizioni che prevedono autorizzazioni pre-       
+                                          esse incompatibili, la cui ricognizione è affidata ai regolamenti stessi.
+       ventive per l’accettazione di donazioni, eredità e legati da parte delle   
+       istituzioni scolastiche, ivi compresi gli istituti superiori di istruzione ar- 14. Con decreto del Ministro della pubblica istruzione, di concer-
+       tistica, delle fondazioni o altre istituzioni aventi finalità di educazione o to con il Ministro del tesoro, sono emanate le istruzioni generali per
+       di assistenza scolastica. Sono fatte salve le vigenti disposizioni di legge l’autonoma allocazione delle risorse, per la formazione dei bilanci, per
+       o di regolamento in materia di avviso ai successibili. Sui cespiti ereditari la gestione delle risorse ivi iscritte e per la scelta dell’affidamento dei
+       e su quelli ricevuti per donazione non sono dovute le imposte in vigore servizi di tesoreria o di cassa, nonché per le modalità del riscontro del-
+       per le successioni e le donazioni. le gestioni delle istituzioni scolastiche, anche in attuazione dei principi
+         7. Le istituzioni scolastiche che abbiano conseguito personalità contenuti nei regolamenti di cui al comma 2. È abrogato il comma 9
+       giuridica e autonomia ai sensi del comma 1 e le istituzioni scolastiche dell’articolo 4 della legge 24 dicembre 1993, n. 537.
+       già dotate di personalità e autonomia, previa realizzazione anche per 15. Entro il 30 giugno 1999 il Governo è delegato ad emanare un
+       queste ultime delle operazioni di dimensionamento di cui al comma 4, decreto legislativo di riforma degli organi collegiali della pubblica istru-
+       hanno autonomia organizzativa e didattica, nel rispetto degli obiettivi zione di livello nazionale e periferico che tenga conto della specificità
+       del sistema nazionale di istruzione e degli standard di livello nazionale. 
+                                          del settore scolastico, valorizzando l’autonomo apporto delle diverse
+         8. L’autonomia organizzativa è finalizzata alla realizzazione del- componenti e delle minoranze linguistiche riconosciute, nonché delle
+       la flessibilità, della diversificazione, dell’efficienza e dell’efficacia del specifiche professionalità e competenze, nel rispetto dei seguenti criteri:
+       servizio scolastico, alla integrazione e al miglior utilizzo delle risorse 
+                                             a) armonizzazione della composizione, dell’organizzazione e
+       e delle strutture, all’introduzione di tecnologie innovative e al coordi-  
+                                          delle funzioni dei nuovi organi con le competenze dell’amministrazione
+       namento con il contesto territoriale. Essa si esplica liberamente, anche   
+       mediante superamento dei vincoli in materia di unità oraria della lezio- centrale e periferica come ridefinita a norma degli articoli 12 e 13 non-
+       ne, dell’unitarietà del gruppo classe e delle modalità di organizzazione ché con quelle delle istituzioni scolastiche autonome;
+       e impiego dei docenti, secondo finalità di ottimizzazione delle risorse b) razionalizzazione degli organi a norma dell’articolo 12, com-
+       umane, finanziarie, tecnologiche, materiali e temporali, fermi restando i ma 1, lettera p ) ;
+       giorni di attività didattica annuale previsti a livello nazionale, la distri-
+                                             c) eliminazione delle duplicazioni organizzative e funzionali,
+       buzione dell’attività didattica in non meno di cinque giorni settimanali,  
+                                          secondo quanto previsto dall’articolo 12, comma 1, lettera g ) ;
+       il rispetto dei complessivi obblighi annuali di servizio dei docenti pre-  
+       visti dai contratti collettivi che possono essere assolti invece che in cin- d) valorizzazione del collegamento con le comunità locali a nor-
+       que giorni settimanali anche sulla base di un’apposita programmazione ma dell’articolo 12, comma 1, lettera i ) ;
+       plurisettimanale.                                                          
+                                             e) attuazione delle disposizioni di cui all’articolo 59 del decreto
+         9. L’autonomia didattica è finalizzata al perseguimento degli obiet- legislativo 3 febbraio 1993, n. 29, e successive modificazioni, nella sal-
+       tivi generali del sistema nazionale di istruzione, nel rispetto della libertà vaguardia del principio della libertà di insegnamento.
+       di insegnamento, della libertà di scelta educativa da parte delle famiglie 
+       e del diritto ad apprendere. Essa si sostanzia nella scelta libera e pro- 16. Nel rispetto del principio della libertà di insegnamento e in
+       grammata di metodologie, strumenti, organizzazione e tempi di inse- connessione con l’individuazione di nuove figure professionali del per-
+       gnamento, da adottare nel rispetto della possibile pluralità di opzioni sonale docente, ferma restando l’unicità della funzione, ai capi d’istituto
+       metodologiche, e in ogni iniziativa che sia espressione di libertà proget- è conferita la qualifica dirigenziale contestualmente all’acquisto della
+       tuale, compresa l’eventuale offerta di insegnamenti opzionali, facoltati- personalità giuridica e dell’autonomia da parte delle singole istituzioni
+       vi o aggiuntivi e nel rispetto delle esigenze formative degli studenti. A scolastiche. I contenuti e le specificità della qualifica dirigenziale sono
+       tal fine, sulla base di quanto disposto dall’articolo 1, comma 71, della individuati con decreto legislativo integrativo delle disposizioni del de-
+                                      — 38 —
+````
+
+## Pagina 41
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       creto legislativo 3 febbraio 1993, n. 29, e successive modificazioni, da c) la predisposizione di percorsi integrativi degli studi sostenuti
+       emanare entro un anno dalla data di entrata in vigore della presente leg- nel Paese di provenienza al fine del conseguimento del titolo dell’obbli-
+       ge, sulla base dei seguenti criteri: go o del diploma di scuola secondaria superiore;
+          a) l’affidamento, nel rispetto delle competenze degli organi col- d) la realizzazione ed attuazione di corsi di lingua italiana;
+       legiali scolastici, di autonomi compiti di direzione, di coordinamento e e) la realizzazione di corsi di formazione, anche nel quadro di
+       valorizzazione delle risorse umane, di gestione di risorse finanziarie e accordi di collaborazione internazionale in vigore per l’Italia.
+       strumentali, con connesse responsabilità in ordine ai risultati; 6. Con regolamento adottato ai sensi dell’articolo 17, comma 1,
+          b) il raccordo tra i compiti previsti dalla lettera a ) e l’organizza- della legge 23 agosto 1988, n. 400, sono dettate le disposizioni di attua-
+       zione e le attribuzioni dell’amministrazione scolastica periferica, come zione del presente capo, con specifica indicazione:
+       ridefinite ai sensi dell’articolo 13, comma 1; a) delle modalità di realizzazione di specifici progetti nazionali
+          c) la revisione del sistema di reclutamento, riservato al personale e locali, con particolare riferimento all’attivazione di corsi intensivi di
+       docente con adeguata anzianità di servizio, in armonia con le modalità lingua italiana, nonché dei corsi di formazione ed aggiornamento del
+       previste dall’articolo 28 del decreto legislativo 3 febbraio 1993, n. 29; personale ispettivo, direttivo e docente delle scuole di ogni ordine e gra-
+                                          do e dei criteri per l’adattamento dei programmi di insegnamento;
+          d) l’attribuzione della dirigenza ai capi d’istituto attualmente in     
+       servizio, assegnati ad una istituzione scolastica autonoma, che frequen- b) dei criteri per il riconoscimento dei titoli di studio e degli stu-
+       tino un apposito corso di formazione. di effettuati nei Paesi di provenienza ai fini dell’inserimento scolastico,
+                                          nonché dei criteri e delle modalità di comunicazione con le famiglie de-
+         17. Il rapporto di lavoro dei dirigenti scolastici sarà disciplinato gli alunni stranieri, anche con l’ausilio di mediatori culturali qualificati;
+       in sede di contrattazione collettiva del comparto scuola, articolato in    
+                                             c) dei criteri per l’iscrizione e l’inserimento nelle classi degli
+       autonome aree.                                                             
+                                          stranieri provenienti dall’estero, per la ripartizione degli alunni stra-
+         18. Nell’emanazione del regolamento di cui all’articolo 13 la ri- nieri nelle classi e per l’attivazione di specifiche attività di sostegno
+       forma degli uffici periferici del Ministero della pubblica istruzione è linguistico;
+       realizzata armonizzando e coordinando i compiti e le funzioni ammi-        
+                                             d) dei criteri per la stipula delle convenzioni di cui ai commi 4
+       nistrative attribuiti alle regioni ed agli enti locali anche in materia di 
+                                          e 5.».                                  
+       programmazione e riorganizzazione della rete scolastica.                   
+                                            — Il decreto legislativo 15 aprile 2005, n. 76, recante: «Definizione
+         19. Il Ministro della pubblica istruzione presenta ogni quattro anni delle norme generali sul diritto-dovere all’istruzione e alla formazione,
+       al Parlamento, a decorrere dall’inizio dell’attuazione dell’autonomia a norma dell’articolo 2, comma 1, lettera c ) , della legge 28 marzo 2003,
+       prevista nel presente articolo, una relazione sui risultati conseguiti, an- n. 53», è pubblicato nella G azzetta Ufficiale n. 103 del 5 maggio 2005.
+       che al fine di apportare eventuali modifiche normative che si rendano      
+                                            — Il decreto legislativo 17 ottobre 2005, n. 226, recante: «Norme
+       necessarie.                                                                
+                                          generali e livelli essenziali delle prestazioni relativi al secondo ciclo del
+         20. Le regioni a statuto speciale e le province autonome di Trento sistema educativo di istruzione e formazione, a norma dell’articolo 2
+       e di Bolzano disciplinano con propria legge la materia di cui al presente della legge 28 marzo 2003, n. 53», è pubblicato nella G azzetta Ufficiale
+       articolo nel rispetto e nei limiti dei propri statuti e delle relative norme n. 257 del 4 novembre 2005.
+       di attuazione.                                                             
+                                            — Si riporta il comma 622, l’articolo 1, della legge 27 dicembre
+         20 -bis . Con la stessa legge regionale di cui al comma 20 la re- 2006, n. 296, recante: «Disposizioni per la formazione del bilancio an-
+       gione Valle d’Aosta stabilisce tipologia, modalità di svolgimento e di nuale e pluriennale dello Stato», pubblicata nella G azzetta Ufficiale
+       certificazione di una quarta prova scritta di lingua francese, in aggiunta n. 299 27 dicembre 2006:
+       alle altre prove scritte previste dalla legge 10 dicembre 1997, n. 425. Le 
+                                             «622. — L’istruzione impartita per almeno dieci anni è obbli-
+       modalità e i criteri di valutazione delle prove d’esame sono definiti      
+                                          gatoria ed è finalizzata a consentire il conseguimento di un titolo di
+       nell’ambito dell’apposito regolamento attuativo, d’intesa con la regione   
+                                          studio di scuola secondaria superiore o di una qualifica professionale di
+       Valle d’Aosta. È abrogato il comma 5 dell’articolo 3 della legge 10 di-    
+                                          durata almeno triennale entro il diciottesimo anno di età. L’età per l’ac-
+       cembre 1997, n. 425.».                                                     
+                                          cesso al lavoro è conseguentemente elevata da quindici a sedici anni.
+         — Si riporta l’articolo 36 della legge 6 marzo 1998, n. 40, recante: Resta fermo il regime di gratuità ai sensi degli articoli 28, comma 1, e
+       «Disciplina dell’immigrazione e norme sulla condizione dello stranie- 30, comma 2, secondo periodo, del decreto legislativo 17 ottobre 2005,
+       ro», pubblicata nella G azzetta Ufficiale n. 59 del 12 marzo 1998: n. 226. L’adempimento dell’obbligo di istruzione deve consentire, una
+                                          volta conseguito il titolo di studio conclusivo del primo ciclo, l’acqui-
+         «Art. 36 ( Istruzione degli stranieri. Educazione interculturale ).      
+                                          sizione dei saperi e delle competenze previste dai curricula relativi ai
+       — 1. I minori stranieri presenti sul territorio sono soggetti all’obbligo  
+                                          primi due anni degli istituti di istruzione secondaria superiore, sulla base
+       scolastico; ad essi si applicano tutte le disposizioni vigenti in materia di
+                                          di un apposito regolamento adottato dal Ministro della pubblica istru-
+       diritto all’istruzione, di accesso ai servizi educativi, di partecipazione 
+                                          zione ai sensi dell’articolo 17, comma 3, della legge 23 agosto 1988,
+       alla vita della comunità scolastica.                                       
+                                          n. 400. L’obbligo di istruzione si assolve anche nei percorsi di istruzio-
+         2. L’effettività del diritto allo studio è garantita dallo Stato, dalle ne e formazione professionale di cui al Capo III del decreto legislativo
+       regioni e dagli enti locali anche mediante l’attivazione di appositi corsi 17 ottobre 2005, n. 226, e, sino alla completa messa a regime delle di-
+       ed iniziative per l’apprendimento della lingua italiana. sposizioni ivi contenute, anche nei percorsi sperimentali di istruzione
+         3. La comunità scolastica accoglie le differenze linguistiche e cul- e formazione professionale di cui al comma 624 del presente articolo.
+       turali come valore da porre a fondamento del rispetto reciproco, dello Sono fatte salve le competenze delle regioni a statuto speciale e delle
+       scambio tra le culture e della tolleranza; a tale fine promuove e favorisce province autonome di Trento e di Bolzano, in conformità ai rispettivi
+       iniziative volte alla accoglienza, alla tutela della cultura e della lingua statuti e alle relative norme di attuazione, nonché alla legge costituzio-
+       d’origine e alla realizzazione di attività interculturali comuni. nale 18 ottobre 2001, n. 3. L’innalzamento dell’obbligo di istruzione
+                                          decorre dall’anno scolastico 2007/2008.».
+         4. Le iniziative e le attività di cui al comma 3 sono realizzate sul-    
+                                            — La legge 27 giugno 2013, n. 77, recante: «Ratifica ed esecuzio-
+       la base di una rilevazione dei bisogni locali e di una programmazione      
+                                          ne della Convenzione del Consiglio d’Europa sulla prevenzione e la lot-
+       territoriale integrata, anche in convenzione con le associazioni degli     
+                                          ta contro la violenza nei confronti delle donne e la violenza domestica,
+       stranieri, con le rappresentanze diplomatiche o consolari dei Paesi di     
+                                          fatta a Istanbul l’11 maggio 2011», è pubblicata nella G azzetta Ufficiale
+       appartenenza e con le organizzazioni di volontariato.                      
+                                          n. 152 del 1° luglio 2013.              
+         5. Le istituzioni scolastiche, nel quadro di una programmazione          
+                                            — Il decreto-legge 14 agosto 2013, n. 93 recante: «Disposizioni
+       territoriale degli interventi, anche sulla base di convenzioni con le re-  
+                                          urgenti in materia di sicurezza e per il contrasto della violenza di ge-
+       gioni e gli enti locali, promuovono:                                       
+                                          nere, nonché in tema di protezione civile e di commissariamento delle
+          a) l’accoglienza degli stranieri adulti regolarmente soggiornanti province», pubblicato nella G azzetta Ufficiale 16 agosto 2013, n. 191, è
+       mediante l’attivazione di corsi di alfabetizzazione nelle scuole elemen- convertito, con modificazioni, dalla legge 15 ottobre 2013, n. 119.
+       tari e medie;                                                              
+                                            — La legge 13 luglio 2015, n. 107, recante: «Riforma del sistema
+          b) la realizzazione di un’offerta culturale valida per gli stranieri nazionale di istruzione e formazione e delega per il riordino delle dispo-
+       adulti regolarmente soggiornanti che intendano conseguire il titolo di sizioni legislative vigenti», è pubblicata nella G azzetta Ufficiale n. 162
+       studio della scuola dell’obbligo;  del 15 luglio 2015.                     
+                                      — 39 —
+````
+
+## Pagina 42
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+         — Il decreto legislativo 13 aprile 2017, n. 62, recante: «Norme in 5. Nei casi in cui una decisione influisca in modo rilevante sull’or-
+       materia di valutazione e certificazione delle competenze nel primo ciclo ganizzazione della scuola gli studenti della scuola secondaria superiore,
+       ed esami di Stato, a norma dell’articolo 1, commi 180 e 181, lettera i ) , anche su loro richiesta, possono essere chiamati ad esprimere la loro
+       della legge 13 luglio 2015, n. 107», è pubblicato nella G azzetta Ufficiale opinione mediante una consultazione; analogamente negli stessi casi e
+       n. 112 del 16 maggio 2017.         con le stesse modalità possono essere consultati gli studenti della scuola
+                                          media o i loro genitori.                
+         — Il decreto legislativo 13 aprile 2017, n. 66, recante: «Norme per      
+       la promozione dell’inclusione scolastica degli studenti con disabilità, a 6. Gli studenti hanno diritto alla libertà di apprendimento ed eser-
+       norma dell’articolo 1, commi 180 e 181, lettera c ) , della legge 13 luglio citano autonomamente il diritto di scelta tra le attività curricolari inte-
+       2015, n. 107», è pubblicato nella G azzetta Ufficiale n. 112 del 16 mag- grative e tra le attività aggiuntive facoltative offerte dalla scuola. Le
+       gio 2017.                          attività didattiche curricolari e le attività aggiuntive facoltative sono
+                                          organizzate secondo tempi e modalità che tengono conto dei ritmi di
+         — La legge 19 luglio 2019, n. 69, recante: «Modifiche al codice          
+                                          apprendimento e delle esigenze di vita degli studenti.
+       penale, al codice di procedura penale e altre disposizioni in materia di   
+       tutela delle vittime di violenza domestica e di genere», è pubblicata nel- 7. Gli studenti stranieri hanno diritto al rispetto della vita culturale
+       la G azzetta Ufficiale n. 173 del 25 luglio 2019. e religiosa della comunità alla quale appartengono. La scuola promuove
+                                          e favorisce iniziative volte alla accoglienza e alla tutela della loro lingua
+         — La legge 20 agosto 2019, n. 92, recante: «Introduzione dell’in-        
+                                          e cultura e alla realizzazione di attività interculturali.
+       segnamento scolastico dell’educazione civica», è pubblicata nella G az-    
+       zetta Ufficiale n. 195 del 21 agosto 2019. 8. La scuola si impegna a porre progressivamente in essere le con-
+                                          dizioni per assicurare:                 
+         — Il decreto-legge 11 novembre 2022, n. 173 recante: «Dispo-             
+                                             a) un ambiente favorevole alla crescita integrale della persona e
+       sizioni urgenti in materia di riordino delle attribuzioni dei Ministeri»,  
+                                          un servizio educativo didattico di qualità;
+       pubblicato nella G azzetta Ufficiale n. 264 dell’11 novembre 2022 è con-   
+       vertito, con modificazioni, dalla legge 16 dicembre 2022, n. 204. b) offerte formative aggiuntive e integrative, anche mediante
+                                          il sostegno di iniziative liberamente assunte dagli studenti e dalle loro
+         — La legge 24 novembre 2023, n. 168, recante: «Disposizioni per          
+                                          associazioni;                           
+       il contrasto della violenza sulle donne e della violenza domestica», è     
+       pubblicata nella G azzetta Ufficiale n. 275 del 24 novembre 2023. c) iniziative concrete per il recupero di situazioni di ritardo e di
+                                          svantaggio, nonché per la prevenzione e il recupero della dispersione
+         — Il decreto del Presidente della Repubblica 10 ottobre 1996,            
+                                          scolastica;                             
+       n. 567, recante: «Regolamento recante la disciplina delle iniziative       
+       complementari e delle attività integrative nelle istituzioni scolastiche», d) la salubrità e la sicurezza degli ambienti, che debbono essere
+       è pubblicato nella G azzetta Ufficiale n. 25 del 5 novembre 1996. adeguati a tutti gli studenti anche con d isabilità ;
+                                             e) la disponibilità di un’adeguata strumentazione tecnologica;
+         — Il decreto del Presidente della Repubblica 24 giugno 1998,             
+       n. 249, recante: «Regolamento recante lo statuto delle studentesse e de- f) servizi di sostegno e promozione della salute e di assistenza
+       gli studenti della scuola secondaria», è pubblicato nella G azzetta Uffi- psicologica.
+       ciale n. 175 del 29 luglio 1998.      f.bis) l’emersione di episodi riconducibili ai fenomeni del bul-
+         — Il decreto del Presidente della Repubblica 8 marzo 1999, n. 275, lismo e del cyberbullismo, di situazioni di uso o abuso di alcool o di
+       recante: «Regolamento recante norme in materia di autonomia delle isti- sostanze stupefacenti e di altre forme di dipendenza .
+       tuzioni scolastiche, ai sensi dell’articolo 21 della legge 15 marzo 1997, 9. La scuola garantisce e disciplina nel proprio regolamento l’eser-
+       n. 59», è pubblicato nella G azzetta Ufficiale n. 186 del 10 agosto 1999. cizio del diritto di riunione e di assemblea degli studenti, a livello di
+         — Il decreto del Presidente della Repubblica 22 giugno 2009, classe, di corso e di istituto.
+       n. 122, recante: «Regolamento recante coordinamento delle norme 10. I regolamenti delle singole istituzioni garantiscono e discipli-
+       vigenti per la valutazione degli alunni e ulteriori modalità applicative nano l’esercizio del diritto di associazione all’interno della scuola se-
+       in materia, ai sensi degli articoli 2 e 3 del decreto-legge 1° settembre condaria superiore, del diritto degli studenti singoli e associati a svolge-
+       2008, n. 137, convertito, con modificazioni, dalla legge 30 ottobre 2008, re iniziative all’interno della scuola, nonché l’utilizzo di locali da parte
+       n. 169», è pubblicato nella G azzetta Ufficiale n. 191 del 19 agosto 2009. di studenti e delle associazioni di cui fanno parte. I regolamenti delle
+                                          scuole favoriscono inoltre la continuità del legame con gli ex studenti e
+         — Il decreto del Presidente della Repubblica 28 marzo 2013, n. 80,       
+                                          con le loro associazioni.».             
+       recante: «Regolamento sul sistema nazionale di valutazione in materia      
+       di istruzione e formazione», è pubblicato nella G azzetta Ufficiale n. 155 «Art. 4 ( Disciplina ). — 1. I regolamenti delle singole istituzioni
+       del 4 luglio 2013.                 scolastiche d el sistema nazionale di istruzione individuano i comporta-
+                                          menti che configurano mancanze disciplinari con riferimento ai doveri
+       Note all’art. 1:                   elencati nell’articolo 3, al corretto svolgimento dei rapporti all’inter-
+                                          no della comunità scolastica e alle situazioni specifiche di ogni singola
+         — Si riporta il testo degli articoli 2, 4, 5- bis e 6 del citato decreto scuola, le relative sanzioni, gli organi competenti ad irrogarle e il relati-
+       del Presidente della Repubblica 24 giugno 1998, n. 249, come modifi- vo procedimento, secondo i criteri di seguito indicati.
+       cati dal presente decreto:                                                 
+                                            2. I provvedimenti disciplinari hanno finalità educativa e tendono
+         «Art. 2 (D iritti ). — 1. Lo studente ha diritto ad una formazione cul- al rafforzamento del senso di responsabilità ed al ripristino di rapporti
+       turale e professionale qualificata che rispetti e valorizzi, anche attraver- corretti all’interno della comunità scolastica, nonché al recupero dello
+       so l’orientamento, l’identità di ciascuno e sia aperta alla pluralità delle studente attraverso attività di natura sociale, culturale ed in generale a
+       idee. La scuola persegue la continuità dell’apprendimento e valorizza vantaggio della comunità scolastica.
+       le inclinazioni personali degli studenti, anche attraverso una adeguata 3. La responsabilità disciplinare è personale. Nessuno può essere
+       informazione, la possibilità di formulare richieste, di sviluppare temi sottoposto a sanzioni disciplinari senza essere stato prima invitato ad
+       liberamente scelti e di realizzare iniziative autonome. esporre le proprie ragioni. N essuna infrazione disciplinare connessa
+         2. La comunità scolastica promuove la solidarietà tra i suoi compo- al comportamento può influire sulla valutazione degli apprendimenti
+       nenti e tutela il diritto dello studente alla riservatezza. delle singole discipline. L’infrazione disciplinare influisce sul voto di
+                                          comportamento .                         
+         3. Lo studente ha diritto di essere informato sulle decisioni e sulle    
+       norme che regolano la vita della scuola. 4. In nessun caso può essere sanzionata, né direttamente né indi-
+                                          rettamente, la libera espressione di opinioni correttamente manifestata e
+         4. Lo studente ha diritto alla partecipazione attiva e responsabile      
+                                          non lesiva dell’altrui personalità.     
+       alla vita della scuola. I dirigenti scolastici e i docenti, con le modalità
+       previste dal regolamento di istituto, attivano con gli studenti un dialogo 5. Le sanzioni sono sempre temporanee, proporzionate alla infra-
+       costruttivo sulle scelte di loro competenza in tema di programmazione zione disciplinare e ispirate al principio di gradualità nonché, per quanto
+       e definizione degli obiettivi didattici, di organizzazione della scuola, possibile, al principio della riparazione del danno. Esse tengono conto
+       di criteri di valutazione, di scelta dei libri e del materiale didattico. Lo della situazione personale dello studente, della gravità del comporta-
+       studente ha inoltre diritto a una valutazione trasparente e tempestiva, mento e delle conseguenze che da esso derivano.
+       volta ad attivare un processo di autovalutazione che lo conduca ad in- 6. Le sanzioni che comportano allontanamento d alle lezioni sono
+       dividuare i propri punti di forza e di debolezza e a migliorare il proprio adottati dal consiglio di classe. Le sanzioni che comportano l’allonta-
+       rendimento.                        namento d alla comunità scolastica superiore a quindici giorni e quelle
+                                      — 40 —
+````
+
+## Pagina 43
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       che implicano l’esclusione dallo scrutinio finale o la non ammissione di atti violenti o di aggressione nei confronti del personale scolastico,
+       all’esame di Stato conclusivo del corso di studi sono adottate dal con- delle studentesse e degli studenti. In tale caso, la durata dell’allontana-
+       siglio di istituto.                mento è commisurata alla gravità del reato ovvero al permanere della
+         7. Il temporaneo allontanamento dello studente d alle lezioni può situazione di pericolo. Si applica, per quanto possibile, il disposto del
+       essere disposto solo in caso di gravi o reiterate infrazioni disciplinari, comma 8.
+       per periodi non superiori ai quindici giorni. 9 -bis . Con riferimento alle fattispecie di cui al comma 9, nei casi di
+         8. Nei periodi di allontanamento non superiori a quindici giorni recidiva, di atti di violenza grave, o comunque connotati da una partico-
+       deve essere previsto un rapporto tra la comunità scolastica, lo studente lare gravità tale da ingenerare un elevato allarme sociale, ove non siano
+       e i suoi genitori tale da preparare il rientro nel gruppo classe. esperibili interventi per un reinserimento responsabile e tempestivo del-
+         8 -bis . Nel periodo di allontanamento dello studente dalle lezioni lo studente nella comunità durante l’anno scolastico, la sanzione è co-
+       fino a due giorni, il consiglio di classe delibera, con adeguata motiva- stituita dall’allontanamento dalla comunità scolastica con l’esclusione
+       zione, attività di approfondimento sulle conseguenze dei comportamenti dallo scrutinio finale o la non ammissione all’esame di Stato conclusivo
+       che hanno determinato il provvedimento disciplinare. Tali attività sono del corso di studi o, nei casi meno gravi, dal solo allontanamento fino al
+       svolte presso l’istituzione scolastica. Le scuole, nell’ambito della loro termine dell’anno scolastico.
+       autonomia, individuano i docenti incaricati di realizzare le attività di 9 -ter . Le sanzioni disciplinari di cui al comma 6 e seguenti posso-
+       cui al primo periodo.              no essere irrogate soltanto previa verifica della sussistenza di elementi
+         8 -ter. Nel periodo di allontanamento dello studente dalle lezioni circostanziati e precisi dai quali si desuma che l’infrazione disciplinare
+       per un periodo compreso fra tre e quindici giorni, il consiglio di clas- sia stata effettivamente commessa da parte dello studente r esponsabile .
+       se delibera, con adeguata motivazione, attività di cittadinanza attiva e   
+                                            10. Nei casi in cui l’autorità giudiziaria, i servizi sociali o la situa-
+       solidale, commisurate all’orario scolastico relativo al numero di giorni   
+                                          zione obiettiva rappresentata dalla famiglia o dallo stesso studente scon-
+       per i quali è deliberato l’allontanamento. Le attività di cui al primo     
+                                          siglino il rientro nella comunità scolastica di appartenenza, allo studente
+       periodo, inserite all’interno del Piano triennale dell’offerta formati-    
+                                          è consentito di iscriversi, anche in corso d’anno, ad altra scuola.
+       va (PTOF), si svolgono presso le strutture ospitanti di cui al quinto      
+       periodo, con le quali l’istituzione scolastica, nell’ambito della propria 11. Le sanzioni per le mancanze disciplinari commesse durante le
+       autonomia, stipula convenzioni, assicurando il raccordo e il coordi- sessioni d’esame sono i rrogate dalla commissione di esame e sono ap-
+       namento con le medesime. Le convenzioni di cui al secondo periodo plicabili anche ai candidati esterni.».
+       disciplinano il percorso formativo personalizzato di attività di cittadi-  
+                                            «Art. 5 -bis ( Patto educativo di corresponsabilità ). — 1. Conte-
+       nanza attiva e solidale, i tempi, le modalità, il contesto e i limiti del suo
+                                          stualmente all’iscrizione alla singola istituzione scolastica, è richiesta la
+       svolgimento presso le strutture ospitanti, nonché le rispettive figure di  
+                                          sottoscrizione da parte dei genitori e degli studenti di un Patto educativo
+       riferimento. Durante le attività di cittadinanza attiva e solidale, l’obbli-
+                                          di corresponsabilità, finalizzato a definire in maniera dettagliata e con-
+       go di vigilanza sulle studentesse e sugli studenti è in capo alle strutture
+                                          divisa diritti e doveri nel rapporto tra istituzione scolastica autonoma,
+       ospitanti che comunicano tempestivamente alle istituzioni scolastiche      
+                                          studenti e famiglie.                    
+       eventuali assenze. Gli enti, le associazioni e gli enti del Terzo settore  
+       possono manifestare la propria disponibilità ad accogliere lo studente 1 -bis . Nel Patto di cui al comma 1, è incluso l’impegno dell’istitu-
+       in attività di cittadinanza attiva e solidale attraverso la partecipazione zione scolastica e delle famiglie a collaborare per consentire l’emersio-
+       all’avviso pubblico, contenente i requisiti e i criteri definiti dal Mini- ne di episodi riconducibili ai fenomeni del bullismo e del cyberbullismo,
+       stero dell’istruzione e del merito, predisposto dall’Ufficio scolastico di situazioni di uso o abuso di alcool o di sostanze stupefacenti, nonché
+       regionale competente il quale, con successivo provvedimento, approva di altre forme di dipendenza.
+       gli elenchi degli enti, delle associazioni e degli enti del Terzo settore  
+                                            1 -ter. Le istituzioni scolastiche integrano il Patto educativo di cor-
+       idonei ad accogliere lo studente. A seguito delle attività di verifica del 
+                                          responsabilità, definendo in maniera dettagliata le attività formative
+       mantenimento dei requisiti citati, svolte dal medesimo Ufficio scolastico  
+                                          e informative che intendono programmare a favore delle studentesse,
+       regionale, e dell’acquisizione delle ulteriori manifestazioni di interesse 
+                                          degli studenti e delle loro famiglie, con particolare riferimento all’uso
+       pervenute, il competente Ufficio aggiorna annualmente gli elenchi di       
+                                          sicuro e consapevole della rete internet.
+       cui al quinto periodo. Le istituzioni scolastiche, nell’ambito della loro  
+       autonomia, individuano le figure referenti per la realizzazione di tali 2. I singoli regolamenti di istituto disciplinano le procedure di sot-
+       attività, nell’ambito del personale scolastico, da remunerare a carico toscrizione nonché di elaborazione e revisione condivisa, del patto di
+       del Fondo per il Miglioramento dell’Offerta Formativa. Il mancato o cui al comma 1.
+       parziale svolgimento delle attività di cittadinanza attiva e solidale viene 3. Nell’ambito delle prime due settimane di inizio delle attività di-
+       considerato dal consiglio di classe ai fini dell’attribuzione del voto di dattiche, ciascuna istituzione scolastica pone in essere le iniziative più
+       comportamento. Le ore di attività di cittadinanza attiva e solidale sono idonee per le opportune attività di accoglienza dei nuovi studenti, per la
+       computate nei tre quarti dell’orario annuale personalizzato richiesto ai presentazione e la condivisione dello statuto delle studentesse e degli
+       fini della validità dell’anno scolastico, pur non influendo sulla valuta-  
+                                          studenti, del piano t riennale dell’offerta formativa, dei regolamenti di
+       zione degli apprendimenti delle singole discipline.                        
+                                          istituto e del patto educativo di corresponsabilità.
+         8 -quater. In caso di indisponibilità delle strutture ospitanti di cui   
+                                            Art. 6 (Disposizioni transitorie e finali). — 1. I regolamenti delle
+       al comma 8 -ter, dovuta all’inidoneità delle stesse a causa dell’assenza   
+                                          scuole e la carta dei servizi previsti dalle disposizioni vigenti in mate-
+       dei requisiti individuati dal comma 8 -ter, quinto periodo, ovvero alla    
+                                          ria sono adottati o modificati previa consultazione degli studenti nella
+       mancata presentazione di manifestazioni di interesse di cui al medesimo    
+                                          scuola secondaria superiore e dei genitori nella scuola s econdaria di
+       comma, le attività di cittadinanza attiva e solidale ivi contemplate, sono 
+                                          primo grado .                           
+       svolte a favore della comunità scolastica.                                 
+         8 -quinquies. Il consiglio di classe, al fine di garantire la piena con- 1 -bis . Le istituzioni scolastiche, nell’ambito della loro autonomia
+       sapevolezza, da parte dello studente, dei comportamenti coerenti con i e, comunque, entro il termine di trenta giorni dalla data di entrata in
+       principi ispiratori della vita della comunità scolastica, può deliberare, vigore del presente regolamento, adeguano il Regolamento di istituto
+       ove necessario, la prosecuzione delle attività di cittadinanza attiva e alle previsioni di cui all’articolo 4, commi 8 -bis , 8 -ter, 8 -quater, 8 -quin-
+       solidale anche dopo il rientro nel gruppo classe, per un periodo massi- quies e 8 -sexies.
+       mo pari ai tre quarti dell’orario scolastico corrispondente ai giorni di 2. Del presente regolamento e dei documenti fondamentali di
+       allontanamento deliberato, e nel rispetto dei principi di temporaneità, ogni singola istituzione scolastica è fornita copia agli studenti all’atto
+       proporzionalità e gradualità di cui al comma 5. dell’iscrizione.           
+         8 -sexies. Nei periodi di allontanamento superiori a quindici gior-      
+                                            3. È abrogato il capo III del titolo I del regio decreto 4 maggio
+       ni, la scuola promuove, in coordinamento con la famiglia e, ove neces-     
+                                          1925, n. 653.                           
+       sario, anche con i servizi sociali e l’autorità giudiziaria, un percorso di
+       recupero educativo mirato all’inclusione, alla responsabilizzazione e al 3 -bis . Nelle more della definizione degli elenchi regionali delle
+       reintegro, ove possibile, nella comunità scolastica. strutture ospitanti, di cui all’articolo 4, comma 8 -ter, quinto periodo,
+                                          le attività di cittadinanza attiva e solidale sono effettuate a favore della
+         9. L’allontanamento dello studente dalla comunità scolastica su-         
+                                          comunità scolastica.».                  
+       periore a quindici giorni può essere disposto anche quando siano stati     
+       commessi reati che violano la dignità e il rispetto della persona uma-     
+       na o vi sia pericolo per l’incolumità delle persone, nonché in presenza 25G00140
+                                      — 41 —
+````
+
+## Pagina 44
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       DECRETO DEL PRESIDENTE DELLA REPUBBLICA norma dell’articolo 1, commi 180 e 181, lettera i ) , della
+        8 agosto 2025 , n. 1 35 .         legge 13 luglio 2015, n. 107»;          
+        Regolamento recante modifiche al decreto del Presidente Visto il decreto legislativo 13 aprile 2017, n. 66, re-
+       della Repubblica 22 giugno 2009, n. 122, in materia di valu- cante «Norme per la promozione dell’inclusione scola-
+       tazione degli studenti del secondo ciclo di istruzione. stica degli studenti con disabilità, a norma dell’artico-
+                                          lo 1, commi 180 e 181, lettera c ) , della legge 13 luglio
+                                          2015, n. 107»;                          
+           IL PRESIDENTE DELLA REPUBBLICA                                         
+                                           Vista la legge 20 agosto 2019, n. 92, recante «Intro-
+                                          duzione dell’insegnamento scolastico dell’educazione
+        Visti gli articoli 87, quinto comma, e 117, secondo                       
+                                          civica»;                                
+       comma, lettera n ) , della Costituzione;                                   
+        Vista la legge 23 agosto 1988, n. 400, recante «Di- Visto il decreto-legge 11 novembre 2022, n. 173,
+       sciplina dell’attività di Governo e ordinamento della convertito, con modificazioni, dalla legge 16 dicembre
+       Presidenza del Consiglio dei ministri» e, in particolare, 2022, n. 204, recante «Disposizioni urgenti in materia di
+       l’articolo 17, comma 1;            riordino delle attribuzioni dei Ministeri»;
+        Vista la legge 1° ottobre 2024, n. 150, recante «Re- Visto il decreto del Presidente della Repubblica 10 ot-
+       visione della disciplina in materia di valutazione delle tobre 1996, n. 567, concernente «Regolamento recante
+       studentesse e degli studenti, di tutela dell’autorevolez- la disciplina delle iniziative complementari e delle atti-
+       za del personale scolastico nonché di indirizzi scolastici vità integrative nelle istituzioni scolastiche»;
+       differenziati» e, in particolare, l’articolo 1, commi 4 e 5,               
+                                           Visto il decreto del Presidente della Repubblica
+       lettera b ) ;                                                              
+                                          24 giugno 1998, n. 249, concernente «Regolamento re-
+        Vista la legge 5 febbraio 1992, n. 104, recante «Legge- cante lo statuto delle studentesse e degli studenti della
+       quadro per l’assistenza, l’integrazione sociale e i diritti scuola secondaria»;
+       delle persone handicappate» e, in particolare, gli articoli                
+                                           Visto il decreto del Presidente della Repubblica
+       12, 13, 14, 15 e 16;                                                       
+                                          22 giugno 2009, n. 122, concernente «Regolamento
+        Visto il decreto legislativo 16 aprile 1994, n. 297, re-                  
+                                          recante coordinamento delle norme vigenti per la valu-
+       cante «Approvazione del testo unico delle disposizioni                     
+                                          tazione degli alunni e ulteriori modalità applicative in
+       legislative vigenti in materia di istruzione, relative alle                
+                                          materia, ai sensi degli articoli 2 e 3 del decreto-legge
+       scuole di ogni ordine e grado»;                                            
+                                          1° settembre 2008, n. 137, convertito, con modificazio-
+        Vista la legge 15 marzo 1997, n. 59, recante «Delega ni, dalla legge 30 ottobre 2008, n. 169»;
+       al Governo per il conferimento di funzioni e compiti alle                  
+                                           Visto il decreto del Presidente della Repubblica
+       regioni ed enti locali, per la riforma della pubblica am-                  
+                                          8 marzo 1999, n. 275, concernente «Regolamento recan-
+       ministrazione e per la semplificazione amministrativa»                     
+                                          te norme in materia di autonomia delle istituzioni sco-
+       e, in particolare, l’articolo 21, commi 1, 2 e 13;                         
+                                          lastiche, ai sensi dell’articolo 21 della legge 15 marzo
+        Visto il decreto legislativo 15 aprile 2005, n. 76, re-                   
+                                          1997, n. 59»;                           
+       cante «Definizione delle norme generali sul diritto-do-                    
+       vere all’istruzione e alla formazione, a norma dell’arti- Visto il decreto del Presidente della Repubblica
+       colo 2, comma 1, lettera c ) , della legge 28 marzo 2003, 28 marzo 2013, n. 80, recante «Regolamento sul siste-
+       n. 53»;                            ma nazionale di valutazione in materia di istruzione e
+                                          formazione»;                            
+        Visto il decreto legislativo 17 ottobre 2005, n. 226,                     
+       recante «Norme generali e livelli essenziali delle pre- Considerata la necessità di dare attuazione all’artico-
+       stazioni relativi al secondo ciclo del sistema educativo lo 1, commi 4 e 5, lettera b ) , della citata legge 1° ottobre
+       di istruzione e formazione, a norma dell’articolo 2 della 2024, n. 150, recante «Revisione della disciplina in ma-
+       legge 28 marzo 2003, n. 53»;       teria di valutazione delle studentesse e degli studenti, di
+                                          tutela dell’autorevolezza del personale scolastico non-
+        Vista la legge 27 dicembre 2006, n. 296, recante                          
+                                          ché di indirizzi scolastici differenziati»;
+       «Disposizioni per la formazione del bilancio annuale                       
+       e pluriennale dello Stato» e, in particolare l’articolo 1, Acquisito il parere del Consiglio superiore della pub-
+       comma 622;                         blica istruzione, reso nella seduta plenaria n. 140 del
+        Visto il decreto-legge 1° settembre 2008, n. 137, 31 gennaio 2025;        
+       convertito, con modificazioni, dalla legge 30 ottobre Vista la preliminare deliberazione del Consiglio dei
+       2008, n. 169, recante «Disposizioni urgenti in materia ministri, adottata nella riunione del 30 aprile 2025;
+       di istruzione e università» e, in particolare, gli articoli                
+                                           Udito il parere del Consiglio di Stato, espresso dalla
+       1, 2 e 3;                                                                  
+                                          Sezione consultiva per gli atti normativi nell’adunanza
+        Vista la legge 13 luglio 2015, n. 107, recante «Ri-                       
+                                          del 27 maggio 2025;                     
+       forma del sistema nazionale di istruzione e formazio-                      
+       ne e delega per il riordino delle disposizioni legislative Vista la deliberazione del Consiglio dei ministri, adot-
+       vigenti»;                          tata nella riunione del 30 luglio 2025; 
+        Visto il decreto legislativo 13 aprile 2017, n. 62, re- Sulla proposta del Ministro dell’istruzione e del me-
+       cante «Norme in materia di valutazione e certificazione rito, di concerto con il Ministro dell’economia e delle
+       delle competenze nel primo ciclo ed esami di Stato, a finanze;             
+                                      — 42 —
+````
+
+## Pagina 45
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+                     EMANA                loro ricaduta sugli apprendimenti disciplinari e sulla va-
+                                          lutazione del comportamento è effettuata dal consiglio
+                                          di classe, secondo i criteri deliberati dal Collegio dei do-
+                il seguente regolamento:                                          
+                                          centi ed esplicitati nel Piano triennale dell’offerta forma-
+                                          tiva dell’istituzione scolastica.»;     
+                     Art. 1.                  6) al comma 5:                      
+        Modifiche al decreto del Presidente della Repubblica 6.1) al primo periodo, la parola: «alunni» è so-
+                 22 giugno 2009, n. 122   stituita dalle seguenti: «studenti e le studentesse» e le
+                                          parole: «comportamento non inferiore» sono sostituite
+        1. Al decreto del Presidente della Repubblica 22 giugno dalle seguenti: «comportamento superiore»;
+       2009, n. 122, sono apportate le seguenti modificazioni:                    
+                                                6.2) al secondo periodo, le parole: «dell’alun-
+          a) l’articolo 1 è sostituito dal seguente: no» sono sostituite dalle seguenti: «dello studente e della
+           «Art. 1 (Oggetto) . — 1. Il presente regolamento, studentessa»;        
+       nel rispetto dei principi e delle finalità di cui all’artico-              
+                                              7) al comma 6:                      
+       lo 1 del decreto legislativo 13 aprile 2017, n. 62, discipli-              
+                                                7.1) al primo periodo, la parola: «alunni» è so-
+       na la valutazione periodica e finale degli apprendimenti                   
+                                          stituita dalle seguenti: «studenti e delle studentesse»;
+       e del comportamento delle studentesse e degli studen-                      
+       ti delle istituzioni scolastiche secondarie di secondo 7.2) al terzo periodo, le parole: «dall’alunno»
+       grado appartenenti al sistema nazionale di istruzione e sono sostituite dalle seguenti: «dalla studentessa o dallo
+       formazione.»;                      studente»;                              
+          b) all’articolo 4:                 c) l’articolo 5 è sostituito dal seguente:
+           1) alla rubrica, la parola: «alunni» è sostituita «Art. 5 (Assolvimento dell’obbligo di istru-
+       dalle seguenti: «studenti e delle studentesse»; zione) . — 1. L’obbligo di istruzione è assolto secondo
+           2) al comma 1:                 quanto previsto dall’articolo 1, comma 622 della legge
+                                          27 dicembre 2006, n. 296 nel quadro del diritto-dovere
+             2.1) il secondo periodo è sostituito dal seguen-                     
+                                          all’istruzione e alla formazione di cui al decreto legisla-
+       te: «I docenti di sostegno, contitolari della classe, par-                 
+                                          tivo 15 aprile 2005, n. 76, e al decreto legislativo 17 ot-
+       tecipano alla valutazione di tutti gli studenti e di tutte                 
+                                          tobre 2005, n. 226.»;                   
+       le studentesse, applicando, ai fini del proprio giudizio,                  
+       relativamente agli studenti con disabilità, i criteri di cui d) all’articolo 7:
+       all’articolo 314, comma 2, del testo unico di cui al decre-                
+                                              1) al comma 1, la parola: «alunni» è sostituita
+       to legislativo 16 aprile 1994, n. 297.»;                                   
+                                          dalle seguenti: «studenti e delle studentesse» e le parole:
+             2.2) al terzo periodo, le parole: «un alun- «di primo e» e «, di cui all’articolo 2 del decreto-legge,»
+       no» sono sostituite dalle seguenti: «uno studente o una sono soppresse;    
+       studentessa»;                                                              
+                                              2) dopo il comma 1 è inserito il seguente:
+             2.3) al quarto periodo, le parole: «ciascun alun-                    
+                                                «1 -bis . Il consiglio di classe, in sede di scru-
+       no» sono sostituite dalle seguenti: «ciascuno studente e                   
+                                          tinio finale, attribuisce il voto di comportamento sulla
+       da ciascuna studentessa»;                                                  
+                                          base dell’intero anno scolastico e tenendo conto, in parti-
+           3) dopo il comma 1 è inserito il seguente: colar modo, della eventuale commissione di atti violenti
+             «1 -bis . La valutazione periodica e finale de- o di aggressione nei confronti del personale scolastico,
+       gli apprendimenti per ciascuna delle discipline di studio delle studentesse e degli studenti.»;
+       previste dalle Indicazioni nazionali per i licei e dalle Li-               
+                                              3) il comma 2 è sostituito dal seguente:
+       nee guida per gli istituti tecnici e gli istituti professionali,           
+                                                «2. La valutazione del comportamento con
+       è espressa in decimi. Il voto numerico è riportato anche                   
+                                          voto inferiore a sei decimi in sede di scrutinio periodi-
+       in lettere nel documento di valutazione.»;                                 
+                                          co, nonché in sede di scrutinio finale con conseguente
+           4) al comma 2, il primo periodo è sostituito dal                       
+                                          non ammissione alla classe successiva, è deliberata dal
+       seguente: «La valutazione periodica e finale del compor-                   
+                                          consiglio di classe nei confronti della studentessa o dello
+       tamento delle studentesse e degli studenti è espressa in                   
+                                          studente cui sia stata irrogata, nel medesimo anno sco-
+       decimi.»                                                                   
+                                          lastico, in relazione alla violazione dei doveri di cui al
+           5) il comma 4 è sostituito dal seguente: decreto del Presidente della Repubblica 24 giugno 1998,
+             «4. I percorsi per le competenze trasversali e n. 249, una sanzione disciplinare ai sensi dell’articolo 4
+       per l’orientamento, di cui all’articolo 1, commi da 784 a del medesimo decreto, per aver commesso reati che vio-
+       787, della legge 30 dicembre 2018, n. 145, coerenti con lino la dignità e il rispetto della persona umana o arre-
+       il piano triennale dell’offerta formativa e con il profilo chino pericoli per l’incolumità altrui o per aver posto in
+       culturale, educativo e professionale in uscita dei singo- essere comportamenti che configurino mancanze disci-
+       li indirizzi di studio offerti dalle istituzioni scolastiche, plinari gravi e reiterate, anche con riferimento alle vio-
+       sono parte integrante dei percorsi formativi personaliz- lazioni previste dai regolamenti delle istituzioni scolasti-
+       zati. La valutazione degli esiti delle attività dei percorsi che, o per aver commesso atti violenti o di aggressione
+       per le competenze trasversali e per l’orientamento e della nei confronti del personale scolastico e degli studenti.»;
+                                      — 43 —
+````
+
+## Pagina 46
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+           4) dopo il comma 2 sono inseriti i seguenti: di classe. Per la valutazione degli studenti con DSA cer-
+             «2 -bis . L’attribuzione di un voto di comporta- tificato le istituzioni scolastiche adottano modalità che
+       mento inferiore a sei decimi nella valutazione periodica consentono di dimostrare effettivamente il livello di ap-
+       comporta il coinvolgimento della studentessa e dello stu- prendimento conseguito, mediante l’applicazione delle
+       dente in attività di approfondimento in materia di citta- misure dispensative e degli strumenti compensativi indi-
+       dinanza attiva e solidale, finalizzate alla comprensione cati nel piano didattico personalizzato.»;
+       delle ragioni e delle conseguenze dei comportamenti che h) l’articolo 11 è sostituito dal seguente:
+       hanno determinato il voto assegnato.                                       
+                                              «Art. 11 (Valutazione delle studentesse e degli
+             2 -ter . Fermo restando quanto previsto all’ar- studenti in ospedale) . — 1. La valutazione delle studen-
+       ticolo 4, comma 6, per le studentesse e gli studenti che tesse e degli studenti che frequentano corsi di istruzione
+       hanno riportato un voto di comportamento pari a sei de- funzionanti in ospedali o in luoghi di cura per periodi
+       cimi, il consiglio di classe, in sede di scrutinio finale, temporalmente rilevanti è effettuata ai sensi dell’artico-
+       sospende il giudizio senza riportare immediatamente un lo 22 del decreto legislativo 13 aprile 2017, n. 62.»;
+       giudizio di ammissione alla classe successiva, assegnan-                   
+                                             i) all’articolo 13, il comma 1 è sostituito dal
+       do la predisposizione di un elaborato critico in materia                   
+                                          seguente:                               
+       di cittadinanza attiva e solidale, da sviluppare su temati-                
+       che connesse alle ragioni che hanno determinato il voto «1. Agli studenti e alle studentesse del secondo
+       di comportamento attribuito. La mancata presentazione ciclo di istruzione delle scuole italiane all’estero si ap-
+       dell’elaborato prima della integrazione dello scrutinio plicano le disposizioni del presente regolamento, fatto
+       finale da parte del consiglio di classe, ovvero l’esito non salvo quanto disposto dagli articoli 4, comma 2, e 6,
+       positivo comporta la non ammissione delle studentesse e comma 2, del decreto legislativo 13 aprile 2017, n. 64.»;
+       degli studenti alla classe successiva.»; l) all’articolo 14, il comma 7 è sostituito dal
+           5) al comma 3, la parola: «intermedio» è sostitu- seguente:            
+       ita dalla seguente: «periodico»;                                           
+                                              «7. Ai fini della validità dell’anno scolastico è
+           6) al comma 4:                 richiesta la frequenza di almeno tre quarti dell’orario an-
+             6.1) al primo periodo, dopo le parole: «elabo- nuale personalizzato. Le istituzioni scolastiche possono
+       razione del piano» è inserita la seguente: «triennale» e la stabilire, per casi eccezionali, motivate e straordinarie
+       parola: «alunni» è sostituita dalle seguenti: «studenti e deroghe al suddetto limite. Tali deroghe sono previste
+       delle studentesse»;                per assenze documentate a condizione, comunque, che
+             6.2) al secondo periodo, la parola: «alunni» è non pregiudichino, a giudizio del consiglio di classe, la
+       sostituita dalle seguenti: «studenti e alle studentesse»; possibilità di procedere alla valutazione degli appren-
+                                          dimenti. Il mancato conseguimento del limite minimo
+          e) l’articolo 8 è sostituito dal seguente:                              
+                                          di frequenza, comprensivo delle deroghe riconosciute,
+           «Art. 8 ( Certificazione delle competenze) . —                         
+                                          comporta l’esclusione dallo scrutinio finale e la non am-
+       1. Per quanto riguarda il secondo ciclo di istruzione, ai                  
+                                          missione alla classe successiva.»;      
+       fini del rilascio della certificazione delle competenze,                   
+                                             m) Il titolo è sostituito dal seguente: «Regolamento
+       vengono utilizzati i modelli adottati con decreto del Mi-                  
+                                          recante valutazione delle studentesse e degli studenti del
+       nistro dell’istruzione e del merito.»;                                     
+                                          secondo ciclo di istruzione.».          
+          f) l’articolo 9 è sostituito dal seguente:                              
+           «Art. 9 (Valutazione delle studentesse e degli stu-                    
+                                                         Art. 2.                  
+       denti con disabilità) . — 1. La valutazione delle studen-                  
+       tesse e degli studenti del secondo ciclo di istruzione con Abrogazioni     
+       disabilità certificata nelle forme e con le modalità previ-                
+       ste dalle disposizioni vigenti è riferita, secondo quanto 1. A decorrere dalla data di entrata in vigore del pre-
+       previsto dagli articoli 4 e 7 del presente decreto, al com- sente regolamento, gli articoli 2, 3, 6 e 14, commi 1, 2 e
+       portamento, alle discipline e alle attività svolte sulla base 3, del decreto del Presidente della Repubblica 22 giugno
+       del piano educativo individualizzato previsto dall’artico- 2009, n. 122, sono abrogati.
+       lo 7 del decreto legislativo 13 aprile 2017, n. 66.»;                      
+          g) l’articolo 10 è sostituito dal seguente:    Art. 3.                  
+           «Art. 10 (Valutazione delle studentesse e degli Clausola di invarianza finanziaria
+       studenti con disturbi specifici di apprendimento (DSA)) .                  
+       — 1. Per le studentesse e gli studenti con disturbi spe- 1. Dall’attuazione del presente regolamento non devo-
+       cifici di apprendimento (DSA) certificati ai sensi della no derivare nuovi o maggiori oneri a carico della finan-
+       legge 8 ottobre 2010, n. 170, la valutazione degli ap- za pubblica. Le amministrazioni interessate provvedono
+       prendimenti e del comportamento sono coerenti con il agli adempimenti ivi previsti con le risorse umane, finan-
+       piano didattico personalizzato predisposto dal consiglio ziarie e strumentali previste a legislazione vigente.
+                                      — 44 —
+````
+
+## Pagina 47
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+        Il presente decreto, munito di sigillo dello Stato, sarà l’abrogazione delle norme vigenti, con effetto dall’entrata in vigore del-
+       inserito nella Raccolta ufficiale degli atti normativi della le norme regolamentari.
+       Repubblica italiana. È fatto obbligo a chiunque spetti di 3. Con decreto ministeriale possono essere adottati regolamen-
+                                          ti nelle materie di competenza del ministro o di autorità sottordinate
+       osservarlo e di farlo osservare.                                           
+                                          al ministro, quando la legge espressamente conferisca tale potere. Tali
+          Dato a Roma, addì 8 agosto 2025 regolamenti, per materie di competenza di più ministri, possono esse-
+                                          re adottati con decreti interministeriali, ferma restando la necessità di
+                                          apposita autorizzazione da parte della legge. I regolamenti ministeriali
+                                          ed interministeriali non possono dettare norme contrarie a quelle dei
+                  MATTARELLA              regolamenti emanati dal Governo. Essi debbono essere comunicati al
+                                          Presidente del Consiglio dei ministri prima della loro emanazione.
+                       MELONI, Presidente del Con- 4. I regolamenti di cui al comma 1 ed i regolamenti ministeriali
+                         siglio dei ministri ed interministeriali, che devono recare la denominazione di “regola-
+                                          mento”, sono adottati previo parere del Consiglio di Stato, sottoposti al
+                       VALDITARA, Ministro dell’istru- visto ed alla registrazione della Corte dei conti e pubblicati nella G az-
+                         zione e del merito zetta Ufficiale .                     
+                                             4 -bis . L’organizzazione e la disciplina degli uffici dei Ministeri
+                       GIORGETTI, Ministro dell’eco-                              
+                                          sono determinate, con regolamenti emanati ai sensi del comma 2, su
+                         nomia e delle finanze                                    
+                                          proposta del Ministro competente d’intesa con il Presidente del Con-
+                                          siglio dei ministri e con il Ministro del tesoro, nel rispetto dei principi
+       Visto, il Guardasigilli: NORDIO                                            
+                                          posti dal decreto legislativo 3 febbraio 1993, n. 29, e successive mo-
+                                          dificazioni, con i contenuti e con l’osservanza dei criteri che seguono:
+       Registrato alla Corte dei conti il 16 settembre 2025                       
+        Ufficio di controllo sugli atti del Ministero dell’istruzione e del a) riordino degli uffici di diretta collaborazione con i Ministri
+        merito, del Ministero dell’università e della ricerca e del Ministero ed i Sottosegretari di Stato, stabilendo che tali uffici hanno esclusive
+        della cultura, n. 1971            competenze di supporto dell’organo di direzione politica e di raccordo
+                                          tra questo e l’amministrazione;         
+                                               b) individuazione degli uffici di livello dirigenziale generale,
+                                          centrali e periferici, mediante diversificazione tra strutture con funzio-
+                                          ni finali e con funzioni strumentali e loro organizzazione per funzioni
+                      NOTE                omogenee e secondo criteri di flessibilità eliminando le duplicazioni
+                                          funzionali;                             
+       AVVERTENZA:                                                                
+                                               c) previsione di strumenti di verifica periodica dell’organiz-
+         Il testo delle note qui pubblicato è stato redatto dall’amministrazio-   
+                                          zazione e dei risultati;                
+       ne competente per materia, ai sensi dell’art. 10, commi 2 e 3, del testo   
+                                               d) indicazione e revisione periodica della consistenza delle
+       unico delle disposizioni sulla promulgazione delle leggi, sull’emana-      
+                                          piante organiche;                       
+       zione dei decreti del Presidente della Repubblica e sulle pubblicazioni    
+       ufficiali della Repubblica italiana, approvato con decreto del Presidente e) previsione di decreti ministeriali di natura non regolamen-
+       della Repubblica 28 dicembre 1985, n. 1092, al solo fine di facilitare tare per la definizione dei compiti delle unità dirigenziali nell’ambito
+       la lettura delle disposizioni di legge modificate o alle quali è operato il degli uffici dirigenziali generali.
+       rinvio. Restano invariati il valore e l’efficacia degli atti legislativi qui 4 -ter . Con regolamenti da emanare ai sensi del comma 1 del
+       trascritti.                        presente articolo, si provvede al periodico riordino delle disposizioni
+       Note alle premesse:                regolamentari vigenti, alla ricognizione di quelle che sono state oggetto
+                                          di abrogazione implicita e all’espressa abrogazione di quelle che hanno
+         — L’articolo 87 della Costituzione conferisce, tra l’altro, al Pre-      
+                                          esaurito la loro funzione o sono prive di effettivo contenuto normativo o
+       sidente della Repubblica il potere di promulgare le leggi ed emanare i     
+                                          sono comunque obsolete.».               
+       decreti aventi valore di legge e i regolamenti.                            
+                                            — Si riporta l’articolo 1, commi 4 e 5, della legge 1° ottobre 2024,
+         — L’art. 117 della Costituzione dispone, tra l’altro, che lo Stato ha    
+                                          n. 150, recante: «Revisione della disciplina in materia di valutazione
+       legislazione esclusiva nelle norme generali sull’istruzione.               
+                                          delle studentesse e degli studenti, di tutela dell’autorevolezza del per-
+         — Si riporta l’articolo 17 della legge 23 agosto 1988, n. 400, recan- sonale scolastico nonché di indirizzi scolastici differenziati», pubblicata
+       te: «Disciplina dell’attività di Governo e ordinamento della Presidenza nella G azzetta Ufficiale n. 243 del 16 ottobre 2024:
+       del Consiglio dei Ministri», pubblicata nella G azzetta Ufficiale n. 214   
+                                             «Art. 1 (Disposizioni in materia di valutazione delle studentesse
+       del 12 settembre 1988:                                                     
+                                          e degli studenti) . — ( Omissis )       
+          «Art. 17 (Regolamenti) . — 1. Con decreto del Presidente della          
+                                             4. Al fine di ripristinare la cultura del rispetto, di affermare l’au-
+       Repubblica, previa deliberazione del Consiglio dei ministri, sentito il    
+                                          torevolezza dei docenti delle istituzioni scolastiche secondarie di primo
+       parere del Consiglio di Stato che deve pronunziarsi entro novanta giorni   
+                                          e secondo grado del sistema nazionale di istruzione e formazione, di
+       dalla richiesta, possono essere emanati regolamenti per disciplinare:      
+                                          rimettere al centro il principio della responsabilità e di restituire piena
+           a) l’esecuzione delle leggi e dei decreti legislativi nonché dei serenità al contesto lavorativo degli insegnanti e del personale scola-
+       regolamenti comunitari;            stico, nonché al percorso formativo delle studentesse e degli studenti,
+           b) l’attuazione e l’integrazione delle leggi e dei decreti legi- con uno o più regolamenti adottati ai sensi dell’articolo 17, comma 1,
+       slativi recanti norme di principio, esclusi quelli relativi a materie riser- della legge 23 agosto 1988, n. 400, entro centottanta giorni dalla data
+       vate alla competenza regionale;    di entrata in vigore della presente legge, si provvede alla revisione della
+           c) le materie in cui manchi la disciplina da parte di leggi o di disciplina in materia di valutazione del comportamento delle studentes-
+       atti aventi forza di legge, sempre che non si tratti di materie comunque se e degli studenti.
+       riservate alla legge;                 5. I regolamenti di cui al comma 4 sono adottati nel rispetto
+           d) l’organizzazione ed il funzionamento delle amministrazio- dell’autonomia scolastica nonché nel rispetto dei seguenti principi:
+       ni pubbliche secondo le disposizioni dettate dalla legge; a) apportare modifiche al regolamento di cui al decreto del
+           e) .                           Presidente della Repubblica 24 giugno 1998, n. 249, al fine di riforma-
+                                          re l’istituto dell’allontanamento della studentessa e dello studente dalla
+          2. Con decreto del Presidente della Repubblica, previa delibe-          
+                                          scuola per un periodo non superiore a quindici giorni, in modo che:
+       razione del Consiglio dei ministri, sentito il Consiglio di Stato e previo 
+       parere delle Commissioni parlamentari competenti in materia, che si 1) l’allontanamento dalla scuola, fino a un massimo di due
+       pronunciano entro trenta giorni dalla richiesta, sono emanati i regola- giorni, comporti il coinvolgimento della studentessa e dello studente in
+       menti per la disciplina delle materie, non coperte da riserva assoluta di attività di approfondimento sulle conseguenze dei comportamenti che
+       legge prevista dalla Costituzione, per le quali le leggi della Repubbli- hanno determinato il provvedimento disciplinare;
+       ca, autorizzando l’esercizio della potestà regolamentare del Governo, 2) l’allontanamento dalla scuola di durata superiore a due
+       determinano le norme generali regolatrici della materia e dispongono giorni comporti lo svolgimento, da parte della studentessa e dello stu-
+                                      — 45 —
+````
+
+## Pagina 48
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       dente, di attività di cittadinanza solidale presso strutture convenzionate 6.
+       con le istituzioni scolastiche e individuate nell’ambito degli elenchi pre- 7.
+       disposti dall’amministrazione periferica del Ministero dell’istruzione e   
+       del merito. Tali attività, se deliberate dal consiglio di classe, possono 8.
+       proseguire anche dopo il rientro in classe della studentessa e dello stu- 9. Ai minori handicappati soggetti all’obbligo scolastico, tempo-
+       dente, secondo principi di temporaneità, gradualità e proporzionalità; raneamente impediti per motivi di salute a frequentare la scuola, sono
+           b) apportare modifiche al regolamento di cui al decreto del comunque garantite l’educazione e l’istruzione scolastica. A tal fine il
+       Presidente della Repubblica 22 giugno 2009, n. 122, in modo da: provveditore agli studi, d’intesa con le unità sanitarie locali e i centri
+                                          di recupero e di riabilitazione, pubblici e privati, convenzionati con i
+             1) prevedere che l’attribuzione del voto di comportamento            
+                                          Ministeri della sanità e del lavoro e della previdenza sociale, provvede
+       inferiore a sei decimi e la conseguente non ammissione alla classe suc-    
+                                          alla istituzione, per i minori ricoverati, di classi ordinarie quali sezioni
+       cessiva e all’esame di Stato avvengano anche a fronte di comportamenti     
+                                          staccate della scuola statale. A tali classi possono essere ammessi anche
+       che configurano mancanze disciplinari gravi e reiterate, anche con rife-   
+                                          i minori ricoverati nei centri di degenza, che non versino in situazioni di
+       rimento alle violazioni previste dal regolamento di istituto;              
+                                          handicap e per i quali sia accertata l’impossibilità della frequenza della
+             2) prevedere che l’attribuzione del voto di comportamento scuola dell’obbligo per un periodo non inferiore a trenta giorni di lezio-
+       inferiore a sei decimi in fase di valutazione periodica comporti il coin- ne. La frequenza di tali classi, attestata dall’autorità scolastica mediante
+       volgimento della studentessa e dello studente oggetto della valutazione una relazione sulle attività svolte dai docenti in servizio presso il centro
+       in attività di approfondimento in materia di cittadinanza attiva e solida- di degenza, è equiparata ad ogni effetto alla frequenza delle classi alle
+       le, finalizzate alla comprensione delle ragioni e delle conseguenze dei quali i minori sono iscritti.
+       comportamenti che hanno determinato tale voto;                             
+                                             10. Negli ospedali, nelle cliniche e nelle divisioni pediatriche gli
+             3) conferire maggiore peso al voto di comportamento del- obiettivi di cui al presente articolo possono essere perseguiti anche me-
+       la studentessa e dello studente nella valutazione complessiva, riferito diante l’utilizzazione di personale in possesso di specifica formazione
+       all’intero anno scolastico, in particolar modo in presenza di atti violenti psico-pedagogica che abbia una esperienza acquisita presso i nosocomi
+       o di aggressione nei confronti del personale scolastico nonché delle stu- o segua un periodo di tirocinio di un anno sotto la guida di personale
+       dentesse e degli studenti;         esperto.                                
+             4) prevedere che, per le studentesse e gli studenti delle            
+                                             Art. 13 (Integrazione scolastica) . — 1. L’integrazione scolasti-
+       scuole secondarie di secondo grado che abbiano riportato una valutazio-    
+                                          ca della persona handicappata nelle sezioni e nelle classi comuni delle
+       ne pari a sei decimi nel comportamento, il consiglio di classe, in sede di 
+                                          scuole di ogni ordine e grado e nelle università si realizza, fermo re-
+       valutazione finale, sospenda il giudizio senza riportare immediatamente    
+                                          stando quanto previsto dallalegge 11 maggio 1976, n. 360, e dallalegge
+       un giudizio di ammissione alla classe successiva e assegni alle studen-    
+                                          4 agosto 1977, n. 517, e successive modificazioni, anche attraverso:
+       tesse e agli studenti un elaborato critico in materia di cittadinanza atti-
+       va e solidale; la mancata presentazione dell’elaborato prima dell’inizio a) la programmazione coordinata dei servizi scolastici con
+       dell’anno scolastico successivo o la valutazione non sufficiente da parte quelli sanitari, socio-assistenziali, culturali, ricreativi, sportivi e con al-
+       del consiglio di classe comportano la non ammissione della studentessa tre attività sul territorio gestite da enti pubblici o privati. A tale scopo
+       e dello studente all’anno scolastico successivo; gli enti locali, gli organi scolastici e le unità sanitarie locali, nell’ambito
+                                          delle rispettive competenze, stipulano gli accordi di programma di cui
+             5) prevedere la votazione in decimi per la valutazione pe-           
+                                          all’articolo 27 della legge 8 giugno 1990, n. 142. Entro tre mesi dalla
+       riodica e per quella finale degli apprendimenti delle studentesse e degli  
+                                          data di entrata in vigore della presente legge, con decreto del Ministro
+       studenti del secondo ciclo di istruzione, in ciascuna delle discipline di  
+                                          della pubblica istruzione, d’intesa con i Ministri per gli affari sociali
+       studio previste dalle Indicazioni nazionali per i licei, adottate ai sensi 
+                                          e della sanità, sono fissati gli indirizzi per la stipula degli accordi di
+       dell’articolo 13, comma 10, lettera a ) , del regolamento di cui al decreto
+                                          programma. Tali accordi di programma sono finalizzati alla predisposi-
+       del Presidente della Repubblica 15 marzo 2010, n. 89, e dalle Linee        
+                                          zione, attuazione e verifica congiunta di progetti educativi, riabilitativi
+       guida per gli istituti tecnici e professionali, adottate, rispettivamente, 
+                                          e di socializzazione individualizzati, nonché a forme di integrazione tra
+       ai sensi dell’articolo 8, comma 3, del regolamento di cui al decreto del   
+                                          attività scolastiche e attività integrative extrascolastiche. Negli accordi
+       Presidente della Repubblica 15 marzo 2010, n. 88, e dell’articolo 3,       
+                                          sono altresì previsti i requisiti che devono essere posseduti dagli enti
+       comma 3, del decreto legislativo 13 aprile 2017, n. 61.».                  
+                                          pubblici e privati ai fini della partecipazione alle attività di collabora-
+         — Si riportano gli articoli 12, 13, 14, 15 e 16 della legge 5 febbra- zione coordinate;
+       io 1992, n. 104, recante: «Legge-quadro per l’assistenza, l’integrazione   
+                                               b) la dotazione alle scuole e alle università di attrezzature tec-
+       sociale e i diritti delle persone handicappate», pubblicata nella G azzetta
+                                          niche e di sussidi didattici nonché di ogni altra forma di ausilio tecnico,
+       Ufficiale n. 39 del 17 febbraio 1992:                                      
+                                          ferma restando la dotazione individuale di ausili e presidi funzionali
+          «Art. 12 (Diritto all’educazione e all’istruzione) . — 1. Al bam- all’effettivo esercizio del diritto allo studio, anche mediante convenzio-
+       bino da 0 a 3 anni handicappato è garantito l’inserimento negli asili ni con centri specializzati, aventi funzione di consulenza pedagogica, di
+       nido.                              produzione e adattamento di specifico materiale didattico;
+          2. È garantito il diritto all’educazione e all’istruzione della per-    
+                                               c) la programmazione da parte dell’università di interventi
+       sona handicappata nelle sezioni di scuola materna, nelle classi comuni     
+                                          adeguati sia al bisogno della persona sia alla peculiarità del piano di
+       delle istituzioni scolastiche di ogni ordine e grado e nelle istituzioni   
+                                          studio individuale;                     
+       universitarie.                                                             
+                                               d) l’attribuzione, con decreto del Ministro dell’università e
+          3. L’integrazione scolastica ha come obiettivo lo sviluppo delle        
+                                          della ricerca scientifica e tecnologica, da emanare entro tre mesi dalla
+       potenzialità della persona handicappata nell’apprendimento, nella co-      
+                                          data di entrata in vigore della presente legge, di incarichi professionali
+       municazione, nelle relazioni e nella socializzazione.                      
+                                          ad interpreti da destinare alle università, per facilitare la frequenza e
+          4. L’esercizio del diritto all’educazione e all’istruzione non può l’apprendimento di studenti non udenti;
+       essere impedito da difficoltà di apprendimento né da altre difficoltà de-  
+                                               e) la sperimentazione di cui aldecreto del Presidente della Re-
+       rivanti dalle disabilità connesse all’handicap.                            
+                                          pubblica 31 maggio 1974, n. 419, da realizzare nelle classi frequentate
+          5. Contestualmente all’accertamento previsto dall’articolo 4 per da alunni con handicap.
+       le bambine e i bambini, le alunne e gli alunni, le studentesse e gli stu-  
+       denti, le commissioni mediche di cui allalegge 15 ottobre 1990, n. 295, 2. Per le finalità di cui al comma 1, gli enti locali e le unità
+       effettuano, ove richiesto dai genitori della bambina o del bambino, sanitarie locali possono altresì prevedere l’adeguamento dell’organiz-
+       dell’alunna o dell’alunno, della studentessa o dello studente certificati zazione e del funzionamento degli asili nido alle esigenze dei bambini
+       ai sensi del citato articolo 4, o da chi esercita la responsabilità genito- con handicap, al fine di avviarne precocemente il recupero, la socializ-
+       riale, l’accertamento della condizione di disabilità in età evolutiva ai zazione e l’integrazione, nonché l’assegnazione di personale docente
+       fini dell’inclusione scolastica. Tale accertamento è propedeutico alla specializzato e di operatori ed assistenti specializzati.
+       redazione del profilo di funzionamento, predisposto secondo i criteri 3. Nelle scuole di ogni ordine e grado, fermo restando, ai sensi
+       del modello bio-psico-sociale della Classificazione internazionale del deldecreto del Presidente della Repubblica 24 luglio 1977, n. 616, e
+       funzionamento, della disabilità e della salute (ICF) dell’Organizzazione successive modificazioni, l’obbligo per gli enti locali di fornire l’assi-
+       mondiale della sanità (OMS), ai fini della formulazione del Piano edu- stenza per l’autonomia e la comunicazione personale degli alunni con
+       cativo individualizzato (PEI) facente parte del progetto individuale di handicap fisici o sensoriali, sono garantite attività di sostegno mediante
+       cui all’articolo 14 della legge 8 novembre 2000, n. 328. l’assegnazione di docenti specializzati.
+                                      — 46 —
+````
+
+## Pagina 49
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          4. I posti di sostegno per la scuola secondaria di secondo grado nano le modalità di espletamento degli esami e i relativi controlli. I do-
+       sono determinati nell’ambito dell’organico del personale in servizio alla centi relatori dei corsi di specializzazione devono essere in possesso del
+       data di entrata in vigore della presente legge in modo da assicurare un diploma di laurea e del diploma di specializzazione.
+       rapporto almeno pari a quello previsto per gli altri gradi di istruzione e 5. Fino alla prima applicazione dell’articolo 9 della citata legge
+       comunque entro i limiti delle disponibilità finanziarie all’uopo preordi- n. 341 del 1990, relativamente alle scuole di specializzazione si appli-
+       nate dall’articolo 42, comma 6, lettera h ) . cano le disposizioni di cui aldecreto del Presidente della Repubblica
+          5. Nella scuola secondaria di primo e secondo grado sono ga- 31 maggio 1974, n. 417, e successive modificazioni, aldecreto del Pre-
+       rantite attività didattiche di sostegno, con priorità per le iniziative speri- sidente della Repubblica 31 ottobre 1975, n. 970, e all’articolo 65 della
+       mentali di cui al comma 1, lettera e ) , realizzate con docenti di sostegno legge 20 maggio 1982, n. 270.
+       specializzati.                        6. L’utilizzazione in posti di sostegno di docenti privi dei pre-
+          6. Gli insegnanti di sostegno assumono la contitolarità delle se- scritti titoli di specializzazione è consentita unicamente qualora manchi-
+       zioni e delle classi in cui operano, partecipano alla programmazione no docenti di ruolo o non di ruolo specializzati.
+       educativa e didattica e alla elaborazione e verifica delle attività di com- 7. Gli accordi di programma di cui all’articolo 13, comma 1,
+       petenza dei consigli di interclasse, dei consigli di classe e dei collegi lettera a ) , possono prevedere lo svolgimento di corsi di aggiornamento
+       dei docenti.                       comuni per il personale delle scuole, delle unità sanitarie locali e degli
+          6 -bis . Agli studenti handicappati iscritti all’università sono ga- enti locali, impegnati in piani educativi e di recupero individualizzati.
+       rantiti sussidi tecnici e didattici specifici, realizzati anche attraverso le Art. 15 (Gruppi per l’inclusione scolastica) . — 1. Presso ogni
+       convenzioni di cui alla lettera b ) del comma 1, nonché il supporto di ap- Ufficio scolastico regionale (USR) è istituito il Gruppo di lavoro interi-
+       positi servizi di tutorato specializzato, istituiti dalle università nei limiti stituzionale regionale (GLIR) con compiti di:
+       del proprio bilancio e delle risorse destinate alla copertura degli oneri  
+                                               a) consulenza e proposta all’USR per la definizione, l’at-
+       di cui al presente comma, nonché ai commi 5 e 5 - bis dell’articolo 16.    
+                                          tuazione e la verifica degli accordi di programma di cui agli articoli
+          Art. 14 ( Modalità di attuazione dell’integrazione) . — 1. Il Mini- 13, 39 e 40 della presente legge, integrati con le finalità di cui alla-
+       stro della pubblica istruzione provvede alla formazione e all’aggiorna- legge 13 luglio 2015, n. 107, con particolare riferimento alla continu-
+       mento del personale docente per l’acquisizione di conoscenze in materia ità delle azioni sul territorio, all’orientamento e ai percorsi integrati
+       di integrazione scolastica degli studenti handicappati, ai sensi dell’ar- scuola-territorio-lavoro;
+       ticolo 26 del decreto del Presidente della Repubblica 23 agosto 1988,      
+                                               b) supporto ai Gruppi per l’inclusione territoriale (GIT);
+       n. 399, nel rispetto delle modalità di coordinamento con il Ministero      
+       dell’università e della ricerca scientifica e tecnologica di cui all’arti- c) supporto alle reti di scuole per la progettazione e la realiz-
+       colo 4 della legge 9 maggio 1989, n. 168. Il Ministro della pubblica zazione dei Piani di formazione in servizio del personale della scuola.
+       istruzione provvede altresì:          2. Il GLIR è presieduto dal dirigente preposto all’USR o da un
+                                          suo delegato. Nell’ambito del decreto di cui al comma 3 è garantita la
+           a) all’attivazione di forme sistematiche di orientamento, par-         
+                                          partecipazione paritetica dei rappresentanti delle Regioni, degli Enti
+       ticolarmente qualificate per la persona handicappata, con inizio almeno    
+                                          locali e delle associazioni delle persone con disabilità maggiormente
+       dalla prima classe della scuola secondaria di primo grado;                 
+                                          rappresentative a livello regionale nel campo dell’inclusione scolastica.
+           b) all’organizzazione dell’attività educativa e didattica se-          
+                                             3. La composizione, l’articolazione, le modalità di funziona-
+       condo il criterio della flessibilità nell’articolazione delle sezioni e    
+                                          mento, la sede, la durata, nonché l’assegnazione di ulteriori funzioni per
+       delle classi, anche aperte, in relazione alla programmazione scolastica    
+                                          il supporto all’inclusione scolastica del GLIR, fermo restando quanto
+       individualizzata;                                                          
+                                          previsto al comma 2, sono definite con decreto del Ministro dell’istru-
+           c) a garantire la continuità educativa fra i diversi gradi di scuo- zione, dell’università e della ricerca, nell’ambito delle risorse umane,
+       la, prevedendo forme obbligatorie di consultazione tra insegnanti del ci- strumentali e finanziarie disponibili, sentito l’Osservatorio permanente
+       clo inferiore e del ciclo superiore ed il massimo sviluppo dell’esperienza per l’inclusione scolastica istituito presso il Ministero dell’istruzione,
+       scolastica della persona handicappata in tutti gli ordini e gradi di scuola, dell’università e della ricerca.
+       consentendo il completamento della scuola dell’obbligo anche sino al       
+                                             4. Per ciascun ambito territoriale provinciale, ovvero a livello
+       compimento del diciottesimo anno di età; nell’interesse dell’alunno, con   
+                                          delle città metropolitane, è costituito il Gruppo per l’Inclusione Territo-
+       deliberazione del collegio dei docenti, sentiti gli specialisti di cui all’ar-
+                                          riale (GIT). Il GIT è composto da personale docente esperto nell’ambito
+       ticolo 4, secondo comma, lettera l ) , del decreto del Presidente della Re-
+                                          dell’inclusione, anche con riferimento alla prospettiva bio-psico-socia-
+       pubblica 31 maggio 1974, n. 416, su proposta del consiglio di classe o     
+                                          le, e nelle metodologie didattiche inclusive e innovative. Il GIT è nomi-
+       di interclasse, può essere consentita una terza ripetenza in singole classi.
+                                          nato con decreto del direttore generale dell’ufficio scolastico regionale
+          2. I piani di studio delle scuole di specializzazione di cui all’ar- ed è coordinato da un dirigente tecnico o da un dirigente scolastico che
+       ticolo 4 della legge 19 novembre 1990, n. 341, per il conseguimento del lo presiede. Il GIT conferma la richiesta inviata dal dirigente scolastico
+       diploma abilitante all’insegnamento nelle scuole secondarie, compren- all’ufficio scolastico regionale relativa al fabbisogno delle misure di so-
+       dono, nei limiti degli stanziamenti già preordinati in base alla legisla- stegno ovvero può esprimere su tale richiesta un parere difforme. Agli
+       zione vigente per la definizione dei suddetti piani di studio, discipline oneri relativi al personale docente di cui al presente comma, si provvede
+       facoltative, attinenti all’integrazione degli alunni handicappati, deter- ai sensi dell’articolo 20, comma 4.
+       minate ai sensi dell’articolo 4, comma 3, della citata legge n. 341 del    
+                                             5. Il GIT, che agisce in coordinamento con l’ufficio scolastico
+       1990. Nel diploma di specializzazione conseguito ai sensi del predetto     
+                                          regionale, supporta le istituzioni scolastiche nella definizione dei PEI
+       articolo 4 deve essere specificato se l’insegnante ha sostenuto gli esami  
+                                          secondo la prospettiva bio-psico-sociale alla base della classificazione
+       relativi all’attività didattica di sostegno per le discipline cui il diploma
+                                          ICF, nell’uso ottimale dei molteplici sostegni disponibili, previsti nel
+       stesso si riferisce, nel qual caso la specializzazione ha valore abilitante
+                                          Piano per l’Inclusione della singola istituzione scolastica, nel poten-
+       anche per l’attività didattica di sostegno.                                
+                                          ziamento della corresponsabilità educativa e delle attività di didattica
+          3. La tabella del corso di laurea definita ai sensi dell’articolo 3, inclusiva.
+       comma 3, della citata legge n. 341 del 1990comprende, nei limiti de-       
+                                             6. Per lo svolgimento di ulteriori compiti di consultazione e pro-
+       gli stanziamenti già preordinati in base alla legislazione vigente per la  
+                                          grammazione delle attività nonché per il coordinamento degli interven-
+       definizione delle tabelle dei corsi di laurea, insegnamenti facoltativi at-
+                                          ti di competenza dei diversi livelli istituzionali sul territorio, il GIT è
+       tinenti all’integrazione scolastica degli alunni handicappati. Il diploma  
+                                          integrato:                              
+       di laurea per l’insegnamento nelle scuole materne ed elementari di cui     
+       all’articolo 3, comma 2, della citata legge n. 341 del 1990costituisce ti- a) dalle associazioni maggiormente rappresentative delle per-
+       tolo per l’ammissione ai concorsi per l’attività didattica di sostegno solo sone con disabilità nell’inclusione scolastica;
+       se siano stati sostenuti gli esami relativi, individuati come obbligatori b) dagli enti locali e dalle aziende sanitarie locali.
+       per la preparazione all’attività didattica di sostegno, nell’ambito della 7. Con decreto del Ministro dell’istruzione, dell’università e del-
+       tabella suddetta definita ai sensi dell’articolo 3, comma 3, della medesi- la ricerca, di concerto con il Ministro dell’economia e delle finanze,
+       ma legge n. 341 del 1990.          da adottare entro sessanta giorni dalla data di entrata in vigore della
+          4. L’insegnamento delle discipline facoltative previste nei piani presente disposizione, nell’ambito delle risorse umane, strumentali e fi-
+       di studio delle scuole di specializzazione di cui al comma 2 e dei corsi nanziarie disponibili, sentito l’Osservatorio permanente per l’inclusione
+       di laurea di cui al comma 3 può essere impartito anche da enti o istituti scolastica, sono definite le modalità di funzionamento del GIT, la sua
+       specializzati all’uopo convenzionati con le università, le quali discipli- composizione, le modalità per la selezione nazionale dei componenti,
+                                      — 47 —
+````
+
+## Pagina 50
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       gli ulteriori compiti attribuiti, le forme di monitoraggio del suo funzio- nell’ambito dell’università o dell’istituzione stessa. L’incarico è confe-
+       namento, la sede, la durata, nonché l’assegnazione di ulteriori funzioni rito a personale docente in servizio presso l’università o l’istituzione,
+       per il supporto all’inclusione scolastica. senza nuovi o maggiori oneri a carico delle medesime.».
+          8. Presso ciascuna istituzione scolastica è istituito il Gruppo di — Il decreto legislativo 16 aprile 1994, n. 297, recante: «Appro-
+       lavoro per l’inclusione (GLI). Il GLI è composto da docenti curricola- vazione del testo unico delle disposizioni legislative vigenti in materia
+       ri, docenti di sostegno e, eventualmente da personale ATA, nonché da di istruzione, relative alle scuole di ogni ordine e grado», è pubblicato
+       specialisti della Azienda sanitaria locale e del territorio di riferimento nella G azzetta Ufficiale n. 115 del 19 maggio 1994.
+       dell’istituzione scolastica. Il gruppo è nominato e presieduto dal diri- — Si riporta l’articolo 21 della legge 15 marzo 1997, n. 59, recan-
+       gente scolastico ed ha il compito di supportare il collegio dei docenti te: «Delega al Governo per il conferimento di funzioni e compiti alle re-
+       nella definizione e realizzazione del Piano per l’inclusione nonché i do- gioni ed enti locali, per la riforma della pubblica amministrazione e per
+       centi contitolari e i consigli di classe nell’attuazione dei PEI. la semplificazione amministrativa», pubblicata nella G azzetta Ufficiale
+          9. In sede di definizione e attuazione del Piano di inclusione, il n. 63 del 17 marzo 1997:
+       GLI si avvale della consulenza e del supporto degli studenti, dei genitori «Art. 21. — 1. L’autonomia delle istituzioni scolastiche e degli
+       e può avvalersi della consulenza dei rappresentanti delle associazioni istituti educativi si inserisce nel processo di realizzazione della autono-
+       delle persone con disabilità maggiormente rappresentative del territorio mia e della riorganizzazione dell’intero sistema formativo. Ai fini della
+       nell’inclusione scolastica. In sede di definizione dell’utilizzazione delle realizzazione della autonomia delle istituzioni scolastiche le funzioni
+       risorse complessive destinate all’istituzione scolastica ai fini dell’assi- dell’Amministrazione centrale e periferica della pubblica istruzione in
+       stenza di competenza degli enti locali, alle riunioni del GLI partecipa un materia di gestione del servizio di istruzione, fermi restando i livelli
+       rappresentante dell’ente territoriale competente, secondo quanto previ- unitari e nazionali di fruizione del diritto allo studio nonché gli elementi
+       sto dall’accordo di cui all’articolo 3, comma 5- bis . Al fine di realizzare comuni all’intero sistema scolastico pubblico in materia di gestione e
+       il Piano di inclusione e il PEI, il GLI collabora con il GIT di cui al programmazione definiti dallo Stato, sono progressivamente attribuite
+       comma 4 e con le istituzioni pubbliche e private presenti sul territorio. alle istituzioni scolastiche, attuando a tal fine anche l’estensione ai cir-
+          10. Al fine della definizione dei PEI e della verifica del pro- coli didattici, alle scuole medie, alle scuole e agli istituti di istruzione
+       cesso di inclusione, compresa la proposta di quantificazione di ore di secondaria, della personalità giuridica degli istituti tecnici e professio-
+       sostegno e delle altre misure di sostegno, tenuto conto del profilo di nali e degli istituti d’arte ed ampliando l’autonomia per tutte le tipologie
+       funzionamento, presso ogni Istituzione scolastica sono costituiti i Grup- degli istituti di istruzione, anche in deroga alle norme vigenti in materia
+       pi di lavoro operativo per l’inclusione dei singoli alunni con accertata di contabilità dello Stato. Le disposizioni del presente articolo si ap-
+       condizione di disabilità ai fini dell’inclusione scolastica. Ogni Gruppo plicano anche agli istituti educativi, tenuto conto delle loro specificità
+       di lavoro operativo è composto dal team dei docenti contitolari o dal ordinamentali.
+       consiglio di classe, con la partecipazione dei genitori della bambina o 2. Ai fini di quanto previsto nel comma 1, si provvede con uno o
+       del bambino, dell’alunna o dell’alunno, della studentessa o dello stu- più regolamenti da adottare ai sensi dell’articolo 17, comma 2, della leg-
+       dente con disabilità, o di chi esercita la responsabilità genitoriale, delle ge 23 agosto 1988, n. 400, nel termine di nove mesi dalla data di entrata
+       figure professionali specifiche, interne ed esterne all’istituzione scola- in vigore della presente legge, sulla base dei criteri generali e principi
+       stica che interagiscono con la classe e con la bambina o il bambino, direttivi contenuti nei commi 3, 4, 5, 7, 8, 9, 10 e 11 del presente artico-
+       l’alunna o l’alunno, la studentessa o lo studente con disabilità nonché lo. Sugli schemi di regolamento è acquisito, anche contemporaneamente
+       con il necessario supporto dell’unità di valutazione multidisciplinare. Ai al parere del Consiglio di Stato, il parere delle competenti Commis-
+       componenti del Gruppo di lavoro operativo non spetta alcun compenso, sioni parlamentari. Decorsi sessanta giorni dalla richiesta di parere alle
+       indennità, gettone di presenza, rimborso spese e qualsivoglia altro emo- Commissioni, i regolamenti possono essere comunque emanati. Con i
+       lumento. Dall’attivazione dei Gruppi di lavoro operativo non devono regolamenti predetti sono dettate disposizioni per armonizzare le norme
+       derivare, anche in via indiretta, maggiori oneri di personale. di cui all’articolo 355 del testo unico approvato con decreto legislativo
+          11. All’interno del Gruppo di lavoro operativo, di cui al com- 16 aprile 1994, n. 297, con quelle della presente legge.
+       ma 10, è assicurata la partecipazione attiva degli studenti con accertata 3. I requisiti dimensionali ottimali per l’attribuzione della per-
+       condizione di disabilità in età evolutiva ai fini dell’inclusione scolastica sonalità giuridica e dell’autonomia alle istituzioni scolastiche di cui al
+       nel rispetto del principio di autodeterminazione. comma 1, anche tra loro unificate nell’ottica di garantire agli utenti una
+          Art. 16 (Valutazione del rendimento e prove d’esame) . — 1. Nel- più agevole fruizione del servizio di istruzione, e le deroghe dimensio-
+       la valutazione degli alunni handicappati da parte degli insegnanti è indi- nali in relazione a particolari situazioni territoriali o ambientali sono
+       cato, sulla base del piano educativo individualizzato, per quali discipline individuati in rapporto alle esigenze e alla varietà delle situazioni locali
+       siano stati adottati particolari criteri didattici, quali attività integrative e e alla tipologia dei settori di istruzione compresi nell’istituzione scola-
+       di sostegno siano state svolte, anche in sostituzione parziale dei conte- stica. Le deroghe dimensionali saranno automaticamente concesse nelle
+       nuti programmatici di alcune discipline. province il cui territorio è per almeno un terzo montano, in cui le condi-
+                                          zioni di viabilità statale e provinciale siano disagevoli e in cui vi sia una
+          2. Nella scuola dell’obbligo sono predisposte, sulla base degli         
+                                          dispersione e rarefazione di insediamenti abitativi.
+       elementi conoscitivi di cui al comma 1, prove d’esame corrispondenti       
+       agli insegnamenti impartiti e idonee a valutare il progresso dell’allievo 4. La personalità giuridica e l’autonomia sono attribuite alle isti-
+       in rapporto alle sue potenzialità e ai livelli di apprendimento iniziali. tuzioni scolastiche di cui al comma 1 a mano a mano che raggiungono i
+                                          requisiti dimensionali di cui al comma 3 attraverso piani di dimensiona-
+          3. Nell’ambito della scuola secondaria di secondo grado, per            
+                                          mento della rete scolastica, e comunque non oltre il 31 dicembre 2000
+       gli alunni handicappati sono consentite prove equipollenti e tempi più     
+                                          contestualmente alla gestione di tutte le funzioni amministrative che per
+       lunghi per l’effettuazione delle prove scritte o grafiche e la presenza di 
+                                          loro natura possono essere esercitate dalle istituzioni autonome. In ogni
+       assistenti per l’autonomia e la comunicazione.                             
+                                          caso il passaggio al nuovo regime di autonomia sarà accompagnato da
+          4. Gli alunni handicappati sostengono le prove finalizzate alla apposite iniziative di formazione del personale, da una analisi delle real-
+       valutazione del rendimento scolastico o allo svolgimento di esami anche tà territoriali, sociali ed economiche delle singole istituzioni scolastiche
+       universitari con l’uso degli ausili loro necessari. per l’adozione dei conseguenti interventi perequativi e sarà realizzato
+          5. Il trattamento individualizzato previsto dai commi 3 e 4 in secondo criteri di gradualità che valorizzino le capacità di iniziativa del-
+       favore degli studenti handicappati è consentito per il superamento degli le istituzioni stesse.
+       esami universitari previa intesa con il docente della materia e con l’au- 5. La dotazione finanziaria essenziale delle istituzioni scolasti-
+       silio del servizio di tutorato di cui all’articolo 13, comma 6- bis . È con- che già in possesso di personalità giuridica e di quelle che l’acquistano
+       sentito, altresì, sia l’impiego di specifici mezzi tecnici in relazione alla ai sensi del comma 4 è costituita dall’assegnazione dello Stato per il
+       tipologia di handicap, sia la possibilità di svolgere prove equipollenti su funzionamento amministrativo e didattico, che si suddivide in assegna-
+       proposta del servizio di tutorato specializzato. zione ordinaria e assegnazione perequativa. Tale dotazione finanziaria
+          5 -bis . Le università e le istituzioni di alta formazione artistica, è attribuita senza altro vincolo di destinazione che quello dell’utilizza-
+       musicale e coreutica, nell’ambito della propria autonomia, conferisco- zione prioritaria per lo svolgimento delle attività di istruzione, di for-
+       no a un docente delegato, rispettivamente, dal rettore e dal direttore mazione e di orientamento proprie di ciascuna tipologia e di ciascun
+       le funzioni di coordinamento, monitoraggio e supporto delle iniziati- indirizzo di scuola. L’attribuzione senza vincoli di destinazione com-
+       ve concernenti l’integrazione nonché di sostegno ad azioni specifiche porta l’utilizzabilità della dotazione finanziaria, indifferentemente, per
+       volte a promuovere l’inclusione degli studenti, compresi l’attivazione o spese in conto capitale e di parte corrente, con possibilità di variare le
+       il potenziamento dei servizi per il sostegno del benessere psicologico, destinazioni in corso d’anno. Con decreto del Ministro della pubblica
+                                      — 48 —
+````
+
+## Pagina 51
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       istruzione, di concerto con il Ministro del tesoro, del bilancio e della sperimentazione e sviluppo nei limiti del proficuo esercizio dell’auto-
+       programmazione economica, sentito il parere delle Commissioni parla- nomia didattica e organizzativa. Gli istituti regionali di ricerca, speri-
+       mentari competenti, sono individuati i parametri per la definizione della mentazione e aggiornamento educativi, il Centro europeo dell’educa-
+       dotazione finanziaria ordinaria delle scuole. Detta dotazione ordinaria è zione, la Biblioteca di documentazione pedagogica e le scuole ed istituti
+       stabilita in misura tale da consentire l’acquisizione da parte delle istitu- a carattere atipico di cui alla parte I, titolo II, capo III, del testo unico
+       zioni scolastiche dei beni di consumo e strumenti necessari a garantire approvato con decreto legislativo 16 aprile 1994, n. 297, sono riformati
+       l’efficacia del processo di insegnamento-apprendimento nei vari gradi come enti finalizzati al supporto dell’autonomia delle istituzioni scola-
+       e tipologie dell’istruzione. La stessa dotazione ordinaria, nella quale stiche autonome.
+       possono confluire anche i finanziamenti attualmente allocati in capitoli 11. Con regolamento adottato ai sensi del comma 2 sono altresì
+       diversi da quelli intitolati al funzionamento amministrativo e didattico, attribuite la personalità giuridica e l’autonomia alle Accademie di belle
+       è spesa obbligatoria ed è rivalutata annualmente sulla base del tasso arti, agli Istituti superiori per le industrie artistiche, ai Conservatori di
+       di inflazione programmata. In sede di prima determinazione, la dota- musica, alle Accademie nazionali di arte drammatica e di danza, secon-
+       zione perequativa è costituita dalle disponibilità finanziarie residue sui do i principi contenuti nei commi 8, 9 e 10 e con gli adattamenti resi
+       capitoli di bilancio riferiti alle istituzioni scolastiche non assorbite dalla necessari dalle specificità proprie di tali istituzioni.
+       dotazione ordinaria.                                                       
+                                             12. Le università e le istituzioni scolastiche possono stipulare
+          La dotazione perequativa è rideterminata annualmente sulla base convenzioni allo scopo di favorire attività di aggiornamento, di ricerca
+       del tasso di inflazione programmata e di parametri socio-economici e e di orientamento scolastico e universitario.
+       ambientali individuati di concerto dai Ministri della pubblica istruzione  
+                                             13. Con effetto dalla data di entrata in vigore delle norme regola-
+       e del tesoro, del bilancio e della programmazione economica, sentito il    
+                                          mentari di cui ai commi 2 e 11 sono abrogate le disposizioni vigenti con
+       parere delle commissioni parlamentari competenti.                          
+                                          esse incompatibili, la cui ricognizione è affidata ai regolamenti stessi.
+          6. Sono abrogate le disposizioni che prevedono autorizzazioni 14. Con decreto del Ministro della pubblica istruzione, di con-
+       preventive per l’accettazione di donazioni, eredità e legati da parte delle certo con il Ministro del tesoro, sono emanate le istruzioni generali per
+       istituzioni scolastiche, ivi compresi gli istituti superiori di istruzione ar- l’autonoma allocazione delle risorse, per la formazione dei bilanci, per
+       tistica, delle fondazioni o altre istituzioni aventi finalità di educazione o la gestione delle risorse ivi iscritte e per la scelta dell’affidamento dei
+       di assistenza scolastica. Sono fatte salve le vigenti disposizioni di legge servizi di tesoreria o di cassa, nonché per le modalità del riscontro del-
+       o di regolamento in materia di avviso ai successibili. Sui cespiti ereditari le gestioni delle istituzioni scolastiche, anche in attuazione dei principi
+       e su quelli ricevuti per donazione non sono dovute le imposte in vigore contenuti nei regolamenti di cui al comma 2. È abrogato il comma 9
+       per le successioni e le donazioni. dell’articolo 4 della legge 24 dicembre 1993, n. 537.
+          7. Le istituzioni scolastiche che abbiano conseguito personalità 15. Entro il 30 giugno 1999 il Governo è delegato ad emanare un
+       giuridica e autonomia ai sensi del comma 1 e le istituzioni scolastiche decreto legislativo di riforma degli organi collegiali della pubblica istru-
+       già dotate di personalità e autonomia, previa realizzazione anche per zione di livello nazionale e periferico che tenga conto della specificità
+       queste ultime delle operazioni di dimensionamento di cui al comma 4, del settore scolastico, valorizzando l’autonomo apporto delle diverse
+       hanno autonomia organizzativa e didattica, nel rispetto degli obiettivi componenti e delle minoranze linguistiche riconosciute, nonché delle
+       del sistema nazionale di istruzione e degli standard di livello nazionale. specifiche professionalità e competenze, nel rispetto dei seguenti criteri:
+          8. L’autonomia organizzativa è finalizzata alla realizzazione del- a) armonizzazione della composizione, dell’organizzazione e
+       la flessibilità, della diversificazione, dell’efficienza e dell’efficacia del delle funzioni dei nuovi organi con le competenze dell’amministrazione
+       servizio scolastico, alla integrazione e al miglior utilizzo delle risorse centrale e periferica come ridefinita a norma degli articoli 12 e 13 non-
+       e delle strutture, all’introduzione di tecnologie innovative e al coordi- ché con quelle delle istituzioni scolastiche autonome;
+       namento con il contesto territoriale. Essa si esplica liberamente, anche   
+                                               b) razionalizzazione degli organi a norma dell’articolo 12,
+       mediante superamento dei vincoli in materia di unità oraria della lezio-   
+                                          comma 1, lettera p ) ;                  
+       ne, dell’unitarietà del gruppo classe e delle modalità di organizzazione   
+       e impiego dei docenti, secondo finalità di ottimizzazione delle risorse c ) eliminazione delle duplicazioni organizzative e funzionali,
+       umane, finanziarie, tecnologiche, materiali e temporali, fermi restando i secondo quanto previsto dall’articolo 12, comma 1, lettera g ) ;
+       giorni di attività didattica annuale previsti a livello nazionale, la distri- d) valorizzazione del collegamento con le comunità locali a
+       buzione dell’attività didattica in non meno di cinque giorni settimanali, norma dell’articolo 12, comma 1, lettera i ) ;
+       il rispetto dei complessivi obblighi annuali di servizio dei docenti pre- e) attuazione delle disposizioni di cui all’articolo 59 del de-
+       visti dai contratti collettivi che possono essere assolti invece che in cin- creto legislativo 3 febbraio 1993, n. 29, e successive modificazioni, nel-
+       que giorni settimanali anche sulla base di un’apposita programmazione la salvaguardia del principio della libertà di insegnamento.
+       plurisettimanale.                                                          
+                                             16. Nel rispetto del principio della libertà di insegnamento e in
+          9. L’autonomia didattica è finalizzata al perseguimento degli connessione con l’individuazione di nuove figure professionali del per-
+       obiettivi generali del sistema nazionale di istruzione, nel rispetto della sonale docente, ferma restando l’unicità della funzione, ai capi d’istituto
+       libertà di insegnamento, della libertà di scelta educativa da parte delle è conferita la qualifica dirigenziale contestualmente all’acquisto della
+       famiglie e del diritto ad apprendere. Essa si sostanzia nella scelta libera personalità giuridica e dell’autonomia da parte delle singole istituzioni
+       e programmata di metodologie, strumenti, organizzazione e tempi di in- scolastiche. I contenuti e le specificità della qualifica dirigenziale sono
+       segnamento, da adottare nel rispetto della possibile pluralità di opzioni individuati con decreto legislativo integrativo delle disposizioni del de-
+       metodologiche, e in ogni iniziativa che sia espressione di libertà proget- creto legislativo 3 febbraio 1993, n. 29, e successive modificazioni, da
+       tuale, compresa l’eventuale offerta di insegnamenti opzionali, facoltati- emanare entro un anno dalla data di entrata in vigore della presente leg-
+       vi o aggiuntivi e nel rispetto delle esigenze formative degli studenti. A ge, sulla base dei seguenti criteri:
+       tal fine, sulla base di quanto disposto dall’articolo 1, comma 71, della a) l’affidamento, nel rispetto delle competenze degli organi
+       legge 23 dicembre 1996, n. 662, sono definiti criteri per la determinazio- collegiali scolastici, di autonomi compiti di direzione, di coordinamento
+       ne degli organici funzionali di istituto, fermi restando il monte annuale e valorizzazione delle risorse umane, di gestione di risorse finanziarie e
+       orario complessivo previsto per ciascun curriculum e quello previsto strumentali, con connesse responsabilità in ordine ai risultati;
+       per ciascuna delle discipline ed attività indicate come fondamentali di    
+                                               b) il raccordo tra i compiti previsti dalla lettera a ) e l’orga-
+       ciascun tipo o indirizzo di studi e l’obbligo di adottare procedure e stru-
+                                          nizzazione e le attribuzioni dell’amministrazione scolastica periferica,
+       menti di verifica e valutazione della produttività scolastica e del rag-   
+                                          come ridefinite ai sensi dell’articolo 13, comma 1;
+       giungimento degli obiettivi.                                               
+                                               c) la revisione del sistema di reclutamento, riservato al perso-
+          10. Nell’esercizio dell’autonomia organizzativa e didattica le          
+                                          nale docente con adeguata anzianità di servizio, in armonia con le mo-
+       istituzioni scolastiche realizzano, sia singolarmente che in forme con-    
+                                          dalità previste dall’articolo 28 del decreto legislativo 3 febbraio 1993,
+       sorziate, ampliamenti dell’offerta formativa che prevedano anche per-      
+                                          n. 29;                                  
+       corsi formativi per gli adulti, iniziative di prevenzione dell’abbandono   
+       e della dispersione scolastica, iniziative di utilizzazione delle strutture e d) l’attribuzione della dirigenza ai capi d’istituto attualmente
+       delle tecnologie anche in orari extrascolastici e a fini di raccordo con il in servizio, assegnati ad una istituzione scolastica autonoma, che fre-
+       mondo del lavoro, iniziative di partecipazione a programmi nazionali, quentino un apposito corso di formazione.
+       regionali o comunitari e, nell’ambito di accordi tra le regioni e l’am- 17. Il rapporto di lavoro dei dirigenti scolastici sarà disciplinato
+       ministrazione scolastica, percorsi integrati tra diversi sistemi formativi. in sede di contrattazione collettiva del comparto scuola, articolato in
+       Le istituzioni scolastiche autonome hanno anche autonomia di ricerca, autonome aree.
+                                      — 49 —
+````
+
+## Pagina 52
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          18. Nell’emanazione del regolamento di cui all’articolo 13 la dificazioni, non utilizzate alla data di entrata in vigore della legge di
+       riforma degli uffici periferici del Ministero della pubblica istruzione è conversione del presente decreto, sono versate all’entrata del bilancio
+       realizzata armonizzando e coordinando i compiti e le funzioni ammi- dello Stato per essere destinate al finanziamento di interventi per l’edi-
+       nistrative attribuiti alle regioni ed agli enti locali anche in materia di lizia scolastica e la messa in sicurezza degli istituti scolastici ovvero di
+       programmazione e riorganizzazione della rete scolastica. impianti e strutture sportive dei medesimi. Al riparto delle risorse, con
+          19. Il Ministro della pubblica istruzione presenta ogni quattro l’individuazione degli interventi e degli enti destinatari, si provvede con
+       anni al Parlamento, a decorrere dall’inizio dell’attuazione dell’autono- decreto del Ministro dell’economia e delle finanze, di concerto con il
+       mia prevista nel presente articolo, una relazione sui risultati conseguiti, Ministro dell’istruzione, dell’università e della ricerca, in coerenza con
+       anche al fine di apportare eventuali modifiche normative che si rendano apposito atto di indirizzo delle Commissioni parlamentari competenti
+       necessarie.                        per materia e per i profili finanziari. 
+          20. Le regioni a statuto speciale e le province autonome di Tren- 2. A decorrere dall’anno scolastico 2008/2009, la valutazione del
+       to e di Bolzano disciplinano con propria legge la materia di cui al pre- comportamento è effettuata mediante l’attribuzione di un voto numerico
+       sente articolo nel rispetto e nei limiti dei propri statuti e delle relative espresso in decimi.
+       norme di attuazione.                  3. La votazione sul comportamento degli studenti, attribuita
+          20 -bis . Con la stessa legge regionale di cui al comma 20 la re- collegialmente dal consiglio di classe, concorre alla valutazione com-
+       gione Valle d’Aosta stabilisce tipologia, modalità di svolgimento e di plessiva dello studente e determina, se inferiore a sei decimi, la non am-
+       certificazione di una quarta prova scritta di lingua francese, in aggiunta missione al successivo anno di corso o all’esame conclusivo del ciclo.
+       alle altre prove scritte previste dalla legge 10 dicembre 1997, n. 425. Le Ferma l’applicazione della presente disposizione dall’inizio dell’anno
+       modalità e i criteri di valutazione delle prove d’esame sono definiti scolastico di cui al comma 2, con decreto del Ministro dell’istruzione,
+       nell’ambito dell’apposito regolamento attuativo, d’intesa con la regione dell’università e della ricerca sono specificati i criteri per correlare la
+       Valle d’Aosta. È abrogato il comma 5 dell’articolo 3 della legge 10 di- particolare e oggettiva gravità del comportamento al voto inferiore a
+       cembre 1997, n. 425.».             sei decimi, nonché eventuali modalità applicative del presente articolo.
+         — Il decreto legislativo 15 aprile 2005, n. 76, recante: «Definizione Art. 3 ( Valutazione del rendimento scolastico degli studenti) .
+       delle norme generali sul diritto-dovere all’istruzione e alla formazione, — 1.
+       a norma dell’articolo 2, comma 1, lettera c ) , della legge 28 marzo 2003, 2.
+       n. 53», è pubblicato nella G azzetta Ufficiale n. 103 del 5 maggio 2005.   
+                                             3.                                   
+         — Il decreto legislativo 17 ottobre 2005, n. 226, recante: «Norme        
+       generali e livelli essenziali delle prestazioni relativi al secondo ciclo del 4. Il comma 3 dell’articolo 13 del decreto legislativo 17 ottobre
+       sistema educativo di istruzione e formazione, a norma dell’articolo 2 2005, n. 226, è abrogato.
+       della legge 28 marzo 2003, n. 53», è pubblicato nella G azzetta Ufficiale 5. Con regolamento emanato ai sensi dell’articolo 17, comma 2,
+       n. 257 del 4 novembre 2005.        della legge 23 agosto 1988, n. 400, su proposta del Ministro dell’istru-
+         — Si riporta il comma 622, dell’articolo 1, della legge 27 dicem- zione, dell’università e della ricerca, si provvede al coordinamento delle
+       bre 2006, n. 296, recante: «Disposizioni per la formazione del bilancio norme vigenti per la valutazione degli studenti, tenendo conto anche dei
+       annuale e pluriennale dello Stato», pubblicata nella G azzetta Ufficiale disturbi specifici di apprendimento e della disabilità degli alunni, e sono
+       n. 299 del 27 dicembre 2006:       stabilite eventuali ulteriori modalità applicative del presente articolo.».
+          «622. L’istruzione impartita per almeno dieci anni è obbligatoria — La legge 13 luglio 2015, n. 107, recante: «Riforma del sistema
+       ed è finalizzata a consentire il conseguimento di un titolo di studio di nazionale di istruzione e formazione e delega per il riordino delle dispo-
+       scuola secondaria superiore o di una qualifica professionale di durata sizioni legislative vigenti», è pubblicata nella G azzetta Ufficiale n. 162
+       almeno triennale entro il diciottesimo anno di età. L’età per l’accesso del 15 luglio 2015.
+       al lavoro è conseguentemente elevata da quindici a sedici anni. Resta — Il decreto legislativo 13 aprile 2017, n. 62, recante: «Norme in
+       fermo il regime di gratuità ai sensi degliarticoli 28, comma 1, e30, materia di valutazione e certificazione delle competenze nel primo ciclo
+       comma 2, secondo periodo, del decreto legislativo 17 ottobre 2005, ed esami di Stato, a norma dell’articolo 1, commi 180 e 181, lettera i ) ,
+       n. 226. L’adempimento dell’obbligo di istruzione deve consentire, una della legge 13 luglio 2015, n. 107», è pubblicato nella G azzetta Ufficiale
+       volta conseguito il titolo di studio conclusivo del primo ciclo, l’acqui- n. 112 del 16 maggio 2017.
+       sizione dei saperi e delle competenze previste dai curricula relativi ai   
+                                            — Il decreto legislativo 13 aprile 2017, n. 66, recante: «Norme per
+       primi due anni degli istituti di istruzione secondaria superiore, sulla base
+                                          la promozione dell’inclusione scolastica degli studenti con disabilità, a
+       di un apposito regolamento adottato dal Ministro della pubblica istru-     
+                                          norma dell’articolo 1, commi 180 e 181, lettera c ) , della legge 13 luglio
+       zione ai sensi dell’articolo 17, comma 3, della legge 23 agosto 1988,      
+                                          2015, n. 107», è pubblicato nella G azzetta Ufficiale n. 112 del 16 mag-
+       n. 400. L’obbligo di istruzione si assolve anche nei percorsi di istruzio- 
+                                          gio 2017.                               
+       ne e formazione professionale di cui al Capo III deldecreto legislativo    
+       17 ottobre 2005, n. 226, e, sino alla completa messa a regime delle di- — La legge 20 agosto 2019, n. 92, recante: «Introduzione dell’in-
+       sposizioni ivi contenute, anche nei percorsi sperimentali di istruzione segnamento scolastico dell’educazione civica», è pubblicata nella G az-
+       e formazione professionale di cui al comma 624 del presente articolo. zetta Ufficiale n.195 del 21 agosto 2019.
+       Sono fatte salve le competenze delle regioni a statuto speciale e delle    
+                                            — Il decreto-legge 11 novembre 2022, n. 173 recante: «Dispo-
+       province autonome di Trento e di Bolzano, in conformità ai rispettivi      
+                                          sizioni urgenti in materia di riordino delle attribuzioni dei Ministeri»,
+       statuti e alle relative norme di attuazione, nonché allalegge costituzio-  
+                                          pubblicato nella G azzetta Ufficiale , n. 264 dell’11 novembre 2022, è
+       nale 18 ottobre 2001, n. 3. L’innalzamento dell’obbligo di istruzione      
+                                          convertito, con modificazioni, dalla legge 16 dicembre 2022, n. 204.
+       decorre dall’anno scolastico 2007/2008.».                                  
+                                            — Il decreto del Presidente della Repubblica 10 ottobre 1996,
+         — Si riportano gli articoli 2 e 3 del decreto-legge 1° settembre         
+                                          n. 567, recante: «Regolamento recante la disciplina delle iniziative
+       2008, n. 137 recante: «Disposizioni urgenti in materia di istruzione e     
+                                          complementari e delle attività integrative nelle istituzioni scolastiche»,
+       università», pubblicato nella G azzetta Ufficiale 1° settembre 2008,       
+                                          è pubblicato nella G azzetta Ufficiale n. 25 del 5 novembre 1996.
+       n. 204, convertito, con modificazioni, dalla legge 30 ottobre 2008,        
+       n. 169:                              — Il decreto del Presidente della Repubblica 24 giugno 1998,
+                                          n. 249, recante: «Regolamento recante lo statuto delle studentesse e de-
+          «Art. 2 (Valutazione del comportamento degli studenti) . —              
+                                          gli studenti della scuola secondaria», è pubblicato nella G azzetta Uffi-
+       1. Fermo restando quanto previsto dal regolamento di cui aldecreto         
+                                          ciale n. 175 del 29 luglio 1998.        
+       del Presidente della Repubblica 24 giugno 1998, n. 249, e successive       
+       modificazioni, in materia di diritti, doveri e sistema disciplinare degli — Il decreto del Presidente della Repubblica 22 giugno 2009,
+       studenti nelle scuole secondarie di primo e di secondo grado, in sede di n. 122, come modificato nel titolo dal presente decreto reca: «R egola-
+       scrutinio intermedio e finale viene valutato il comportamento di ogni mento recante valutazione delle studentesse e degli studenti del secon-
+       studente durante tutto il periodo di permanenza nella sede scolastica, an- do ciclo di istruzione» , è pubblicato nella G azzetta Ufficiale n. 191 del
+       che in relazione alla partecipazione alle attività ed agli interventi educa- 19 agosto 2009.
+       tivi realizzati dalle istituzioni scolastiche anche fuori della propria sede. — Il decreto del Presidente della Repubblica 8 marzo 1999, n. 275,
+          1 -bis . Le somme iscritte nel conto dei residui del bilancio del- recante: «Regolamento recante norme in materia di autonomia delle isti-
+       lo Stato per l’anno 2008, a seguito di quanto disposto dall’articolo 1, tuzioni scolastiche, ai sensi dell’articolo 21 della legge 15 marzo 1997,
+       commi 28 e 29, della legge 30 dicembre 2004, n. 311, e successive mo- n. 59», è pubblicato nella G azzetta Ufficiale n. 186 del 10 agosto 1999.
+                                      — 50 —
+````
+
+## Pagina 53
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+         — Il decreto del Presidente della Repubblica 28 marzo 2013, n. 80, data di inizio delle lezioni dell’anno scolastico successivo, procede alla
+       recante: «Regolamento sul sistema nazionale di valutazione in materia verifica dei risultati conseguiti d alla studentessa o dallo studente e alla
+       di istruzione e formazione», è pubblicato nella G azzetta Ufficiale n. 155 formulazione del giudizio finale che, in caso di esito positivo, comporta
+       del 4 luglio 2013.                 l’ammissione alla frequenza della classe successiva e l’attribuzione del
+                                          credito scolastico.».                   
+       Note all’art. 1:                      «Art. 7 (Valutazione del comportamento) . — 1.La valutazio-
+                                          ne del comportamento degli s tudenti e delle studentesse nelle scuole
+         — Si riporta il testo degli articoli 4, 7 e 14 del citato decreto del    
+                                          secondarie di secondo grado si propone di favorire l’acquisizione di
+       Presidente della Repubblica 22 giugno 2009, n. 122, come modificato        
+                                          una coscienza civile basata sulla consapevolezza che la libertà perso-
+       dal presente decreto:                                                      
+                                          nale si realizza nell’adempimento dei propri doveri, nella conoscenza
+          «Art. 4 (V alutazione degli studenti e delle studentesse n ella e nell’esercizio dei propri diritti, nel rispetto dei diritti altrui e delle
+       scuola secondaria di secondo grado ). — 1.La valutazione, periodica regole che governano la convivenza civile in generale e la vita scola-
+       e finale, degli apprendimenti è effettuata dal consiglio di classe, for- stica in particolare. Dette regole si ispirano ai principi di cui aldecreto
+       mato ai sensi dell’articolo 5 del testo unico di cui aldecreto legislativo del Presidente della Repubblica 24 giugno 1998, n. 249, e successive
+       16 aprile 1994, n. 297, e successive modificazioni, e presieduto dal di- modificazioni.
+       rigente scolastico o da suo delegato, con deliberazione assunta, ove ne- 1 -bis . Il consiglio di classe, in sede di scrutinio finale, attribu-
+       cessario, a maggioranza. I docenti di sostegno, contitolari della classe, isce il voto di comportamento sulla base dell’intero anno scolastico e
+       partecipano alla valutazione di tutti gli studenti e di tutte le studentesse, tenendo conto, in particolar modo, della eventuale commissione di atti
+       applicando, ai fini del proprio giudizio, relativamente agli studenti con violenti o di aggressione nei confronti del personale scolastico, delle
+       disabilità, i criteri di cui all’articolo 314, comma 2, del testo unico di studentesse e degli studenti.
+       cui aldecreto legislativo 16 aprile 1994, n. 297. Qualora u no studente 2. La valutazione del comportamento con voto inferiore a sei
+       o una studentessa con disabilità sia affidato a più docenti del sostegno, decimi in sede di scrutinio periodico, nonché in sede di scrutinio finale
+       essi si esprimono con un unico voto. Il personale docente esterno e gli con conseguente non ammissione alla classe successiva, è deliberata
+       esperti di cui si avvale la scuola, che svolgono attività o insegnamenti dal consiglio di classe nei confronti della studentessa o dello studente
+       per l’ampliamento e il potenziamento dell’offerta formativa, ivi com- cui sia stata irrogata, nel medesimo anno scolastico, in relazione alla
+       presi i docenti incaricati delle attività alternative all’insegnamento della violazione dei doveri di cui al decreto del Presidente della Repubblica
+       religione cattolica, forniscono preventivamente ai docenti della classe 24 giugno 1998, n. 249, una sanzione disciplinare ai sensi dell’arti-
+       elementi conoscitivi sull’interesse manifestato e il profitto raggiunto da colo 4 del medesimo decreto, per aver commesso reati che violino la
+       ciascuno studente e da ciascuna studentessa . dignità e il rispetto della persona umana o arrechino pericoli per l’in-
+          1 -bis . La valutazione periodica e finale degli apprendimenti per columità altrui o per aver posto in essere comportamenti che configu-
+       ciascuna delle discipline di studio previste dalle Indicazioni nazionali rino mancanze disciplinari gravi e reiterate, anche con riferimento alle
+       per i licei e dalle Linee guida per gli istituti tecnici e gli istituti pro- violazioni previste dai regolamenti delle istituzioni scolastiche, o per
+       fessionali, è espressa in decimi. Il voto numerico è riportato anche in aver commesso atti violenti o di aggressione nei confronti del personale
+                                          scolastico e degli studenti.            
+       lettere nel documento di valutazione.                                      
+                                             2 -bis . L’attribuzione di un voto di comportamento inferiore a
+          2. La valutazione periodica e finale del comportamento delle            
+                                          sei decimi nella valutazione periodica comporta il coinvolgimento della
+       studentesse e degli studenti è espressa in decimi. Il voto numerico è      
+                                          studentessa e dello studente in attività di approfondimento in materia
+       riportato anche in lettere nel documento di valutazione. La valutazione    
+                                          di cittadinanza attiva e solidale, finalizzate alla comprensione delle ra-
+       del comportamento concorre alla determinazione dei crediti scolastici e    
+                                          gioni e delle conseguenze dei comportamenti che hanno determinato il
+       dei punteggi utili per beneficiare delle provvidenze in materia di diritto 
+                                          voto assegnato.                         
+       allo studio.                                                               
+                                             2 -ter. Fermo restando quanto previsto all’articolo 4, comma 6,
+          3. La valutazione dell’insegnamento della religione cattolica re- per le studentesse e gli studenti che hanno riportato un voto di compor-
+       sta disciplinata dall’articolo 309 del decreto legislativo 16 aprile 1994, tamento pari a sei decimi, il consiglio di classe, in sede di scrutinio fina-
+       n. 297, ed è comunque espressa senza attribuzione di voto numerico, le, sospende il giudizio senza riportare immediatamente un giudizio di
+       fatte salve eventuali modifiche all’intesa di cui al punto 5 del Protocollo ammissione alla classe successiva, assegnando la predisposizione di un
+       addizionale allalegge 25 marzo 1985, n. 121. elaborato critico in materia di cittadinanza attiva e solidale, da svilup-
+          4. I percorsi per le competenze trasversali e per l’orientamento, pare su tematiche connesse alle ragioni che hanno determinato il voto
+       di cui all’articolo 1, commi da 784 a 787 della legge 30 dicembre 2018, di comportamento attribuito. La mancata presentazione dell’elaborato
+       n. 145, coerenti con il piano triennale dell’offerta formativa e con il prima della integrazione dello scrutinio finale da parte del consiglio di
+       profilo culturale, educativo e professionale in uscita dei singoli indirizzi classe, ovvero l’esito non positivo comporta la non ammissione degli
+       di studio offerti dalle istituzioni scolastiche, sono parte integrante dei studenti alla classe successiva.
+       percorsi formativi personalizzati. La valutazione degli esiti delle attività 3. La valutazione del comportamento con voto inferiore a sei
+       dei percorsi per le competenze trasversali e per l’orientamento e della decimi deve essere motivata con riferimento ai casi individuati nel com-
+       loro ricaduta sugli apprendimenti disciplinari e sulla valutazione del ma 2 e deve essere verbalizzata in sede di scrutinio p eriodico e finale.
+       comportamento è effettuata dal consiglio di classe, secondo i criteri 4. Ciascuna istituzione scolastica può autonomamente deter-
+       deliberati dal Collegio dei docenti ed esplicitati nel Piano triennale minare, nei limiti delle risorse finanziarie disponibili a legislazione
+       dell’offerta formativa dell’istituzione scolastica. vigente, anche in sede di elaborazione del piano t riennale dell’offerta
+          5. Sono ammessi alla classe successiva gli s tudenti e le studen- formativa, iniziative finalizzate alla promozione e alla valorizzazione
+       tesse che in sede di scrutinio finale conseguono un voto di c ompor- dei comportamenti positivi, alla prevenzione di atteggiamenti negati-
+       tamento superiore a sei decimi e, ai sensi dell’articolo 193, comma 1, vi, al coinvolgimento attivo dei genitori e degli s tudenti e delle studen-
+       secondo periodo, del testo unico di cui aldecreto legislativo n. 297 del tesse , tenendo conto di quanto previsto dal regolamento di istituto, dal
+                                          patto educativo di corresponsabilità di cui all’articolo 5- bis del decreto
+       1994, una votazione non inferiore a sei decimi in ciascuna disciplina o    
+                                          del Presidente della Repubblica 24 giugno 1998, n. 249, e successive
+       gruppo di discipline valutate con l’attribuzione di un unico voto secondo  
+                                          modificazioni, e dalle specifiche esigenze della comunità scolastica e
+       l’ordinamento vigente. La valutazione finale degli apprendimenti e del     
+                                          del territorio. In nessun modo le sanzioni sulla condotta possono essere
+       comportamento d ello studente e della studentessa è riferita a ciascun     
+                                          applicate agli s tudenti e alle studentesse che manifestino la propria opi-
+       anno scolastico.                                                           
+                                          nione come previsto dall’articolo 21 della Costituzionedella Repubblica
+          6. Nello scrutinio finale il consiglio di classe sospende il giu- italiana.».
+       dizio degli s tudenti e delle studentesse che non hanno conseguito la      
+                                             «Art. 14 (Norme transitorie, finali e abrogazioni) . — 1.
+       sufficienza in una o più discipline, senza riportare immediatamente un     
+                                          (abrogato)                              
+       giudizio di non promozione. A conclusione dello scrutinio, l’esito re-     
+                                             2. (abrogato)                        
+       lativo a tutte le discipline è comunicato alle famiglie. A conclusione     
+       degli interventi didattici programmati per il recupero delle carenze rile- 3. (abrogato)
+       vate, il consiglio di classe, in sede di integrazione dello scrutinio finale, 4. I riferimenti alla valutazione del comportamento contenuti nel
+       previo accertamento del recupero delle carenze formative da effettuarsi decreto del Ministro della pubblica istruzione 22 maggio 2007, n. 42,
+       entro la fine del medesimo anno scolastico e comunque non oltre la sono abrogati.
+                                      — 51 —
+````
+
+## Pagina 54
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          5. È abrogato l’articolo 304 del testo unico di cui al decreto legi- 8. Modifiche e integrazioni al presente regolamento possono es-
+       slativo 16 aprile 1994, n. 297, relativo alla valutazione dell’educazione sere adottate in relazione alla ridefinizione degli assetti ordinamentali,
+       fisica. Il voto di educazione fisica concorre, al pari delle altre discipline, organizzativi e didattici del sistema di istruzione derivanti dalla comple-
+       alla valutazione complessiva dell’alunno. ta attuazione dell’articolo 64 del decreto-legge 25 giugno 2008, n. 112,
+                                          convertito, con modificazioni, dalla legge 6 agosto 2008, n. 133.».
+          6. È abrogato il decreto del Ministro dell’istruzione, dell’univer-     
+                                          Note all’art. 2:                        
+       sità e della ricerca 16 gennaio 2009, n. 5.                                
+                                            — Gli articoli 2, 3 e 6 del decreto del Presidente della Repubblica
+          7. Ai fini della validità dell’anno scolastico è richiesta la fre- 22 giugno 2009, n. 122, abrogati dal presente decreto, recavano rispetti-
+       quenza di almeno tre quarti dell’orario annuale personalizzato. Le isti- vamente: «Valutazione degli alunni nel primo ciclo di istruzione», «Esa-
+       tuzioni scolastiche possono stabilire, per casi eccezionali, motivate e me di Stato conclusivo del primo ciclo dell’istruzione» e «Ammissione
+       straordinarie deroghe al suddetto limite. Tali deroghe sono previste per all’esame conclusivo del secondo ciclo dell’istruzione».
+       assenze documentate a condizione, comunque, che non pregiudichino, a       
+                                            — Per i riferimenti all’articolo 14 del decreto del Presidente della
+       giudizio del consiglio di classe, la possibilità di procedere alla valuta- 
+                                          Repubblica 22 giugno 2009, n. 122, si vedano le note all’articolo 1.
+       zione degli apprendimenti. Il mancato conseguimento del limite minimo      
+       di frequenza, comprensivo delle deroghe riconosciute, comporta l’esclu-    
+       sione dallo scrutinio finale e la non ammissione alla classe successiva. 25G00141
+       DECRETI,     DELIBERE       E  ORDINANZE         MINISTERIALI              
+        MINISTERO DELLE INFRASTRUTTURE     Visto il decreto-legge 27 dicembre 2024, n. 202, recan-
+                E DEI TRASPORTI           te «Disposizioni urgenti in materia di termini normativi»,
+                                          convertito, con modificazioni, dalla legge 21 febbraio
+                                          2025, n. 15 e, in particolare l’art. 7, comma 4- novies ;
+       DECRETO 14 agosto 2025 .                                                   
+                                           Vista la legge 30 dicembre 2024, n. 207, recante «Bi-
+        Modifiche al decreto 26 aprile 2022 concernente la ripar- lancio di previsione dello Stato per l’anno finanziario
+       tizione delle risorse, per le annualità dal 2025 al 2029, per le 2025 e bilancio pluriennale per il triennio 2025-2027» e,
+       strade delle province e delle città metropolitane. Integrazio- in particolare, l’art. 1, comma 527 e 540;
+       ne al decreto 19 marzo 2020, relativo a programmi straordi-                
+                                           Visto il decreto-legge 30 giugno 2025, n. 95, recante
+       nari di manutenzione della rete viaria.                                    
+                                          «Disposizioni urgenti per il finanziamento di attività eco-
+                                          nomiche e imprese, nonché interventi di carattere sociale
+          IL MINISTRO DELLE INFRASTRUTTURE                                        
+                                          e in materia di infrastrutture, trasporti ed enti territoriali»
+                 E DEI TRASPORTI                                                  
+                                          convertito con modificazioni dalla legge 8 agosto 2025,
+                                          n. 118, e in particolare, l’art. 3, commi da 6 a 12;
+        Vista la legge 27 dicembre 2017, n. 205, recante «Bi-                     
+       lancio di previsione dello Stato per l’anno finanziario                    
+                                                        Decreta:                  
+       2018 e bilancio pluriennale per il triennio 2018-2020» e                   
+       in particolare, l’art. 1, commi da 1076 a 1078;                            
+                                                         Art. 1.                  
+        Visto il decreto del Ministro delle infrastrutture e dei                  
+       trasporti del 16 febbraio 2018, n. 49, recante «Finanzia- Modifiche all’art. 1 del decreto del Ministro delle
+       mento degli interventi relativi a programmi straordinari infrastrutture e della mobilità sostenibili 26 aprile
+       di manutenzione delle rete viaria di province e città me- 2022, n. 101     
+       tropolitane», pubblicato nella G azzetta Ufficiale - Serie                 
+       generale - n. 100 del 2 maggio 2018; 1. Il comma 1 è sostituito dal seguente: «1. La som-
+                                          ma complessiva di 1.060 milioni di euro, ripartita in euro
+        Visto il decreto del Ministro delle infrastrutture e dei                  
+                                          127,5 milioni per l’anno 2025, 382,5 milioni per l’anno
+       trasporti 19 marzo 2020, n. 123, «Finanziamento degli                      
+                                          2026 e 275 milioni di euro per ciascuno degli anni 2027
+       interventi relativi a programmi straordinari di manuten-                   
+                                          e 2028, è destinata al finanziamento degli interventi rela-
+       zione della rete viaria di province e città metropolitane.                 
+                                          tivi a programmi straordinari di manutenzione della rete
+       Integrazione al programma previsto dal decreto ministe-                    
+                                          viaria di province e di città metropolitane, delle regioni a
+       riale del 16 febbraio 2018», pubblicato nella G azzetta                    
+                                          statuto ordinario e delle Regioni a statuto speciale Sarde-
+       Ufficiale - Serie generale - n. 127 del 18 maggio 2020;                    
+                                          gna e Sicilia.».                        
+        Visto il decreto del Ministro delle infrastrutture e della                
+       mobilità sostenibili 26 aprile 2022, n. 101, «Ripartizione Art. 2.         
+       delle risorse, per le annualità dal 2025 al 2029, per le stra-             
+                                          Modifiche all’art. 3 del decreto del Ministro delle
+       de delle province e delle città metropolitane. Integrazione                
+                                           infrastrutture e della mobilità sostenibili 26 aprile
+       al decreto 19 marzo 2020, relativo a programmi straordi-                   
+                                           2022, n. 101                           
+       nari di manutenzione della rete viaria»;                                   
+        Visto il decreto legislativo 31 marzo 2023, n. 36, recan- 1. L’art. 3 del decreto 26 aprile 2022, n. 101 è sostituito
+       te «Codice dei contratti pubblici in attuazione dell’art. 1 dal seguente:  
+       della legge 21 giugno 2022, n. 78, recante delega al Go- «Art. 3 (Piano di riparto) . — 1. Le risorse di cui
+       verno in materia di contratti pubblici»; all’art. 1 sono ripartite tra le province e le città metropo-
+                                      — 52 —
+````
+
+## Pagina 55
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       litane delle regioni a statuto ordinario e delle Regioni a stero delle infrastrutture e dei trasporti, entro il 30 luglio
+       statuto speciale Sardegna e Sicilia, ai sensi dell’allegato 2 2026, idonea certificazione attestante le procedure di af-
+       del decreto-legge 30 giugno 2025, n. 95, convertito, con fidamento avviate;
+       modificazioni, dalla legge 8 agosto 2025 n. 118.                           
+                                              c) l’erogazione, a ciascun ente territoriale:
+          2. La Direzione generale per le strade e la sicurezza 1) entro il 30 settembre 2026, delle risorse resi-
+       delle infrastrutture stradali del Ministero delle infrastrut- due per il 2026, sulla base degli stati di avanzamento dei
+       ture e dei trasporti provvede, sulla base del riparto di cui lavori rendicontati in relazione agli interventi ammessi
+       all’allegato 2 del decreto-legge 30 giugno 2025, n. 95, al piano di riparto di cui alla lettera a ) per i quali è stato
+       convertito, con modificazioni dalla legge 8 agosto 2025 stipulato alla data del 28 febbraio 2026 il contratto;
+       n. 118, all’impegno e al trasferimento dei finanziamenti 2) entro le scadenze del 30 aprile e del 30 set-
+       dei soggetti di cui al comma 1, nel rispetto di quanto pre- tembre di ciascun anno, delle risorse assegnate per le suc-
+       visto dal presente decreto.».      cessive annualità e nei limiti delle stesse come indicati
+                                          nell’allegato 2, del decreto-legge 30 giugno 2025, n. 95,
+                     Art. 3.              sulla base degli stati di avanzamento dei lavori rendicon-
+                                          tati in relazione agli interventi ammessi al piano di ripar-
+       Modifiche all’art. 5 del decreto del Ministro delle                        
+                                          to di cui alle lettere a ) e b ) , per i quali è stato stipulato
+        infrastrutture e della mobilità sostenibili 26 aprile                     
+                                          rispettivamente alla data del 28 febbraio 2026 e alla data
+        2022, n. 101                      del 15 settembre 2026 il contratto;     
+                                             2. Gli enti beneficiari del finanziamento trasmettono
+        1. L’art. 5 del decreto 26 aprile 2022, n. 101 è sostituito               
+                                          il programma quadriennale 2025-2028 alla Direzione ge-
+       dal seguente:                                                              
+                                          nerale per le strade e la sicurezza delle infrastrutture stra-
+          «Art. 5 ( Programmazione degli interventi e trasfe- dali del Ministero delle infrastrutture e dei trasporti entro
+       rimento delle risorse) . — 1. Sulla base del piano di ri- il 31 dicembre 2025, ai fini del successivo monitoraggio
+       parto di cui all’allegato 2 del decreto-legge 30 giugno della spesa. Il Programma quadriennale deve contenere,
+       2025, n. 95, convertito, con modificazioni, dalla legge ai sensi dell’art. 11 della legge 16 gennaio 2003, n. 3,
+       8 agosto 2025, n. 118 a decorrere dall’entrata in vigo- l’elenco degli interventi oggetto del presente contributo
+       re del presente decreto è assunto l’impegno pluriennale identificati dal Codice unico di progetto (CUP).
+       delle risorse. Le risorse sono trasferite secondo le se- 3. Il Programma quadriennale 2025-2028 è svilup-
+       guenti modalità:                   pato sulla base:                        
+           a) l’erogazione entro il 31 dicembre 2025 a cia- a) della conoscenza delle caratteristiche geome-
+       scun ente territoriale di un importo corrispondente alla triche e dello stato dell’infrastruttura, del traffico, dell’in-
+       prima rata di anticipazione, di cui all’allegato 2 del cidentalità e dell’esposizione al rischio idrogeologico;
+       decreto-legge 30 giugno 2025, n. 95, a condizione che                      
+                                              b) dell’analisi della situazione esistente;
+       per gli interventi ammessi al riparto dall’annualità 2025                  
+                                              c) della previsione dell’evoluzione.
+       e comunque per gli anni 2025-2028 sia stata avviata la                     
+                                             4. I programmi devono contenere interventi di ma-
+       procedura di affidamento desumibile dalla data di pub-                     
+                                          nutenzione straordinaria e di adeguamento normativo,
+       blicazione del CIG entro il 30 settembre 2025; nel caso                    
+                                          sviluppando in particolare gli aspetti connessi alla dura-
+       in cui le procedure di affidamento siano state avviate                     
+                                          bilità degli interventi, ai benefici apportati in termini di
+       solo per una parte degli interventi ammessi al riparto è                   
+                                          sicurezza, di riduzione del rischio, di qualità della circo-
+       proporzionalmente ridotto l’importo della prima rata di                    
+                                          lazione degli utenti ed ai relativi costi e deve riportare,
+       anticipazione da liquidare entro il 31 dicembre 2025. A                    
+                                          attraverso un cronoprogramma degli interventi, i seguenti
+       tal fine gli enti beneficiari sono tenuti a fornire al Mini-               
+                                          elementi desumibili dal sistema di monitoraggio di cui al
+       stero delle infrastrutture e dei trasporti, entro il 15 otto-              
+                                          decreto legislativo 29 dicembre 2011, n. 229:
+       bre 2025, idonea certificazione attestante le procedure di                 
+                                              a) inizio e fine dell’attività di progettazione;
+       affidamento avviate;                                                       
+                                              b) inizio e fine della procedura di aggiudicazione;
+           b) l’erogazione entro il 30 settembre 2026 a cia-                      
+                                              c) inizio e fine dei lavori;        
+       scun ente territoriale di un importo corrispondente alla                   
+       seconda rata di anticipazione, di cui all’allegato 2, del d) inizio e fine del collaudo o certificazione di re-
+       decreto-legge 30 giugno 2025, n. 95, a condizione che golare esecuzione dei lavori.
+       per gli interventi ammessi al riparto dall’annualità 2026 5. Il programma relativo ad ogni annualità contiene
+       e comunque per i periodi 2026-2028 sia stata avviata la le schede descrittive e riepilogative di ciascun intervento
+       procedura di affidamento desumibile dalla data di pub- da realizzare e l’indicazione dei relativi CUP.
+       blicazione del CIG entro il 31 marzo 2026; nel caso in 6. Al fine di uniformare le attività ed espletare il
+       cui le procedure di affidamento siano state avviate solo monitoraggio, la Direzione generale per le strade e la
+       di parte degli interventi ammessi al piano di riparto, è sicurezza delle infrastrutture stradali del Ministero delle
+       proporzionalmente ridotto l’importo della seconda rata infrastrutture e dei trasporti pubblica sul sito istituziona-
+       di anticipazione da liquidare entro il 30 settembre 2026; le il modello delle schede descrittive. La compilazione
+       a tal fine gli enti beneficiari sono tenuti a fornire al Mini- di dette schede avviene anche utilizzando la reportistica
+                                      — 53 —
+````
+
+## Pagina 56
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       messa a disposizione del Ministero delle infrastrutture e Art. 5.          
+       dei trasporti attraverso il citato sistema di monitoraggio.                
+                                          Modifiche all’art. 7 del decreto del Ministro delle
+          7. Fermo restando il completamento dei lavori degli                     
+                                           infrastrutture e della mobilità sostenibili 26 aprile
+       interventi inseriti nel programma, i ribassi d’asta posso-                 
+                                           2022, n. 101                           
+       no essere utilizzati secondo quanto previsto dal principio                 
+       contabile applicato concernente la contabilità finanziaria, 1. Il comma 1, dell’art. 7, del decreto 26 aprile 2022,
+       di cui al punto 5.4.10 dell’allegato 4/2 al decreto legisla- n. 101, è sostituito dal seguente: «Fermo restando quanto
+       tivo 23 giugno 2011, n. 118.»      previsto dall’art. 6, comma 2, eventuali ulteriori risorse
+                                          disponibili da destinare alle annualità 2025-2028 di cui
+                     Art. 4.              all’art. 1, comma 1076, della legge 27 dicembre 2017,
+                                          n. 205, e per le medesime finalità, sono assegnate con
+       Modifiche all’art. 6 del decreto del Ministro delle successivo decreto del Ministero delle infrastrutture e
+        infrastrutture e della mobilità sostenibili 26 aprile dei trasporti in proporzione ai coefficienti del piano di
+        2022, n. 101                      riparto di cui all’allegato 2 del decreto-legge n. 95 del
+                                          2025 previa presentazione di un programma integrativo
+        1. L’art. 6 del decreto 26 aprile 2022, n. 101 è sostituito               
+                                          d’interventi per le annualità corrispondenti.».
+       dal seguente:                                                              
+          «Art. 6 ( Revoca delle risorse). — 1. Sulla base della                  
+                                                         Art. 6.                  
+       documentazione acquisita dal Ministero delle infrastrut-                   
+       ture e dei trasporti ai sensi dell’art. 5, unitamente alle Interventi di cui al decreto del Ministro delle infrastrutture
+       risultanze dei sistemi di monitoraggio della Ragioneria e dei trasporti 19 marzo 2020, pubblicato nella
+       generale dello Stato, sono accertate e revocate con de- Gazzetta Ufficiale n. 127 del 18 maggio 2020
+       creto del Ministero delle infrastrutture e dei trasporti da                
+       adottarsi entro il 31 dicembre 2025 le risorse relative 1. Entro il 15 settembre 2025 la Direzione generale
+       all’annualità 2025 per il mancato avvio delle procedure per le strade e la sicurezza delle infrastrutture stradali del
+       di affidamento entro il 30 settembre 2025 per gli inter- Ministero delle infrastrutture e dei trasporti comunica ai
+       venti di cui all’art. 5, comma 1, lettera a ) . soggetti beneficiari delle risorse di cui al decreto ministe-
+                                          riale 19 marzo 2020, pubblicato nella G azzetta Ufficia-
+          2. Sulla base della documentazione acquisita dal                        
+                                          le n. 127 del 18 maggio 2020 che, secondo le risultanze
+       Ministero delle infrastrutture e dei trasporti ai sensi                    
+                                          dei sistemi di monitoraggio della Ragioneria generale
+       dell’art. 5, unitamente alle risultanze dei sistemi di mo-                 
+                                          dello Stato, non risultano aver completato la realizzazio-
+       nitoraggio della Ragioneria generale dello Stato, sono                     
+                                          ne degli interventi finanziati, il termine per l’esibizio-
+       accertate e revocate con decreto del Ministero delle in-                   
+                                          ne di espressa attestazione dell’avvenuta realizzazione
+       frastrutture e dei trasporti da adottarsi ed entro il 30 set-              
+                                          dell’intervento.                        
+       tembre di ciascun anno le risorse relative alle annualità                  
+       dal 2026 al 2028:                   2. In caso di mancata presentazione dell’attestazione di
+                                          cui al comma 1 ovvero di presentazione di una attestazio-
+           a) rimaste inutilizzate, in ciascuna annualità, per                    
+                                          ne riguardante la realizzazione parziale dell’intervento, la
+       il mancato avvio delle procedure di affidamento entro il                   
+                                          Direzione generale per le strade e la sicurezza delle infra-
+       31 marzo 2026 per gli interventi di cui all’art. 5, com-                   
+                                          strutture stradali del Ministero delle infrastrutture e dei
+       ma 1, lettera b ) ;                                                        
+                                          trasporti trasmette agli enti beneficiari formale comunica-
+           b) rimaste inutilizzate, in ciascuna annualità, per zione ai fini della successiva adozione dei provvedimenti
+       la mancata stipula dei contratti di affidamento degli in- di revoca di cui all’art. 6 del decreto del Ministro delle
+       terventi entro il 28 febbraio 2026 per gli interventi di cui infrastrutture e dei trasporti 19 marzo 2020, pubblicato
+       all’art. 5, comma 1, lettera a ) , ovvero entro il 15 settem- nella G azzetta Ufficiale n. 127 del 18 maggio 2020. Le
+       bre 2026 per gli interventi di cui all’art. 5, comma 1, let- disposizioni di cui al presente comma si applicano anche
+       tera b ) ;                         nel caso in cui la competente Direzione generale riscontri
+           c) per la mancata presentazione degli stati di l’incongruenza tra le attestazioni trasmesse al Ministero
+       avanzamento dei lavori nei termini previsti all’art. 5, ai sensi del comma 1 e gli interventi realizzati.
+       comma 1, lettera c ) .              Il presente decreto sarà trasmesso agli organi di con-
+          3. Le risorse di cui al presente articolo, presenti nel- trollo per gli adempimenti di competenza e pubblicato
+       lo stato di previsione del Ministero delle infrastrutture nella G azzetta Ufficiale della Repubblica italiana.
+       e dei trasporti sono destinate, compatibilmente con gli                    
+                                             Roma, 14 agosto 2025                 
+       equilibri di finanza pubblica, a incrementare il Fondo di                  
+       cui all’art. 19 del decreto-legge 10 agosto 2023, n. 104,                  
+       convertito, con modificazioni, dalla legge 9 ottobre 2023,                 
+                                                                Il Ministro: SALVINI
+       n. 136, e, per la quota eventualmente trasferita all’ente Registrato alla Corte dei conti il 15 settembre 2025
+                                           Ufficio di controllo sugli atti del Ministero delle infrastrutture e dei
+       territoriale, sono oggetto di versamento, a cura dell’am-                  
+                                           trasporti e del Ministero dell’ambiente e della sicurezza energetica,
+       ministrazione interessata, al netto delle spese effettiva- n. 2113         
+       mente sostenute, all’entrata del bilancio dello Stato per                  
+       restare ivi definitivamente acquisita.». 25A05209                          
+                                      — 54 —
+````
+
+## Pagina 57
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+               TESTI     COORDINATI          E AGGIORNATI                         
+                                                                                  
+                                                                                  
+                                                                                  
+       Testo del decreto-legge 1° agosto 2025, n. 110 ( in Gazzetta legislazione vigente e, comunque, senza nuovi o maggiori
+        Ufficiale - Serie generale - n. 177 del 1° agosto 2025) , co- oneri a carico della finanza pubblica.
+        ordinato con la legge di conversione 24 settembre 2025,                   
+        n. 133 (in questa stessa Gazzetta Ufficiale alla pag. 29) , recan- Riferimenti normativi:
+        te: «Misure urgenti per il commissariamento dell’Agenzia                  
+                                            — Il decreto legislativo 8 aprile 2013, n. 39, recante: «Disposizioni
+        nazionale per i servizi sanitari regionali e per il finanzia-             
+                                          in materia di inconferibilità e incompatibilità di incarichi presso le pub-
+        mento dell’Ospedale pediatrico Bambino Gesù». bliche amministrazioni e presso gli enti privati in controllo pubblico,
+                                          a norma dell’articolo 1, commi 49 e 50, della legge 6 novembre 2012,
+                                          n. 190», è pubblicato nella G azzetta Ufficiale n.92 del 19 aprile 2013.
+       AVVERTENZA:                                                                
+         Il testo coordinato qui pubblicato è stato redatto dal Ministero della Art. 2.
+       giustizia ai sensi dell’art. 11, comma 1, del testo unico delle disposi-   
+       zioni sulla promulgazione delle leggi, sull’emanazione dei decreti del Misure per il finanziamento
+       Presidente della Repubblica e sulle pubblicazioni ufficiali della Repub-   
+                                               dell’Ospedale pediatrico Bambino Gesù
+       blica italiana, approvato con D.P.R. 28 dicembre 1985, n. 1092, nonché     
+       dell’art. 10, commi 2 e 3, del medesimo testo unico, al solo fine di faci- 
+       litare la lettura sia delle disposizioni del decreto-legge, integrate con le 1. A decorrere dall’anno 2025, una quota fino a 20
+       modifiche apportate dalla legge di conversione, che di quelle modificate milioni di euro annui del Fondo sanitario nazionale de-
+       o richiamate nel decreto, trascritte nelle note. Restano invariati il valore stinato alla realizzazione di specifici obiettivi del piano
+       e l’efficacia degli atti legislativi qui riportati.                        
+                                          sanitario nazionale, di cui all’articolo 1, commi 34 e 34-
+         Per gli atti dell’Unione europea vengono forniti gli estremi di pub-     
+                                          bis , della legge 23 dicembre 1996, n. 662, è accantonata
+       blicazione nella Gazzetta Ufficiale dell’Unione europea (GUUE).            
+                                          per essere destinata, ai sensi del comma 2 d el presente
+         Le modifiche apportate dalla legge di conversione sono stampate          
+       con caratteri corsivi.             articolo , all’Ospedale pediatrico Bambino Gesù (OPBG),
+         A norma dell’art. 15, comma 5, della legge 23 agosto 1988, n. 400 di cui all’accordo tra il Governo italiano e la Santa
+       (Disciplina dell’attività di Governo e ordinamento della Presiden- Sede, fatto nella Città del Vaticano il 15 febbraio 1995,
+       za del Consiglio dei Ministri), le modifiche apportate dalla legge di ratificato e reso esecutivo ai sensi della legge 18 mag-
+       conversione hanno efficacia dal giorno successivo a quello della sua       
+                                          gio 1995, n. 187, sulla base delle funzioni assistenziali e
+       pubblicazione.                                                             
+                                          delle attività dallo stesso erogate e rendicontate nell’an-
+                                          no precedente, f ermi il rispetto delle linee di attività di
+                     Art. 1.                                                      
+                                          cui all’articolo 8- sexies , comma 2, del decreto legislativo
+       Disposizioni urgenti per disciplinare il commissariamento 30 dicembre 1992, n. 502 e i criteri di remunerazione in-
+        dell’Agenzia nazionale per i servizi sanitari regionali dicati d al comma 1 del medesimo articolo 8-sexies .
+                                           2. Con decreto del Ministro della salute, di concerto
+        1. Con decreto del Presidente del Consiglio dei mini-                     
+                                          con il Ministro dell’economia e delle finanze, previa in-
+       stri, su proposta del Ministro della salute, sentita la Con-               
+                                          tesa in sede di Conferenza permanente per i rapporti tra
+       ferenza permanente per i rapporti tra lo Stato, le regioni e               
+                                          lo Stato, le regioni e le province autonome di Trento e di
+       le province autonome di Trento e di Bolzano, è nominato                    
+                                          Bolzano, s ono stabiliti le funzioni attribuite all’Ospedale
+       un commissario straordinario per l’Agenzia nazionale per                   
+                                          pediatrico Bambino Gesù e conseguentemente l’importo
+       i servizi sanitari regionali.                                              
+                                          della quota da assegnare annualmente allo stesso, nel li-
+        2. Il commissario assume, per il periodo in cui è in cari-                
+                                          mite massimo di cui al comma 1 . Nel medesimo decreto
+       ca, tutti i poteri di ordinaria e straordinaria amministrazio-             
+                                          sono definite anche le modalità di rendicontazione da par-
+       ne che lo Statuto dell’Agenzia attribuisce al Presidente, al               
+                                          te dell’Ospedale delle attività assistenziali rese in relazio-
+       Direttore generale e al Consiglio di amministrazione, che                  
+                                          ne alle funzioni assegnate.             
+       decadono all’atto dell’insediamento del commissario. Il                    
+       mandato del commissario cessa il 31 dicembre 2025. Riferimenti normativi:  
+        3. Il commissario è scelto tra esperti di riconosciuta — Si riporta il testo dei commi 34 e 34- bis , dell’articolo 1, della
+       competenza i n materia di diritto sanitario e di organizza- legge 23 dicembre 1996, n. 662 recante: «Misure di razionalizzazione
+       zione , programmazione, gestione e finanziamento del ser- della finanza pubblica», pubblicata nella G azzetta Ufficiale n.303 del
+                                          28 dicembre 1996:                       
+       vizio sanitario, anche estranei alla pubblica amministra-                  
+                                             «34. Ai fini della determinazione della quota capitaria, in sede
+       zione. Qualora il commissario, al momento della nomina,                    
+                                          di ripartizione del Fondo sanitario nazionale, ai sensi dell’articolo 12,
+       abbia altro incarico in corso, può continuare a svolgerlo comma 3, del decreto legislativo 30 dicembre 1992, n. 502, e successi-
+       per la durata del mandato di cui al comma 2, s e esso non ve modificazioni, il Comitato interministeriale per la programmazione
+       è incompatibile ai sensi del decreto legislativo 8 aprile economica (CIPE), su proposta del Ministro della sanità, d’intesa con
+                                          la Conferenza permanente per i rapporti tra lo Stato, le regioni e le pro-
+       2013, n. 39.                                                               
+                                          vince autonome di Trento e di Bolzano, stabilisce i pesi da attribuire ai
+        4. Al commissario è corrisposto un compenso deter- seguenti elementi: popolazione residente, frequenza dei consumi sani-
+       minato con decreto del Ministro della salute, di concer- tari per età e per sesso, tassi di mortalità della popolazione, indicatori
+                                          relativi a particolari situazioni territoriali ritenuti utili al fine di definire
+       to con il Ministro dell’economia e delle finanze, pari al                  
+                                          i bisogni sanitari delle regioni ed indicatori epidemiologici territoriali. Il
+       compenso percepito dal Direttore generale dell’Agenzia CIPE, su proposta del Ministro della sanità, d’intesa con la Conferenza
+       nazionale per i servizi sanitari regionali. permanente per i rapporti tra lo Stato, le regioni e le province autonome
+                                          di Trento e di Bolzano, può vincolare quote del Fondo sanitario naziona-
+        5. All’attuazione del presente articolo si provvede con                   
+                                          le alla realizzazione di specifici obiettivi del Piano sanitario nazionale,
+       le risorse umane, finanziarie e strumentali disponibili a con priorità per i progetti sulla tutela della salute materno-infantile, del-
+                                      — 55 —
+````
+
+## Pagina 58
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       la salute mentale, della salute degli anziani nonché per quelli finalizzati 2. Le regioni definiscono le funzioni assistenziali nell’ambito
+       alla prevenzione, e in particolare alla prevenzione delle malattie eredi- delle attività che rispondono alle seguenti caratteristiche generali:
+       tarie, nonché alla realizzazione degli obiettivi definiti dal Patto per la a) programmi a forte integrazione fra assistenza ospedaliera e
+       salute purché relativi al miglioramento dell’erogazione dei LEA. territoriale, sanitaria e sociale, con particolare riferimento alla assisten-
+          Nell’ambito della prevenzione delle malattie infettive nell’in- za per patologie croniche di lunga durata o recidivanti;
+       fanzia le regioni, nell’ambito delle loro disponibilità finanziarie, devono b) programmi di assistenza ad elevato grado di personalizza-
+       concedere gratuitamente i vaccini per le vaccinazioni non obbligatorie zione della prestazione o del servizio reso alla persona;
+       quali antimorbillosa, antirosolia, antiparotite , antipertosse e antihaemo-
+                                               c) attività svolte nell’ambito della partecipazione a program-
+       phulius influenzae tipo B quando queste vengono richieste dai genitori     
+                                          mi di prevenzione;                      
+       con prescrizione medica. Di tale norma possono usufruire anche i bam-      
+       bini extracomunitari non residenti sul territorio nazionale. d ) programmi di assistenza a malattie rare;
+          34 -bis . Per il perseguimento degli obiettivi di carattere priori- e) attività con rilevanti costi di attesa, ivi compreso il sistema
+       tario e di rilievo nazionale indicati nel comma 34 le regioni elaborano di allarme sanitario e di trasporto in emergenza, nonché il funzionamen-
+       specifici progetti sulla scorta di linee guida proposte dal Ministro del to della centrale operativa, di cui all’atto di indirizzo e coordinamento
+                                          approvato con decreto dei Presidente della Repubblica 27 marzo 1992,
+       lavoro, della salute e delle politiche sociali ed approvate con accordo in 
+                                          pubblicato nella G azzetta Ufficiale n. 76 del 21 marzo 1992;
+       sede di Conferenza permanente per i rapporti tra lo Stato, le regioni e le 
+       province autonome di Trento e di Bolzano. La Conferenza permanente f) programmi sperimentali di assistenza;
+       per i rapporti tra l o Stato, le regioni e le province autonome di Trento g) programmi di trapianto di organo, di midollo osseo e di
+       e di Bolzano, su proposta del Ministro della sanità, individua i progetti tessuto, ivi compresi il mantenimento e monitoraggio del donatore,
+       ammessi a finanziamento utilizzando le quote a tal fine vincolate del l’espianto degli organi da cadavere, le attività di trasporto, il coordina-
+       Fondo sanitario nazionale ai sensi del comma 34. Le regioni impegnate mento e l’organizzazione della rete di prelievi e di trapianti, gli accerta-
+       nei Piani di rientro individuano i progetti da realizzare in coerenza con menti preventivi sui donatori.
+       gli obiettivi dei Programmi operativi. La predetta modalità di ammissio-   
+                                             3. I criteri generali per la definizione delle funzioni assistenziali
+       ne al finanziamento è valida per le linee progettuali attuative del Piano  
+                                          e per la determinazione della loro remunerazione massima sono stabiliti
+       sanitario nazionale fino all’anno 2008. A decorrere dall’anno 2009, il     
+                                          con apposito decreto del Ministro della sanità, sentita l’Agenzia per i
+       Comitato interministeriale per la programmazione economica (CIPE), servizi sanitari regionali, d’intesa con la Conferenza permanente per i
+       su proposta del Ministro del lavoro, della salute e delle politiche sociali, rapporti tra lo Stato, le regioni e le province autonome, sulla base di
+       d’intesa con la Conferenza permanente per i rapporti tra lo Stato, le re- standard organizzativi e di costi unitari predefiniti dei fattori produttivi,
+       gioni e le province autonome di Trento e Bolzano, provvede a ripartire tenendo conto, quando appropriato, del volume dell’attività svolta.
+       tra le regioni le quote vincolate del Fondo sanitario nazionale ai sensi   
+                                             4. La remunerazione delle attività assistenziali diverse da quelle
+       del comma 34 all’atto dell’adozione della propria delibera di riparti-     
+                                          di cui al comma 2 è determinata in base a tariffe predefinite, limitata-
+       zione delle somme spettanti alle regioni a titolo di finanziamento della   
+                                          mente agli episodi di assistenza ospedaliera per acuti erogata in regime
+       quota indistinta di Fondo sanitario nazionale di parte corrente. Al fine   
+                                          di degenza ordinaria e di day hospital, e alle prestazioni di assistenza
+       di agevolare le regioni nell’attuazione dei progetti di cui al comma 34,   
+                                          specialistica ambulatoriale, fatta eccezione per le attività rientranti nelle
+       il Ministero dell’economia e delle finanze provvede ad erogare, a titolo   
+                                          funzioni di cui al comma 3.             
+       di acconto, il 70 per cento dell’importo complessivo annuo spettante a     
+       ciascuna regione, mentre l’erogazione del restante 30 per cento è su- 5. Il Ministro della sanità, sentita l’Agenzia per i servizi sanitari
+       bordinata all’approvazione da parte della Conferenza permanente per regionali, d’intesa con la Conferenza permanente per i rapporti tra lo
+                                          Stato, le regioni e le province autonome di Trento e di Bolzano, ai sensi
+       i rapporti tra lo Stato, le regioni e le province autonome di Trento e di  
+                                          dell’articolo 120, comma 1, lettera g ) , del decreto legislativo 31 marzo
+       Bolzano, su proposta del Ministro del lavoro, della salute e delle politi- 
+                                          1998, n. 112, con apposito decreto individua i sistemi di classificazio-
+       che sociali, dei progetti presentati dalle regioni, comprensivi di una rela-
+                                          ne che definiscono l’unità di prestazione o di servizio da remunerare e
+       zione illustrativa dei risultati raggiunti nell’anno precedente. Le manca- 
+                                          determina le tariffe massime da corrispondere alle strutture accredita-
+       te presentazione ed approvazione dei progetti comportano, nell’anno di     
+                                          te, tenuto conto, nel rispetto dei principi di efficienza e di economicità
+       riferimento, la mancata erogazione della quota residua del 30 per cento    
+                                          nell’uso delle risorse, anche in via alternativa, di:
+       ed il recupero, anche a carico delle somme a qualsiasi titolo spettanti    
+       nell’anno successivo, dell’anticipazione del 70 per cento già erogata. A a) costi standard delle prestazioni calcolati in riferimento a
+       decorrere dall’anno 2013, il predetto acconto del 70 per cento è erogato strutture preventivamente selezionate secondo criteri di efficienza, ap-
+       a seguito dell’intervenuta intesa, in sede di Conferenza permanente per propriatezza e qualità dell’assistenza come risultanti dai dati in possesso
+       i rapporti tra lo Stato, le regioni e le province autonome di Trento e di del Sistema informativo sanitario;
+       Bolzano, sulla ripartizione delle predette quote vincolate per il perse- b) costi standard delle prestazioni già disponibili presso le re-
+       guimento degli obiettivi di carattere prioritario e di rilievo nazionale gioni e le province autonome;
+       indicati nel comma 34.».                c) tariffari regionali e differenti modalità di remunerazione
+         — La legge 18 maggio 1995, n. 187 recante: «Ratifica ed esecu- delle funzioni assistenziali attuate nelle regioni e nelle province autono-
+       zione dell’accordo tra il Governo italiano e la Santa Sede per regolare me. Lo stesso decreto stabilisce i criteri generali, nel rispetto del princi-
+       i rapporti tra l’ospedale pediatrico «Bambino Gesù» ed il Servizio sa- pio del perseguimento dell’efficienza e dei vincoli di bilancio derivanti
+       nitario nazionale, fatto nella Città del Vaticano il 15 febbraio 1995», è dalle risorse programmate a livello nazionale e regionale, in base ai qua-
+       pubblicata nella G azzetta Ufficiale n. 118 del 23 maggio 1995. li le regioni adottano il proprio sistema tariffario, articolando tali tariffe
+                                          per classi di strutture secondo le loro caratteristiche organizzative e di
+         — Si riporta il testo dell’articolo 8- sexies del decreto legislativo    
+                                          attività, verificate in sede di accreditamento delle strutture stesse. Le
+       30 dicembre 1992, n. 502, recante: «Riordino della disciplina in materia   
+                                          tariffe massime di cui al presente comma sono assunte come riferimen-
+       sanitaria, a norma dell’articolo 1 della legge 23 ottobre 1992, n. 421»,   
+                                          to per la valutazione della congruità delle risorse a carico del Servizio
+       pubblicato nella G azzetta Ufficiale n. 305 del 30 dicembre 1992:          
+                                          sanitario nazionale.                    
+          «Art. 8 -sexies (Remunerazione) . — 1. Le strutture che erogano Gli importi tariffari, fissati dalle singole regioni, superiori alle
+       assistenza ospedaliera e ambulatoriale a carico del Servizio sanitario na- tariffe massime restano a carico dei bilanci regionali. A decorrere dalla
+       zionale sono finanziate secondo un ammontare globale predefinito indi- data di entrata in vigore della presente disposizione è abrogato il decreto
+       cato negli accordi contrattuali di cui all’articolo 8- quinquies e determi- del Ministro della sanità 15 aprile 1994, recante “Determinazione dei
+       nato in base alle funzioni assistenziali e alle attività svolte nell’ambito criteri generali per la fissazione delle tariffe delle prestazioni di assisten-
+       e per conto della rete dei servizi di riferimento. Ai fini della determina- za specialistica, riabilitativa ed ospedaliera”, pubblicato nella G azzetta
+       zione del finanziamento globale delle singole strutture, le funzioni as- Ufficiale n. 107 del 10 maggio 1994.
+       sistenziali di cui al comma 2 sono remunerate in base al costo standard    
+                                             6. Con la procedura di cui al comma 5, sono effettuati periodi-
+       di produzione del programma di assistenza, mentre le attività di cui al    
+                                          camente la revisione del sistema di classificazione delle prestazioni e
+       comma 4 sono remunerate in base a tariffe predefinite per prestazione.     
+                                          l’aggiornamento delle relative tariffe, tenendo conto della definizione
+          1 -bis . Il valore complessivo della remunerazione delle funzioni dei livelli essenziali ed uniformi di assistenza e delle relative previsioni
+       non può in ogni caso superare il 30 per cento del limite di remunerazio- di spesa, dell’innovazione tecnologica e organizzativa, nonché dell’an-
+       ne assegnato.                      damento del costo dei principali fattori produttivi.
+                                      — 56 —
+````
+
+## Pagina 59
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          7. Il Ministro della sanità, con proprio decreto, d’intesa con la utilizzo delle strutture e l’autosufficienza di ciascuna regione, nonché
+       Conferenza permanente per i rapporti tra lo Stato, le regioni e le pro- l’impiego efficiente delle strutture che esercitano funzioni a valenza in-
+       vince autonome di Trento e di Bolzano, disciplina le modalità di eroga- terregionale e nazionale.».
+       zione e di remunerazione dell’assistenza protesica, compresa nei livelli   
+       essenziali di assistenza di cui all’articolo 1, anche prevedendo il ricorso Art. 3.
+       all’assistenza in forma indiretta.                                         
+                                                      Entrata in vigore           
+          8. Il Ministro della sanità, d’intesa con la Conferenza perma-          
+                                           1. Il presente decreto entra in vigore il giorno suc-
+       nente per i rapporti tra lo Stato, le regioni e le province autonome di    
+                                          cessivo a quello della sua pubblicazione nella G azzetta
+       Trento e di Bolzano, sentita l’Agenzia per i servizi sanitari regionali,   
+                                          Ufficiale della Repubblica italiana e sarà presentato alle
+       con apposito decreto, definisce i criteri generali per la compensazione    
+       dell’assistenza prestata a cittadini in regioni diverse da quelle di resi- Camere per la conversione in legge.
+       denza. Nell’ambito di tali criteri, le regioni possono stabilire specifiche
+       intese e concordare politiche tariffarie, anche al fine di favorire il pieno 25A05291
+                 ESTRATTI,       SUNTI     E  COMUNICATI                          
+         AGENZIA ITALIANA DEL FARMACO             Classificazione ai fini della fornitura
+                                            Confezione:                           
+       Autorizzazione all’importazione parallela del medicinale                   
+                per uso umano «Buscopan»     BUSCOPAN «10 mg compresse rivestite» 40 compresse in bli-
+                                          ster in AL/PVC - codice A.I.C.: 048518029;
+                                             OTC - medicinali non soggetti a prescrizione medica da banco.
+           Estratto determina IP n. 712 dell’8 settembre 2025                     
+                                                         Stampati                 
+         Descrizione del medicinale da importare e attribuzione del numero        
+       di identificazione: è autorizzata l’importazione parallela del medicina-   
+                                            Le confezioni del medicinale importato devono essere poste in
+       le BUSCOPAN, coated tablet 10 mg/tab 20 tablets (blister 1x20 tabs)        
+                                          commercio con etichette e foglio illustrativo conformi al testo in italia-
+       dalla Grecia con numero di autorizzazione 40031/10-09-2009, intestato      
+                                          no allegato e con le sole modifiche di cui alla presente determina e in
+       alla società Opella Healthcare Greece Single Member A.E.B.E. EOF.          
+                                          linea con quanto previsto dal decreto legislativo 6 febbraio 2025, n. 10
+       Sygrou 348, 176 74 Kallithea, Grecia e prodotto da Istituto De Angeli      
+       S.r.l., Firenze, Italy Loc. Prulli n. 103/C - 50066 - Reggello, Italy, con pubblicato nella G azzetta Ufficiale n. 31 del 7 febbraio 2025, recante
+       le specificazioni di seguito indicate a condizione che siano valide ed l’adeguamento della normativa nazionale alle disposizioni del regola-
+       efficaci al momento dell’entrata in vigore della presente determina. mento delegato (UE) 2016/161 della Commissione del 2 ottobre 2015,
+                                          in materia di sicurezza sull’imballaggio dei medicinali per uso umano. Il
+         Importatore:                                                             
+                                          foglio illustrativo dovrà riportare il produttore responsabile del rilascio
+          New Pharmashop S.r.l. con sede legale in Cis di Nola Isola n. 1 relativo allo specifico lotto importato, come indicato nel foglio illustra-
+       - Torre 1 - Int. 120 - 80035 - Nola (NA). tivo originale. L’imballaggio esterno deve indicare in modo inequivoca-
+         Confezione:                      bile l’officina presso la quale il titolare AIP effettua il confezionamento
+          BUSCOPAN «10 mg compresse rivestite» 40 compresse in bli- secondario. Sono fatti salvi i diritti di proprietà industriale e commer-
+       ster in AL/PVC - codice A.I.C.: 048518029 (in base 10) 1G8NWF(in ciale del titolare del marchio e del titolare dell’autorizzazione all’im-
+       base 32);                          missione in commercio, inclusi eventuali marchi grafici presenti negli
+          forma farmaceutica: compressa rivestita; stampati, come simboli o emblemi; l’utilizzo improprio del marchio,
+                                          in tutte le forme previste dalla legge, rimane esclusiva responsabilità
+          composizione: una compressa rivestita contiene:                         
+                                          dell’importatore parallelo.             
+           principio attivo: N-butilbromuro di joscina 10 mg;                     
+           eccipienti: nucleo: calcio idrogenofosfato, amido di mais (es- Farmacovigilanza e gestione delle segnalazioni
+       siccato), amido di mais solubile, silice colloidale anidra, acido tartarico, di sospette reazioni avverse
+       acido stearico/palmitico; rivestimento: povidone, saccarosio (vedere pa-   
+       ragrafo 2. Buscopan contiene saccarosio), talco, gomma arabica, titanio Il titolare dell’AIP è tenuto a comunicare al titolare dell’A.I.C. nel
+       diossido (E171), macrogol 6000, cera carnauba, cera gialla. Paese dell’Unione europea/Spazio economico europeo da cui il medici-
+         Sostituire le condizioni di conservazione al paragrafo 5 del foglio nale viene importato, l’avvenuto rilascio dell’AIP e le eventuali segna-
+       illustrativo e sul confezionamento esterno come di seguito riportato: 5. lazioni di sospetta reazione avversa di cui è venuto a conoscenza, così
+                                          da consentire allo stesso di assolvere gli obblighi di farmacovigilanza.
+         5. Come conservare «Buscopan».                                           
+         Compresse rivestite: conservare a temperatura inferiore a 25°C. Decorrenza di efficacia della determina: dal giorno successivo alla
+                                          sua pubblicazione nella G azzetta Ufficiale della Repubblica italiana.
+         Officine di confezionamento secondario:                                  
+          S.C.F. S.r.l. via F. Barbarossa n. 7 - 26824 Cavenago D’Adda            
+                                          25A05094                                
+       (LO);                                                                      
+          Pharma Partners S.r.l. via E. Strobino n. 55/57 - 59100 - Prato Autorizzazione all’immissione in commercio del medicinale
+       (PO);                                                                      
+                                             per uso umano, a base di vareniclina, «Civarenix»
+          De Salute S.r.l. via Antonio Biasini n. 26 - 26015 - Soresina           
+       (CR).                                                                      
+                                            Estratto determina AAM/A.I.C. n. 316 del 10 settembre 2025
+             Classificazione ai fini della rimborsabilità                         
+                                            Codice pratica: MCA/2023/207.         
+         Confezione:                        Procedura europea: n. SE/H/2482/001-003/DC.
+          BUSCOPAN «10 mg compresse rivestite» 40 compresse in bli- È autorizzata l’immissione in commercio del medicinale CIVARE-
+       ster in AL/PVC - codice A.I.C. : 048518029; NIX, le cui caratteristiche sono riepilogate nel riassunto delle caratte-
+          classe di rimborsabilità: C- bis . ristiche del prodotto (RCP), foglio illustrativo (FI) ed etichette (Eti),
+                                      — 57 —
+````
+
+## Pagina 60
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+       parti integranti della determina di cui al presente estratto, nella forma Classificazione ai fini della fornitura
+       farmaceutica, dosaggi e confezioni alle condizioni e con le specificazio-  
+       ni di seguito indicate:              Per tutte le confezioni sopra indicate è adottata la seguente clas-
+          titolare A.I.C.: G.L. Pharma GMBH, con sede legale e domicilio sificazione ai fini della fornitura: classificazione ai fini della fornitura:
+       fiscale in Schlossplatz 1, 8502 Lannach, Austria, (AT); RR - medicinale soggetto a prescrizione medica.
+          confezioni:                                                             
+                                                         Stampati                 
+           «0,5 mg compresse rivestite con film» - 56 compresse in fla-           
+       cone HDPE con chiusura a prova di bambino - A.I.C. n. 051027011 (in Le confezioni del medicinale devono essere poste in commercio
+       base 10) 1jp723 (in base 32);      con etichette e fogli illustrativi conformi al testo allegato alla determina,
+           «0,5 mg compresse rivestite con film» - 56 compresse in bli- di cui al presente estratto.
+       ster AL/AL - A.I.C. n. 051027023 (in base 10) 1JP72H (in base 32); È approvato il riassunto delle caratteristiche del prodotto allegato
+           «1 mg compresse rivestite con film» - 56 compresse in fla- alla determina, di cui al presente estratto.
+       cone HDPE con chiusura a prova di bambino - A.I.C. n. 051027035 (in        
+                                            Nel caso in cui la scheda per il paziente (P atient card , PC) sia in-
+       base 10) 1JP72V (in base 32);                                              
+                                          serita all’interno della confezione o apposta sul lato esterno della stessa
+           «1 mg compresse rivestite con film» - 56 compresse in blister è considerata parte integrante delle informazioni sul prodotto e della
+       AL/AL - A.I.C. n. 051027047 (in base 10) 1JP737 (in base 32); determina di cui al presente estratto.
+           «1 mg compresse rivestite con film» - 112 compresse in bli- In ottemperanza all’art. 80, commi 1 e 3, del decreto legislativo
+       ster AL/AL - A.I.C. n. 051027050 (in base 10) 1JP73B (in base 32); 24 aprile 2006, n. 219 e successive modificazioni ed integrazioni, il fo-
+           «0,5 mg + 1 mg compresse rivestite con film» - 11 compresse glio illustrativo e le etichette devono essere redatti in lingua italiana
+       da 0,5 mg in blister AL/AL + 14 x 1 compresse da 1 mg in blister al/al e, limitatamente ai medicinali in commercio nella Provincia di Bolza-
+       divisibile per dose unitaria in contenitore portafoglio, confezione di ini- no, anche in lingua tedesca. Il titolare dell’A.I.C. che intende avvalersi
+       zio trattamento - A.I.C. n. 051027062 (in base 10) 1JP73Q (in base 32); dell’uso complementare di lingue estere, deve darne preventiva comu-
+           «0,5 mg + 1 mg compresse rivestite con film» - 11 compresse nicazione all’AIFA e tenere a disposizione la traduzione giurata dei testi
+       da 0,5 mg in blister AL/AL + 42 x 1 compresse da 1 mg in blister al/al in lingua tedesca e/o in altra lingua estera. In caso di inosservanza delle
+       divisibile per dose unitaria in contenitore portafoglio, confezione di ini- disposizioni sull’etichettatura e sul foglio illustrativo si applicano le
+       zio trattamento - A.I.C. n. 051027074 (in base 10) 1JP742 (in base 32); sanzioni di cui all’art. 82 del suddetto decreto legislativo.
+           «1 mg compresse rivestite con film» - 28 compresse in blister          
+                                                       Tutela di mercato          
+       AL/AL - A.I.C. n. 051027086 (in base 10) 1JP74G (in base 32);              
+           «1 mg compresse rivestite con film» - 28 compresse in blister Il titolare dell’A.I.C. del farmaco generico è esclusivo responsabile
+       AL/AL in contenitore portafoglio - A.I.C. n. 051027098 (in base 10) del pieno rispetto dei termini previsti dall’art. 10, commi 2 e 4, del de-
+       1JP74U (in base 32);               creto legislativo 24 aprile 2006, n. 219 e successive modificazioni ed in-
+          principio attivo: vareniclina.  tegrazioni, secondo cui un medicinale generico non può essere immesso
+         Produttore responsabile del rilascio dei lotti: in commercio, finché non siano trascorsi dieci anni dall’autorizzazione
+                                          iniziale del medicinale di riferimento, ovvero, finché non siano trascorsi
+          Combino Pharm Malta, Ltd - HF60 Hal Far Industrial Estate,              
+                                          undici anni dall’autorizzazione iniziale del medicinale di riferimento,
+       Hal Far BBG3000, Malta.                                                    
+                                          se durante i primi otto anni di tale decennio, il titolare dell’AIC abbia
+                                          ottenuto un’autorizzazione per una o più indicazioni terapeutiche nuove
+             Classificazione ai fini della rimborsabilità                         
+                                          che, dalla valutazione scientifica preliminare all’autorizzazione, sono
+                                          state ritenute tali da apportare un beneficio clinico rilevante rispetto alle
+         «0,5 mg + 1 mg compresse rivestite con film» - 11 compresse da           
+                                          terapie esistenti.                      
+       0,5 mg in blister AL/AL + 14 x 1 compresse da 1 mg in blister al/al di-    
+       visibile per dose unitaria in contenitore portafoglio, confezione di inizio Il presente paragrafo e la contenuta prescrizione sono da ritenersi
+       trattamento - A.I.C. n. 051027062 (in base 10) 1JP73Q (in base 32); applicabili solo ove si realizzi la descritta fattispecie.
+         «0,5 mg + 1 mg compresse rivestite con film» - 11 compresse da           
+                                                      Tutela brevettuale          
+       0,5 mg in blister AL/AL + 42 x 1 compresse da 1 mg in blister al/al di-    
+       visibile per dose unitaria in contenitore portafoglio, confezione di inizio
+                                            Il titolare dell’A.I.C. del farmaco generico è esclusivo responsabi-
+       trattamento - A.I.C. n. 051027074 (in base 10) 1JP742 (in base 32);        
+                                          le del pieno rispetto dei diritti di proprietà industriale relativi al medi-
+         «1 mg compresse rivestite con film» - 28 compresse in blister AL/        
+                                          cinale di riferimento e delle vigenti disposizioni normative in materia
+       AL - A.I.C. n. 051027086 (in base 10) 1JP74G (in base 32);                 
+                                          brevettuale.                            
+         «1 mg compresse rivestite con film» - 28 compresse in blister            
+                                            Il titolare dell’A.I.C. è altresì responsabile del pieno rispetto di
+       AL/AL in contenitore portafoglio - A.I.C. n. 051027098 (in base 10)        
+                                          quanto disposto dall’art. 14, comma 2, del decreto legislativo 24 aprile
+       1JP74U (in base 32);                                                       
+                                          2006, n. 219 e successive modificazioni ed integrazioni, in virtù del
+         «1 mg compresse rivestite con film» - 56 compresse in flacone quale non sono incluse negli stampati quelle parti del riassunto delle
+       HDPE con chiusura a prova di bambino - A.I.C. n. 051027035 (in base caratteristiche del prodotto del medicinale di riferimento che si riferi-
+       10) 1JP72V (in base 32);           scono a indicazioni o a dosaggi ancora coperti da brevetto al momento
+         «1 mg compresse rivestite con film» - 56 compresse in blister AL/ dell’immissione in commercio del medicinale.
+       AL - A.I.C. n. 051027047 (in base 10) 1JP737 (in base 32). Il presente paragrafo e la contenuta prescrizione sono da ritenersi
+         Per le confezioni sopra riportate è adottata la seguente classifica- applicabili solo ove si realizzi la descritta fattispecie.
+       zione ai fini della rimborsabilità: classificazione ai fini della rimborsa-
+       bilità: apposita sezione della classe di cui all’art. 8, comma 10, lettera Rapporti periodici di aggiornamento
+       c) , della legge 24 dicembre 1993, n. 537 e successive modificazioni, sulla sicurezza - PSUR
+       dedicata ai farmaci non ancora valutati ai fini della rimborsabilità, de-  
+       nominata classe C (nn).              Al momento del rilascio dell’autorizzazione all’immissione in
+         «0,5 mg compresse rivestite con film» - 56 compresse in flacone commercio, la presentazione dei rapporti periodici di aggiornamento
+       HDPE con chiusura a prova di bambino - A.I.C. n. 051027011 (in base sulla sicurezza non è richiesta per questo medicinale. Tuttavia, il titolare
+       10) 1JP723 (in base 32)            dell’autorizzazione all’immissione in commercio deve controllare pe-
+                                          riodicamente se l’elenco delle date di riferimento per l’Unione europea
+         «0,5 mg compresse rivestite con film» - 56 compresse in blister          
+                                          (elenco EURD), di cui all’art. 107- quater , paragrafo 7), della diretti-
+       AL/AL - A.I.C. n. 051027023 (in base 10) 1JP72H (in base 32);              
+                                          va 2010/84/CE e pubblicato sul portale web dell’Agenzia europea dei
+         «1 mg compresse rivestite con film» - 112 compresse in blister AL/ medicinali, preveda la presentazione dei rapporti periodici di aggior-
+       AL - A.I.C. n. 051027050 (in base 10) 1JP73B (in base 32). namento sulla sicurezza per questo medicinale. In tal caso il titolare
+         Per le confezioni sopra riportate è adottata la seguente classifica- dell’autorizzazione all’immissione in commercio deve presentare i rap-
+       zione ai fini della rimborsabilità: classificazione ai fini della rimborsa- porti periodici di aggiornamento sulla sicurezza per questo medicinale
+       bilità: C.                         in accordo con l’elenco EURD.           
+                                      — 58 —
+````
+
+## Pagina 61
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+             Condizioni o limitazioni per quanto riguarda                         
+                                              2025 Gennaio 120,9 1,3   2,2        
+              l’uso sicuro ed efficace del medicinale                             
+                                                 Febbraio 121,1  1,5   2,2        
+         Il titolare dell’autorizzazione all’immissione in commercio è tenu-      
+       to a porre in essere le attività e le azioni di farmacovigilanza richieste e Marzo 121,4 1,7 2,9
+       dettagliate nel piano di gestione del rischio (RMP).                       
+                                                 Aprile  121,3   1,7   2,4        
+                 Validità dell’autorizzazione    Maggio  121,2   1,4   2,2        
+         L’autorizzazione ha validità fino alla data comune di rinnovo eu- Giugno 121,3 1,5 2,3
+       ropeo (CRD) 18 dicembre 2029, come indicata nella notifica di fine         
+                                                 Luglio  121,8   1,5   2,6        
+       procedura (EoP) trasmessa dallo stato membro di riferimento (RMS).         
+         Decorrenza di efficacia della determina: dal giorno successivo a         
+       quello della sua pubblicazione, per estratto, nella G azzetta Ufficiale del- 25A05217
+       la Repubblica italiana.                                                    
+       25A05095                                                                   
+                                            MINISTERO DEGLI AFFARI ESTERI E       
+        Revoca, su rinuncia, dell’autorizzazione all’immissione                   
+        in commercio del medicinale per uso umano «Osteocis» DELLA COOPERAZIONE INTERNAZIONALE
+         Con la determina n. aRM - n. 163/2025 - 2712 del 10 settembre Limitazione delle funzioni del titolare
+       2025 è stata revocata, ai sensi dell’art. 38, comma 9, del decreto legisla- del Consolato onorario in Limassol (Cipro)
+       tivo n. 219/2006, su rinuncia della Curium Italy S.r.l., l’autorizzazione  
+       all’immissione in commercio del sottoelencato medicinale, nelle confe-     
+       zioni indicate:                             IL DIRETTORE GENERALE          
+          medicinale: OSTEOCIS;               PER GLI ITALIANI ALL’ESTERO E LE POLITICHE MIGRATORIE
+          confezione: n. 039027014;       (O missis );                            
+          descrizione: «3 mg kit per preparazione radiofarmaceutica» - 5          
+       flaconcini da 15 ml.                              Decreta:                 
+         Qualora nel canale distributivo fossero presenti scorte del medi-        
+                                            La sig.ra Antonella Mantovani, Console onorario in Limassol (Ci-
+       cinale revocato, in corso di validità, le stesse potranno essere smaltite  
+                                          pro), oltre all’adempimento dei generali doveri di difesa degli interessi
+       entro e non oltre centottanta giorni dalla data di pubblicazione della pre-
+                                          nazionali e di protezione dei cittadini, esercita le funzioni consolari li-
+       sente determina.                                                           
+                                          mitatamente a:                          
+                                             a) ricezione e trasmissione materiale all’Ambasciata d’Italia in
+       25A05096                           Nicosia degli atti di stato civile pervenuti dalle Autorità locali, dai citta-
+                                          dini italiani o dai comandanti di navi o aeromobili nazionali o stranieri;
+                                             b) ricezione e trasmissione materiale all’Ambasciata d’Italia in
+                                          Nicosia delle dichiarazioni concernenti lo stato civile da parte dei co-
+        ISTITUTO NAZIONALE DI STATISTICA  mandanti di navi e di aeromobili, ovvero dei testimoni;
+                                             c) ricezione e trasmissione materiale all’Ambasciata d’Italia in
+                                          Nicosia dei testamenti formati a bordo di navi e di aeromobili da parte
+       Indici dei prezzi al consumo per le famiglie di operai e im-               
+                                          di cittadini italiani;                  
+        piegati, relativi al mese di luglio 2025, che si pubblicano               
+                                             d) ricezione e trasmissione materiale all’Ambasciata d’Italia in
+        ai sensi dell’articolo 81 della legge 27 luglio 1978, n. 392              
+                                          Nicosia degli atti dipendenti dall’apertura di successione di cittadini ita-
+        (Disciplina delle locazioni di immobili urbani), ed ai sensi              
+                                          liani o cui possono essere chiamati cittadini italiani;
+        dell’articolo 54 della legge del 27 dicembre 1997, n. 449                 
+                                             e) emanazione di atti conservativi, che non implichino la dispo-
+        (Misure per la stabilizzazione della finanza pubblica).                   
+                                          sizione dei beni di cittadini italiani, in materia di successione, naufragio
+                                          o sinistro aereo, con l’obbligo di informarne tempestivamente l’Amba-
+         Gli indici dei prezzi al consumo per le famiglie di operai e impie- sciata d’Italia in Nicosia;
+       gati, senza tabacchi, relativi ai singoli mesi del 2024 e 2025 e le loro   
+                                             f) attività urgenti di prima istruttoria in caso di sinistri marittimi
+       variazioni rispetto agli indici relativi al corrispondente mese dell’anno  
+                                          o aerei o di infortuni a bordo di navi, imbarcazioni da diporto o aerei
+       precedente e di due anni precedenti risultano:                             
+                                          nazionali, dopo aver preventivamente interpellato caso per caso l’Am-
+                                          basciata d’Italia in Nicosia;           
+                            Variazioni percentuali                                
+                            rispetto al corrispondente g) ricezione e trasmissione materiale all’Ambasciata d’Italia in
+           Anni e mesi Indici   periodo   Nicosia, competente per ogni decisione in merito, degli atti in materia
+                                          pensionistica;                          
+                            dell’anno di due anni h) autentica amministrativa di firma, nei casi in cui essa sia pre-
+                            precedente precedenti vista dalla legge;              
+                      (Base                  i) consegna di certificazioni, rilasciate dall’Ambasciata d’Italia
+                     2015=100)            in Nicosia;                             
+                                             j) certificazione dell’esistenza in vita ai fini pensionistici;
+          2023 Media  118,7                                                       
+                                             k) vidimazioni e legalizzazioni, con l’esclusione di quelle per le
+          2024 Luglio 120,0  1,1    6,9   quali sia richiesta una percezione, che pertanto rimangono di competen-
+                                          za esclusiva dell’Ambasciata d’Italia in Nicosia;
+              Agosto  120,1  0,8    6,1                                           
+                                             l) autentiche di firme apposte in calce a scritture private, reda-
+              Settembre 120,0 0,6   5,7   zione di atti di notorietà e rilascio di procure speciali riguardanti persone
+                                          fisiche a cittadini italiani, nei casi previsti dalla legge;
+              Ottobre 120,1  0,8    2,5                                           
+                                             m) ricezione e trasmissione materiale all’Ambasciata d’Italia
+              Novembre 120,1 1,2    1,9   in Nicosia della documentazione relativa al rilascio di passaporti dei
+                                          cittadini che siano residenti nella circoscrizione territoriale dell’Uffi-
+              Dicembre 120,2 1,1    1,7   cio consolare onorario; diretta consegna ai titolari dei passaporti emessi
+                                          dall’Ambasciata d’Italia in Nicosia e restituzione all’Ambasciata d’Ita-
+              Media   119,7                                                       
+                                          lia in Nicosia delle ricevute di avvenuta consegna;
+                                      — 59 —
+````
+
+## Pagina 62
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+          n) captazione dei dati biometrici di connazionali che richiedono Barbara, n. 4, ha prodotto la documentazione sopra citata ed il modulo
+       un documento elettronico, per il successivo inoltro all’ufficio consolare a scelta basato sulla garanzia della qualità del processo di produzio-
+       di prima categoria;                ne (modulo «D») n. XD 007885 001 del 30 novembre 2023, rilasciato
+          o) ricezione e trasmissione all’Ambasciata d’Italia in Nicosia dall’organismo notificato «CerTrust» (Ungheria).
+       della documentazione relativa alle richieste di rilascio del documento di Dalla documentazione presentata risulta che l’esplosivo in argo-
+       viaggio provvisorio - ETD - presentate da cittadini italiani e da cittadini mento è prodotto dalla «St. Marks Powder» presso il proprio stabili-
+       degli Stati membri dell’UE, dopo avere acquisito la denuncia di furto o mento sito in 7121 Coastal Highway, Crawfordville, FL 32327 - U.S.A..
+       smarrimento del passaporto o di altro documento di viaggio e dopo aver Tale prodotto è sottoposto agli obblighi del sistema di identifica-
+       effettuato gli idonei controlli, previsti ai sensi dell’art. 71 del decreto zione e di tracciabilità degli esplosivi previsti dagli articoli 4 e 16 del
+       del Presidente della Repubblica 28 dicembre 2000, n. 445, sulla veridi- decreto legislativo 19 maggio 2016, n. 81, ed alle disposizioni di cui al
+       cità delle dichiarazioni sostitutive di cui agli articoli 46 e 47 del citato regolamento (CE) n. 1272/2008 del Parlamento europeo e del Consiglio
+       decreto del Presidente della Repubblica; consegna degli ETD, emessi del 16 dicembre 2008, relativo alla classificazione, all’etichettatura e
+       dall’Ambasciata d’Italia in Nicosia, validi per un solo viaggio verso lo all’imballaggio delle sostanze e delle miscele.
+       Stato membro di cui il richiedente è cittadino, verso il Paese di residenza
+                                            Sull’imballaggio dello stesso deve essere, altresì, apposta l’etichet-
+       permanente o, eccezionalmente, verso un’altra destinazione; ta riportante anche i seguenti dati: denominazione del prodotto, numero
+          p) ricezione e trasmissione all’Ambasciata d’Italia in Nico- ONU e codice di classificazione, numero dell’attestato di esame UE del
+       sia della documentazione relativa alle richieste di rilascio delle carte tipo, categoria dell’esplosivo secondo il T.U.L.P.S., nome dell’importa-
+       d’identità - presentate dai cittadini italiani residenti nella circoscrizione tore titolare delle licenze di polizia ed indicazione di eventuali pericoli
+       dell’Ufficio consolare onorario dopo aver effettuato gli idonei controlli, nel maneggio e trasporto, nonché gli estremi del presente provvedimen-
+       previsti ai sensi dell’art. 71 del decreto del Presidente della Repubblica to di classificazione.
+       28 dicembre 2000, n. 445, sulla veridicità delle dichiarazioni sostitutive Avverso tale provvedimento è, dunque, esperibile ricorso giurisdi-
+       di cui agli articoli 46 e 47 del citato decreto del Presidente della Repub- zionale al Tribunale amministrativo regionale ai sensi del decreto le-
+       blica; diretta consegna ai titolari delle carte d’identità, emesse dall’Am- gislativo 2 luglio 2010, n. 104, o, in alternativa, ricorso straordinario
+       basciata d’Italia a Nicosia e restituzione all’Ambasciata dei cartellini da al Presidente della Repubblica ai sensi del decreto del Presidente della
+       questi ultimi sottoscritti;        Repubblica 24 novembre 1971, n. 1199, nel termine, rispettivamente, di
+          q) assistenza ai connazionali bisognosi od in temporanea diffi- sessanta e centoventi giorni dalla data della notificazione o comunica-
+       coltà dietro coordinamento con l’Ambasciata d’Italia a Nicosia; zione o dalla data in cui l’interessato ne abbia avuto piena cognizione.
+          r) effettuazione delle operazioni richieste dalla legislazione vi-      
+       gente in dipendenza dell’arrivo e della partenza di una nave nazionale, 25A05143
+       nonché tenuta dei relativi registri, con esclusione di quelle per le qua-  
+       li sia richiesta una percezione, che pertanto rimangono di competenza Classificazione di un prodotto esplosivo
+       esclusiva dell’Ambasciata d’Italia in Nicosia;                             
+                                            Con decreto ministeriale n. 31189/2025 del 10 settembre 2025,
+          s) ricezione e trasmissione all’Ambasciata d’Italia in Nicosia          
+                                          la polvere propellente denominata «WMR®775» è classificata nella I
+       della documentazione relativa alle richieste di rilascio, rinnovo o conva- 
+                                          categoria di cui all’art. 82 del regio decreto 6 maggio 1940, n. 635, ed
+       lida delle certificazioni di sicurezza della nave o del personale marittimo
+                                          iscritta nell’allegato «A» al medesimo regio decreto, ai sensi dell’art. 19,
+       ( endorsement ); consegna delle predette certificazioni, dall’Ambasciata   
+                                          comma 3, lettera a ) , del decreto ministeriale 19 settembre 2002, n. 272,
+       d’Italia in Nicosia;                                                       
+                                          con il numero ONU 0161 1.3C, assegnato dall’autorità della Repubblica
+          t) notifica di atti a cittadini italiani residenti nella circoscrizio- della Slovacchia «VTSÚ Zahorie», in data 16 settembre 2021.
+       ne dell’Ufficio onorario, dando comunicazione dell’esito degli stes-       
+                                            L’esplosivo in parola è prodotto in accordo al certificato di esa-
+       si all’Autorità italiana competente e, per conoscenza, all’Ambasciata      
+                                          me UE del tipo n. 1019541/V/2019, rilasciato dall’organismo notificato
+       d’Italia in Nicosia;               «VVUÚ, a.s.» (Repubblica Ceca), in data 19 dicembre 2019.
+          u) collaborazione all’aggiornamento da parte dell’Ufficio sovra-        
+                                            Per il citato esplosivo il sig. Stefano Fiocchi, titolare delle licenze
+       ordinato di I categoria dello schedario dei connazionali residenti; ex articoli 28, 46 e 47 T.U.L.P.S. in nome e per conto della «Fiocchi Mu-
+          v) tenuta dello schedario delle firme delle autorità locali. nizioni S.p.a.» con stabilimento sito in Lecco - loc. Belledo - via Santa
+         Il presente decreto viene pubblicato nella G azzetta Ufficiale della Barbara, n. 4, ha prodotto la documentazione sopra citata ed il modulo
+       Repubblica italiana.               a scelta basato sulla garanzia della qualità del processo di produzio-
+                                          ne (modulo «D») n. XD 007885 001 del 30 novembre 2023, rilasciato
+          Roma, 17 settembre 2025         dall’organismo notificato «CerTrust» (Ungheria).
+                                            Dalla documentazione presentata risulta che l’esplosivo in argo-
+                          Il direttore generale: VIGNALI mento è prodotto dalla «St. Marks Powder» presso il proprio stabili-
+                                          mento sito in 7121 Coastal Highway, Crawfordville, FL 32327 - U.S.A..
+       25A05204                             Tale prodotto è sottoposto agli obblighi del sistema di identifica-
+                                          zione e di tracciabilità degli esplosivi previsti dagli articoli 4 e 16 del
+                                          decreto legislativo 19 maggio 2016, n. 81 ed alle disposizioni di cui al
+                                          regolamento (CE) n. 1272/2008 del Parlamento europeo e del Consiglio
+                                          del 16 dicembre 2008, relativo alla classificazione, all’etichettatura e
+            MINISTERO DELL’INTERNO                                                
+                                          all’imballaggio delle sostanze e delle miscele.
+                                            Sull’imballaggio dello stesso deve essere, altresì, apposta l’etichet-
+            Classificazione di un prodotto esplosivo ta riportante anche i seguenti dati: denominazione del prodotto, numero
+                                          ONU e codice di classificazione, numero dell’attestato di esame UE del
+         Con decreto ministeriale n. 31185/2025 del 10 settembre 2025, la tipo, categoria dell’esplosivo secondo il T.U.L.P.S., nome dell’importa-
+       polvere propellente denominata «WC 297» è classificata nella I catego- tore titolare delle licenze di polizia ed indicazione di eventuali pericoli
+       ria di cui all’art. 82 del regio decreto 6 maggio 1940, n. 635, ed iscritta nel maneggio e trasporto, nonché gli estremi del presente provvedimen-
+       nell’allegato «A» al medesimo regio decreto, ai sensi dell’art. 19, com- to di classificazione.
+       ma 3, lettera a ) , del decreto ministeriale 19 settembre 2002, n. 272, con
+                                            Avverso tale provvedimento è, dunque, esperibile ricorso giurisdi-
+       il numero ONU 0161 1.3C, assegnato dall’autorità della Repubblica zionale al Tribunale amministrativo regionale ai sensi del decreto le-
+       della Slovacchia «VTSÚ Zahorie», in data 16 settembre 2021. gislativo 2 luglio 2010, n. 104, o, in alternativa, ricorso straordinario
+         L’esplosivo in parola è prodotto in accordo al certificato di esa- al Presidente della Repubblica ai sensi del decreto del Presidente della
+       me UE del tipo n. 1019058/V/2022, rilasciato dall’organismo notificato Repubblica 24 novembre 1971, n. 1199, nel termine, rispettivamente, di
+       «VVUÚ, a.s.» (Repubblica Ceca), in data 23 febbraio 2022. sessanta e centoventi giorni dalla data della notificazione o comunica-
+         Per il citato esplosivo il sig. Stefano Fiocchi, titolare delle licenze zione o dalla data in cui l’interessato ne abbia avuto piena cognizione.
+       ex articoli 28, 46 e 47 T.U.L.P.S. in nome e per conto della «Fiocchi Mu-  
+       nizioni S.p.a.» con stabilimento sito in Lecco - loc. Belledo - via Santa 25A05144
+                                      — 60 —
+````
+
+## Pagina 63
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       25-9-2025            GAZZETTA UFFICIALE DELLA REPUBBLICA ITALIANA Serie generale - n. 223
+                                                                                  
+            Classificazione di un prodotto esplosivo Tale prodotto è sottoposto agli obblighi del sistema di identifica-
+                                          zione e di tracciabilità degli esplosivi previsti dagli articoli 4 e 16 del
+         Con decreto ministeriale n. 31182/2025 del 10 settembre 2025, la decreto legislativo 19 maggio 2016, n. 81, ed alle disposizioni di cui al
+       polvere propellente tipo 4.6SEC denominata «PBC-4620» è classificata regolamento (CE) n. 1272/2008 del Parlamento europeo e del Consiglio
+       nella I categoria di cui all’art. 82, del regio decreto 6 maggio 1940, del 16 dicembre 2008, relativo alla classificazione, all’etichettatura e
+       n. 635, ed iscritta nell’allegato «A» al medesimo regio decreto, ai sensi all’imballaggio delle sostanze e delle miscele.
+       dell’art. 19, comma 3, lettera a ) , del decreto ministeriale 19 settembre 
+                                            Sull’imballaggio dello stesso deve essere, altresì, apposta l’etichet-
+       2002, n. 272, con i numeri ONU 0161 1.3C o 0160 1.1C o 0509 1.4C           
+                                          ta riportante anche i seguenti dati: denominazione del prodotto, numero
+       assegnati dall’autorità belga SPF Economie, P.M.E. Classes moyennes        
+                                          ONU e codice di classificazione, numero dell’attestato di esame UE del
+       et Energie -Bruxelles (Belgio), in data 12 febbraio 2019, in funzione      
+                                          tipo, categoria dell’esplosivo secondo il T.U.L.P.S., nome del distributo-
+       delle modalità di imballaggio.                                             
+                                          re titolare delle licenze di polizia ed indicazione di eventuali pericoli nel
+         L’esplosivo in parola è prodotto in accordo al certificato di esame maneggio e trasporto, nonché gli estremi del presente provvedimento di
+       UE del tipo n. 0080.EXP.21.0018 indice 1, rilasciato dall’organismo no- classificazione.
+       tificato «INERIS» (Francia), in data 19 luglio 2023.                       
+                                            Avverso tale provvedimento è, dunque, esperibile ricorso giuri-
+         Per il citato esplosivo il sig. Stefano Fiocchi, titolare delle licenze  
+                                          sdizionale al Tribunale amministrativo regionale ai sensi del decreto
+       ex articoli 28, 46 e 47 T.U.L.P.S. in nome e per conto della «Fiocchi Mu-  
+                                          legislativo 2 luglio 2010, n. 104 o, in alternativa, ricorso straordina-
+       nizioni S.p.a.» con stabilimento sito in Lecco - loc. Belledo - via Santa  
+                                          rio al Presidente della Repubblica ai sensi del decreto del Presidente
+       Barbara, n. 4, ha prodotto la documentazione sopra citata ed il modulo     
+                                          della Repubblica 24 novembre 1971, n. 1199, nel termine, rispettiva-
+       a scelta basato sulla garanzia della qualità del processo di produzione    
+                                          mente, di sessanta e centoventi giorni dalla data della notificazione o
+       (modulo «D») n. AgCE 4-PCL del 20 febbraio 2024, rilasciato dall’or-       
+                                          comunicazione o dalla data in cui l’interessato ne abbia avuto piena
+       ganismo notificato «INERIS» (Francia).                                     
+                                          cognizione.                             
+         Dalla documentazione presentata risulta che l’esplosivo in argo-         
+       mento è prodotto dalla «Eurenco Clermont» presso lo stabilimento sito      
+       in Engis (Belgio).                 25A05145                                
+        MARGHERITA CARDONA ALBINI, redattore               DELIA CHIARA, vice redattore
+                    (WI-GU- 2025 -GU1- 223 ) Roma, 2025 - Istituto Poligrafi co e Zecca dello Stato S.p.A.
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                      — 61 —
+````
+
+## Pagina 64
+
+````text
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+                                                                                  
+       *45-410100250925*                                               € 1,00
+````

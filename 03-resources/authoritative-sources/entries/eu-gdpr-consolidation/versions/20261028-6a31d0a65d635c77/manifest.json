@@ -1,0 +1,36 @@
+{
+  "acquiredAt": "2026-10-28T07:48:13.7443874+00:00",
+  "artifacts": [
+    {
+      "contentHash": "ED3D999A773F6FFB37D1874275059157F62E82A3BD0FE0506FE1ED04722B0756",
+      "contentType": "application/xhtml+xml; charset=UTF-8",
+      "endpointId": "canonical",
+      "path": "originals/02016R0679-20160504.xhtml",
+      "sha256": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209",
+      "url": "https://publications.europa.eu/resource/cellar/5f2552c2-cc45-11e6-ad7c-01aa75ed71a1.0002.02/DOC_3"
+    }
+  ],
+  "configurationHash": "CE6F937B25292482985A28871DAC6DAC77F92CFF7E4E918A5794A48CB49D3F17",
+  "edition": "Consolidato CELEX 02016R0679-20160504, versione 000.003 con rettifiche C1 2016, C2 2018, C3 2021; strumento di documentazione, fa fede la GU",
+  "fingerprint": "6A31D0A65D635C7787FFCE61EF90E652F1B589C7A953F7C3D66FCAC92F0558C5",
+  "language": "it",
+  "publicationDate": null,
+  "schemaVersion": 1,
+  "sourceId": "eu-gdpr-consolidation",
+  "transcription": {
+    "diagnostics": {
+      "characters": 217701,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 2012,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "8EC06E17A7FE39DADA1EA5AFBEC8765A3B06645FB305CAF2E3137090D422CAC3",
+    "status": "extracted"
+  },
+  "versionId": "20261028-6a31d0a65d635c77"
+}

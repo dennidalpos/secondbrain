@@ -1,0 +1,32 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "literalTextPreserved": true,
+      "wordlist7776": true
+    },
+    "fingerprint": "842A8D865F7CC8DDC6CEFE88E09B1E13FB311601B9D01A69121AE0CD7245F80F",
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "CCEBEE5F5A073FC512426385AC947DB324A8F004730D72599EB0B655C7F3B7E2",
+    "originalSha256": "ADDD35536511597A02FA0A9FF1E5284677B8883B83E986E43F15A3DB996B903E",
+    "sourceId": "eff-diceware",
+    "status": "candidate",
+    "transcriptSha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9",
+    "versionId": "20261027-842a8d865f7cc8dd"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "842A8D865F7CC8DDC6CEFE88E09B1E13FB311601B9D01A69121AE0CD7245F80F",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:17.6250194+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "Literal source text retained, 7776 unique five-dice codes verified. Dataset usage and source credit separate from values.",
+  "structure": true,
+  "transcriptSha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9"
+}

@@ -1,0 +1,52 @@
+[
+  {
+    "celex": "32024R1689",
+    "request": {
+      "url": "https://publications.europa.eu/resource/celex/32024R1689",
+      "headers": {
+        "Accept": "application/xhtml+xml",
+        "Accept-Language": "ita"
+      }
+    },
+    "redirect": {
+      "status": 303,
+      "location": "http://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0013.03/DOC_1"
+    },
+    "httpsUrl": "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0013.03/DOC_1",
+    "status": 200,
+    "contentType": "application/xhtml+xml;charset=UTF-8",
+    "length": 1327017,
+    "hash": "BA2CA075FAA2CCFC19C57185692771DB11319ECC3B4E5BB067A90F63AA8B2C86",
+    "sameHashViaHttpRedirect": true,
+    "serverDates": [
+      "Tue, 27 Oct 2026 23:13:28 GMT",
+      "Tue, 27 Oct 2026 23:13:28 GMT",
+      "Tue, 27 Oct 2026 23:13:55 GMT"
+    ]
+  },
+  {
+    "celex": "02024R1689-20260727",
+    "request": {
+      "url": "https://publications.europa.eu/resource/celex/02024R1689-20260727",
+      "headers": {
+        "Accept": "application/xhtml+xml",
+        "Accept-Language": "ita"
+      }
+    },
+    "redirect": {
+      "status": 303,
+      "location": "http://publications.europa.eu/resource/cellar/b1730fb2-8f1c-11f1-9262-01aa75ed71a1.0015.02/DOC_1"
+    },
+    "httpsUrl": "https://publications.europa.eu/resource/cellar/b1730fb2-8f1c-11f1-9262-01aa75ed71a1.0015.02/DOC_1",
+    "status": 200,
+    "contentType": "application/xhtml+xml;charset=UTF-8",
+    "length": 889040,
+    "hash": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E",
+    "sameHashViaHttpRedirect": true,
+    "serverDates": [
+      "Tue, 27 Oct 2026 23:13:28 GMT",
+      "Tue, 27 Oct 2026 23:13:28 GMT",
+      "Tue, 27 Oct 2026 23:14:01 GMT"
+    ]
+  }
+]

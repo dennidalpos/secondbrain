@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "domains": [
+    {"id": "privacy", "title": "Privacy e dati personali"},
+    {"id": "ai", "title": "Intelligenza artificiale"},
+    {"id": "development", "title": "Sviluppo software"},
+    {"id": "security", "title": "Sicurezza informatica"},
+    {"id": "identity", "title": "Identita e crittografia"},
+    {"id": "cloud-infrastructure", "title": "Cloud e infrastrutture"},
+    {"id": "work", "title": "Lavoro"},
+    {"id": "sectoral", "title": "Discipline settoriali"},
+    {"id": "official-data", "title": "Dati ufficiali"}
+  ]
+}

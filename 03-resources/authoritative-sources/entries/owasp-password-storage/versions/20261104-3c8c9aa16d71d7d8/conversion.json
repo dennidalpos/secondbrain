@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "status": "extracted",
+  "reason": null,
+  "converter": "stdlib",
+  "requiresReview": true,
+  "sourceSha256": "5004D1EAD2DFA8270DF8BE7789C9DECB39746261639DDF271E24BA1AC68B32A1",
+  "characters": 20540,
+  "numericTokens": 209
+}

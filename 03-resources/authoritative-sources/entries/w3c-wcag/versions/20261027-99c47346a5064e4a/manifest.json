@@ -1,0 +1,43 @@
+{
+  "acquiredAt": "2026-10-27T10:14:01.3032472+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "Initial extraction, retained before provenance and layout review",
+      "sha256": "E5939EA8B6B032172CBDA71977B91C624E6297F36EADC141BC402FAE264AAAAB"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "64FD73CDB7725D9511488F5DE6386081329D365872547B2D5000EF771AC37BD0",
+      "contentType": "text/html; charset=utf-8",
+      "endpointId": "canonical",
+      "path": "originals/canonical.html",
+      "sha256": "6E3C5FE397257CAE509A2FB4752B73062CF8CBEB92C2CEC618989B17E4CF7057",
+      "url": "https://www.w3.org/TR/WCAG22/"
+    }
+  ],
+  "configurationHash": "468ED52807DA39902CD2C64D7B3F3857AE3AD5983642917BCA48C251E04AAAF6",
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "fingerprint": "99C47346A5064E4A8E9D04666DC5D861221BF915D2318841C16FCA3F5077304F",
+  "language": "en",
+  "publicationDate": null,
+  "schemaVersion": 1,
+  "sourceId": "w3c-wcag",
+  "transcription": {
+    "diagnostics": {
+      "characters": 266330,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 2814,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "6E3C5FE397257CAE509A2FB4752B73062CF8CBEB92C2CEC618989B17E4CF7057",
+      "status": "extracted"
+    },
+    "path": "transcript.verified.md",
+    "sha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1",
+    "status": "extracted"
+  },
+  "versionId": "20261027-99c47346a5064e4a"
+}

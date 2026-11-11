@@ -1,0 +1,33 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "manifestTranscriptMatch": true,
+      "noReplacementCharacters": true,
+      "numbersPreserved": true,
+      "structurePresent": true
+    },
+    "fingerprint": "E3ECE462F199B730B752476AD0E7E37808721860C95169987BEB3873F014B5A8",
+    "headings": 8,
+    "numericTokensMissing": {},
+    "originalSha256": "60463DF3B255A75DA16825618F3E39821AF7314F66AB166EC839BA5D9B6F061C",
+    "sourceId": "edpb-legal-framework",
+    "status": "candidate",
+    "transcript": "transcript.md",
+    "transcriptSha256": "B3751548ABE7E1E34F9FF73C0E9D7AABB589C51A93D1AD63A0ED6DA29DA3E1C1",
+    "versionId": "20261104-e3ece462f199b730"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "E3ECE462F199B730B752476AD0E7E37808721860C95169987BEB3873F014B5A8",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-11-08T17:55:22.7207132+00:00",
+  "reviewer": "Claude Code - local acquisition review (#379)",
+  "schemaVersion": 1,
+  "scope": "HTML headings and numeric tokens compared with original; substantive text identical to verified edition 20261027-aef2d5a00be06ca9, differences limited to capitalisation of language-switcher labels. Not a legal consolidation.",
+  "structure": true,
+  "transcriptSha256": "B3751548ABE7E1E34F9FF73C0E9D7AABB589C51A93D1AD63A0ED6DA29DA3E1C1"
+}

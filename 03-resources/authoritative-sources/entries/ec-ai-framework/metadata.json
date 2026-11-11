@@ -1,0 +1,56 @@
+{
+  "acceptedVersion": "20261108-b0c5ea0a77cfa07f",
+  "domains": [
+    "ai",
+    "privacy"
+  ],
+  "edition": "Pagina consultata 2026-10-27, ultimo aggiornamento indicato 2026-10-19",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "digital-strategy.ec.europa.eu"
+      ],
+      "expectedText": "2024/1689",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+    }
+  ],
+  "id": "ec-ai-framework",
+  "issuer": "Commissione europea - DG CONNECT",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "guideline",
+  "language": "en",
+  "notes": [
+    "Commissione europea, riutilizzo con attribuzione secondo le note legali e salvo materiali di terzi. Calendario informativo: qualificazione giuridica separata dalla trascrizione.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "AI Act regulatory framework",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Commissione europea, riutilizzo con attribuzione secondo le note legali e salvo materiali di terzi. Calendario informativo: qualificazione giuridica separata dalla trascrizione.",
+    "reference": "https://commission.europa.eu/legal-notice_en",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "AI Act - quadro e calendario della Commissione europea",
+  "versions": [
+    {
+      "id": "20261027-bf8da5718e67b96a",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "20261104-91f3a7480ab0adf0",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "20261108-b0c5ea0a77cfa07f",
+      "reviewStatus": "verified"
+    }
+  ]
+}

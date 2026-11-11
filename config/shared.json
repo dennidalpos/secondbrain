@@ -1,6 +1,5 @@
 {
   "allowedOwners": [],
-  "crossProjectReads": false,
   "excludedDirectories": [
     ".git",
     ".worktrees",

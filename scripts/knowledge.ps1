@@ -22,7 +22,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Stream,
-    [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Awaiting,[Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$ReadRepositories,
+    [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Awaiting,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
@@ -171,7 +171,7 @@ try{
         $repoId=if($Repository){$Repository}else{$working}
         if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
         $arguments=@{TaskId=$UpdateTaskId}
-        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires')){
+        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires')){
             if($PSBoundParameters.ContainsKey($field)){$arguments[$field]=$PSBoundParameters[$field]}
         }
         if($arguments.Count -eq 1){throw (New-SBError 'tracker.update.empty')}

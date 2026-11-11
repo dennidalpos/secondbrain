@@ -1,0 +1,63 @@
+{
+  "acceptedVersion": "20261027-ca7f8150ca790e24",
+  "domains": [
+    "privacy"
+  ],
+  "edition": "Testo 2016, rettifiche 23 maggio 2018, PDF Garante versione 1.9",
+  "effectiveDates": [
+    {
+      "date": "2018-05-25",
+      "provision": "Applicazione generale GDPR",
+      "reference": "https://www.edpb.europa.eu/about-edpb/legal-framework_en",
+      "status": "verified"
+    }
+  ],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.garanteprivacy.it"
+      ],
+      "expectedText": "2016/679",
+      "fileName": "gdpr-garante-2018.pdf",
+      "format": "pdf",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://www.garanteprivacy.it/documents/10160/0/Regolamento+UE+2016+679.+Arricchito+con+riferimenti+ai+Considerando+Aggiornato+alle+rettifiche+pubblicate+sulla+Gazzetta+Ufficiale++dell%27Unione+europea+127+del+23+maggio+2018.pdf/1bd9bde0-d074-4ca8-b37d-82a3478fd5d3?version=1.9"
+    }
+  ],
+  "id": "eu-gdpr",
+  "issuer": "Parlamento europeo e Consiglio; edizione Garante Privacy",
+  "jurisdictions": [
+    "EU"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Testo normativo UE; attribuzione e riferimenti editoriali del Garante conservati. Edizione aggiornata alle rettifiche del 23 maggio 2018: non equivale alla verifica corrente del consolidato EUR-Lex."
+  ],
+  "officialId": "http://data.europa.eu/eli/reg/2016/679/oj",
+  "publicationDate": "2016-05-04",
+  "relatedSources": [
+    {
+      "id": "eu-gdpr-consolidation",
+      "relation": "related"
+    },
+    {
+      "id": "edpb-legal-framework",
+      "relation": "related"
+    }
+  ],
+  "rights": {
+    "notes": "Testo normativo UE; attribuzione e riferimenti editoriali del Garante conservati. Edizione aggiornata alle rettifiche del 23 maggio 2018: non equivale alla verifica corrente del consolidato EUR-Lex.",
+    "reference": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "Regolamento (UE) 2016/679 - edizione Garante, rettifiche 2018",
+  "versions": [
+    {
+      "id": "20261027-ca7f8150ca790e24",
+      "reviewStatus": "verified"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "status": "extracted",
+  "reason": null,
+  "converter": "markitdown==0.1.9; pdfplumber-layout==0.11.10",
+  "requiresReview": true,
+  "sourceSha256": "91BC55C2A8E75E4B04579D9347B9E7282CF6577768DFA77C85DC46D0A31ABD52",
+  "pageCount": 176,
+  "imageOnlyPages": [],
+  "semanticCharacters": 1442597,
+  "characters": 1699600,
+  "numericTokens": 18515
+}

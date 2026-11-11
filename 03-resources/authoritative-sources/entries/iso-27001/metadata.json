@@ -1,0 +1,32 @@
+{
+  "acceptedVersion": null,
+  "domains": [
+    "security",
+    "identity"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "iso-27001",
+  "issuer": "ISO / IEC",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Solo riferimento: standard a distribuzione controllata. Requisiti e dichiarazioni del prodotto richiedono accesso autorizzato e riferimenti puntuali; non dedurre lunghezze password dalla sola etichetta ISO.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "ISO/IEC 27001",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Solo riferimento: standard a distribuzione controllata. Requisiti e dichiarazioni del prodotto richiedono accesso autorizzato e riferimenti puntuali; non dedurre lunghezze password dalla sola etichetta ISO.",
+    "reference": "https://www.iso.org/standard/27001",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "ISO/IEC 27001 - sistemi di gestione della sicurezza",
+  "versions": []
+}

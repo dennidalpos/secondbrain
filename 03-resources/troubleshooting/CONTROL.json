@@ -1,0 +1,22 @@
+{
+  "fileCount": 3,
+  "files": [
+    {
+      "bytes": 85,
+      "path": "brief.md",
+      "sha256": "DF743ED7C65E2725BCE1C2E2FA78F31BC7D2DDF2D016EF83502608D520E63A29"
+    },
+    {
+      "bytes": 135,
+      "path": "para.json",
+      "sha256": "0173F22EE9027BF5658D822853F4CDEB80ED41909DFB6304CDFD2D35577ACE4B"
+    },
+    {
+      "bytes": 14009,
+      "path": "reference.md",
+      "sha256": "533C73EFCDE8576698E7EA2B132E4899CE62C121A342B6677E0583FC15473F1A"
+    }
+  ],
+  "resource": "troubleshooting",
+  "schemaVersion": 1
+}

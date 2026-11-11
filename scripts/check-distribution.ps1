@@ -31,6 +31,7 @@ $allowedPrefixes = @(
     'config/',
     'direttive/',
     'docs/',
+    '03-resources/',
     'app/',
     '.github/'
 )
@@ -55,7 +56,7 @@ $allowedRootFiles = @(
 $forbiddenPatterns = @(
     '^01-projects/',
     '^02-areas/',
-    '^03-resources/',
+    '^03-resources/.+/versions/[^/]+/originals/',
     '^04-archives/',
     '^\.runtime/',
     '^PARA\.md$',
@@ -80,6 +81,7 @@ try {
 
 $violations = [System.Collections.Generic.List[string]]::new()
 $forbiddenFound = [System.Collections.Generic.List[string]]::new()
+$rightsViolations = [System.Collections.Generic.List[string]]::new()
 
 foreach ($line in $trackedFiles) {
     $f = $line.Trim().Replace('\', '/')
@@ -114,6 +116,14 @@ foreach ($line in $trackedFiles) {
     if (!$isAllowed) {
         $violations.Add($f)
     }
+
+    # Licence gate (#478): a version, transcript or evidence of a source is tracked only when its metadata declares rights.status public-reusable.
+    if ($f -match '^03-resources/authoritative-sources/entries/([^/]+)/(versions|evidence)/') {
+        $metadataPath = Join-Path $repo ('03-resources/authoritative-sources/entries/' + $Matches[1] + '/metadata.json')
+        $rightsStatus = $null
+        try { $rightsStatus = ([IO.File]::ReadAllText($metadataPath) | ConvertFrom-Json).rights.status } catch { $rightsStatus = $null }
+        if ($rightsStatus -cne 'public-reusable') { $rightsViolations.Add($f) }
+    }
 }
 
 $hasErrors = $false
@@ -127,6 +137,11 @@ if ($forbiddenFound.Count -gt 0) {
 if ($violations.Count -gt 0) {
     $hasErrors = $true
     Write-Output "VIOLAZIONE PERIMETRO: Rilevati file non ammessi per la distribuzione:`n$($violations -join "`n")"
+}
+
+if ($rightsViolations.Count -gt 0) {
+    $hasErrors = $true
+    Write-Output "VIOLAZIONE LICENZA: testi di fonti non public-reusable tracciati (rights.status del metadata.json):`n$($rightsViolations -join "`n")"
 }
 
 if ($hasErrors) {

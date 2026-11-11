@@ -1,0 +1,3 @@
+# GDPR consolidato — riscontro OnlyWorkspace da Cellar
+
+Manifestazione XHTML italiana del consolidato 02016R0679-20160504 versione 000.003 da API Cellar, riscaricata via HTTPS a hash identico. Incorpora le rettifiche C1 (GU L 314 del 22/11/2016), C2 (GU L 127 del 23/05/2018) e C3 (GU L 74 del 04/03/2021; marcata nel solo art. 56). SPARQL Cellar al 28/10/2026: unico consolidato e nessun atto modificativo del 32016R0679. Confronto per OnlyWorkspace limitato a titoli degli articoli citati e marcatori di rettifica, non testuale integrale con l'edizione Garante. Strumento di documentazione senza effetto giuridico; il `.txt` e una conversione locale non revisionata. Non costituisce acceptedVersion o conformita del prodotto.

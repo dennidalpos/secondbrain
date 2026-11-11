@@ -1,0 +1,2843 @@
+{
+  "repositories": [
+    {
+      "checkout": "D:\\GITHUB\\OnlyBackup",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyBackup",
+      "errors": [],
+      "gitHead": "e322e375db7a76eae7f4c5fe68f06b584516587c",
+      "name": "OnlyBackup",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlybackup",
+      "scannedFiles": 91,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyBollette",
+      "counts": {
+        "arera-135-2022": 2,
+        "official-energy-data": 29,
+        "official-insurance-data": 15,
+        "official-telecom-data": 19
+      },
+      "dossier": "02-areas/products/OnlyBollette",
+      "errors": [],
+      "gitHead": "020f9c0889258f551af5ece21f6bb32d11d47080",
+      "name": "OnlyBollette",
+      "references": [
+        {
+          "line": 12,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "3F529C328687DBE12DD4FD68B874D2865397B1C3BC9EBAE243C6F3C2903B1A48",
+          "sources": [
+            "official-energy-data",
+            "official-telecom-data",
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 20,
+          "officialUrls": [],
+          "path": "docs/ARCHITECTURE.md",
+          "sha256": "1733427A3DC9F7B7714A8272DD1777FEEF5517273BFC024DCE9B51CFA3D41EBE",
+          "sources": [
+            "official-energy-data",
+            "official-telecom-data",
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 15,
+          "officialUrls": [],
+          "path": "docs/SOURCES-AND-COMPARISON.md",
+          "sha256": "D97D09FABF4ADBE49C0FF4E89FE9D89709D25B952688BF776A4D4F497DF47738",
+          "sources": [
+            "official-energy-data",
+            "official-telecom-data",
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 28,
+          "officialUrls": [],
+          "path": "docs/SOURCES-AND-COMPARISON.md",
+          "sha256": "D97D09FABF4ADBE49C0FF4E89FE9D89709D25B952688BF776A4D4F497DF47738",
+          "sources": [
+            "official-energy-data",
+            "arera-135-2022"
+          ]
+        },
+        {
+          "line": 51,
+          "officialUrls": [],
+          "path": "docs/VERIFICATION.md",
+          "sha256": "918528A0ACBA3361CD6A2C61EF20E493C86846A33FBBC9FE531CB7175AD8E9E2",
+          "sources": [
+            "official-energy-data",
+            "official-telecom-data",
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 317,
+          "officialUrls": [],
+          "path": "src-tauri/src/energy.rs",
+          "sha256": "B1EEF7E5D9EC0DB28926B8EFE7063C4545DCB277B211A672A53EF92404142176",
+          "sources": [
+            "official-energy-data",
+            "arera-135-2022"
+          ]
+        },
+        {
+          "line": 6,
+          "officialUrls": [
+            "https://www.arera.it/area-operatori/ricerca-operatori"
+          ],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [
+            "https://datiroc.agcom.it/elenco-pubblico"
+          ],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 8,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 9,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 32,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 38,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 42,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 47,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 48,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 53,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 54,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 61,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 62,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 108,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 113,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 116,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 118,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 124,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 125,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 126,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 157,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 159,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 160,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 163,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 199,
+          "officialUrls": [
+            "https://datiroc.agcom.it/api/getElencoPubblico"
+          ],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 208,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 210,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 216,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 221,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 223,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 226,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 228,
+          "officialUrls": [],
+          "path": "src-tauri/src/providers.rs",
+          "sha256": "8E925CB22AB4C19ED0D212D2A39F86C1058948C784627FB21FAB1A32EDD464DD",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 70,
+          "officialUrls": [
+            "https://www.arera.it/consumatori/offerte-standard-per-i-clienti-finali-placet"
+          ],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 811,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 896,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 917,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 1123,
+          "officialUrls": [
+            "https://www.arera.it/area-operatori/ricerca-operatori"
+          ],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 1124,
+          "officialUrls": [
+            "https://www.arera.it/area-operatori/ricerca-operatori"
+          ],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 1125,
+          "officialUrls": [
+            "https://datiroc.agcom.it/elenco-pubblico"
+          ],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 1127,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 1138,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 1141,
+          "officialUrls": [],
+          "path": "src/App.tsx",
+          "sha256": "C8C9A97EEB958617207DBEC797FB4BDF42690ACDECAA5B894272756D5EC1D392",
+          "sources": [
+            "official-insurance-data"
+          ]
+        },
+        {
+          "line": 40,
+          "officialUrls": [],
+          "path": "src/OfferCard.tsx",
+          "sha256": "06C65A46537D5ADAF857ED83F6A8F8D4D22C1D4AB57D3C4EDBF6BDC916E75224",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 92,
+          "officialUrls": [],
+          "path": "src/OfferDetailsDialog.tsx",
+          "sha256": "F7AFF5BDB46942AD2142B0C91E6B20C0B2366331C0BBC019669013D2CE8E1645",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 155,
+          "officialUrls": [],
+          "path": "tests/ui/app.spec.ts",
+          "sha256": "14265AA772449A8311673BEF0E47C5CD8B34533CE8149B0E966233DA61AB7867",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 162,
+          "officialUrls": [
+            "https://www.arera.it/area-operatori/ricerca-operatori"
+          ],
+          "path": "tests/ui/app.spec.ts",
+          "sha256": "14265AA772449A8311673BEF0E47C5CD8B34533CE8149B0E966233DA61AB7867",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 164,
+          "officialUrls": [],
+          "path": "tests/ui/app.spec.ts",
+          "sha256": "14265AA772449A8311673BEF0E47C5CD8B34533CE8149B0E966233DA61AB7867",
+          "sources": [
+            "official-energy-data"
+          ]
+        },
+        {
+          "line": 264,
+          "officialUrls": [],
+          "path": "tests/ui/app.spec.ts",
+          "sha256": "14265AA772449A8311673BEF0E47C5CD8B34533CE8149B0E966233DA61AB7867",
+          "sources": [
+            "official-telecom-data"
+          ]
+        },
+        {
+          "line": 275,
+          "officialUrls": [
+            "https://datiroc.agcom.it/elenco-pubblico"
+          ],
+          "path": "tests/ui/app.spec.ts",
+          "sha256": "14265AA772449A8311673BEF0E47C5CD8B34533CE8149B0E966233DA61AB7867",
+          "sources": [
+            "official-telecom-data"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlybollette",
+      "scannedFiles": 63,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyCespiti",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyCespiti",
+      "errors": [],
+      "gitHead": "5a09167126048ac5aef3a4649d5488776fcc2712",
+      "name": "OnlyCespiti",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlycespiti",
+      "scannedFiles": 33,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyExo365",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyExo365",
+      "errors": [],
+      "gitHead": "e8f3b6215cd08aa3a0a87d31edf9e3f6909b4172",
+      "name": "OnlyExo365",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlyexo365",
+      "scannedFiles": 469,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyFieldAssetManager",
+      "counts": {
+        "owasp-file-upload": 1,
+        "owasp-password-storage": 2,
+        "w3c-wcag": 1
+      },
+      "dossier": "02-areas/products/OnlyFieldAssetManager",
+      "errors": [],
+      "gitHead": "ef69ef927793658332dc4d46fc4e20f71f8a6e33",
+      "name": "OnlyFieldAssetManager",
+      "references": [
+        {
+          "line": 36,
+          "officialUrls": [
+            "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+            "https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html"
+          ],
+          "path": "docs/02-domain-data-contract.md",
+          "sha256": "DCC583A9C2AFDF8659EB6832015E9A013D48DA5E933E28DC581FD0A1A932D234",
+          "sources": [
+            "owasp-password-storage",
+            "owasp-file-upload"
+          ]
+        },
+        {
+          "line": 9,
+          "officialUrls": [],
+          "path": "shared/configurator/src/main/kotlin/com/onlyfield/assetmanager/configurator/map/MapStyle.kt",
+          "sha256": "77824DE27A0E7C60B627D59B55608DDC3BF51E83E9C92F83CFEFEB9DA65FFF2B",
+          "sources": [
+            "w3c-wcag"
+          ]
+        },
+        {
+          "line": 27,
+          "officialUrls": [],
+          "path": "shared/exchange/src/main/java/com/onlyfield/assetmanager/exchange/PackageModels.kt",
+          "sha256": "2C815E5212F6687FA48E5BF3AEC5DA69EDEDD8EE893422B1C14F7D39468EB5A0",
+          "sources": [
+            "owasp-password-storage"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlyfieldassetmanager",
+      "scannedFiles": 381,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyFirmaOutlook",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyFirmaOutlook",
+      "errors": [],
+      "gitHead": "69a06026a7cbbae775faddbc45fb8c9069a956b1",
+      "name": "OnlyFirmaOutlook",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlyfirmaoutlook",
+      "scannedFiles": 53,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyGANTT",
+      "counts": {
+        "eu-gdpr": 20,
+        "iso-27001": 1
+      },
+      "dossier": "02-areas/products/OnlyGANTT",
+      "errors": [],
+      "gitHead": "796238ad7e9eab9bea57176d6d3d8b2e9695aeb8",
+      "name": "OnlyGANTT",
+      "references": [
+        {
+          "line": 747,
+          "officialUrls": [],
+          "path": "Data/reparti/Demo.json",
+          "sha256": "1186A663E10ED8D9001037E57CAA655365EF55A251F3B6B0F3B530C20E8F05C6",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 26,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "62C4E4D07D2EA4F8AA456AD3D0A86F417EFD4EF1A5740A33BAAD2372A1FE0EED",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 428,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "62C4E4D07D2EA4F8AA456AD3D0A86F417EFD4EF1A5740A33BAAD2372A1FE0EED",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 17,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 130,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 132,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 147,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 148,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 164,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 277,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 279,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 294,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 295,
+          "officialUrls": [],
+          "path": "landing/js/main.js",
+          "sha256": "AFB6ADE344E419373A0C5C63E65B90F6FD86C7464A2DD1B640FEFA968A964C3D",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 6,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 26,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 49,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 56,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 60,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 96,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 98,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "15610EBDC1A8BFB3BEBC1BDA61F674BA3CF9E9185E8ECC162F07A298116EAB21",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlygantt",
+      "scannedFiles": 74,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyGenKey",
+      "counts": {
+        "cis-benchmarks": 14,
+        "eff-diceware": 39,
+        "iso-27001": 28,
+        "nist-digital-identity": 11,
+        "pci-dss": 21
+      },
+      "dossier": "02-areas/products/OnlyGenKey",
+      "errors": [],
+      "gitHead": null,
+      "name": "OnlyGenKey",
+      "references": [
+        {
+          "line": 16,
+          "officialUrls": [],
+          "path": "AGENTS.md",
+          "sha256": "3BD9FFB937FAC9A2A16A350DBC6CFE9B0B24062D180ADE2D4608013E60ABE84D",
+          "sources": [
+            "nist-digital-identity",
+            "pci-dss",
+            "iso-27001",
+            "cis-benchmarks",
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 13,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 14,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 15,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 16,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 17,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 44,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 50,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 53,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 57,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 60,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 63,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 77,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 109,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "6E89BDC4AF1438862CF9962A19A2C72ABB9AA6FB7651CE888858EC13C7F64ABD",
+          "sources": [
+            "pci-dss",
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 112,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 252,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 253,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 254,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 255,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 256,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 265,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 266,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 273,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 310,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 311,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 313,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 314,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 333,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 334,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 335,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 336,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 337,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 348,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 349,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 350,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 356,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 359,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Cli/CliRunner.cs",
+          "sha256": "480F66745B6890D5C912EC07F5B7AAA1383B83BE14DFB5D21428455D7B8AC815",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 51,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 242,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 266,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 269,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 277,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 278,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 360,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 631,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 838,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "nist-digital-identity",
+            "pci-dss",
+            "iso-27001",
+            "cis-benchmarks",
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 984,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 985,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 988,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 1025,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 1256,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 1257,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 1392,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 1393,
+          "officialUrls": [],
+          "path": "src/GenKey.App/Gui/MainForm.cs",
+          "sha256": "E513DD27F30FD38B149CED167AEA8DE92851391BEEE920B613FB06B4055CC091",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 63,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 69,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 83,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 90,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 108,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 109,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 112,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 118,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 138,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 180,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 186,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 206,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 231,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 236,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 237,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Analysis/ComplianceAuditor.cs",
+          "sha256": "DEEF3FA340E1AEEDA6B0350967080B64456BE8608C690B63A102F3E3CC3A5493",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 20,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 86,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 99,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 151,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 152,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 283,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 296,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 308,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 309,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 323,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 335,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 336,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 337,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 338,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 339,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Generators/StandardPasswordGenerator.cs",
+          "sha256": "FCE68CA71585D722A2ABAD12E6AD89028D4CD27734E800DA685408FD43DC3B20",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 23,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/PasswordGenerationOptions.cs",
+          "sha256": "053F2C661CC03B208307FF53D53266D2E660E405FF3AB15E722A046F4A2DE4E3",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 83,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/PasswordGenerationOptions.cs",
+          "sha256": "053F2C661CC03B208307FF53D53266D2E660E405FF3AB15E722A046F4A2DE4E3",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 85,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/PasswordGenerationOptions.cs",
+          "sha256": "053F2C661CC03B208307FF53D53266D2E660E405FF3AB15E722A046F4A2DE4E3",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 97,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/PasswordGenerationOptions.cs",
+          "sha256": "053F2C661CC03B208307FF53D53266D2E660E405FF3AB15E722A046F4A2DE4E3",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 99,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/PasswordGenerationOptions.cs",
+          "sha256": "053F2C661CC03B208307FF53D53266D2E660E405FF3AB15E722A046F4A2DE4E3",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 9,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "nist-digital-identity"
+          ]
+        },
+        {
+          "line": 15,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 21,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "cis-benchmarks"
+          ]
+        },
+        {
+          "line": 27,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 30,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 33,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 36,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Models/StandardType.cs",
+          "sha256": "EE6041A7150AF4EAD46D8AAA4EC740F21DE75741ACBB1260263D9B8E6B0F929F",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 4,
+          "officialUrls": [],
+          "path": "src/GenKey.Core/Wordlists/EffWordlist.cs",
+          "sha256": "121B823B0551D9B0413171DCB10BAF3392BAABBC349E9C41C7FC320B88F1BAC2",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 21,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "pci-dss"
+          ]
+        },
+        {
+          "line": 61,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 67,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 68,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 95,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 138,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "iso-27001"
+          ]
+        },
+        {
+          "line": 173,
+          "officialUrls": [],
+          "path": "tests/GenKey.Core.Tests/GeneratorTests.cs",
+          "sha256": "0B60E97735E3F1564EED6CFD48F98ECED1CDA3BC36B5CEA3325221A83955DDAB",
+          "sources": [
+            "eff-diceware"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlygenkey",
+      "scannedFiles": 25,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyLanSneakGame",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyLanSneakGame",
+      "errors": [],
+      "gitHead": "1e421025a9bbf82e71df8f60c1fd7d4ec6055f04",
+      "name": "OnlyLanSneakGame",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlylansneakgame",
+      "scannedFiles": 22,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyRagV2",
+      "counts": {
+        "eu-gdpr": 1
+      },
+      "dossier": "02-areas/products/OnlyRagV2",
+      "errors": [],
+      "gitHead": "38f2d54ec602b8f48c77cfc51693f9e88183e03e",
+      "name": "OnlyRagV2",
+      "references": [
+        {
+          "line": 155,
+          "officialUrls": [],
+          "path": "src/services/domainRouter.ts",
+          "sha256": "E6B1383F714B1641B845019BCA5C65DCA717848648BB73AB192FA21F549F59EA",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlyragv2",
+      "scannedFiles": 1157,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyReminder",
+      "counts": {
+        "eu-gdpr": 1,
+        "w3c-wcag": 1
+      },
+      "dossier": "02-areas/products/OnlyReminder",
+      "errors": [],
+      "gitHead": "37c655638c920c42181543636d8d794f8df8346e",
+      "name": "OnlyReminder",
+      "references": [
+        {
+          "line": 23,
+          "officialUrls": [],
+          "path": "AGENTS.md",
+          "sha256": "64D29CBBCA2106D151B2455DF2155C6B6B76A6041526531B04AA85A32301B5D1",
+          "sources": [
+            "w3c-wcag"
+          ]
+        },
+        {
+          "line": 36,
+          "officialUrls": [],
+          "path": "README.md",
+          "sha256": "10C179E99A0EB0BCECE8FC37729D911767AA293EDD7AF2A6734D40349CE7C45E",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlyreminder",
+      "scannedFiles": 117,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyRights",
+      "counts": {
+        "eu-gdpr": 17
+      },
+      "dossier": "02-areas/products/OnlyRights",
+      "errors": [],
+      "gitHead": "a69d583886fbdc61c90e461630479f7ac539130b",
+      "name": "OnlyRights",
+      "references": [
+        {
+          "line": 46,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "CC52366C6E0628C44A12C3C32C5CCCA31B4EA5C25034A1662F4F859122776AA5",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 47,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "CC52366C6E0628C44A12C3C32C5CCCA31B4EA5C25034A1662F4F859122776AA5",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 520,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "CC52366C6E0628C44A12C3C32C5CCCA31B4EA5C25034A1662F4F859122776AA5",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 6,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 46,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 47,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 79,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 80,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 125,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 128,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 129,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 132,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 133,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 189,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "392FA1823777A621DA59B0775F34208854B74F2330947DC3CD4BEE350036EF43",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 27,
+          "officialUrls": [],
+          "path": "skills/onlyrights-app/SKILL.md",
+          "sha256": "F30B1870B4028169AB00BDF0F19ECDF110F0FD269D784A92C53A63971BB75F81",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 23,
+          "officialUrls": [],
+          "path": "skills/onlyrights-core/SKILL.md",
+          "sha256": "DA47864D4C854EE574FFE6EF773BFB3E39FB8341085C6619421853419724C647",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlyrights",
+      "scannedFiles": 173,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlySpeech",
+      "counts": {},
+      "dossier": "02-areas/products/OnlySpeech",
+      "errors": [],
+      "gitHead": "85221c9f8104239ccd7729c794413e05c198921b",
+      "name": "OnlySpeech",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlyspeech",
+      "scannedFiles": 350,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyTechTake",
+      "counts": {
+        "eu-gdpr": 9,
+        "w3c-wcag": 1
+      },
+      "dossier": "02-areas/products/OnlyTechTake",
+      "errors": [],
+      "gitHead": "ea42d1cddf080af90d74d09e6482a55844f9d4f2",
+      "name": "OnlyTechTake",
+      "references": [
+        {
+          "line": 26,
+          "officialUrls": [],
+          "path": "AGENTS.md",
+          "sha256": "7101C79FC8D93617B6F78EDB6324E1BDA2854DAFDE01329E11303B9865BE76F7",
+          "sources": [
+            "w3c-wcag"
+          ]
+        },
+        {
+          "line": 56,
+          "officialUrls": [],
+          "path": "docs/play-store/PRIVACY_POLICY_IT.md",
+          "sha256": "A4AF49969915042CF41D263EF810E76B23BF797E1A7D18C209F7A60F889B0112",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 91,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "EF8091BCDAF76FB0D1075114F5F152182C447D380F8A9F09D197F10E6C72670B",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 136,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "EF8091BCDAF76FB0D1075114F5F152182C447D380F8A9F09D197F10E6C72670B",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 136,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 137,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 173,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 306,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 307,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 343,
+          "officialUrls": [],
+          "path": "landing/script.js",
+          "sha256": "69A88D6A4CB1E71BA1FAA996C4B741AF99064F01CF167B34BAAEFB2CE00A2766",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlytechtake",
+      "scannedFiles": 351,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyTrayInfo",
+      "counts": {
+        "w3c-wcag": 1
+      },
+      "dossier": "02-areas/products/OnlyTrayInfo",
+      "errors": [],
+      "gitHead": "23bb90911434c4d0363379fe319552bdf565796f",
+      "name": "OnlyTrayInfo",
+      "references": [
+        {
+          "line": 23,
+          "officialUrls": [],
+          "path": "AGENTS.md",
+          "sha256": "9869B594B9113F3E2551A8C300FF1AE00C9A2608F14903C344E17CC9724FE513",
+          "sources": [
+            "w3c-wcag"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlytrayinfo",
+      "scannedFiles": 8,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyTweak",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyTweak",
+      "errors": [],
+      "gitHead": "834841b6bdda2dd52a136c8d0eefebc818a854c9",
+      "name": "OnlyTweak",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlytweak",
+      "scannedFiles": 62,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyUserActivity",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyUserActivity",
+      "errors": [],
+      "gitHead": "0544fc39d9f8e0c150b1f1df5f02981fbc409398",
+      "name": "OnlyUserActivity",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlyuseractivity",
+      "scannedFiles": 90,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyWIFI",
+      "counts": {},
+      "dossier": "02-areas/products/OnlyWIFI",
+      "errors": [],
+      "gitHead": null,
+      "name": "OnlyWIFI",
+      "references": [],
+      "repository": "github.com/dennidalpos/onlywifi",
+      "scannedFiles": 100,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyWinget",
+      "counts": {
+        "eu-gdpr": 13
+      },
+      "dossier": "02-areas/products/OnlyWinget",
+      "errors": [],
+      "gitHead": "dceb595da063e702bda01b8c17cfbc1c10324a36",
+      "name": "OnlyWinget",
+      "references": [
+        {
+          "line": 193,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "755AD34C347E814983388065466E215D8B2C5CD10F41FE12B5E264F701BE481B",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 272,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "755AD34C347E814983388065466E215D8B2C5CD10F41FE12B5E264F701BE481B",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 343,
+          "officialUrls": [],
+          "path": "landing/index.html",
+          "sha256": "755AD34C347E814983388065466E215D8B2C5CD10F41FE12B5E264F701BE481B",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 135,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 147,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 148,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 198,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 201,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 202,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 220,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 223,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 224,
+          "officialUrls": [],
+          "path": "landing/privacy.html",
+          "sha256": "F6388DF208561B1EE76817C02D7F900F068D7E12823B522F5708182CEF3EC306",
+          "sources": [
+            "eu-gdpr"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlywinget",
+      "scannedFiles": 294,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\OnlyWorkspace",
+      "counts": {
+        "eu-ai-act": 14,
+        "eu-gdpr": 22,
+        "it-ai-law-132-2025": 11,
+        "w3c-wcag": 2
+      },
+      "dossier": "02-areas/products/OnlyWorkspace",
+      "errors": [],
+      "gitHead": "8acc299c2d41feeff69666ba5fc498ef73be3ff0",
+      "name": "OnlyWorkspace",
+      "references": [
+        {
+          "line": 25,
+          "officialUrls": [],
+          "path": "docs/README.md",
+          "sha256": "9562C71CA9CE27285A8310E6F1A9039C525DF7864C2ED8D6BDD7F936F253414E",
+          "sources": [
+            "eu-gdpr",
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 1,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr",
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 23,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr",
+            "eu-ai-act",
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 29,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 31,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 37,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 44,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 45,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 49,
+          "officialUrls": [
+            "https://eur-lex.europa.eu/eli/reg/2016/679/oj"
+          ],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 50,
+          "officialUrls": [
+            "https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
+          ],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 51,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 53,
+          "officialUrls": [],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 56,
+          "officialUrls": [
+            "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025-09-23;132"
+          ],
+          "path": "docs/admin/conformita-ue.md",
+          "sha256": "85FFF1B5323D5FBBBE1FB38FA3BFB0968E8BB244C96662024F014B0DB33A714A",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 29,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 30,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 43,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 127,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 128,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 129,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 130,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 151,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 153,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/DataEgressConsentForm.cs",
+          "sha256": "61ECA680AC85F47910A8585874F85758FA861D537B5BD014E6858BB3B138A9F4",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 41,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.ConfigTool/Forms/Theme.cs",
+          "sha256": "569DDA67B42F226855ECD921CF16EB52E7CA201C46589C232C82AEE82CE4D1CA",
+          "sources": [
+            "w3c-wcag"
+          ]
+        },
+        {
+          "line": 80,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Context/ContextBuilder.cs",
+          "sha256": "465AD904F89C956D7F8137D3EC450CE77115A849AEBBE72349723DD104600CBD",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 14,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr",
+            "eu-ai-act",
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 31,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 33,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 46,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 121,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 128,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 133,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 134,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 160,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 166,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 287,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 288,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 298,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgress.cs",
+          "sha256": "5E24AB7B130A611A8FDDB00FB1591F3ED3A30C080FA895721A6E6D45E82F9C99",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 85,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgressReport.cs",
+          "sha256": "348E806503BE1D2DB4ED619B8669AF6EF92AAE0136FE61D65E05B34B0C83B368",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 86,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgressReport.cs",
+          "sha256": "348E806503BE1D2DB4ED619B8669AF6EF92AAE0136FE61D65E05B34B0C83B368",
+          "sources": [
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 87,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/DataEgressReport.cs",
+          "sha256": "348E806503BE1D2DB4ED619B8669AF6EF92AAE0136FE61D65E05B34B0C83B368",
+          "sources": [
+            "eu-ai-act"
+          ]
+        },
+        {
+          "line": 15,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Core/Privacy/Pseudonymizer.cs",
+          "sha256": "EF2889524EBA051112505AC42E1E86B14E30335B479A41BAC615AA22784D4EDC",
+          "sources": [
+            "eu-gdpr"
+          ]
+        },
+        {
+          "line": 98,
+          "officialUrls": [],
+          "path": "src/OnlyWorkspace.Outlook/UI/TaskPaneControl.cs",
+          "sha256": "729474804FCE2E73163B83923E641DC906C0A0E41395EA507667A6ED7E2FE6EA",
+          "sources": [
+            "w3c-wcag"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/onlyworkspace",
+      "scannedFiles": 422,
+      "status": "complete"
+    },
+    {
+      "checkout": "D:\\GITHUB\\SecondBrain",
+      "counts": {
+        "cis-benchmarks": 1,
+        "eff-diceware": 1,
+        "eu-ai-act": 2,
+        "eu-gdpr": 1,
+        "iso-27001": 1,
+        "it-ai-law-132-2025": 2,
+        "nist-digital-identity": 1,
+        "owasp-password-storage": 1,
+        "pci-dss": 1
+      },
+      "dossier": "02-areas/products/SecondBrain",
+      "errors": [],
+      "gitHead": "1f28f8695bca20e59e91412175a0a6334080f286",
+      "name": "SecondBrain",
+      "references": [
+        {
+          "line": 9,
+          "officialUrls": [],
+          "path": "02-areas/products/OnlyFieldAssetManager/memory.md",
+          "sha256": "C52F0BD08D61089DBFD0F4A27D07074B33064994876DBE488567C621339F13DC",
+          "sources": [
+            "owasp-password-storage"
+          ]
+        },
+        {
+          "line": 7,
+          "officialUrls": [],
+          "path": "02-areas/products/OnlyGenKey/context.md",
+          "sha256": "FD3230CFEBFC951FAAAC39C10E3A836289C22C2A840E887A897A1C0277ABD184",
+          "sources": [
+            "nist-digital-identity",
+            "pci-dss",
+            "iso-27001",
+            "cis-benchmarks",
+            "eff-diceware"
+          ]
+        },
+        {
+          "line": 20,
+          "officialUrls": [],
+          "path": "02-areas/products/OnlyWorkspace/context.md",
+          "sha256": "9E7D87C59C04DC7FBCE42C09C87EFD4993F3A876C9FADEEF88F1A8B1B996EC65",
+          "sources": [
+            "eu-gdpr",
+            "eu-ai-act",
+            "it-ai-law-132-2025"
+          ]
+        },
+        {
+          "line": 49,
+          "officialUrls": [],
+          "path": "02-areas/products/OnlyWorkspace/memory.md",
+          "sha256": "D7DF72F62A4E77BB1E28FF5040BD987DF51156313E41D0AA69745E49525AB819",
+          "sources": [
+            "eu-ai-act",
+            "it-ai-law-132-2025"
+          ]
+        }
+      ],
+      "repository": "github.com/dennidalpos/secondbrain",
+      "scannedFiles": 197,
+      "status": "complete"
+    }
+  ],
+  "schemaVersion": 1,
+  "scope": "Active instructions, documentation and source files; known generated, secret, history and snapshot directories excluded. Lexical references are evidence of citation, not applicability or conformity."
+}

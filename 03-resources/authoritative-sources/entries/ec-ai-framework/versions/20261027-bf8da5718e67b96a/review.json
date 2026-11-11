@@ -1,0 +1,35 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "noReplacementCharacters": true,
+      "numbersPreserved": true,
+      "structurePresent": true
+    },
+    "fingerprint": "BF8DA5718E67B96AD8ACEDDC8CC90C01FD27ED63DBE5AF7DD4858BE7EFD6FDFB",
+    "headings": 24,
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1",
+    "numericTokensMissing": {},
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "511B7AB8E0F1F8A5CA820262C567365FFA3B9D28E77F3F6C7F646C6337877C5E",
+    "originalSha256": "E1E007124DD40122AC604C073258F8338EA4229854C20D2C6567C21265B8CE06",
+    "sourceId": "ec-ai-framework",
+    "status": "candidate",
+    "transcriptSha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1",
+    "versionId": "20261027-bf8da5718e67b96a"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "BF8DA5718E67B96AD8ACEDDC8CC90C01FD27ED63DBE5AF7DD4858BE7EFD6FDFB",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:17.4683844+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "HTML headings and numeric tokens compared with original; substantive text reviewed. Menus and related links remain source context; not a legal consolidation.",
+  "structure": true,
+  "transcriptSha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1"
+}

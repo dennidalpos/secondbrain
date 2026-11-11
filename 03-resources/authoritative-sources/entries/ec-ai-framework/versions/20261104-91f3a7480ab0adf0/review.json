@@ -1,0 +1,34 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "manifestTranscriptMatch": true,
+      "noReplacementCharacters": true,
+      "numbersPreserved": true,
+      "structurePresent": true
+    },
+    "fingerprint": "91F3A7480AB0ADF0AA3D7ECDCE000AD9249926044818A9398DEAC44436CBECD8",
+    "headings": 23,
+    "numericTokensMissing": {},
+    "originalSha256": "4F0DDB025CC6850433DA429ED921DFBACD3CD668BCB112CAF204A7128BEEEFE9",
+    "sourceId": "ec-ai-framework",
+    "status": "candidate",
+    "transcript": "transcript.md",
+    "transcriptSha256": "EF2ADA78F1B2157750B4D95EA0ED474C9056E26089D1A5ABB3ADBA9A43B2DFA8",
+    "versionId": "20261104-91f3a7480ab0adf0"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "91F3A7480AB0ADF0AA3D7ECDCE000AD9249926044818A9398DEAC44436CBECD8",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance.",
+    "Intermediate edition reviewed and kept as verified; superseded as accepted version by 20261108-b0c5ea0a77cfa07f acquired 2026-11-08."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-11-08T17:55:21.1750497+00:00",
+  "reviewer": "Claude Code - local acquisition review (#379)",
+  "schemaVersion": 1,
+  "scope": "HTML headings and numeric tokens compared with original; substantive AI Act text and timeline identical to verified edition 20261027-bf8da5718e67b96a, differences limited to news and library sidebars. Menus and related links remain source context; not a legal consolidation.",
+  "structure": true,
+  "transcriptSha256": "EF2ADA78F1B2157750B4D95EA0ED474C9056E26089D1A5ABB3ADBA9A43B2DFA8"
+}

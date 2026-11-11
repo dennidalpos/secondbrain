@@ -1,0 +1,62 @@
+{
+  "acceptedVersion": "20261028-d98dc2ed94de1c6f",
+  "domains": [
+    "ai"
+  ],
+  "edition": "Reg. UE 2026/1744, GU L 2026/1744 del 24/07/2026, testo italiano",
+  "effectiveDates": [
+    {
+      "date": "2026-07-27",
+      "provision": "Entrata in vigore (art. 4; GU L 2026/1744 del 24/07/2026)",
+      "reference": "versions/20261028-d98dc2ed94de1c6f/originals/32026R1744.xhtml art. 4",
+      "status": "verified"
+    }
+  ],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "publications.europa.eu"
+      ],
+      "expectedText": "2026/1744",
+      "fileName": "32026R1744.xhtml",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://publications.europa.eu/resource/cellar/b459c07f-86fb-11f1-bf5e-01aa75ed71a1.0013.03/DOC_1"
+    }
+  ],
+  "id": "eu-ai-omnibus-2026",
+  "issuer": "Parlamento europeo e Consiglio",
+  "jurisdictions": [
+    "EU"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Identita confermata dal Legislative Observatory del Parlamento europeo, documento 1910754. Decorrenze da verificare sul testo legale; nessuna deduzione dalla sola pagina divulgativa.",
+    "2026-10-27: nuova verifica centrale in SecondBrain/history/2026-10-27-unblock-central/eurlex.json. Endpoint HTML/PDF EUR-Lex non acquisibili (HTTP 202); alternative ufficiali conservate come prove non qualificate, senza nuova acceptedVersion o conclusione sulle decorrenze.",
+    "2026-10-28: EUR-Lex risponde ancora HTTP 202 a corpo vuoto; endpoint sostituiti dalle manifestazioni XHTML italiane immutabili della API pubblica Cellar dell Ufficio delle pubblicazioni (stessi hash del riscontro OnlyWorkspace del 28/10). Endpoint di versione: il Probe non rileva nuovi consolidati, da cercare con SPARQL Cellar (cdm:resource_legal_id_celex).",
+    "2026-10-28: versione Cellar rivista e accettata (controlli in review.json; rapporto 02-areas/products/SecondBrain/history/2026-10-28-eurlex-cellar/report.md). Corpus SPARQL al 28/10: unico atto modificativo 32026R1744; consolidati 02024R1689-20240712/20260727 e 02016R0679-20160504. Nessuna conclusione di applicabilita o conformita dei prodotti."
+  ],
+  "officialId": "http://data.europa.eu/eli/reg/2026/1744/oj",
+  "publicationDate": "2026-07-24",
+  "relatedSources": [
+    {
+      "id": "eu-ai-act",
+      "relation": "amends"
+    }
+  ],
+  "rights": {
+    "notes": "Identita confermata dal Legislative Observatory del Parlamento europeo, documento 1910754. Decorrenze da verificare sul testo legale; nessuna deduzione dalla sola pagina divulgativa.",
+    "reference": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "Regolamento (UE) 2026/1744 - modifiche AI Act",
+  "versions": [
+    {
+      "id": "20261028-d98dc2ed94de1c6f",
+      "reviewStatus": "verified"
+    }
+  ]
+}

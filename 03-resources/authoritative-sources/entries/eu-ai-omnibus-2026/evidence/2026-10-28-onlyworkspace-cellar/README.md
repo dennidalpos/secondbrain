@@ -1,0 +1,3 @@
+# Reg. UE 2026/1744 — riscontro OnlyWorkspace da Cellar
+
+Manifestazione XHTML italiana della GU L 2026/1744 del 24/07/2026 (regolamento dell'8 luglio 2026, Omnibus digitale sull'IA), da API Cellar con riscarico HTTPS a hash identico. Verificati per OnlyWorkspace art. 1 punti 5 (art. 4), 20 (art. 50 par. 7), 39 (art. 111 par. 2 e 4), 40 (art. 113) e art. 4 (entrata in vigore il terzo giorno successivo alla pubblicazione: 27/07/2026). Unico atto modificativo del Reg. 2024/1689 censito in SPARQL Cellar al 28/10/2026. Il `.txt` e una conversione locale non revisionata. Non costituisce nuova acceptedVersion o conformita del prodotto.

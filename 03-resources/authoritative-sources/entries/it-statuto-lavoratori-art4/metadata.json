@@ -1,0 +1,59 @@
+{
+  "acceptedVersion": null,
+  "domains": [
+    "work",
+    "privacy"
+  ],
+  "edition": "Testo vigente su Normattiva, versione 3 dell art. 4 in vigore dal 2016-10-08, letto il 2026-11-08; non acquisito nel registro",
+  "effectiveDates": [
+    {
+      "date": "2015-09-24",
+      "provision": "Testo sostituito da art. 23 D.Lgs. 151/2015 (Normattiva versione 2, 2015-09-24 / 2016-10-07)",
+      "reference": "Normattiva caricaArticolo art.versione=2 letto 2026-11-08; GU 221/2015 S.O. 53 nella scheda it-dlgs-151-2015, versione 20261107-9bd9938c01d80c1c, pagine 130-131",
+      "status": "verified"
+    },
+    {
+      "date": "2016-10-08",
+      "provision": "Testo vigente: art. 4, comma 1, terzo periodo modificato da art. 5, comma 2, D.Lgs. 185/2016 (Normattiva versione 3, senza data di fine)",
+      "reference": "Normattiva caricaArticolo art.versione=3 e vediAggiornamentiAllArticolo letti 2026-11-08 (unico aggiornamento: D.Lgs. 185/2016); GU 235/2016 nella scheda it-dlgs-185-2016, versione 20261107-89a10c7f213e5fb0, pagina 10",
+      "status": "verified"
+    }
+  ],
+  "endpoints": [],
+  "id": "it-statuto-lavoratori-art4",
+  "issuer": "Repubblica Italiana",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Art. 4 L. 20 maggio 1970 n. 300 (Statuto dei lavoratori): impianti audiovisivi e altri strumenti di controllo a distanza. Introdotta per il registro attivita (#361).",
+    "Verifica del 2026-11-08 (#366): Normattiva restituisce il testo dell articolo in HTML lato server (pagina URN e /atto/caricaArticolo). Versioni: 1 dal 1970-06-11 al 2015-09-23, 2 dal 2015-09-24 al 2016-10-07, 3 dal 2016-10-08 senza data di fine; versione 4 inesistente (404). Aggiornamenti all articolo: solo D.Lgs. 185/2016, art. 5, comma 2. Ultimo aggiornamento all atto 2025-11-05, non relativo all art. 4. Rispetto alla versione 2 cambia solo il comma 1 dal terzo periodo (Ispettorato nazionale del lavoro; provvedimenti definitivi), parola per parola uguale al testo di art. 5, comma 2, nella trascrizione verificata della GU 235/2016 (incluso il refuso delle sede).",
+    "Il testo di Normattiva non ha valore di ufficialita: fa fede la Gazzetta Ufficiale. Rapporto: 02-areas/products/SecondBrain/history/2026-11-08-statuto-art4-366/report.md."
+  ],
+  "officialId": "L. 20 maggio 1970 n. 300, art. 4",
+  "publicationDate": null,
+  "relatedSources": [
+    {
+      "id": "eu-gdpr-consolidation",
+      "relation": "related"
+    },
+    {
+      "id": "it-dlgs-151-2015",
+      "relation": "related"
+    },
+    {
+      "id": "it-dlgs-185-2016",
+      "relation": "related"
+    }
+  ],
+  "rights": {
+    "notes": "Scheda solo di riferimento: nessuna scheda del registro acquisisce da Normattiva e le condizioni di riuso del testo consolidato non sono state verificate. Il testo vigente e verificato per lettura il 2026-11-08 con copie HTML nel rapporto #366; il testo 2015 (it-dlgs-151-2015) e la modifica 2016 (it-dlgs-185-2016) sono acquisiti dalla GU e rivisti.",
+    "reference": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1970-05-20;300~art4",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "Statuto dei lavoratori art. 4 - controlli a distanza",
+  "versions": []
+}

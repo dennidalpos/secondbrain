@@ -1,0 +1,39 @@
+{
+  "acceptedVersion": null,
+  "dataset": {
+    "geography": "Italia",
+    "period": "Non qualificato",
+    "schema": "Da verificare alla fonte; nessuna copia acquisita",
+    "units": "Da qualificare",
+    "usage": "Riferimento al registro ufficiale usato dal prodotto, non catalogo di offerte."
+  },
+  "domains": [
+    "official-data",
+    "sectoral"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "official-insurance-data",
+  "issuer": "Istituto per la Vigilanza sulle Assicurazioni",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "dataset",
+  "language": "it",
+  "notes": [
+    "Endpoint e ZIP citati da OnlyBollette. Solo metadati: condizioni di riutilizzo e dati delle persone da valutare prima di qualsiasi copia.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "https://www.ivass.it/consumatori/siti-imprese-intermediari/",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Endpoint e ZIP citati da OnlyBollette. Solo metadati: condizioni di riutilizzo e dati delle persone da valutare prima di qualsiasi copia.",
+    "reference": "https://www.ivass.it/consumatori/siti-imprese-intermediari/",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "IVASS - siti delle imprese e degli intermediari vigilati",
+  "versions": []
+}

@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "github-awesome-copilot",
+  "title": "Awesome GitHub Copilot - esempi comunitari",
+  "issuer": "GitHub community contributors",
+  "kind": "guideline",
+  "domains": [
+    "ai",
+    "development"
+  ],
+  "jurisdictions": [
+    "Global"
+  ],
+  "language": "en",
+  "officialId": null,
+  "edition": "Pagina web consultata il 2026-10-28; contenuto corrente, senza supporto retroattivo garantito",
+  "publicationDate": null,
+  "rights": {
+    "status": "reference-only",
+    "reference": "https://github.com/github/awesome-copilot",
+    "notes": "Registrati URL, data di consultazione e sintesi originali; nessun originale o trascrizione integrale acquisiti, diritti di riutilizzo non qualificati."
+  },
+  "endpoints": [],
+  "versions": [],
+  "acceptedVersion": null,
+  "relatedSources": [],
+  "effectiveDates": [],
+  "notes": [
+    "URL primario: https://github.com/github/awesome-copilot",
+    "Consultata online il 2026-10-28 nella ricerca e progettazione del catalogo v2.",
+    "Raccolta comunitaria, non standard né istruzioni di SecondBrain. Esempi specialistici UI, accessibilità, migrazioni e DevOps consultati; nessuna installazione.",
+    "Riferimento consultivo. Nessuna prescrizione comune attivata; nessuna prova di efficacia di un modello o IDE."
+  ]
+}

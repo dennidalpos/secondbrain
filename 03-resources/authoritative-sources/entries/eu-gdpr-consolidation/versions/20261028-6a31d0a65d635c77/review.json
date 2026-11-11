@@ -1,0 +1,38 @@
+{
+  "automatedEvidence": {
+    "articleHeadings": {
+      "original": 99,
+      "transcript": 99
+    },
+    "method": "Testo XHTML senza markup e trascrizione normalizzata (link, marcatori ▼, punteggiatura Markdown)",
+    "numericTokens": {
+      "missing": 32,
+      "original": 1423,
+      "transcript": 1391
+    },
+    "originalSha256": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209",
+    "replacementCharacters": 0,
+    "windows": {
+      "missing": 37,
+      "sampled": 767,
+      "size": 12,
+      "step": 40
+    }
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "6A31D0A65D635C7787FFCE61EF90E652F1B589C7A953F7C3D66FCAC92F0558C5",
+  "limitations": [
+    "Revisione strutturale e a campione, non lettura integrale; allegati e tabelle non confrontati singolarmente oltre ai token numerici.",
+    "Il consolidato non produce effetti giuridici: fa fede la GU. La verifica riguarda la trascrizione, non vigenza completa, applicabilita o conformita dei prodotti."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-28T08:52:24.0386838+01:00",
+  "reviewer": "Claude Code - revisione centrale SecondBrain",
+  "schemaVersion": 1,
+  "scope": "Confronto automatico con il testo dell originale XHTML canonico: intestazioni Articolo 99/99, 0 caratteri sostitutivi, token numerici mancanti 32 su 1423, finestre di 12 parole presenti 730/767; finestre mancanti esaminate a campione (numerazione su righe separate, note, marcatori di consolidamento). Passaggi citati verificati: artt. 4, 5, 6, 13, 22, 25, 32, 56, 99.",
+  "sourceId": "eu-gdpr-consolidation",
+  "structure": true,
+  "transcriptSha256": "8EC06E17A7FE39DADA1EA5AFBEC8765A3B06645FB305CAF2E3137090D422CAC3",
+  "versionId": "20261028-6a31d0a65d635c77"
+}

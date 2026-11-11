@@ -1,61 +1,51 @@
 #requires -Version 7.5
 # Task runner: pure selection of autonomous tracker tasks and the fixed prompt given to each fresh agent session.
 # No file I/O here: scripts/run-ready-tasks.ps1 owns process launch, work folders and reports.
-# The read-scope guard (#382) reads only the two session variables that the runner sets in the agent's environment.
+# The read-scope guard (#382) reads only the session variable that the runner sets in the agent's environment (#475: no cross-repository allowlist).
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Add-SBMessages @{
-    'isolation.cross.refused' = @{it='Isolamento per progetto: la vista globale o la ricerca senza progetto risolto e rifiutata; indicare il repository in lavoro (o abilitare crossProjectReads in config/shared.json)';en='Project isolation: the global view or a search without a resolved project is refused; give the working repository (or enable crossProjectReads in config/shared.json)'}
-    'runner.scope.global' = @{it='Lettura globale rifiutata in una sessione del runner per {0}: -All, -AllDossiers e all=true non sono consentiti; usare il repository del task o uno della sua allowlist di lettura';en='Global read refused in a runner session for {0}: -All, -AllDossiers and all=true are not allowed; use the task repository or one from its read allowlist'}
-    'runner.scope.repository' = @{it='Lettura rifiutata in una sessione del runner: {0} non e il repository del task ({1}) e non e nella sua allowlist di lettura';en='Read refused in a runner session: {0} is neither the task repository ({1}) nor in its read allowlist'}
+    'isolation.cross.refused' = @{it='Isolamento per progetto: la vista globale o la ricerca senza progetto risolto e rifiutata; indicare il repository in lavoro';en='Project isolation: the global view or a search without a resolved project is refused; give the working repository'}
+    'runner.scope.global' = @{it='Lettura globale rifiutata in una sessione del runner per {0}: -All, -AllDossiers e all=true non sono consentiti; usare il repository del task';en='Global read refused in a runner session for {0}: -All, -AllDossiers and all=true are not allowed; use the task repository'}
+    'runner.scope.repository' = @{it='Lettura rifiutata in una sessione del runner: {0} non e il repository del task ({1})';en='Read refused in a runner session: {0} is not the task repository ({1})'}
     'runner.scope.write' = @{it='Scrittura rifiutata in una sessione del runner: {0} non e il repository del task ({1})';en='Write refused in a runner session: {0} is not the task repository ({1})'}
-    'runner.scope.dossier' = @{it='Dossier rifiutato in una sessione del runner: {0} non appartiene al repository del task ({1}) ne alla sua allowlist di lettura';en='Dossier refused in a runner session: {0} belongs neither to the task repository ({1}) nor to its read allowlist'}
+    'runner.scope.dossier' = @{it='Dossier rifiutato in una sessione del runner: {0} non appartiene al repository del task ({1})';en='Dossier refused in a runner session: {0} does not belong to the task repository ({1})'}
 }
-$script:SBRunnerScopeVariables = @{repository='SECONDBRAIN_RUNNER_REPOSITORY';reads='SECONDBRAIN_RUNNER_READS'}
+$script:SBRunnerScopeVariables = @{repository='SECONDBRAIN_RUNNER_REPOSITORY'}
 $script:SBRunnerExcludedStreams = @('qualifica-finale','intervento-su-richiesta','coordinamento-prodotti')
 function Get-SBRunnerScopeVariables { $script:SBRunnerScopeVariables.Clone() }
 function Get-SBRunnerReadScope {
     # Set by run-ready-tasks.ps1 in the agent process only; absent in sessions started by a person, where nothing is restricted.
     $repo=[Environment]::GetEnvironmentVariable($script:SBRunnerScopeVariables.repository)
     if([string]::IsNullOrWhiteSpace($repo)){return $null}
-    $reads=@(([string][Environment]::GetEnvironmentVariable($script:SBRunnerScopeVariables.reads)) -split ';'|ForEach-Object {$_.Trim()}|Where-Object {$_})
-    @{repository=$repo.Trim();reads=$reads}
+    @{repository=$repo.Trim()}
 }
 function Assert-SBRunnerReadScope([switch]$Global,[string]$Repository,[string]$Dossier,[string]$BrainRoot,[switch]$Write){
-    # Code-level perimeter of a runner session: no global views, reads only of the task repository or its allowlist, writes only to the task repository.
+    # Code-level perimeter of a runner session: no global views, reads and writes only of the task repository.
     $scope=Get-SBRunnerReadScope
     if(!$scope){return}
     if($Global){throw (New-SBError 'runner.scope.global' @($scope.repository))}
     if($Repository -and $Repository -ine $scope.repository){
         if($Write){throw (New-SBError 'runner.scope.write' @($Repository,$scope.repository))}
-        if($Repository -inotin $scope.reads){throw (New-SBError 'runner.scope.repository' @($Repository,$scope.repository))}
+        throw (New-SBError 'runner.scope.repository' @($Repository,$scope.repository))
     }
     if($Dossier){
         $full=if([IO.Path]::IsPathRooted($Dossier)){$Dossier}else{Join-Path $BrainRoot $Dossier}
         $full=[IO.Path]::GetFullPath($full).TrimEnd('\','/')
-        $allowed=@(@($scope.repository)+$(if($Write){@()}else{$scope.reads})|ForEach-Object {
+        $allowed=@(@($scope.repository)|ForEach-Object {
             try{[IO.Path]::GetFullPath((Join-Path $BrainRoot (Resolve-SBWorkingDossier $BrainRoot $_))).TrimEnd('\','/')}catch{$null}
         }|Where-Object {$_})
         if(@($allowed|Where-Object {[string]::Equals($_,$full,[StringComparison]::OrdinalIgnoreCase)}).Count -eq 0){throw (New-SBError 'runner.scope.dossier' @($Dossier,$scope.repository))}
     }
 }
 function Test-SBProjectIsolation([string]$BrainRoot){
-    # Strict isolation per project (default): reads stay in the working project; shared PARA resources are the only common area.
-    # config/shared.json "crossProjectReads": true re-enables the global views (-All, -AllDossiers, all=true) on this brain.
-    $path=Join-Path $BrainRoot 'config/shared.json'
-    if(!(Test-Path -LiteralPath $path -PathType Leaf)){return $true}
-    try{$shared=[IO.File]::ReadAllText($path)|ConvertFrom-Json -AsHashtable}catch{return $true}
-    !($shared -is [hashtable] -and $shared.ContainsKey('crossProjectReads') -and $shared.crossProjectReads -eq $true)
+    # Strict isolation per project (#475): reads stay in the working project; 03-resources is the only common area. There is no switch to lift it.
+    $true
 }
 function Assert-SBProjectIsolation([string]$BrainRoot){
     if(Test-SBProjectIsolation $BrainRoot){throw (New-SBError 'isolation.cross.refused')}
-}
-function Get-SBRunnerTaskReads($Task){
-    # Per-task read-only allowlist written by REP16 (extensions.readRepositories).
-    # Callers wrap the result in @(): an empty allowlist yields nothing, never a nested array.
-    @(Get-SBRunnerValue (Get-SBRunnerValue $Task 'extensions') 'readRepositories'|Where-Object {$_}|ForEach-Object {[string]$_})
 }
 function Get-SBRunnerValue($Object,[string]$Name){
     if($null -eq $Object){return $null}
@@ -101,17 +91,13 @@ function New-SBTaskRunPrompt($Task,[string]$ScriptsRoot,[string]$CheckoutPath){
     # With a scripts root and a checkout (multi-repository run) the agent starts in a product checkout, where scripts/knowledge.ps1 does not exist:
     # the extra line gives it the absolute SecondBrain tools and the checkout that resolves the dossier.
     $where=if($ScriptsRoot -and $CheckoutPath){"Strumenti SecondBrain in $ScriptsRoot (usa $ScriptsRoot\knowledge.ps1 con -CheckoutPath `"$CheckoutPath`" al posto di scripts/knowledge.ps1), oppure i tool MCP secondbrain."}else{$null}
-    # Per-task read-only allowlist written by REP16 (extensions.readRepositories): the only other repositories the agent may read.
-    $reads=@(Get-SBRunnerTaskReads $Task)
-    $readLine=if($reads.Count){'Letture consentite solo in sola lettura, per questo task: '+($reads -join ', ')+'. Nessuna scrittura e nessun task di quei repository.'}else{$null}
     @(
         "Esegui SOLO il task $id (#$(Get-SBRunnerValue $Task 'seq')) del tracker SecondBrain, in questa sessione nuova.",
         $where,
         'Procedura: leggi AGENTS.md, carica il contesto con scripts/knowledge.ps1 -Startup, leggi il task con scripts/knowledge.ps1 -Task, esegui il lavoro, verifica ogni criterio di accettazione con strumenti disponibili e funzionanti, poi aggiorna lo stato con scripts/knowledge.ps1 -UpdateTaskId.',
         'Perimetro: lavora solo sul repository di questo checkout e sul suo tracker; non leggere, prendere o aggiornare task di altri repository e non usare -All, -AllDossiers, all=true e non indicare -Repository di un altro repository.',
-        $readLine,
         'Divieti: nessun commit, push, pubblicazione o cancellazione; nessuna applicazione di SYS05 o di pulizie; nessun altro task. Se serve una conferma o una prova live, fermati e riporta il limite nello stato del task senza chiuderlo.',
         'Chiudi con un riepilogo breve: esito per criterio, verifiche eseguite, limiti.'
     ).Where({$_}) -join "`n"
 }
-Export-ModuleMember -Function @('Test-SBProjectIsolation','Assert-SBProjectIsolation','Get-SBRunnerExcludedStreams','Test-SBRunnableTask','Get-SBRunnerExclusionReason','Get-SBRunnerExclusions','Select-SBRunnableTasks','New-SBTaskRunPrompt','Get-SBRunnerScopeVariables','Get-SBRunnerReadScope','Assert-SBRunnerReadScope','Get-SBRunnerTaskReads')
+Export-ModuleMember -Function @('Test-SBProjectIsolation','Assert-SBProjectIsolation','Get-SBRunnerExcludedStreams','Test-SBRunnableTask','Get-SBRunnerExclusionReason','Get-SBRunnerExclusions','Select-SBRunnableTasks','New-SBTaskRunPrompt','Get-SBRunnerScopeVariables','Get-SBRunnerReadScope','Assert-SBRunnerReadScope')

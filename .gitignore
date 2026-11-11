@@ -27,9 +27,9 @@ INVENTORY.md
 /02-areas/*
 !/02-areas/.gitkeep
 !/02-areas/README.md
-/03-resources/*
-!/03-resources/.gitkeep
-!/03-resources/README.md
+# 03-resources e pubblica (#478): metadati, trascrizioni e prove si tracciano; gli originali si scaricano con resources.ps1 -Sync (hash nel manifest).
+/03-resources/**/versions/*/originals/
+/03-resources/**/census/qa/
 /04-archives/*
 !/04-archives/.gitkeep
 !/04-archives/README.md

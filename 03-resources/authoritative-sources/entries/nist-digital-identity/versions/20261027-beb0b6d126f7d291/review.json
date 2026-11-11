@@ -1,0 +1,42 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "noImageOnlyPages": true,
+      "noReplacementCharacters": true,
+      "pageCountIndependent": true
+    },
+    "fingerprint": "BEB0B6D126F7D2910BE181C9F155872AF475C402868CCD4ED4EE4B5DA1B14ACD",
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "3094128139B407BBB163348CA8ECB7EB3D050D0C97D5DF90DC12E2097F88AE00",
+    "originalSha256": "D9AB89576B5AE2CFB3BA37781110788DEA27A85A5079496DBFC1A79834670AFD",
+    "pdf": {
+      "imageOnlyPages": [],
+      "pageCount": 129
+    },
+    "sampledPages": [
+      1,
+      65
+    ],
+    "sourceId": "nist-digital-identity",
+    "status": "candidate",
+    "transcriptSha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247",
+    "versionId": "20261027-beb0b6d126f7d291",
+    "visualSample": "census/qa/nist-digital-identity.png"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "BEB0B6D126F7D2910BE181C9F155872AF475C402868CCD4ED4EE4B5DA1B14ACD",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:17.8020707+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "All pages extracted with page boundaries, independent page count, no image-only pages detected; rendered cover and body/table sample reviewed and passages referenced by profiles checked. Images remain in original; current legal applicability not qualified.",
+  "structure": true,
+  "transcriptSha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247"
+}

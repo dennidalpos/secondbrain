@@ -2,6 +2,8 @@
 *.snapshot.txt -text
 *.pdf binary
 *.docx binary
+# 03-resources e hashata byte per byte (CONTROL.json, manifest): nessuna normalizzazione dei fine riga.
+03-resources/** -text
 02-areas/products/SecondBrain/history/2026-10-27-unblock-central/** -text whitespace=cr-at-eol,-blank-at-eof
 02-areas/products/SecondBrain/history/2026-10-27-directives32-handoff/** -text whitespace=cr-at-eol,-blank-at-eof
 direttive/proposals/2026-10-27-fonti-autorevoli/** -text whitespace=cr-at-eol

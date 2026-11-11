@@ -1,0 +1,39 @@
+{
+  "acceptedVersion": null,
+  "dataset": {
+    "geography": "Italia",
+    "period": "Non qualificato",
+    "schema": "Da verificare alla fonte; nessuna copia acquisita",
+    "units": "Da qualificare",
+    "usage": "Riferimento al registro ufficiale usato dal prodotto, non catalogo di offerte."
+  },
+  "domains": [
+    "official-data",
+    "sectoral"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "official-telecom-data",
+  "issuer": "Autorita per le Garanzie nelle Comunicazioni",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "dataset",
+  "language": "it",
+  "notes": [
+    "Endpoint effettivamente citato da OnlyBollette. Solo metadati: verificare diritti, formato e copertura prima di creare copie comuni.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "https://datiroc.agcom.it/elenco-pubblico",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Endpoint effettivamente citato da OnlyBollette. Solo metadati: verificare diritti, formato e copertura prima di creare copie comuni.",
+    "reference": "https://datiroc.agcom.it/elenco-pubblico",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "AGCOM - elenco pubblico ROC",
+  "versions": []
+}

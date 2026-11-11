@@ -1,0 +1,36 @@
+{
+  "acquiredAt": "2026-10-28T07:48:11.0598783+00:00",
+  "artifacts": [
+    {
+      "contentHash": "3A9035435B25C43C88E27433ECE9DE85DF3D647B61AB47004DDD2A84C7944838",
+      "contentType": "application/xhtml+xml; charset=UTF-8",
+      "endpointId": "canonical",
+      "path": "originals/32026R1744.xhtml",
+      "sha256": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE",
+      "url": "https://publications.europa.eu/resource/cellar/b459c07f-86fb-11f1-bf5e-01aa75ed71a1.0013.03/DOC_1"
+    }
+  ],
+  "configurationHash": "F9107A37892112A2A46B543241ECF6CD2A76BCD1A3F8F0432ADB0B9BEEDA7C2A",
+  "edition": "Reg. UE 2026/1744, GU L 2026/1744 del 24/07/2026, testo italiano",
+  "fingerprint": "D98DC2ED94DE1C6F6DC5B7B24086AC9378DD9A5AE11432D54C2D31B0158F5A8A",
+  "language": "it",
+  "publicationDate": "2026-07-24",
+  "schemaVersion": 1,
+  "sourceId": "eu-ai-omnibus-2026",
+  "transcription": {
+    "diagnostics": {
+      "characters": 176484,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 1981,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "BF30F2EEA398C40A3DA8E66720F86664E0CF8178E1EF55A487B8C4D86A33542C",
+    "status": "extracted"
+  },
+  "versionId": "20261028-d98dc2ed94de1c6f"
+}

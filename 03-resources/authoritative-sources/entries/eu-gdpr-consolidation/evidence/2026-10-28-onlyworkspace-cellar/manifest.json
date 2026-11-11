@@ -1,0 +1,25 @@
+{
+  "sourceId": "eu-gdpr-consolidation",
+  "observedAt": "2026-10-27T23:17:06.068Z",
+  "api": "https://publications.europa.eu/webapi/rdf/sparql e /resource/celex",
+  "scope": "Riscontro OnlyWorkspace SRC-BASELINE-20261027; non nuova acceptedVersion.",
+  "review": "Vedi README; rapporto nel dossier OnlyWorkspace history/2026-10-28-src-baseline-20261027-cellar/report.md",
+  "artifacts": [
+    {
+      "path": "02016R0679-20160504.txt",
+      "sha256": "EA1B6CCB86C7FEEF4A8E73B497B094A7863AD10406E0FEB3F684D173791B3222"
+    },
+    {
+      "path": "02016R0679-20160504.xhtml",
+      "sha256": "E68E652D31A4CFCCE9E35B1B438094785C491AE76FAC02C15728BE3E7D871209"
+    },
+    {
+      "path": "README.md",
+      "sha256": "C32EA95E75D27F31AC642CA5568CEBEAA42093B6DCE8A676F6FB26B686315FA3"
+    },
+    {
+      "path": "retrieval.json",
+      "sha256": "F481CDF13C3649D4F418FE2E198E2F2D7A72381A46A63850324D5064169075E0"
+    }
+  ]
+}

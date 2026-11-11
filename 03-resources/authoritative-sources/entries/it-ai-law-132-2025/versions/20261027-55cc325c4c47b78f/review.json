@@ -1,0 +1,42 @@
+{
+  "automatedEvidence": {
+    "automatedChecksPassed": true,
+    "checks": {
+      "noImageOnlyPages": true,
+      "noReplacementCharacters": true,
+      "pageCountIndependent": true
+    },
+    "fingerprint": "55CC325C4C47B78F45B8A93F27D52EED6C33A800CF39FE509BB800BA2FBE75F9",
+    "newTranscript": "transcript.verified.md",
+    "newTranscriptSha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75",
+    "oldTranscript": "transcript.md",
+    "oldTranscriptSha256": "354D6A7D8A69019E59DA9FF68A8161C275D2D83D95A926CFD748610AB831A57E",
+    "originalSha256": "4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339",
+    "pdf": {
+      "imageOnlyPages": [],
+      "pageCount": 64
+    },
+    "sampledPages": [
+      1,
+      33
+    ],
+    "sourceId": "it-ai-law-132-2025",
+    "status": "candidate",
+    "transcriptSha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75",
+    "versionId": "20261027-55cc325c4c47b78f",
+    "visualSample": "census/qa/it-ai-law-132-2025.png"
+  },
+  "citedPassages": true,
+  "corrections": [],
+  "fingerprint": "55CC325C4C47B78F45B8A93F27D52EED6C33A800CF39FE509BB800BA2FBE75F9",
+  "limitations": [
+    "Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance."
+  ],
+  "numbersAndTables": true,
+  "reviewedAt": "2026-10-27T10:40:17.7395048+00:00",
+  "reviewer": "Codex - local acquisition review",
+  "schemaVersion": 1,
+  "scope": "Whole Gazette preserved, independent page count and column separation; article 11 and printed pages 1-28 identified. Other acts remain context. Current consolidated law not qualified.",
+  "structure": true,
+  "transcriptSha256": "FA90515A541372437954116A62060F60F65111F80A1919646E1F273905BE0C5B"
+}

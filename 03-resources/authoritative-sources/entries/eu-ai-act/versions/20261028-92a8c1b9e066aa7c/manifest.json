@@ -1,0 +1,44 @@
+{
+  "acquiredAt": "2026-10-28T07:48:08.4987807+00:00",
+  "artifacts": [
+    {
+      "contentHash": "EFB80E752482E3C4D41D9D5B455056127B3CC51827C7B7EB9C6938B85EA5AF14",
+      "contentType": "application/xhtml+xml; charset=UTF-8",
+      "endpointId": "canonical",
+      "path": "originals/02024R1689-20260727.xhtml",
+      "sha256": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E",
+      "url": "https://publications.europa.eu/resource/cellar/b1730fb2-8f1c-11f1-9262-01aa75ed71a1.0015.02/DOC_1"
+    },
+    {
+      "contentHash": "E731ABF4DAEDFBEC64BCB4F5F97F5613BE8364655824EB95B91284C24F89C2C3",
+      "contentType": "application/xhtml+xml; charset=UTF-8",
+      "endpointId": "oj-original",
+      "path": "originals/32024R1689.xhtml",
+      "sha256": "BA2CA075FAA2CCFC19C57185692771DB11319ECC3B4E5BB067A90F63AA8B2C86",
+      "url": "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0013.03/DOC_1"
+    }
+  ],
+  "configurationHash": "89DD2F2204F02A085C890F9BA4F32EC81912E04A032388F25CE7334A61BFAC7E",
+  "edition": "Testo originario GU L 2024/1689 del 12/07/2024 e consolidato 001.001 al 27/07/2026 (M1 Reg. UE 2026/1744); fa fede la GU",
+  "fingerprint": "92A8C1B9E066AA7CCD8FC3A6561782C2916AAD849A08CDBFEFAC58D435125ACF",
+  "language": "it",
+  "publicationDate": "2024-07-12",
+  "schemaVersion": 1,
+  "sourceId": "eu-ai-act",
+  "transcription": {
+    "diagnostics": {
+      "characters": 434951,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 3931,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "E551FD4E6B2E29D6AE5F66F22FF945EE06A44BD6F3B7031573FE2EEE83F67D4E",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "A1527436190F124390E932444D07A24F4EA262B6C77C7CE60C2CFBA551A7D9D6",
+    "status": "extracted"
+  },
+  "versionId": "20261028-92a8c1b9e066aa7c"
+}

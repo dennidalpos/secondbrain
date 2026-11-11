@@ -1,0 +1,58 @@
+{
+  "acceptedVersion": "20261027-beb0b6d126f7d291",
+  "domains": [
+    "identity",
+    "security"
+  ],
+  "edition": "SP 800-63B-4, July 2025",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "nvlpubs.nist.gov"
+      ],
+      "expectedText": "800-63B",
+      "format": "pdf",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-63B-4.pdf"
+    },
+    {
+      "allowedHosts": [
+        "pages.nist.gov"
+      ],
+      "expectedText": "Authentication",
+      "format": "html",
+      "id": "publication",
+      "role": "discovery",
+      "url": "https://pages.nist.gov/800-63-4/sp800-63b.html"
+    }
+  ],
+  "id": "nist-digital-identity",
+  "issuer": "National Institute of Standards and Technology",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Pubblicazione tecnica NIST, attribuzione NIST e autori. La revisione 4 non sostituisce implicitamente i contratti dichiarati nei prodotti.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "NIST.SP.800-63B-4",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Pubblicazione tecnica NIST, attribuzione NIST e autori. La revisione 4 non sostituisce implicitamente i contratti dichiarati nei prodotti.",
+    "reference": "https://www.nist.gov/open/license",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "NIST SP 800-63B-4 - Authentication and Authenticator Management",
+  "versions": [
+    {
+      "id": "20261027-beb0b6d126f7d291",
+      "reviewStatus": "verified"
+    }
+  ]
+}

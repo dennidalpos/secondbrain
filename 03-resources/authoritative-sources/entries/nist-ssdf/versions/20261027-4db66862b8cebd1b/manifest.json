@@ -1,0 +1,56 @@
+{
+  "acquiredAt": "2026-10-27T10:13:44.8196474+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "Initial extraction, retained before provenance and layout review",
+      "sha256": "9B1BD48AEE04FCD7F91B466DD62B864BBDD2EAE02D6CCE010C4E12334A624634"
+    },
+    {
+      "path": "transcript.layout.md",
+      "reason": "First layout comparison with retained original preamble",
+      "sha256": "48E87C9B00C6D5591526EECB8DD7F517BBC05C87190D7ABC16F37744665B3FF4"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/canonical.pdf",
+      "sha256": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf"
+    },
+    {
+      "contentHash": "D93F2C9BE6E395B35F138DBD8A1DC07A4799197483C51305E70ACECF3CCEAFF5",
+      "contentType": "text/html; charset=utf-8",
+      "endpointId": "publication",
+      "path": "originals/publication.html",
+      "sha256": "1BB2E652134C8B285BA6536EEB145EBA4734EA6CBAF9DCFD6CEDB030773D86B3",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final"
+    }
+  ],
+  "configurationHash": "C8F3831747F028DB003B6BA294AD0F09D190849F5DA184413FDAC85E17DE857E",
+  "edition": "SSDF 1.1, final 2022-02-03",
+  "fingerprint": "4DB66862B8CEBD1B45C02CC632C1E955F48962695DB71CB5A7D832D3235D3632",
+  "language": "en",
+  "publicationDate": "2022-02-03",
+  "schemaVersion": 1,
+  "sourceId": "nist-ssdf",
+  "transcription": {
+    "diagnostics": {
+      "characters": 124496,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 2527,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "status": "extracted"
+    },
+    "path": "transcript.verified.md",
+    "sha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F",
+    "status": "extracted"
+  },
+  "versionId": "20261027-4db66862b8cebd1b"
+}

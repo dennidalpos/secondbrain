@@ -1,0 +1,51 @@
+{
+  "acceptedVersion": "20261027-55cc325c4c47b78f",
+  "domains": [
+    "ai",
+    "work",
+    "privacy"
+  ],
+  "edition": "Testo originario, GU n.223 del 25 settembre 2025",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.gazzettaufficiale.it"
+      ],
+      "expectedText": "132",
+      "fileName": "GU-2025-09-25-n223.pdf",
+      "format": "pdf",
+      "id": "canonical",
+      "layout": "two-column",
+      "role": "canonical",
+      "url": "https://www.gazzettaufficiale.it/do/gazzetta/downloadPdf?dataPubblicazioneGazzetta=20250925&edizione=0&estensione=pdf&home=true&numeroGazzetta=223&numeroSupplemento=0&progressivo=0&tipoSerie=SG&tipoSupplemento=GU"
+    }
+  ],
+  "id": "it-ai-law-132-2025",
+  "issuer": "Repubblica italiana - Gazzetta Ufficiale",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Atti normativi ufficiali: art. 5 L. 633/1941. Originale integrale del fascicolo GU: la legge 132 occupa le pagine stampate 1-28; altri atti del fascicolo sono conservati come contesto, non assimilati alla legge. Vigenza successiva da verificare in Normattiva.",
+    "Trascrizione con lettura separata delle due colonne. Il fascicolo integrale include altri atti; selezionare la legge 132 nelle pagine stampate 1-28 e art. 11 per uso lavorativo."
+  ],
+  "officialId": "25G00143; GU Serie Generale 223 del 25-09-2025",
+  "publicationDate": "2025-09-25",
+  "relatedSources": [],
+  "rights": {
+    "notes": "Atti normativi ufficiali: art. 5 L. 633/1941. Originale integrale del fascicolo GU: la legge 132 occupa le pagine stampate 1-28; altri atti del fascicolo sono conservati come contesto, non assimilati alla legge. Vigenza successiva da verificare in Normattiva.",
+    "reference": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1941-04-22;633~art5",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "Legge 23 settembre 2025 n. 132 - intelligenza artificiale",
+  "versions": [
+    {
+      "id": "20261027-55cc325c4c47b78f",
+      "reviewStatus": "verified"
+    }
+  ]
+}

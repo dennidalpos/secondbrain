@@ -1,0 +1,25 @@
+{
+  "sourceId": "eu-ai-omnibus-2026",
+  "observedAt": "2026-10-27T23:17:06.062Z",
+  "api": "https://publications.europa.eu/webapi/rdf/sparql e /resource/celex",
+  "scope": "Riscontro OnlyWorkspace SRC-BASELINE-20261027; non nuova acceptedVersion.",
+  "review": "Vedi README; rapporto nel dossier OnlyWorkspace history/2026-10-28-src-baseline-20261027-cellar/report.md",
+  "artifacts": [
+    {
+      "path": "32026R1744.txt",
+      "sha256": "E5A08B9B9BAAA0AF75C3DFCD7B18AA8ABDEFD4BB9BD920DF70854B2EA7565891"
+    },
+    {
+      "path": "32026R1744.xhtml",
+      "sha256": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE"
+    },
+    {
+      "path": "README.md",
+      "sha256": "670C83433D5B41D944B0E3B84A2CEB005107ABAFC98355CA946D41884B41CFEC"
+    },
+    {
+      "path": "retrieval.json",
+      "sha256": "520EF958D4531A14C881AC45E5981011C710E4E38719189BA4E5E6B4321551E4"
+    }
+  ]
+}

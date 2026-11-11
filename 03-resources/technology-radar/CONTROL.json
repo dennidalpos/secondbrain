@@ -1,0 +1,22 @@
+{
+  "fileCount": 3,
+  "files": [
+    {
+      "bytes": 81,
+      "path": "brief.md",
+      "sha256": "062701C9D743EE3D4C62236633BA7F4FE03FE108B8383C24B0C17611C54829C5"
+    },
+    {
+      "bytes": 137,
+      "path": "para.json",
+      "sha256": "E2B038F4C5E8AE8B86FBE2A94D7241671FC15BB3CC9BE58DB34A060D679C5A34"
+    },
+    {
+      "bytes": 900,
+      "path": "reference.md",
+      "sha256": "C102162B413AEF3AEF9C9502BDAFE5A1E02C4B3F0505772D4236A804B1481898"
+    }
+  ],
+  "resource": "technology-radar",
+  "schemaVersion": 1
+}

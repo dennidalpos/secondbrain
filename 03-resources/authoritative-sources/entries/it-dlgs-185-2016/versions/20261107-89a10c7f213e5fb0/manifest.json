@@ -1,0 +1,41 @@
+{
+  "acquiredAt": "2026-11-07T22:29:13.3200163+00:00",
+  "artifacts": [
+    {
+      "contentHash": "5CFB3D83AD2A4D2186D13E306901ED55E7A45931C980C76BD568DAADEB26659A",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/GU-2016-10-07-n235.pdf",
+      "sha256": "5CFB3D83AD2A4D2186D13E306901ED55E7A45931C980C76BD568DAADEB26659A",
+      "url": "https://www.gazzettaufficiale.it/eli/gu/2016/10/07/235/sg/pdf"
+    }
+  ],
+  "configurationHash": "DBB4D57CE380045679B01BA26EABB4DA4BB054ACFABFCD3FE71C491412596822",
+  "edition": "Testo originario, GU n.235 del 7 ottobre 2016 (art. 5 modifica l'art. 4 L. 300/1970; successive modifiche non incluse)",
+  "fingerprint": "89A10C7F213E5FB0E1D648F3D0A2FFE1030FA7D67D190129ABAC2027197FB49F",
+  "language": "it",
+  "publicationDate": "2016-10-07",
+  "schemaVersion": 1,
+  "sourceId": "it-dlgs-185-2016",
+  "transcription": {
+    "diagnostics": {
+      "characters": 723233,
+      "code": null,
+      "converter": "markitdown==0.1.9; pdfplumber-layout==0.11.10",
+      "imageOnlyPages": [],
+      "message": null,
+      "numericTokens": 7963,
+      "pageCount": 88,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "semanticCharacters": 568541,
+      "sourceSha256": "5CFB3D83AD2A4D2186D13E306901ED55E7A45931C980C76BD568DAADEB26659A",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "C68FE0121D00D098A5D9B2053A80D6052E17C2A420746B58465B8F1900E754FA",
+    "status": "extracted"
+  },
+  "versionId": "20261107-89a10c7f213e5fb0"
+}

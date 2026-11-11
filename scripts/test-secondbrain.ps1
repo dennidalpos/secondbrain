@@ -19,7 +19,7 @@ $pure=[bool]($Quick -or ($Only -and @($Only|Where-Object {$_ -ne 'quick'}).Count
 $budget=if($Only){0}elseif($Quick){15}elseif($Full){600}else{120}
 $run=$null;$gitEnvironment=$null;$success=$false;$checks=0;$results=[Collections.Generic.List[object]]::new()
 $saved=@{}
-foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR','SECONDBRAIN_RUNNER_REPOSITORY','SECONDBRAIN_RUNNER_READS')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
+foreach($name in @('SECONDBRAIN_TEST_ROOT','SECONDBRAIN_TEST_RUN_CONTEXT','SECONDBRAIN_TEST_KEEP','GIT_TEMPLATE_DIR','SECONDBRAIN_RUNNER_REPOSITORY')){$saved[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
 try {
     $run=New-SBTestRun $brain $level $PSBoundParameters $profileWatch
     $run.noGit=$pure;$run.budgetSeconds=$budget
@@ -28,7 +28,7 @@ try {
     Save-SBTestRunRecord $run
     $env:SECONDBRAIN_TEST_ROOT=$run.directory;$env:SECONDBRAIN_TEST_RUN_CONTEXT=$run.report;$env:SECONDBRAIN_TEST_KEEP='1'
     # The suites work on synthetic fixtures and exercise global views: a runner session scope (#382) inherited by the test process does not apply to them; restored at the end.
-    foreach($name in @('SECONDBRAIN_RUNNER_REPOSITORY','SECONDBRAIN_RUNNER_READS')){[Environment]::SetEnvironmentVariable($name,$null,'Process')}
+    foreach($name in @('SECONDBRAIN_RUNNER_REPOSITORY')){[Environment]::SetEnvironmentVariable($name,$null,'Process')}
     if(!$pure){$gitEnvironment=Enter-SBTestGitEnvironment}
     & {
         function Invoke-MinimalSuite([string]$Key,[scriptblock]$Body){

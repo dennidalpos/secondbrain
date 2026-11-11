@@ -1,0 +1,144 @@
+{
+  "acceptedVersion": "20261028-92a8c1b9e066aa7c",
+  "domains": [
+    "ai",
+    "privacy"
+  ],
+  "edition": "Testo originario GU L 2024/1689 del 12/07/2024 e consolidato 001.001 al 27/07/2026 (M1 Reg. UE 2026/1744); fa fede la GU",
+  "effectiveDates": [
+    {
+      "date": "2024-08-01",
+      "provision": "Entrata in vigore (art. 113, primo comma; GU 12/07/2024)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113; 32026R1744 considerando 1",
+      "status": "verified"
+    },
+    {
+      "date": "2025-02-02",
+      "provision": "Capi I e II (art. 113, terzo comma, lett. a)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2025-08-02",
+      "provision": "Capo III sez. 4, capi V, VII, XII e art. 78, escluso art. 101 (art. 113, lett. b)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2026-07-27",
+      "provision": "Artt. 102-110 (art. 113, lett. d)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2026-08-02",
+      "provision": "Applicazione generale (art. 113, secondo comma)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2026-12-02",
+      "provision": "Art. 5(1) primo comma lett. b bis e b ter, art. 5 par. 1 bis e 1 ter (art. 113, lett. a)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2026-12-02",
+      "provision": "Art. 50(2) per sistemi generativi immessi sul mercato prima del 02/08/2026: termine di adeguamento (art. 111(4))",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 111",
+      "status": "verified"
+    },
+    {
+      "date": "2027-08-02",
+      "provision": "Modelli GPAI immessi prima del 02/08/2025: termine di adeguamento (art. 111(3))",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 111",
+      "status": "verified"
+    },
+    {
+      "date": "2027-12-02",
+      "provision": "Capo III sez. 1-3, escluso art. 6(5), alto rischio art. 6(2) e allegato III (art. 113, lett. c, i)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2028-08-02",
+      "provision": "Capo III sez. 1-3, escluso art. 6(5), alto rischio art. 6(1) e allegato I (art. 113, lett. c, ii)",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 113",
+      "status": "verified"
+    },
+    {
+      "date": "2030-08-02",
+      "provision": "Alto rischio destinato ad autorita pubbliche: termine di adeguamento (art. 111(2))",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 111",
+      "status": "verified"
+    },
+    {
+      "date": "2030-12-31",
+      "provision": "Componenti dei sistemi IT su larga scala dell allegato X immessi prima del 02/08/2027: termine (art. 111(1))",
+      "reference": "versions/20261028-92a8c1b9e066aa7c/originals/02024R1689-20260727.xhtml art. 111",
+      "status": "verified"
+    }
+  ],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "publications.europa.eu"
+      ],
+      "expectedText": "2024/1689",
+      "fileName": "02024R1689-20260727.xhtml",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://publications.europa.eu/resource/cellar/b1730fb2-8f1c-11f1-9262-01aa75ed71a1.0015.02/DOC_1"
+    },
+    {
+      "allowedHosts": [
+        "publications.europa.eu"
+      ],
+      "expectedText": "2024/1689",
+      "fileName": "32024R1689.xhtml",
+      "format": "html",
+      "id": "oj-original",
+      "role": "original",
+      "url": "https://publications.europa.eu/resource/cellar/dc8116a1-3fe6-11ef-865a-01aa75ed71a1.0013.03/DOC_1"
+    }
+  ],
+  "id": "eu-ai-act",
+  "issuer": "Parlamento europeo e Consiglio",
+  "jurisdictions": [
+    "EU"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Testo normativo UE. Testo originario da leggere insieme alle modifiche; il blocco EUR-Lex impedisce di qualificare una verifica integrale corrente.",
+    "2026-10-27: nuova verifica centrale in SecondBrain/history/2026-10-27-unblock-central/eurlex.json. Endpoint HTML/PDF EUR-Lex non acquisibili (HTTP 202); alternative ufficiali conservate come prove non qualificate, senza nuova acceptedVersion o conclusione sulle decorrenze.",
+    "2026-10-28: EUR-Lex risponde ancora HTTP 202 a corpo vuoto; endpoint sostituiti dalle manifestazioni XHTML italiane immutabili della API pubblica Cellar dell Ufficio delle pubblicazioni (stessi hash del riscontro OnlyWorkspace del 28/10). Endpoint di versione: il Probe non rileva nuovi consolidati, da cercare con SPARQL Cellar (cdm:resource_legal_id_celex).",
+    "2026-10-28: versione Cellar rivista e accettata (controlli in review.json; rapporto 02-areas/products/SecondBrain/history/2026-10-28-eurlex-cellar/report.md). Corpus SPARQL al 28/10: unico atto modificativo 32026R1744; consolidati 02024R1689-20240712/20260727 e 02016R0679-20160504. Nessuna conclusione di applicabilita o conformita dei prodotti."
+  ],
+  "officialId": "http://data.europa.eu/eli/reg/2024/1689/oj",
+  "publicationDate": "2024-07-12",
+  "relatedSources": [
+    {
+      "id": "eu-ai-omnibus-2026",
+      "relation": "related"
+    },
+    {
+      "id": "ec-ai-framework",
+      "relation": "related"
+    }
+  ],
+  "rights": {
+    "notes": "Testo normativo UE riutilizzabile; il consolidato e strumento di documentazione senza effetto giuridico, fa fede la GU.",
+    "reference": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "Regolamento (UE) 2024/1689 - AI Act",
+  "versions": [
+    {
+      "id": "20261028-92a8c1b9e066aa7c",
+      "reviewStatus": "verified"
+    }
+  ]
+}

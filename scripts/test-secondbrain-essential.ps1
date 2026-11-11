@@ -554,14 +554,14 @@ if('workflows' -in $Groups){
             $noHits=(!$leak -or $case[0] -ne 'search_knowledge' -or [int]($leak|ConvertFrom-Json -AsHashtable).totalMatches -eq 0)
             Check ($refused -or ($clean -notmatch 'O-1' -and $noHits)) ('MCP '+$case[0]+' does not cross the project perimeter: '+$(if($leak){([string]$leak).Substring(0,[math]::Min(300,([string]$leak).Length))}))
         }
-        $env:SECONDBRAIN_RUNNER_REPOSITORY=$identity;$env:SECONDBRAIN_RUNNER_READS=''
+        $env:SECONDBRAIN_RUNNER_REPOSITORY=$identity
         try{
             $foreignWork=(& pwsh -NoProfile -File $workCli -Repository $otherIdentity -Category work -Slug perimeter -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
             $foreignRoot=(Get-SBWorkEnvironment -BrainRoot $brain -HostId $hostId -Repository $otherIdentity -Category work -Slug perimeter).root
             Check ($LASTEXITCODE -ne 0 -and ![IO.Directory]::Exists($foreignRoot) -and $foreignWork -match 'runner|task') 'work.ps1 refuses to create a work folder for another repository in a scoped session'
             $ownWork=(& pwsh -NoProfile -File $workCli -Repository $identity -Category work -Slug perimeter -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
             Check ($LASTEXITCODE -eq 0) ('work.ps1 still serves the session repository: '+$ownWork)
-        }finally{$env:SECONDBRAIN_RUNNER_REPOSITORY=$null;$env:SECONDBRAIN_RUNNER_READS=$null}
+        }finally{$env:SECONDBRAIN_RUNNER_REPOSITORY=$null}
     }finally{Put $otherContext $otherContextBytes}
 }
 if('workflows' -in $Groups){

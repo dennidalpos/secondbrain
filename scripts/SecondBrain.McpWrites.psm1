@@ -56,7 +56,7 @@ function New-SBMcpWritePlan {
         }
         'task.update' {
             # Same fields and validation as knowledge.ps1 -UpdateTaskId: Update-SBTrackerTask validates the candidate during preview.
-            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','readRepositories','requires') @('taskId')
+            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','requires') @('taskId')
             Assert-SBMcpWriteText $Payload.taskId 128
             if($Payload.Keys.Count -lt 2){throw (New-SBError 'mcpwrite.invalid' @('fields'))}
             $args=@{TaskId=$Payload.taskId}
@@ -74,14 +74,6 @@ function New-SBMcpWritePlan {
                     if($value -isnot [string] -or $value.Length -gt 512){throw (New-SBError 'mcpwrite.invalid' @($pair[0]))}
                     $args[$pair[1]]=$value
                 }
-            }
-            if($Payload.ContainsKey('readRepositories')){
-                # An empty array clears the allowlist; identities are checked by Update-SBTrackerTask.
-                $reads=$Payload.readRepositories
-                if($reads -isnot [array] -or $reads.Count -gt 32 -or @($reads|Where-Object {$_ -isnot [string] -or [string]::IsNullOrWhiteSpace($_) -or $_.Length -gt 200}).Count){
-                    throw (New-SBError 'mcpwrite.invalid' @('readRepositories'))
-                }
-                $args.ReadRepositories=[string[]]@($reads)
             }
             if($Payload.ContainsKey('requires')){
                 # An empty array clears the capability list; only the values of Get-SBTaskRequiresValues are accepted.

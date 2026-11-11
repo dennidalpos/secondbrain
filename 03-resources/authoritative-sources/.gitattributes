@@ -1,0 +1,6 @@
+# Acquired originals must retain the byte hashes recorded in version manifests.
+entries/*/versions/*/originals/** -text -whitespace
+# Evidence captured by product agents is hashed in its own manifest.
+entries/*/evidence/** -text -whitespace
+# Literal page layouts and retained extractions are data, including their spaces.
+entries/*/versions/*/transcript*.md -whitespace

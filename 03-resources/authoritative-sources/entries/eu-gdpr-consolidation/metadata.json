@@ -1,0 +1,63 @@
+{
+  "acceptedVersion": "20261028-6a31d0a65d635c77",
+  "domains": [
+    "privacy"
+  ],
+  "edition": "Consolidato CELEX 02016R0679-20160504, versione 000.003 con rettifiche C1 2016, C2 2018, C3 2021; strumento di documentazione, fa fede la GU",
+  "effectiveDates": [
+    {
+      "date": "2016-05-24",
+      "provision": "Entrata in vigore (art. 99(1); GU L 119 del 04/05/2016)",
+      "reference": "versions/20261028-6a31d0a65d635c77/originals/02016R0679-20160504.xhtml art. 99",
+      "status": "verified"
+    },
+    {
+      "date": "2018-05-25",
+      "provision": "Applicazione (art. 99(2))",
+      "reference": "versions/20261028-6a31d0a65d635c77/originals/02016R0679-20160504.xhtml art. 99",
+      "status": "verified"
+    }
+  ],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "publications.europa.eu"
+      ],
+      "expectedText": "2016/679",
+      "fileName": "02016R0679-20160504.xhtml",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://publications.europa.eu/resource/cellar/5f2552c2-cc45-11e6-ad7c-01aa75ed71a1.0002.02/DOC_3"
+    }
+  ],
+  "id": "eu-gdpr-consolidation",
+  "issuer": "Ufficio delle pubblicazioni UE",
+  "jurisdictions": [
+    "EU"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "Testo normativo UE. Il consolidato deve essere verificato direttamente: eventuali blocchi di accesso restano non verificabili e non vengono aggirati.",
+    "2026-10-27: nuova verifica centrale in SecondBrain/history/2026-10-27-unblock-central/eurlex.json. Endpoint HTML/PDF EUR-Lex non acquisibili (HTTP 202); alternative ufficiali conservate come prove non qualificate, senza nuova acceptedVersion o conclusione sulle decorrenze.",
+    "2026-10-28: EUR-Lex risponde ancora HTTP 202 a corpo vuoto; endpoint sostituiti dalle manifestazioni XHTML italiane immutabili della API pubblica Cellar dell Ufficio delle pubblicazioni (stessi hash del riscontro OnlyWorkspace del 28/10). Endpoint di versione: il Probe non rileva nuovi consolidati, da cercare con SPARQL Cellar (cdm:resource_legal_id_celex).",
+    "2026-10-28: versione Cellar rivista e accettata (controlli in review.json; rapporto 02-areas/products/SecondBrain/history/2026-10-28-eurlex-cellar/report.md). Corpus SPARQL al 28/10: unico atto modificativo 32026R1744; consolidati 02024R1689-20240712/20260727 e 02016R0679-20160504. Nessuna conclusione di applicabilita o conformita dei prodotti."
+  ],
+  "officialId": "CELEX:02016R0679-20160504",
+  "publicationDate": "2016-05-04",
+  "relatedSources": [],
+  "rights": {
+    "notes": "Testo normativo UE riutilizzabile; il consolidato e strumento di documentazione senza effetto giuridico, fa fede la GU.",
+    "reference": "https://eur-lex.europa.eu/content/legal-notice/legal-notice.html",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "GDPR - verifica del testo consolidato EUR-Lex",
+  "versions": [
+    {
+      "id": "20261028-6a31d0a65d635c77",
+      "reviewStatus": "verified"
+    }
+  ]
+}

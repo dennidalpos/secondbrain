@@ -58,25 +58,23 @@ try {
     Check ($f5Replay.applied -and (Get-SBFileHash $f5Queue) -ceq $f5QueueHash) 'same approved request replays its receipt without another request'
     $f5Stored=Read-SBJson $f5Queue $null
     Check ($f5Stored.expected.taskHash -and $f5Stored.id -ceq $f5Plan.requestId) 'queue preserves the approved task precondition and caller request ID'
-    # task.update exposes awaiting and readRepositories with Update-SBTrackerTask validation.
-    Reject {F5-Plan 'task.update' @{taskId='F5-1';readRepositories=@('not a repository identity')}} 'MCP task update rejects an invalid read-only repository identity'
-    Reject {F5-Plan 'task.update' @{taskId='F5-1';readRepositories=@('github.com/Test/Upper')}} 'MCP task update rejects a non-canonical repository identity'
-    Reject {F5-Plan 'task.update' @{taskId='F5-1';readRepositories='github.com/test/other'}} 'MCP task update requires readRepositories as an array'
+    # task.update exposes awaiting (readRepositories was removed in #475) with Update-SBTrackerTask validation.
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';readRepositories=@('github.com/test/other')}} 'MCP task update no longer accepts readRepositories'
     Reject {F5-Plan 'task.update' @{taskId='F5-1'}} 'MCP task update requires at least one field'
     Reject {F5-Plan 'task.update' @{taskId='F5-1';awaiting=1}} 'MCP task update requires awaiting as a string'
-    $f5Fields=F5-Plan 'task.update' @{taskId='F5-1';execution='autonomous';awaiting='structural-completion';readRepositories=@('github.com/test/other',('local:'+('a'*32)),'github.com/test/other')}
+    $f5Fields=F5-Plan 'task.update' @{taskId='F5-1';execution='autonomous';awaiting='structural-completion'}
     Check ($f5Fields.pending.operation -eq 'task.update' -and $f5Fields.pending.arguments.Awaiting -eq 'structural-completion') 'MCP task update previews a task.update pending request'
     [void](F5-Approve $f5Fields)
-    Check (F5-Submit $f5Fields).applied 'approved MCP task update applies awaiting and readRepositories'
+    Check (F5-Submit $f5Fields).applied 'approved MCP task update applies awaiting'
     Check (Test-Path (Join-Path $f5Brain ('.runtime/access/pending-writes/task-update/'+$f5Fields.requestId+'.json'))) 'MCP task update uses the task-update queue'
     Check (F5-Submit $f5Fields).applied 'MCP task update replays its receipt'
     $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
-    Check ($f5Ext.awaiting -eq 'structural-completion' -and (@($f5Ext.readRepositories) -join ';') -ceq ('github.com/test/other;local:'+('a'*32))) 'MCP task update stores awaiting and the de-duplicated allowlist'
-    $f5Clear=F5-Plan 'task.update' @{taskId='F5-1';awaiting='';readRepositories=@()}
+    Check ($f5Ext.awaiting -eq 'structural-completion' -and !$f5Ext.ContainsKey('readRepositories')) 'MCP task update stores awaiting'
+    $f5Clear=F5-Plan 'task.update' @{taskId='F5-1';awaiting=''}
     [void](F5-Approve $f5Clear)
-    Check (F5-Submit $f5Clear).applied 'approved MCP task update clears both fields'
+    Check (F5-Submit $f5Clear).applied 'approved MCP task update clears the field'
     $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
-    Check (!$f5Ext.ContainsKey('awaiting') -and !$f5Ext.ContainsKey('readRepositories')) 'empty awaiting and readRepositories remove the fields'
+    Check (!$f5Ext.ContainsKey('awaiting')) 'empty awaiting removes the field'
     # requires: only the allowed capability names, as an array; an empty array clears the field; the runner then excludes the task.
     Reject {F5-Plan 'task.update' @{taskId='F5-1';requires=@('gpu')}} 'MCP task update rejects an unknown required capability'
     Reject {F5-Plan 'task.update' @{taskId='F5-1';requires='computer-use'}} 'MCP task update requires the capability list as an array'

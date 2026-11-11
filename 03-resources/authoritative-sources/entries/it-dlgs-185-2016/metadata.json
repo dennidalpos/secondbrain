@@ -1,0 +1,58 @@
+{
+  "acceptedVersion": "20261107-89a10c7f213e5fb0",
+  "domains": [
+    "work"
+  ],
+  "edition": "Testo originario, GU n.235 del 7 ottobre 2016 (art. 5 modifica l'art. 4 L. 300/1970; successive modifiche non incluse)",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.gazzettaufficiale.it"
+      ],
+      "expectedText": "185",
+      "fileName": "GU-2016-10-07-n235.pdf",
+      "format": "pdf",
+      "id": "canonical",
+      "layout": "two-column",
+      "role": "canonical",
+      "url": "https://www.gazzettaufficiale.it/eli/gu/2016/10/07/235/sg/pdf"
+    }
+  ],
+  "id": "it-dlgs-185-2016",
+  "issuer": "Repubblica Italiana",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "D.Lgs. 24 settembre 2016 n. 185, art. 5: modifica l'art. 4 L. 300/1970 sostituendo il riferimento alla Direzione territoriale del lavoro con l'Ispettorato nazionale del lavoro. Fascicolo di GU conservato integralmente; altri atti del fascicolo sono contesto.",
+    "Testo originario del 2016; vigenza successiva da verificare in Normattiva e Gazzetta Ufficiale. Introdotta per il registro attivita (#365)."
+  ],
+  "officialId": "D.Lgs. 24 settembre 2016 n. 185; GU Serie Generale 235 del 07-10-2016",
+  "publicationDate": "2016-10-07",
+  "relatedSources": [
+    {
+      "id": "it-dlgs-151-2015",
+      "relation": "related"
+    },
+    {
+      "id": "it-statuto-lavoratori-art4",
+      "relation": "related"
+    }
+  ],
+  "rights": {
+    "notes": "Atti normativi ufficiali: art. 5 L. 633/1941. Fascicolo integrale della Gazzetta Ufficiale; il decreto e solo una parte.",
+    "reference": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1941-04-22;633~art5",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "D.Lgs. 185/2016 - art. 5, modifica art. 4 Statuto (GU)",
+  "versions": [
+    {
+      "id": "20261107-89a10c7f213e5fb0",
+      "reviewStatus": "verified"
+    }
+  ]
+}

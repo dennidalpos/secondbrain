@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "status": "extracted",
+  "reason": null,
+  "converter": "markitdown==0.1.9",
+  "requiresReview": true,
+  "sourceSha256": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE",
+  "characters": 176484,
+  "numericTokens": 1981
+}

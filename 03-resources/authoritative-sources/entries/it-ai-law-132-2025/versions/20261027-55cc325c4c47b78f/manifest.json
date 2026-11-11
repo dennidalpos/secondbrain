@@ -1,0 +1,56 @@
+{
+  "acquiredAt": "2026-10-27T10:13:24.9390768+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "Initial semantic conversion",
+      "sha256": "354D6A7D8A69019E59DA9FF68A8161C275D2D83D95A926CFD748610AB831A57E"
+    },
+    {
+      "path": "transcript.verified.md",
+      "reason": "Layout across both columns; column-reading version preferred",
+      "sha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75"
+    },
+    {
+      "path": "transcript.layout.md",
+      "reason": "First layout comparison with retained original preamble",
+      "sha256": "42DDCDAEF418CB8B943B4CD50313BCE63066B6E832151D6596D6627A3B0DA9DD"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/GU-2025-09-25-n223.pdf",
+      "sha256": "4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339",
+      "url": "https://www.gazzettaufficiale.it/do/gazzetta/downloadPdf?dataPubblicazioneGazzetta=20250925&edizione=0&estensione=pdf&home=true&numeroGazzetta=223&numeroSupplemento=0&progressivo=0&tipoSerie=SG&tipoSupplemento=GU"
+    }
+  ],
+  "configurationHash": "660494F523EBD23B34BF794DA398680D50C66B40712FECCBA6C7216278CCD245",
+  "edition": "Testo originario, GU n.223 del 25 settembre 2025",
+  "fingerprint": "55CC325C4C47B78F45B8A93F27D52EED6C33A800CF39FE509BB800BA2FBE75F9",
+  "language": "it",
+  "publicationDate": "2025-09-25",
+  "schemaVersion": 1,
+  "sourceId": "it-ai-law-132-2025",
+  "transcription": {
+    "diagnostics": {
+      "characters": 603955,
+      "converter": "markitdown==0.1.9; pdfplumber-layout==0.11.10",
+      "imageOnlyPages": [],
+      "numericTokens": 5808,
+      "pageCount": 64,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "semanticCharacters": 501713,
+      "sourceSha256": "4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339",
+      "status": "extracted"
+    },
+    "path": "transcript.columns.md",
+    "sha256": "FA90515A541372437954116A62060F60F65111F80A1919646E1F273905BE0C5B",
+    "status": "extracted"
+  },
+  "versionId": "20261027-55cc325c4c47b78f"
+}

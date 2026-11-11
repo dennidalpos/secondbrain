@@ -32,7 +32,7 @@ Composition combines the objective, repository context and card in XML with `tas
 
 ## Categories
 
-Prompts are grouped by development area or need, not by code prefix. A repository prompt works only on the repository it runs from; central prompts run from the SecondBrain checkout. A card that must read another repository declares it (for example the read-only allowlist of REP16).
+Prompts are grouped by development area or need, not by code prefix. A repository prompt works only on the repository it runs from; central prompts run from the SecondBrain checkout. No card reads another repository: 03-resources is the only shared area.
 
 **Current repository: run from the repository you work on**
 

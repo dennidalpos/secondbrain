@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "anthropic-code-workflows",
+  "title": "Common workflows e prompt library Claude Code",
+  "issuer": "Anthropic",
+  "kind": "technical-documentation",
+  "domains": [
+    "ai",
+    "development"
+  ],
+  "jurisdictions": [
+    "Global"
+  ],
+  "language": "en",
+  "officialId": null,
+  "edition": "Pagina web consultata il 2026-10-28; contenuto corrente, senza supporto retroattivo garantito",
+  "publicationDate": null,
+  "rights": {
+    "status": "reference-only",
+    "reference": "https://code.claude.com/docs/en/common-workflows",
+    "notes": "Registrati URL, data di consultazione e sintesi originali; nessun originale o trascrizione integrale acquisiti, diritti di riutilizzo non qualificati."
+  },
+  "endpoints": [],
+  "versions": [],
+  "acceptedVersion": null,
+  "relatedSources": [],
+  "effectiveDates": [],
+  "notes": [
+    "URL primario: https://code.claude.com/docs/en/common-workflows",
+    "Consultata online il 2026-10-28 nella ricerca e progettazione del catalogo v2.",
+    "Ricette per esplorazione, bug, test e continuità. Libreria complementare: https://code.claude.com/docs/en/prompt-library",
+    "Riferimento consultivo. Nessuna prescrizione comune attivata; nessuna prova di efficacia di un modello o IDE."
+  ]
+}

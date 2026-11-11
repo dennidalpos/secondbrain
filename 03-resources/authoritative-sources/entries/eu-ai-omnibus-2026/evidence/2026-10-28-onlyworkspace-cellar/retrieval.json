@@ -1,0 +1,27 @@
+[
+  {
+    "celex": "32026R1744",
+    "request": {
+      "url": "https://publications.europa.eu/resource/celex/32026R1744",
+      "headers": {
+        "Accept": "application/xhtml+xml",
+        "Accept-Language": "ita"
+      }
+    },
+    "redirect": {
+      "status": 303,
+      "location": "http://publications.europa.eu/resource/cellar/b459c07f-86fb-11f1-bf5e-01aa75ed71a1.0013.03/DOC_1"
+    },
+    "httpsUrl": "https://publications.europa.eu/resource/cellar/b459c07f-86fb-11f1-bf5e-01aa75ed71a1.0013.03/DOC_1",
+    "status": 200,
+    "contentType": "application/xhtml+xml;charset=UTF-8",
+    "length": 368928,
+    "hash": "4E9C979CEE97597956D8A9BAB72C84B1E6C94804461AB43D3E6E47C58FCE0FBE",
+    "sameHashViaHttpRedirect": true,
+    "serverDates": [
+      "Tue, 27 Oct 2026 23:13:29 GMT",
+      "Tue, 27 Oct 2026 23:13:29 GMT",
+      "Tue, 27 Oct 2026 23:14:02 GMT"
+    ]
+  }
+]

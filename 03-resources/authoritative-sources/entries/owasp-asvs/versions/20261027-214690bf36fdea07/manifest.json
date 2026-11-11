@@ -1,0 +1,87 @@
+{
+  "acquiredAt": "2026-10-27T10:13:55.1397278+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "PDF semantic extraction, word-spacing limitations",
+      "sha256": "38A985971F52FBCB49DAD31EAFB6BD951375F408A1F7A121A59EBC0647AE15BA"
+    },
+    {
+      "path": "transcript.verified.md",
+      "reason": "PDF layout reference; DOCX preferred",
+      "sha256": "24EA3F29724D2176D66749B00FE6DBD36653CFC5DD51111632C6F30D075FD2A3"
+    },
+    {
+      "path": "transcript.word.md",
+      "reason": "DOCX extraction before restoration of two escaped control-character sequences from official JSON",
+      "sha256": "AE1C6E8B4000C4604080B5A80E1E8218C7BDAEB38EC390F1ABB92D7C3A72BD04"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "A2FA1BBE38F12CAC86D3A0F0023327E9772201F65A7F741F282F5E785D268FC5",
+      "contentType": "application/octet-stream",
+      "endpointId": "canonical",
+      "path": "originals/canonical.pdf",
+      "sha256": "A2FA1BBE38F12CAC86D3A0F0023327E9772201F65A7F741F282F5E785D268FC5",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/OWASP_Application_Security_Verification_Standard_5.0.0_en.pdf"
+    },
+    {
+      "contentHash": "E8AA27DA093A13EB14454034E8D93A5EEBF8F73C10D0AFF74CADDD3F1C24BF04",
+      "contentType": "application/octet-stream",
+      "endpointId": "word",
+      "path": "originals/word.docx",
+      "sha256": "E8AA27DA093A13EB14454034E8D93A5EEBF8F73C10D0AFF74CADDD3F1C24BF04",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.docx"
+    },
+    {
+      "contentHash": "BCDBEC214D70ABCFAD9284A31D4F9E5134305831D628AAD3AA85D7E26626CB35",
+      "contentType": "text/plain; charset=utf-8",
+      "endpointId": "requirements",
+      "path": "originals/requirements.json",
+      "sha256": "BCDBEC214D70ABCFAD9284A31D4F9E5134305831D628AAD3AA85D7E26626CB35",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/5.0/docs_en/OWASP_Application_Security_Verification_Standard_5.0.0_en.json"
+    },
+    {
+      "contentHash": "28A9529C7D0BB4DC51F4BF5C116A3D16EF247A052F7591466768DDF563FD1CF5",
+      "contentType": "text/plain; charset=utf-8",
+      "endpointId": "license",
+      "path": "originals/LICENSE.md",
+      "sha256": "28A9529C7D0BB4DC51F4BF5C116A3D16EF247A052F7591466768DDF563FD1CF5",
+      "url": "https://raw.githubusercontent.com/OWASP/ASVS/v5.0.0/LICENSE.md"
+    },
+    {
+      "contentHash": "F427FD3ED651C931422D182F5AB0EA4925E672F016B48C8357D92030D51DD351",
+      "contentType": "text/html; charset=utf-8",
+      "endpointId": "publication",
+      "path": "originals/publication.html",
+      "sha256": "47AF8A63B622878D9B84D9366C0123CC41D06B48445130F2E535C4CFD56DEE76",
+      "url": "https://asvs.owasp.org/"
+    }
+  ],
+  "configurationHash": "9C56592CEA9F9020C3681103BFC52D25F82BB16A531F895A48E03A18C36F5E18",
+  "edition": "5.0.0, 30 May 2025",
+  "fingerprint": "214690BF36FDEA0752FE17D82813EF76681FF8F01F1834F9F12A1D4C27494013",
+  "language": "en",
+  "publicationDate": "2025-05-30",
+  "schemaVersion": 1,
+  "sourceId": "owasp-asvs",
+  "transcription": {
+    "diagnostics": {
+      "characters": 269493,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 2106,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "E8AA27DA093A13EB14454034E8D93A5EEBF8F73C10D0AFF74CADDD3F1C24BF04",
+      "status": "extracted"
+    },
+    "path": "transcript.reviewed.md",
+    "reconciledWithEndpointId": "requirements",
+    "sha256": "EE19AC3F01B8A259A380D563DAB733D7B00537BFF492D37784CF86F06A94545D",
+    "sourceEndpointId": "word",
+    "status": "extracted"
+  },
+  "versionId": "20261027-214690bf36fdea07"
+}

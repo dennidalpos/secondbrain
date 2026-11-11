@@ -1,0 +1,33 @@
+{
+  "acceptedVersion": null,
+  "domains": [
+    "security",
+    "identity",
+    "cloud-infrastructure"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [],
+  "id": "cis-benchmarks",
+  "issuer": "Center for Internet Security",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Solo riferimento: condizioni di licenza e benchmark specifico da verificare. Non attribuire a tutti i benchmark un unico criterio password.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "CIS Benchmarks; benchmark e versione da identificare",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Solo riferimento: condizioni di licenza e benchmark specifico da verificare. Non attribuire a tutti i benchmark un unico criterio password.",
+    "reference": "https://www.cisecurity.org/cis-benchmarks",
+    "status": "reference-only"
+  },
+  "schemaVersion": 1,
+  "title": "CIS Benchmarks - configurazioni di sicurezza",
+  "versions": []
+}

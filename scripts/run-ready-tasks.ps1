@@ -170,10 +170,9 @@ foreach($plan in $plans){
         $start=[Diagnostics.ProcessStartInfo]::new($agent);$start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.WorkingDirectory=$checkout
         $start.RedirectStandardInput=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
         foreach($a in ($agentPrefix+$AgentArguments)){$start.ArgumentList.Add($a)}
-        # Session perimeter enforced in code (#382): knowledge.ps1 and the MCP tools started by the agent refuse global reads and foreign repositories outside the task allowlist.
+        # Session perimeter enforced in code (#382): knowledge.ps1 and the MCP tools started by the agent refuse global reads and foreign repositories.
         $scopeVariables=Get-SBRunnerScopeVariables
         $start.Environment[$scopeVariables.repository]=[string]$identity
-        $start.Environment[$scopeVariables.reads]=(@(Get-SBRunnerTaskReads $task) -join ';')
         $prompt=if($external){New-SBTaskRunPrompt $task $PSScriptRoot $checkout}else{New-SBTaskRunPrompt $task}
         $began=Get-Date;$process=[Diagnostics.Process]::Start($start);$state='finished';$code=$null
         try{

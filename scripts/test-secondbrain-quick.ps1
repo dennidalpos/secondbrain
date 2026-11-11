@@ -199,7 +199,7 @@ try {
     Assert-Quick (!([regex]::IsMatch($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b') -and ([regex]::Matches($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b')|Where-Object {$_.Groups[2].Value -ne $productVersion}).Count)) 'il README non cita versioni diverse da VERSION'
     # Task runner selection on synthetic tasks.
     Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1') -Force
-    # Allowlist-first and project isolation defaults.
+    # Project isolation has no switch (#475).
     $noBrain=Join-Path ([IO.Path]::GetTempPath()) ('sb-absent-'+[guid]::NewGuid().ToString('N'))
     Assert-Quick (Test-SBProjectIsolation $noBrain) 'isolamento per progetto attivo per default'
     $rootsError=try{Invoke-SBHostDiscovery -BrainRoot $noBrain -Roots @();''}catch{$_.Exception.Message}
@@ -230,20 +230,19 @@ try {
     Assert-Quick (@(Select-SBRunnableTasks $synth 1).Count -eq 1) 'runner: MaxTasks limita la selezione'
     Assert-Quick ((New-SBTaskRunPrompt $picked[0]).Contains('nessun commit')-or(New-SBTaskRunPrompt $picked[0]).Contains('Nessun commit')-or(New-SBTaskRunPrompt $picked[0]).Contains('commit, push')) 'runner: il prompt vieta commit e push'
     Assert-Quick ((New-SBTaskRunPrompt $picked[0]).Contains('Perimetro: lavora solo sul repository di questo checkout')) 'runner: il prompt limita il lavoro al repository del checkout'
-    $withReads=New-SBTaskRunPrompt ([pscustomobject]@{id='R';seq=9;extensions=[pscustomobject]@{readRepositories=@('github.com/x/a','github.com/x/b')}})
-    Assert-Quick ($withReads.Contains('github.com/x/a, github.com/x/b') -and !(New-SBTaskRunPrompt $picked[0]).Contains('Letture consentite')) 'runner: l allowlist di lettura del task entra nel prompt solo se presente'
-    # Read-scope guard (#382): inactive without the runner variables; in a runner session global and foreign reads are refused, the allowlist is read-only.
+    Assert-Quick (!(New-SBTaskRunPrompt $picked[0]).Contains('Letture consentite')) 'runner: il prompt non cita allowlist di lettura (#475)'
+    # Read-scope guard (#382, #475): inactive without the runner variable; in a runner session global and foreign reads and writes are refused.
     $scopeNames=Get-SBRunnerScopeVariables;$savedScope=@{};foreach($n in $scopeNames.Values){$savedScope[$n]=[Environment]::GetEnvironmentVariable($n)}
     function Test-QuickScope([scriptblock]$Call){try{& $Call;$true}catch{$false}}
     try{
         foreach($n in $scopeNames.Values){[Environment]::SetEnvironmentVariable($n,$null)}
         Assert-Quick ($null -eq (Get-SBRunnerReadScope) -and (Test-QuickScope {Assert-SBRunnerReadScope -Global}) -and (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/other' -Write})) 'runner: fuori dal runner il guardiano non limita le letture globali'
-        [Environment]::SetEnvironmentVariable($scopeNames.repository,'github.com/x/self');[Environment]::SetEnvironmentVariable($scopeNames.reads,'github.com/x/a; github.com/x/b')
-        Assert-Quick (((Get-SBRunnerReadScope).reads -join ',') -ceq 'github.com/x/a,github.com/x/b') 'runner: allowlist di lettura dalla variabile di sessione'
+        [Environment]::SetEnvironmentVariable($scopeNames.repository,'github.com/x/self')
+        Assert-Quick ((Get-SBRunnerReadScope).repository -ceq 'github.com/x/self' -and $scopeNames.Count -eq 1) 'runner: perimetro dalla sola variabile del repository'
         Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Global})) 'runner: -All, -AllDossiers e all=true rifiutati nella sessione del runner'
-        Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/other'})) 'runner: lettura di un repository fuori allowlist rifiutata'
-        Assert-Quick ((Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/a'}) -and (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self'})) 'runner: letture del repository del task e dell allowlist consentite'
-        Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/a' -Write}) -and (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self' -Write})) 'runner: l allowlist resta in sola lettura'
+        Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/other'})) 'runner: lettura di un altro repository rifiutata'
+        Assert-Quick (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self'}) 'runner: lettura del repository del task consentita'
+        Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/other' -Write}) -and (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self' -Write})) 'runner: scritture solo nel repository del task'
     }finally{foreach($n in $scopeNames.Values){[Environment]::SetEnvironmentVariable($n,$savedScope[$n])}}
     'SUCCESS QUICK: '+$script:quickChecks+' verifiche pure (nessun Git, nessun processo figlio).'
 } finally { $env:SECONDBRAIN_LANG=$savedLang; Set-SBUiLanguage '' }

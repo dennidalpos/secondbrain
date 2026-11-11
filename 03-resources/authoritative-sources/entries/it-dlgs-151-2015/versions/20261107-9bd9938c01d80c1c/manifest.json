@@ -1,0 +1,41 @@
+{
+  "acquiredAt": "2026-11-07T22:21:53.8438398+00:00",
+  "artifacts": [
+    {
+      "contentHash": "91BC55C2A8E75E4B04579D9347B9E7282CF6577768DFA77C85DC46D0A31ABD52",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/GU-2015-09-23-n221-so53.pdf",
+      "sha256": "91BC55C2A8E75E4B04579D9347B9E7282CF6577768DFA77C85DC46D0A31ABD52",
+      "url": "https://www.gazzettaufficiale.it/eli/gu/2015/09/23/221/so/53/sg/pdf"
+    }
+  ],
+  "configurationHash": "8F7DE7D986ACAF1B6F156A1E4CE296088AED6A54E08BA5E84B75EE425C165D37",
+  "edition": "Testo originario, GU n.221 del 23 settembre 2015, S.O. n.53 (art. 23 sostituisce l'art. 4 L. 300/1970; successive modifiche non incluse)",
+  "fingerprint": "9BD9938C01D80C1C243C9EF6DD5634EE2BADA392BB39FD6C7D9E64BBE656F4F8",
+  "language": "it",
+  "publicationDate": "2015-09-23",
+  "schemaVersion": 1,
+  "sourceId": "it-dlgs-151-2015",
+  "transcription": {
+    "diagnostics": {
+      "characters": 1699600,
+      "code": null,
+      "converter": "markitdown==0.1.9; pdfplumber-layout==0.11.10",
+      "imageOnlyPages": [],
+      "message": null,
+      "numericTokens": 18515,
+      "pageCount": 176,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "semanticCharacters": 1442597,
+      "sourceSha256": "91BC55C2A8E75E4B04579D9347B9E7282CF6577768DFA77C85DC46D0A31ABD52",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "71C5AEF1DF7D70327B97B3D074CA5B5047AF004EF2F83F0685AAE0D44F1EFD62",
+    "status": "extracted"
+  },
+  "versionId": "20261107-9bd9938c01d80c1c"
+}

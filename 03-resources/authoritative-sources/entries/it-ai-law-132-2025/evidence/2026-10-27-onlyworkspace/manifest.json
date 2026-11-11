@@ -1,0 +1,25 @@
+{
+  "sourceId": "it-ai-law-132-2025",
+  "observedAt": "2026-10-27T20:06:18.900808+01:00",
+  "mainUrl": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:2025-09-23;132",
+  "scope": "Consultazione circoscritta art.11, versione 1 nel navigatore vigente al 27/10/2026; aggiornamento atto indicato 26/06/2026. Non nuova acceptedVersion o verifica di tutta la legge/norme richiamate.",
+  "review": "Confrontati i tre commi HTML con il testo originario e il rinvio del comma 2; trascrizione estratta dal solo articolo, note separate non trascritte.",
+  "artifacts": [
+    {
+      "path": "art11-transcript.txt",
+      "sha256": "171FF8C68DF267836AE95867156CFE48BE850E8DBED18D3E53DA1984B8824FA8"
+    },
+    {
+      "path": "normattiva-art11.html",
+      "sha256": "E01919F54471AC210BADD3C464B0534ADA7133B598DFE63EE289AC4703291729"
+    },
+    {
+      "path": "normattiva-main.html",
+      "sha256": "47C1669337B73E8F6B245BAE2F67577B9CDDB3E617348A46688287C572BCF94F"
+    },
+    {
+      "path": "retrieval.json",
+      "sha256": "385C2AED6D457319A7889762B4EF3946C776986A6BD7F5B31F9A79F05CC442A7"
+    }
+  ]
+}

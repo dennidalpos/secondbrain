@@ -1,0 +1,38 @@
+{
+  "acquiredAt": "2026-11-04T23:03:33.3985913+00:00",
+  "artifacts": [
+    {
+      "contentHash": "65E229822574629013C8D93DB478B66AEEDA51764BB087D0A0A447E8968DF0C0",
+      "contentType": "text/html; charset=UTF-8",
+      "endpointId": "canonical",
+      "path": "originals/canonical.html",
+      "sha256": "4F0DDB025CC6850433DA429ED921DFBACD3CD668BCB112CAF204A7128BEEEFE9",
+      "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+    }
+  ],
+  "configurationHash": "A183D1E7AD29FADF57E7C5327BDA2DC4FA6B535D634282F5D0E6D2AA89DC2FD1",
+  "edition": "Pagina consultata 2026-10-27, ultimo aggiornamento indicato 2026-10-19",
+  "fingerprint": "91F3A7480AB0ADF0AA3D7ECDCE000AD9249926044818A9398DEAC44436CBECD8",
+  "language": "en",
+  "publicationDate": null,
+  "schemaVersion": 1,
+  "sourceId": "ec-ai-framework",
+  "transcription": {
+    "diagnostics": {
+      "characters": 29823,
+      "code": null,
+      "converter": "markitdown==0.1.9",
+      "message": null,
+      "numericTokens": 208,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "4F0DDB025CC6850433DA429ED921DFBACD3CD668BCB112CAF204A7128BEEEFE9",
+      "status": "extracted"
+    },
+    "path": "transcript.md",
+    "sha256": "EF2ADA78F1B2157750B4D95EA0ED474C9056E26089D1A5ABB3ADBA9A43B2DFA8",
+    "status": "extracted"
+  },
+  "versionId": "20261104-91f3a7480ab0adf0"
+}

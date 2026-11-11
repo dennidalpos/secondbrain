@@ -98,6 +98,16 @@ try {
     Throws-Source {Get-SBSourceChecks $registry $config} 'hash originale discordante rifiutato'
     Throws-Source {Invoke-SBSourceCollect $config $registry 'fixture' $PythonPath $transport} 'raccolta ripetuta non nasconde originale modificato'
     [IO.File]::WriteAllBytes($original,$originalBytes)
+    # #478: originals are not in Git. A missing original is reported as restorable, never as an error; Restore writes it only when the downloaded SHA-256 equals the manifest.
+    Remove-Item -LiteralPath $original
+    Assert-Source (@(Get-SBSourceChecks (Read-SBSourceRegistry $root) $config|Where-Object kind -eq 'original-missing').Count -eq 1) 'originale assente segnalato come ripristinabile, non come errore'
+    $script:sourceHtml=$script:sourceHtml.Replace('12.345,67','98.765,43')
+    $badRestore=Restore-SBSourceOriginals $config (Read-SBSourceRegistry $root) $transport
+    Assert-Source (@($badRestore.restored).Count -eq 0 -and @($badRestore.failed).Count -eq 1 -and $badRestore.failed[0].reason -ceq 'hash-mismatch' -and !(Test-Path -LiteralPath $original)) 'ripristino con contenuto diverso rifiutato senza scrivere'
+    $script:sourceHtml=$savedHtml
+    $goodRestore=Restore-SBSourceOriginals $config (Read-SBSourceRegistry $root) $transport
+    Assert-Source (@($goodRestore.restored).Count -eq 1 -and (Get-SBFileHash $original) -ceq $manifest.artifacts[0].sha256) 'ripristino con hash uguale al manifest riscrive l originale'
+    Assert-Source (@(Get-SBSourceChecks (Read-SBSourceRegistry $root) $config|Where-Object kind -eq 'original-missing').Count -eq 0 -and @((Restore-SBSourceOriginals $config (Read-SBSourceRegistry $root) $transport).restored).Count -eq 0) 'originali presenti: nessun ripristino e nessun rilievo'
     $source=Read-SBJson $metadata $null;$source.acceptedVersion=$collected.versionId;Put-Source $metadata (ConvertTo-SBJson $source)
     Throws-Source {Get-SBSourceChecks (Read-SBSourceRegistry $root) $config} 'accettazione senza revisione rifiutata'
     $source.acceptedVersion=$null;$source.rights.status='reference-only';Put-Source $metadata (ConvertTo-SBJson $source)

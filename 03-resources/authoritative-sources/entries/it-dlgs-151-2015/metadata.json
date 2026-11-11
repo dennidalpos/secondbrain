@@ -1,0 +1,54 @@
+{
+  "acceptedVersion": "20261107-9bd9938c01d80c1c",
+  "domains": [
+    "work"
+  ],
+  "edition": "Testo originario, GU n.221 del 23 settembre 2015, S.O. n.53 (art. 23 sostituisce l'art. 4 L. 300/1970; successive modifiche non incluse)",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.gazzettaufficiale.it"
+      ],
+      "expectedText": "151",
+      "fileName": "GU-2015-09-23-n221-so53.pdf",
+      "format": "pdf",
+      "id": "canonical",
+      "layout": "two-column",
+      "role": "canonical",
+      "url": "https://www.gazzettaufficiale.it/eli/gu/2015/09/23/221/so/53/sg/pdf"
+    }
+  ],
+  "id": "it-dlgs-151-2015",
+  "issuer": "Repubblica Italiana",
+  "jurisdictions": [
+    "IT"
+  ],
+  "kind": "regulation",
+  "language": "it",
+  "notes": [
+    "D.Lgs. 14 settembre 2015 n. 151, art. 23: sostituisce l'art. 4 L. 300/1970 (controlli a distanza). Fascicolo del supplemento ordinario conservato integralmente; altri atti del fascicolo sono contesto, non assimilati al decreto.",
+    "Testo originario del 2015: modifiche successive (D.Lgs. 185/2016, Ispettorato nazionale del lavoro) non incluse; vigenza da verificare in Normattiva e Gazzetta Ufficiale. Introdotta per il registro attivita (#361/#364)."
+  ],
+  "officialId": "D.Lgs. 14 settembre 2015 n. 151; GU Serie Generale 221 del 23-09-2015, S.O. 53",
+  "publicationDate": "2015-09-23",
+  "relatedSources": [
+    {
+      "id": "it-statuto-lavoratori-art4",
+      "relation": "related"
+    }
+  ],
+  "rights": {
+    "notes": "Atti normativi ufficiali: art. 5 L. 633/1941. Fascicolo integrale della Gazzetta Ufficiale; il decreto e solo una parte.",
+    "reference": "https://www.normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1941-04-22;633~art5",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "D.Lgs. 151/2015 - art. 23, controlli a distanza (GU)",
+  "versions": [
+    {
+      "reviewStatus": "verified",
+      "id": "20261107-9bd9938c01d80c1c"
+    }
+  ]
+}

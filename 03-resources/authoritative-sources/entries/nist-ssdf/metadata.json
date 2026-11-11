@@ -1,0 +1,61 @@
+{
+  "acceptedVersion": "20261027-4db66862b8cebd1b",
+  "domains": [
+    "development",
+    "security"
+  ],
+  "edition": "SSDF 1.1, final 2022-02-03",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "nvlpubs.nist.gov"
+      ],
+      "expectedText": "800-218",
+      "format": "pdf",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf"
+    },
+    {
+      "allowedHosts": [
+        "csrc.nist.gov"
+      ],
+      "expectedText": "800-218",
+      "format": "html",
+      "id": "publication",
+      "role": "discovery",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final"
+    }
+  ],
+  "id": "nist-ssdf",
+  "issuer": "National Institute of Standards and Technology",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Pubblicazione tecnica NIST: attribuzione NIST e autori, condizioni della pagina NIST Open. Raccomandazioni di sviluppo sicuro, non certificazione dei prodotti."
+  ],
+  "officialId": "10.6028/NIST.SP.800-218",
+  "publicationDate": "2022-02-03",
+  "relatedSources": [],
+  "rights": {
+    "notes": "Pubblicazione tecnica NIST: attribuzione NIST e autori, condizioni della pagina NIST Open. Raccomandazioni di sviluppo sicuro, non certificazione dei prodotti.",
+    "reference": "https://www.nist.gov/open/license",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "NIST SP 800-218 - SSDF 1.1, final 2022",
+  "versions": [
+    {
+      "id": "20261027-4db66862b8cebd1b",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "20261110-1241458c6d8c85b3",
+      "reviewStatus": "candidate"
+    }
+  ]
+}

@@ -7,8 +7,8 @@ Guida di riferimento: dove sta cosa, chi può scrivere e dove. Valida dalla revi
 | Cartella | Ruolo | Chi scrive | Git |
 |---|---|---|---|
 | `01-projects/<repo>/` | Un dossier per ogni repository gestito: contesto, memoria, tracker, specifiche, storico | Solo gli script SecondBrain e i tool MCP di scrittura | ignorata |
-| `02-areas/<id>/` | Responsabilità continue senza fine: `governance`, `postazione`, `direttive` | Script e persona titolare | ignorata |
-| `03-resources/<id>/` | Riferimenti condivisi: fonti autorevoli, architettura, radar tecnologico, troubleshooting | Script e persona titolare | ignorata |
+| `02-areas/<id>/` | Responsabilità continue senza fine: `governance`, `postazione`, `direttive` | Script e persona titolare | tracciata, esclusi gli originali scaricabili |
+| `03-resources/<id>/` | Riferimenti condivisi: fonti autorevoli, architettura, radar tecnologico, troubleshooting | Script e persona titolare | tracciata, esclusi gli originali scaricabili |
 | `04-archives/{projects,areas,resources}/` | Entità chiuse o ritirate, sola lettura | Solo `para.ps1 -Archive` e `-Restore` | ignorata |
 | `config/` | Schemi e policy condivise, nessun dato locale | Revisione manuale | tracciata |
 | `direttive/` | Testi sorgente delle direttive, prompt, proposte | Revisione manuale; modifiche con `approve-revision.ps1` | tracciata |

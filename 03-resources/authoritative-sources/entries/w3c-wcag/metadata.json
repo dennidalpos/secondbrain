@@ -1,0 +1,47 @@
+{
+  "acceptedVersion": "20261027-99c47346a5064e4a",
+  "domains": [
+    "development"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.w3.org"
+      ],
+      "expectedText": "WCAG 2.2",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://www.w3.org/TR/WCAG22/"
+    }
+  ],
+  "id": "w3c-wcag",
+  "issuer": "World Wide Web Consortium",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "standard",
+  "language": "en",
+  "notes": [
+    "Copyright W3C, Document License 2023. Stato e avvisi originali conservati; conversione per documentazione di supporto al software. Non presentare la trascrizione come nuova specifica tecnica.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "WCAG 2.2",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Copyright W3C, Document License 2023. Stato e avvisi originali conservati; conversione per documentazione di supporto al software. Non presentare la trascrizione come nuova specifica tecnica.",
+    "reference": "https://www.w3.org/copyright/document-license-2023/",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "W3C Web Content Accessibility Guidelines 2.2",
+  "versions": [
+    {
+      "id": "20261027-99c47346a5064e4a",
+      "reviewStatus": "verified"
+    }
+  ]
+}

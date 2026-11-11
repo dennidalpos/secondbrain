@@ -1,0 +1,266 @@
+{
+  "results": [
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noReplacementCharacters": true,
+        "numbersPreserved": true,
+        "structurePresent": true
+      },
+      "fingerprint": "BF8DA5718E67B96AD8ACEDDC8CC90C01FD27ED63DBE5AF7DD4858BE7EFD6FDFB",
+      "headings": 24,
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1",
+      "numericTokensMissing": {},
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "511B7AB8E0F1F8A5CA820262C567365FFA3B9D28E77F3F6C7F646C6337877C5E",
+      "originalSha256": "E1E007124DD40122AC604C073258F8338EA4229854C20D2C6567C21265B8CE06",
+      "sourceId": "ec-ai-framework",
+      "status": "candidate",
+      "transcriptSha256": "E3A3C4F6866E23541FB405A2F2A265B686E5ADE13097F96677C0F10C0C237FD1",
+      "versionId": "20261027-bf8da5718e67b96a"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noReplacementCharacters": true,
+        "numbersPreserved": true,
+        "structurePresent": true
+      },
+      "fingerprint": "AEF2D5A00BE06CA913B22872CF60437DECB4849D84F5D0C7262C877C8BE3B099",
+      "headings": 9,
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "4C102F6E40A00964B3A8EACFA1A3D1D2D723EEAE29DE1057257CB72AF39CD202",
+      "numericTokensMissing": {},
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "C5F78EB0FAF70945E5D7E3A1821248F6ECC80830CD92892792244A9AF8FB0AE6",
+      "originalSha256": "5AAE23EAF9536F9EA4D468F82BFC0FD0C9EE1D848D5E62F120322BC8E8B8AA98",
+      "sourceId": "edpb-legal-framework",
+      "status": "candidate",
+      "transcriptSha256": "4C102F6E40A00964B3A8EACFA1A3D1D2D723EEAE29DE1057257CB72AF39CD202",
+      "versionId": "20261027-aef2d5a00be06ca9"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "literalTextPreserved": true,
+        "wordlist7776": true
+      },
+      "fingerprint": "842A8D865F7CC8DDC6CEFE88E09B1E13FB311601B9D01A69121AE0CD7245F80F",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "CCEBEE5F5A073FC512426385AC947DB324A8F004730D72599EB0B655C7F3B7E2",
+      "originalSha256": "ADDD35536511597A02FA0A9FF1E5284677B8883B83E986E43F15A3DB996B903E",
+      "sourceId": "eff-diceware",
+      "status": "candidate",
+      "transcriptSha256": "7DB6ED61FEA8533149099B49A678BC57800BC5AFB55C0563481850541FE30DD9",
+      "versionId": "20261027-842a8d865f7cc8dd"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noImageOnlyPages": true,
+        "noReplacementCharacters": true,
+        "pageCountIndependent": true
+      },
+      "fingerprint": "CA7F8150CA790E247F1385423A570B8F0A84B5C69C636A971475BCCC7F5CD3BC",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "88E9FAA5887677279E4C1DA8D3DFF2AC5497120ADB351FAA7185FC3EABC9CB0C",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "FFA646A48CD6C5C1F47505EC00C5A62E77CFAD273B1C6D568121E9ADAC22C77A",
+      "originalSha256": "16C0BB358414707B194678BDF80D7E4BA721A0D9CB0E76965569257B75BE3E58",
+      "pdf": {
+        "imageOnlyPages": [],
+        "pageCount": 112
+      },
+      "sampledPages": [
+        1,
+        57
+      ],
+      "sourceId": "eu-gdpr",
+      "status": "candidate",
+      "transcriptSha256": "88E9FAA5887677279E4C1DA8D3DFF2AC5497120ADB351FAA7185FC3EABC9CB0C",
+      "versionId": "20261027-ca7f8150ca790e24",
+      "visualSample": "census/qa/eu-gdpr.png"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noImageOnlyPages": true,
+        "noReplacementCharacters": true,
+        "pageCountIndependent": true
+      },
+      "fingerprint": "55CC325C4C47B78F45B8A93F27D52EED6C33A800CF39FE509BB800BA2FBE75F9",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "354D6A7D8A69019E59DA9FF68A8161C275D2D83D95A926CFD748610AB831A57E",
+      "originalSha256": "4C988D4597728CE27617F8DABC17839EE82186F33D8B3A0A08246CD38B0D7339",
+      "pdf": {
+        "imageOnlyPages": [],
+        "pageCount": 64
+      },
+      "sampledPages": [
+        1,
+        33
+      ],
+      "sourceId": "it-ai-law-132-2025",
+      "status": "candidate",
+      "transcriptSha256": "7D9862DD69BD7DD12AC52AE6D9F94CEA095D0DA8BCE8AED4A324B3B9A2BF2D75",
+      "versionId": "20261027-55cc325c4c47b78f",
+      "visualSample": "census/qa/it-ai-law-132-2025.png"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noImageOnlyPages": true,
+        "noReplacementCharacters": true,
+        "pageCountIndependent": true
+      },
+      "fingerprint": "BEB0B6D126F7D2910BE181C9F155872AF475C402868CCD4ED4EE4B5DA1B14ACD",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "3094128139B407BBB163348CA8ECB7EB3D050D0C97D5DF90DC12E2097F88AE00",
+      "originalSha256": "D9AB89576B5AE2CFB3BA37781110788DEA27A85A5079496DBFC1A79834670AFD",
+      "pdf": {
+        "imageOnlyPages": [],
+        "pageCount": 129
+      },
+      "sampledPages": [
+        1,
+        65
+      ],
+      "sourceId": "nist-digital-identity",
+      "status": "candidate",
+      "transcriptSha256": "DD996060508AAEB7087C4B8BF2908AF3216AD2E8C77F66B0BD9F6B1BA9995247",
+      "versionId": "20261027-beb0b6d126f7d291",
+      "visualSample": "census/qa/nist-digital-identity.png"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noImageOnlyPages": true,
+        "noReplacementCharacters": true,
+        "pageCountIndependent": true
+      },
+      "fingerprint": "4DB66862B8CEBD1B45C02CC632C1E955F48962695DB71CB5A7D832D3235D3632",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "9B1BD48AEE04FCD7F91B466DD62B864BBDD2EAE02D6CCE010C4E12334A624634",
+      "originalSha256": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "pdf": {
+        "imageOnlyPages": [],
+        "pageCount": 36
+      },
+      "sampledPages": [
+        1,
+        19
+      ],
+      "sourceId": "nist-ssdf",
+      "status": "candidate",
+      "transcriptSha256": "33F4D4B4DD90A1203309E1F0A61D0AB17C3D65DE3E8361FE42A042AF813B481F",
+      "versionId": "20261027-4db66862b8cebd1b",
+      "visualSample": "census/qa/nist-ssdf.png"
+    },
+    {
+      "asvsRequirementsTotal": 345,
+      "automatedChecksPassed": true,
+      "checks": {
+        "noImageOnlyPages": true,
+        "noReplacementCharacters": true,
+        "pageCountIndependent": true,
+        "requirementsPresent": true
+      },
+      "corrections": [
+        {
+          "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+          "requirement": "V1.2.10",
+          "source": "originals/requirements.json"
+        },
+        {
+          "reason": "Restore escaped control-character notation from official JSON; DOCX conversion lost inline escapes",
+          "requirement": "V4.2.4",
+          "source": "originals/requirements.json"
+        }
+      ],
+      "fingerprint": "214690BF36FDEA0752FE17D82813EF76681FF8F01F1834F9F12A1D4C27494013",
+      "missingDescriptionsAfterReconciliation": [],
+      "missingRequirementIds": [],
+      "newTranscript": "transcript.reviewed.md",
+      "newTranscriptSha256": "EE19AC3F01B8A259A380D563DAB733D7B00537BFF492D37784CF86F06A94545D",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "38A985971F52FBCB49DAD31EAFB6BD951375F408A1F7A121A59EBC0647AE15BA",
+      "originalSha256": "A2FA1BBE38F12CAC86D3A0F0023327E9772201F65A7F741F282F5E785D268FC5",
+      "pdf": {
+        "imageOnlyPages": [],
+        "pageCount": 120
+      },
+      "requirementsChecked": 345,
+      "sampledPages": [
+        1,
+        61
+      ],
+      "sourceId": "owasp-asvs",
+      "status": "candidate",
+      "transcriptSha256": "24EA3F29724D2176D66749B00FE6DBD36653CFC5DD51111632C6F30D075FD2A3",
+      "versionId": "20261027-214690bf36fdea07",
+      "visualSample": "census/qa/owasp-asvs.png"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "literalTextPreserved": true
+      },
+      "fingerprint": "AF7D03C7C740EEE2B6CAEF90F0D8541B09695AD4DA8886F71384A6C9503FA4F3",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "B47EA011A0ABC69F33FF74EC4348253B293DD723326FE5B136C8F7763C5F874B",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "19203E266013E8DB74922EC634FD5052285A6B6875A11064C94B5DF9496AEC7A",
+      "originalSha256": "65F9A85B72E016063D1DAFDB5B366CD52A94F8E4BF855F3B6BEC22AFEC10BB81",
+      "sourceId": "owasp-file-upload",
+      "status": "candidate",
+      "transcriptSha256": "B47EA011A0ABC69F33FF74EC4348253B293DD723326FE5B136C8F7763C5F874B",
+      "versionId": "20261027-af7d03c7c740eee2"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "literalTextPreserved": true
+      },
+      "fingerprint": "5D11165F772368885EDB8D4F531DFED9E895D7E1725C0B80F7C03820F7E6139F",
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1",
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "C6F765D7ED0835B000C8D1FF860DB5B0D9FAA3240052E7874CC3C1E3592B401E",
+      "originalSha256": "3869A8BF0A5144EF5C741B74FB3739BF10EB16AF669C65A60A233AAD943A9323",
+      "sourceId": "owasp-password-storage",
+      "status": "candidate",
+      "transcriptSha256": "6AC314EE82CFFE0924554B0DABA1CBE58FC7AF21D5E729B096633E2B7F7FC3C1",
+      "versionId": "20261027-5d11165f77236888"
+    },
+    {
+      "automatedChecksPassed": true,
+      "checks": {
+        "noReplacementCharacters": true,
+        "numbersPreserved": true,
+        "structurePresent": true
+      },
+      "fingerprint": "99C47346A5064E4A8E9D04666DC5D861221BF915D2318841C16FCA3F5077304F",
+      "headings": 143,
+      "newTranscript": "transcript.verified.md",
+      "newTranscriptSha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1",
+      "numericTokensMissing": {},
+      "oldTranscript": "transcript.md",
+      "oldTranscriptSha256": "E5939EA8B6B032172CBDA71977B91C624E6297F36EADC141BC402FAE264AAAAB",
+      "originalSha256": "6E3C5FE397257CAE509A2FB4752B73062CF8CBEB92C2CEC618989B17E4CF7057",
+      "sourceId": "w3c-wcag",
+      "status": "candidate",
+      "transcriptSha256": "E4D85BEFBDB9D7A2A540E039B1BBAC4D12937FFC87D5F9AAE4F340E7021F7FE1",
+      "versionId": "20261027-99c47346a5064e4a"
+    }
+  ],
+  "schemaVersion": 1
+}

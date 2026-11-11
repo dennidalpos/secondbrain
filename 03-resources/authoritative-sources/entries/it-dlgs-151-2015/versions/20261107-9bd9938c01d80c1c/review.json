@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "sourceId": "it-dlgs-151-2015",
+  "versionId": "20261107-9bd9938c01d80c1c",
+  "reviewer": "Claude Code - revisione centrale SecondBrain",
+  "reviewedAt": "2026-11-07T23:22:35.9345707+01:00",
+  "fingerprint": "9BD9938C01D80C1C243C9EF6DD5634EE2BADA392BB39FD6C7D9E64BBE656F4F8",
+  "transcriptSha256": "71C5AEF1DF7D70327B97B3D074CA5B5047AF004EF2F83F0685AAE0D44F1EFD62",
+  "structure": true,
+  "numbersAndTables": true,
+  "citedPassages": true,
+  "corrections": [],
+  "scope": "Pagine 130-131 del PDF (stampa 126-127): art. 23 D.Lgs. 151/2015 con comma 1 (nuovo art. 4 L. 300/1970, commi 1-3) e comma 2 (art. 171 D.Lgs. 196/2003) confrontati visivamente con le immagini renderizzate; numero di pagine 176 e nessuna pagina solo immagine dal convertitore. Il resto del fascicolo (altri atti) non e stato rivisto.",
+  "limitations": [
+    "Qualifica la trascrizione del testo originario del 2015 nelle pagine indicate. Non stabilisce la vigenza: l art. 4 e stato modificato dal D.Lgs. 185/2016 (Ispettorato nazionale del lavoro).",
+    "Non stabilisce la conformita di un prodotto."
+  ]
+}

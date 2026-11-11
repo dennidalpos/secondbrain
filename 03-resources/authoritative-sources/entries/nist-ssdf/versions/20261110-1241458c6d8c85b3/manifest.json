@@ -1,0 +1,40 @@
+{
+  "acquiredAt": "2026-11-10T22:43:13.2972700+00:00",
+  "artifacts": [
+    {
+      "contentHash": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "contentType": "application/pdf",
+      "endpointId": "canonical",
+      "path": "originals/canonical.pdf",
+      "sha256": "617746E553A9E2DA49BFBD4EEF0DFC3094758A39B869314E4173AC36605CDE22",
+      "url": "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218.pdf"
+    },
+    {
+      "contentHash": "27DA7F45E74F9F579791B17D1D7B933B9C8E1CAA020A05837E821E563CAB07EF",
+      "contentType": "text/html; charset=utf-8",
+      "endpointId": "publication",
+      "path": "originals/publication.html",
+      "sha256": "A7E8D9D0BCD22F05AD0281A33513376A67887B37961EF8F84D09247DC0D5D1FA",
+      "url": "https://csrc.nist.gov/pubs/sp/800/218/final"
+    }
+  ],
+  "configurationHash": "5B4933D657FBEC4C2E8289DAFF16ADAE4F11CEB3EA2542E63B84372BB8724AD7",
+  "edition": "SSDF 1.1, final 2022-02-03",
+  "fingerprint": "1241458C6D8C85B3D7FD326470B81F76EBC4944D697FCDF62E9D0B0608FD52D4",
+  "language": "en",
+  "publicationDate": "2022-02-03",
+  "schemaVersion": 1,
+  "sourceId": "nist-ssdf",
+  "transcription": {
+    "diagnostics": {
+      "code": "sources.reason.converter-unavailable",
+      "message": "Convertitore non disponibile",
+      "reason": "converter-unavailable",
+      "status": "unavailable"
+    },
+    "path": null,
+    "sha256": null,
+    "status": "unavailable"
+  },
+  "versionId": "20261110-1241458c6d8c85b3"
+}

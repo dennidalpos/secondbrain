@@ -262,7 +262,9 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
             foreach($artifact in $manifest.artifacts){
                 if($artifactIds.ContainsKey($artifact.endpointId) -or $artifact.path -notmatch '^originals/[a-zA-Z0-9][a-zA-Z0-9_.-]{0,100}$' -or $artifact.sha256 -notmatch '^[A-F0-9]{64}$' -or $artifact.contentHash -notmatch '^[A-F0-9]{64}$'){throw (New-SBError 'sources.original.invalid')}
                 $artifactIds[$artifact.endpointId]=$true
-                if((Get-SBFileHash (Get-SBSourceChild $root $artifact.path)) -cne $artifact.sha256){throw (New-SBError 'sources.original.hash' @($source.id))}
+                $originalHash=Get-SBFileHash (Get-SBSourceChild $root $artifact.path)
+                if($originalHash -ceq 'absent'){$issues.Add(@{kind='original-missing';sourceId=$source.id;versionId=$version.id;path=$artifact.path})}
+                elseif($originalHash -cne $artifact.sha256){throw (New-SBError 'sources.original.hash' @($source.id))}
             }
             if((Get-SBSourceFingerprint $manifest.artifacts) -cne $manifest.fingerprint){throw (New-SBError 'sources.fingerprint.diverged')}
             if($manifest.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $root $manifest.transcription.path)) -cne $manifest.transcription.sha256){throw (New-SBError 'sources.transcript.hash')}
@@ -324,7 +326,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
         $existing=Read-SBJson (Get-SBSourceChild $source._root ('versions/'+$version.id+'/manifest.json')) $null
         if($existing -and $existing.fingerprint -ceq $fingerprint){
             $versionRoot=Get-SBSourceChild $source._root ('versions/'+$version.id)
-            foreach($artifact in $existing.artifacts){if((Get-SBFileHash (Get-SBSourceChild $versionRoot $artifact.path)) -cne $artifact.sha256){throw (New-SBError 'sources.original.modified')}}
+            foreach($artifact in $existing.artifacts){$currentHash=Get-SBFileHash (Get-SBSourceChild $versionRoot $artifact.path);if($currentHash -cne 'absent' -and $currentHash -cne $artifact.sha256){throw (New-SBError 'sources.original.modified')}}
             if($existing.transcription.path -and (Get-SBFileHash (Get-SBSourceChild $versionRoot $existing.transcription.path)) -cne $existing.transcription.sha256){throw (New-SBError 'sources.transcript.modified')}
             return @{sourceId=$SourceId;versionId=$version.id;status='unchanged'}
         }
@@ -374,6 +376,32 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
     $data=@{};foreach($key in $source.Keys){if(!$key.StartsWith('_',[StringComparison]::Ordinal)){$data[$key]=$source[$key]}}
     Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))) $hash $Config.backupRoot|Out-Null
     @{sourceId=$SourceId;versionId=$versionId;status=$result.status}
+}
+function Restore-SBSourceOriginals($Config,$Registry,[scriptblock]$Transport) {
+    # #478: originals are not in Git. Every missing original of a public-reusable source is downloaded again from its endpoint and written only if its SHA-256 equals the manifest; a different content is reported, never written.
+    $restored=@();$failed=@()
+    foreach($source in @($Registry.sources|Where-Object {$_.rights.status -eq 'public-reusable'})){
+        foreach($version in $source.versions){
+            $root=Get-SBSourceChild $source._root ('versions/'+$version.id)
+            $manifest=Read-SBJson (Join-Path $root 'manifest.json') $null
+            if(!$manifest){continue}
+            foreach($artifact in $manifest.artifacts){
+                $target=Get-SBSourceChild $root $artifact.path
+                if((Get-SBFileHash $target) -cne 'absent'){continue}
+                $item=@{sourceId=$source.id;versionId=$version.id;path=$artifact.path}
+                $endpoint=@($source.endpoints|Where-Object id -ceq $artifact.endpointId)
+                if($endpoint.Count -ne 1){$failed+=$item+@{reason='endpoint-missing'};continue}
+                try{
+                    $download=Get-SBSourceContent $endpoint[0] $Transport
+                    if($download.sha256 -cne $artifact.sha256){$failed+=$item+@{reason='hash-mismatch'};continue}
+                    [IO.Directory]::CreateDirectory((Split-Path $target))|Out-Null
+                    Write-SBFile $target $download.bytes 'absent' $Config.backupRoot|Out-Null
+                    $restored+=$item
+                }catch{$failed+=$item+@{reason=$_.Exception.Message}}
+            }
+        }
+    }
+    @{restored=$restored;failed=$failed}
 }
 function Find-SBSourceReferences($Registry,$Source) {
     # Heuristic: official numbers (YYYY/N or N/YYYY, "n. N del <date> <year>") found in the accepted, else latest, transcript.
@@ -427,6 +455,7 @@ Export-ModuleMember -Function @(
     'Get-SBSourceCatalog',
     'Get-SBSourceChecks',
     'Invoke-SBSourceCollect',
+    'Restore-SBSourceOriginals',
     'Find-SBSourceReferences',
     'Get-SBSourceClosure'
 )

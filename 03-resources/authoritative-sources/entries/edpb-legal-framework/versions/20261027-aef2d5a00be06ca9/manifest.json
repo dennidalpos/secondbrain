@@ -1,0 +1,43 @@
+{
+  "acquiredAt": "2026-10-27T10:17:32.8953984+00:00",
+  "alternatives": [
+    {
+      "path": "transcript.md",
+      "reason": "Initial extraction, retained before provenance and layout review",
+      "sha256": "C5F78EB0FAF70945E5D7E3A1821248F6ECC80830CD92892792244A9AF8FB0AE6"
+    }
+  ],
+  "artifacts": [
+    {
+      "contentHash": "9A38C265047BB913108821DAE5F674C7D860FF442E9806DA7C27569EA42202A6",
+      "contentType": "text/html; charset=utf-8",
+      "endpointId": "canonical",
+      "path": "originals/canonical.html",
+      "sha256": "5AAE23EAF9536F9EA4D468F82BFC0FD0C9EE1D848D5E62F120322BC8E8B8AA98",
+      "url": "https://www.edpb.europa.eu/about-edpb/legal-framework_en"
+    }
+  ],
+  "configurationHash": "3E74D3C9634B1AA2F01118F99A9215EFFE9CF12D398D7EE823C6B08016F4E309",
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "fingerprint": "AEF2D5A00BE06CA913B22872CF60437DECB4849D84F5D0C7262C877C8BE3B099",
+  "language": "en",
+  "publicationDate": null,
+  "schemaVersion": 1,
+  "sourceId": "edpb-legal-framework",
+  "transcription": {
+    "diagnostics": {
+      "characters": 6156,
+      "converter": "markitdown==0.1.9",
+      "numericTokens": 43,
+      "reason": null,
+      "requiresReview": true,
+      "schemaVersion": 1,
+      "sourceSha256": "5AAE23EAF9536F9EA4D468F82BFC0FD0C9EE1D848D5E62F120322BC8E8B8AA98",
+      "status": "extracted"
+    },
+    "path": "transcript.verified.md",
+    "sha256": "4C102F6E40A00964B3A8EACFA1A3D1D2D723EEAE29DE1057257CB72AF39CD202",
+    "status": "extracted"
+  },
+  "versionId": "20261027-aef2d5a00be06ca9"
+}

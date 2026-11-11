@@ -212,7 +212,7 @@ Le postazioni nuove si attivano con `secondbrain.ps1 -Setup` (SYS03), che orches
 
 ## Isolamento per progetto
 
-Ogni repository gestito ha il proprio dossier in `01-projects/<nome>--<hash>/` (PARA di tipo progetto con `repository.json`, più `specs/`, `material/` e `data/` per il materiale da implementare in quel repository). L'unica parte condivisa tra repository è `03-resources/`. Per impostazione predefinita ogni lettura resta nel repository in lavoro: `-All`, `-AllDossiers`, `all=true` e una ricerca senza repository risolto sono rifiutati con un errore di isolamento. Un cervello che ha davvero bisogno delle viste tra repository imposta `"crossProjectReads": true` in `config/shared.json`.
+Ogni repository gestito ha il proprio dossier in `01-projects/<nome>--<hash>/` (PARA di tipo progetto con `repository.json`, più `specs/`, `material/` e `data/` per il materiale da implementare in quel repository). L'unica parte condivisa tra repository è `03-resources/`. Per impostazione predefinita ogni lettura resta nel repository in lavoro: `-All`, `-AllDossiers`, `all=true` e una ricerca senza repository risolto sono rifiutati con un errore di isolamento. Non esiste un interruttore per toglierlo (#475).
 
 I dossier creati prima di questo schema stanno in `02-areas/products/`. Anteprima dello spostamento con `pwsh -NoProfile -File scripts/para.ps1 -MigrateToProjects`, poi esecuzione con `-Apply` (facoltativo `-Only <id o identità>`). Ogni dossier si sposta in una propria transazione PARA con backup, conserva id e file e riceve `specs/`, `material/` e `data/`; binding e file di stato sono riscritti sui nuovi percorsi. Prima crea un archivio `backup.ps1` verificato.
 

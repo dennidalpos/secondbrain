@@ -1,0 +1,51 @@
+{
+  "acceptedVersion": "20261104-e3ece462f199b730",
+  "domains": [
+    "privacy"
+  ],
+  "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
+  "effectiveDates": [],
+  "endpoints": [
+    {
+      "allowedHosts": [
+        "www.edpb.europa.eu"
+      ],
+      "expectedText": "General Data Protection Regulation",
+      "format": "html",
+      "id": "canonical",
+      "role": "canonical",
+      "url": "https://www.edpb.europa.eu/about-edpb/legal-framework_en"
+    }
+  ],
+  "id": "edpb-legal-framework",
+  "issuer": "European Data Protection Board",
+  "jurisdictions": [
+    "Global"
+  ],
+  "kind": "guideline",
+  "language": "en",
+  "notes": [
+    "Fonte EDPB, riutilizzo con attribuzione e senza distorsione del significato. Pagina istituzionale di orientamento, distinta dal regolamento.",
+    "Data di pubblicazione puntuale non qualificata: non inferirla dalla data di acquisizione."
+  ],
+  "officialId": "EDPB legal framework",
+  "publicationDate": null,
+  "relatedSources": [],
+  "rights": {
+    "notes": "Fonte EDPB, riutilizzo con attribuzione e senza distorsione del significato. Pagina istituzionale di orientamento, distinta dal regolamento.",
+    "reference": "https://www.edpb.europa.eu/copyright_en",
+    "status": "public-reusable"
+  },
+  "schemaVersion": 1,
+  "title": "Quadro giuridico della protezione dati UE",
+  "versions": [
+    {
+      "id": "20261027-aef2d5a00be06ca9",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "20261104-e3ece462f199b730",
+      "reviewStatus": "verified"
+    }
+  ]
+}
