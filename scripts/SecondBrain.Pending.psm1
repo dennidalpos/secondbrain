@@ -10,6 +10,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'pending.invalid' = @{it='Richiesta differita non valida: {0}';en='Invalid deferred request: {0}'}
     'pending.conflict' = @{it='La base della scrittura e cambiata: richiesta conservata senza sovrascrivere';en='The write base changed: request preserved without overwriting'}
+    'pending.discard.notfound' = @{it='Nessuna richiesta differita con questo ID';en='No deferred request with this ID'}
+    'pending.discard.state' = @{it='Solo le richieste in conflitto o non valide si possono scartare (stato: {0})';en='Only conflicting or invalid requests can be discarded (state: {0})'}
     'pending.notice' = @{it='Scritture differite: {0} integrate, {1} conflitti, {2} pendenti; stato {3}.';en='Deferred writes: {0} applied, {1} conflicts, {2} pending; state {3}.'}
 }
 
@@ -398,7 +400,29 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
     } finally {if($clock){$Diagnostics.responseMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
+function Move-SBPendingConflict {
+    # Retires a conflicting or invalid request: request and receipt move to access/pending-discarded/<id>/ with a note;
+    # evidence is preserved, never deleted, and deferred or applied requests are refused.
+    param([string]$BrainRoot,[string]$Id)
+    if($Id -cnotmatch '^[a-f0-9]{32}$'){throw (New-SBError 'pending.invalid' @('request ID'))}
+    $entry=@(Get-SBPendingWrites $BrainRoot|Where-Object id -ceq $Id)
+    if($entry.Count -ne 1){throw (New-SBError 'pending.discard.notfound')}
+    $entry=$entry[0]
+    if($entry.state -notin @('conflict','invalid','invalid-receipt')){throw (New-SBError 'pending.discard.state' @($entry.state))}
+    Assert-SBWriteGuard
+    $paths=Get-SBPendingPaths $BrainRoot
+    $target=Join-Path (Split-Path $paths.queue) ('pending-discarded/'+$Id)
+    Assert-SBPlainPath $target
+    [IO.Directory]::CreateDirectory($target)|Out-Null
+    $requestHash=Get-SBFileHash $entry.path
+    $note=@{schemaVersion=1;id=$Id;state=$entry.state;repository=$entry.repository;requestHash=$requestHash;discardedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    [IO.File]::WriteAllText((Join-Path $target 'discarded.json'),(ConvertTo-SBJson $note),[Text.UTF8Encoding]::new($false))
+    Move-Item -LiteralPath $entry.path -Destination (Join-Path $target ($Id+'.json'))
+    if(Test-Path -LiteralPath $entry.receiptPath){Move-Item -LiteralPath $entry.receiptPath -Destination (Join-Path $target ($Id+'.receipt.json'))}
+    @{id=$Id;state='discarded';previousState=$entry.state;archive=$target;requestHash=$requestHash}
+}
+
 function Format-SBPendingNotice($Summary) {
     Get-SBMessage 'pending.notice' @($Summary.applied.Count,$Summary.conflicts.Count,$Summary.pending,$Summary.state)
 }
-Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice','Get-SBPendingContentHash')
+Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice','Get-SBPendingContentHash','Move-SBPendingConflict')

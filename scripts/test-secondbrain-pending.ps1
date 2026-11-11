@@ -225,6 +225,14 @@ try {
     Assert-Pending ([regex]::Matches((Read-SBText (Join-Path $dossier 'memory.md')),'Exactly once').Count -eq 1) 'two importing processes apply the same append once'
     $list=Invoke-PendingCli 'knowledge.ps1' @('-PendingWrites')
     Assert-Pending ($list.code -eq 0 -and @($list.data|Where-Object state -eq 'conflict').Count -ge 2) 'pending list exposes preserved conflicts'
+    $discardId=@($list.data|Where-Object state -eq 'conflict')[0].id
+    $discardBefore=Get-SBFileHash (@($list.data|Where-Object id -eq $discardId)[0].path)
+    $deferredId=@($list.data|Where-Object state -eq 'applied')[0].id
+    $refusedApplied=$false;try{[void](Move-SBPendingConflict $brain $deferredId)}catch{$refusedApplied=(Test-SBError $_.Exception 'pending.discard.state')}
+    Assert-Pending $refusedApplied 'discard refuses an applied request'
+    $discarded=Move-SBPendingConflict $brain $discardId
+    Assert-Pending ($discarded.state -eq 'discarded' -and $discarded.previousState -eq 'conflict' -and (Get-SBFileHash (Join-Path $discarded.archive ($discardId+'.json'))) -eq $discardBefore -and (Test-Path -LiteralPath (Join-Path $discarded.archive 'discarded.json'))) 'discard archives a conflict with its original bytes and a note'
+    Assert-Pending (@(Get-SBPendingWrites $brain|Where-Object id -eq $discardId).Count -eq 0) 'a discarded conflict leaves the queue'
     $scanProbe=Join-Path $fixture 'scan-probe'
     foreach($suffix in @('0','1')){Put-Pending (Join-Path $scanProbe ('.runtime/access/pending-writes/'+('f'*31)+$suffix+'.json')) '{}'}
     $junctionTarget=Join-Path $fixture 'receipt-junction-target';[IO.Directory]::CreateDirectory($junctionTarget)|Out-Null

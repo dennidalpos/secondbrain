@@ -40,6 +40,14 @@ Se il grafo esistente del tracker è invalido, una modifica al task con hash ver
 
 JSON invalidi e ricevute incoerenti sono segnalati; non impediscono l'integrazione delle altre richieste indipendenti. Errori di accesso non producono ricevute di successo. Una transazione centrale interrotta mantiene il normale gate di recupero: le nuove richieste restano salvate e le letture continuano, mentre il journal va recuperato con `recover.ps1`. Non si forzano lock o marker.
 
+Una richiesta in conflitto o non valida non piu necessaria (l'effetto e gia nel dossier per un'altra scrittura) si ritira in modo esplicito, mai cancellandola a mano:
+
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -DiscardPending <ID richiesta, 32 cifre esadecimali>
+~~~
+
+Sono accettati solo gli stati conflict, invalid e invalid-receipt; le richieste differite o applicate sono rifiutate. Richiesta e ricevuta passano in .runtime/access/pending-discarded/<id>/ con una nota discarded.json (stato, hash della richiesta, ora): la prova resta conservata. Il comando prende il lock di scrittura ed e incompatibile con NoRecovery.
+
 ## Contratto MCP e sessioni gia aperte
 
 I tool MCP possono applicare le richieste gia autorizzate prima di rispondere. Sono quindi dichiarati con `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`. Le descrizioni e `initialize.instructions` espongono questo comportamento; l'output aggiunge il riepilogo dell'integrazione quando necessario.

@@ -38,6 +38,14 @@ An invalid tracker graph can defer a request whose task hash remains verifiable;
 
 Interrupted transactions retain the normal recovery gate. Preserve manifests and use recover.ps1 after review; never delete markers or alter hashes to hide changed evidence.
 
+A conflict or invalid request that is no longer needed (its effect already reached the dossier by another write) is retired explicitly, never deleted by hand:
+
+~~~powershell
+pwsh -NoProfile -File scripts/knowledge.ps1 -DiscardPending <32-hex request id>
+~~~
+
+Only conflict, invalid and invalid-receipt states are accepted; deferred and applied requests are refused. Request and receipt move to .runtime/access/pending-discarded/<id>/ with a discarded.json note (state, request hash, time), so the evidence is preserved. The command takes the writer lock and is incompatible with NoRecovery.
+
 ## MCP contract
 
 The eight original tools advertise readOnlyHint=false, destructiveHint=true, idempotentHint=false and openWorldHint=false. For the two reviewed-write tools, preview_dossier_write has readOnlyHint=true and destructiveHint=false; preview_dossier_write and submit_dossier_write both have idempotentHint=true. These annotations describe behavior, not authorization. The server negotiates 2025-03-26 and supports 2024-11-05 when requested.

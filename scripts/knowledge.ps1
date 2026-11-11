@@ -15,6 +15,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='FileSave')][string]$ExpectedHash,
     [Parameter(Mandatory,ParameterSetName='FlushPending')][switch]$FlushPending,
     [Parameter(Mandatory,ParameterSetName='PendingWrites')][switch]$PendingWrites,
+    [Parameter(Mandatory,ParameterSetName='DiscardPending')][ValidatePattern('^[a-f0-9]{32}$')][string]$DiscardPending,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
@@ -61,11 +62,11 @@ Add-SBMessages @{
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
     $bufferedWrite=($UpdateTaskId -or $NewTask -or $SaveFile -or $AppendFile)
-    $readOnly=($bufferedWrite -or (!$Apply -and !$SetLifecycle))
+    $readOnly=($bufferedWrite -or (!$Apply -and !$SetLifecycle -and !$DiscardPending))
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     $pendingResult=$null
-    if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
+    if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending -or $DiscardPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
     if($readOnly -and !$bufferedWrite -and !$ArchiveTasks -and !$NoRecovery){
         $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
@@ -135,6 +136,7 @@ try{
     }
     elseif($FlushPending){$result=$pendingResult}
     elseif($PendingWrites){$result=@(Get-SBPendingWrites $brain)}
+    elseif($DiscardPending){$result=Move-SBPendingConflict -BrainRoot $brain -Id $DiscardPending}
     elseif($SaveFile -or $AppendFile){
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
         if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
