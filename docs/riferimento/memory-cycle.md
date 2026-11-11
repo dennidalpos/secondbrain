@@ -58,7 +58,7 @@ Slim defaults to 50,000 characters and explicitly selected TaskIds; Full retains
 
 turns-index stores capture metadata transactionally. Notices distinguish captured and legacy turns; one collector per event avoids duplicates. SYS05 maintains batch history with preview/confirmation; MEM03 handles incremental closure. Historical permissions are not current authorization.
 
-## Explicit single-turn CLI receipt (1.4.0)
+## Explicit single-turn CLI receipt
 
 Use an initialized evidence workspace from work.ps1. Prepare a private, Git-ignored request JSON containing schemaVersion=1, repository, client, clientVersion, sessionId, turnId, the absolute transcriptPath, requestContent, persistence="allowed" and policyEvidence for this one turn. requestContent must be the exact native human content: Codex text blocks, Claude Code string/blocks, or Antigravity userMessage. Do not infer consent from permission_mode, hook installation or an earlier turn.
 
@@ -82,7 +82,7 @@ Unknown/denied permission and private permit requests exit before configuration,
 
 Source for Codex native event fields: [OpenAI Docs: hooks](https://learn.chatgpt.com/docs/hooks). Client permission modes describe tool execution policy and are not memory-persistence authorization.
 
-## Known limits (1.4.1)
+## Known limits
 
 The bridge now accepts only a native payload whose string event name is Stop; other, missing or empty names are suppressed (negative fixtures cover UserPromptSubmit, PreToolUse and untyped payloads). Permit Apply requires the previewed permitSha256 and rejects a different one before any write. Both are verified on synthetic fixtures only; real clients delivering the event name are not qualified, so the live qualification stays in #322/#351/#352 and automatic native collection remains a guided pilot.
 

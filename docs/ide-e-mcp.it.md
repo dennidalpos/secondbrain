@@ -23,7 +23,7 @@ Le impostazioni dell'account Claude non hanno un file: incolla il testo di `.run
 
 ### Istruzioni nei repository
 
-In ogni repository gestito `AGENTS.md` è la fonte unica (standard [agents.md](https://agents.md)): lo leggono Codex, Cursor, Windsurf, GitHub Copilot, JetBrains Junie, Zed, Roo Code e altri. Claude Code e Gemini CLI non lo leggono per nome: `secondbrain.ps1 -Sync` aggiunge i puntatori `CLAUDE.md` e `GEMINI.md`, che contengono solo `@AGENTS.md` in un blocco gestito (il tuo testo nel file non viene toccato). Per Aider aggiungi `read: AGENTS.md` a `.aider.conf.yml`. Dettagli: [Prompt e direttive](riferimento/customizing-prompts-and-directives.md#2-integrazione-delle-direttive-nei-diversi-ide).
+In ogni repository gestito `AGENTS.md` è la fonte unica (standard [agents.md](https://agents.md)): lo leggono Codex, Cursor, Windsurf, GitHub Copilot, JetBrains Junie, Zed, Roo Code e altri. Claude Code e Gemini CLI non lo leggono per nome: `secondbrain.ps1 -Sync` aggiunge i puntatori `CLAUDE.md` e `GEMINI.md`, che contengono solo `@AGENTS.md` in un blocco gestito (il tuo testo nel file non viene toccato). Per Aider aggiungi `read: AGENTS.md` a `.aider.conf.yml`. Dettagli: [Prompt e direttive](riferimento/customizing-prompts-and-directives.it.md#2-integrazione-delle-direttive-nei-diversi-ide).
 
 Con più account o più radici di configurazione dello stesso strumento, registra ogni integrazione con `sb prompt SYS01` (procedura e disclaimer in [IDE](riferimento/adapters.md)): SecondBrain non rileva gli account, li dichiari tu.
 
@@ -74,7 +74,7 @@ Per una sessione rigorosamente senza scritture avvia il server con `mcp-server.p
 
 ## Senza MCP
 
-MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dalla riga di comando: un test confronta i due percorsi sugli stessi input per tutti gli 8 strumenti (la CLI aggiunge solo l'intestazione `CATALOGO PROMPT` in `-Show`).
+MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dalla riga di comando: la CLI espone gli stessi contenuti di consultazione (in `-Show` aggiunge l'intestazione `CATALOGO PROMPT`); nessun test confronta i due percorsi.
 
 | Strumento MCP | Comando CLI | Comando `sb` nell'IDE |
 |---|---|---|

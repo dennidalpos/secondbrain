@@ -110,6 +110,67 @@ try {
     $env:SECONDBRAIN_LANG='it';$itPara=Get-SBMessage 'para.status.invalid'
     $env:SECONDBRAIN_LANG='en';$enPara=Get-SBMessage 'para.status.invalid'
     Assert-Quick ($itPara -ceq 'Stato PARA non valido' -and $enPara -ceq 'Invalid PARA status') 'catalogo messaggi: Para in it e en'
+    # Facts quoted in the public documents derive from the code (tool count, prompt count, anchors, versions).
+    $toolCount=@(& (Get-Module SecondBrain.Mcp) { Get-SBMcpToolDefinitions }).Count
+    $promptCount=@((ConvertFrom-Json (Read-SBText (Join-Path $productRoot 'direttive/prompts/catalog.json'))).prompts).Count
+    $numberWords=@{one=1;two=2;three=3;four=4;five=5;six=6;seven=7;eight=8;nine=9;ten=10;eleven=11;twelve=12;uno=1;due=2;tre=3;quattro=4;cinque=5;sei=6;sette=7;otto=8;nove=9;dieci=10;undici=11;dodici=12}
+    $docFiles=@(Get-Item -LiteralPath (Join-Path $productRoot 'README.md'))+@(Get-ChildItem -LiteralPath (Join-Path $productRoot 'docs') -Filter '*.md' -Recurse -File)
+    $staleFacts=@();$brokenAnchors=@();$versionedHeadings=@()
+    function Get-QuickSlugs([string]$Text){
+        $slugs=[Collections.Generic.HashSet[string]]::new();$fence=$false
+        foreach($line in $Text -split "`r?`n"){
+            if($line -match '^\s*(```|~~~)'){$fence=!$fence;continue}
+            if(!$fence -and $line -match '^#{1,6}\s+(.+?)\s*#*\s*$'){
+                $slug=([regex]::Replace($Matches[1].Trim().ToLowerInvariant(),'[^\p{L}\p{N} _-]','')) -replace ' ','-'
+                [void]$slugs.Add($slug)
+            }
+        }
+        ,$slugs
+    }
+    $slugCache=@{}
+    foreach($doc in $docFiles){
+        $text=Read-SBText $doc.FullName;$rel=$doc.FullName.Substring($productRoot.Length+1)
+        foreach($line in $text -split "`r?`n"){
+            # Counts of tools and prompts; lines about measured history, existing subsets or pre-authorizations are exempt.
+            if($line -match '(?i)existing|esistenti|preautorizza|preauthoriz|measure|misurazion|erano|were '){continue}
+            foreach($m in [regex]::Matches($line,'(?i)\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|undici|dodici)(?:\s+(?:MCP|prompt))?\s+(tools?|strumenti|prompt|prompts|schede|cards)\b')){
+                $n=if($m.Groups[1].Value -match '^\d+$'){[int]$m.Groups[1].Value}else{$numberWords[$m.Groups[1].Value.ToLowerInvariant()]}
+                $kind=$m.Groups[2].Value.ToLowerInvariant()
+                if($kind -notin @('tool','tools','strumenti') -and $m.Groups[1].Value -notmatch '^\d+$'){continue}
+                $expected=if($kind -in @('tool','tools','strumenti') -and $m.Value -notmatch '(?i)prompt'){$toolCount}else{$promptCount}
+                # Tool counts below 8 describe subsets (knowledge tools, the two write tools); the full set is 8 or more.
+                if($expected -eq $toolCount -and $n -lt 8){continue}
+                if($n -ne $expected){$staleFacts+=($rel+': '+$m.Value+' (atteso '+$expected+')')}
+            }
+        }
+        foreach($m in [regex]::Matches($text,'\]\(([^)#\s]*)#([^)\s]+)\)')){
+            $target=if($m.Groups[1].Value){Join-Path $doc.DirectoryName $m.Groups[1].Value}else{$doc.FullName}
+            if($target -notmatch '\.md$'){continue}
+            if(!(Test-Path -LiteralPath $target -PathType Leaf)){$brokenAnchors+=($rel+': file '+$m.Groups[1].Value);continue}
+            $full=[IO.Path]::GetFullPath($target)
+            if(!$slugCache.ContainsKey($full)){$slugCache[$full]=Get-QuickSlugs (Read-SBText $full)}
+            if(!$slugCache[$full].Contains($m.Groups[2].Value.ToLowerInvariant())){$brokenAnchors+=($rel+': #'+$m.Groups[2].Value)}
+        }
+        foreach($m in [regex]::Matches($text,'(?m)^#{1,6}\s+.*\(\d+\.\d+\.\d+\)\s*$')){$versionedHeadings+=($rel+': '+$m.Value.Trim())}
+    }
+    Assert-Quick ($toolCount -ge 1 -and $promptCount -ge 1) ('fonti dei fatti: '+$toolCount+' strumenti MCP, '+$promptCount+' prompt')
+    Assert-Quick (!$staleFacts.Count) ('numeri di strumenti e prompt dei documenti coerenti con il codice'+$(if($staleFacts.Count){': '+(($staleFacts|Select-Object -First 5) -join '; ')}))
+    Assert-Quick (!$brokenAnchors.Count) ('ancore e file dei link interni dei documenti esistono'+$(if($brokenAnchors.Count){': '+(($brokenAnchors|Select-Object -Unique -First 40) -join '; ')}))
+    Assert-Quick (!$versionedHeadings.Count) ('nessun titolo di documento legato a una versione'+$(if($versionedHeadings.Count){': '+(($versionedHeadings|Select-Object -First 5) -join '; ')}))
+    # Exit-code contract: every literal exit code of an entry script is a documented code (0-5) in both operations guides.
+    $documentedCodes=@(0..5)
+    $undocumentedExits=@()
+    foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -File|Where-Object {$_.Name -notlike 'test-*'}){
+        foreach($m in [regex]::Matches((Read-SBText $file.FullName),'exit\s+(\d+)')){if([int]$m.Groups[1].Value -notin $documentedCodes){$undocumentedExits+=($file.Name+': exit '+$m.Groups[1].Value)}}
+    }
+    Assert-Quick (!$undocumentedExits.Count) ('codici di uscita degli script tra quelli documentati'+$(if($undocumentedExits.Count){': '+(($undocumentedExits|Select-Object -First 5) -join '; ')}))
+    foreach($guide in @('operations.md','operations.it.md')){
+        $guideText=Read-SBText (Join-Path $productRoot ('docs/riferimento/'+$guide))
+        $missingRows=@($documentedCodes|Where-Object {$guideText -notmatch ('(?m)^\|\s*'+$_+'\s*\|')})
+        Assert-Quick (!$missingRows.Count) ('tabella dei codici di uscita completa in '+$guide)
+    }
+    $readmeText=Read-SBText (Join-Path $productRoot 'README.md')
+    Assert-Quick (!([regex]::IsMatch($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b') -and ([regex]::Matches($readmeText,'(?i)\b(Version|versione|in) (\d+\.\d+\.\d+)\b')|Where-Object {$_.Groups[2].Value -ne $productVersion}).Count)) 'il README non cita versioni diverse da VERSION'
     # Task runner selection on synthetic tasks.
     Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1') -Force
     # Allowlist-first and project isolation defaults.

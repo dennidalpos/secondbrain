@@ -84,6 +84,6 @@ Il modo più semplice è chiederlo all'agente:
 sb prompt SYS11: aggiungi un prompt per le migrazioni del database
 ```
 
-A mano: [modificare i prompt](riferimento/customizing-prompts-and-directives.md#modifica-dei-prompt) e [modificare le regole](riferimento/customizing-prompts-and-directives.md#modifica-delle-direttive).
+A mano: [modificare i prompt](riferimento/customizing-prompts-and-directives.it.md#modifica-dei-prompt) e [modificare le regole](riferimento/customizing-prompts-and-directives.it.md#modifica-delle-direttive).
 
 Una nuova regola comune richiede sempre la tua approvazione.

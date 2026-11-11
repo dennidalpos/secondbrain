@@ -2,7 +2,24 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.22.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.22.2**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.22.2] - 2026-11-11
+
+### Aggiunto
+- Workflow GitHub Actions su `windows-latest` (Quick, indici dei prompt, distribuzione, lint, scansione di pubblicazione) e badge di stato nel README.
+- Test Quick: i numeri di strumenti MCP e prompt citati nei documenti derivano dal codice; ancore e file dei link interni esistono; nessun titolo legato a una versione.
+- README: destinatari (singolo utente, studio), isolamento per repository, registro delle fonti e quando non usare SecondBrain.
+
+### Modificato
+- `build-prompts.ps1 -Check` gira anche senza postazione attivata (clone pulito).
+- Suite predefinita: i gruppi essential girano in tre processi paralleli con fixture proprie (circa 58 s, budget 120 s); `-Only` e `-Sequential` li eseguono in un solo processo. `test-secondbrain-essential.ps1` accetta `-Groups` separati da virgola.
+- 81 messaggi di errore (`prompts.*`, `promptscli.*`, `trackerimport.*`) indicano il prossimo passo, senza punto finale per frase singola.
+- `knowledge.ps1`: le scritture accettate ma non ancora applicate (differite o in conflitto) escono con 5; 0 significa applicata. Tabella dei codici 0-5 documentata e verificata da Quick.
+- `secondbrain.ps1 -Check`: `aligned` dipende solo dai file (`issues`); i rilievi ambientali (caricamento IDE, account, consenso MCP, ambito di scrittura, fonti, compattazione) sono nel nuovo campo `environment` e non cambiano il codice di uscita.
+- Test: `-Setup -All` è rifiutato con il prossimo passo (`-AllIdes`).
+- Documenti corretti: undici strumenti MCP, 114 prompt, ancore senza versione, link italiani verso le pagine italiane.
+- Baseline di lint aggiornata (161 riscontri: due nuovi file con accenti, uno risolto).
 
 ## [1.22.1] - 2026-11-11
 

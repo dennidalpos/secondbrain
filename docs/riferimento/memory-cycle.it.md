@@ -85,7 +85,7 @@ Ogni cattura aggiorna nella stessa transazione `turns-index.json`, con soli meta
 
 SYS05 gestisce la manutenzione per lotti con anteprima e conferma, preservando le fonti. MEM03 distingue la chiusura incrementale dalla consegna del lotto. Le autorizzazioni nello storico non sono permessi correnti.
 
-## Ricevuta CLI esplicita per turno (1.4.0)
+## Ricevuta CLI esplicita per turno
 
 Preparare in una cartella evidence inizializzata con work.ps1 un JSON privato con schemaVersion=1, repository, client, clientVersion, sessionId, turnId, transcriptPath assoluto, requestContent nel formato umano nativo esatto, persistence="allowed" e policyEvidence del solo turno. Codex usa i blocchi di testo; Claude Code stringa/blocchi; Antigravity userMessage. Non dedurre il consenso da permission_mode o dall installazione.
 
@@ -93,8 +93,8 @@ Eseguire memory-cycle.ps1 -Operation Permit -InputPath <richiesta.json> -Workspa
 
 La ricevuta immutabile in workspace/permits conserva l hash della richiesta e vincola repo, client/versione, sessione/turno, transcript, policy, workspace e revisioni di modulo/bridge. Il riuso identico restituisce duplicate; un turno diverso non è autorizzato. Hash assente, alterato o revisione cambiata: soppressione non bloccante. I vecchi permessi manuali senza marker CLI e hash correnti non abilitano la cattura.
 
-Attachments autorizza solo i file esatti collegati agli eventId conservati. candidatePath opzionale vincola un candidato già preparato nella workspace; captureSha256="bind-current-turn" lo collega alla cattura. Promozione transazionale, proposte per ambiguità/conflitti, replay idempotente. I permessi sconosciuti/vietati e le richieste private escono prima di configurazione, sessioni, code o recovery. La modifica della ricevuta per revocare il consenso invalida l hash precedente. Le prove sono sintetiche, separate dalle qualifiche live. Vedere la [guida inglese](memory-cycle.md#explicit-single-turn-cli-receipt-140) per comandi, limiti e fonte ufficiale Codex.
+Attachments autorizza solo i file esatti collegati agli eventId conservati. candidatePath opzionale vincola un candidato già preparato nella workspace; captureSha256="bind-current-turn" lo collega alla cattura. Promozione transazionale, proposte per ambiguità/conflitti, replay idempotente. I permessi sconosciuti/vietati e le richieste private escono prima di configurazione, sessioni, code o recovery. La modifica della ricevuta per revocare il consenso invalida l hash precedente. Le prove sono sintetiche, separate dalle qualifiche live. Vedere la [guida inglese](memory-cycle.md#explicit-single-turn-cli-receipt) per comandi, limiti e fonte ufficiale Codex.
 
-## Limiti osservati (1.4.1)
+## Limiti osservati
 
 Il bridge accetta solo un payload nativo con nome evento stringa Stop; nomi diversi, assenti o vuoti sono soppressi (fixture negative per UserPromptSubmit, PreToolUse e payload senza tipo). Permit -Apply richiede il permitSha256 dell anteprima e rifiuta un hash diverso prima di ogni scrittura. Entrambi i controlli sono verificati solo su fixture sintetiche: i client reali non sono qualificati e la qualifica live resta in #322/#351/#352; la raccolta nativa automatica resta un pilota guidato. Gli hash vincolano l artefatto CLI locale esaminato; non sono firme digitali. Le qualifiche di client, account e SMB restano distinte.

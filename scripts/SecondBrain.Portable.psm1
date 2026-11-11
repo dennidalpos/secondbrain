@@ -901,12 +901,16 @@ function Invoke-SBPortableSync {
         $fileIssueKinds=@('directive-pending','directive-conflict','pointer-pending','pointer-conflict','global-text-pending','ide-pending','ide-conflict','ide-adoption-required','toc-pending','history-index-pending','agent-view-pending','prompt-index-drift','unapproved-portable-directives','repository-unverified')
         $filesAligned=!@($issues|Where-Object {$_.kind -in $fileIssueKinds}).Count
         $liveLoadingVerified=!@($issues|Where-Object {$_.kind -in @('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale')}).Count
+        # Environmental findings (live loading, account, consent, write scope, source freshness, compaction) cannot be fixed by editing files: they are reported apart and never make `aligned` false (#496).
+        $environmentKinds=@('ide-loading-unverified','account-unverified','ide-context-changed','ide-directive-stale','mcp-consent-unverified','authoritative-source','compaction-required')
+        $environment=@($issues|Where-Object {$_.kind -in $environmentKinds -or $_.kind -like 'ide-write-scope-*'})
+        $issues=@($issues|Where-Object {$_.kind -notin $environmentKinds -and $_.kind -notlike 'ide-write-scope-*'})
         # Reads do not block writers: an active writer or pending transaction makes the snapshot potentially intermediate.
         $warnings=@($compactionAdvice)+@($closureWarnings)
         if($lock.concurrentWriter){$warnings+=@{kind='concurrent-writer';reason=(Get-SBMessage 'portable.issue.writer')}}
         $pendingTransaction=if($lock.pendingTransaction){$lock.pendingTransaction}elseif($Config.ContainsKey('pendingTransaction')){$Config.pendingTransaction}else{$null}
         if($pendingTransaction){$warnings+=@{kind='pending-transaction';reason=(Format-SBPendingTransaction $pendingTransaction)}}
-        @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-imports','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}
+        @{schemaVersion=1;workstationId=$Config.workstationId;repositories=$Config.bindings.Count;changes=$changes;issues=$issues;environment=$environment;warnings=$warnings;aligned=(!$issues.Count);filesAligned=$filesAligned;liveLoadingVerified=$liveLoadingVerified;writesApplied=(!$Check);inventoryIsLocal=$true;scope=$(if($Repository){@{repository=$Repository;coverage='repository-only';notCovered=@('global-instructions','ides','curated-references','tracker-authority','tracker-imports','authoritative-sources','prompt-index','inventory','para-index')}}else{@{coverage='workstation'}})}
     }finally{Exit-SBOperation $lock}
 }
 Export-ModuleMember -Function @(

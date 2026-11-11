@@ -198,11 +198,6 @@
     },
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
-      "file": "scripts/activity.ps1",
-      "count": 1
-    },
-    {
-      "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/backup.ps1",
       "count": 1
     },
@@ -224,6 +219,11 @@
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/SecondBrain.Activity.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.ComputerUse.psm1",
       "count": 1
     },
     {
@@ -269,6 +269,11 @@
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/SecondBrain.Publication.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.SetupStatus.psm1",
       "count": 1
     },
     {

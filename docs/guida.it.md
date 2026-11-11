@@ -1,6 +1,6 @@
 # Guida unica
 
-Installazione, uso con e senza IDE, variabili, concorrenza e casi limite in una pagina. Ogni comando qui sotto è quello reale degli script; i dettagli sono nelle [guide](../README.md#guides) e nel [riferimento](riferimento/operations.md).
+Installazione, uso con e senza IDE, variabili, concorrenza e casi limite in una pagina. Ogni comando qui sotto è quello reale degli script; i dettagli sono nelle [guide](../README.md#help-and-contributor-checks) e nel [riferimento](riferimento/operations.md).
 
 ## Installa e attiva
 

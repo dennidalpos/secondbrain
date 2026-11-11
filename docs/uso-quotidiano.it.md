@@ -66,7 +66,7 @@ Cerca dati privati, segreti e file di lavoro. Commit e push restano sempre una t
 
 ## Eseguire i task del tracker
 
-Per eseguire i task autonomi pronti, una sessione agente nuova per task e un repository alla volta, usa `scripts/run-ready-tasks.ps1`. Per impostazione predefinita mostra solo l’anteprima e durante l’esecuzione stampa l’avanzamento in console. Opzioni, limiti di sicurezza e risultati sono in [esecuzione dei task del tracker](riferimento/operations.md#esecuzione-dei-task-del-tracker-in-sessioni-nuove).
+Per eseguire i task autonomi pronti, una sessione agente nuova per task e un repository alla volta, usa `scripts/run-ready-tasks.ps1`. Per impostazione predefinita mostra solo l’anteprima e durante l’esecuzione stampa l’avanzamento in console. Opzioni, limiti di sicurezza e risultati sono in [esecuzione dei task del tracker](riferimento/operations.it.md#esecuzione-dei-task-del-tracker-in-sessioni-nuove).
 
 ## Cambiare versione
 
@@ -82,4 +82,4 @@ Non ogni modifica merita un nuovo numero. L'agente, quando serve, propone la ver
 | Allineare | Aggiornare quel testo |
 | MCP | Il collegamento tra agente e SecondBrain |
 
-Più dettagli: [PARA](riferimento/tree.md#para-gestione-dei-progetti), [task](riferimento/trackers.md), [controlli](riferimento/operations.md#controllo-e-sincronizzazione-su-richiesta).
+Più dettagli: [PARA](riferimento/tree.it.md#para-gestione-dei-progetti), [task](riferimento/trackers.md), [controlli](riferimento/operations.it.md#controllo-e-sincronizzazione-su-richiesta).

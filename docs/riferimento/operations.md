@@ -40,7 +40,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 ~~~
 
 
-**Exit code.** `-Check` and `ide-map.ps1 -Verify` exit 1 whenever `aligned` is false, that is on any issue, not only on file misalignment (exit 2 = error, 3 = writer busy, 4 = write denied). Expected on a workstation without live evidence: `ide-write-scope-unverified`, `ide-loading-unverified`, `account-unverified` (manual Claude account instructions) and `candidate-pending` are environmental and clear only with a real session receipt, a write-scope probe or a reviewed account; `changed` and `authoritative-source` entries need `resources.ps1 -Sync` or SYS05. Exit 0 requires none of them.
+**Exit code.** `-Check` exits 1 only when `aligned` is false, and `aligned` depends only on files (`issues`). Environmental findings are listed apart in `environment` and never change the exit code: `ide-write-scope-*`, `ide-loading-unverified`, `ide-context-changed`, `ide-directive-stale`, `account-unverified`, `mcp-consent-unverified`, `authoritative-source` and `compaction-required`. They clear only with a real session receipt, a write-scope probe, a reviewed account, `resources.ps1 -Sync` or SYS05. `ide-map.ps1 -Verify` keeps its own contract (exit 1 when IDEs need alignment; 2 = error, 3 = writer busy, 4 = write denied).
 Check first attempts already-authorized deferred writes with zero lock wait. Asset checks do not apply their corrections. concurrent-writer/pending-transaction warnings mean the observed state may be intermediate.
 
 Sync writes immediately through coordination, backups and hashes. It generates approved managed blocks/local views, preserves unrelated text and reports conflicts. New assets require explicit Setup selection; unapproved source text is not distributed. Neither command schedules monitoring.
@@ -126,6 +126,7 @@ Distribution checks the Git public boundary, not general working-tree cleanlines
 | 2 | Operational/configuration error or incomplete discovery |
 | 3 | Writer coordination timeout |
 | 4 | Access denied during a write; core.write.denied |
+| 5 | `knowledge.ps1` write accepted but not applied yet (deferred or conflict); 0 always means applied. Run `knowledge.ps1 -FlushPending` or `-PendingWrites` |
 
 Inspect command-specific JSON. A destination write can precede failed result recording; check hashes/journal before retry.
 

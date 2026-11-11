@@ -80,7 +80,7 @@ The [write support matrix](mcp-writes.md#client-support-and-approval-matrix) sep
 
 ## Single-turn memory permissions
 
-Memory collectors use the explicit [Permit CLI receipt](memory-cycle.md#explicit-single-turn-cli-receipt-140). Codex, Claude Code and Antigravity share receipt validation and the Stop bridge, with native boundaries checked on synthetic fixtures. Those fixtures do not qualify installed client versions. If the client does not expose the required request and turn identifiers, keep the normalized-envelope fallback. Existing live receipts are revision-bound; a changed module requires new qualification.
+Memory collectors use the explicit [Permit CLI receipt](memory-cycle.md#explicit-single-turn-cli-receipt). Codex, Claude Code and Antigravity share receipt validation and the Stop bridge, with native boundaries checked on synthetic fixtures. Those fixtures do not qualify installed client versions. If the client does not expose the required request and turn identifiers, keep the normalized-envelope fallback. Existing live receipts are revision-bound; a changed module requires new qualification.
 
 | Client | Native boundary checked on fixture | Version claim |
 |---|---|---|

@@ -44,9 +44,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
     'promptscli.workstation.inactive' = @{ it = 'Postazione non attivata: usare sb attiva (SYS03)'; en = 'Workstation not activated: use sb attiva (SYS03)' }
-    'promptscli.context.incompatible' = @{ it = 'Selezioni di contesto incompatibili'; en = 'Incompatible context selections' }
-    'promptscli.goal.empty' = @{ it = 'Obiettivo vuoto'; en = 'Empty goal' }
-    'promptscli.output.txt' = @{ it = 'Output TXT nuovo richiesto'; en = 'New TXT output required' }
+    'promptscli.context.incompatible' = @{ it = 'Selezioni di contesto incompatibili: usare una sola selezione di contesto per volta'; en = 'Incompatible context selections: use one context selection at a time' }
+    'promptscli.goal.empty' = @{ it = 'Obiettivo vuoto: indicare l''obiettivo con -Objective'; en = 'Empty goal: give the goal with -Objective' }
+    'promptscli.output.txt' = @{ it = 'Output TXT nuovo richiesto: indicare con -OutputPath un file TXT che non esiste ancora'; en = 'New TXT output required: give -OutputPath a TXT file that does not exist yet' }
     'promptscli.bootstrap' = @{ it = 'Bootstrap: usa il checkout SecondBrain corrente, senza percorsi preimpostati.'; en = 'Bootstrap: use the current SecondBrain checkout, with no preset paths.' }
     'promptscli.output.created' = @{ it = 'Creato: {0}'; en = 'Created: {0}' }
 }

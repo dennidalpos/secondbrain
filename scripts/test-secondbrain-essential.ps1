@@ -3,6 +3,8 @@
 [CmdletBinding()]
 param([string[]]$Groups=@('portable','trackers','workflows','pending'),[switch]$Extended)
 $ErrorActionPreference='Stop'
+# A comma-separated list arrives as one element through -File.
+$Groups=@($Groups|ForEach-Object {$_ -split ','}|Where-Object {$_})
 foreach($name in @('Core','Access','Host','Para','Tracker','Knowledge','Pending','Portable','Mcp','Publication')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$name+'.psm1'))}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
@@ -215,6 +217,8 @@ if('portable' -in $Groups){
             Check ($LASTEXITCODE -eq 0 -and $readOnlyPreview.mode -eq 'single' -and !$readOnlyPreview.applied -and !$readOnlyPreview.confirmed -and !$readOnlyPreview.discovery.report -and $readOnlyPreview.activation.repositories.Count -eq 1 -and $readOnlyPreview.mcp.targets[0].ConfigFile -eq $cursorConfig -and ($beforePreview -join ',') -eq ($afterPreview -join ',')) 'read-only setup plans activation and MCP without writing discovery, selection or pairing files'
             $teamError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $repo -Language en 2>&1) -join "`n"
             Check ($LASTEXITCODE -eq 2 -and $teamError.Contains('reachable UNC root')) 'team preview rejects a local path'
+            $allError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -All -Roots $repo -Language en 2>&1) -join "`n"
+            Check ($LASTEXITCODE -eq 2 -and $allError.Contains('use -AllIdes')) 'Setup rejects the removed -All (no silent binding to -AllIdes) with the next step'
             $personalRoot=Join-Path $fixture 'personal'
             $personalDossier=Join-Path $personalRoot '02-areas/Personal'
             foreach($file in 'para.json','repository.json','brief.md','context.md','memory.md','tracker.json','history/seed/report.md'){
@@ -296,18 +300,18 @@ if('portable' -in $Groups){
             $observation=@{ideId='fixture-cursor';workstationId=$hostId;profile='fixture';accountAlias='fixture';accountVerified=$true;sessionId='fixture-session';observedAt=[DateTimeOffset]::UtcNow.ToString('o');observedHash=(Get-SBTextHash (Get-SBPortableGlobal $brain).Trim());loadingVerified=$true;evidencePath=$evidence;evidenceSha256=(Get-SBFileHash $evidence)}
             Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
             $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
-            Check (@($check.issues|Where-Object {$_.kind -eq 'mcp-consent-unverified' -and $_.id -eq 'fixture-cursor'}).Count -eq 1 -and $check.liveLoadingVerified) 'MCP consent remains unverified when loading is observed without a popup result'
+            Check (@((@($check.issues)+@($check.environment))|Where-Object {$_.kind -eq 'mcp-consent-unverified' -and $_.id -eq 'fixture-cursor'}).Count -eq 1 -and $check.liveLoadingVerified) 'MCP consent remains unverified when loading is observed without a popup result'
             foreach($outcome in 'popup-shown','no-popup','unknown'){
                 $observation.mcpConsent=@{tool='get_prompt_home';outcome=$outcome}
                 Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
                 $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
-                Check (('mcp-consent-unverified' -in $check.issues.kind) -eq ($outcome -eq 'unknown')) ('MCP receipt checks the observed outcome: '+$outcome)
+                Check (('mcp-consent-unverified' -in (@($check.issues)+@($check.environment)).kind) -eq ($outcome -eq 'unknown')) ('MCP receipt checks the observed outcome: '+$outcome)
             }
             $observation.mcpConsent.outcome='no-popup'
             Put $observationPath (ConvertTo-SBJson @{schemaVersion=1;observations=@($observation)})
             Put $evidence 'Modified evidence'
             $check=Invoke-SBPortableSync -Config $observationConfig -Check -ObservationPath $observationPath
-            Check ('mcp-consent-unverified' -in $check.issues.kind) 'MCP consent cannot be verified with changed evidence'
+            Check ('mcp-consent-unverified' -in (@($check.issues)+@($check.environment)).kind) 'MCP consent cannot be verified with changed evidence'
             $legacyConfig=$repeat.activation.configuration
             $legacyHash=Get-SBFileHash $legacyConfig
             $env:SECONDBRAIN_STATE_ROOT=Join-Path $fixture 'external-state'

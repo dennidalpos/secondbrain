@@ -52,7 +52,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 
 Check integra prima i pendenti autorizzati dei dossier, senza attesa sul lock; il controllo degli asset non applica correzioni: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
 
-**Codice di uscita.** `-Check` e `ide-map.ps1 -Verify` escono con 1 ogni volta che `aligned` è false, cioè a qualsiasi problema e non solo per file disallineati (2 = errore, 3 = writer occupato, 4 = scrittura negata). Su una postazione senza evidenze dal vivo sono attesi `ide-write-scope-unverified`, `ide-loading-unverified`, `account-unverified` (istruzioni account Claude manuali) e `candidate-pending`: sono ambientali e si risolvono solo con una ricevuta di sessione reale, una prova di ambito di scrittura o un account rivisto; `changed` e `authoritative-source` richiedono `resources.ps1 -Sync` o SYS05. Il codice 0 richiede che non ce ne sia nessuno.
+**Codice di uscita.** `-Check` esce con 1 solo quando `aligned` è false, e `aligned` dipende solo dai file (`issues`). I rilievi ambientali stanno a parte in `environment` e non cambiano il codice: `ide-write-scope-*`, `ide-loading-unverified`, `ide-context-changed`, `ide-directive-stale`, `account-unverified`, `mcp-consent-unverified`, `authoritative-source` e `compaction-required`. Si risolvono con una ricevuta di sessione reale, una prova di ambito di scrittura, una revisione dell'account, `resources.ps1 -Sync` o SYS05. `ide-map.ps1 -Verify` mantiene il proprio contratto (1 se gli IDE vanno allineati; 2 = errore, 3 = writer occupato, 4 = scrittura negata).
 
 ### Verifica prima del push
 
@@ -79,6 +79,7 @@ La chiusura con `knowledge.ps1 -UpdateTaskId ID -Status done` restituisce `closu
 | 2 | Errore operativo o discovery incompleta |
 | 3 | Lock di scrittura non ottenuto entro l'attesa (`-WaitSeconds`, predefinita 60 s) |
 | 4 | Accesso negato durante una scrittura; diagnostico `core.write.denied` e comando PowerShell da ripetere fuori dalla sandbox |
+| 5 | Scrittura di `knowledge.ps1` accettata ma non ancora applicata (differita o in conflitto); 0 significa sempre applicata. Usare `knowledge.ps1 -FlushPending` o `-PendingWrites` |
 
 Il risultato JSON espone i problemi specifici. Le prove IDE sono vincolate alla sessione e all'account osservati: il confronto dei file non certifica il caricamento.
 
@@ -156,7 +157,7 @@ SecondBrain non ha il lanciatore: lì si usa `scripts/run-ready-tasks.ps1`. I ta
 | [Recupero](recovery.md) | Pulizia, backup gestiti e transazioni PARA |
 | [Alberatura](tree.md) | Ogni cartella del clone e di `.runtime`, chi la scrive e cosa si può cancellare a mano |
 | [IDE](adapters.md) | Mappa, verifica dei file e caricamento manuale |
-| [PARA e Progetti](tree.md#para-gestione-dei-progetti) | Metadati, Progetti, composizione e archiviazione |
+| [PARA e Progetti](tree.it.md#para-gestione-dei-progetti) | Metadati, Progetti, composizione e archiviazione |
 | [Tracker](trackers.md) | Fonti autorevoli, conversione, manifest, ripresa e recupero |
 | [Registro delle fonti](authoritative-sources.md) | Normative, standard, dati ufficiali, applicabilita e verifica settimanale |
 | [Audit GitHub](external-audit.md) | Raccolta GET esplicita, paginazione, copertura e limiti esterni |

@@ -56,7 +56,7 @@ Open a new session in the selected agent and request sb prompt. This is a chat c
 | Startup reports withinBudget=false | Preserve essentials and prepare reviewed dossier maintenance |
 | The agent does not understand sb prompt | Check the selected integration and start a new session |
 | A tracked instructions file is modified | Preserve the change and review the conflict |
-| Automatic memory capture is expected | Read the [current limits](riferimento/memory-cycle.md#known-limits-141); explicit loading remains available |
+| Automatic memory capture is expected | Read the [current limits](riferimento/memory-cycle.md#known-limits); explicit loading remains available |
 
 Continue with [daily use](uso-quotidiano.md). Use the [bug form](https://github.com/dennidalpos/secondbrain/issues/new/choose) for defects and [SECURITY.md](../SECURITY.md) for private vulnerability reporting.
 

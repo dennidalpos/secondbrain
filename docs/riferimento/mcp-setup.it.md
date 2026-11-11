@@ -10,7 +10,7 @@ Il server MCP di SecondBrain usa JSON-RPC su stdio e negozia **2025-03-26**, man
 
 Una versione sconosciuta riceve `2025-03-26` come alternativa supportata; il client deve verificare di supportarla prima di proseguire. L'handshake attende la risposta a `initialize`, invia `notifications/initialized` e controlla che stdout contenga solo risposte JSON-RPC valide. Per provare un'altra versione usare `test-secondbrain-mcp-handshake.ps1 -ProtocolVersion <versione>`; il rapporto distingue versione richiesta e negoziata. Riferimento: [negoziazione MCP 2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26/basic/lifecycle).
 
-Gli otto strumenti espongono un titolo localizzato in `annotations.title`, secondo lo [schema MCP 2025-03-26](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.ts). Le annotazioni conservano `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`: le letture possono recuperare scritture pendenti già autorizzate. Il client interpreta le annotazioni indipendentemente dalle regole di approvazione configurate dal setup. I titoli seguono la lingua della sessione server, come le descrizioni. La misura dei popup e dei consensi negli IDE reali resta distinta dalle prove stdio.
+Gli undici strumenti espongono un titolo localizzato in `annotations.title`, secondo lo [schema MCP 2025-03-26](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.ts). Le annotazioni conservano `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`: le letture possono recuperare scritture pendenti già autorizzate. Il client interpreta le annotazioni indipendentemente dalle regole di approvazione configurate dal setup. I titoli seguono la lingua della sessione server, come le descrizioni. La misura dei popup e dei consensi negli IDE reali resta distinta dalle prove stdio.
 
 ### Garanzie di Isolamento e Sicurezza
 - **Nessuna porta di rete aperta**: la comunicazione avviene esclusivamente tramite flussi standard di input/output (**stdio**) via `pwsh` su processo locale.
@@ -20,7 +20,7 @@ Gli otto strumenti espongono un titolo localizzato in `annotations.title`, secon
 ### Prerequisiti di Sistema
 - **PowerShell 7.5+** (`pwsh`) installato su Windows.
 - Percorso assoluto del clone SecondBrain (es. `C:\Progetti\SecondBrain` o `$env:SECONDBRAIN_HOME`).
-- Il pairing (`-Pair`) non richiede la postazione attivata: legge solo il percorso del clone. Per usare il server con il contesto dei tuoi repository attiva prima la postazione (`secondbrain.ps1 -Setup`, vedi [setup](portable-brain.md#configurazione-e-prerequisiti)).
+- Il pairing (`-Pair`) non richiede la postazione attivata: legge solo il percorso del clone. Per usare il server con il contesto dei tuoi repository attiva prima la postazione (`secondbrain.ps1 -Setup`, vedi [setup](portable-brain.it.md#configurazione-e-prerequisiti)).
 - Prima di `-Apply` leggi [cosa modifica SecondBrain e dove sono i backup](safety-backups.md).
 
 ---
@@ -34,7 +34,7 @@ Gli otto strumenti espongono un titolo localizzato in `annotations.title`, secon
 | `get_ready_tasks` | `read` | `repository`, `checkoutPath`, `all`, `includeAcceptance`, `offset`, `limit` *(solo con `all=true`: 50 task per pagina, `nextOffset` per la successiva)* | Restituisce la proiezione dei soli task eseguibili (con dipendenze soddisfatte) del repository in lavoro: `repository` esplicito oppure quello del checkout (`checkoutPath` o directory corrente del server). La vista globale richiede `all=true`, ogni voce ha `scope: global`, ed è incompatibile con `repository`. Senza repository risolvibile risponde con errore. |
 | `get_task` | `read` | `task` *(obbligatorio: ID o `#seq`)*, `repository`, `checkoutPath`, `dossier` | Restituisce il record integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) dal tracker o da `history/tracker-archive.json`. Alias `secondbrain_get_task`. |
 | `search_knowledge` | `read` | `query` *(obbligatorio)*, `budget`, `limit`, `offset`, `dossier`, `repository`, `allDossiers`, `includeOriginals`, `category` *(array: `memoria`, `informazioni`, `normative`, `policy`, `prompt`; senza `prompt` per impostazione predefinita)*, `previousRevision` *(revisione di una ricerca identica precedente: se nulla è cambiato la risposta è `unchanged=true` senza riscontri; solo con `offset` 0)*, `mode` *(`literal` predefinito, `relevance` per termini multipli ordinati per pertinenza)* | Ricerca deterministica nei file di conoscenza del dossier in lavoro (`context.md`, `memory.md`, `tracker.json`, archivio tracker, rapporti). Tetto predefinito: 20 riscontri e 10.000 caratteri; con `hasMore=true` si richiama con `offset=nextOffset`. `limit=0` e `budget=0` tolgono il tetto; `allDossiers=true` cerca in tutte le aree; `includeOriginals=true` include `history/compaction/`. |
-| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `language` *(`en`\|`it`)* | Elenca la lista unica dei 113 prompt. Con `compact` una riga per prompt (codice, modalità, sommario). |
+| `list_prompts` | `read` | `category` *(opzionale: id o prefisso come `TST`)*, `compact` *(opzionale)*, `language` *(`en`\|`it`)* | Elenca la lista unica dei 114 prompt. Con `compact` una riga per prompt (codice, modalità, sommario). |
 | `get_prompt` | `read` | `prompt` *(obbligatorio: ID `pmt-…` o codice come `TST04`)*, `objective` *(opzionale)*, `language` | Restituisce il prompt composto (compito, contesto, ruolo, procedura, vincoli, criteri di uscita, formato) in XML; `objective` ne imposta il compito. Senza contesto di repository. |
 | `get_prompt_home` | `read` | *(nessuno)* | Schermata iniziale di `sb prompt`: percorso del file Markdown del catalogo completo e tabella dei comandi `sb` con descrizione. |
 | `check_publication` | `verify` | `repositoryPath` *(obbligatorio)*, `detail` | Esegue la verifica di pubblicabilità (SEC07) del working tree, indice e storia del repository specificato prima di push o rilascio. Risposta in riepilogo (conteggi per regola, primi 20 riscontri, `findingsTotal`); `detail=true` il rapporto integro. |
@@ -258,7 +258,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | pwsh -NoProfile -File scripts/mcp-server.ps1
 ```
-*Esito atteso*: una risposta JSON valida contenente la lista degli 8 tool con schemi e proprietà.
+*Esito atteso*: una risposta JSON valida contenente la lista degli 11 tool con schemi e proprietà.
 
 ### Test 2: Ping rapido
 ```powershell
@@ -276,7 +276,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1 [-Target codex,vscode|all] [-PublicationPath <repository Git>] [-ReportPath <file>]
 ```
-Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno degli 8 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 8 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
+Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno degli 11 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 11 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
 
 ---
 

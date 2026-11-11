@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Quick, prompts, distribution, lint, publication
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out the repository (full history for the publication scan)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require PowerShell 7.5 or later
+        run: |
+          if ($PSVersionTable.PSVersion -lt [version]'7.5') {
+            $msi = Join-Path $env:RUNNER_TEMP 'pwsh.msi'
+            Invoke-WebRequest -Uri 'https://github.com/PowerShell/PowerShell/releases/download/v7.5.0/PowerShell-7.5.0-win-x64.msi' -OutFile $msi
+            Start-Process msiexec.exe -ArgumentList '/i', $msi, '/qn', '/norestart' -Wait
+            Add-Content -Path $env:GITHUB_PATH -Value 'C:\Program Files\PowerShell\7'
+            Write-Output 'PowerShell 7.5 installed; the next steps use it through PATH.'
+          } else {
+            Write-Output "PowerShell $($PSVersionTable.PSVersion) is sufficient."
+          }
+
+      - name: Quick tests
+        run: |
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/test-secondbrain.ps1 -Only quick
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Prompt indexes match the catalog
+        run: |
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/build-prompts.ps1 -Check
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Distribution check (only public files are tracked)
+        run: |
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/check-distribution.ps1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Static analysis against the baseline
+        run: |
+          if (!(Get-Module -ListAvailable -Name PSScriptAnalyzer)) { Install-Module PSScriptAnalyzer -Scope CurrentUser -Force -MinimumVersion 1.25.0 }
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/lint.ps1
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+      - name: Publication scan of the clean clone
+        run: |
+          & "$env:ProgramFiles\PowerShell\7\pwsh.exe" -NoProfile -File scripts/publication.ps1 -RepositoryPath $env:GITHUB_WORKSPACE
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

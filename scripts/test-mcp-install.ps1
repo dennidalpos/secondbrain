@@ -89,9 +89,9 @@ if(Get-Variable cfg -ErrorAction SilentlyContinue){
         $cfg.ides=@($capabilityIde)
         $generation=Get-SBWriteGeneration
         $unknownCheck=Invoke-SBPortableSync -Config $cfg -Check
-        Assert-Portable (@($unknownCheck.issues|Where-Object kind -eq 'ide-write-scope-unverified').Count -eq 1 -and (Get-SBWriteGeneration) -eq $generation) 'Check reports unverified write capability without write probes'
+        Assert-Portable (@($unknownCheck.environment|Where-Object kind -eq 'ide-write-scope-unverified').Count -eq 1 -and (Get-SBWriteGeneration) -eq $generation) 'Check reports unverified write capability without write probes'
         $capabilityIde.writeScope=@{status='denied';roots=@($fixture);evidence='synthetic ACL fixture, not a live IDE session'}
         $deniedCheck=Invoke-SBPortableSync -Config $cfg -Check
-        Assert-Portable (@($deniedCheck.issues|Where-Object kind -eq 'ide-write-scope-denied').Count -eq 1) 'Check distinguishes observed denial from missing evidence'
+        Assert-Portable (@($deniedCheck.environment|Where-Object kind -eq 'ide-write-scope-denied').Count -eq 1) 'Check distinguishes observed denial from missing evidence'
     }finally{$cfg.ides=$savedIdes}
 }

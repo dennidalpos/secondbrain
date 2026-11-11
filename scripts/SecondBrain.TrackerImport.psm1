@@ -6,59 +6,59 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'trackerimport.registry.invalid' = @{ it = 'Registro tracker non valido'; en = 'Invalid tracker registry' }
-    'trackerimport.registry.identity' = @{ it = 'Identita registro tracker divergente'; en = 'Tracker registry identity diverges' }
-    'trackerimport.registry.binding' = @{ it = 'Associazione registro e manifest tracker divergente'; en = 'Tracker registry and manifest binding diverge' }
-    'trackerimport.move.pending' = @{ it = 'Spostamento PARA impedito da migrazione tracker pendente: {0}; fase={1}'; en = 'PARA move blocked by a pending tracker migration: {0}; phase={1}' }
-    'trackerimport.source.changed' = @{ it = 'Sorgente modificata dopo la preparazione: {0}'; en = 'Source modified after preparation: {0}' }
-    'trackerimport.manifest.outside' = @{ it = 'Manifest tracker fuori backupRoot'; en = 'Tracker manifest outside backupRoot' }
-    'trackerimport.manifest.invalid' = @{ it = 'Manifest tracker non valido o di altro archivio'; en = 'Tracker manifest invalid or of another archive' }
-    'trackerimport.manifest.identity' = @{ it = 'Identita manifest non ammessa'; en = 'Manifest identity not allowed' }
-    'trackerimport.manifest.dossier' = @{ it = 'Associazione manifest e dossier divergente'; en = 'Manifest and dossier binding diverge' }
-    'trackerimport.candidate.outside' = @{ it = 'Candidato fuori manifest'; en = 'Candidate outside the manifest' }
-    'trackerimport.source.scope' = @{ it = 'Sorgente manifest fuori perimetro'; en = 'Manifest source outside scope' }
-    'trackerimport.checkout.diverged' = @{ it = 'Checkout sorgente manifest divergente'; en = 'Manifest source checkout diverges' }
-    'trackerimport.phase.invalid' = @{ it = 'Fase migrazione tracker non valida'; en = 'Invalid tracker migration phase' }
-    'trackerimport.payload.outside' = @{ it = 'Payload tracker fuori manifest'; en = 'Tracker payload outside the manifest' }
-    'trackerimport.archive.source' = @{ it = 'Archivio sorgente fuori dossier'; en = 'Source archive outside the dossier' }
-    'trackerimport.archive.dependencies' = @{ it = 'Archivio dipendenze fuori dossier'; en = 'Dependencies archive outside the dossier' }
-    'trackerimport.history.outside' = @{ it = 'Storico sorgente fuori archivio'; en = 'Source history outside the archive' }
-    'trackerimport.archive.review' = @{ it = 'Archivio review fuori dossier'; en = 'Review archive outside the dossier' }
-    'trackerimport.operation.outside' = @{ it = 'Operazione manifest fuori perimetro tracker'; en = 'Manifest operation outside the tracker scope' }
-    'trackerimport.area.ambiguous' = @{ it = 'Dossier tracker attivo non univoco'; en = 'Active tracker dossier is not unique' }
+    'trackerimport.registry.invalid' = @{ it = 'Registro tracker non valido: verificare il registro con knowledge.ps1 -Tasks o ripristinarlo dal backup'; en = 'Invalid tracker registry: check the registry with knowledge.ps1 -Tasks or restore it from backup' }
+    'trackerimport.registry.identity' = @{ it = 'Identita registro tracker divergente: usare il dossier del repository corretto'; en = 'Tracker registry identity diverges: use the dossier of the right repository' }
+    'trackerimport.registry.binding' = @{ it = 'Associazione registro e manifest tracker divergente: rigenerare il manifest con una nuova preparazione'; en = 'Tracker registry and manifest binding diverge: regenerate the manifest with a new preparation' }
+    'trackerimport.move.pending' = @{ it = 'Spostamento PARA impedito da migrazione tracker pendente: {0}; fase={1}; completare o annullare la migrazione tracker prima di spostare il dossier'; en = 'PARA move blocked by a pending tracker migration: {0}; phase={1}; complete or cancel the tracker migration before moving the dossier' }
+    'trackerimport.source.changed' = @{ it = 'Sorgente modificata dopo la preparazione: {0}; preparare di nuovo la migrazione dalla sorgente attuale'; en = 'Source modified after preparation: {0}; prepare the migration again from the current source' }
+    'trackerimport.manifest.outside' = @{ it = 'Manifest tracker fuori backupRoot: usare un manifest sotto backupRoot'; en = 'Tracker manifest outside backupRoot: use a manifest under backupRoot' }
+    'trackerimport.manifest.invalid' = @{ it = 'Manifest tracker non valido o di altro archivio: preparare un nuovo manifest per questo archivio'; en = 'Tracker manifest invalid or of another archive: prepare a new manifest for this archive' }
+    'trackerimport.manifest.identity' = @{ it = 'Identita manifest non ammessa: usare un manifest del repository corrente'; en = 'Manifest identity not allowed: use a manifest of the current repository' }
+    'trackerimport.manifest.dossier' = @{ it = 'Associazione manifest e dossier divergente: preparare un nuovo manifest per il dossier attuale'; en = 'Manifest and dossier binding diverge: prepare a new manifest for the current dossier' }
+    'trackerimport.candidate.outside' = @{ it = 'Candidato fuori manifest: usare un candidato elencato nel manifest'; en = 'Candidate outside the manifest: use a candidate listed in the manifest' }
+    'trackerimport.source.scope' = @{ it = 'Sorgente manifest fuori perimetro: usare una sorgente interna al perimetro del repository'; en = 'Manifest source outside scope: use a source inside the repository scope' }
+    'trackerimport.checkout.diverged' = @{ it = 'Checkout sorgente manifest divergente: puntare al checkout registrato nel manifest o preparare di nuovo'; en = 'Manifest source checkout diverges: point to the checkout recorded in the manifest or prepare again' }
+    'trackerimport.phase.invalid' = @{ it = 'Fase migrazione tracker non valida: preparare di nuovo la migrazione'; en = 'Invalid tracker migration phase: prepare the migration again' }
+    'trackerimport.payload.outside' = @{ it = 'Payload tracker fuori manifest: preparare di nuovo la migrazione'; en = 'Tracker payload outside the manifest: prepare the migration again' }
+    'trackerimport.archive.source' = @{ it = 'Archivio sorgente fuori dossier: usare un archivio sotto il dossier'; en = 'Source archive outside the dossier: use an archive under the dossier' }
+    'trackerimport.archive.dependencies' = @{ it = 'Archivio dipendenze fuori dossier: usare un archivio sotto il dossier'; en = 'Dependencies archive outside the dossier: use an archive under the dossier' }
+    'trackerimport.history.outside' = @{ it = 'Storico sorgente fuori archivio: usare uno storico dentro l''archivio'; en = 'Source history outside the archive: use a history inside the archive' }
+    'trackerimport.archive.review' = @{ it = 'Archivio review fuori dossier: usare un archivio sotto il dossier'; en = 'Review archive outside the dossier: use an archive under the dossier' }
+    'trackerimport.operation.outside' = @{ it = 'Operazione manifest fuori perimetro tracker: preparare di nuovo la migrazione'; en = 'Manifest operation outside the tracker scope: prepare the migration again' }
+    'trackerimport.area.ambiguous' = @{ it = 'Dossier tracker attivo non univoco: lasciare un solo dossier attivo per il repository con para.ps1'; en = 'Active tracker dossier is not unique: leave a single active dossier for the repository with para.ps1' }
     'trackerimport.import.registered' = @{ it = 'Importazione tracker gia registrata: riprendere il manifest {0}'; en = 'Tracker import already registered: resume the manifest {0}' }
-    'trackerimport.source.notundeclared' = @{ it = 'La sorgente non e il tracker non dichiarato da importare'; en = 'The source is not the undeclared tracker to import' }
-    'trackerimport.checkout.identity' = @{ it = 'Identita checkout sorgente divergente'; en = 'Source checkout identity diverges' }
-    'trackerimport.original.missing' = @{ it = 'Tracker originale assente'; en = 'Original tracker missing' }
-    'trackerimport.dependencies.outside' = @{ it = 'Storico dipendenze fuori archivio'; en = 'Dependencies history outside the archive' }
-    'trackerimport.dependencies.missing' = @{ it = 'Storico dipendenze assente'; en = 'Dependencies history missing' }
-    'trackerimport.target.existing' = @{ it = 'Tracker destinazione gia presente senza manifest'; en = 'Target tracker already present without a manifest' }
+    'trackerimport.source.notundeclared' = @{ it = 'La sorgente non e il tracker non dichiarato da importare: indicare il tracker non dichiarato del repository'; en = 'The source is not the undeclared tracker to import: give the undeclared tracker of the repository' }
+    'trackerimport.checkout.identity' = @{ it = 'Identita checkout sorgente divergente: usare il checkout del repository corretto'; en = 'Source checkout identity diverges: use the checkout of the right repository' }
+    'trackerimport.original.missing' = @{ it = 'Tracker originale assente: ripristinare l''originale dal backup o preparare di nuovo'; en = 'Original tracker missing: restore the original from backup or prepare again' }
+    'trackerimport.dependencies.outside' = @{ it = 'Storico dipendenze fuori archivio: usare uno storico dentro l''archivio'; en = 'Dependencies history outside the archive: use a history inside the archive' }
+    'trackerimport.dependencies.missing' = @{ it = 'Storico dipendenze assente: ripristinare lo storico dal backup'; en = 'Dependencies history missing: restore the history from backup' }
+    'trackerimport.target.existing' = @{ it = 'Tracker destinazione gia presente senza manifest: verificare il tracker presente e preparare la migrazione solo se va sostituito'; en = 'Target tracker already present without a manifest: check the existing tracker and prepare the migration only if it must be replaced' }
     'trackerimport.dossier.moved' = @{ it = 'Dossier spostato o target manifest divergente: revisione richiesta'; en = 'Dossier moved or manifest target diverges: review required' }
-    'trackerimport.operation.archive' = @{ it = 'Operazione migrazione fuori archivio'; en = 'Migration operation outside the archive' }
-    'trackerimport.resume.diverged' = @{ it = 'Piano di ripresa divergente: {0}'; en = 'Resume plan diverges: {0}' }
-    'trackerimport.remove.sourcechanged' = @{ it = 'Sorgente modificata prima della rimozione: {0}'; en = 'Source modified before removal: {0}' }
-    'trackerimport.remove.hash' = @{ it = 'Hash di rimozione diverso dalla fonte convertita: {0}'; en = 'Removal hash differs from the converted source: {0}' }
-    'trackerimport.concurrent' = @{ it = 'Modifica concorrente durante migrazione: {0}'; en = 'Concurrent modification during migration: {0}' }
-    'trackerimport.original.reappeared' = @{ it = 'Originale ricomparso dopo migrazione'; en = 'Original reappeared after migration' }
+    'trackerimport.operation.archive' = @{ it = 'Operazione migrazione fuori archivio: preparare di nuovo la migrazione'; en = 'Migration operation outside the archive: prepare the migration again' }
+    'trackerimport.resume.diverged' = @{ it = 'Piano di ripresa divergente: {0}; preparare di nuovo la migrazione'; en = 'Resume plan diverges: {0}; prepare the migration again' }
+    'trackerimport.remove.sourcechanged' = @{ it = 'Sorgente modificata prima della rimozione: {0}; preparare di nuovo la migrazione prima di rimuovere'; en = 'Source modified before removal: {0}; prepare the migration again before removing' }
+    'trackerimport.remove.hash' = @{ it = 'Hash di rimozione diverso dalla fonte convertita: {0}; preparare di nuovo la migrazione'; en = 'Removal hash differs from the converted source: {0}; prepare the migration again' }
+    'trackerimport.concurrent' = @{ it = 'Modifica concorrente durante migrazione: {0}; attendere gli altri scrittori e rieseguire'; en = 'Concurrent modification during migration: {0}; wait for the other writers and rerun' }
+    'trackerimport.original.reappeared' = @{ it = 'Originale ricomparso dopo migrazione: verificare l''originale e preparare una nuova migrazione'; en = 'Original reappeared after migration: check the original and prepare a new migration' }
     'trackerimport.manifest.restored' = @{ it = 'Manifest ripristinato: preparare una nuova migrazione'; en = 'Manifest restored: prepare a new migration' }
-    'trackerimport.backup.unverified' = @{ it = 'Backup tracker non verificato'; en = 'Tracker backup not verified' }
-    'trackerimport.candidate.aftercopy' = @{ it = 'Candidato tracker modificato dopo copia'; en = 'Tracker candidate modified after copy' }
-    'trackerimport.compare.failed' = @{ it = 'Confronto dati originali fallito'; en = 'Original data comparison failed' }
-    'trackerimport.copy.notidentical' = @{ it = 'Copia storica non identica'; en = 'Historical copy not identical' }
+    'trackerimport.backup.unverified' = @{ it = 'Backup tracker non verificato: rifare il backup e verificarne l''hash'; en = 'Tracker backup not verified: redo the backup and verify its hash' }
+    'trackerimport.candidate.aftercopy' = @{ it = 'Candidato tracker modificato dopo copia: preparare di nuovo la migrazione'; en = 'Tracker candidate modified after copy: prepare the migration again' }
+    'trackerimport.compare.failed' = @{ it = 'Confronto dati originali fallito: rieseguire il confronto dopo aver verificato originale e copia'; en = 'Original data comparison failed: rerun the comparison after checking the original and the copy' }
+    'trackerimport.copy.notidentical' = @{ it = 'Copia storica non identica: rifare la copia storica e verificare gli hash'; en = 'Historical copy not identical: redo the historical copy and verify the hashes' }
     'trackerimport.activation.approval' = @{ it = 'Attivazione sospesa: approvazione esplicita del testo comune tracker richiesta'; en = 'Activation suspended: explicit approval of the common tracker text required' }
     'trackerimport.activation.review' = @{ it = 'Attivazione sospesa: record da revisionare {0}'; en = 'Activation suspended: records to review {0}' }
-    'trackerimport.candidate.afterverify' = @{ it = 'Candidato tracker modificato dopo verifica'; en = 'Tracker candidate modified after verification' }
-    'trackerimport.dossier.identity' = @{ it = 'Identita dossier cambiata'; en = 'Dossier identity changed' }
-    'trackerimport.operation.diverged' = @{ it = 'Operazione migrazione divergente: {0}'; en = 'Migration operation diverges: {0}' }
-    'trackerimport.restore.outside' = @{ it = 'Ripristino fuori archivio'; en = 'Restore outside the archive' }
+    'trackerimport.candidate.afterverify' = @{ it = 'Candidato tracker modificato dopo verifica: preparare di nuovo la migrazione'; en = 'Tracker candidate modified after verification: prepare the migration again' }
+    'trackerimport.dossier.identity' = @{ it = 'Identita dossier cambiata: usare il dossier del repository o preparare di nuovo'; en = 'Dossier identity changed: use the dossier of the repository or prepare again' }
+    'trackerimport.operation.diverged' = @{ it = 'Operazione migrazione divergente: {0}; preparare di nuovo la migrazione'; en = 'Migration operation diverges: {0}; prepare the migration again' }
+    'trackerimport.restore.outside' = @{ it = 'Ripristino fuori archivio: ripristinare solo da un archivio sotto il dossier'; en = 'Restore outside the archive: restore only from an archive under the dossier' }
     'trackerimport.restore.refused' = @{ it = 'Ripristino rifiutato: modifiche successive {0}'; en = 'Restore refused: later changes {0}' }
-    'trackerimport.restore.payload' = @{ it = 'Payload ripristino fuori manifest'; en = 'Restore payload outside the manifest' }
-    'trackerimport.restore.unverified' = @{ it = 'Payload ripristino non verificato'; en = 'Restore payload not verified' }
-    'trackerimport.migration.identity' = @{ it = 'Identita registro migrazione divergente'; en = 'Migration registry identity diverges' }
-    'trackerimport.backup.diverged' = @{ it = 'Backup originale divergente'; en = 'Original backup diverges' }
-    'trackerimport.archive.diverged' = @{ it = 'Archivio originale divergente'; en = 'Original archive diverges' }
-    'trackerimport.candidate.diverged' = @{ it = 'Candidato divergente'; en = 'Candidate diverges' }
-    'trackerimport.removal.diverged' = @{ it = 'Fonte autorevole o rimozione originale divergente'; en = 'Authoritative source or original removal diverges' }
+    'trackerimport.restore.payload' = @{ it = 'Payload ripristino fuori manifest: usare un payload elencato nel manifest'; en = 'Restore payload outside the manifest: use a payload listed in the manifest' }
+    'trackerimport.restore.unverified' = @{ it = 'Payload ripristino non verificato: verificare il payload con il suo hash prima di ripristinare'; en = 'Restore payload not verified: verify the payload against its hash before restoring' }
+    'trackerimport.migration.identity' = @{ it = 'Identita registro migrazione divergente: usare il registro del repository corrente'; en = 'Migration registry identity diverges: use the registry of the current repository' }
+    'trackerimport.backup.diverged' = @{ it = 'Backup originale divergente: ripristinare il backup originale e rieseguire'; en = 'Original backup diverges: restore the original backup and rerun' }
+    'trackerimport.archive.diverged' = @{ it = 'Archivio originale divergente: ripristinare l''archivio originale e rieseguire'; en = 'Original archive diverges: restore the original archive and rerun' }
+    'trackerimport.candidate.diverged' = @{ it = 'Candidato divergente: preparare di nuovo la migrazione'; en = 'Candidate diverges: prepare the migration again' }
+    'trackerimport.removal.diverged' = @{ it = 'Fonte autorevole o rimozione originale divergente: verificare fonte e originale e preparare di nuovo'; en = 'Authoritative source or original removal diverges: check source and original and prepare again' }
 }
 
 function Get-SBTrackerImportPayloads($Manifest) {

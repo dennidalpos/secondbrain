@@ -49,6 +49,15 @@ try {
             $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide')})}elseif($Full){@('trace','concurrency','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide')}else{@()}
             # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
             $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
+            function Start-SuiteJob($Spec){
+                Start-Job -Name ('suite-'+$Spec.key) -ArgumentList $Spec -ScriptBlock {
+                    param($Spec)
+                    $Key=$Spec.key;$File=$Spec.file;$suiteArguments=@($Spec.arguments)
+                    $watch=[Diagnostics.Stopwatch]::StartNew()
+                    $output=@(& pwsh -NoProfile -File $File @suiteArguments 2>&1|ForEach-Object {[string]$_});$code=$LASTEXITCODE
+                    [pscustomobject]@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;output=$output}
+                }
+            }
             $jobs=@()
             if($parallel){
                 # Portable's extended checks use an independent fixture. Run them
@@ -56,17 +65,15 @@ try {
                 $specs=@($extras|Where-Object {$_ -ne 'concurrency'}|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
                 $specs+=@{key='essential-portable';file=(Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1');arguments=@('-Groups','portable','-Extended')}
                 $groups=@($groups|Where-Object {$_ -ne 'portable'})
-                $jobs=@($specs|ForEach-Object {
-                    Start-Job -Name ('suite-'+$_.key) -ArgumentList $_ -ScriptBlock {
-                        param($Spec)
-                        $Key=$Spec.key;$File=$Spec.file;$suiteArguments=@($Spec.arguments)
-                        $watch=[Diagnostics.Stopwatch]::StartNew()
-                        $output=@(& pwsh -NoProfile -File $File @suiteArguments 2>&1|ForEach-Object {[string]$_});$code=$LASTEXITCODE
-                        [pscustomobject]@{key=$Key;seconds=[math]::Round($watch.Elapsed.TotalSeconds,3);exitCode=$code;output=$output}
-                    }
-                })
+                $jobs=@($specs|ForEach-Object {Start-SuiteJob $_})
                 # concurrency measures lock contention and failed under the load of the parallel suites (#431): it runs alone after them.
                 $extras=@($extras|Where-Object {$_ -eq 'concurrency'})
+            }
+            # Default profile: the essential groups run as separate processes with their own fixtures so the profile stays within its budget (#465); -Sequential, -Only and -Full keep their own behavior.
+            if(!$Full -and !$Sequential -and !$Only -and $groups.Count -gt 1){
+                $essentialFile=Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1'
+                $jobs=@(@(@('trackers','workflows'),@('pending'))|ForEach-Object {Start-SuiteJob @{key=('essential-'+($_ -join '-'));file=$essentialFile;arguments=@('-Groups',($_ -join ','))}})
+                $groups=@('portable')
             }
             try{
                 if($groups.Count){Invoke-MinimalSuite 'essential' {& (Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1') -Groups $groups -Extended:$Full}}

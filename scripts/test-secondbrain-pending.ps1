@@ -89,7 +89,7 @@ try {
     Assert-Pending ($dup.code -ne 0) '-Start refuses a SessionId already in use'
     $content=Join-Path $fixture 'append.txt';Put-Pending $content "Pending report`n"
     $queuedCli=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-AppendFile','history/session/report.md','-ContentPath',$content,'-SessionId',$sessions[0])
-    Assert-Pending ($queuedCli.code -eq 0 -and $queuedCli.data.state -eq 'deferred') 'CLI queues a dossier report while another writer is active'
+    Assert-Pending ($queuedCli.code -eq 5 -and $queuedCli.data.state -eq 'deferred') 'CLI queues a dossier report while another writer is active and exits 5 (not applied)'
     Exit-SBOperation $holder;$holder=$null
 
     $init='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}'

@@ -230,6 +230,9 @@ try{
     if($Roadmap -and $Format -eq 'Markdown'){ConvertTo-SBRoadmapMarkdown $result}
     elseif($Search -or $All){(ConvertTo-SBStableValue $result|ConvertTo-Json -Depth 40 -Compress)}else{ConvertTo-SBJson $result}
     if($Startup -and !$result.withinBudget){exit 1}
+    # Exit contract: 0 only when the requested write is applied; 5 = accepted but not applied yet (deferred or conflict).
+    if($bufferedWrite -and $result -is [Collections.IDictionary] -and $result.Contains('applied') -and !$result.applied){exit 5}
+    exit 0
 }catch{
     if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 };
     if(Test-SBBusyError $_){Write-Output $_.Exception.Message;exit 3}

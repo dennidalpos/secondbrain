@@ -56,7 +56,7 @@ The server runs over stdio and does not listen on a network port. At startup and
 
 For a strict no-recovery session start `mcp-server.ps1 -NoRecovery`. Per-call `noRecovery=true` only prevents recovery during that call, not startup recovery. The CLI equivalent for knowledge reads is `knowledge.ps1 -NoRecovery`.
 
-Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle and known 1.4.0 limits](riferimento/memory-cycle.md#known-limits-141).
+Repository memory collection is enabled separately and requires a verified permission policy for the turn. Fixture tests do not qualify native live collectors. See [memory cycle and known limits](riferimento/memory-cycle.md#known-limits).
 
 ## Language and packages
 

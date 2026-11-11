@@ -6,40 +6,40 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'prompts.encoding.invalid' = @{ it = 'Testo prompt con caratteri corrotti: {0}'; en = 'Prompt text contains corrupted characters: {0}' }
-    'prompts.catalog.invalid' = @{ it = 'Catalogo prompt non valido'; en = 'Invalid prompt catalog' }
+    'prompts.encoding.invalid' = @{ it = 'Testo prompt con caratteri corrotti: {0}; salvare la scheda in UTF-8 senza BOM e rigenerare con build-prompts.ps1'; en = 'Prompt text contains corrupted characters: {0}; save the card as UTF-8 without BOM and rebuild with build-prompts.ps1' }
+    'prompts.catalog.invalid' = @{ it = 'Catalogo prompt non valido: correggere direttive/prompts/catalog.json e rieseguire build-prompts.ps1 -Check'; en = 'Invalid prompt catalog: fix direttive/prompts/catalog.json and rerun build-prompts.ps1 -Check' }
     'prompts.language.invalid' = @{ it = 'Lingua non supportata: {0} (usare en o it)'; en = 'Unsupported language: {0} (use en or it)' }
-    'prompts.i18n.invalid' = @{ it = 'Traduzione non valida o scheda assente: {0} ({1})'; en = 'Invalid translation or missing card: {0} ({1})' }
-    'prompts.category.invalid' = @{ it = 'Categoria duplicata o non valida'; en = 'Duplicate or invalid category' }
-    'prompts.name.conflict' = @{ it = 'Identificatore prompt duplicato o in conflitto: {0}'; en = 'Duplicate or conflicting prompt identifier: {0}' }
-    'prompts.category.unknown' = @{ it = 'Categoria inesistente: {0}'; en = 'Unknown category: {0}' }
-    'prompts.card.invalid' = @{ it = 'Scheda o descrizione non valida: {0}'; en = 'Invalid card or description: {0}' }
-    'prompts.related.invalid' = @{ it = 'Prompt vicino non valido: {0}'; en = 'Invalid related prompt: {0}' }
-    'prompts.category.empty' = @{ it = 'Categoria senza prompt: {0}'; en = 'Category without prompts: {0}' }
-    'prompts.related.uncited' = @{ it = 'La scheda {0} cita {1} ma non lo elenca tra i prompt vicini'; en = 'Card {0} cites {1} but does not list it among its related prompts' }
-    'prompts.reference.dangling' = @{ it = 'La scheda {0} cita un codice inesistente: {1}'; en = 'Card {0} cites a code that does not exist: {1}' }
-    'prompts.code.unavailable' = @{ it = 'Codice non disponibile nel catalogo: {0}'; en = 'Code not available in the catalog: {0}' }
-    'prompts.card.header' = @{ it = 'Intestazione scheda divergente: {0}'; en = 'Card header diverges: {0}' }
-    'prompts.card.catalogtitle' = @{ it = 'Titolo scheda diverso dal catalogo: {0}'; en = 'Card title differs from the catalog: {0}' }
-    'prompts.tag.invalid' = @{ it = 'Tag della scheda assente, duplicato, vuoto o fuori ordine: {0} in {1}'; en = 'Card tag missing, duplicated, empty or out of order: {0} in {1}' }
-    'prompts.tag.stray' = @{ it = 'Testo fuori dai tag nella scheda: {0}'; en = 'Text outside the tags in the card: {0}' }
-    'prompts.procedure.invalid' = @{ it = 'La procedura deve avere almeno due passi numerati: {0}'; en = 'The procedure needs at least two numbered steps: {0}' }
-    'prompts.section.nodecisions' = @{ it = 'Sezione {0} vuota o senza elenco di decisioni: {1}'; en = 'Section {0} empty or without a list of decisions: {1}' }
-    'prompts.placeholder.unresolved' = @{ it = 'Segnaposto irrisolto: {0}'; en = 'Unresolved placeholder: {0}' }
+    'prompts.i18n.invalid' = @{ it = 'Traduzione non valida o scheda assente: {0} ({1}); creare o correggere la traduzione in direttive/prompts/it/ e rieseguire build-prompts.ps1 -Check'; en = 'Invalid translation or missing card: {0} ({1}); create or fix the translation in direttive/prompts/it/ and rerun build-prompts.ps1 -Check' }
+    'prompts.category.invalid' = @{ it = 'Categoria duplicata o non valida: usare un id categoria unico in catalog.json'; en = 'Duplicate or invalid category: use a unique category id in catalog.json' }
+    'prompts.name.conflict' = @{ it = 'Identificatore prompt duplicato o in conflitto: {0}; scegliere un codice nuovo, i codici non si riusano'; en = 'Duplicate or conflicting prompt identifier: {0}; choose a new code, codes are never reused' }
+    'prompts.category.unknown' = @{ it = 'Categoria inesistente: {0}; usare una categoria elencata in catalog.json'; en = 'Unknown category: {0}; use a category listed in catalog.json' }
+    'prompts.card.invalid' = @{ it = 'Scheda o descrizione non valida: {0}; correggere la scheda secondo la struttura XML di una scheda esistente'; en = 'Invalid card or description: {0}; fix the card following the XML structure of an existing card' }
+    'prompts.related.invalid' = @{ it = 'Prompt vicino non valido: {0}; indicare in related solo codici esistenti del catalogo'; en = 'Invalid related prompt: {0}; list only existing catalog codes in related' }
+    'prompts.category.empty' = @{ it = 'Categoria senza prompt: {0}; assegnare almeno un prompt alla categoria o rimuoverla da catalog.json'; en = 'Category without prompts: {0}; assign at least one prompt to the category or remove it from catalog.json' }
+    'prompts.related.uncited' = @{ it = 'La scheda {0} cita {1} ma non lo elenca tra i prompt vicini: aggiungere il codice a related nel catalogo'; en = 'Card {0} cites {1} but does not list it among its related prompts: add the code to related in the catalog' }
+    'prompts.reference.dangling' = @{ it = 'La scheda {0} cita un codice inesistente: {1}; correggere il codice citato o aggiungere il prompt'; en = 'Card {0} cites a code that does not exist: {1}; fix the cited code or add the prompt' }
+    'prompts.code.unavailable' = @{ it = 'Codice non disponibile nel catalogo: {0}; elencare i codici con prompts.ps1 -List -Compact'; en = 'Code not available in the catalog: {0}; list the codes with prompts.ps1 -List -Compact' }
+    'prompts.card.header' = @{ it = 'Intestazione scheda divergente: {0}; allineare l''intestazione della scheda al codice del catalogo'; en = 'Card header diverges: {0}; align the card header with the catalog code' }
+    'prompts.card.catalogtitle' = @{ it = 'Titolo scheda diverso dal catalogo: {0}; allineare il titolo della scheda a quello di catalog.json'; en = 'Card title differs from the catalog: {0}; align the card title with the one in catalog.json' }
+    'prompts.tag.invalid' = @{ it = 'Tag della scheda assente, duplicato, vuoto o fuori ordine: {0} in {1}; riportare i tag nell''ordine della scheda modello senza duplicati né vuoti'; en = 'Card tag missing, duplicated, empty or out of order: {0} in {1}; restore the tags to the template card order, without duplicates or empty tags' }
+    'prompts.tag.stray' = @{ it = 'Testo fuori dai tag nella scheda: {0}; spostare il testo dentro un tag della scheda o eliminarlo'; en = 'Text outside the tags in the card: {0}; move the text into a card tag or remove it' }
+    'prompts.procedure.invalid' = @{ it = 'La procedura deve avere almeno due passi numerati: {0}; numerare almeno due passi nella procedura'; en = 'The procedure needs at least two numbered steps: {0}; number at least two steps in the procedure' }
+    'prompts.section.nodecisions' = @{ it = 'Sezione {0} vuota o senza elenco di decisioni: {1}; aggiungere un elenco di decisioni alla sezione'; en = 'Section {0} empty or without a list of decisions: {1}; add a list of decisions to the section' }
+    'prompts.placeholder.unresolved' = @{ it = 'Segnaposto irrisolto: {0}; fornire il valore del segnaposto o rimuoverlo dalla scheda'; en = 'Unresolved placeholder: {0}; supply the placeholder value or remove it from the card' }
     'prompts.scope.unknown' = @{ it = 'Ambito inesistente. Disponibili: {0}'; en = 'Unknown scope. Available: {0}' }
-    'prompts.checkout.notgit' = @{ it = 'Directory non appartenente a un checkout Git'; en = 'Directory does not belong to a Git checkout' }
-    'prompts.origin.missing' = @{ it = 'Identità origin assente o owner escluso'; en = 'Origin identity missing or owner excluded' }
-    'prompts.para.metadata' = @{ it = 'Indice PARA divergente dai metadati: {0}'; en = 'PARA index diverges from the metadata: {0}' }
-    'prompts.para.invalid' = @{ it = 'Indice PARA assente o non valido'; en = 'PARA index missing or invalid' }
-    'prompts.checkoutmap.invalid' = @{ it = 'Mappa checkout non valida'; en = 'Invalid checkout map' }
-    'prompts.project.unavailable' = @{ it = 'Progetto non disponibile'; en = 'Project not available' }
-    'prompts.dossier.unbound' = @{ it = 'Repository non associato a un dossier ammesso'; en = 'Repository not bound to an allowed dossier' }
-    'prompts.dossier.archived' = @{ it = 'Dossier archiviato o ritirato: nessuna riattivazione implicita'; en = 'Archived or retired dossier: no implicit reactivation' }
-    'prompts.inventory.invalid' = @{ it = 'Inventario checkout assente o non valido'; en = 'Checkout inventory missing or invalid' }
+    'prompts.checkout.notgit' = @{ it = 'Directory non appartenente a un checkout Git: indicare con CheckoutPath un checkout Git'; en = 'Directory does not belong to a Git checkout: pass a Git checkout with CheckoutPath' }
+    'prompts.origin.missing' = @{ it = 'Identità origin assente o owner escluso: configurare il remoto origin del checkout con un owner ammesso'; en = 'Origin identity missing or owner excluded: configure the checkout origin remote with an allowed owner' }
+    'prompts.para.metadata' = @{ it = 'Indice PARA divergente dai metadati: {0}; rigenerare l''indice con para.ps1 e rieseguire'; en = 'PARA index diverges from the metadata: {0}; regenerate the index with para.ps1 and rerun' }
+    'prompts.para.invalid' = @{ it = 'Indice PARA assente o non valido: rigenerare l''indice con para.ps1 o eseguire sb attiva (SYS03)'; en = 'PARA index missing or invalid: regenerate the index with para.ps1 or run sb attiva (SYS03)' }
+    'prompts.checkoutmap.invalid' = @{ it = 'Mappa checkout non valida: correggere il file indicato in CheckoutMapPath'; en = 'Invalid checkout map: fix the file given in CheckoutMapPath' }
+    'prompts.project.unavailable' = @{ it = 'Progetto non disponibile: verificare il dossier con secondbrain.ps1 -Check'; en = 'Project not available: check the dossier with secondbrain.ps1 -Check' }
+    'prompts.dossier.unbound' = @{ it = 'Repository non associato a un dossier ammesso: associare il repository con secondbrain.ps1 -AddRepo'; en = 'Repository not bound to an allowed dossier: bind the repository with secondbrain.ps1 -AddRepo' }
+    'prompts.dossier.archived' = @{ it = 'Dossier archiviato o ritirato: nessuna riattivazione implicita; riattivarlo esplicitamente con para.ps1 se serve'; en = 'Archived or retired dossier: no implicit reactivation; reactivate it explicitly with para.ps1 if needed' }
+    'prompts.inventory.invalid' = @{ it = 'Inventario checkout assente o non valido: rigenerare l''inventario con secondbrain.ps1 -Setup'; en = 'Checkout inventory missing or invalid: regenerate the inventory with secondbrain.ps1 -Setup' }
     'prompts.checkout.ambiguous' = @{ it = 'Checkout assente o ambiguo: indicare CheckoutPath o CheckoutMapPath'; en = 'Checkout missing or ambiguous: give CheckoutPath or CheckoutMapPath' }
-    'prompts.checkout.identity' = @{ it = 'Checkout e identità del dossier divergenti'; en = 'Checkout and dossier identity diverge' }
-    'prompts.reference.missing' = @{ it = 'Riferimento locale mancante: {0}'; en = 'Local reference missing: {0}' }
-    'prompts.tracker.diverged' = @{ it = 'Tracker del Progetto mancante o divergente'; en = 'Project tracker missing or diverging' }
+    'prompts.checkout.identity' = @{ it = 'Checkout e identità del dossier divergenti: usare il checkout del repository del dossier o correggere repository.json'; en = 'Checkout and dossier identity diverge: use the checkout of the dossier repository or fix repository.json' }
+    'prompts.reference.missing' = @{ it = 'Riferimento locale mancante: {0}; ripristinare il file o rimuovere il riferimento'; en = 'Local reference missing: {0}; restore the file or remove the reference' }
+    'prompts.tracker.diverged' = @{ it = 'Tracker del Progetto mancante o divergente: verificare il tracker con knowledge.ps1 -Tasks'; en = 'Project tracker missing or diverging: check the tracker with knowledge.ps1 -Tasks' }
     'prompts.central.noswitch' = @{ it = 'Prompt centrale: aprire SecondBrain; nessun cambio implicito di repository. In alternativa, da SecondBrain: secondbrain.ps1 -Sync -Repository {0}'; en = 'Central prompt: open SecondBrain; no implicit repository switch. Alternatively, from SecondBrain: secondbrain.ps1 -Sync -Repository {0}' }
 }
 
