@@ -9,6 +9,7 @@ Add-SBMessages @{
     'tracker.priority.invalid' = @{it='Priorità non valida: usare P0, P1, P2, P3 o P4';en='Invalid priority: use P0, P1, P2, P3 or P4'}
     'tracker.execution.invalid' = @{it='Modalità di esecuzione non valida';en='Invalid execution mode'}
     'tracker.readrepositories.invalid' = @{it='Identità di repository non valida per la lettura: {0}';en='Invalid repository identity for reading: {0}'}
+    'tracker.requires.invalid' = @{it='Capacità richiesta non valida: {0} (ammessi: {1})';en='Invalid required capability: {0} (allowed: {1})'}
     'tracker.closure.advice' = @{ it = 'Aggiornare memoria e contesto, proporre il riepilogo minimo (memoria, storico o salta), poi eseguire Sync e Check.'; en = 'Update memory and context, offer a minimal summary (memory, history or skip), then run Sync and Check.' }
     'tracker.closure.invalid' = @{ it = 'Metadati di chiusura del tracker non validi'; en = 'Invalid tracker closure metadata' }
     'tracker.history.note' = @{ it = 'Nota originale: {0}'; en = 'Original note: {0}' }
@@ -60,11 +61,11 @@ Add-SBMessages @{
     'tracker.dossier.declaration' = @{ it = 'Dossier senza dichiarazione tracker: {0}'; en = 'Dossier without tracker declaration: {0}' }
     'tracker.schema.version' = @{ it = 'Schema tracker non supportato (atteso v1)'; en = 'Unsupported tracker schema (expected v1)' }
     'tracker.status.invalid' = @{ it = 'Stato non valido: {0}. Valori ammessi: todo, in_progress, blocked, done, cancelled, unknown'; en = 'Invalid status: {0}. Allowed values: todo, in_progress, blocked, done, cancelled, unknown' }
-    'tracker.task.notfound' = @{ it = 'Task non trovato nel tracker: {0}'; en = 'Task not found in tracker: {0}' }
+    'tracker.task.notfound' = @{ it = 'Task non trovato nel tracker: {0}. Elenca i task con knowledge.ps1 -Tasks'; en = 'Task not found in tracker: {0}. List tasks with knowledge.ps1 -Tasks' }
     'tracker.unnumbered' = @{ it = 'Tracker non numerato ({0} task senza seq): eseguire prima knowledge.ps1 -RenumberTasks'; en = 'Unnumbered tracker ({0} tasks without seq): run knowledge.ps1 -RenumberTasks first' }
     'tracker.acceptance.required' = @{ it = 'Almeno un criterio di accettazione obbligatorio'; en = 'At least one acceptance criterion is required' }
     'tracker.task.exists' = @{ it = 'ID task gia presente: {0}'; en = 'Task ID already present: {0}' }
-    'tracker.provenance.missing' = @{ it = 'Provenienza inesistente: {0}'; en = 'Provenance does not exist: {0}' }
+    'tracker.provenance.missing' = @{ it = 'Provenienza inesistente: {0}. Indica un file esistente del dossier (percorso relativo)'; en = 'Provenance does not exist: {0}. Give an existing dossier file (relative path)' }
     'tracker.archive.identity' = @{ it = 'Archivio tracker di identita divergente'; en = 'Tracker archive of a diverging identity' }
     'tracker.numbering.partial' = @{ it = 'Numerazione parziale ({0} su {1}): riconciliazione esplicita richiesta'; en = 'Partial numbering ({0} of {1}): explicit reconciliation required' }
 }
@@ -652,9 +653,12 @@ function New-SBTrackerTaskEntry {
         [Parameter(Mandatory)][string]$ProvenanceReference,
         [string]$ProvenancePointer,
         [hashtable]$Extensions=@{},
+        [AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires=@(),
         [string]$BackupRoot,
         [switch]$WhatIf
     )
+    $requiresList=ConvertTo-SBTaskRequires $Requires
+    if($requiresList.Count){$Extensions=$Extensions+@{requires=@($requiresList)}}
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     $next=$target.data
     $unnumbered=@($next.tasks|Where-Object {!$_.ContainsKey('seq')})
@@ -822,6 +826,15 @@ function Invoke-SBTrackerHistoryMigration {
     $saved + @{changed=$true;files=$changes;originals=$originals}
 }
 
+# Capabilities a task may require; the runner leaves such tasks to an attended session (extensions.requires).
+$script:SBTaskRequiresValues=@('computer-use')
+function Get-SBTaskRequiresValues { ,@($script:SBTaskRequiresValues) }
+function ConvertTo-SBTaskRequires([string[]]$Value) {
+    # Lists arrive as one ';'-separated string with pwsh -File; unknown values are rejected, duplicates dropped, empty clears.
+    $items=@($Value|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
+    foreach($item in $items){if($item -cnotin $script:SBTaskRequiresValues){throw (New-SBError 'tracker.requires.invalid' @($item,($script:SBTaskRequiresValues -join ', ')))}}
+    ,$items
+}
 function Update-SBTrackerTask {
     [CmdletBinding()]
     param(
@@ -837,16 +850,19 @@ function Update-SBTrackerTask {
         [AllowEmptyString()][string]$Stream,
         [AllowEmptyString()][string]$Awaiting,
         [AllowEmptyCollection()][AllowEmptyString()][string[]]$ReadRepositories,
+        [AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
         $Evidence=@(),
         [string]$BackupRoot,
         [switch]$WhatIf,
         [string]$WorkingRepository
     )
-    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Evidence')
+    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires','Evidence')
     if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
     if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
     if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
     if($PSBoundParameters.ContainsKey('Execution') -and $Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
+    $requiresList=$null
+    if($PSBoundParameters.ContainsKey('Requires')){$requiresList=ConvertTo-SBTaskRequires $Requires}
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     $next=$target.data
     $archive=Read-SBTrackerArchive $target.path $target.identity
@@ -868,6 +884,9 @@ function Update-SBTrackerTask {
         $reads=@($ReadRepositories|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
         foreach($r in $reads){if($r -cnotmatch '^(github\.com/[a-z0-9._-]+/[a-z0-9._-]+|local:[0-9a-f]{32})$'){throw (New-SBError 'tracker.readrepositories.invalid' @($r))}}
         if($reads.Count){$task.extensions.readRepositories=@($reads)}else{[void]$task.extensions.Remove('readRepositories')}
+    }
+    if($PSBoundParameters.ContainsKey('Requires')){
+        if($requiresList.Count){$task.extensions.requires=@($requiresList)}else{[void]$task.extensions.Remove('requires')}
     }
     if($PSBoundParameters.ContainsKey('DependsOn')){
         $task.dependencies=@($DependsOn|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique|ForEach-Object {
@@ -907,5 +926,7 @@ Export-ModuleMember -Function @(
     'Invoke-SBTrackerRenumber',
     'Get-SBTrackerHistoryMessages',
     'Invoke-SBTrackerHistoryMigration',
-    'Update-SBTrackerTask'
+    'Update-SBTrackerTask',
+    'Get-SBTaskRequiresValues',
+    'ConvertTo-SBTaskRequires'
 )

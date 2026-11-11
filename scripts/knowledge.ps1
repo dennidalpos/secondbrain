@@ -21,6 +21,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Stream,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Awaiting,[Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$ReadRepositories,
+    [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
     [Parameter(Mandatory,ParameterSetName='HistoryMigration')][switch]$MigrateHistoryMessages,
@@ -92,7 +93,7 @@ try{
     if($Startup){
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
-        $result=Get-SBStartupContext -BrainRoot $brain -Dossier $Dossier -CheckoutPath $CheckoutPath -TaskIds $TaskIds -Budget $effectiveBudget -ReadyOnly:$ReadyOnly -Profile $Profile -PreviousRevision $PreviousRevision
+        $result=Get-SBStartupContext -BrainRoot $brain -Dossier $Dossier -CheckoutPath $CheckoutPath -TaskIds $TaskIds -Budget $effectiveBudget -ReadyOnly:$ReadyOnly -Profile $Profile -PreviousRevision $PreviousRevision -DirectiveCheckout $(if($CheckoutPath){$CheckoutPath}elseif(!$PSBoundParameters.ContainsKey('Dossier')){(Get-Location).Path})
         if($Report){
             $directives=@{}
             try{
@@ -160,7 +161,7 @@ try{
         $repoId=if($Repository){$Repository}else{$working}
         if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
         $arguments=@{TaskId=$UpdateTaskId}
-        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories')){
+        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires')){
             if($PSBoundParameters.ContainsKey($field)){$arguments[$field]=$PSBoundParameters[$field]}
         }
         if($arguments.Count -eq 1){throw (New-SBError 'tracker.update.empty')}
@@ -196,6 +197,10 @@ try{
             $Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})
             if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
             $arguments=@{Title=$NewTask;Id=$TaskId;Description=$Description;Priority=$Priority;Execution=$Execution;DependsOn=$DependsOn;Acceptance=$Acceptance;ProvenanceReference=$Provenance;ProvenancePointer=$ProvenancePointer}
+            if($PSBoundParameters.ContainsKey('Requires')){
+                $required=ConvertTo-SBTaskRequires $Requires
+                if($required.Count){$arguments.Requires=@($required)}
+            }
             $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.new -Arguments $arguments -Config $config -SessionId $SessionId
             Complete-SBPendingSubmission $submission $config $SessionId
         }elseif($MigrateHistoryMessages){

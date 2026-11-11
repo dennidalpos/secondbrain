@@ -24,8 +24,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
+# Preflight from the IDE capability table: tasks that require computer use run only when this agent has a documented, present pre-approval.
+$allowComputerUse=Test-SBAgentUnattendedComputerUse $AgentPath
 Add-SBMessages @{
-    'runner.agent.missing' = @{it='Agente non trovato: {0}';en='Agent not found: {0}'}
+    'runner.agent.missing' = @{it='Agente non trovato: {0}. Passa -AgentPath con un percorso valido o installa l agente';en='Agent not found: {0}. Pass -AgentPath with a valid path or install the agent'}
     'runner.none' = @{it='Nessun task eseguibile in autonomia';en='No task can run autonomously'}
     'runner.progress.repo' = @{it='Repository {0} ({1}/{2}): selezione dei task';en='Repository {0} ({1}/{2}): selecting tasks'}
     'runner.progress.selected' = @{it='  {0} task eseguibili su {1} pronti';en='  {0} runnable tasks out of {1} ready'}
@@ -72,9 +75,9 @@ function Read-RunnerTasks($Target,$Index,$Count){
         else{$detail+=(Invoke-Json (@($knowledge,'-Task',[string]$r.seq,'-CheckoutPath',$checkout)+$configArgs)).task}
     }
     # Ready tasks left out are reported with a reason: the runner filters (status, execution, stream, awaiting) or the -MaxTasks cut.
-    $excluded=@(Get-SBRunnerExclusions $detail)
-    $all=Select-SBRunnableTasks $detail 0
-    $picked=Select-SBRunnableTasks $detail $MaxTasks
+    $excluded=@(Get-SBRunnerExclusions $detail -AllowComputerUse:$allowComputerUse)
+    $all=Select-SBRunnableTasks $detail 0 -AllowComputerUse:$allowComputerUse
+    $picked=Select-SBRunnableTasks $detail $MaxTasks -AllowComputerUse:$allowComputerUse
     $pickedIds=@($picked|ForEach-Object {[string]$_.id})
     foreach($t in $all){if([string]$t.id -notin $pickedIds){$excluded+=,[ordered]@{id=[string]$t.id;seq=$t.seq;reason='max-tasks'}}}
     @{tasks=$picked;excluded=$excluded;ready=$ready.Count;source=$(if($source.Count -eq 1){[string]$source[0].source}else{$null})}
@@ -102,7 +105,7 @@ if(!$Run){
         $preview+=,[ordered]@{repository=$p.target.identity;id=$t.id;seq=$t.seq;priority=$t.priority;title=$t.title;prompt=$prompt}
     }}
     Show-RunnerLine 'runner.progress.preview' @($totalSelected,$plans.Count)
-    ConvertTo-SBJson @{run=$false;agent=$AgentPath;timeoutMinutes=$TimeoutMinutes;tasks=$preview;skipped=$skipped};exit 0
+    ConvertTo-SBJson @{run=$false;agent=$AgentPath;computerUse=$allowComputerUse;timeoutMinutes=$TimeoutMinutes;tasks=$preview;skipped=$skipped};exit 0
 }
 if(!(Get-Command $AgentPath -ErrorAction SilentlyContinue)){throw (New-SBError 'runner.agent.missing' $AgentPath)}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
@@ -154,7 +157,7 @@ foreach($plan in $plans){
             if($code -lt 0){$state='crashed'}elseif($code -eq 0 -and [string]::IsNullOrWhiteSpace($outText)){$state='no-output'}
         }
         # Concurrent runners on other repositories can leave this task's dossier writes deferred: apply them now, waiting for the writer lock, so the status read below is current.
-        try{& pwsh -NoProfile -File $knowledge -FlushPending @configArgs *>$null}catch{}
+        try{& pwsh -NoProfile -File $knowledge -FlushPending @configArgs *>$null}catch{[void]$_}
         $statusAfter=$null
         if($plan.source){$tr=Read-SBJson $plan.source $null;if($tr){$hit=@($tr.tasks|Where-Object {[string]$_.id -eq [string]$task.id});if($hit.Count -eq 1){$statusAfter=$hit[0].status}}}
         if(!$statusAfter){

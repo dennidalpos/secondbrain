@@ -1,5 +1,6 @@
 # Included by essential/pending. Separate synthetic brain, checkout, approvals and queue.
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpWrites.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
 $f5Root=Join-Path $fixture 'mcp-writes'
 $f5Brain=Join-Path $f5Root 'brain';$f5Repo=Join-Path $f5Root 'checkout';$f5Id='github.com/test/f5'
 $f5Dossier=Join-Path $f5Brain '02-areas/products/F5'
@@ -76,6 +77,21 @@ try {
     Check (F5-Submit $f5Clear).applied 'approved MCP task update clears both fields'
     $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
     Check (!$f5Ext.ContainsKey('awaiting') -and !$f5Ext.ContainsKey('readRepositories')) 'empty awaiting and readRepositories remove the fields'
+    # requires: only the allowed capability names, as an array; an empty array clears the field; the runner then excludes the task.
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';requires=@('gpu')}} 'MCP task update rejects an unknown required capability'
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';requires='computer-use'}} 'MCP task update requires the capability list as an array'
+    $f5Req=F5-Plan 'task.update' @{taskId='F5-1';requires=@('computer-use','computer-use')}
+    Check ($f5Req.pending.operation -eq 'task.update' -and @($f5Req.pending.arguments.Requires).Count -eq 1) 'MCP task update previews requires de-duplicated'
+    [void](F5-Approve $f5Req)
+    Check (F5-Submit $f5Req).applied 'approved MCP task update applies requires'
+    $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
+    Check ((@($f5Ext.requires) -join ';') -ceq 'computer-use' -and (Get-SBRunnerExclusionReason ([pscustomobject]@{status='todo';execution='autonomous';extensions=[pscustomobject]$f5Ext})) -ceq 'requires:computer-use') 'requires:computer-use is stored and excludes the task from the runner'
+    $f5ReqClear=F5-Plan 'task.update' @{taskId='F5-1';requires=@()}
+    [void](F5-Approve $f5ReqClear)
+    Check (F5-Submit $f5ReqClear).applied 'approved MCP task update clears requires'
+    $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
+    Check (!$f5Ext.ContainsKey('requires')) 'an empty requires array removes the field'
+    Reject {F5-Plan 'task.new' @{title='Requires bad';acceptance=@('ok');provenance='history/seed/report.md';requires=@('gpu')}} 'MCP task new rejects an unknown required capability'
     $f5Memory=F5-Plan 'memory.append' @{content="`nDecisione: synthetic — Motivo: fixture.`n"}
     [void](F5-Approve $f5Memory)
     Check (F5-Submit $f5Memory).applied 'approved MCP memory append applies'
@@ -93,6 +109,11 @@ try {
     Check (F5-Submit $f5New).applied 'approved MCP new task applies'
     [void](F5-Submit $f5New)
     Check (@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq ('MCP-'+$f5New.requestId)).Count -eq 1) 'new task replay preserves one stable ID'
+    $f5NewReq=F5-Plan 'task.new' @{title='MCP requires';acceptance=@('needs an attended session');provenance='history/seed/report.md';requires=@('computer-use')}
+    [void](F5-Approve $f5NewReq)
+    Check (F5-Submit $f5NewReq).applied 'approved MCP new task with requires applies'
+    $f5NewTask=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq ('MCP-'+$f5NewReq.requestId))[0]
+    Check ((@($f5NewTask.extensions.requires) -join ';') -ceq 'computer-use') 'new task stores extensions.requires'
     $f5Activity=F5-Plan 'activity.append' @{taskId='F5-1';sessionId='synthetic-session';when='2026-11-07T10:00:00Z';outcome='progress';detail='Synthetic event'}
     [void](F5-Approve $f5Activity)
     $f5Config.activityLogEnabled=$false;Put $f5ConfigPath (ConvertTo-SBJson $f5Config)

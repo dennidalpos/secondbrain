@@ -805,7 +805,7 @@ function Invoke-SBPortableSync {
                 }
                 # Match the CLI/MCP initial projection.
                 $budget = Get-SBSlimStartupBudget
-                $startup=Get-SBStartupContext -BrainRoot $Config.brainRoot -Dossier $dir -CheckoutPath $binding.path -Entities $entities -Budget $budget -Profile Slim
+                $startup=Get-SBStartupContext -BrainRoot $Config.brainRoot -Dossier $dir -CheckoutPath $binding.path -Entities $entities -Budget $budget -Profile Slim -DirectiveCheckout $binding.path
                 if(!$startup.withinBudget){$issues+=@{kind='compaction-required';repository=$binding.identity;characters=$startup.characters;budget=$budget}}
                 elseif($startup.compacted){$compactionAdvice+=@{kind='startup-compacted';repository=$binding.identity;characters=$startup.characters;uncompactedCharacters=$startup.uncompactedCharacters;budget=$budget}}
                 else{

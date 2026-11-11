@@ -64,13 +64,12 @@ function Test-SBPublicationText([string]$Text,[string]$Path,[string]$Surface,$Al
 }
 function Get-SBTrackedPublicationPolicyPath([string]$BrainRoot) {Join-Path $BrainRoot 'config/publication-policy.json'}
 function Resolve-SBPublicationPolicyPath([string]$BrainRoot,[string]$PolicyPath) {
-    # Without explicit -PolicyPath the tracked policy (config/publication-policy.json) wins, so a reset of .runtime does not change the outcome;
-    # the legacy local policy is read only while no tracked file exists (CLI and MCP return the same outcome).
+    # Without explicit -PolicyPath the policy is the tracked config/publication-policy.json, so a reset of .runtime does not change the outcome
+    # (CLI and MCP return the same). The legacy .runtime/publication/policy.json is no longer read as a fallback (#435): only
+    # publication.ps1 -MigratePolicy still copies it to the tracked file once.
     if($PolicyPath){return $PolicyPath}
     $tracked=Get-SBTrackedPublicationPolicyPath $BrainRoot
     if(Test-Path -LiteralPath $tracked -PathType Leaf){return $tracked}
-    $legacy=Join-Path $BrainRoot '.runtime/publication/policy.json'
-    if(Test-Path -LiteralPath $legacy -PathType Leaf){return $legacy}
     return $null
 }
 function Move-SBPublicationPolicy([string]$BrainRoot,[switch]$Apply) {

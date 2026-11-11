@@ -63,7 +63,7 @@ function Get-SBRunnerValue($Object,[string]$Name){
     $p.Value
 }
 function Get-SBRunnerExcludedStreams { ,$script:SBRunnerExcludedStreams }
-function Get-SBRunnerExclusionReason($Task){
+function Get-SBRunnerExclusionReason($Task,[switch]$AllowComputerUse){
     # Why a task is not runnable, as a stable code ($null when it is): status, execution, stream:<name> or awaiting:<value>.
     $status=Get-SBRunnerValue $Task 'status'
     if($status -ne 'todo'){return "status:$status"}
@@ -77,20 +77,21 @@ function Get-SBRunnerExclusionReason($Task){
     # Computer use needs an attended session: `claude -p` cannot approve apps, and no IDE documents a persistent pre-approval for it (Codex on Windows aside).
     # A task that declares extensions.requires=computer-use is left for an attended session instead of failing midway.
     $requires=@(Get-SBRunnerValue $ext 'requires'|Where-Object {$_}|ForEach-Object {[string]$_})
-    if('computer-use' -in $requires){return 'requires:computer-use'}
+    # -AllowComputerUse comes from the preflight of the capability table (SecondBrain.ComputerUse.psm1): the agent has a documented, present pre-approval.
+    if('computer-use' -in $requires -and !$AllowComputerUse){return 'requires:computer-use'}
     $null
 }
-function Test-SBRunnableTask($Task){
+function Test-SBRunnableTask($Task,[switch]$AllowComputerUse){
     # A task is runnable only when it is todo, explicitly autonomous, outside final qualification/on-request/product streams and not waiting on a person.
-    $null -eq (Get-SBRunnerExclusionReason $Task)
+    $null -eq (Get-SBRunnerExclusionReason $Task -AllowComputerUse:$AllowComputerUse)
 }
-function Get-SBRunnerExclusions($Tasks){
+function Get-SBRunnerExclusions($Tasks,[switch]$AllowComputerUse){
     # Ready tasks the runner will not run, each with its reason, for the preview report.
-    @($Tasks|ForEach-Object {$r=Get-SBRunnerExclusionReason $_;if($r){[ordered]@{id=[string](Get-SBRunnerValue $_ 'id');seq=Get-SBRunnerValue $_ 'seq';reason=$r}}})
+    @($Tasks|ForEach-Object {$r=Get-SBRunnerExclusionReason $_ -AllowComputerUse:$AllowComputerUse;if($r){[ordered]@{id=[string](Get-SBRunnerValue $_ 'id');seq=Get-SBRunnerValue $_ 'seq';reason=$r}}})
 }
-function Select-SBRunnableTasks($Tasks,[int]$MaxTasks=3){
+function Select-SBRunnableTasks($Tasks,[int]$MaxTasks=3,[switch]$AllowComputerUse){
     $rank=@{P0=0;P1=1;P2=2;P3=3;P4=4}
-    $sel=@($Tasks|Where-Object {Test-SBRunnableTask $_}|Sort-Object @{e={$r=$rank[[string](Get-SBRunnerValue $_ 'priority')];if($null -eq $r){9}else{$r}}},@{e={[int](Get-SBRunnerValue $_ 'seq')}})
+    $sel=@($Tasks|Where-Object {Test-SBRunnableTask $_ -AllowComputerUse:$AllowComputerUse}|Sort-Object @{e={$r=$rank[[string](Get-SBRunnerValue $_ 'priority')];if($null -eq $r){9}else{$r}}},@{e={[int](Get-SBRunnerValue $_ 'seq')}})
     if($MaxTasks -gt 0 -and $sel.Count -gt $MaxTasks){$sel=@($sel[0..($MaxTasks-1)])}
     ,$sel
 }

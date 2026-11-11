@@ -366,7 +366,12 @@ $r|ConvertTo-Json -Compress
 
     Close-RunnerPhase 'launcher'
     $realAfter=Get-RealTrackerHashes
-    Assert-Runner ($realBefore.Count -eq $realAfter.Count -and @($realBefore.Keys|Where-Object {$realAfter[$_] -cne $realBefore[$_]}).Count -eq 0) ('real trackers unchanged ('+$realBefore.Count+' hashed)')
+    # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session
+    # itself): a plain before/after hash comparison failed intermittently (#460). The guard checks the actual risk instead: every real tracker
+    # that changed or appeared must be free of this fixture's identity and task IDs, so the runner never wrote to the real brain.
+    $changedReal=@($realAfter.Keys|Where-Object {!$realBefore.Contains($_) -or $realAfter[$_] -cne $realBefore[$_]})
+    $contaminated=@($changedReal|Where-Object {(Read-SBText $_) -match ([regex]::Escape($identity)+'|"id"\s*:\s*"(R|X)-\d"')})
+    Assert-Runner ($contaminated.Count -eq 0) ('real trackers free of runner fixture data ('+$realAfter.Count+' hashed, '+$changedReal.Count+' changed concurrently, 0 contaminated)')
     Close-RunnerPhase 'final'
     'PHASES RUNNER: '+(@($script:phases.Keys|ForEach-Object {$_+'='+$script:phases[$_]+'s'}) -join ', ')
     'SUCCESS RUNNER: '+$script:runnerChecks+' checks; retained fixture '+$fixture

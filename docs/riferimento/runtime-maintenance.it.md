@@ -137,7 +137,9 @@ I percentili usano il metodo nearest-rank (rango arrotondato per eccesso) sui so
 Dopo `sb prompt` l'agente carica il pacchetto di avvio del dossier. Il profilo predefinito è **snello** (tetto 50.000 caratteri, **solo per il primo caricamento**): indice, sezioni essenziali di `context.md` e `memory.md`, task pronti in una riga ciascuno e un elenco dei livelli non caricati. Il resto non è eliminato e si richiede quando serve: dopo il primo caricamento **non c'è nessun altro tetto**. `-Profile Full` e la ricerca (`-Search`, `search_knowledge`) restituiscono tutto ciò che è pertinente alla richiesta; `-Budget` è un limite facoltativo che imposti tu.
 
 ```powershell
-# Pacchetto snello (predefinito) e rapporto: caratteri per parte, stima token, peso delle direttive
+# Pacchetto snello (predefinito) e rapporto: caratteri per parte, stima token, peso delle direttive e totale
+# (pacchetto + AGENTS.md + direttiva globale piu grande); il risultato porta `directives` e, dall'80% del tetto sul totale,
+# `budgetAlert` (soft; hard solo se il pacchetto supera il tetto) che propone SYS05, senza compattare nulla
 pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -Report
 
 # Contesto completo (senza tetto) o ricerca mirata nei livelli non caricati

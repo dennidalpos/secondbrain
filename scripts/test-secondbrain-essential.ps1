@@ -439,6 +439,11 @@ if('trackers' -in $Groups){
     [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Execution user_required -DependsOn @('T-2') -Stream urgent -StateReason 'synthetic')
     $task=(Read-SBJson $trackerPath $null).tasks[0]
     Check ($task.dependencies[0].id -eq 'T-2' -and $task.extensions.stream -eq 'urgent' -and $task.execution -eq 'user_required') 'combined metadata update'
+    Reject {Update-SBTrackerTask @argsBase -TaskId T-1 -Requires 'gpu'} 'unknown required capability rejected'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Requires 'computer-use;computer-use')
+    Check ((@((Read-SBJson $trackerPath $null).tasks[0].extensions.requires) -join ';') -ceq 'computer-use') 'requires accepts the allowed capability, de-duplicated, also as a ;-separated string'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Requires @())
+    Check (!(Read-SBJson $trackerPath $null).tasks[0].extensions.ContainsKey('requires')) 'empty requires clears the capability list'
     $before=Get-SBFileHash $trackerPath
     Reject {Update-SBTrackerTask @argsBase -TaskId T-2 -DependsOn T-1} 'cyclic dependency rejected'
     Reject {Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn missing} 'missing dependency rejected'
@@ -697,6 +702,7 @@ if('audit2' -in $Groups){
     # Tracked policy (#420): a reset of .runtime does not change the outcome; legacy policy migrates once.
     $trackedPolicy=Get-SBTrackedPublicationPolicyPath $brain
     Put (Join-Path $brain '.runtime/publication/policy.json') (ConvertTo-SBJson @{schemaVersion=1;allowances=@();binaryReviews=@()})
+    Check ($null -eq (Resolve-SBPublicationPolicyPath $brain $null)) 'legacy local policy is no longer read as a fallback'
     Check ((Move-SBPublicationPolicy $brain).state -eq 'ready') 'legacy local policy is offered for migration'
     Check ((Move-SBPublicationPolicy $brain -Apply).state -eq 'migrated' -and (Test-Path -LiteralPath $trackedPolicy)) 'legacy local policy migrates to the tracked file'
     Check ((Move-SBPublicationPolicy $brain).state -eq 'tracked-exists') 'migration does not overwrite an existing tracked policy'
@@ -705,6 +711,34 @@ if('audit2' -in $Groups){
     Remove-Item -LiteralPath (Join-Path $brain '.runtime/publication/policy.json') -Force
     $resetRuntime=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath (Resolve-SBPublicationPolicyPath $brain $null) -MaxTextBytes 400
     Check ($withRuntime.ready -eq $resetRuntime.ready -and @($withRuntime.incomplete).Count -eq @($resetRuntime.incomplete).Count) 'resetting .runtime leaves the publication outcome unchanged'
+    # Computer use without a person (#455): capability table, Codex opt-in plan/apply on a fixture file, runner preflight.
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1') -Force
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1') -Force
+    $cuTable=@(Get-SBComputerUseCapabilities)
+    Check (@($cuTable|Where-Object {$_.ide -eq 'Codex' -and $_.unattended -eq 'opt-in-config' -and $_.mechanism -like '*always_allowed_app_ids*'}).Count -eq 1 -and @($cuTable|Where-Object {$_.ide -eq 'Claude Code'})[0].unattended -eq 'interactive-only') 'capability table: only Codex has a documented opt-in, Claude Code is interactive-only'
+    $cuCodex=Join-Path $brain 'computer-use/codex/config.toml'
+    $cuOriginal="# user config`n[mcp_servers.x]`ncommand = `"x`"`n"
+    Put $cuCodex $cuOriginal
+    $cuPlan=Get-SBCodexComputerUsePlan $cuOriginal @('Contoso.App_1!App','C:\Tools\a.exe;Contoso.App_1!App')
+    Check ($cuPlan.status -eq 'changed' -and @($cuPlan.added).Count -eq 2 -and $cuPlan.text.StartsWith($cuOriginal.TrimEnd()) -and $cuPlan.text -match "(?m)^\[computer_use\.windows\]\r?\nalways_allowed_app_ids = \['Contoso\.App_1!App', 'C:\\Tools\\a\.exe'\]") 'Codex plan appends the table, keeps other bytes and de-duplicates the app IDs'
+    $cuMerge=Get-SBCodexComputerUsePlan $cuPlan.text @('New.App')
+    Check ($cuMerge.status -eq 'changed' -and @($cuMerge.ids).Count -eq 3 -and @($cuMerge.existing).Count -eq 2 -and (Get-SBCodexComputerUsePlan $cuPlan.text @('New.App')).text.Contains("[mcp_servers.x]")) 'Codex plan only adds to an existing list and never removes'
+    Check ((Get-SBCodexComputerUsePlan $cuPlan.text @('Contoso.App_1!App')).status -eq 'unchanged') 'Codex plan is unchanged when every app is already allowed'
+    $cuEmptyTable=Get-SBCodexComputerUsePlan "[computer_use.windows]`nother = 1`n`n[next]`nk = 1`n" @('A.B')
+    Check ($cuEmptyTable.text -match "(?s)\[computer_use\.windows\]\r?\nother = 1\r?\nalways_allowed_app_ids = \['A\.B'\]\r?\n\r?\n\[next\]") 'Codex plan inserts the key inside an existing table, before the next one'
+    Reject {Get-SBCodexComputerUsePlan "[computer_use.windows]`nalways_allowed_app_ids = [`n 'a',`n]`n" @('b')} 'Codex plan refuses a multi-line array'
+    Reject {Get-SBCodexComputerUsePlan "computer_use.windows.always_allowed_app_ids = ['a']`n" @('b')} 'Codex plan refuses a dotted-key form'
+    Reject {Get-SBCodexComputerUsePlan $cuOriginal @("bad'quote")} 'Codex plan refuses a quote in an app ID'
+    $cuPreview=Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex
+    Check (!$cuPreview.applied -and $cuPreview.status -eq 'changed' -and (Read-SBText $cuCodex) -ceq $cuOriginal) 'Codex preview writes nothing'
+    Reject {Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply} 'Codex apply without the preview hash is refused'
+    Reject {Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply -PreviewSha256 ('0'*64)} 'Codex apply with a stale preview hash is refused'
+    Check (!(Test-SBAgentUnattendedComputerUse 'codex' $cuCodex)) 'preflight: Codex without the setting is not unattended'
+    $cuApplied=Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply -PreviewSha256 $cuPreview.previewSha256
+    Check ($cuApplied.applied -and (Read-SBText $cuCodex).Contains("always_allowed_app_ids = ['Contoso.App_1!App']") -and (Read-SBText $cuCodex).StartsWith('# user config')) 'Codex apply writes the previewed text'
+    Check ((Test-SBAgentUnattendedComputerUse 'C:\tools\codex.cmd' $cuCodex) -and !(Test-SBAgentUnattendedComputerUse 'claude' $cuCodex) -and !(Test-SBAgentUnattendedComputerUse 'unknown-agent' $cuCodex) -and !(Test-SBAgentUnattendedComputerUse '' $cuCodex)) 'preflight: only an agent with a documented opt-in and a present setting runs computer-use tasks unattended'
+    $cuTask=[pscustomobject]@{id='CU';seq=1;status='todo';priority='P2';execution='autonomous';extensions=[pscustomobject]@{requires=@('computer-use')}}
+    Check ((Get-SBRunnerExclusionReason $cuTask) -ceq 'requires:computer-use' -and $null -eq (Get-SBRunnerExclusionReason $cuTask -AllowComputerUse) -and (Select-SBRunnableTasks @($cuTask) 5).Count -eq 0 -and (Select-SBRunnableTasks @($cuTask) 5 -AllowComputerUse).Count -eq 1) 'runner: a computer-use task is excluded unless the preflight allows it'
     Put (Join-Path $repo 'README.md') $privateText
     & git -C $repo add README.md
     $pub=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo

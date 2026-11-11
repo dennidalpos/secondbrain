@@ -7,15 +7,15 @@ Two tools extend the eight existing tools: preview_dossier_write returns a plan 
 | Operation | Payload | Destination and precondition |
 |---|---|---|
 | task.status | taskId, status, optional reason | One task; hash of the complete current record |
-| task.update | taskId plus at least one of status, reason, priority, execution, stream, awaiting, readRepositories (array of identities) | One task through the task-update queue; hash of the complete current record; same validation as `knowledge.ps1 -UpdateTaskId` |
-| task.new | title, acceptance array, provenance; optional description, priority, pointer | Declared tracker and existing dossier history provenance; both hashes |
+| task.update | taskId plus at least one of status, reason, priority, execution, stream, awaiting, readRepositories (array of identities), requires (array of capabilities) | One task through the task-update queue; hash of the complete current record; same validation as `knowledge.ps1 -UpdateTaskId` |
+| task.new | title, acceptance array, provenance; optional description, priority, pointer, requires | Declared tracker and existing dossier history provenance; both hashes |
 | memory.append | content | memory.md; current hash; agent view regenerated |
 | activity.append | taskId, sessionId, when, outcome, detail | history/activity/report.md; current hash and local activation policy |
 | history.save | path, content | history/<slug>/report.md; current hash or absent |
 
 Only the active dossier of a managed checkout is writable. Repository, checkout, exact dossier path, workstation, OS user, operation, content, preconditions and a 32-character lowercase hexadecimal request ID are bound into the plan hash. New task IDs are MCP-<requestId>. Paths, field names, value types and sizes are validated. Cross-dossier provenance, shell commands, metadata paths and history replacement of the activity transport are refused.
 
-For task.update, an empty string clears awaiting or stream, and an empty readRepositories array removes the allowlist. Each readRepositories entry must be a canonical identity (`github.com/<owner>/<name>` in lowercase or `local:<32 hex>`); duplicates are dropped. The allowlist is read-only: it never grants writes or access to another repository's tasks. A task.update that carries only status and reason is queued as task.status.
+For task.update, an empty string clears awaiting or stream, an empty readRepositories array removes the allowlist and an empty requires array removes the capability list. `requires` accepts only `computer-use` (CLI: `knowledge.ps1 -Requires computer-use`, with `-NewTask` or `-UpdateTaskId`); the task runner leaves such tasks to an attended session. Each readRepositories entry must be a canonical identity (`github.com/<owner>/<name>` in lowercase or `local:<32 hex>`); duplicates are dropped. The allowlist is read-only: it never grants writes or access to another repository's tasks. A task.update that carries only status and reason is queued as task.status.
 
 Explicit private/do-not-memorize tags are rejected before approval storage or queueing. This is not a general secret detector: review the plan and omit private material before sending it.
 

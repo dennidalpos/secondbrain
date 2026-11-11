@@ -51,7 +51,7 @@ Use MEM05 and para.ps1 for entity creation/state changes. Check and SuggestArchi
 | access/ | Sessions, leases, FIFO tickets, locks, requests and receipts |
 | access/para-transaction.json | Incomplete transaction marker; recover instead of deleting (older root-level markers also detected) |
 | backups/mcp-pairing/ | MCP configuration recovery |
-| publication/ | Fingerprint allowances, binary reviews and baseline/reports |
+| publication/ | Baselines and reports; the policy (allowances, binary reviews) is the tracked `config/publication-policy.json`, and a legacy `policy.json` here is no longer read (`publication.ps1 -MigratePolicy` copies it once) |
 | trace/, cleanup/, INDEX.md | Turn metadata, cleanup receipts and generated inventory |
 
 Initialize agent folders with work.ps1 Category/Slug/Init, pass SessionId, and close the manifest. Do not write into another host/user/session's folder. Evidence/reports are protected; closed work/fixture/tmp retention is a separate guarded workflow.

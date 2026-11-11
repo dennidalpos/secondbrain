@@ -9,8 +9,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'pending.invalid' = @{it='Richiesta differita non valida: {0}';en='Invalid deferred request: {0}'}
-    'pending.conflict' = @{it='La base della scrittura e cambiata: richiesta conservata senza sovrascrivere';en='The write base changed: request preserved without overwriting'}
-    'pending.discard.notfound' = @{it='Nessuna richiesta differita con questo ID';en='No deferred request with this ID'}
+    'pending.conflict' = @{it='La base della scrittura e cambiata: richiesta conservata senza sovrascrivere. Controllala con knowledge.ps1 -PendingWrites e, se superata, scartala con -DiscardPending';en='The write base changed: request preserved without overwriting. Check it with knowledge.ps1 -PendingWrites and, if outdated, discard it with -DiscardPending'}
+    'pending.discard.notfound' = @{it='Nessuna richiesta differita con questo ID: elenca le richieste con knowledge.ps1 -PendingWrites';en='No deferred request with this ID: list requests with knowledge.ps1 -PendingWrites'}
     'pending.discard.state' = @{it='Solo le richieste in conflitto o non valide si possono scartare (stato: {0})';en='Only conflicting or invalid requests can be discarded (state: {0})'}
     'pending.notice' = @{it='Scritture differite: {0} integrate, {1} conflitti, {2} pendenti; stato {3}.';en='Deferred writes: {0} applied, {1} conflicts, {2} pending; state {3}.'}
 }
@@ -77,8 +77,8 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request.arguments -isnot [Collections.IDictionary] -or $Request.expected -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('arguments'))}
     $allowed=switch($Request.operation){
         'task.status' {@('TaskId','Status','StateReason','Evidence')}
-        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Evidence')}
-        'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer')}
+        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','ReadRepositories','Requires','Evidence')}
+        'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer','Requires')}
         'file.save' {@('relativePath','content')}
         'file.append' {@('relativePath','content')}
         default {throw (New-SBError 'pending.invalid' @('operation'))}

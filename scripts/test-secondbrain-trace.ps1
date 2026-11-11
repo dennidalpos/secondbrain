@@ -39,6 +39,17 @@ try {
     Assert-Trace ((Get-SBCompactionAdvice (& $startup 20001) $brain $dossier).level -eq 'hard') 'oltre il tetto: avviso hard'
     Assert-Trace ((Get-SBCompactionAdvice (& $startup 16000) $brain $dossier).level -eq 'soft') 'all 80% del tetto: avviso soft'
     Assert-Trace ((Get-SBCompactionAdvice (& $startup 15999) $brain $dossier).level -eq 'none') 'sotto l 80% con pochi turni: nessun avviso'
+    # AGENTS.md and the largest global directive count toward the soft alert; the hard level stays tied to the package alone.
+    $withDirectives={param($chars,$total) @{repository='github.com/acme/repo-a';characters=$chars;budget=20000;directives=@{agents=($total-1000);globalLargest=1000;total=$total}}}
+    Assert-Trace ((Get-SBCompactionAdvice (& $withDirectives 12000 4000) $brain $dossier).level -eq 'soft') 'pacchetto 12000 + direttive 4000 = 80% del tetto: avviso soft'
+    Assert-Trace ((Get-SBCompactionAdvice (& $withDirectives 12000 3999) $brain $dossier).level -eq 'none') 'pacchetto 12000 + direttive 3999 = sotto l 80%: nessun avviso'
+    $directiveAdvice=Get-SBCompactionAdvice (& $withDirectives 12000 4000) $brain $dossier
+    Assert-Trace ($directiveAdvice.totalCharacters -eq 16000 -and $directiveAdvice.directiveCharacters -eq 4000 -and $directiveAdvice.characters -eq 12000) 'il consiglio riporta pacchetto, direttive e totale'
+    Assert-Trace ((Get-SBContextBudgetAlert 12000 @{total=4000} 20000).level -eq 'soft' -and $null -eq (Get-SBContextBudgetAlert 12000 @{total=3999} 20000) -and (Get-SBContextBudgetAlert 20001 @{total=0} 20000).level -eq 'hard' -and $null -eq (Get-SBContextBudgetAlert 25000 @{total=0} 0)) 'avviso di avvio: soft all 80% del totale, hard solo oltre il tetto del pacchetto, nulla senza tetto'
+    $directiveFiles=Join-Path $root 'directive-checkout';[IO.Directory]::CreateDirectory($directiveFiles)|Out-Null
+    [IO.File]::WriteAllText((Join-Path $directiveFiles 'AGENTS.md'),('x'*1234))
+    $counted=Get-SBDirectiveCharacters $directiveFiles
+    Assert-Trace ($counted.agents -eq 1234 -and $counted.total -eq (1234+$counted.globalLargest) -and (Get-SBDirectiveCharacters '').agents -eq 0) 'le direttive contano AGENTS.md del checkout e la direttiva globale piu grande'
     $heavy=Join-Path (Split-Path $file) 'altro-giorno.jsonl'
     [IO.File]::WriteAllLines($heavy,@(1..60|ForEach-Object {ConvertTo-Json -Compress @{schemaVersion=1;ts=[DateTimeOffset]::Now.ToString('o');ide='claude-code';sessionId='s';event='stop';repository='github.com/acme/repo-a';cwdHash='0'}}))
     $many=Get-SBCompactionAdvice (& $startup 12000) $brain $dossier

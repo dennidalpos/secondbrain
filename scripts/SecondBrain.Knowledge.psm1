@@ -4,20 +4,21 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'knowledge.tasks.unselected' = @{it='Nessun task selezionato. Usa -Tasks per scegliere il lavoro e -Task per il dettaglio.';en='No task selected. Use -Tasks to choose work and -Task for complete details.'}
     'knowledge.tracker.data' = @{ it = 'Tracker data non disponibile'; en = 'Tracker data not available' }
     'knowledge.paging.invalid' = @{ it = 'Offset e Limit devono essere interi non negativi'; en = 'Offset and Limit must be non-negative integers' }
     'knowledge.record.missing' = @{ it = 'repository.json assente'; en = 'repository.json missing' }
-    'knowledge.dossier.invalid' = @{ it = 'Dossier non valido'; en = 'Invalid dossier' }
+    'knowledge.dossier.invalid' = @{ it = 'Dossier non valido: esegui secondbrain.ps1 -Check per i dettagli'; en = 'Invalid dossier: run secondbrain.ps1 -Check for details' }
     'knowledge.repository.required' = @{ it = 'Repository non specificato: indicare il repository in lavoro oppure -All per la vista globale in sola lettura'; en = 'Repository not specified: give the working repository or -All for the read-only global view' }
     'knowledge.dossier.none' = @{ it = 'Nessun dossier attivo per il repository: {0}'; en = 'No active dossier for repository: {0}' }
     'knowledge.dossier.ambiguous' = @{ it = 'Dossier non risolto in modo univoco per il repository: {0}'; en = 'Dossier not uniquely resolved for repository: {0}' }
     'knowledge.lifecycle.invalid' = @{ it = 'lifecycle non valido in repository.json: ammesso soltanto greenfield'; en = 'Invalid lifecycle in repository.json: only greenfield is allowed' }
     'knowledge.tracker.unavailable' = @{ it = 'Tracker non disponibile per il dossier'; en = 'Tracker not available for the dossier' }
     'knowledge.task.ambiguous' = @{ it = 'Piu task corrispondono a: {0}'; en = 'Several tasks match: {0}' }
-    'knowledge.task.notfound' = @{ it = 'Task non trovato: {0}'; en = 'Task not found: {0}' }
+    'knowledge.task.notfound' = @{ it = 'Task non trovato: {0}. Elenca i task con knowledge.ps1 -Tasks'; en = 'Task not found: {0}. List tasks with knowledge.ps1 -Tasks' }
     'knowledge.source.invalid' = @{ it = 'Fonte non valida: usare context, memory, history oppure history/<cartella>'; en = 'Invalid source: use context, memory, history or history/<folder>' }
     'knowledge.section.notfound' = @{ it = 'Sezione non trovata: {0}'; en = 'Section not found: {0}' }
     'knowledge.dossier.unspecified' = @{ it = 'Dossier non indicato: eseguire dal checkout del repository o passare -Dossier (assoluto o relativo alla radice SecondBrain)'; en = 'Dossier not specified: run from the repository checkout or pass -Dossier (absolute or relative to the SecondBrain root)' }
@@ -32,7 +33,8 @@ Add-SBMessages @{
     'knowledge.candidate.tasks' = @{ it = 'Il candidato omette task aperti: rigenerare la proiezione'; en = 'The candidate omits open tasks: regenerate the projection' }
     'knowledge.budget.exceeded' = @{ it = 'Budget superato: approfondire la sintesi, senza troncare informazioni'; en = 'Budget exceeded: refine the summary without truncating information' }
     'knowledge.startup.compacted' = @{ it = 'Pacchetto compattato: consulta sezioni e task con -Section, -Tasks, -Task o -Startup -Profile Full'; en = 'Package compacted: retrieve sections and tasks with -Section, -Tasks, -Task or -Startup -Profile Full' }
-    'knowledge.startup.minimum' = @{ it = 'Budget insufficiente per lʼavvio Slim. Caratteri minimi: {0}'; en = 'Budget too small for Slim startup. Minimum characters: {0}' }
+    'knowledge.budget.alert' = @{ it = 'Contesto di avvio al {0}% del tetto di {1} caratteri (totale {2}: pacchetto {3}, AGENTS.md e direttiva globale {4}): proporre SYS05 (sb compatta) prima di aggiungere altro contesto; nulla viene compattato senza conferma'; en = 'Startup context at {0}% of the {1}-character cap (total {2}: package {3}, AGENTS.md and global directive {4}): propose SYS05 (sb compact) before adding more context; nothing is compacted without confirmation' }
+    'knowledge.startup.minimum' =@{ it = 'Budget insufficiente per lʼavvio Slim. Caratteri minimi: {0}'; en = 'Budget too small for Slim startup. Minimum characters: {0}' }
 }
 
 function Get-SBDossierTOC([string]$Dossier) {
@@ -298,7 +300,7 @@ function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget)
     @{minimum=$minimum.Length;omitted=$references}
 }
 function Get-SBStartupContext {
-    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full',[string]$PreviousRevision)
+    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full',[string]$PreviousRevision,[string]$DirectiveCheckout)
     if($Profile -eq 'Slim' -and !$PSBoundParameters.ContainsKey('Budget')){$Budget=Get-SBSlimStartupBudget}
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
@@ -315,6 +317,13 @@ function Get-SBStartupContext {
     $package.revision=Get-SBTextHash (ConvertTo-SBJson $revisionSource)
     $package.changed=(!$PreviousRevision -or $PreviousRevision -cne $package.revision)
     $package.sourceCharacters=$package.characters
+    if($slim){
+        # Directive text outside the package (AGENTS.md, global instructions) counts toward the soft alert shown at session start.
+        $directives=Get-SBDirectiveCharacters $DirectiveCheckout
+        $package.directives=$directives
+        $measured=if($package.ContainsKey('uncompactedCharacters')){$package.uncompactedCharacters}else{$package.characters}
+        $package.budgetAlert=Get-SBContextBudgetAlert $measured $directives $Budget
+    }
     if(!$package.changed){$package.parts=@{};$package.loadedParts=@();$package.characters=0}
     $package
 }
@@ -365,11 +374,40 @@ function New-SBStartupPackage {
 }
 # Initial loading limit (Slim profile): single source for knowledge.ps1 -Startup and secondbrain.ps1 -Check.
 function Get-SBSlimStartupBudget { 50000 }
-# Read-only compaction advice: hard when the Slim package exceeds the limit, soft when near it or when many turns have elapsed
-# since the last compaction. Never compacts automatically: application remains on request (SYS05).
+# Characters of directive text always in context outside the startup package: the checkout's AGENTS.md and the global instructions
+# of the agents that read a file (the largest counts, since a session loads one agent's file). Read-only; unreadable files count as 0.
+function Get-SBDirectiveCharacters([string]$CheckoutPath) {
+    $agents=0;$global=[ordered]@{}
+    if($CheckoutPath){
+        $file=Join-Path $CheckoutPath 'AGENTS.md'
+        if(Test-Path -LiteralPath $file -PathType Leaf){try{$agents=[IO.File]::ReadAllText($file).Length}catch{[void]$_}}
+    }
+    foreach($name in @('Claude Code','Codex','Antigravity')){
+        try{
+            $path=(Get-SBIDEContext $name).instructions
+            if($path -and (Test-Path -LiteralPath $path -PathType Leaf)){$global[$name]=[IO.File]::ReadAllText($path).Length}
+        }catch{[void]$_}
+    }
+    $largest=if($global.Count){[int](($global.Values|Measure-Object -Maximum).Maximum)}else{0}
+    @{agents=$agents;global=$global;globalLargest=$largest;total=($agents+$largest)}
+}
+# Soft/hard alert on the package plus directive text: hard only when the package itself exceeds the cap (the compactable part),
+# soft once the total reaches $SoftPercent of the cap. $null when there is nothing to report.
+function Get-SBContextBudgetAlert($Measured,$Directives,[int]$Budget,[int]$SoftPercent=80) {
+    if($Budget -le 0){return $null}
+    $directive=if($Directives){[int]$Directives.total}else{0}
+    $total=[double]$Measured+$directive
+    $percent=[int][Math]::Floor(100.0*$total/$Budget)
+    $level=if($Measured -gt $Budget){'hard'}elseif($percent -ge $SoftPercent){'soft'}else{'none'}
+    if($level -eq 'none'){return $null}
+    @{level=$level;percent=$percent;budget=$Budget;packageCharacters=[int]$Measured;directiveCharacters=$directive;totalCharacters=[int]$total;message=(Get-SBMessage 'knowledge.budget.alert' @($percent,$Budget,[int]$total,[int]$Measured,$directive))}
+}
+# Read-only compaction advice: hard when the Slim package exceeds the limit, soft when package plus directive text is near it or when
+# many turns have elapsed since the last compaction. Never compacts automatically: application remains on request (SYS05).
 function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[int]$SoftPercent=80,[int]$SoftTurns=50,[int]$SoftTurnsPercent=60) {
     $measured=if($Startup.ContainsKey('uncompactedCharacters')){[double]$Startup.uncompactedCharacters}else{[double]$Startup.characters}
-    $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*$measured/$Startup.budget)}else{0}
+    $directiveCharacters=if($Startup.ContainsKey('directives') -and $Startup.directives){[int]$Startup.directives.total}else{0}
+    $percent=if($Startup.budget -gt 0){[int][Math]::Floor(100.0*($measured+$directiveCharacters)/$Startup.budget)}else{0}
     $last=[DateTimeOffset]::MinValue
     $manifests=Join-Path $Dossier 'history/compaction'
     if(Test-Path -LiteralPath $manifests -PathType Container){
@@ -381,7 +419,7 @@ function Get-SBCompactionAdvice($Startup,[string]$BrainRoot,[string]$Dossier,[in
     $level='none'
     if($Startup.budget -gt 0 -and $measured -gt $Startup.budget){$level='hard'}
     elseif($Startup.budget -gt 0 -and ($percent -ge $SoftPercent -or ($turns -ge $SoftTurns -and $percent -ge $SoftTurnsPercent))){$level='soft'}
-    @{level=$level;characters=$measured;deliveredCharacters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;legacyTurns=$legacyTurns;capturedTurns=$capturedTurns;turnCountCoverage='legacy-metadata-and-local-capture-index';lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
+    @{level=$level;characters=$measured;directiveCharacters=$directiveCharacters;totalCharacters=($measured+$directiveCharacters);deliveredCharacters=$Startup.characters;budget=$Startup.budget;percent=$percent;turnsSinceCompaction=$turns;legacyTurns=$legacyTurns;capturedTurns=$capturedTurns;turnCountCoverage='legacy-metadata-and-local-capture-index';lastCompactionUtc=$(if($last -eq [DateTimeOffset]::MinValue){$null}else{$last.UtcDateTime.ToString('o')})}
 }
 # Read-only report: characters per part, estimated tokens (characters/4, not exact), omitted parts and loaded directive sizes.
 function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
@@ -395,6 +433,14 @@ function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
     if($Directives.Count){
         $lines+=@('','Direttive sempre in contesto (fuori dal pacchetto di avvio):')
         foreach($key in ($Directives.Keys|Sort-Object)){$lines+=('- {0}: {1}' -f $key,$Directives[$key])}
+    }
+    if($Startup.ContainsKey('directives') -and $Startup.directives){
+        # Package plus AGENTS.md plus the largest global directive: the total the soft alert measures against the cap.
+        $measured=if($Startup.ContainsKey('uncompactedCharacters')){$Startup.uncompactedCharacters}else{$Startup.characters}
+        $total=[int]$measured+[int]$Startup.directives.total
+        $lines+=@('','Totale in contesto all''avvio (pacchetto + AGENTS.md + direttiva globale piu grande):',('- {0} caratteri (stima ~{1} token, caratteri/4)' -f $total,[int][Math]::Ceiling($total/4)))
+        if($Startup.budget -gt 0){$lines+=('- {0}% del tetto di {1} caratteri' -f [int][Math]::Floor(100.0*$total/$Startup.budget),$Startup.budget)}
+        if($Startup.budgetAlert){$lines+=@('',('AVVISO: '+$Startup.budgetAlert.message))}
     }
     $lines+=@('','Non incluso: prompt di sistema, definizioni degli strumenti MCP e skill dell''IDE; si vedono nel riepilogo del contesto dell''IDE.','Misure di caratteri, non di token (SYS06).')
     ($lines -join "`n")+"`n"
@@ -861,6 +907,8 @@ Export-ModuleMember -Function @(
     'Get-SBStartupContext',
     'Get-SBSlimStartupBudget',
     'Get-SBCompactionAdvice',
+    'Get-SBDirectiveCharacters',
+    'Get-SBContextBudgetAlert',
     'Format-SBStartupReport',
     'Get-SBGlobalTasks',
     'Get-SBGlobalTaskPage',

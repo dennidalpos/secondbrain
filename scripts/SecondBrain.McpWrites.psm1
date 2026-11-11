@@ -16,6 +16,12 @@ function Assert-SBMcpWriteFields($Value,[string[]]$Allowed,[string[]]$Required) 
 function Assert-SBMcpWriteText($Value,[int]$Maximum=65536) {
     if($Value -isnot [string] -or [string]::IsNullOrWhiteSpace($Value) -or $Value.Length -gt $Maximum){throw (New-SBError 'mcpwrite.invalid' @('text'))}
 }
+function Get-SBMcpWriteRequires($Value) {
+    # An array of allowed capability names (an empty array is valid and clears the field on update).
+    $allowed=Get-SBTaskRequiresValues
+    if($Value -isnot [array] -or $Value.Count -gt 8 -or @($Value|Where-Object {$_ -isnot [string] -or $_ -cnotin $allowed}).Count){throw (New-SBError 'mcpwrite.invalid' @('requires'))}
+    ,[string[]]@($Value|Select-Object -Unique)
+}
 function Get-SBMcpWriteHash($Value,[string]$HashField) {
     $copy=@{}+$Value;[void]$copy.Remove($HashField)
     Get-SBTextHash (ConvertTo-SBJson $copy)
@@ -50,7 +56,7 @@ function New-SBMcpWritePlan {
         }
         'task.update' {
             # Same fields and validation as knowledge.ps1 -UpdateTaskId: Update-SBTrackerTask validates the candidate during preview.
-            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','readRepositories') @('taskId')
+            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','readRepositories','requires') @('taskId')
             Assert-SBMcpWriteText $Payload.taskId 128
             if($Payload.Keys.Count -lt 2){throw (New-SBError 'mcpwrite.invalid' @('fields'))}
             $args=@{TaskId=$Payload.taskId}
@@ -77,10 +83,14 @@ function New-SBMcpWritePlan {
                 }
                 $args.ReadRepositories=[string[]]@($reads)
             }
+            if($Payload.ContainsKey('requires')){
+                # An empty array clears the capability list; only the values of Get-SBTaskRequiresValues are accepted.
+                $args.Requires=Get-SBMcpWriteRequires $Payload.requires
+            }
             $pendingOperation='task.update'
         }
         'task.new' {
-            Assert-SBMcpWriteFields $Payload @('title','description','priority','acceptance','provenance','pointer') @('title','acceptance','provenance')
+            Assert-SBMcpWriteFields $Payload @('title','description','priority','acceptance','provenance','pointer','requires') @('title','acceptance','provenance')
             Assert-SBMcpWriteText $Payload.title 200
             if($Payload.acceptance -isnot [array] -or !$Payload.acceptance.Count -or $Payload.acceptance.Count -gt 32){throw (New-SBError 'mcpwrite.invalid' @('acceptance'))}
             foreach($item in $Payload.acceptance){Assert-SBMcpWriteText $item 4096}
@@ -91,6 +101,10 @@ function New-SBMcpWritePlan {
             if($Payload.ContainsKey('priority')){if($Payload.priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'mcpwrite.invalid' @('priority'))};$args.Priority=$Payload.priority}
             if($Payload.ContainsKey('description')){Assert-SBMcpWriteText $Payload.description 8192;$args.Description=$Payload.description}
             if($Payload.ContainsKey('pointer')){Assert-SBMcpWriteText $Payload.pointer 512;$args.ProvenancePointer=$Payload.pointer}
+            if($Payload.ContainsKey('requires')){
+                $required=Get-SBMcpWriteRequires $Payload.requires
+                if($required.Count){$args.Requires=$required}
+            }
             $pendingOperation='task.new'
         }
         'memory.append' {
