@@ -243,6 +243,10 @@ function Get-SBSourceCatalog($Registry) {
     foreach($entry in $entries){$lines+='| ['+$entry.title.Replace('|','\|')+']('+ $entry.path +') | '+$entry.kind+' | '+($entry.domains -join ', ')+' | '+$(if($entry.acceptedVersion){$entry.acceptedVersion}else{'da revisionare / riferimento'})+' |'}
     @{json=ConvertTo-SBJson $catalog;markdown=($lines -join "`n")+"`n"}
 }
+function Test-SBMappingOutdated($Reference,$Source) {
+    # A product mapping pinned to a version older than the accepted one, for normative sources (regulations and decisions) only.
+    [bool]($Reference.versionId -and $Source.acceptedVersion -and $Source.kind -in @('regulation','decision') -and $Reference.versionId -cne $Source.acceptedVersion)
+}
 function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
     $issues=[Collections.Generic.List[object]]::new()
     $latest=Read-SBJson (Join-Path $Config.runtimeRoot 'sources/latest.json') $null
@@ -296,7 +300,7 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
                 if($target.Count -ne 1){throw (New-SBError 'sources.product.unresolved')}
                 if($ref.versionId -and @($target[0].versions|Where-Object id -ceq $ref.versionId).Count -ne 1){throw (New-SBError 'sources.product.version')}
                 if($ref.applicability -eq 'unassessed'){$issues.Add(@{kind='applicability-unassessed';areaId=$entity.id;sourceId=$ref.sourceId})}
-                if($ref.versionId -and $target[0].acceptedVersion -and $target[0].kind -in @('regulation','decision') -and $ref.versionId -cne $target[0].acceptedVersion){$issues.Add(@{kind='mapping-outdated';areaId=$entity.id;sourceId=$ref.sourceId;versionId=$ref.versionId;currentVersionId=$target[0].acceptedVersion})}
+                if(Test-SBMappingOutdated $ref $target[0]){$issues.Add(@{kind='mapping-outdated';areaId=$entity.id;sourceId=$ref.sourceId;versionId=$ref.versionId;currentVersionId=$target[0].acceptedVersion})}
             }
         }
     }
@@ -412,6 +416,7 @@ function Get-SBSourceClosure($Registry,[string[]]$Seeds,[ValidateRange(0,10)][in
     @{sources=@($included.Keys);depths=$included;queue=@($queue.Keys|Sort-Object|ForEach-Object {$queue[$_]})}
 }
 Export-ModuleMember -Function @(
+    'Test-SBMappingOutdated',
     'Get-SBSourceChild',
     'Read-SBSourceRegistry',
     'Test-SBPublicAddress',

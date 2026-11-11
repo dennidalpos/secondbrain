@@ -332,7 +332,8 @@ if('portable' -in $Groups){
                 $found=Invoke-SBHostDiscovery -BrainRoot $brain -Roots @($allowRoot)
                 Check (@($found.repositories|Where-Object {$_.kind -eq 'repository'}).Count -eq 1 -and @($found.repositories.identity) -contains 'github.com/test/allow-a' -and @($found.excluded|Where-Object {$_.reason -eq 'outside-allowlist'}).Count -eq 1) 'a repository outside the allowlist is neither read nor listed'
                 # PowerShell would still bind the abbreviation -All to -AllIdes: the check is on the declared parameters.
-                Check (!(Get-Command $setupScript).Parameters.ContainsKey('All') -and !(Get-Command Invoke-SBSetup).Parameters.ContainsKey('All')) 'setup no longer declares -All'
+                $allOut=@(& pwsh -NoProfile -File $setupScript -Setup -All 2>&1)
+                Check ($LASTEXITCODE -eq 2 -and ($allOut -join ' ').Contains('-AllIdes') -and !(Get-Command Invoke-SBSetup).Parameters.ContainsKey('All')) 'setup rejects -All with a clear error instead of binding -AllIdes'
                 # New project from scratch (#416): one command creates folder, git, allowlist, dossier, tracker seed, greenfield and customer.
                 $newPath=Join-Path $allowRoot 'brandnew'
                 $newPreview=(& pwsh -NoProfile -File $setupScript -NewProject $newPath -Remote 'https://github.com/test/brandnew.git' -Customer 'Acme')|ConvertFrom-Json -AsHashtable
@@ -531,6 +532,12 @@ if('workflows' -in $Groups){
             $out=(& pwsh -NoProfile -File $knowledgeCli @flags -ConfigPath $configPath -CheckoutPath $repo 2>&1|Out-String)
             Check ($LASTEXITCODE -ne 0 -and $out -notmatch $marker -and $out -notmatch 'O-1') ('knowledge global view refused: '+($flags -join ' '))
         }
+        # #434: a search run outside any checkout (no -CheckoutPath, working folder not a repository) has no project to scope to and is refused.
+        # Outside the brain checkout: a folder inside it would resolve to SecondBrain's own Git identity.
+        $noProject=Join-Path ([IO.Path]::GetTempPath()) ('sb-no-project-'+[guid]::NewGuid().ToString('N'));[void][IO.Directory]::CreateDirectory($noProject)
+        Push-Location $noProject
+        try{$unscoped=(& pwsh -NoProfile -File $knowledgeCli -Search $marker -ConfigPath $configPath 2>&1|Out-String);$unscopedCode=$LASTEXITCODE}finally{Pop-Location;Remove-Item -LiteralPath $noProject -Force -Recurse -ErrorAction SilentlyContinue}
+        Check ($unscopedCode -ne 0 -and $unscoped -notmatch [regex]::Escape($marker) -and $unscoped -notmatch 'O-1') 'knowledge search without a resolved project is refused by the isolation'
         foreach($case in @(@('get_ready_tasks',@{all=$true}),@('search_knowledge',@{query=$marker;allDossiers=$true}),@('search_knowledge',@{query=$marker}))){
             $leak=$null;$refused=$false
             try{$leak=Invoke-SBMcpToolCall $brain $case[0] $case[1]}catch{$refused=$true}
@@ -646,6 +653,10 @@ if('audit2' -in $Groups){
     $checker=Join-Path $PSScriptRoot 'check-distribution.ps1'
     $checkOutput=@(& pwsh -NoProfile -File $checker -RepositoryPath $distribution 2>&1)
     Check ($LASTEXITCODE -eq 0) 'distribution accepts public IDE instruction pointers'
+    foreach($para in @('01-projects','02-areas','03-resources','04-archives')){Put (Join-Path $distribution ($para+'/README.md')) '# Synthetic PARA readme'}
+    [void](Invoke-SBGit $distribution @('add','-f','--','01-projects/README.md','02-areas/README.md','03-resources/README.md','04-archives/README.md'))
+    $checkOutput=@(& pwsh -NoProfile -File $checker -RepositoryPath $distribution 2>&1)
+    Check ($LASTEXITCODE -eq 0) 'distribution accepts the four tracked PARA READMEs'
     Put (Join-Path $distribution '02-areas/private.md') '# Synthetic private dossier'
     Put (Join-Path $distribution 'notes.md') '# Unapproved root document'
     [void](Invoke-SBGit $distribution @('add','--','02-areas/private.md','notes.md'))

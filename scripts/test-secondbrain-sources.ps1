@@ -140,6 +140,13 @@ try {
     $mapping=@{schemaVersion=1;areaId='area-fixture';repository='github.com/test/fixture';assessedAt=[DateTimeOffset]::UtcNow.ToString('o');assessment='Fixture';sources=@(@{sourceId='missing';versionId=$null;applicability='unassessed';rationale='Fixture';implementation='unverified';requirements=@();evidence=@();tasks=@()});census=@{status='complete';reference='fixture'};residualTasks=@()}
     Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
     Throws-Source {Get-SBSourceChecks (Read-SBSourceRegistry $root) $config -IncludeDossiers} 'fonte sconosciuta nella scheda del prodotto rifiutata'
+    # #439: mapping-outdated applies only to normative sources pinned to a version other than the accepted one.
+    $reg=@{kind='regulation';acceptedVersion='v2'};$dec=@{kind='decision';acceptedVersion='v2'};$guide=@{kind='guideline';acceptedVersion='v2'}
+    Assert-Source (Test-SBMappingOutdated @{versionId='v1'} $reg) 'mappatura a versione precedente di un regolamento produce mapping-outdated'
+    Assert-Source (Test-SBMappingOutdated @{versionId='v1'} $dec) 'mappatura a versione precedente di una decisione produce mapping-outdated'
+    Assert-Source (!(Test-SBMappingOutdated @{versionId='v2'} $reg)) 'mappatura aggiornata non produce il rilievo'
+    Assert-Source (!(Test-SBMappingOutdated @{versionId='v1'} $guide)) 'fonte non normativa non produce il rilievo'
+    Assert-Source (!(Test-SBMappingOutdated @{versionId=$null} $reg) -and !(Test-SBMappingOutdated @{versionId='v1'} @{kind='regulation';acceptedVersion=$null})) 'senza versione o senza versione accettata nessun rilievo'
     if($PythonPath){
         # -B: no bytecode cache in scripts/.
         & $PythonPath -B (Join-Path $PSScriptRoot 'test-source-convert.py') -v

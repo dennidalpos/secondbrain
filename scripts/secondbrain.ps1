@@ -47,6 +47,8 @@ param(
     [Parameter(ParameterSetName='NewProject')][switch]$ApplyNew,
     [Parameter(ParameterSetName='Setup')][string[]]$Ides=@(),
     [Parameter(ParameterSetName='Setup')][switch]$AllIdes,
+    # Declared only to reject it: otherwise PowerShell binds the abbreviation -All to -AllIdes.
+    [Parameter(ParameterSetName='Setup',DontShow)][switch]$All,
     [Parameter(ParameterSetName='Setup')][string[]]$McpTargets=@(),
     [Parameter(ParameterSetName='Setup')][Alias('ApproveMcpKnowledgeTools')][switch]$ApproveMcpReadTools,
     [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
@@ -78,6 +80,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Add-SBMessages @{
+    'cli.setup.all.removed' = @{ it = '-All non esiste piu: usare -AllIdes per selezionare tutti gli IDE'; en = '-All no longer exists: use -AllIdes to select every IDE' }
     'cli.setup.team.root' = @{ it = '-TeamRoot richiede una radice UNC raggiungibile'; en = '-TeamRoot requires a reachable UNC root' }
     'cli.setup.team.mode' = @{ it = '-TeamRoot richiede -PreviewOnly, -Interactive oppure -Yes -Apply'; en = '-TeamRoot requires -PreviewOnly, -Interactive or -Yes -Apply' }
     'cli.setup.conflict' = @{ it = '-Status/-Unbind non accettano: -{0}'; en = '-Status/-Unbind do not accept: -{0}' }
@@ -86,6 +89,7 @@ Add-SBMessages @{
     'cli.status.readonly' =@{ it = '-Status e di sola lettura: -Apply, -Yes e -Interactive non si applicano'; en = '-Status is read-only: -Apply, -Yes and -Interactive do not apply' }
 }
 
+if ($All) { [Console]::Error.WriteLine((Get-SBMessage 'cli.setup.all.removed')); exit 2 }
 try {
     $brain = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
     if ($Setup) {

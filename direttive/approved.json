@@ -1,6 +1,6 @@
 {
-  "approvedAt": "2026-11-11T09:21:28.2205770+01:00",
-  "authorization": "Richiesta della persona titolare 2026-11-11: aggiornare la direttiva globale al tetto di 50.000 caratteri",
+  "approvedAt": "2026-11-11T09:44:38.1672738+01:00",
+  "authorization": "Richiesta della persona titolare 2026-11-11: aggiornare la direttiva globale al tetto di 50.000 caratteri (proposta completata con AGENTS.repo.managed.md invariato)",
   "files": {
     "direttive/AGENTS.global_ide.md": "C985B7798485F70BE1A45CF57A8B19DA3C07D1A2D543A31A106B7EC3F3B04B7B",
     "direttive/AGENTS.repo.managed.md": "19485A056F41ECFB21606F6BA7DAC66B93D93D57B232C04B03844DD03A1CC1E4",
@@ -9,7 +9,7 @@
   "proposal": {
     "path": "direttive/proposals/2026-11-11-startup-cap-50k",
     "readmeHash": "33889D9815C0D19653AC6A64969148CF21F676F1B4F99520A7C8529C861BA5DA",
-    "sha256": "AEE73CBFBC2997F09050F193C777931DC2FBC9341D47313E2998CD190796C209"
+    "sha256": "CFAC53D8F1CB847EA9F6B16357212791E94862DE378414919B6FB5D8AE2074EE"
   },
   "schemaVersion": 1
 }

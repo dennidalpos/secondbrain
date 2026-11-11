@@ -84,7 +84,8 @@ foreach ($line in $trackedFiles) {
     $f = $line.Trim().Replace('\', '/')
     if (!$f) { continue }
 
-    $isParaSkeleton = ($f -match '^0[1-4]-[a-z]+(?:/[a-z]+)*/\.gitkeep$')
+    # The PARA skeleton is public: .gitkeep markers and the four top-level READMEs that .gitignore keeps tracked.
+    $isParaSkeleton = ($f -match '^0[1-4]-[a-z]+(?:/[a-z]+)*/\.gitkeep$' -or $f -match '^0[1-4]-[a-z]+/README\.md$')
 
     # Check forbidden patterns (excluding .gitkeep markers allowed by .gitignore for the PARA skeleton).
     if (!$isParaSkeleton) {
