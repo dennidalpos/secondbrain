@@ -624,6 +624,15 @@ if('pending' -in $Groups){
     Check ((Get-SBFileHash $trackerPath) -ceq $after) 'replay applies no duplicate update'
     $receipt=@(Get-SBPendingWrites $brain|Where-Object id -eq $first.id)[0].receipt
     Check ($receipt.state -eq 'applied' -and $receipt.result.taskId -eq 'T-1') 'receipt identifies atomically applied task'
+    # #473: recovery scoped to a dossier leaves another dossier's request untouched; without a scope the whole queue is still examined.
+    $otherQueue=(& (Get-Module SecondBrain.Pending) {param($root) Get-SBPendingPaths $root} $brain)
+    $otherId=[guid]::NewGuid().ToString('N');$otherRequest=Join-Path $otherQueue.queue ($otherId+'.json')
+    Put $otherRequest ('{"schemaVersion":1,"id":"'+$otherId+'","repository":"github.com/test/other","operation":"file.append","arguments":{},"expected":{},"createdAt":"2026-11-11T00:00:00.0000000Z","origin":{},"sha256":"x"}')
+    $otherHash=Get-SBFileHash $otherRequest
+    $scoped=Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg -Repository $identity
+    Check ($scoped.pending -eq 0 -and !@($scoped.conflicts|Where-Object {$_.repository -cne $identity}).Count -and !$scoped.applied.Count -and !(Test-Path -LiteralPath (Join-Path $otherQueue.receipts ($otherId+'.json'))) -and (Get-SBFileHash $otherRequest) -ceq $otherHash) 'recovery scoped to a dossier leaves another dossier request untouched'
+    $unscoped=Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg
+    Check (@($unscoped.conflicts|Where-Object id -ceq $otherId).Count -eq 1) 'recovery without a dossier scope still examines the whole queue'
     $legacy=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='in_progress'} -Config $cfg
     Check ((Complete-SBPendingSubmission $legacy $cfg).applied) 'existing task.status request remains supported'
     $compatible=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';Status='todo'} -Config $cfg

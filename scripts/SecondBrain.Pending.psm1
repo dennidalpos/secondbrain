@@ -239,8 +239,9 @@ function Get-SBPendingWrites([string]$BrainRoot) {
         Assert-SBPlainPath $receiptPath -VerifiedAncestors $verified
         $receipt=Read-SBPendingReceipt $receiptPath $file.FullName $id -VerifiedAncestors $verified
         $createdAt=$file.CreationTimeUtc.ToString('o')
-        if(!$receipt -and $file.Length -le 2MB){try{$header=Read-SBJson $file.FullName $null;if($header -and $header.ContainsKey('createdAt')){$createdAt=[DateTimeOffset]::Parse($header.createdAt).UtcDateTime.ToString('o')}}catch { Write-Verbose $_.Exception.Message }}
-        $repository=if($receipt -and $receipt.ContainsKey('repository')){$receipt.repository}else{$null}
+        $headerRepository=$null
+        if(!$receipt -and $file.Length -le 2MB){try{$header=Read-SBJson $file.FullName $null;if($header -and $header.ContainsKey('createdAt')){$createdAt=[DateTimeOffset]::Parse($header.createdAt).UtcDateTime.ToString('o')};if($header -and $header.ContainsKey('repository')){$headerRepository=[string]$header.repository}}catch { Write-Verbose $_.Exception.Message }}
+        $repository=if($receipt -and $receipt.ContainsKey('repository')){$receipt.repository}else{$headerRepository}
         @{id=$id;repository=$repository;path=$file.FullName;state=$(if($receipt){$receipt.state}else{'deferred'});receipt=$receipt;receiptPath=$receiptPath;createdAt=$createdAt}
     }
 }
@@ -253,7 +254,8 @@ function Get-SBPendingSubmitWaitMs {
 
 function Invoke-SBPendingWrites {
     [CmdletBinding()]
-    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId,[ValidateRange(0,600000)][int]$WaitMs=0)
+    param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId,[ValidateRange(0,600000)][int]$WaitMs=0,[string]$Repository)
+    # -Repository (#473): only the requests of that dossier are scanned, reported and integrated; without it the whole queue (workstation maintenance).
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     if($clock){$Diagnostics.lockAttemptMs=0.0;$Diagnostics.lockAttempts=0}
     try {
@@ -262,6 +264,7 @@ function Invoke-SBPendingWrites {
     try{$entries=@(Get-SBPendingWrites $BrainRoot)}catch{$summary.state='unavailable';$summary.errors+=@{code='pending.scan.failed';message=$_.Exception.Message};return $summary}
     finally{if($clock){$Diagnostics.scanMs=$clock.Elapsed.TotalMilliseconds}}
     if($RequestId){$entries=@($entries|Where-Object id -ceq $RequestId)}
+    if($Repository){$entries=@($entries|Where-Object {$_.repository -ceq $Repository})}
     $todo=@($entries|Where-Object state -eq 'deferred'|Sort-Object createdAt,id)
     $summary.conflicts=@($entries|Where-Object state -in @('conflict','invalid','invalid-receipt')|ForEach-Object {@{id=$_.id;repository=$_.repository;state=$_.state;path=$_.path}})
     $summary.pending=$todo.Count
@@ -396,6 +399,7 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
     try {
     $drainOptions=@{BrainRoot=$Config.brainRoot;Config=$Config;SessionId=$SessionId;Diagnostics=$Diagnostics;WaitMs=(Get-SBPendingSubmitWaitMs)}
     if($OnlySubmission){$drainOptions.RequestId=$Submission.id}
+    elseif($Submission.request -and $Submission.request.repository){$drainOptions.Repository=[string]$Submission.request.repository}
     $drain=Invoke-SBPendingWrites @drainOptions
     $paths=Get-SBPendingPaths $Config.brainRoot
     $receipt=Read-SBPendingReceipt (Join-Path $paths.receipts ($Submission.id+'.json')) $Submission.path $Submission.id

@@ -224,7 +224,7 @@ try {
     $workers=@()
     foreach($number in @(1,2)){
         $start=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
-        foreach($arg in @('-NoProfile','-File',(Join-Path $brain 'scripts/knowledge.ps1'),'-ConfigPath',$configPath,'-FlushPending')){$start.ArgumentList.Add($arg)}
+        foreach($arg in @('-NoProfile','-File',(Join-Path $brain 'scripts/knowledge.ps1'),'-ConfigPath',$configPath,'-CheckoutPath',$checkout,'-FlushPending')){$start.ArgumentList.Add($arg)}
         $workers+=[Diagnostics.Process]::Start($start)
     }
     foreach($worker in $workers){$worker.WaitForExit();Assert-Pending ($worker.ExitCode -eq 0) 'concurrent importer completes without a waiting session';$worker.Dispose()}
