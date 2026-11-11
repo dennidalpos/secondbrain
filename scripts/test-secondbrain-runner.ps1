@@ -398,6 +398,9 @@ $r|ConvertTo-Json -Compress
     $events=@($stopped.err -split "`r?`n"|Where-Object {$_.Trim()}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
     Assert-Runner (@($events|Where-Object {$_.event -eq 'repo'}).Count -eq 1 -and @($events|Where-Object {$_.event -eq 'stop' -and $_.reason -eq 'requested'}).Count -eq 1 -and @($events|Where-Object {!$_.message}).Count -eq 0) ('-Events writes one JSON object per progress line: '+$stopped.err)
     Assert-Runner ((Get-SBFileHash $trackerPath2) -ceq $hash2) 'queue previews and a stopped run leave the tracker unchanged'
+    # Queue default selection (#517): the window preselects nothing, so no consent-gated task starts without an explicit choice.
+    $orchMain=Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\app\orchestrator\src\main.ts') -Raw
+    Assert-Runner ($orchMain -match 'state\.selected\s*=\s*new Set<string>\(\);' -and $orchMain -notmatch 'state\.selected\s*=\s*new Set\(state\.tasks') 'orchestrator queue preselects no task'
     Close-RunnerPhase 'orchestrator'
     $realAfter=Get-RealTrackerHashes
     # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session

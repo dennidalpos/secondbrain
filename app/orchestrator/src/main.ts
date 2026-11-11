@@ -216,7 +216,8 @@ async function refreshTasks() {
   const r = await call<{ tasks: PreviewTask[]; skipped: Skipped[] }>("list_tasks", { repo: state.repo }, "q-agent");
   if (!r) return;
   state.tasks = r.tasks ?? [];
-  state.selected = new Set(state.tasks.map((t) => t.id));
+  // Nothing is preselected (#517): the person opts in task by task, or with "Seleziona tutti".
+  state.selected = new Set<string>();
   renderTasks();
   $("q-skipped").replaceChildren(...(r.skipped ?? []).filter((s) => s.id).map((s) => {
     const li = document.createElement("li"); li.textContent = `${s.id} — ${s.reason}`; return li;
