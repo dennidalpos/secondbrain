@@ -24,7 +24,6 @@ $ErrorActionPreference='Stop'
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 foreach($m in 'Core','Access','Host','Para','Knowledge','Activity'){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$m+'.psm1'))}
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
-Add-SBMessages @{'activity.invalid'=@{it='Registro attività: dato non valido ({0})';en='Activity register: invalid data ({0})'}}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if(!(Test-SBRepositoryIdentity $Repository)){throw (New-SBError 'activity.invalid' @('repository'))}
 $dossier=Resolve-SBParaPath $brain (Resolve-SBWorkingDossier $brain $Repository)

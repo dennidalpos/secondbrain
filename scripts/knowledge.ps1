@@ -15,6 +15,8 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='FileSave')][string]$ExpectedHash,
     [Parameter(Mandatory,ParameterSetName='FlushPending')][switch]$FlushPending,
     [Parameter(Mandatory,ParameterSetName='PendingWrites')][switch]$PendingWrites,
+    [Parameter(ParameterSetName='PendingWrites')][ValidateSet('deferred','conflict','applied','discarded','invalid')][string[]]$PendingState,
+    [Parameter(ParameterSetName='PendingWrites')][switch]$PendingSummary,
     [Parameter(Mandatory,ParameterSetName='DiscardPending')][ValidatePattern('^[a-f0-9]{32}$')][string]$DiscardPending,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
@@ -52,9 +54,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
 Add-SBMessages @{
-    'tracker.update.empty' = @{it='Specificare almeno un campo da aggiornare';en='Specify at least one field to update'}
+    'knowledgecli.pending.summary.next' = @{it='Elenco filtrato: -PendingWrites -PendingState conflict (o deferred); scarto di un conflitto: -DiscardPending <id>';en='Filtered list: -PendingWrites -PendingState conflict (or deferred); discard a conflict with -DiscardPending <id>'}
     'knowledgecli.pending.size' = @{it='Il contenuto supera il limite di 2 MiB';en='Content exceeds the 2 MiB limit'}
-    'tracker.write.foreign' = @{ it = 'Scrittura rifiutata: il tracker di ''{0}'' non appartiene al repository in lavoro ''{1}'''; en = 'Write refused: the tracker of ''{0}'' does not belong to the working repository ''{1}''' }
     'knowledgecli.repository.all' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout, indicare -Repository o -CheckoutPath (-All per la vista globale dei task, sola lettura)'; en = 'Working repository not resolvable: run from the checkout, give -Repository or -CheckoutPath (-All for the read-only global task view)' }
     'knowledgecli.lifecycle.working' = @{ it = 'Il ciclo di vita si modifica soltanto per il repository in lavoro'; en = 'The lifecycle can be changed only for the working repository' }
     'knowledgecli.repository.checkout' = @{ it = 'Repository in lavoro non risolvibile: eseguire dal checkout o indicare -CheckoutPath'; en = 'Working repository not resolvable: run from the checkout or give -CheckoutPath' }
@@ -138,7 +139,15 @@ try{
         $result=if($Task){Get-SBTaskDetail -BrainRoot $brain -Dossier $Dossier -Task $Task -CheckoutPath $CheckoutPath}else{Get-SBSection -BrainRoot $brain -Dossier $Dossier -Title $Section -Source $Source}
     }
     elseif($FlushPending){$result=$pendingResult}
-    elseif($PendingWrites){$result=@(Get-SBPendingWrites $brain)}
+    elseif($PendingWrites){
+        $result=@(Get-SBPendingWrites $brain)
+        if($PendingState){$result=@($result|Where-Object {$_.state -in $PendingState})}
+        if($PendingSummary){
+            $counts=[ordered]@{}
+            foreach($group in @($result|Group-Object state|Sort-Object Name)){$counts[$group.Name]=$group.Count}
+            $result=[ordered]@{total=$result.Count;states=$counts;next=(Get-SBMessage 'knowledgecli.pending.summary.next')}
+        }
+    }
     elseif($DiscardPending){$result=Move-SBPendingConflict -BrainRoot $brain -Id $DiscardPending}
     elseif($SaveFile -or $AppendFile){
         $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)

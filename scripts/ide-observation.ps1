@@ -22,7 +22,6 @@ $ErrorActionPreference='Stop'
 if($Language){$env:SECONDBRAIN_LANG=$Language}
 foreach($m in 'Core','Access','Host','IdeObservation'){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$m+'.psm1'))}
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
-Add-SBMessages @{'ideobs.invalid'=@{it='Osservazione IDE: dato non valido ({0})';en='IDE observation: invalid data ({0})'}}
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:(!$Apply)
 $mapPath=Join-Path $config.localStateRoot 'ide-map.json'
 $globalPath=Join-Path $config.localStateRoot 'istruzioni-globali.md'

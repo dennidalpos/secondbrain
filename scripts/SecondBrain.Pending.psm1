@@ -103,6 +103,9 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
            !$Request.expected.ContainsKey('provenanceHash') -or $Request.expected.provenanceHash -notmatch '^[A-Fa-f0-9]{64}$'){
             throw (New-SBError 'pending.invalid' @('new task'))
         }
+        if($Request.arguments.ContainsKey('Priority') -and $Request.arguments.Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
+        if($Request.arguments.Id -and [string]$Request.arguments.Id -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]{2,79}$'){throw (New-SBError 'tracker.id.invalid' @($Request.arguments.Id))}
+        if([string]$Request.arguments.Title -notmatch '\p{L}'){throw (New-SBError 'tracker.title.invalid')}
     }
 }
 

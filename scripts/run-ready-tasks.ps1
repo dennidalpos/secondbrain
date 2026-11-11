@@ -107,7 +107,7 @@ if(!$Run){
     Show-RunnerLine 'runner.progress.preview' @($totalSelected,$plans.Count)
     ConvertTo-SBJson @{run=$false;agent=$AgentPath;computerUse=$allowComputerUse;timeoutMinutes=$TimeoutMinutes;tasks=$preview;skipped=$skipped};exit 0
 }
-if(!(Get-Command $AgentPath -ErrorAction SilentlyContinue)){throw (New-SBError 'runner.agent.missing' $AgentPath)}
+if(!(Get-Command $AgentPath -ErrorAction SilentlyContinue)){[Console]::Error.WriteLine((New-SBError 'runner.agent.missing' $AgentPath).Message);exit 2}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
 $found=@(Get-Command $AgentPath -All -ErrorAction SilentlyContinue)
 $app=@($found|Where-Object {$_.CommandType -eq 'Application' -and $_.Source -match '\.(exe|cmd|bat)$'}|Sort-Object @{e={if($_.Source -like '*.exe'){0}else{1}}})|Select-Object -First 1

@@ -92,6 +92,7 @@ function New-SBMcpWritePlan {
         'task.new' {
             Assert-SBMcpWriteFields $Payload @('title','description','priority','acceptance','provenance','pointer','requires') @('title','acceptance','provenance')
             Assert-SBMcpWriteText $Payload.title 200
+            if($Payload.title -notmatch '\p{L}'){throw (New-SBError 'tracker.title.invalid')}
             if($Payload.acceptance -isnot [array] -or !$Payload.acceptance.Count -or $Payload.acceptance.Count -gt 32){throw (New-SBError 'mcpwrite.invalid' @('acceptance'))}
             foreach($item in $Payload.acceptance){Assert-SBMcpWriteText $item 4096}
             Assert-SBMcpWriteText $Payload.provenance 512

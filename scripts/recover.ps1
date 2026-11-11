@@ -21,11 +21,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'recover.path.missing' = @{ it = 'Percorso non trovato: {0}'; en = 'Path not found: {0}' }
-    'recover.manifest.foreign' = @{ it = 'Manifest di altra installazione o non valido'; en = 'Manifest of another installation or invalid' }
-    'recover.destination.outside' = @{ it = 'Destinazione recupero fuori da SecondBrain'; en = 'Recovery destination outside SecondBrain' }
-    'recover.refused.changed' = @{ it = 'Recupero rifiutato: destinazione modificata successivamente'; en = 'Recovery refused: destination modified afterwards' }
-    'recover.payload.invalid' = @{ it = 'Payload di recupero non valido'; en = 'Invalid recovery payload' }
+    'recover.path.missing' = @{ it = 'Percorso non trovato: {0}; controllare il percorso'; en = 'Path not found: {0}; check the path' }
+    'recover.manifest.foreign' = @{ it = 'Manifest di altra installazione o non valido: usare il manifest del backup di questa postazione'; en = 'Manifest of another installation or invalid: use the backup manifest of this workstation' }
+    'recover.destination.outside' = @{ it = 'Destinazione recupero fuori da SecondBrain: indicare una cartella dentro il checkout'; en = 'Recovery destination outside SecondBrain: give a folder inside the checkout' }
+    'recover.refused.changed' = @{ it = 'Recupero rifiutato: destinazione modificata successivamente; confrontare il file e ripetere il recupero se voluto'; en = 'Recovery refused: destination modified afterwards; compare the file and repeat the recovery if intended' }
+    'recover.payload.invalid' = @{ it = 'Payload di recupero non valido: rigenerare il recupero dal backup'; en = 'Invalid recovery payload: regenerate the recovery from the backup' }
 }
 # Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }

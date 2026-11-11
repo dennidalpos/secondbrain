@@ -2,7 +2,23 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.22.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.22.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [1.22.1] - 2026-11-11
+
+### Aggiunto
+- `knowledge.ps1 -PendingWrites`: `-PendingSummary` (totali per stato) e `-PendingState` (filtro); output predefinito invariato.
+- `setup-status.ps1`: funzionalità raccomandate in testa, `summary` per funzionalità e oggetto `exit` che spiega il codice di uscita.
+- Test Quick: una chiave di messaggio ha una sola definizione.
+
+### Modificato
+- `-NewTask` e `task.new` validano priorità, ID e titolo.
+- `computer-use.ps1`: ID app senza spazi, hash mancante distinto, comando di applicazione in anteprima, usi senza argomenti, tabella non annidata.
+- `run-ready-tasks.ps1`: agente mancante con errore pulito e uscita 2.
+- Circa 70 messaggi di errore (`portable.*`, `tracker.*`, `backup.*`, `recover.*`) indicano il prossimo passo.
+
+### Corretto
+- Sei definizioni duplicate di messaggi tra script e moduli.
 
 ## [1.22.0] - 2026-11-11
 

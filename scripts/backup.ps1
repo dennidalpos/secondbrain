@@ -34,13 +34,13 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'backup.config.unavailable' = @{ it = 'Configurazione di postazione non disponibile, backup in .runtime/backups: {0}'; en = 'Workstation configuration unavailable, backup in .runtime/backups: {0}' }
-    'backup.archive.missing' = @{ it = 'Archivio di backup non trovato per la verifica: ''{0}'''; en = 'Backup archive not found for verification: ''{0}''' }
-    'backup.archive.corrupt' = @{ it = 'Archivio corrotto o non conforme: ''manifest.json'' assente in {0}'; en = 'Corrupt or non-conforming archive: ''manifest.json'' missing in {0}' }
-    'backup.manifest.invalid' = @{ it = 'Manifest non valido o schema non supportato in {0}'; en = 'Invalid manifest or unsupported schema in {0}' }
-    'backup.file.missing' = @{ it = 'File dichiarato nel manifest mancante nell''archivio: {0}'; en = 'File declared in the manifest is missing from the archive: {0}' }
-    'backup.integrity.hash' = @{ it = 'Integrità crittografica compromessa per ''{0}'': atteso {1}, calcolato {2}'; en = 'Cryptographic integrity compromised for ''{0}'': expected {1}, computed {2}' }
-    'backup.size.diverged' = @{ it = 'Dimensione divergente per ''{0}'': atteso {1}, trovato {2}'; en = 'Size diverges for ''{0}'': expected {1}, found {2}' }
-    'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}.'; en = 'No file found to include in the backup in {0}.' }
+    'backup.archive.missing' = @{ it = 'Archivio di backup non trovato per la verifica: ''{0}''; controllare il percorso'; en = 'Backup archive not found for verification: ''{0}''; check the path' }
+    'backup.archive.corrupt' = @{ it = 'Archivio corrotto o non conforme: ''manifest.json'' assente in {0}; usare un altro backup'; en = 'Corrupt or non-conforming archive: ''manifest.json'' missing in {0}; use another backup' }
+    'backup.manifest.invalid' = @{ it = 'Manifest non valido o schema non supportato in {0}; usare un backup creato da questa versione'; en = 'Invalid manifest or unsupported schema in {0}; use a backup created by this version' }
+    'backup.file.missing' = @{ it = 'File dichiarato nel manifest mancante nell''archivio: {0}; usare un altro backup'; en = 'File declared in the manifest is missing from the archive: {0}; use another backup' }
+    'backup.integrity.hash' = @{ it = 'Integrità crittografica compromessa per ''{0}'': atteso {1}, calcolato {2}; non ripristinare, usare un altro backup'; en = 'Cryptographic integrity compromised for ''{0}'': expected {1}, computed {2}; do not restore, use another backup' }
+    'backup.size.diverged' = @{ it = 'Dimensione divergente per ''{0}'': atteso {1}, trovato {2}; usare un altro backup'; en = 'Size diverges for ''{0}'': expected {1}, found {2}; use another backup' }
+    'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}; verificare il percorso'; en = 'No file found to include in the backup in {0}; check the path' }
 }
 # Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
 trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCommandPath $PSBoundParameters; exit 4 }; if (Test-SBBusyError $_) { [Console]::Error.WriteLine($_.Exception.Message); exit 3 }; break }

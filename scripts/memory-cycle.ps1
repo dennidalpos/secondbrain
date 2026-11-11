@@ -14,7 +14,6 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.MemoryCycle.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
-Add-SBMessages @{'cycle.invalid'=@{it='Ciclo memorie: input non valido ({0})';en='Memory cycle: invalid input ({0})'}}
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if($Operation -eq 'Adapter'){ConvertTo-SBJson (Get-SBCycleAdapter $Client $brain $Repository $ObservationPath);exit 0}
 $inputObject=$null

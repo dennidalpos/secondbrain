@@ -36,6 +36,19 @@ try {
         if($errors.Count){throw ('FAIL QUICK parser '+$file.Name+': '+($errors.Message -join '; '))}
     }
     Assert-Quick $true 'all PowerShell sources parse'
+    # One definition per message key across scripts and modules (a duplicate silently overrides the other).
+    $keyPlaces=@{}
+    foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -File|Where-Object {$_.Extension -in @('.ps1','.psm1') -and $_.Name -notlike 'test-*'}){
+        foreach($line in [IO.File]::ReadAllLines($file.FullName)){
+            foreach($match in [regex]::Matches($line,"'([a-z0-9][a-z0-9.-]*\.[a-z0-9.-]+)'\s*=\s*@\{\s*(?:it|en)\s*=")){
+                $key=$match.Groups[1].Value
+                if(!$keyPlaces.ContainsKey($key)){$keyPlaces[$key]=[Collections.Generic.List[string]]::new()}
+                $keyPlaces[$key].Add($file.Name+': '+$line.Trim())
+            }
+        }
+    }
+    $duplicateKeys=@($keyPlaces.GetEnumerator()|Where-Object {$_.Value.Count -gt 1}|ForEach-Object {$_.Key})
+    Assert-Quick ($duplicateKeys.Count -eq 0) ('message keys defined once ('+($duplicateKeys -join ', ')+')')
     foreach($name in @('shared.json','tracker.schema.json','prompt-catalog.schema.json')){
         Assert-Quick (Test-Json -Json (Read-SBText (Join-Path $productRoot ('config/'+$name)))) ('valid JSON: '+$name)
     }
@@ -73,7 +86,8 @@ try {
         if($file.Extension -eq '.ps1'){
             foreach($m in [regex]::Matches($source,"New-SBError '([a-z0-9._-]+)'")){
                 $escaped=[regex]::Escape($m.Groups[1].Value)
-                if($source -notmatch ("'"+$escaped+"'\s*=\s*@\{\s*it\s*=.*en\s*=")){$scriptGaps+=($file.Name+': '+$m.Groups[1].Value)}
+                $inModules=(Get-SBMessage $m.Groups[1].Value @() 'en') -cne $m.Groups[1].Value -and (Get-SBMessage $m.Groups[1].Value @() 'it') -cne $m.Groups[1].Value
+                if(!$inModules -and $source -notmatch ("'"+$escaped+"'\s*=\s*@\{\s*it\s*=.*en\s*=")){$scriptGaps+=($file.Name+': '+$m.Groups[1].Value)}
             }
         }
     }

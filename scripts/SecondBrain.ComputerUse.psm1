@@ -6,9 +6,12 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
-    'computeruse.app.invalid' = @{it='Identificatore di app non valido: {0}';en='Invalid app identifier: {0}'}
+    'computeruse.app.invalid' = @{it='Identificatore di app non valido: {0}. Usare l''ID dell''app senza spazi, apici o caratteri di controllo (separare più ID con virgola o punto e virgola)';en='Invalid app identifier: {0}. Use the app ID without spaces, quotes or control characters (separate several IDs with a comma or semicolon)'}
+    'computeruse.apply.hash.missing' = @{it='Applicazione rifiutata: manca -PreviewSha256. Eseguire prima l''anteprima senza -Apply e riusare il valore previewSha256';en='Apply refused: -PreviewSha256 is missing. Run the preview without -Apply first and reuse its previewSha256 value'}
+    'computeruse.appid.required' = @{it='Manca -AppId: indicare almeno un ID app dopo -CodexApps';en='-AppId is missing: give at least one app ID after -CodexApps'}
+    'computeruse.usage' = @{it='Nessuna modalità indicata. Usare -Table (tabella delle capacità per IDE) oppure -CodexApps -AppId <id>[,<id>] (anteprima della pre-approvazione Codex; aggiungere -Apply -PreviewSha256 <hash> per scriverla)';en='No mode given. Use -Table (capability table per IDE) or -CodexApps -AppId <id>[,<id>] (preview of the Codex pre-approval; add -Apply -PreviewSha256 <hash> to write it)'}
     'computeruse.toml.ambiguous' = @{it='Configurazione Codex ambigua per always_allowed_app_ids: modificarla a mano';en='Ambiguous Codex configuration for always_allowed_app_ids: edit it by hand'}
-    'computeruse.apply.preview' = @{it='Applicazione rifiutata: -PreviewSha256 non corrisponde all''anteprima corrente';en='Apply refused: -PreviewSha256 does not match the current preview'}
+    'computeruse.apply.preview' = @{it='Applicazione rifiutata: -PreviewSha256 non corrisponde all''anteprima corrente. Rieseguire l''anteprima e usare il nuovo previewSha256';en='Apply refused: -PreviewSha256 does not match the current preview. Rerun the preview and use the new previewSha256'}
     'computeruse.platform' = @{it='La pre-approvazione di Codex per computer use e documentata solo per Windows';en='Codex computer-use pre-approval is documented for Windows only'}
 }
 $script:SBCodexTable='computer_use.windows'
@@ -32,7 +35,7 @@ function Get-SBComputerUseAgentName([string]$AgentPath) {
 function ConvertTo-SBCodexAppIds([string[]]$AppIds) {
     # ';' also separates values (pwsh -File passes lists as one string). Literal TOML strings are used, so quotes and control characters are refused.
     $ids=@($AppIds|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique)
-    foreach($id in $ids){if($id.Length -gt 260 -or $id -match "['`"\x00-\x1f]"){throw (New-SBError 'computeruse.app.invalid' @($id))}}
+    foreach($id in $ids){if($id.Length -gt 260 -or $id -match "['`"\s\x00-\x1f]"){throw (New-SBError 'computeruse.app.invalid' @($id))}}
     ,$ids
 }
 function Read-SBCodexAllowedApps([string]$Text) {
@@ -95,7 +98,11 @@ function Set-SBCodexComputerUseApps([string]$BrainRoot,[string[]]$AppIds,[string
     $text=if($exists){[IO.File]::ReadAllText($ConfigPath)}else{''}
     $plan=Get-SBCodexComputerUsePlan $text $AppIds
     $result=@{applied=$false;status=$plan.status;path=$ConfigPath;existing=$plan.existing;added=$plan.added;previewSha256=$plan.sha256;configExists=$exists}
+    if($plan.status -eq 'changed' -and !$Apply){
+        $result.applyCommand='pwsh -NoProfile -File scripts/computer-use.ps1 -CodexApps -AppId '+((@($plan.added)|ForEach-Object {"'"+$_+"'"}) -join ',')+' -Apply -PreviewSha256 '+$plan.sha256
+    }
     if($Apply -and $plan.status -eq 'changed'){
+        if(!$PreviewSha256){throw (New-SBError 'computeruse.apply.hash.missing')}
         if($PreviewSha256 -cne $plan.sha256){throw (New-SBError 'computeruse.apply.preview')}
         $expected=if($exists){Get-SBFileHash $ConfigPath}else{'absent'}
         [void](Write-SBFile $ConfigPath ([Text.UTF8Encoding]::new($false).GetBytes($plan.text)) $expected (Join-Path $BrainRoot '.runtime/backups/computer-use'))

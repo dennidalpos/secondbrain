@@ -15,8 +15,12 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile context.md -ContentPath $c
 pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile history/2026-11-03-sessione/report.md -ContentPath $contentPath -ExpectedHash absent
 
 pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites
+pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -PendingSummary
+pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -PendingState conflict,deferred
 pwsh -NoProfile -File scripts/knowledge.ps1 -FlushPending
 ```
+
+`-PendingSummary` stampa solo i totali per stato con il prossimo passo; `-PendingState` filtra l’elenco (deferred, conflict, applied, discarded, invalid). L’output predefinito resta invariato.
 
 Il repository segue il checkout corrente; usare `-CheckoutPath` se il comando parte da un'altra cartella. `-SaveFile` richiede l'hash SHA-256 della base effettivamente letta, oppure `absent` per un file nuovo. `-AppendFile` aggiunge testo in fondo al file corrente e conserva le aggiunte altrui: non riorganizza le sezioni della memoria. I percorsi ammessi sono `memory.md`, `context.md` e `history/<slug>/report.md` nel dossier attivo risolto per identita. Il limite e 2 MiB per richiesta, inclusi metadati JSON.
 

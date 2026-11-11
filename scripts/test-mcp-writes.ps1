@@ -92,6 +92,8 @@ try {
     $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
     Check (!$f5Ext.ContainsKey('requires')) 'an empty requires array removes the field'
     Reject {F5-Plan 'task.new' @{title='Requires bad';acceptance=@('ok');provenance='history/seed/report.md';requires=@('gpu')}} 'MCP task new rejects an unknown required capability'
+    Reject {F5-Plan 'task.new' @{title='123 !!!';acceptance=@('ok');provenance='history/seed/report.md'}} 'MCP task new rejects a title without letters'
+    Reject {F5-Plan 'task.new' @{title='Bad priority';acceptance=@('ok');provenance='history/seed/report.md';priority='B'}} 'MCP task new rejects a priority outside P0-P4'
     $f5Memory=F5-Plan 'memory.append' @{content="`nDecisione: synthetic — Motivo: fixture.`n"}
     [void](F5-Approve $f5Memory)
     Check (F5-Submit $f5Memory).applied 'approved MCP memory append applies'

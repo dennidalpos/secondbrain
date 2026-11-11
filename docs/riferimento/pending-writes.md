@@ -14,7 +14,11 @@ File requests accept memory.md, context.md and history/<slug>/report.md in the a
 pwsh -NoProfile -File scripts/knowledge.ps1 -AppendFile memory.md -ContentPath $contentPath -CheckoutPath $checkout
 pwsh -NoProfile -File scripts/knowledge.ps1 -SaveFile context.md -ContentPath $contentPath -ExpectedHash $baseHash -CheckoutPath $checkout
 pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -NoRecovery
+pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -PendingSummary
+pwsh -NoProfile -File scripts/knowledge.ps1 -PendingWrites -PendingState conflict,deferred
 ~~~
+
+`-PendingSummary` prints only the totals per state with a next step; `-PendingState` filters the list (deferred, conflict, applied, discarded, invalid). The default output is unchanged.
 
 Prepare content inside the managed runtime. Use the SHA-256 of the base actually read, or absent for a new target. Save replaces the expected base; Append preserves additions but does not reorganize memory. The request, including metadata, is limited to 2 MiB.
 

@@ -210,6 +210,12 @@ try {
     }
     $newTask=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-NewTask','Queued task','-Acceptance','Fixture criterion','-Provenance','history/seed/report.md')
     Assert-Pending ($newTask.code -eq 0 -and $newTask.data.applied -and $newTask.data.seq -eq 3) 'new tasks retain authoritative numbering and provenance'
+    foreach($bad in @(@('-TaskId','S'),@('-TaskId','bad id!'),@('-Priority','B'))){
+        $badCli=Invoke-PendingCli 'knowledge.ps1' (@('-CheckoutPath',$checkout,'-NewTask','Rejected task','-Acceptance','Fixture criterion','-Provenance','history/seed/report.md')+$bad)
+        Assert-Pending ($badCli.code -ne 0) ('new task rejects '+($bad -join ' '))
+    }
+    $badTitle=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-NewTask','12 --','-Acceptance','Fixture criterion','-Provenance','history/seed/report.md')
+    Assert-Pending ($badTitle.code -ne 0) 'new task rejects a title without letters'
     $inputFile=Join-Path $fixture 'context.txt';Put-Pending $inputFile 'Saved context'
     $saveCli=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-SaveFile','context.md','-ContentPath',$inputFile,'-ExpectedHash',(Get-SBFileHash (Join-Path $dossier 'context.md')))
     Assert-Pending ($saveCli.code -eq 0 -and $saveCli.data.applied -and (Read-SBText (Join-Path $dossier 'context.md')) -eq 'Saved context') 'CLI saves a context file with its expected hash'
@@ -225,6 +231,10 @@ try {
     Assert-Pending ([regex]::Matches((Read-SBText (Join-Path $dossier 'memory.md')),'Exactly once').Count -eq 1) 'two importing processes apply the same append once'
     $list=Invoke-PendingCli 'knowledge.ps1' @('-PendingWrites')
     Assert-Pending ($list.code -eq 0 -and @($list.data|Where-Object state -eq 'conflict').Count -ge 2) 'pending list exposes preserved conflicts'
+    $onlyConflicts=Invoke-PendingCli 'knowledge.ps1' @('-PendingWrites','-PendingState','conflict')
+    Assert-Pending ($onlyConflicts.code -eq 0 -and @($onlyConflicts.data).Count -eq @($list.data|Where-Object state -eq 'conflict').Count -and @($onlyConflicts.data|Where-Object state -ne 'conflict').Count -eq 0) 'pending list filters by state'
+    $summary=Invoke-PendingCli 'knowledge.ps1' @('-PendingWrites','-PendingSummary')
+    Assert-Pending ($summary.code -eq 0 -and $summary.data.total -eq @($list.data).Count -and $summary.data.states.conflict -eq @($list.data|Where-Object state -eq 'conflict').Count -and $summary.data.next) 'pending summary counts requests per state with a next step'
     $discardId=@($list.data|Where-Object state -eq 'conflict')[0].id
     $discardBefore=Get-SBFileHash (@($list.data|Where-Object id -eq $discardId)[0].path)
     $deferredId=@($list.data|Where-Object state -eq 'applied')[0].id

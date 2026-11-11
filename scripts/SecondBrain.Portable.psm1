@@ -12,52 +12,52 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 $script:SBPortableMcpTargets=@{'Codex'='codex';'Claude Code'='claude-code';'Claude Desktop'='claude';'Cursor'='cursor';'VS Code'='vscode';'Antigravity'='antigravity';'Windsurf'='windsurf'}
 Add-SBMessages @{
-    'portable.git.required' = @{it='Serve Git 2.42 o successivo, eseguibile e con versione riconoscibile';en='Git 2.42 or later is required, executable and with a recognizable version'}
-    'portable.mcp.targets' = @{it='Selezionare target MCP validi per approvare i tool di conoscenza';en='Select valid MCP targets to approve knowledge tools'}
+    'portable.git.required' = @{ it = 'Serve Git 2.42 o successivo, eseguibile e con versione riconoscibile: installarlo o aggiornarlo e verificare con git --version'; en = 'Git 2.42 or later is required, executable and with a recognizable version: install or update it and check with git --version' }
+    'portable.mcp.targets' = @{ it = 'Selezionare target MCP validi per approvare i tool di conoscenza: scegliere almeno un IDE con configurazione MCP'; en = 'Select valid MCP targets to approve knowledge tools: choose at least one IDE with an MCP configuration' }
     'portable.mcp.preview' = @{it='Anteprima del pairing MCP a livello utente';en='User-level MCP pairing preview'}
     'portable.setup.apply' = @{it='Digita APPLICA per attivare ora (invio = solo anteprima)';en='Type APPLICA to activate now (Enter keeps the preview)'}
     'portable.setup.preview' = @{it='Anteprima di attivazione della postazione';en='Workstation activation preview'}
     'portable.setup.dossier.conflict' = @{it='Dossier personale e team presenti. Confrontarli con il checkout prima di concordare il consolidamento.';en='Personal and team dossiers both exist. Compare them with the checkout before agreeing on consolidation.'}
-    'portable.setup.team.state' = @{it='Il Setup team richiede SECONDBRAIN_STATE_ROOT su un disco fisso locale, fuori dalla radice condivisa.';en='Team setup requires SECONDBRAIN_STATE_ROOT on a fixed local drive outside the shared root.'}
-    'portable.issue.mcpconsent' = @{it='Manca una prova valida del popup di consenso per uno strumento MCP in questa sessione';en='A valid observation of the consent prompt for an MCP tool in this session is missing'}
-    'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano.'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept.' }
+    'portable.setup.team.state' = @{ it = 'Il Setup team richiede SECONDBRAIN_STATE_ROOT su un disco fisso locale, fuori dalla radice condivisa: impostarla e ripetere il Setup'; en = 'Team setup requires SECONDBRAIN_STATE_ROOT on a fixed local drive outside the shared root: set it and repeat the setup' }
+    'portable.issue.mcpconsent' = @{ it = 'Manca una prova valida del popup di consenso per uno strumento MCP in questa sessione: registrare l''osservazione con ide-observation.ps1'; en = 'A valid observation of the consent prompt for an MCP tool in this session is missing: record it with ide-observation.ps1' }
+    'portable.unbind.summary' = @{ it = 'Disassociazione di {0} repository e {1} integrazioni IDE: dossier e file IDE restano'; en = 'Unbinding {0} repositories and {1} IDE integrations: dossiers and IDE files are kept' }
     'portable.issue.forbidden' = @{ it = 'Repository vietato presente nei binding attivi'; en = 'Forbidden repository present in the active bindings' }
     'portable.issue.compaction' = @{ it = 'Proporre SYS05 (sb compatta): nulla viene compattato senza conferma'; en = 'Propose SYS05 (sb compact): nothing is compacted without confirmation' }
     'portable.issue.decisions' = @{it='Decisioni superate o scadute conservate nello storico; la vista agente le esclude. Verificare i rimandi durante SYS05.';en='Superseded or expired decisions remain in history and are excluded from the agent view. Review their references during SYS05.'}
-    'portable.issue.closure' = @{ it = 'Un task e stato chiuso dopo l ultimo aggiornamento di memory.md: aggiornare memoria e contesto con MEM03.'; en = 'A task was closed after the last memory.md update: update memory and context with MEM03.' }
+    'portable.issue.closure' = @{ it = 'Un task e stato chiuso dopo l ultimo aggiornamento di memory.md: aggiornare memoria e contesto con MEM03'; en = 'A task was closed after the last memory.md update: update memory and context with MEM03' }
     'portable.issue.idecontext' = @{ it = 'Contesto IDE diverso da quello registrato: riverificare login e caricamento, quindi riattivare con Setup e ritirare il vecchio accesso con Unbind'; en = 'IDE context differs from the recorded one: re-verify login and loading, then re-activate with Setup and withdraw the old access with Unbind' }
     'portable.issue.writer' = @{ it = 'Un writer e attivo: l esito puo riflettere uno stato intermedio, ripetere il controllo'; en = 'A writer is active: the result may reflect an intermediate state, repeat the check' }
     'portable.prompt.repos' = @{ it = 'Repository trovati:'; en = 'Repositories found:' }
     'portable.prompt.noremote' = @{ it = 'senza remoto: identita locale'; en = 'no remote: local identity' }
     'portable.prompt.ides' = @{ it = 'IDE trovati:'; en = 'IDEs found:' }
-    'portable.directives.unapproved' = @{ it = 'Direttive non ancora approvate: distribuzione sospesa'; en = 'Directives not yet approved: distribution suspended' }
-    'portable.directives.nonportable' = @{ it = 'Direttive globali non portabili'; en = 'Global directives are not portable' }
+    'portable.directives.unapproved' = @{ it = 'Direttive non ancora approvate: distribuzione sospesa; approvare la revisione con scripts/approve-revision.ps1'; en = 'Directives not yet approved: distribution suspended; approve the revision with scripts/approve-revision.ps1' }
+    'portable.directives.nonportable' = @{ it = 'Direttive globali non portabili: togliere percorsi e dati personali dal testo e riprovare'; en = 'Global directives are not portable: remove personal paths and data from the text and retry' }
     'portable.selection.unconfirmed' = @{ it = 'Selezione richiede confirmed=true e riferimento alla conferma effettiva dellʼutente'; en = 'Selection requires confirmed=true and a reference to the user''s actual confirmation' }
-    'portable.discovery.modified' = @{ it = 'Rapporto discovery modificato'; en = 'Discovery report modified' }
-    'portable.discovery.foreign' = @{ it = 'Discovery di altro host o clone'; en = 'Discovery from another host or clone' }
-    'portable.repository.notinreport' = @{ it = 'Repository selezionato non presente nel rapporto'; en = 'Selected repository not present in the report' }
+    'portable.discovery.modified' = @{ it = 'Rapporto discovery modificato: rieseguire -Discover e usare il nuovo rapporto'; en = 'Discovery report modified: rerun -Discover and use the new report' }
+    'portable.discovery.foreign' = @{ it = 'Discovery di altro host o clone: rieseguire -Discover su questa postazione'; en = 'Discovery from another host or clone: rerun -Discover on this workstation' }
+    'portable.repository.notinreport' = @{ it = 'Repository selezionato non presente nel rapporto: scegliere uno dei repository trovati dalla discovery'; en = 'Selected repository not present in the report: choose one of the repositories found by the discovery' }
     'portable.repository.forbidden' = @{ it = 'Repository vietato dalle policy di postazione: {0} ({1})'; en = 'Repository forbidden by workstation policy: {0} ({1})' }
-    'portable.checkout.changed' = @{ it = 'Checkout cambiato dopo la discovery: {0}'; en = 'Checkout changed after discovery: {0}' }
+    'portable.checkout.changed' = @{ it = 'Checkout cambiato dopo la discovery: {0}; rieseguire -Discover'; en = 'Checkout changed after discovery: {0}; rerun -Discover' }
     'portable.repository.noremote' = @{ it = 'Repo senza remoto: usare identita locale oppure associare esplicitamente un dossier esistente'; en = 'Repository without a remote: use a local identity or explicitly bind an existing dossier' }
-    'portable.identity.invalid' = @{ it = 'Identita non valida'; en = 'Invalid identity' }
-    'portable.identity.reconcile' = @{ it = 'Cambio di identita richiede riconciliazione esplicita degli alias'; en = 'Identity change requires explicit alias reconciliation' }
-    'portable.dossier.ambiguous' = @{ it = 'Dossier ambiguo, archiviato o ritirato'; en = 'Dossier ambiguous, archived or retired' }
-    'portable.alias.dossier' = @{ it = 'Associazione alias richiede dossier esistente e revisione esplicita'; en = 'Alias binding requires an existing dossier and explicit review' }
-    'portable.origin.bound' = @{ it = 'Origin gia associato a un altro dossier'; en = 'Origin already bound to another dossier' }
-    'portable.destination.uncensused' = @{ it = 'Destinazione non censita gia presente'; en = 'Uncensused destination already present' }
-    'portable.block.review' = @{ it = 'Blocco esistente richiede revisione nella selezione'; en = 'Existing block requires review in the selection' }
-    'portable.ide.notinreport' = @{ it = 'IDE selezionato non presente nel rapporto'; en = 'Selected IDE not present in the report' }
-    'portable.ide.changed' = @{ it = 'Istruzioni IDE cambiate dopo la discovery'; en = 'IDE instructions changed after discovery' }
+    'portable.identity.invalid' = @{ it = 'Identita non valida: usare host/owner/repo oppure local:<32 cifre esadecimali>'; en = 'Invalid identity: use host/owner/repo or local:<32 hexadecimal digits>' }
+    'portable.identity.reconcile' = @{ it = 'Cambio di identita richiede riconciliazione esplicita degli alias: rivedere gli alias e confermarli prima di riprovare'; en = 'Identity change requires explicit alias reconciliation: review the aliases and confirm them before retrying' }
+    'portable.dossier.ambiguous' = @{ it = 'Dossier ambiguo, archiviato o ritirato: controllare l''indice PARA e indicare un dossier attivo'; en = 'Dossier ambiguous, archived or retired: check the PARA index and name an active dossier' }
+    'portable.alias.dossier' = @{ it = 'Associazione alias richiede dossier esistente e revisione esplicita: indicare il dossier e confermare la revisione'; en = 'Alias binding requires an existing dossier and explicit review: name the dossier and confirm the review' }
+    'portable.origin.bound' = @{ it = 'Origin gia associato a un altro dossier: usare quel dossier oppure disassociarlo con -Setup -Unbind'; en = 'Origin already bound to another dossier: use that dossier or unbind it with -Setup -Unbind' }
+    'portable.destination.uncensused' = @{ it = 'Destinazione non censita gia presente: spostarla o rimuoverla a mano, poi ripetere'; en = 'Uncensused destination already present: move or remove it by hand, then repeat' }
+    'portable.block.review' = @{ it = 'Blocco esistente richiede revisione nella selezione: rivederlo e confermarlo con -ApproveExistingBlocks'; en = 'Existing block requires review in the selection: review it and confirm with -ApproveExistingBlocks' }
+    'portable.ide.notinreport' = @{ it = 'IDE selezionato non presente nel rapporto: scegliere uno degli IDE trovati dalla discovery'; en = 'Selected IDE not present in the report: choose one of the IDEs found by the discovery' }
+    'portable.ide.changed' = @{ it = 'Istruzioni IDE cambiate dopo la discovery: rieseguire -Discover'; en = 'IDE instructions changed after discovery: rerun -Discover' }
     'portable.path.filetype' = @{ it = 'Percorso istruzioni alternativo ammesso solo per IDE di tipo file: {0}'; en = 'Alternative instructions path allowed only for file-type IDEs: {0}' }
     'portable.ide.duplicate' = @{ it = 'Integrazione IDE duplicata nella selezione (stesso profilo, alias, ambiente e percorso): {0}'; en = 'Duplicate IDE integration in the selection (same profile, alias, environment and path): {0}' }
-    'portable.checkout.unmanaged' = @{ it = 'Checkout da disassociare non gestito'; en = 'Checkout to unbind is not managed' }
-    'portable.ide.unmanaged' = @{ it = 'Integrazione IDE da disassociare non gestita'; en = 'IDE integration to unbind is not managed' }
-    'portable.choice.invalid' = @{ it = 'Scelta non valida: {0}'; en = 'Invalid choice: {0}' }
+    'portable.checkout.unmanaged' = @{ it = 'Checkout da disassociare non gestito: indicare un repository elencato da -Setup -Status'; en = 'Checkout to unbind is not managed: name a repository listed by -Setup -Status' }
+    'portable.ide.unmanaged' = @{ it = 'Integrazione IDE da disassociare non gestita: indicare un IDE elencato da -Setup -Status'; en = 'IDE integration to unbind is not managed: name an IDE listed by -Setup -Status' }
+    'portable.choice.invalid' = @{ it = 'Scelta non valida: {0}; digitare uno dei valori proposti'; en = 'Invalid choice: {0}; type one of the proposed values' }
     'portable.path.unsupported' = @{ it = 'Percorso istruzioni alternativo non supportato per {0}'; en = 'Alternative instructions path not supported for {0}' }
-    'portable.path.notabsolute' = @{ it = 'Percorso istruzioni alternativo non assoluto'; en = 'Alternative instructions path is not absolute' }
+    'portable.path.notabsolute' = @{ it = 'Percorso istruzioni alternativo non assoluto: indicare un percorso assoluto'; en = 'Alternative instructions path is not absolute: give an absolute path' }
     'portable.path.filename' = @{ it = 'Il file delle istruzioni di {0} deve chiamarsi {1}'; en = 'The instructions file of {0} must be named {1}' }
-    'portable.path.outsideprofile' = @{ it = 'Percorso istruzioni alternativo fuori dal profilo utente'; en = 'Alternative instructions path outside the user profile' }
-    'portable.path.credentials' = @{ it = 'Percorso istruzioni alternativo in una cartella di credenziali'; en = 'Alternative instructions path in a credentials folder' }
+    'portable.path.outsideprofile' = @{ it = 'Percorso istruzioni alternativo fuori dal profilo utente: indicare un percorso dentro il profilo utente'; en = 'Alternative instructions path outside the user profile: give a path inside the user profile' }
+    'portable.path.credentials' = @{ it = 'Percorso istruzioni alternativo in una cartella di credenziali: scegliere un''altra cartella'; en = 'Alternative instructions path in a credentials folder: choose another folder' }
     'portable.preflight.failed' = @{ it = 'Preflight non superato: {0}'; en = 'Preflight failed: {0}' }
     'portable.selection.missing' = @{ it = 'Selezione assente: indicare -Select, -Ides, -AllIdes, -IdeAccount oppure -Interactive'; en = 'No selection: give -Select, -Ides, -AllIdes, -IdeAccount or -Interactive' }
     'portable.repository.ambiguous' = @{ it = 'Repository non selezionabile o ambiguo: {0} ({1} corrispondenze)'; en = 'Repository not selectable or ambiguous: {0} ({1} matches)' }
@@ -69,17 +69,17 @@ Add-SBMessages @{
     'portable.path.filetype.alt' = @{ it = 'Percorso alternativo ammesso solo per IDE di tipo file: {0}'; en = 'Alternative path allowed only for file-type IDEs: {0}' }
     'portable.observed.manual' = @{ it = 'Revisione e hash osservati si registrano solo per le superfici manuali: {0}'; en = 'Observed revision and hash are recorded only for manual surfaces: {0}' }
     'portable.observed.pair' = @{ it = 'revision (es. 1.0) e hash SHA-256 vanno indicati insieme: {0}'; en = 'revision (e.g. 1.0) and SHA-256 hash must be given together: {0}' }
-    'portable.selection.empty' = @{ it = 'Nessun repository o IDE selezionato'; en = 'No repository or IDE selected' }
+    'portable.selection.empty' = @{ it = 'Nessun repository o IDE selezionato: indicare -Select, -Ides, -AllIdes o -Interactive'; en = 'No repository or IDE selected: give -Select, -Ides, -AllIdes or -Interactive' }
     'portable.block.present' = @{ it = 'Blocco gestito gia presente in {0}: rivederlo e usare -ApproveExistingBlocks'; en = 'Managed block already present in {0}: review it and use -ApproveExistingBlocks' }
-    'portable.block.unapproved' = @{ it = 'Blocco gestito non approvato: {0}'; en = 'Managed block not approved: {0}' }
+    'portable.block.unapproved' = @{ it = 'Blocco gestito non approvato: {0}; rivederlo e usare -ApproveExistingBlocks'; en = 'Managed block not approved: {0}; review it and use -ApproveExistingBlocks' }
     'portable.environment.alternatives' = @{ it = '-RegisterEnvironment e -NoRegisterEnvironment sono alternativi'; en = '-RegisterEnvironment and -NoRegisterEnvironment are alternatives' }
     'portable.workstation.inactive' = @{ it = 'Postazione non attivata: usare secondbrain.ps1 -Setup'; en = 'Workstation not activated: use secondbrain.ps1 -Setup' }
     'portable.unbind.target' = @{ it = 'Indicare almeno un repository (percorso o identita) o una integrazione IDE (id o nome) da disassociare'; en = 'Give at least one repository (path or identity) or IDE integration (id or name) to unbind' }
     'portable.unbind.ambiguous' = @{ it = 'Repository o integrazione IDE non gestiti o ambigui: {0} ({1} repository, {2} IDE)'; en = 'Repository or IDE integration not managed or ambiguous: {0} ({1} repositories, {2} IDEs)' }
     'portable.repository.notonhost' = @{ it = 'Repository non gestito su questa postazione: {0}'; en = 'Repository not managed on this workstation: {0}' }
-    'portable.observations.invalid' = @{ it = 'Osservazioni IDE non valide'; en = 'Invalid IDE observations' }
-    'portable.identity.rebind' = @{ it = 'Identita/percorso cambiati; nuova riconciliazione richiesta'; en = 'Identity/path changed; new reconciliation required' }
-    'portable.dossier.identity' = @{ it = 'Identita dossier divergente'; en = 'Dossier identity diverges' }
+    'portable.observations.invalid' = @{ it = 'Osservazioni IDE non valide: rigenerarle con ide-observation.ps1'; en = 'Invalid IDE observations: regenerate them with ide-observation.ps1' }
+    'portable.identity.rebind' = @{ it = 'Identita o percorso cambiati: eseguire di nuovo -Setup per riconciliare'; en = 'Identity or path changed: run -Setup again to reconcile' }
+    'portable.dossier.identity' = @{ it = 'Identita dossier divergente: verificare repository.json e l''indice PARA'; en = 'Dossier identity diverges: check repository.json and the PARA index' }
 }
 
 # SECONDBRAIN_HOME target: 'User' in production; tests redirect it to 'Process' to preserve the user's environment.

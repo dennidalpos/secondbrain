@@ -733,6 +733,9 @@ if('audit2' -in $Groups){
     Check (!$cuPreview.applied -and $cuPreview.status -eq 'changed' -and (Read-SBText $cuCodex) -ceq $cuOriginal) 'Codex preview writes nothing'
     Reject {Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply} 'Codex apply without the preview hash is refused'
     Reject {Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply -PreviewSha256 ('0'*64)} 'Codex apply with a stale preview hash is refused'
+    Reject {Get-SBCodexComputerUsePlan $cuOriginal @('bad id;;')} 'Codex plan refuses whitespace inside an app ID'
+    $cuMissing=$false;try{[void](Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply)}catch{$cuMissing=(Test-SBError $_.Exception 'computeruse.apply.hash.missing')}
+    Check ($cuMissing -and $cuPreview.applyCommand -like "*-Apply -PreviewSha256 $($cuPreview.previewSha256)*") 'Codex apply without a hash reports it as missing and the preview prints the apply command'
     Check (!(Test-SBAgentUnattendedComputerUse 'codex' $cuCodex)) 'preflight: Codex without the setting is not unattended'
     $cuApplied=Set-SBCodexComputerUseApps -BrainRoot $brain -AppIds @('Contoso.App_1!App') -ConfigPath $cuCodex -Apply -PreviewSha256 $cuPreview.previewSha256
     Check ($cuApplied.applied -and (Read-SBText $cuCodex).Contains("always_allowed_app_ids = ['Contoso.App_1!App']") -and (Read-SBText $cuCodex).StartsWith('# user config')) 'Codex apply writes the previewed text'

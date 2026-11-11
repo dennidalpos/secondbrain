@@ -6,6 +6,9 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Trace.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
+    'setupstatus.exit.inactive'     = @{ it = 'Uscita 1: la postazione non è attivata; eseguire sb setup per attivarla'; en = 'Exit 1: the workstation is not activated; run sb setup to activate it' }
+    'setupstatus.exit.recommended'  = @{ it = 'Uscita 1: {0} funzionalità raccomandate non ancora attive (vedere recommended e le voci con recommended=true); non è un errore'; en = 'Exit 1: {0} recommended features are not enabled yet (see recommended and the entries with recommended=true); this is not an error' }
+    'setupstatus.exit.ok'           = @{ it = 'Uscita 0: attivata e nessuna funzionalità da raccomandare'; en = 'Exit 0: activated and nothing to recommend' }
     'setupstatus.env.reason'        = @{ it = 'Il lanciatore dei task e l''hook di pubblicazione richiedono SECONDBRAIN_HOME.'; en = 'The task launcher and the publication hook require SECONDBRAIN_HOME.' }
     'setupstatus.mcp.reason'        = @{ it = 'IDE rilevato senza server MCP SecondBrain: l''agent non vede dossier e prompt.'; en = 'IDE detected without the SecondBrain MCP server: the agent cannot reach dossiers and prompts.' }
     'setupstatus.trace.reason'      = @{ it = 'Claude Code rilevato: l''hook Stop segnala la compattazione; non concede alcun permesso di scrittura.'; en = 'Claude Code detected: the Stop hook signals compaction; it grants no write permission.' }
@@ -91,13 +94,21 @@ function Get-SBSetupWizardStatus {
     $bindings=if($config.ContainsKey('bindings')){@($config.bindings)}else{@()}
     $detected=@(Get-SBIDEDetection $WorkspacePath)
     $features=if($activated){@(Get-SBSetupFeatureStatus -BrainRoot $brain -SettingsPath $SettingsPath -Ides $detected -Bindings $bindings -Config $config -StateRoot (Split-Path $configPath))}else{@()}
+    # Recommended features first (stable order otherwise), a per-id summary and the meaning of the exit code.
+    $features=@($features|Sort-Object @{Expression={if($_.recommended){0}else{1}}} -Stable)
+    $recommended=@($features|Where-Object {$_.recommended}|ForEach-Object {$_.id+$(if($_.scope){':'+$_.scope}else{''})})
+    $byId=[ordered]@{}
+    foreach($group in @($features|Group-Object {$_['id']})){$byId[$group.Name]=[ordered]@{total=$group.Count;recommended=@($group.Group|Where-Object {$_.recommended}).Count;enabled=@($group.Group|Where-Object {$_.state -eq 'enabled'}).Count}}
+    $exit=if(!$activated){[ordered]@{code=1;reason=(Get-SBMessage 'setupstatus.exit.inactive')}}elseif($recommended.Count){[ordered]@{code=1;reason=(Get-SBMessage 'setupstatus.exit.recommended' @($recommended.Count))}}else{[ordered]@{code=0;reason=(Get-SBMessage 'setupstatus.exit.ok')}}
     [ordered]@{
         schemaVersion=1;hostId=(Get-SBHostId);activated=$activated
         blocked=$(if($activated){$null}else{Get-SBMessage 'setupstatus.blocked.inactive'})
         ides=@($detected|ForEach-Object {[ordered]@{name=$_.name;adapter=$_.adapter;confidence=$_.confidence;mcpConfigured=$_.mcpConfigured;scopes=@($_.scopes)}})
         usage=(Get-SBTraceUsage $brain)
+        summary=[ordered]@{features=$features.Count;recommended=$recommended.Count;byId=$byId}
+        exit=$exit
         features=$features
-        recommended=@($features|Where-Object {$_.recommended}|ForEach-Object {$_.id+$(if($_.scope){':'+$_.scope}else{''})})
+        recommended=$recommended
     }
 }
 Export-ModuleMember -Function @('Get-SBTraceUsage','Get-SBSetupFeatureStatus','Get-SBSetupWizardStatus')
