@@ -2,8 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **1.21.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **1.22.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [1.22.0] - 2026-11-11
+
+### Aggiunto
+- `computer-use.ps1`: `-Table` stampa la tabella delle capacità per IDE (computer use pre-approvabile o no); `-CodexApps -AppId` mostra in anteprima l'aggiunta di app a `[computer_use.windows] always_allowed_app_ids` di Codex e `-Apply -PreviewSha256` la scrive con backup verificato (solo aggiunte).
+- Preflight del runner dalla tabella: i task con `requires:computer-use` girano solo se l'agente ha una pre-approvazione documentata e presente; l'anteprima riporta `computerUse`.
+- `-Requires` in `knowledge.ps1` (`-UpdateTaskId`, `-NewTask`) e campo `requires` nei tool MCP di scrittura, con valori validati.
+- Avviso soft di budget all'avvio: il totale conta anche `AGENTS.md` e la direttiva globale più grande (#458).
+
+### Modificato
+- 17 messaggi di errore (it/en) indicano ora il prossimo passo (sessioni di accesso, task non trovato, scritture differite, agente del runner, parametri MCP).
+- La policy di pubblicazione non ha più il ripiego su `.runtime/publication/policy.json` (#435); `publication.ps1 -MigratePolicy` la copia una volta nel file tracciato.
 ## [1.21.0] - 2026-11-11
 
 ### Aggiunto

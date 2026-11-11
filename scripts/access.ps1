@@ -35,7 +35,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'access.metadata.final' = @{ it = 'Metadati finali non disponibili'; en = 'Final metadata not available' }
-    'access.session.foreign' = @{ it = 'Sessione non appartenente alla postazione corrente'; en = 'Session does not belong to the current workstation' }
+    'access.session.foreign' = @{ it = 'La sessione appartiene a un altro utente o postazione: avviane una tua con access.ps1 -Start'; en = 'The session belongs to another user or workstation: start your own with access.ps1 -Start' }
     'access.coordinator.exited' = @{ it = 'Processo di coordinamento terminato prima della registrazione'; en = 'Coordination process exited before registration' }
     'access.session.exists' = @{ it = 'SessionId gia in uso: scegliere un identificatore nuovo oppure omettere -SessionId'; en = 'SessionId already in use: choose a new identifier or omit -SessionId' }
     'access.open.timeout' = @{ it = 'Timeout apertura sessione'; en = 'Timeout opening the session' }

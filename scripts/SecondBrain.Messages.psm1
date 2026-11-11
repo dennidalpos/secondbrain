@@ -89,7 +89,7 @@ function Add-SBReportDiagnostic([System.Collections.IDictionary]$Record, [string
 Add-SBMessages @{
     'messages.language.invalid' = @{ it = "Lingua non supportata '{0}'. Supportate: {1}"; en = "Unsupported language '{0}'. Supported: {1}" }
     'report.reason.unverified' = @{ it = 'Esito non verificabile; consultare i dettagli tecnici'; en = 'Outcome could not be verified; see technical details' }
-    'core.version.missing'      = @{ it = 'File VERSION mancante'; en = 'VERSION file missing' }
+    'core.version.missing'      = @{ it = 'File VERSION mancante: ripristinalo dal checkout (git restore VERSION)'; en = 'VERSION file missing: restore it from the checkout (git restore VERSION)' }
     'core.reparse.unwritable'   = @{ it = 'Reparse point non scrivibile: {0}'; en = 'Reparse point is not writable: {0}' }
     'core.concurrent.modified'  = @{ it = 'Modifica concorrente: {0}'; en = 'Concurrent modification: {0}' }
     'core.runtime.reason.reparse-point' = @{ it = 'reparse point: non seguito'; en = 'reparse point: not followed' }
