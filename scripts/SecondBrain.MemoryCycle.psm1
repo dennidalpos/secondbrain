@@ -176,7 +176,7 @@ function ConvertFrom-SBCycleNativeTurn([string]$Client,$NativeEvent,$Permit) {
         while($null -ne ($line=$reader.ReadLine())){
             $lineNumber++
             if($line.Length -gt 8MB){throw (New-SBError 'cycle.invalid' @('native line size'))}
-            try{$entry=$line|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{$unsupported++;continue}
+            try{$entry=$line|ConvertFrom-Json -AsHashtable -DateKind String -ErrorAction Stop}catch{$unsupported++;continue}
             if($entry -isnot [Collections.IDictionary]){$unsupported++;continue}
             $message=$entry
             if($entry.ContainsKey('type') -and $entry.type -eq 'response_item' -and $entry.ContainsKey('payload')){$message=$entry.payload}

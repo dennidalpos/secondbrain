@@ -1,15 +1,15 @@
 {
-  "approvedAt": "2026-11-11T09:44:38.1672738+01:00",
-  "authorization": "Richiesta della persona titolare 2026-11-11: aggiornare la direttiva globale al tetto di 50.000 caratteri (proposta completata con AGENTS.repo.managed.md invariato)",
+  "approvedAt": "2026-11-12T08:08:36.4880975+01:00",
+  "authorization": "Richiesta della persona titolare 2026-11-12: approvata la revisione 1.1 (contesto iniziale snello: direttive globali, postazione e blocco repository ridotti, chiusura senza accumulo, tetto 25.000)",
   "files": {
-    "direttive/AGENTS.global_ide.md": "C985B7798485F70BE1A45CF57A8B19DA3C07D1A2D543A31A106B7EC3F3B04B7B",
-    "direttive/AGENTS.repo.managed.md": "19485A056F41ECFB21606F6BA7DAC66B93D93D57B232C04B03844DD03A1CC1E4",
-    "direttive/workstation.template.md": "0D7C7667F4003AA5041CC43071CAED6B4745B351F4B1D296237DD3A6025C6F9E"
+    "direttive/AGENTS.global_ide.md": "8238B8C140EC9FE3C6E4002D94B0AADBB1EAE0E15A52566BF31854D2292AC06C",
+    "direttive/AGENTS.repo.managed.md": "B77983688C1B03B8DD4A10DB38F12293AD87BCB999A39EAAFD574166C3C68AEA",
+    "direttive/workstation.template.md": "CFB3267FB25931AF68B8791B8D01F31AC30D940679D6D3443567A45BE9FBA9A6"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-11-startup-cap-50k",
-    "readmeHash": "33889D9815C0D19653AC6A64969148CF21F676F1B4F99520A7C8529C861BA5DA",
-    "sha256": "CFAC53D8F1CB847EA9F6B16357212791E94862DE378414919B6FB5D8AE2074EE"
+    "path": "direttive/proposals/2026-11-12-contesto-snello",
+    "readmeHash": "C77F79CCB5FAD49E886AF7B6ACEF0383D0D013BE8B3BBD5962B4552A0D7CC555",
+    "sha256": "D328B56A9B0B3E0C6B5DA21A56063BF46813C80C8EA274CCA544C51D210BD5E2"
   },
   "schemaVersion": 1
 }

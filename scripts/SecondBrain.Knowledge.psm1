@@ -188,11 +188,24 @@ function Get-SBAgentViewType([string]$Heading,[string]$Text) {
     if($Heading -match '(?i)vincol|constraint|identit|font[ei]'){return 'C'}
     'A'
 }
-function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
+# Character cap of the agent view (single source). The view keeps one short line per entry: reasons ("— Motivo: …") are dropped,
+# each entry is cut to $script:SBMemoryEntryCap characters, and when the cap is reached constraints and gotchas win over decisions,
+# decisions over other entries; omitted entries stay complete in memory.md and are counted in the last line.
+function Get-SBMemoryViewBudget { 5000 }
+$script:SBMemoryEntryCap = 220
+function Compress-SBAgentMemoryEntry([string]$Text) {
+    $short=([regex]::Replace($Text,'\s*—\s*Motivo:[^.;]*[.;]?','')).Trim()
+    if($short.Length -le $script:SBMemoryEntryCap){return $short}
+    $cut=$short.Substring(0,$script:SBMemoryEntryCap)
+    $space=$cut.LastIndexOf(' ')
+    if($space -gt $script:SBMemoryEntryCap/2){$cut=$cut.Substring(0,$space)}
+    $cut.TrimEnd(' ',',',';',':')+'…'
+}
+function ConvertTo-SBAgentMemoryView([string]$MemoryText,[int]$Budget=(Get-SBMemoryViewBudget)) {
     $normalized=$MemoryText.Replace("`r`n","`n")
     $sourceHash=Get-SBTextHash $normalized
     $essential=Select-SBActiveDecisionText (Split-SBTieredMarkdown $normalized).essential
-    $entries=[Collections.Generic.List[object]]::new();$seen=@{};$heading='';$fence=$false
+    $entries=[Collections.Generic.List[object]]::new();$seen=@{};$heading='';$parent='';$fence=$false
     $schema='^\[(?<t>[DGAC])\]\s+(?<d>\d{4}-\d{2}-\d{2}|s\.d\.)\s+·\s+(?<s>[^·]+?)\s+·\s+(?<x>.+)$'
     $add={
         param([string]$Raw)
@@ -210,7 +223,12 @@ function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
         if($line -match '^\s*<!-- sb:decision '){continue}
         if($line -match '^\s*(```|~~~)'){$fence=!$fence;continue}
         if($fence){continue}
-        if($line -match '^#{1,6}\s+(?<h>.+?)\s*$'){if($null -ne $pending){& $add $pending;$pending=$null};$heading=$Matches.h;continue}
+        if($line -match '^(?<l>#{1,6})\s+(?<h>.+?)\s*$'){
+            if($null -ne $pending){& $add $pending;$pending=$null}
+            # A subsection inherits its section's kind (### Direzione under ## Decisioni correnti is a decision).
+            if($Matches.l.Length -le 2){$parent=$Matches.h;$heading=$Matches.h}else{$heading=$parent+' '+$Matches.h}
+            continue
+        }
         if($line -match '^[-*]\s+(?<x>.*)$'){if($null -ne $pending){& $add $pending};$pending=$Matches.x;continue}
         if(!$line.Trim()){if($null -ne $pending){& $add $pending;$pending=$null};continue}
         if($null -ne $pending){$pending+=' '+$line.Trim()}else{$pending=$line.Trim()}
@@ -220,9 +238,20 @@ function ConvertTo-SBAgentMemoryView([string]$MemoryText) {
     $out.Add('<!-- sb:agent-view v1 source='+$sourceHash+' -->')
     $out.Add('# Memoria (vista per agenti)')
     $out.Add('')
-    $out.Add('Derivata da memory.md, non modificare. Voce: `[T#id] [data · scope ·] testo`; T = D decisione, G gotcha, A architettura, C vincolo.')
+    $out.Add('Derivata da memory.md, non modificare. Voce: `[T#id] [data · scope ·] testo`; T = D decisione, G gotcha, A architettura, C vincolo. Voci abbreviate: testo integro e motivi in memory.md.')
     $out.Add('')
-    foreach($entry in $entries){$out.Add('- ['+$entry.type+'#'+$entry.id+'] '+$(if($entry.date){$entry.date+' · '+$entry.scope+' · '}else{''})+$entry.text)}
+    $lines=@(for($i=0;$i -lt $entries.Count;$i++){
+        $entry=$entries[$i]
+        $rank=switch($entry.type){'C'{0}'G'{1}'D'{2}default{3}}
+        @{index=$i;rank=$rank;text=('- ['+$entry.type+'#'+$entry.id+'] '+$(if($entry.date){$entry.date+' · '+$entry.scope+' · '}else{''})+(Compress-SBAgentMemoryEntry $entry.text))}
+    })
+    $used=(($out -join "`n")+"`n").Length+120
+    $kept=@{};$omitted=0
+    foreach($item in ($lines|Sort-Object -Stable -Property {$_.rank})){
+        if($Budget -le 0 -or $used+$item.text.Length+1 -le $Budget){$kept[$item.index]=$true;$used+=$item.text.Length+1}else{$omitted++}
+    }
+    foreach($item in $lines){if($kept.ContainsKey($item.index)){$out.Add($item.text)}}
+    if($omitted){$out.Add('- [+'+$omitted+' voci in memory.md: knowledge.ps1 -Section "<titolo>" o -Search "<termine>"]')}
     ($out -join "`n")+"`n"
 }
 function Select-SBActiveDecisionText([string]$Text) {
@@ -300,7 +329,7 @@ function Limit-SBSlimStartup($Parts,$Projection,[string[]]$TaskIds,[int]$Budget)
     @{minimum=$minimum.Length;omitted=$references}
 }
 function Get-SBStartupContext {
-    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=50000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full',[string]$PreviousRevision,[string]$DirectiveCheckout)
+    param([string]$BrainRoot,[string]$Dossier,[string]$CheckoutPath,[string[]]$TaskIds=@(),[int]$Budget=25000,$Entities=@(),[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full',[string]$PreviousRevision,[string]$DirectiveCheckout)
     if($Profile -eq 'Slim' -and !$PSBoundParameters.ContainsKey('Budget')){$Budget=Get-SBSlimStartupBudget}
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
@@ -331,13 +360,14 @@ function Get-SBStartupContext {
 # Compaction supplies the final planned texts and agent view, before its transaction.
 function New-SBStartupPackage {
     param($Record,$Tracker,[string]$TOC,[string]$ContextText,[string]$MemoryText,[string]$AgentViewHash,
-        [string[]]$TaskIds=@(),[int]$Budget=50000,[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full')
+        [string[]]$TaskIds=@(),[int]$Budget=25000,[switch]$ReadyOnly,[ValidateSet('Slim','Full')][string]$Profile='Full')
     $slim=($Profile -eq 'Slim')
     $trData=if($tracker.ContainsKey('graph')){$tracker.graph}elseif($tracker.ContainsKey('data')){$tracker.data}else{$null}
     $trRel=if($tracker.ContainsKey('related')){$tracker.related}else{@{}}
     $projection=if($trData -and (!$slim -or $TaskIds.Count)){@(Get-SBTaskProjection $trData $TaskIds -ReadyOnly:($ReadyOnly -or ($slim -and !$TaskIds.Count)) -RelatedTrackers $trRel)}else{@()}
     if(!$slim){
-        $parts=@{index=$toc;context=(Remove-SBPrivateText $contextText);memory=(Remove-SBPrivateText $memoryText);tasks=(ConvertTo-SBJson $projection)}
+        # Full: one row per active task (id, priority/status, title, reason); details stay behind -Task <id> / MCP get_task.
+        $parts=@{index=$toc;context=(Remove-SBPrivateText $contextText);memory=(Remove-SBPrivateText $memoryText);tasks=(Format-SBSlimTasks $projection)}
         $omitted=@()
     }else{
         $contextTiers=Split-SBTieredMarkdown $contextText;$memoryTiers=Split-SBTieredMarkdown $memoryText
@@ -373,7 +403,7 @@ function New-SBStartupPackage {
       parts=$parts;loadedParts=@($parts.Keys|Sort-Object);omittedParts=@($omitted);taskSource=$tracker.path;originalsTruncated=$false;unit='characters-not-tokens'}
 }
 # Initial loading limit (Slim profile): single source for knowledge.ps1 -Startup and secondbrain.ps1 -Check.
-function Get-SBSlimStartupBudget { 50000 }
+function Get-SBSlimStartupBudget { 25000 }
 # Characters of directive text always in context outside the startup package: the checkout's AGENTS.md and the global instructions
 # of the agents that read a file (the largest counts, since a session loads one agent's file). Read-only; unreadable files count as 0.
 function Get-SBDirectiveCharacters([string]$CheckoutPath) {
@@ -442,7 +472,7 @@ function Format-SBStartupReport($Startup,[hashtable]$Directives=@{}) {
         if($Startup.budget -gt 0){$lines+=('- {0}% del tetto di {1} caratteri' -f [int][Math]::Floor(100.0*$total/$Startup.budget),$Startup.budget)}
         if($Startup.budgetAlert){$lines+=@('',('AVVISO: '+$Startup.budgetAlert.message))}
     }
-    $lines+=@('','Non incluso: prompt di sistema, definizioni degli strumenti MCP e skill dell''IDE; si vedono nel riepilogo del contesto dell''IDE.','Misure di caratteri, non di token (SYS06).')
+    $lines+=@('','Non incluso: prompt di sistema, strumenti MCP di altri server e skill dell''IDE; si vedono nel riepilogo del contesto dell''IDE.','Misure di caratteri, non di token (SYS06).')
     ($lines -join "`n")+"`n"
 }
 function Get-SBGlobalTasks([string]$BrainRoot,[string]$Repository='',[switch]$All,[switch]$ReadyOnly) {
@@ -906,6 +936,7 @@ Export-ModuleMember -Function @(
     'ConvertTo-SBAgentMemoryView',
     'Get-SBStartupContext',
     'Get-SBSlimStartupBudget',
+    'Get-SBMemoryViewBudget',
     'Get-SBCompactionAdvice',
     'Get-SBDirectiveCharacters',
     'Get-SBContextBudgetAlert',

@@ -509,6 +509,23 @@ function Get-SBRuntimeLegacy([string]$BrainRoot,$Entries) {
     }
     $legacy
 }
+# A conforming folder may still hold another repository's data, for example a restored copy with its own .runtime (#530).
+# Look for nested .runtime/hosts/<id>/repos/<segment> directories whose segment differs from the owner; reparse points are not followed.
+function Test-SBForeignRuntimeContent([string]$Folder,[string]$Repo,[int]$MaxDepth=8) {
+    $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true
+    $options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint;$options.MaxRecursionDepth=$MaxDepth;$options.MatchCasing=[IO.MatchCasing]::CaseInsensitive
+    $level=[IO.EnumerationOptions]::new();$level.IgnoreInaccessible=$true;$level.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
+    foreach($nested in ([IO.DirectoryInfo]::new($Folder)).EnumerateDirectories('.runtime',$options)){
+        $hosts=Join-Path $nested.FullName 'hosts'
+        if(![IO.Directory]::Exists($hosts)){continue}
+        foreach($hostDir in ([IO.DirectoryInfo]::new($hosts)).EnumerateDirectories('*',$level)){
+            $repos=Join-Path $hostDir.FullName 'repos'
+            if(![IO.Directory]::Exists($repos)){continue}
+            foreach($segment in ([IO.DirectoryInfo]::new($repos)).EnumerateDirectories('*',$level)){if($segment.Name -cne $Repo){return $true}}
+        }
+    }
+    $false
+}
 # Read-only ownership check of hosts/<id>/repos/<repo>/<category>/<folder>: each work folder must carry a schema-1 MANIFEST.json
 # whose hostId, repository segment, category and name match its path. Legacy and unknown areas are reported as out of schema.
 function Get-SBRuntimeOwnership([string]$BrainRoot,$Nested,$Legacy) {
@@ -529,6 +546,8 @@ function Get-SBRuntimeOwnership([string]$BrainRoot,$Nested,$Legacy) {
         if($manifest.hostId -cne $entry.host){& $add $entry.path $entry.repo 'host-mismatch';continue}
         if($manifest.category -cne $entry.area){& $add $entry.path $entry.repo 'category-mismatch';continue}
         if($manifest.name -cne $name){& $add $entry.path $entry.repo 'name-mismatch';continue}
+        # Fixtures hold synthetic brains with their own .runtime by construction: not foreign data.
+        if($entry.area -cne 'fixture' -and (Test-SBForeignRuntimeContent (Join-Path $runtime $entry.path) $entry.repo)){& $add $entry.path $entry.repo 'foreign-content';continue}
         $owned++
     }
     foreach($entry in @($Legacy)){$checked++;& $add $entry.path.TrimEnd('/') '' 'legacy-layout'}

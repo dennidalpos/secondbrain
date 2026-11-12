@@ -49,7 +49,7 @@ Use NoRecovery-capable knowledge lookup/server startup when the session forbids 
 
 ## Knowledge and closure
 
-Slim selects whole Markdown blocks deterministically, with a first-load default of 50,000 characters. Without explicit TaskIds it includes no task detail. Full and deeper lookups remain available; essential content is not silently discarded.
+Slim selects whole Markdown blocks deterministically, with a first-load default of 25,000 characters. Without explicit TaskIds it includes no task detail. Full and deeper lookups remain available; essential content is not silently discarded.
 
 A permitted transition to done records closure advice/lastClosure. The closure-memory-pending timestamp warning is advisory and does not certify content quality. Do not invent closure dates for historic tasks. An audit that proposes tracker corrections leaves the tracker untouched.
 

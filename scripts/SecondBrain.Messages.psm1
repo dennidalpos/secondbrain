@@ -113,7 +113,8 @@ Add-SBMessages @{
     'core.runtime.reason.host-mismatch' = @{ it = 'il manifest dichiara una postazione diversa dal percorso'; en = 'the manifest declares a workstation different from the path' }
     'core.runtime.reason.category-mismatch' = @{ it = 'il manifest dichiara una categoria diversa dal percorso'; en = 'the manifest declares a category different from the path' }
     'core.runtime.reason.name-mismatch' = @{ it = 'il manifest dichiara un nome diverso dalla cartella'; en = 'the manifest declares a name different from the folder' }
-    'core.runtime.reason.legacy-layout' = @{ it = 'cartella precedente al layout annidato (riordino con cleanup.ps1 -Migrate)'; en = 'folder predates the nested layout (reorganize with cleanup.ps1 -Migrate)' }
+    'core.runtime.reason.foreign-content' = @{ it = 'manifest coerente, ma la cartella contiene un layout .runtime di un altro repository (hosts/<id>/repos/<altro>)'; en = 'consistent manifest, but the folder contains a .runtime layout of another repository (hosts/<id>/repos/<other>)' }
+    'core.runtime.reason.legacy-layout' =@{ it = 'cartella precedente al layout annidato (riordino con cleanup.ps1 -Migrate)'; en = 'folder predates the nested layout (reorganize with cleanup.ps1 -Migrate)' }
     'core.runtime.reason.manifest-not-closed' = @{ it = 'manifest non chiuso: dati conservati'; en = 'manifest is not closed: data retained' }
     'core.runtime.reason.manifest-expiry-invalid' = @{ it = 'scadenza del manifest assente o non valida'; en = 'manifest expiry missing or invalid' }
     'core.runtime.reason.manifest-not-expired' = @{ it = 'scadenza non trascorsa (il giorno di scadenza e incluso)'; en = 'expiry has not passed (the expiry day is included)' }

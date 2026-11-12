@@ -2,8 +2,21 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.1.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.2.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [2.2.0] - 2026-11-12
+
+### Modificato
+- Direttive revisione 1.1 «contesto snello» (proposta `2026-11-12-contesto-snello`): testo comune, postazione e blocco gestito di `AGENTS.md` ridotti; la chiusura aggiunge una voce di memoria solo per una nuova decisione durevole e sostituisce lo stato di `context.md` invece di estenderlo.
+- Tetto di avvio Slim da 50.000 a 25.000 caratteri (`Get-SBSlimStartupBudget`, configurazione portabile, `knowledge.ps1 -Budget`). La vista memoria per agenti ha un tetto di 5.000 caratteri, voci abbreviate senza motivi e priorità vincoli > gotcha > decisioni; le voci omesse restano in `memory.md`. Il profilo Full elenca i task in una riga ciascuno. `-Startup -Report` conta anche le definizioni degli strumenti MCP.
+
+### Aggiunto
+- `cleanup.ps1 -CheckRuntime`: motivo `foreign-content` per una cartella conforme che contiene un layout `.runtime/hosts/<id>/repos/<altro>` annidato di un altro repository (reparse point non seguiti, cartelle `fixture` escluse) (#530).
+- `test-secondbrain-pending.ps1` (60 verifiche CLI della coda pendente) eseguito da `-Only pending` e da `-Full` (#521).
+
+### Corretto
+- Conteggio dei turni della traccia: `ts` letto con `-DateKind String` e cultura invariante; con cultura it-IT giorno e mese si scambiavano quando entrambi ≤ 12 (dal 12 novembre), non per la mezzanotte (#528). Stessa lettura per le righe native del ciclo memorie.
+- PARA: dopo `Archive`/`Restore` l'albero vuoto rimosso viene atteso finché sparisce (cancellazione pendente su Windows con handle aperti); il test tracker-audit riporta l'output del CLI in caso di errore (#525).
 ## [2.1.0] - 2026-11-12
 
 ### Aggiunto

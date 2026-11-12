@@ -314,8 +314,14 @@ function Remove-SBParaEmptyTree([string]$Path,[string]$BrainRoot) {
     $dirs=@(Get-ChildItem -LiteralPath $Path -Recurse -Directory -Force|Sort-Object {$_.FullName.Length} -Descending)+@(Get-Item -LiteralPath $Path)
     foreach($dir in $dirs){
         Assert-SBPlainPath $dir.FullName
-        if(!@(Get-ChildItem -LiteralPath $dir.FullName -Force).Count){Assert-SBWriteGuard;[IO.Directory]::Delete($dir.FullName)}
+        if(!@(Get-ChildItem -LiteralPath $dir.FullName -Force).Count){Assert-SBWriteGuard;[IO.Directory]::Delete($dir.FullName);Wait-SBDirectoryGone $dir.FullName}
     }
+}
+# On Windows a deleted directory stays visible while another process (indexer, antivirus, a parallel suite) holds a handle on it
+# (delete pending). An immediate Restore then saw the old path as an existing destination (#525). Wait briefly until it is gone.
+function Wait-SBDirectoryGone([string]$Path,[int]$TimeoutMs=3000) {
+    $watch=[Diagnostics.Stopwatch]::StartNew()
+    while([IO.Directory]::Exists($Path) -and $watch.ElapsedMilliseconds -lt $TimeoutMs){Start-Sleep -Milliseconds 20}
 }
 
 Export-ModuleMember -Function @(

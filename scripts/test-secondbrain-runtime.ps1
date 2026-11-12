@@ -222,11 +222,19 @@ $null=New-OwnFolder ($ownBase+'/fixture/20261101-bad') @{schemaVersion=2}
 $null=New-OwnFolder ($ownBase+'/work/Bad Name') -NoManifest
 $null=New-OwnFolder ($ownBase+'/masked-http-x') -NoManifest
 $null=New-OwnFolder 'work-20261101-flat' -NoManifest
+# #530: a conforming folder holding another repository's nested .runtime is out of schema; a nested copy of its own repository is not.
+$restored=New-OwnFolder ($ownBase+'/tmp/20261101-restored')
+Write-RuntimeFixture (Join-Path $restored 'restore/.runtime/hosts/ws-0000000000000000/repos/other-0f0f0f0f/work/x.txt') 'foreign'
+$synthetic=New-OwnFolder ($ownBase+'/fixture/20261101-synthetic')
+Write-RuntimeFixture (Join-Path $synthetic 'brain/.runtime/hosts/ws-0000000000000000/repos/other-0f0f0f0f/work/x.txt') 'synthetic'
+$selfCopy=New-OwnFolder ($ownBase+'/tmp/20261101-selfcopy')
+Write-RuntimeFixture (Join-Path $selfCopy ('restore/.runtime/hosts/ws-0000000000000000/repos/'+$segment+'/work/x.txt')) 'own copy'
 $ownBefore=@(Get-ChildItem -LiteralPath $ownRuntime -Recurse -Force -File|ForEach-Object {$_.FullName+"|"+(Get-SBFileHash $_.FullName)})
 $ownReport=Get-SBRuntimeRetention $ownBrain @() 90
 $own=Get-SBRuntimeOwnership $ownBrain $ownReport.nested $ownReport.legacy
 $codeOf={param([string]$Leaf) @($own.outOfSchema|Where-Object {$_.path -like ('*'+$Leaf)}|ForEach-Object reasonCode)}
-Assert-Runtime ($own.owned -eq 2 -and !(& $codeOf '20261101-ok')) 'cartella con manifest coerente e area temp appartengono al repository'
+Assert-Runtime ($own.owned -eq 4 -and !(& $codeOf '20261101-ok') -and !(& $codeOf '20261101-selfcopy') -and !(& $codeOf '20261101-synthetic')) 'cartella con manifest coerente, copia annidata dello stesso repository e area temp appartengono al repository'
+Assert-Runtime ((& $codeOf '20261101-restored') -ceq 'foreign-content') 'cartella conforme con .runtime annidato di un altro repository: fuori schema'
 Assert-Runtime ((& $codeOf '20261101-foreign') -ceq 'repository-mismatch') 'repository del manifest diverso dal segmento: fuori schema'
 Assert-Runtime ((& $codeOf '20261101-host') -ceq 'host-mismatch') 'postazione del manifest diversa dal percorso'
 Assert-Runtime ((& $codeOf '20261101-cat') -ceq 'category-mismatch') 'categoria del manifest diversa dal percorso'
@@ -236,11 +244,11 @@ Assert-Runtime ((& $codeOf '20261101-bad') -ceq 'manifest-invalid') 'schema del 
 Assert-Runtime ((& $codeOf 'Bad Name') -ceq 'unsupported-name') 'nome non conforme segnalato'
 Assert-Runtime ((& $codeOf 'masked-http-x') -ceq 'unknown-area') 'area sconosciuta sotto repos/<repo> segnalata'
 Assert-Runtime ((& $codeOf 'work-20261101-flat') -ceq 'legacy-layout') 'cartella piatta segnalata come layout legacy'
-Assert-Runtime ($own.outOfSchemaCount -eq 9 -and $own.byReason.Count -eq 9) 'rapporto con un motivo per ogni cartella fuori schema'
+Assert-Runtime ($own.outOfSchemaCount -eq 10 -and $own.byReason.Count -eq 10) 'rapporto con un motivo per ogni cartella fuori schema'
 $ownIndex=Get-SBRuntimeIndex $ownBrain @() 90
-Assert-Runtime ($ownIndex.markdown -match '## Cartelle fuori schema' -and $ownIndex.markdown -match 'repository-mismatch' -and $ownIndex.ownership.outOfSchemaCount -eq 9) 'indice di .runtime con la sezione delle cartelle fuori schema'
+Assert-Runtime ($ownIndex.markdown -match '## Cartelle fuori schema' -and $ownIndex.markdown -match 'repository-mismatch' -and $ownIndex.markdown -match 'foreign-content' -and $ownIndex.ownership.outOfSchemaCount -eq 10) 'indice di .runtime con la sezione delle cartelle fuori schema'
 $ownAfter=@(Get-ChildItem -LiteralPath $ownRuntime -Recurse -Force -File|ForEach-Object {$_.FullName+'|'+(Get-SBFileHash $_.FullName)})
-Assert-Runtime ($ownBefore.Count -eq 17 -and ($ownBefore -join ';') -ceq ($ownAfter -join ';')) 'controllo in sola lettura: nessun file creato o rimosso'
+Assert-Runtime ($ownBefore.Count -eq 26 -and ($ownBefore -join ';') -ceq ($ownAfter -join ';')) 'controllo in sola lettura: nessun file creato o rimosso'
 # Test-runner fixture lifecycle: managed manifest opens with the run, closes on every outcome and is selected only after expiry.
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
 $runnerIdentity=@{HostId=$hostId;OwnerUser="$env:USERNAME";OwnerComputer="$env:COMPUTERNAME"}

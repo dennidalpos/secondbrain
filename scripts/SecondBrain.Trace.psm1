@@ -68,9 +68,12 @@ function Get-SBTraceTurns([string]$BrainRoot,[string]$Repository,[DateTimeOffset
         if($sinceDay -and $file.BaseName -lt $sinceDay){continue}
         foreach($line in [IO.File]::ReadLines($file.FullName)){
             if(!$line.Contains($Repository)){continue}
-            try{$entry=$line|ConvertFrom-Json -AsHashtable -ErrorAction Stop}catch{continue}
+            # -DateKind String keeps ts as written: a DateTime cast to [string] is MM/dd and was re-parsed with the local culture
+            # (dd/MM), swapping day and month whenever both are 12 or less (#528).
+            try{$entry=$line|ConvertFrom-Json -AsHashtable -DateKind String -ErrorAction Stop}catch{continue}
             if($entry.event -ne 'stop' -or $entry.repository -cne $Repository){continue}
-            if([DateTimeOffset]::Parse([string]$entry.ts) -gt $Since){$count++}
+            $when=[DateTimeOffset]::MinValue
+            if([DateTimeOffset]::TryParse([string]$entry.ts,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$when) -and $when -gt $Since){$count++}
         }
     }
     $count

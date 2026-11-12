@@ -23,7 +23,7 @@ Da usare per riallineare dossier (contesto, memoria, tracker) e istruzioni local
 2. Registra ogni decisione durevole in `memory.md` in una riga nel formato letterale "Decisione: … — Motivo: …", con le trappole accanto.
 3. Aggiorna architettura e stato in `context.md` e i task nel tracker esistente; non duplicare task.
 4. Modifica le istruzioni locali solo fuori dai blocchi gestiti; proponi a parte le nuove regole comuni.
-5. Aggiorna il TOC di `index.md` e mantieni snello il pacchetto iniziale (50.000 caratteri, tetto solo sul primo caricamento) senza troncare; compatta con SYS05 se serve.
+5. Aggiorna il TOC di `index.md` e mantieni snello il pacchetto iniziale (25.000 caratteri, tetto solo sul primo caricamento) senza troncare; compatta con SYS05 se serve.
 6. Dopo modifiche rilevanti esegui `secondbrain.ps1 -Sync` e `-Check` con una sessione di scrittura.
 </procedure>
 

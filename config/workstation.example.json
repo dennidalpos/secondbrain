@@ -6,5 +6,5 @@
   "backupRoot": ".runtime/hosts/example/backups",
   "bindings": [],
   "ides": [],
-  "startupBudget": 50000
+  "startupBudget": 25000
 }

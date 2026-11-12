@@ -480,10 +480,10 @@ if('trackers' -in $Groups){
     Check ($cli.code -eq 0 -and @($cli.text|ConvertFrom-Json).Count -eq 1) 'CLI lists only open local tasks'
 }
 if('workflows' -in $Groups){
-    $empty=& (Get-Module SecondBrain.Knowledge) {New-SBStartupPackage -Record @{identity='github.com/test/empty'} -Tracker @{path=$null;source='absent';declared=$false} -TOC '# Empty' -ContextText '# Context' -MemoryText '# Memory' -Profile Slim -Budget 50000}
+    $empty=& (Get-Module SecondBrain.Knowledge) {New-SBStartupPackage -Record @{identity='github.com/test/empty'} -Tracker @{path=$null;source='absent';declared=$false} -TOC '# Empty' -ContextText '# Context' -MemoryText '# Memory' -Profile Slim -Budget 25000}
     Check ($empty.withinBudget -and $empty.parts.tasks.Contains('Nessun task selezionato.') -and !$empty.parts.tasks.Contains('Nessun task pronto.')) 'startup without selected tasks reports selection rather than claiming the tracker has no ready work'
     $default=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim
-    Check ($default.budget -eq 50000) 'Slim API uses the shared 50000-character default'
+    Check ($default.budget -eq 25000) 'Slim API uses the shared 25000-character default'
     $repeat=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Profile Slim -PreviousRevision $default.revision
     Check (!$repeat.changed -and !$repeat.parts.Count -and $repeat.characters -eq 0 -and $repeat.sourceCharacters -eq $default.characters) 'unchanged startup revision returns metadata without repeating parts'
     $repeatCli=Invoke-EssentialCli @('-Startup','-NoRecovery','-PreviousRevision',$default.revision)
@@ -498,17 +498,17 @@ if('workflows' -in $Groups){
     Check (!$under.withinBudget -and $under.minimumCharacters -gt 1) 'unworkable explicit budget reports its minimum'
     $contextPath=Join-Path $dossier 'context.md';$originalContext=Read-SBText $contextPath
     $prefix="`n## Long example`n"
-    $padding=50000-[int]$startup.characters-$prefix.Length-1
+    $padding=25000-[int]$startup.characters-$prefix.Length-1
     foreach($extra in @(-1,0,1)){
         Put $contextPath ($originalContext+$prefix+('x'*($padding+$extra))+"`n")
         $contextHash=Get-SBFileHash $contextPath
         $sized=Get-SBStartupContext -BrainRoot $brain -Dossier $dossier -Budget (Get-SBSlimStartupBudget) -Profile Slim
-        Check ($sized.withinBudget -and $sized.uncompactedCharacters -eq (50000+$extra) -and $sized.compacted -eq ($extra -gt 0) -and (Get-SBFileHash $contextPath) -ceq $contextHash) ('Slim 50000-character boundary '+$extra)
+        Check ($sized.withinBudget -and $sized.uncompactedCharacters -eq (25000+$extra) -and $sized.compacted -eq ($extra -gt 0) -and (Get-SBFileHash $contextPath) -ceq $contextHash) ('Slim 25000-character boundary '+$extra)
     }
     $longSection=$prefix.TrimStart("`n")+('x'*($padding+1))+"`n"
     Check ($sized.parts.context.Contains('Keep bytes.') -and (!$sized.parts.context.Contains('Long example') -or $sized.parts.context.Contains($longSection)) -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $before) 'Slim preserves prioritized sections, whole blocks and source bytes'
     $mcpStartup=Invoke-SBMcpToolCall $brain 'get_startup_context' @{repository=$identity} | ConvertFrom-Json -AsHashtable
-    Check ($mcpStartup.budget -eq 50000 -and $mcpStartup.compacted -and $mcpStartup.parts.context -ceq $sized.parts.context) 'MCP and CLI compose the same compacted startup'
+    Check ($mcpStartup.budget -eq 25000 -and $mcpStartup.compacted -and $mcpStartup.parts.context -ceq $sized.parts.context) 'MCP and CLI compose the same compacted startup'
     Put $contextPath $originalContext
     $candidatePath=Join-Path $brain '.runtime/candidate.json'
     $candidate=@{schemaVersion=1;repository=$identity;sources=@{};summaries=@{};openTaskIds=@((Read-SBJson $trackerPath $null).tasks|Where-Object status -notin @('done','cancelled')|ForEach-Object id);reviewed=$true;reviewNote='synthetic conservation test'}

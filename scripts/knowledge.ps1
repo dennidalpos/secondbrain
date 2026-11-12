@@ -7,7 +7,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='Compact')][switch]$Compact,
     [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][Parameter(ParameterSetName='ArchiveTasks')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
     [Parameter(Mandatory,ParameterSetName='ArchiveTasks')][switch]$ArchiveTasks,
-    [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=50000,
+    [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=25000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
     [Parameter(Mandatory,ParameterSetName='FileSave')][string]$SaveFile,
     [Parameter(Mandatory,ParameterSetName='FileAppend')][string]$AppendFile,
@@ -76,7 +76,7 @@ try{
         $pendingResult=Invoke-SBPendingWrites -BrainRoot $brain -Config $config -SessionId $SessionId -WaitMs (Get-SBLockWaitMs $config) -Repository $flushRepository
         if($pendingResult.applied.Count -or $pendingResult.conflicts.Count -or $pendingResult.pending -or $pendingResult.errors.Count){[Console]::Error.WriteLine((Format-SBPendingNotice $pendingResult))}
     }
-    # Full is unlimited unless -Budget is explicit; Slim and Compact share the 50,000 default (Get-SBSlimStartupBudget).
+    # Full is unlimited unless -Budget is explicit; Slim and Compact share the 25,000 default (Get-SBSlimStartupBudget).
     # Search has a default limit (-1: 20 matches and 10,000 characters); explicit -Limit 0 / -Budget 0 removes it.
     $effectiveBudget = if($PSBoundParameters.ContainsKey('Budget')){ $Budget } elseif($Compact -or ($Startup -and $Profile -eq 'Slim')){ Get-SBSlimStartupBudget } elseif($Search){ -1 } elseif($Startup){ 0 } else { Get-SBSlimStartupBudget }
     $effectiveLimit = if($PSBoundParameters.ContainsKey('Limit')){ $Limit } else { -1 }
@@ -102,6 +102,11 @@ try{
                 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
                 foreach($ide in @(Get-SBIDEAssets|Where-Object {$_.instructions -and (Test-Path -LiteralPath $_.instructions -PathType Leaf)})){$directives[$ide.name+' (globale)']=([IO.File]::ReadAllText($ide.instructions).Length.ToString()+' caratteri')}
             }catch{$directives['IDE']='non rilevabile: '+$_.Exception.Message}
+            # MCP tool definitions (tools/list) reach the agent's context at session start too.
+            try{
+                $mcp=Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -PassThru
+                $directives['Strumenti MCP (tools/list)']=((& $mcp {ConvertTo-SBMcpJson @{tools=@(Get-SBMcpToolDefinitions)}}).Length.ToString()+' caratteri')
+            }catch{$directives['Strumenti MCP']='non rilevabile: '+$_.Exception.Message}
             $checkout=if($CheckoutPath){$CheckoutPath}else{(Get-Location).Path}
             $agents=Join-Path $checkout 'AGENTS.md'
             if(Test-Path -LiteralPath $agents -PathType Leaf){$directives['AGENTS.md del checkout']=([IO.File]::ReadAllText($agents).Length.ToString()+' caratteri')}

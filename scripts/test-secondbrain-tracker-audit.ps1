@@ -211,8 +211,8 @@ try {
             }
             $meta=Read-SBJson (Join-Path $f.dir 'para.json') $null;$meta.status='retired';Put-Audit (Join-Path $f.dir 'para.json') (ConvertTo-SBJson $meta)
             $para=Join-Path $f.brain 'scripts/para.ps1'
-            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Archive -EntityId repo-area -BackupRoot $f.config.backupRoot|Out-Null
-            Assert-Audit ($LASTEXITCODE -eq 0 -and !(Test-Path -LiteralPath $f.dir)) ('CLI archivia Area migrata '+$kind)
+            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Archive -EntityId repo-area -BackupRoot $f.config.backupRoot 2>&1|Out-String -OutVariable paraOut|Out-Null
+            Assert-Audit ($LASTEXITCODE -eq 0 -and !(Test-Path -LiteralPath $f.dir)) ("CLI archivia Area migrata "+$kind+$(if($LASTEXITCODE){": "+([string]$paraOut).Trim()}))
             $m=Read-SBTrackerManifest $f.config $manifest
             Assert-Audit ($m.dossier -eq '04-archives/areas/repo-area' -and $m.candidateHash -eq $candidateHash -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) ('manifest e Check coerenti in archivio '+$kind)
             if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerImportIssues $station).Count -eq 0) 'manifest della seconda postazione spostato nella stessa transazione'}
@@ -220,10 +220,10 @@ try {
                 [void](Invoke-SBTrackerImport -Config $f.config -ManifestPath $manifest -Activate)
                 Assert-Audit ((Get-SBFileHash $m.source.archive) -eq $sourceHash) ('ripresa completed archiviata e originale esatto '+$kind)
             }
-            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Check|Out-Null
-            Assert-Audit ($LASTEXITCODE -eq 0) ('CLI Check dopo Archive '+$kind)
-            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Restore -EntityId repo-area -BackupRoot $f.config.backupRoot|Out-Null
-            Assert-Audit ($LASTEXITCODE -eq 0) ('CLI ripristina Area su percorso diverso '+$kind)
+            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Check 2>&1|Out-String -OutVariable paraOut|Out-Null
+            Assert-Audit ($LASTEXITCODE -eq 0) ('CLI Check dopo Archive '+$kind+$(if($LASTEXITCODE){': '+([string]$paraOut).Trim()}))
+            & pwsh -NoProfile -File $para -ConfigPath $f.config.configPath -Restore -EntityId repo-area -BackupRoot $f.config.backupRoot 2>&1|Out-String -OutVariable paraOut|Out-Null
+            Assert-Audit ($LASTEXITCODE -eq 0) ('CLI ripristina Area su percorso diverso '+$kind+$(if($LASTEXITCODE){': '+([string]$paraOut).Trim()}))
             $m=Read-SBTrackerManifest $f.config $manifest
             Assert-Audit ($m.dossier -eq '02-areas/products/repo-area' -and @(Get-SBTrackerImportIssues $f.config).Count -eq 0) ('manifest e Check coerenti dopo Restore '+$kind)
             if($kind -eq 'json'){Assert-Audit ((Read-SBTrackerManifest $station $otherManifest).dossier -eq $m.dossier -and @(Get-SBTrackerImportIssues $station).Count -eq 0) 'manifest della seconda postazione ripristinato'}

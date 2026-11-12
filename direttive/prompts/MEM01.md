@@ -23,7 +23,7 @@ Use to realign the dossier (context, memory, tracker) and local instructions wit
 2. Record each lasting decision in `memory.md` on one line in the literal format "Decisione: … — Motivo: …", gotchas next to it.
 3. Update architecture and status in `context.md` and tasks in the existing tracker; do not duplicate tasks.
 4. Edit local instructions only outside managed blocks; propose new common rules separately.
-5. Update the TOC in `index.md` and keep the startup package lean (50,000 characters, a cap on the first load only) without truncating; compact with SYS05 if needed.
+5. Update the TOC in `index.md` and keep the startup package lean (25,000 characters, a cap on the first load only) without truncating; compact with SYS05 if needed.
 6. After relevant changes run `secondbrain.ps1 -Sync` and `-Check` with a write session.
 </procedure>
 

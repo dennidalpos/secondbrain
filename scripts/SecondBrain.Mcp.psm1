@@ -20,11 +20,11 @@ Add-SBMessages @{
     'mcp.write.param.operation' = @{it='Operazione ristretta da preparare';en='Restricted operation to preview'}
     'mcp.write.param.payload' = @{it='Dati dell operazione: task.status (taskId,status,reason?), task.update (taskId e almeno uno fra status?,reason?,priority?,execution?,stream?,awaiting?,requires?; stringa o array vuoti azzerano), task.new (title,acceptance,provenance,description?,priority?,pointer?,requires?), memory.append (content), activity.append (taskId,sessionId,when,outcome,detail), history.save (path,content)';en='Operation data: task.status (taskId,status,reason?), task.update (taskId plus at least one of status?,reason?,priority?,execution?,stream?,awaiting?,requires?; an empty string or array clears the field), task.new (title,acceptance,provenance,description?,priority?,pointer?,requires?), memory.append (content), activity.append (taskId,sessionId,when,outcome,detail), history.save (path,content)'}
     'mcp.write.param.planHash' = @{it='SHA-256 del piano esatto approvato tramite CLI';en='SHA-256 of the exact plan approved through the CLI'}
-    'mcp.write.preview.description' = @{it='Prepara senza scrivere un piano per stato o campi di un task, nuovo task, memoria, attività o history. Richiede checkout gestito, repository e ID richiesta esadecimale di 32 caratteri. Approvare il piano con mcp-write.ps1 prima di submit_dossier_write.';en='Previews a task status or field update, new task, memory, activity or history write without persistence. Requires a managed checkout, repository and 32-character lowercase hex request ID. Approve the returned plan with mcp-write.ps1 before submit_dossier_write.'}
-    'mcp.write.submit.description' = @{it='Verifica la ricevuta CLI locale del piano e accoda una sola richiesta idempotente con precondizioni hash. Nessuna approvazione viene accettata dal payload MCP. NoRecovery vieta nuovi invii; il registro attività resta soggetto alla procedura di attivazione.';en='Verifies the local CLI approval receipt and queues one idempotent request with hash preconditions. MCP arguments cannot grant approval. NoRecovery forbids submissions; activity logging still requires its activation procedure.'}
+    'mcp.write.preview.description' = @{it='Prepara senza scrivere il piano di una scrittura di dossier; approvarlo con mcp-write.ps1 prima di submit_dossier_write.';en='Previews a dossier write plan without writing; approve it with mcp-write.ps1 before submit_dossier_write.'}
+    'mcp.write.submit.description' = @{it='Accoda una richiesta idempotente approvata dalla ricevuta CLI locale; gli argomenti MCP non concedono approvazioni.';en='Queues one idempotent request approved by the local CLI receipt; MCP arguments cannot grant approval.'}
     'mcp.package.destination' = @{it='Scegliere una cartella nuova sotto .runtime: {0}';en='Choose a new folder under .runtime: {0}'}
     'mcp.pending.disabled' = @{it='Consultazione senza scritture: nuove scritture MCP disabilitate per questa sessione o richiesta.';en='Read-only consultation: new MCP writes disabled for this session or request.'}
-    'mcp.description.noRecovery' = @{it='Vieta nuove scritture in questa chiamata (le letture non scrivono mai); -NoRecovery all avvio del server le vieta per tutta la sessione';en='Forbid new writes for this call (reads never write); -NoRecovery at server start forbids them for the whole session'}
+    'mcp.description.noRecovery' = @{ it = 'Vieta scritture in questa chiamata'; en = 'Forbid writes in this call' }
     'mcp.title.get_startup_context' = @{ it = 'Contesto iniziale'; en = 'Startup context' }
     'mcp.title.get_ready_tasks' = @{ it = 'Attività pronte'; en = 'Ready tasks' }
     'mcp.title.get_task' = @{ it = 'Dettaglio attività'; en = 'Task details' }
@@ -34,60 +34,60 @@ Add-SBMessages @{
     'mcp.title.get_prompt' = @{ it = 'Scheda prompt'; en = 'Prompt card' }
     'mcp.title.check_publication' = @{ it = 'Verifica pubblicabilità'; en = 'Publication check' }
     'mcp.title.list_ides' = @{ it = 'IDE rilevate'; en = 'Detected IDEs' }
-    'mcp.description.list_ides' = @{ it = 'Elenca in sola lettura le IDE e i client AI rilevati su questa postazione, con affidabilità, evidenze e ambiti ammessi (user, project, system). Serve a proporre la scelta multipla e dell''ambito; non scrive nulla.'; en = 'Read-only list of the IDEs and AI clients detected on this workstation, with confidence, evidence and the scopes each supports (user, project, system). Use it to offer the multiple choice and the scope question; it writes nothing.' }
-    'mcp.description.list_ides.workspacePath' = @{ it = 'Percorso del progetto per l''ambito project; facoltativo'; en = 'Project path for the project scope (optional)' }
+    'mcp.description.list_ides' = @{ it = 'IDE e client AI rilevati, con evidenze e ambiti (user, project, system).'; en = 'Detected IDEs and AI clients, with evidence and scopes (user, project, system).' }
+    'mcp.description.list_ides.workspacePath' = @{ it = 'Percorso del progetto (ambito project)'; en = 'Project path (project scope)' }
     'mcp.pending.contract' = @{it='Sola lettura: non integra mai scritture accodate. Il recupero e solo esplicito (knowledge.ps1 -FlushPending, limitato al proprio dossier).';en='Read-only: never integrates queued writes. Recovery is explicit only (knowledge.ps1 -FlushPending, limited to the own dossier).'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
     'mcp.json.method' = @{ it = 'Metodo non trovato: {0}'; en = 'Method not found: {0}' }
     'mcp.json.internal' = @{ it = 'Errore interno: {0}'; en = 'Internal error: {0}' }
-    'mcp.description.get_startup_context' = @{ it = 'Restituisce il contesto di avvio del repository o dossier. Slim (default, 50000 caratteri): indice, contesto e memoria essenziali, soli task selezionati e riferimenti ai livelli non caricati. Full: contesto completo senza tetto. Una revisione invariata non ripete le parti.'; en = 'Return repository or dossier startup context. Slim (default, 50000 characters): index, essential context and memory, selected tasks only and omitted-layer references. Full: complete context without a limit. An unchanged revision does not repeat parts.' }
-    'mcp.description.get_startup_context.repository' = @{ it = 'Identificatore del repository (es. github.com/example-user/secondbrain); default: checkout in lavoro'; en = 'Repository identity (e.g. github.com/example-user/secondbrain); defaults to the working checkout' }
-    'mcp.description.get_startup_context.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
-    'mcp.description.get_startup_context.dossier' = @{ it = 'Percorso relativo del dossier (es. 01-projects/SecondBrain)'; en = 'Relative dossier path (e.g. 01-projects/SecondBrain)' }
-    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Se true, filtra i task selezionati per dipendenze soddisfatte; Slim senza ID non include task'; en = 'If true, filter selected tasks by satisfied dependencies; Slim without IDs includes no tasks' }
-    'mcp.description.get_startup_context.previousRevision' = @{it='Revisione ricevuta in precedenza; se invariata restituisce changed=false senza ripetere le parti';en='Previously received revision; if unchanged, returns changed=false without repeating parts'}
-    'mcp.description.get_startup_context.taskIds' = @{ it = 'ID dei task attivi da includere'; en = 'IDs of active tasks to include' }
-    'mcp.description.get_startup_context.profile' = @{ it = 'slim (predefinito): parti essenziali entro 50000 caratteri, solo per il primo caricamento; full: contesto completo, senza tetto'; en = 'slim (default): essential parts within 50000 characters for initial loading only; full: complete context without a limit' }
-    'mcp.description.get_startup_context.budget' = @{ it = 'Budget caratteri massimo (default: 50000 con slim, nessun tetto con full)'; en = 'Maximum character budget (default: 50000 for slim, unlimited for full)' }
-    'mcp.description.get_ready_tasks' = @{ it = 'Restituisce i task pronti con dipendenze soddisfatte (proiezione -ReadyOnly) del repository in lavoro (risolto dal checkout corrente o da repository/checkoutPath). La vista globale richiede all=true.'; en = 'Return ready tasks with satisfied dependencies for the working repository, resolved from the current checkout or repository/checkoutPath. The global view requires all=true.' }
-    'mcp.description.get_ready_tasks.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
-    'mcp.description.get_ready_tasks.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
-    'mcp.description.get_ready_tasks.all' = @{ it = 'Se true, vista globale di tutti i repository (opt-in esplicito)'; en = 'If true, show all repositories globally (explicit opt-in)' }
-    'mcp.description.get_ready_tasks.includeAcceptance' = @{ it = 'Se true, include i criteri di accettazione dei task'; en = 'If true, include task acceptance criteria' }
-    'mcp.description.get_ready_tasks.offset' = @{ it = 'Solo con all=true: task da saltare (paginazione)'; en = 'Only with all=true: tasks to skip (pagination)' }
-    'mcp.description.get_ready_tasks.limit' = @{ it = 'Solo con all=true: task per pagina (default 50; 0 = tutti)'; en = 'Only with all=true: tasks per page (default 50; 0 = all)' }
-    'mcp.description.get_task' = @{ it = 'Restituisce il dettaglio integro di un task (descrizione, criteri di accettazione, evidenze, provenienza) per id o numero seq, dal tracker attivo o dall''archivio del dossier. Serve per i task che il profilo slim mostra solo in forma breve.'; en = 'Return complete task details (description, acceptance criteria, evidence and provenance) by ID or sequence number from the active tracker or dossier archive. Use for tasks shown briefly by the slim profile.' }
-    'mcp.description.get_task.task' = @{ it = 'ID del task (es. SB-SIMP-QUEUE-20261101) oppure numero seq (es. 197 o #197)'; en = 'Task ID (e.g. SB-SIMP-QUEUE-20261101) or sequence number (e.g. 197 or #197)' }
-    'mcp.description.get_task.repository' = @{ it = 'Identificatore del repository (opzionale; default: checkout in lavoro)'; en = 'Repository identity (optional; defaults to the working checkout)' }
-    'mcp.description.get_task.checkoutPath' = @{ it = 'Percorso del checkout in lavoro da cui risolvere il repository (opzionale)'; en = 'Working checkout path used to resolve the repository (optional)' }
-    'mcp.description.get_task.dossier' = @{ it = 'Percorso relativo del dossier (opzionale)'; en = 'Relative dossier path (optional)' }
-    'mcp.description.search_knowledge' = @{ it = 'Cerca nei file di conoscenza del dossier del repository in lavoro (context.md, memory.md, tracker.json, archivio tracker, rapporti dei lotti). Predefiniti: 20 riscontri e 10000 caratteri; se hasMore=true richiamare con offset=nextOffset. limit=0 o budget=0 tolgono il tetto (sconsigliato). allDossiers=true cerca in tutte le aree; includeOriginals=true include gli originali compattati. mode=literal (predefinito): sottostringa esatta; mode=relevance: più termini ordinati per pertinenza, con score e section.'; en = 'Search knowledge files for the working repository (context, memory, tracker, tracker archive and batch reports). Defaults: 20 matches and 10000 characters; continue with nextOffset when hasMore=true. limit=0 or budget=0 removes the limit (discouraged). allDossiers=true searches all active dossiers; includeOriginals=true includes compacted originals. mode=literal (default): exact substring; mode=relevance: multiple terms ranked by relevance, with score and section.' }
-    'mcp.description.search_knowledge.query' = @{ it = 'Termine o frase da cercare nei dossier'; en = 'Term or phrase to search for in dossiers' }
-    'mcp.description.search_knowledge.budget' = @{ it = 'Tetto di caratteri (default 10000; 0 = nessun tetto)'; en = 'Character limit (default 10000; 0 = unlimited)' }
-    'mcp.description.search_knowledge.allDossiers' = @{ it = 'Se true, cerca in tutti i dossier attivi invece che nel repository in lavoro (rifiutato con l''isolamento per progetto)'; en = 'If true, search all active dossiers instead of the working repository (refused under project isolation)' }
-    'mcp.description.search_knowledge.includeOriginals' = @{ it = 'Se true, include gli originali compattati (history/compaction)'; en = 'If true, include compacted originals (history/compaction)' }
-    'mcp.description.search_knowledge.dossier' = @{ it = 'Percorso relativo di un dossier specifico (opzionale)'; en = 'Relative path of a specific dossier (optional)' }
-    'mcp.description.search_knowledge.repository' = @{ it = 'Identificatore del repository per selezionare il dossier'; en = 'Repository identity used to select the dossier' }
-    'mcp.description.search_knowledge.mode' = @{ it = 'literal (predefinito): sottostringa esatta; relevance: termini multipli ordinati per pertinenza'; en = 'literal (default): exact substring; relevance: multiple terms ranked by relevance' }
-    'mcp.description.search_knowledge.offset' = @{ it = 'Numero di riscontri da saltare (paginazione, default 0)'; en = 'Matches to skip (pagination, default 0)' }
-    'mcp.description.search_knowledge.category' = @{ it = 'Categorie da cercare: memoria, informazioni, normative, policy, prompt (predefinito: tutte tranne prompt)'; en = 'Categories to search: memoria, informazioni, normative, policy, prompt (default: all except prompt)' }
-    'mcp.description.search_knowledge.previousRevision' = @{ it = 'Revisione restituita da una ricerca identica precedente: se nulla è cambiato la risposta è unchanged=true senza riscontri ripetuti (solo con offset 0)'; en = 'Revision returned by a previous identical search: if nothing changed the answer is unchanged=true without repeated matches (offset 0 only)' }
-    'mcp.description.search_knowledge.limit' = @{ it = 'Numero massimo di riscontri (default 20; 0 = tutti)'; en = 'Maximum matches (default 20; 0 = all)' }
-    'mcp.description.list_prompts' = @{ it = 'Elenca il catalogo unico dei prompt (ingegneria e manutenzione di SecondBrain), per area tematica. Ogni voce ha l''icona di modalità. Con compact=true una riga per prompt (codice, modalità, sommario): riportare l''elenco integrale, senza riassumerlo.'; en = 'List the single prompt catalog (engineering and SecondBrain maintenance) by category. Each entry has a mode icon. compact=true returns one line per prompt (code, mode, summary): report the complete list without summarizing.' }
-    'mcp.description.list_prompts.category' = @{ it = 'Filtra per area: id (system, test, security...) o prefisso dei codici (SYS, TST, SEC...), senza distinguere le maiuscole'; en = 'Filter by category ID (system, test, security...) or code prefix (SYS, TST, SEC...), case-insensitive' }
-    'mcp.description.list_prompts.compact' = @{ it = 'Se true, una riga per prompt invece della scheda sintetica'; en = 'If true, return one line per prompt instead of its summary card' }
-    'mcp.description.list_prompts.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
-    'mcp.description.get_prompt_home' = @{ it = 'Schermata iniziale di `sb prompt`: link al catalogo completo, tabella dei comandi sb (chat) con l''equivalente da script. Con repositoryPath (checkout corrente) aggiunge stato, prossimo passo e flusso per prodotto.'; en = 'Initial sb prompt screen: full catalog link and sb chat commands with script equivalents. repositoryPath (working checkout) adds current state, next step and product workflow.' }
-    'mcp.description.get_prompt_home.repositoryPath' = @{ it = 'Percorso del checkout corrente; facoltativo'; en = 'Working checkout path (optional)' }
-    'mcp.description.get_prompt_home.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
-    'mcp.description.get_prompt' = @{ it = 'Restituisce il prompt composto (ruolo, procedura, vincoli, criteri di uscita, formato di output) per un codice o ID (es. SYS03, SEC07, DEV01); con objective indica l''obiettivo. Senza contesto di repository.'; en = 'Return the composed prompt (role, procedure, constraints, exit criteria, output format) for a code or ID (e.g. SYS03, SEC07, DEV01); objective sets the goal. No repository context.' }
-    'mcp.description.get_prompt.prompt' = @{ it = 'Codice (SYS03, COM01...), ID immutabile (pmt-...) o alias del prompt'; en = 'Code (SYS03, COM01...), immutable ID (pmt-...) or prompt alias' }
-    'mcp.description.get_prompt.language' = @{ it = 'Lingua del testo (en o it); predefinito: lingua della postazione'; en = 'Text language (en or it); defaults to the workstation language' }
-    'mcp.description.check_publication' = @{ it = 'Esegue una verifica di sola lettura della pubblicabilità del working tree, indice e storia del repository specificato. Restituisce un riepilogo (conteggi per regola e primi 20 riscontri); detail=true il rapporto integro.'; en = 'Read-only publication check of the specified Git working tree, index and history. Returns a summary (counts by rule and the first 20 findings); detail=true returns the complete report.' }
-    'mcp.description.check_publication.repositoryPath' = @{ it = 'Percorso della radice o checkout del repository Git da verificare'; en = 'Git repository root or checkout path to check' }
-    'mcp.description.check_publication.detail' = @{ it = 'Se true, rapporto integro (tutti i riscontri e i riferimenti esclusi)'; en = 'If true, return the complete report (all findings and excluded references)' }
-    'mcp.prompt.objective' = @{ it = 'Obiettivo opzionale dell''attività'; en = 'Optional task objective' }
+    'mcp.description.get_startup_context' = @{ it = 'Contesto di avvio. slim (predefinito): parti essenziali entro il tetto; full: completo. Revisione invariata: nessuna parte ripetuta.'; en = 'Startup context. slim (default): essential parts within the cap; full: complete. Unchanged revision: no parts repeated.' }
+    'mcp.description.get_startup_context.repository' = @{ it = 'Identità del repository; predefinito: checkout in lavoro'; en = 'Repository identity; default: working checkout' }
+    'mcp.description.get_startup_context.checkoutPath' = @{ it = 'Checkout da cui risolvere il repository'; en = 'Checkout used to resolve the repository' }
+    'mcp.description.get_startup_context.dossier' = @{ it = 'Dossier relativo (es. 01-projects/X)'; en = 'Relative dossier (e.g. 01-projects/X)' }
+    'mcp.description.get_startup_context.readyOnly' = @{ it = 'Solo task con dipendenze soddisfatte'; en = 'Only tasks with satisfied dependencies' }
+    'mcp.description.get_startup_context.previousRevision' = @{ it = 'Revisione precedente: se invariata, changed=false'; en = 'Previous revision: if unchanged, changed=false' }
+    'mcp.description.get_startup_context.taskIds' = @{ it = 'ID dei task da includere'; en = 'Task IDs to include' }
+    'mcp.description.get_startup_context.profile' = @{ it = 'slim o full'; en = 'slim or full' }
+    'mcp.description.get_startup_context.budget' = @{ it = 'Tetto di caratteri (0 = nessuno)'; en = 'Character cap (0 = none)' }
+    'mcp.description.get_ready_tasks' = @{ it = 'Task pronti del repository in lavoro; all=true per la vista globale.'; en = 'Ready tasks of the working repository; all=true for the global view.' }
+    'mcp.description.get_ready_tasks.repository' = @{ it = 'Identità del repository'; en = 'Repository identity' }
+    'mcp.description.get_ready_tasks.checkoutPath' = @{ it = 'Checkout da cui risolvere il repository'; en = 'Checkout used to resolve the repository' }
+    'mcp.description.get_ready_tasks.all' = @{ it = 'Vista globale'; en = 'Global view' }
+    'mcp.description.get_ready_tasks.includeAcceptance' = @{ it = 'Includi i criteri di accettazione'; en = 'Include acceptance criteria' }
+    'mcp.description.get_ready_tasks.offset' = @{ it = 'Con all: task da saltare'; en = 'With all: tasks to skip' }
+    'mcp.description.get_ready_tasks.limit' = @{ it = 'Con all: task per pagina (50; 0 = tutti)'; en = 'With all: tasks per page (50; 0 = all)' }
+    'mcp.description.get_task' = @{ it = 'Dettaglio integro di un task per ID o #seq, anche archiviato.'; en = 'Complete task details by ID or #seq, archived included.' }
+    'mcp.description.get_task.task' = @{ it = 'ID o numero seq'; en = 'ID or sequence number' }
+    'mcp.description.get_task.repository' = @{ it = 'Identità del repository'; en = 'Repository identity' }
+    'mcp.description.get_task.checkoutPath' = @{ it = 'Checkout da cui risolvere il repository'; en = 'Checkout used to resolve the repository' }
+    'mcp.description.get_task.dossier' = @{ it = 'Dossier relativo'; en = 'Relative dossier' }
+    'mcp.description.search_knowledge' = @{ it = 'Cerca nel dossier del repository in lavoro (contesto, memoria, tracker, archivio, rapporti). 20 riscontri e 10000 caratteri; con hasMore usare offset=nextOffset.'; en = 'Search the working repository dossier (context, memory, tracker, archive, reports). 20 matches and 10000 characters; with hasMore use offset=nextOffset.' }
+    'mcp.description.search_knowledge.query' = @{ it = 'Testo da cercare'; en = 'Text to search' }
+    'mcp.description.search_knowledge.budget' = @{ it = 'Tetto di caratteri (0 = nessuno)'; en = 'Character cap (0 = none)' }
+    'mcp.description.search_knowledge.allDossiers' = @{ it = 'Tutti i dossier attivi'; en = 'All active dossiers' }
+    'mcp.description.search_knowledge.includeOriginals' = @{ it = 'Includi gli originali compattati'; en = 'Include compacted originals' }
+    'mcp.description.search_knowledge.dossier' = @{ it = 'Dossier relativo'; en = 'Relative dossier' }
+    'mcp.description.search_knowledge.repository' = @{ it = 'Identità del repository'; en = 'Repository identity' }
+    'mcp.description.search_knowledge.mode' = @{ it = 'literal: sottostringa; relevance: termini per pertinenza'; en = 'literal: substring; relevance: ranked terms' }
+    'mcp.description.search_knowledge.offset' = @{ it = 'Riscontri da saltare'; en = 'Matches to skip' }
+    'mcp.description.search_knowledge.category' = @{ it = 'Categorie (predefinito: tutte tranne prompt)'; en = 'Categories (default: all but prompt)' }
+    'mcp.description.search_knowledge.previousRevision' = @{ it = 'Revisione precedente: se invariata, unchanged=true'; en = 'Previous revision: if unchanged, unchanged=true' }
+    'mcp.description.search_knowledge.limit' = @{ it = 'Riscontri massimi (0 = tutti)'; en = 'Maximum matches (0 = all)' }
+    'mcp.description.list_prompts' = @{ it = 'Catalogo dei prompt per area; compact=true una riga per prompt, da riportare integralmente.'; en = 'Prompt catalog by category; compact=true gives one line per prompt, to report in full.' }
+    'mcp.description.list_prompts.category' = @{ it = 'Area o prefisso del codice'; en = 'Category or code prefix' }
+    'mcp.description.list_prompts.compact' = @{ it = 'Una riga per prompt'; en = 'One line per prompt' }
+    'mcp.description.list_prompts.language' = @{ it = 'Lingua (en, it)'; en = 'Language (en, it)' }
+    'mcp.description.get_prompt_home' = @{ it = 'Schermata di sb prompt: comandi sb e script; con repositoryPath stato e prossimo passo.'; en = 'sb prompt screen: sb commands and scripts; with repositoryPath, state and next step.' }
+    'mcp.description.get_prompt_home.repositoryPath' = @{ it = 'Checkout corrente'; en = 'Working checkout' }
+    'mcp.description.get_prompt_home.language' = @{ it = 'Lingua (en, it)'; en = 'Language (en, it)' }
+    'mcp.description.get_prompt' = @{ it = 'Prompt composto per codice o ID (es. SYS03); objective imposta l''obiettivo.'; en = 'Composed prompt by code or ID (e.g. SYS03); objective sets the goal.' }
+    'mcp.description.get_prompt.prompt' = @{ it = 'Codice, ID pmt-... o alias'; en = 'Code, pmt-... ID or alias' }
+    'mcp.description.get_prompt.language' = @{ it = 'Lingua (en, it)'; en = 'Language (en, it)' }
+    'mcp.description.check_publication' = @{ it = 'Verifica di pubblicabilità (working tree, indice, storia): riepilogo; detail=true rapporto integro.'; en = 'Publication check (working tree, index, history): summary; detail=true full report.' }
+    'mcp.description.check_publication.repositoryPath' = @{ it = 'Radice o checkout Git'; en = 'Git root or checkout' }
+    'mcp.description.check_publication.detail' = @{ it = 'Rapporto integro'; en = 'Full report' }
+    'mcp.prompt.objective' = @{ it = 'Obiettivo'; en = 'Objective' }
     'mcp.resource.catalog' = @{ it = 'Catalogo Prompt e Workflow SecondBrain'; en = 'SecondBrain Prompt and Workflow Catalog' }
     'mcp.tool.failed' = @{ it = 'Errore durante l''esecuzione dello strumento {0}: {1}'; en = 'Error executing tool {0}: {1}' }
     'mcp.notice' = @{ it = 'Avviso: {0}'; en = 'Warning: {0}' }
@@ -256,7 +256,7 @@ function Get-SBMcpToolDefinitions {
     )
     foreach($definition in $definitions){
         $definition.inputSchema.properties.noRecovery=@{type='boolean';description=(Get-SBMessage 'mcp.description.noRecovery')}
-        if($definition.name -notin @('preview_dossier_write','submit_dossier_write')){$definition.description+=' '+(Get-SBMessage 'mcp.pending.contract')}
+        # The read-only contract (mcp.pending.contract) is stated once in the initialize instructions and in readOnlyHint, not repeated per tool.
         # #474: every tool except submit_dossier_write is a pure read (readOnlyHint); submit applies one reviewed request.
         $definition.annotations=@{title=(Get-SBMessage ('mcp.title.'+$definition.name));readOnlyHint=$true;destructiveHint=$false;idempotentHint=$true;openWorldHint=$false}
         if($definition.name -eq 'submit_dossier_write'){$definition.annotations.readOnlyHint=$false;$definition.annotations.destructiveHint=$true}

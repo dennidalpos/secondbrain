@@ -30,6 +30,17 @@ try {
     # Count turns by repository and time interval.
     $future=[DateTimeOffset]::Now.AddMinutes(5)
     Assert-Trace ((Get-SBTraceTurns $brain 'github.com/acme/repo-a') -eq 2 -and (Get-SBTraceTurns $brain 'github.com/acme/altro') -eq 0 -and (Get-SBTraceTurns $brain 'github.com/acme/repo-a' $future) -eq 0) 'turni contati per repository e dopo l ultima compattazione'
+    # Controlled clock (#528): a day/month-ambiguous timestamp (12 November) is counted against its own date under it-IT, not 11 December.
+    $ambiguous=Join-Path (Split-Path $file) 'ambiguo.jsonl'
+    [IO.File]::WriteAllText($ambiguous,(ConvertTo-Json -Compress -InputObject @{schemaVersion=1;ts='2026-11-12T00:35:12.0000000+01:00';ide='claude-code';sessionId='s';event='stop';repository='github.com/acme/ambiguo';cwdHash='0'})+"`n")
+    $culture=[Globalization.CultureInfo]::CurrentCulture
+    try{
+        [Globalization.CultureInfo]::CurrentCulture=[Globalization.CultureInfo]::GetCultureInfo('it-IT')
+        $beforeTurn=Get-SBTraceTurns $brain 'github.com/acme/ambiguo' ([DateTimeOffset]::Parse('2026-11-12T00:30:00+01:00',[Globalization.CultureInfo]::InvariantCulture))
+        $afterTurn=Get-SBTraceTurns $brain 'github.com/acme/ambiguo' ([DateTimeOffset]::Parse('2026-11-12T00:40:00+01:00',[Globalization.CultureInfo]::InvariantCulture))
+    }finally{[Globalization.CultureInfo]::CurrentCulture=$culture}
+    Assert-Trace ($beforeTurn -eq 1 -and $afterTurn -eq 0) 'timestamp con giorno e mese ambigui contato alla sua data anche con cultura it-IT'
+    Remove-Item -LiteralPath $ambiguous -Force
     $junk=Join-Path (Split-Path $file) 'illeggibile.jsonl';[IO.File]::WriteAllText($junk,"github.com/acme/repo-a rotto`n{non json`n")
     Assert-Trace ((Get-SBTraceTurns $brain 'github.com/acme/repo-a') -eq 2) 'righe illeggibili ignorate nel conteggio'
 

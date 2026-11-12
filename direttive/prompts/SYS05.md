@@ -9,7 +9,7 @@ Use on explicit request (`sb compatta`) or when indexes advise maintenance. A di
 </context>
 
 <inputs>
-- the active repository dossier, sources, open tasks and the 50,000-character default cap; an explicit budget overrides it.
+- the active repository dossier, sources, open tasks and the 25,000-character default cap; an explicit budget overrides it.
 - for a large history, `memory-cycle.ps1 -Operation Maintenance -Repository <identity>` inventories hashes and topic batches without writing.
 </inputs>
 
