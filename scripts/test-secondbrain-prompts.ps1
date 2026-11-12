@@ -179,7 +179,7 @@ Assert-Prompts ($station.Contains('<!-- secondbrain:tracker-contract:1 -->')) 'c
 $registry=@(Get-SBWorkflowCommands|ForEach-Object {$_.command})
 foreach($command in 'sb attiva','sb controlla','sb allinea','sb compatta','sb stop','sb prompt list','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($command -in $registry) "comando '$command' nel registro"}
 Assert-Prompts ((@(Get-SBWorkflowCommands|Where-Object command -eq 'sb stop')[0].script) -match '-Prompt MEM09$') 'sb stop compone MEM09'
-foreach($word in 'sb attiva','sb controlla','sb allinea','sb compatta','sb prompt list','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($station.Contains($word)) "comando '$word' descritto nel testo di postazione"}
+foreach($word in 'sb attiva','sb controlla','sb allinea','sb compatta','sb stop','sb prompt list','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($station.Contains($word)) "comando '$word' descritto nel testo di postazione"}
 $referenced=@([regex]::Matches($global+$station+$repoBlock,'(?:COM|PRG|DEV|TST|SEC|AUD|INT|DAT|OPS|DOC|REP|GOV|MEM|SYS)\d{2}')|ForEach-Object {$_.Value}|Select-Object -Unique)
 Assert-Prompts (!(@($referenced|Where-Object {$_ -notin @($prompts.code)}).Count)) 'ogni codice prompt citato nelle direttive esiste nel catalogo'
 'SUCCESS PROMPTS: '+$script:promptChecks+' verifiche'

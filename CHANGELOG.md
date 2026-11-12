@@ -2,7 +2,15 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.7.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.7.2**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.7.2] - 2026-11-12
+
+### Modificato
+- Direttive comuni, revisione 1.2 (proposta `direttive/proposals/2026-11-12-sb-stop`, approvata e distribuita con `-Sync`): il testo di postazione elenca `sb stop` (MEM09: ferma, salva la sessione nel dossier, riprendi altrove con MEM07) tra i comandi `sb`; il testo comune cita MEM09 tra le procedure caricate da `sb prompt`. Blocco repository invariato; +100 caratteri al contesto iniziale.
+
+### Test
+- Gruppo `prompts`: `sb stop` descritto nel testo di postazione.
 
 ## [2.7.1] - 2026-11-12
 

@@ -1,15 +1,15 @@
 {
-  "approvedAt": "2026-11-12T08:08:36.4880975+01:00",
-  "authorization": "Richiesta della persona titolare 2026-11-12: approvata la revisione 1.1 (contesto iniziale snello: direttive globali, postazione e blocco repository ridotti, chiusura senza accumulo, tetto 25.000)",
+  "approvedAt": "2026-11-12T23:26:18.3990558+01:00",
+  "authorization": "Richiesta della persona titolare 2026-11-12: approvata la revisione 1.2 (sb stop e MEM09 nelle direttive di postazione e nel testo comune)",
   "files": {
-    "direttive/AGENTS.global_ide.md": "8238B8C140EC9FE3C6E4002D94B0AADBB1EAE0E15A52566BF31854D2292AC06C",
+    "direttive/AGENTS.global_ide.md": "0552D722AEAED0A96BC7C968F6ECED2371EF292CAF1DE4734A728F13D32620B3",
     "direttive/AGENTS.repo.managed.md": "B77983688C1B03B8DD4A10DB38F12293AD87BCB999A39EAAFD574166C3C68AEA",
-    "direttive/workstation.template.md": "CFB3267FB25931AF68B8791B8D01F31AC30D940679D6D3443567A45BE9FBA9A6"
+    "direttive/workstation.template.md": "DBF47C4088B567FDBA1695B60D338A09D04A4106FAB5CF2B8B7BDCB775220923"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-12-contesto-snello",
-    "readmeHash": "C77F79CCB5FAD49E886AF7B6ACEF0383D0D013BE8B3BBD5962B4552A0D7CC555",
-    "sha256": "D328B56A9B0B3E0C6B5DA21A56063BF46813C80C8EA274CCA544C51D210BD5E2"
+    "path": "direttive/proposals/2026-11-12-sb-stop",
+    "readmeHash": "FCB90C9E409FE9FCDB10348A93371691435F0567F4A39ADCA755289BE635E0D2",
+    "sha256": "A5FEA772ACFB4F9CFF20008E0AF70BBD0690E36D1B87C7FF57060B543AFFADAA"
   },
   "schemaVersion": 1
 }

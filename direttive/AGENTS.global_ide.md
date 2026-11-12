@@ -1,6 +1,6 @@
 # Common principles for development agents
 
-Revisione 1.1 — 2026-11-12. These principles apply across projects. Project choices belong in the project's own directives.
+Revisione 1.2 — 2026-11-12. These principles apply across projects. Project choices belong in the project's own directives.
 
 ## Principles
 
@@ -20,7 +20,7 @@ Revisione 1.1 — 2026-11-12. These principles apply across projects. Project ch
 - Resolve the dossier by identity through PARA and repository.json; archived entities stay inactive. PARA entities change only with MEM05 and scripts/para.ps1.
 - First load: scripts/knowledge.ps1 -Startup or MCP get_startup_context (slim, 25,000 characters). Request further detail only when the task needs it.
 - Write to SecondBrain only through its scripts or MCP write tools; never edit 01-projects, 02-areas, 03-resources, 04-archives, or .runtime by hand. Product builds, caches, and evidence stay in the product's Git-ignored folders; SecondBrain work folders come from scripts/work.ps1 -Init.
-- Procedures load on request from `sb prompt` (SYS03 activate, SYS04 check, SYS05 compact).
+- Procedures load on request from `sb prompt` (SYS03 activate, SYS04 check, SYS05 compact, MEM09 stop and handoff).
 
 ## Verification
 
