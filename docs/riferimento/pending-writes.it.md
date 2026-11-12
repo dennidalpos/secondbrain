@@ -1,6 +1,6 @@
 # Scritture differite senza bloccare le sessioni
 
-Task, memoria, contesto e rapporti possono essere salvati anche quando un altro agente occupa SecondBrain. I comandi di conoscenza conservano prima una richiesta JSON, poi tentano l'integrazione con attesa del lock pari a zero. Il risultato distingue `applied`, `deferred`, `conflict` e `invalid`: `deferred` conferma il salvataggio della richiesta, non l'aggiornamento del dossier.
+Task, memoria, contesto e rapporti possono essere salvati anche quando un altro agente occupa SecondBrain. I comandi di conoscenza conservano prima una richiesta JSON, poi tentano l'integrazione attendendo il lock al massimo per `SECONDBRAIN_PENDING_WAIT_SECONDS` (0-120, predefinito 8). Un invio da CLI integra anche le altre richieste in coda dello stesso repository; `submit_dossier_write` via MCP integra solo la propria. Il risultato distingue `applied`, `deferred`, `conflict` e `invalid`: `deferred` conferma il salvataggio della richiesta, non l'aggiornamento del dossier.
 
 ## Cosa usare
 
@@ -26,9 +26,9 @@ Il repository segue il checkout corrente; usare `-CheckoutPath` se il comando pa
 
 Configurazioni, direttive, operazioni PARA e allegati generici non entrano nella coda. Per le API personalizzate, ogni modifica centrale resta protetta da `Enter-SBOperation` / `Exit-SBOperation` e dagli hash; una sessione aperta non protegge modifiche dirette effettuate con un editor o con API del filesystem.
 
-## Recupero automatico
+## Integrazione esplicita
 
-L'avvio MCP, le richieste MCP di consultazione, `knowledge.ps1` in lettura, `prompts.ps1` e `secondbrain.ps1 -Check` tentano l'integrazione di massimo 10 richieste per utilizzo. Ogni richiesta usa una transazione breve. Se il centro e ancora occupato, resta pendente e la consultazione prosegue. Non ci sono servizi residenti o monitor periodici aggiuntivi.
+Le letture non scrivono mai (#474): avvio e consultazioni MCP, `knowledge.ps1 -Startup/-Tasks/-Task/-Section/-Search/-Roadmap/-PendingWrites`, `prompts.ps1` e `secondbrain.ps1 -Check` lasciano invariati coda e dossier. Le richieste in coda si integrano solo con un comando esplicito, e solo quelle del dossier in lavoro: `knowledge.ps1 -FlushPending -CheckoutPath <checkout>` (oppure `-Repository`), che attende il lock di scrittura secondo la policy condivisa. Non ci sono servizi residenti o monitor periodici. NoRecovery resta per compatibilità: in CLI non ha effetto sulle letture, in MCP vieta nuove scritture.
 
 I JSON originali sono in `.runtime/access/pending-writes/`; le ricevute sono in `.runtime/access/pending-receipts/`. Sono metadati operativi della stessa cartella SecondBrain condivisa: ogni postazione li raggiunge attraverso il proprio alias della radice. I percorsi di destinazione sono risolti dal repository e dal dossier; non si riusano percorsi assoluti del PC produttore. Cloni Git separati non condividono questi file, esclusi da Git.
 
@@ -54,7 +54,7 @@ Sono accettati solo gli stati conflict, invalid e invalid-receipt; le richieste 
 
 ## Contratto MCP e sessioni gia aperte
 
-I tool MCP possono applicare le richieste gia autorizzate prima di rispondere. Sono quindi dichiarati con `readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=false` e `openWorldHint=false`. Le descrizioni e `initialize.instructions` espongono questo comportamento; l'output aggiunge il riepilogo dell'integrazione quando necessario.
+Ogni tool MCP dichiara `readOnlyHint=true`, `destructiveHint=false`, `idempotentHint=true` e `openWorldHint=false`, tranne `submit_dossier_write` (`readOnlyHint=false`, `destructiveHint=true`, `idempotentHint=true`). Le annotazioni descrivono il comportamento, non l'autorizzazione.
 
 Il server negozia `2025-03-26`, mantenendo `2024-11-05` se richiesto da un client precedente. Le annotazioni sono indicazioni per il client, non autorizzazioni. Le regole nominative si preparano con `-ApproveKnowledgeTools` (alias storico `-ApproveReadTools`); `check_publication` conserva la richiesta di consenso. Non vengono aggiunti tool per eseguire comandi arbitrari o nuove scritture MCP.
 

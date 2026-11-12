@@ -50,7 +50,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 ```
 
 
-Check integra prima i pendenti autorizzati dei dossier, senza attesa sul lock; il controllo degli asset non applica correzioni: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
+Check non integra mai i pendenti dei dossier (lo fa `knowledge.ps1 -FlushPending`); il controllo degli asset non applica correzioni: con un writer attivo o una transazione interrotta il JSON contiene `warnings` (`concurrent-writer`, `pending-transaction`) e il risultato può essere intermedio. Sync usa lock, backup verificati e stato per rilevare modifiche concorrenti; aggiorna TOC e indici. Distribuisce soltanto direttive comuni approvate, conserva il testo personale e segnala conflitti. Una proposta non approvata non viene distribuita.
 
 **Codice di uscita.** `-Check` esce con 1 solo quando `aligned` è false, e `aligned` dipende solo dai file (`issues`). I rilievi ambientali stanno a parte in `environment` e non cambiano il codice: `ide-write-scope-*`, `ide-loading-unverified`, `ide-context-changed`, `ide-directive-stale`, `account-unverified`, `mcp-consent-unverified`, `authoritative-source` e `compaction-required`. Si risolvono con una ricevuta di sessione reale, una prova di ambito di scrittura, una revisione dell'account, `resources.ps1 -Sync` o SYS05. `ide-map.ps1 -Verify` mantiene il proprio contratto (1 se gli IDE vanno allineati; 2 = errore, 3 = writer occupato, 4 = scrittura negata).
 
@@ -100,10 +100,10 @@ Per interruzioni usare il [recupero da manifest](recovery.md) e la [guida portab
 pwsh -NoProfile -File scripts/run-ready-tasks.ps1
 
 # Esegue il prossimo task di questo checkout (-MaxTasks 0 = senza limite, predefinito 3).
-pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -MaxTasks 1 -Run > .runtime/run-result.json
+pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -MaxTasks 1 -Run -UseCliDefault > .runtime/run-result.json
 
 # Un altro repository: indica al runner il suo checkout (dossier e tracker si risolvono dall’identità Git).
-pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -CheckoutPath C:/Progetti/MioProdotto -MaxTasks 1 -Run
+pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -CheckoutPath C:/Progetti/MioProdotto -MaxTasks 1 -Run -Model <id> -Effort <livello>
 ~~~
 
 **Uno script per repository.** Il runner gestisce un solo repository. Ogni repository gestito ha un proprio lanciatore sottile, `.secondbrain/run-tasks.ps1`, senza logica: trova SecondBrain con la variabile d’ambiente `SECONDBRAIN_HOME` ed esegue il runner solo per quel checkout.
@@ -115,24 +115,24 @@ pwsh -NoProfile -File scripts/install-task-launcher.ps1 -Apply [-Repository gith
 
 # Da un repository: anteprima, poi esegue il prossimo task.
 pwsh -NoProfile -File .secondbrain/run-tasks.ps1
-pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run
+pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run -UseCliDefault
 ~~~
 
 Il generatore non sovrascrive mai un file diverso già presente (lo riporta come `different`), salta SecondBrain stesso e non scrive percorsi personali. I file dei lanciatori non sono tracciati e esistono solo sulla postazione dove è stato eseguito il generatore. Committarne uno nel repository di un prodotto è un passo separato e autorizzato e richiede che il gate SEC07 di quel prodotto sia pronto (vedi [verifica prima del push](#verifica-prima-del-push)); un prodotto con rilievi storici non valutati non può pubblicarlo.
 
-**Tutti i repository.** Non c’è un comando unico per tutti i repository: scorri i lanciatori, un repository alla volta. Il ciclo seguente è un suggerimento non eseguito su più repository. Non si ferma all’esaurimento della quota (ogni lanciatore si ferma solo dopo i propri tre fallimenti consecutivi), quindi tieni `-MaxTasks` basso.
+**Tutti i repository.** Non c’è un comando unico per tutti i repository: scorri i lanciatori, un repository alla volta. Il ciclo seguente è un suggerimento non eseguito su più repository. Il ciclo in sé non si ferma all’esaurimento della quota: ogni lanciatore legge prima la quota e si ferma subito se è esaurita, oppure dopo i propri tre fallimenti consecutivi, quindi tieni `-MaxTasks` basso.
 
 ~~~powershell
 Get-ChildItem C:/Progetti -Directory |
   Where-Object { Test-Path "$($_.FullName)/.secondbrain/run-tasks.ps1" } |
-  ForEach-Object { pwsh -NoProfile -File "$($_.FullName)/.secondbrain/run-tasks.ps1" -MaxTasks 1 -Run }
+  ForEach-Object { pwsh -NoProfile -File "$($_.FullName)/.secondbrain/run-tasks.ps1" -MaxTasks 1 -Run -UseCliDefault }
 ~~~
 
-SecondBrain non ha il lanciatore: lì si usa `scripts/run-ready-tasks.ps1`. I task dello stream `coordinamento-prodotti` non vengono mai selezionati, quindi un prodotto può non avere nulla di eseguibile; l’anteprima mostra cosa partirebbe.
+Il lanciatore inoltra al runner `-Provider`, `-Model`, `-Effort`, `-UseCliDefault` e `-AllowCustomModel`. Un lanciatore installato da un modello precedente e mai modificato risulta `outdated` e `install-task-launcher.ps1 -Apply` lo sostituisce con backup; uno modificato resta `different` e non viene toccato. SecondBrain non ha il lanciatore: lì si usa `scripts/run-ready-tasks.ps1`. I task dello stream `coordinamento-prodotti` non vengono mai selezionati, quindi un prodotto può non avere nulla di eseguibile; l’anteprima mostra cosa partirebbe.
 
 **Perimetro di lettura nel codice.** Il runner avvia ogni agente con `SECONDBRAIN_RUNNER_REPOSITORY` (il repository del task). Con queste variabili, `knowledge.ps1` e i tool MCP rifiutano `-All`, `-AllDossiers`, `all=true` e `allDossiers=true`; rifiutano ogni altro repository (con `-Repository`, `-CheckoutPath` o `-Dossier`) in lettura e scrittura. Un ambito di ricerca non risolvibile ricade sul repository del task invece che su tutte le aree. L'isolamento per progetto (senza interruttore) rifiuta le viste globali per tutti. Il controllo protegge dagli errori, non è una sandbox: un processo che azzera le variabili non è più limitato. Il punto d’ingresso dei test le azzera per le proprie fixture sintetiche. Coperto dal gruppo `runner` su fixture; non ancora osservato con un agente reale e il suo server MCP.
 
-**Avvio non presidiato.** Il runner lo avvii tu o uno scheduler che configuri tu; per lui non si installa nulla. Con l’Utilità di pianificazione di Windows esegui `pwsh -NoProfile -File <SecondBrain>\scripts\run-ready-tasks.ps1 -MaxTasks 0 -Run` con il tuo utente, con `claude` e `SECONDBRAIN_HOME` disponibili a quell’utente. Questa configurazione non è stata provata qui e il computer non deve andare in sospensione durante il run. Gli agenti non hanno una sandbox: dopo ogni run controlla `git status` e i report. Una sessione di un assistente di codice può rifiutarsi di avviare agenti non presidiati di questo tipo, quindi avviala tu o dallo scheduler.
+**Avvio non presidiato.** Il runner lo avvii tu o uno scheduler che configuri tu; per lui non si installa nulla. Con l’Utilità di pianificazione di Windows esegui `pwsh -NoProfile -File <SecondBrain>\scripts\run-ready-tasks.ps1 -MaxTasks 0 -Run -UseCliDefault` con il tuo utente, con `claude` e `SECONDBRAIN_HOME` disponibili a quell’utente. Questa configurazione non è stata provata qui e il computer non deve andare in sospensione durante il run. Gli agenti non hanno una sandbox: dopo ogni run controlla `git status` e i report. Una sessione di un assistente di codice può rifiutarsi di avviare agenti non presidiati di questo tipo, quindi avviala tu o dallo scheduler.
 
 **Avanzamento.** La console mostra la lettura del tracker, il numero di task eseguibili, `[n/totale]` all’avvio e alla fine di ogni task (codice di uscita, cambio di stato, secondi), i passi dell'agente man mano che arrivano e un riepilogo finale. Le righe di avanzamento vanno su standard error; standard output contiene solo il JSON finale, quindi `> file` lascia leggibile la console e pulito il file (resta vuoto fino alla fine del run).
 

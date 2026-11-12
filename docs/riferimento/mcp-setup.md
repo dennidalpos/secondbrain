@@ -2,7 +2,7 @@
 
 [Retained Italian source; use this English page for current behavior](mcp-setup.it.md)
 
-The PowerShell server uses stdio JSON-RPC and no listening network port. It exposes knowledge/prompt/publication operations; startup and lookups may integrate already-authorized queued dossier writes. It is not a strictly read-only service.
+The PowerShell server uses stdio JSON-RPC and no listening network port. It exposes knowledge/prompt/publication operations. Startup and lookups never integrate queued dossier writes; only `submit_dossier_write` writes, one reviewed request with a local receipt.
 
 ## Prerequisites and contract
 

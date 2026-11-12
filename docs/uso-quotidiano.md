@@ -15,10 +15,11 @@ The command words below remain unchanged in every documentation language.
 | `sb prompt ambito test` | List one category |
 | `sb prompt mostra TST04` | Display a prompt card |
 | `sb prompt TST04: check the login flow` | Compose the card with your objective |
-| `sb controlla` | Inspect alignment; approved pending writes may be processed |
+| `sb controlla` | Inspect alignment without changing anything |
 | `sb allinea` | Sync approved instructions |
 | `sb attiva` | Discover and activate selected integrations |
 | `sb compatta` | Preview dossier compaction; applying it requires confirmation |
+| `sb runner` | Run the ready tasks of the current repository from the desktop app or the command line |
 
 See the [per-repository workflow](flusso-prodotto.md) for the order of operations.
 
@@ -57,7 +58,7 @@ The gate scans working tree, index and relevant history, subject to its reported
 
 ## Running tracker tasks
 
-To work through the ready autonomous tasks, one fresh agent session per task and one repository at a time, use `scripts/run-ready-tasks.ps1`. It previews by default and prints progress on the console while it runs. See [running tracker tasks](riferimento/operations.md#running-tracker-tasks-in-fresh-sessions) for options, safety limits and results.
+To work through the ready autonomous tasks, one fresh agent session per task and one repository at a time, use `scripts/run-ready-tasks.ps1`. It previews by default and prints progress on the console while it runs. `-Run` also needs `-Model` and `-Effort`, or `-UseCliDefault`; without a choice it exits 2 and lists the options the installed CLI exposes. See [running tracker tasks](riferimento/operations.md#running-tracker-tasks-in-fresh-sessions) for options, safety limits and results.
 
 ## Versions and closure
 

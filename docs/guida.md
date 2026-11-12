@@ -16,7 +16,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots C:/Projects -Interac
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 ~~~
 
-Before activation, Check exits with 2. Setup presents choices and confirmation before applying workstation configuration. Sync distributes approved managed instructions immediately; preserve conflicts rather than forcing them. Check and prompt lookups may process already-authorized pending dossier writes.
+Before activation, Check exits with 2. Setup presents choices and confirmation before applying workstation configuration. Sync distributes approved managed instructions immediately; preserve conflicts rather than forcing them. Check and prompt lookups never write; queued dossier writes are integrated only by `knowledge.ps1 -FlushPending`.
 
 ## Connect an agent or use the CLI
 
@@ -48,6 +48,7 @@ Chat commands such as `sb prompt`, `sb controlla`, `sb allinea` and `sb compatta
 | `SECONDBRAIN_HOME` | User-local clone location. Confirmed Setup application registers it unless `-NoRegisterEnvironment` is used; lower-level Activate uses explicit `-RegisterEnvironment`. Restart open IDEs afterward. |
 | `SECONDBRAIN_LANG` | Message language; explicit `-Language` takes precedence, then environment/configuration/system fallback. Some legacy diagnostics remain untranslated. |
 | `SECONDBRAIN_LOCK_WAIT_SECONDS` | Writer-lock wait, default 60 seconds, also controlled by `-WaitSeconds` where supported. |
+| `SECONDBRAIN_PENDING_WAIT_SECONDS` | How long a CLI dossier write waits for the lock before staying `deferred` (0-120, default 8). |
 | `SECONDBRAIN_SKIP_PRE_PUSH` | Explicit one-push hook bypass; it does not qualify the publication or resolve findings. |
 
 Scripts can bootstrap from the checkout without the environment variable. A configured pre-push hook fails closed if its runtime or brain root cannot be resolved. Do not copy workstation paths into public instructions.
@@ -59,7 +60,7 @@ pwsh -NoProfile -File scripts/access.ps1 -Status
 pwsh -NoProfile -File scripts/access.ps1 -Queue
 ~~~
 
-Knowledge reads avoid blocking locks, but default reads may process queued writes. Writers serialize through a FIFO queue and return exit 3 when the wait limit expires. Do not remove lock files or incomplete-transaction markers.
+Knowledge reads avoid blocking locks and never process queued writes. Writers serialize through a FIFO queue and return exit 3 when the wait limit expires. Do not remove lock files or incomplete-transaction markers.
 
 Longer writes use Start/End in the same script with try/finally and pass SessionId to the invoked CLIs. Initialize work folders for SecondBrain activities with `work.ps1 -Category <category> -Slug <slug> -Init` and a manifest. Product agents verify tool-specific output paths in Git-ignored folders of their own checkout.
 

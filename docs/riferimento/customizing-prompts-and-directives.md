@@ -17,7 +17,7 @@ pwsh -NoProfile -File scripts/prompts.ps1 -Show -Prompt DOC01 -Language en
 pwsh -NoProfile -File scripts/build-prompts.ps1 -Check
 ~~~
 
-Prompt commands may integrate already-authorized queued writes. Generated README indexes are not manual edit targets. After an authorized catalog/card change, regenerate with build-prompts then validate both language cards/IDs/indexes. Stable codes are not reused after retirement/merger; numbering gaps are intentional.
+Prompt commands never write to the dossier. Generated README indexes are not manual edit targets. After an authorized catalog/card change, regenerate with build-prompts then validate both language cards/IDs/indexes. Stable codes are not reused after retirement/merger; numbering gaps are intentional.
 
 <a id="modifica-delle-direttive"></a>
 <a id="3-ciclo-di-approvazione-e-distribuzione-delle-direttive"></a>

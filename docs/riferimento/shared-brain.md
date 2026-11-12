@@ -19,7 +19,7 @@ Dossiers, the PARA index, shared policy, directives and `.runtime/access` are sh
 
 ## Permissions and activation
 
-Windows/SMB/NTFS enforce rights; SecondBrain is not a user-authorization service. Pure reads require read access. Session registration, automatic pending integration and writers need the corresponding modification rights. A Check/knowledge/MCP lookup with recovery enabled is not strictly read-only.
+Windows/SMB/NTFS enforce rights; SecondBrain is not a user-authorization service. Pure reads require read access. Session registration, `knowledge.ps1 -FlushPending` and writers need the corresponding modification rights. Check, knowledge and MCP lookups do not write to the dossier.
 
 Assign script/policy/catalog maintenance only to intended maintainers. Writers also need create/replace access to the relevant runtime/coordination paths. Approval hashes establish integrity, not access control.
 
@@ -29,7 +29,7 @@ ExecutionPolicy/zone classification and Git ownership must be checked on the act
 
 ## Writes and interruption
 
-Ordinary sessions record ownership/heartbeat; writer.lock and operation.lock protect individual transactions through FIFO tickets. General writers wait up to the configured limit and return exit 3 on timeout. Supported dossier requests may instead queue without waiting and integrate later.
+Ordinary sessions record ownership/heartbeat; writer.lock and operation.lock protect individual transactions through FIFO tickets. General writers wait up to the configured limit and return exit 3 on timeout. Supported dossier requests instead wait briefly (SECONDBRAIN_PENDING_WAIT_SECONDS, default 8 s), then stay queued until `knowledge.ps1 -FlushPending`.
 
 Readers report active-writer or pending-transaction warnings. Their snapshot can be intermediate. Protected writes validate base hashes and preserve recovery data. Never remove locks or incomplete markers.
 

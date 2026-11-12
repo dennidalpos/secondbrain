@@ -387,6 +387,20 @@ $r|ConvertTo-Json -Compress
     Remove-Item -LiteralPath $launcher2 -Force
     $only=Invoke-Installer @('-Apply','-Repository',$identity2)
     Assert-Runner ($only.code -eq 0 -and (Test-Path -LiteralPath $launcher2) -and @($only.data.repositories).Count -eq 1) '-Repository limits the installer to the named repository'
+    # An unedited launcher from the earlier template (no model choice) is outdated and replaced; the rebuild must match the hash the installer knows.
+    $current=Read-SBText $launcher2
+    $earlier=$current.Replace("-Run also needs the choice the runner asks for: -Model and -Effort, or -UseCliDefault. -Provider, -Model, -Effort, -UseCliDefault and`n-AllowCustomModel are passed to the runner unchanged.`n",'').
+        Replace("  pwsh -NoProfile -File .secondbrain/run-tasks.ps1                                   # preview`n  pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run -UseCliDefault   # run the next task with the CLI defaults",
+            "  pwsh -NoProfile -File .secondbrain/run-tasks.ps1                    # preview`n  pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run   # run the next task").
+        Replace("param([int]`$MaxTasks=3,[ValidateRange(1,240)][int]`$TimeoutMinutes=30,[ValidateSet('claude','codex','gemini')][string]`$Provider,`n    [string]`$Model,[string]`$Effort,[switch]`$UseCliDefault,[switch]`$AllowCustomModel,[switch]`$Run)",
+            "param([int]`$MaxTasks=3,[ValidateRange(1,240)][int]`$TimeoutMinutes=30,[switch]`$Run)").
+        Replace("foreach(`$name in @('Provider','Model','Effort')){if(`$PSBoundParameters.ContainsKey(`$name)){`$arguments+=@('-'+`$name,[string]`$PSBoundParameters[`$name])}}`nforeach(`$name in @('UseCliDefault','AllowCustomModel','Run')){if(`$PSBoundParameters.ContainsKey(`$name) -and `$PSBoundParameters[`$name]){`$arguments+=('-'+`$name)}}",
+            "if(`$Run){`$arguments+='-Run'}")
+    Put-Runner $launcher2 $earlier
+    $outdated=Invoke-Installer @('-Repository',$identity2)
+    Assert-Runner (@($outdated.data.repositories|Where-Object {$_.state -eq 'outdated' -and !$_.written}).Count -eq 1) ('an unedited earlier launcher is reported as outdated: '+$outdated.text)
+    $updated=Invoke-Installer @('-Apply','-Repository',$identity2)
+    Assert-Runner (@($updated.data.repositories|Where-Object {$_.state -eq 'outdated' -and $_.written}).Count -eq 1 -and (Get-SBFileHash $launcher2) -ceq $updated.data.templateSha256) ('-Apply replaces an outdated launcher with the template: '+$updated.text)
     Close-RunnerPhase 'installer'
     # The launcher runs the runner for its own checkout only, found through SECONDBRAIN_HOME.
     $savedHome=$env:SECONDBRAIN_HOME
@@ -396,6 +410,14 @@ $r|ConvertTo-Json -Compress
         $code=$LASTEXITCODE;$text=$lines -join "`n";$i=$text.IndexOf('{');$data=$text.Substring($i)|ConvertFrom-Json -AsHashtable
         Assert-Runner ($code -eq 0 -and !$data.run -and (@($data.tasks|ForEach-Object id) -join ',') -ceq 'S-1,S-2') ('the launcher previews only its own repository tasks: '+$text)
         Assert-Runner (@($data.tasks|Where-Object {$_.prompt -notmatch 'Strumenti SecondBrain in '}).Count -eq 0) 'prompts launched from a product checkout name the SecondBrain tools and the checkout'
+        # Model choice and agent options reach the runner unchanged (a stand-in runner echoes its arguments).
+        $echoHome=Join-Path $fixture 'launcher-echo-home'
+        Put-Runner (Join-Path $echoHome 'scripts/run-ready-tasks.ps1') "ConvertTo-Json -Compress @(`$args)`n"
+        $env:SECONDBRAIN_HOME=$echoHome
+        $echo=(& pwsh -NoProfile -File $launcher2 -MaxTasks 1 -Provider codex -Model m1 -Effort low -AllowCustomModel -Run 2>&1|Out-String)|ConvertFrom-Json
+        Assert-Runner ((@($echo) -join ' ') -match '-Provider codex -Model m1 -Effort low -AllowCustomModel -Run$') ('the launcher forwards provider, model, effort and -Run: '+(@($echo) -join ' '))
+        $echo=@((& pwsh -NoProfile -File $launcher2 -UseCliDefault -Run 2>&1|Out-String)|ConvertFrom-Json)
+        Assert-Runner ('-UseCliDefault' -in $echo -and '-Run' -in $echo -and '-Model' -notin $echo) ('the launcher forwards -UseCliDefault: '+($echo -join ' '))
         $env:SECONDBRAIN_HOME=(Join-Path $fixture 'no-such-home')
         & pwsh -NoProfile -File $launcher2 *> $null
         Assert-Runner ($LASTEXITCODE -eq 2) 'the launcher stops with exit 2 when SecondBrain cannot be found'

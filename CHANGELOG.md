@@ -2,7 +2,17 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.6.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.6.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.6.1] - 2026-11-12
+
+### Corretto
+- Il lanciatore per repository `.secondbrain/run-tasks.ps1` inoltra al runner `-Provider`, `-Model`, `-Effort`, `-UseCliDefault` e `-AllowCustomModel`: prima il suo `-Run` usciva sempre con 2 quando la CLI accetta modello o impegno.
+- `install-task-launcher.ps1` riconosce per hash un lanciatore installato da un modello precedente e mai modificato (stato `outdated`) e con `-Apply` lo sostituisce con backup verificato; un lanciatore modificato resta `different` e non viene toccato.
+- Documentazione (DOC01, inglese e italiano): letture, Check, prompt e MCP non integrano mai le scritture accodate, lo fa solo `knowledge.ps1 -FlushPending` (#474); attesa del lock di una scrittura da CLI fino a `SECONDBRAIN_PENDING_WAIT_SECONDS` (predefinito 8 s) invece di «nessuna attesa»; esempi di `run-ready-tasks.ps1 -Run` con `-UseCliDefault` o `-Model`/`-Effort`; opzioni di `-UpdateTaskId` (`-Evidence`, `-Acceptance`, `-Description`, `-DecisionsFile`, `-Awaiting`, `-Requires`), registro `history/task-runs.jsonl`, `-Registry` e `-BackfillTaskRuns` nei tracker; `sb runner` nelle tabelle dei comandi; quota letta da ogni lanciatore nel ciclo su più repository; rimosso l'alias ritirato REP02. Nella voce 2.6.0 l'opzione indicata come `-Decisions` è `-DecisionsFile`.
+
+### Test
+- Gruppo `runner`: sostituzione di un lanciatore `outdated` e inoltro delle opzioni di modello tramite un runner sostitutivo.
 
 ## [2.6.0] - 2026-11-12
 

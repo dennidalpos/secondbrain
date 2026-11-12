@@ -21,9 +21,11 @@ ReadyOnly resolves dependencies in active and historical trackers. Only complete
 
 ## Changes and history
 
-UpdateTaskId accepts Status, StateReason, Priority, Execution, DependsOn and Stream. Omitted fields stay unchanged; at least one supplied field is required. Empty DependsOn clears dependencies and empty Stream removes it. Unknown tasks/repositories, invalid references, cycles and writes to another working repository are refused.
+UpdateTaskId accepts Status, StateReason, Priority, Execution, DependsOn, Stream, Awaiting, Requires, Description, Acceptance (`;`-separated), Evidence (`reference|outcome`, outcome passed, failed, partial or unverified; appended) and DecisionsFile (a JSON file of owner decisions `{question, answer}` stored in `extensions.decisions[]`). Omitted fields stay unchanged; at least one supplied field is required. Empty DependsOn clears dependencies and empty Stream removes it. Unknown tasks/repositories, invalid references, cycles and writes to another working repository are refused.
 
 NewTask requires acceptance/provenance and a numbered tracker. Sequence is lastSeq+1; IDs/numbers are not reused. RenumberTasks previews the migration and preserves original records by hash. With pwsh File, list arguments use semicolon separation as documented by the CLI.
+
+Every change of status, execution or evidence also appends a record to the dossier ledger `history/task-runs.jsonl` in the same transaction, with the executor. `knowledge.ps1 -Registry` lists every task of the working repository, archived ones included, with the ledger and this workstation's runner reports (filters `-Tool`, `-TaskStatus`, `-Archived include|exclude|only`, `-Filter`; pages `-Page`/`-PageSize`, default 50). `-BackfillTaskRuns` copies older runner reports into the ledger, preview unless `-Apply`.
 
 After verified acceptance, terminal done/cancelled records move into history/tracker-archive.json with IDs, numbers, evidence and provenance intact. Tracker/archive/queued receipt share one transaction. Reopening uses the same ID explicitly. Audit-only task proposals never apply these operations.
 

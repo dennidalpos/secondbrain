@@ -23,6 +23,7 @@ flowchart LR
 | `sb allinea` | Aggiorna le regole approvate |
 | `sb attiva` | Aggiunge progetti o agenti |
 | `sb compatta` | Accorcia gli appunti di un progetto, conservando gli originali |
+| `sb runner` | Esegue i task pronti del repository corrente dall'app desktop o dalla riga di comando |
 
 I passi in ordine, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
 
@@ -66,7 +67,7 @@ Cerca dati privati, segreti e file di lavoro. Commit e push restano sempre una t
 
 ## Eseguire i task del tracker
 
-Per eseguire i task autonomi pronti, una sessione agente nuova per task e un repository alla volta, usa `scripts/run-ready-tasks.ps1`. Per impostazione predefinita mostra solo l’anteprima e durante l’esecuzione stampa l’avanzamento in console. Opzioni, limiti di sicurezza e risultati sono in [esecuzione dei task del tracker](riferimento/operations.it.md#esecuzione-dei-task-del-tracker-in-sessioni-nuove).
+Per eseguire i task autonomi pronti, una sessione agente nuova per task e un repository alla volta, usa `scripts/run-ready-tasks.ps1`. Per impostazione predefinita mostra solo l’anteprima e durante l’esecuzione stampa l’avanzamento in console. `-Run` richiede anche `-Model` ed `-Effort`, oppure `-UseCliDefault`; senza scelta esce con 2 ed elenca le opzioni della CLI installata. Opzioni, limiti di sicurezza e risultati sono in [esecuzione dei task del tracker](riferimento/operations.it.md#esecuzione-dei-task-del-tracker-in-sessioni-nuove).
 
 ## Cambiare versione
 

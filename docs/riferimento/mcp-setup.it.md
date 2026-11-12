@@ -15,7 +15,7 @@ I dodici strumenti espongono un titolo localizzato in `annotations.title`, secon
 ### Garanzie di Isolamento e Sicurezza
 - **Nessuna porta di rete aperta**: la comunicazione avviene esclusivamente tramite flussi standard di input/output (**stdio**) via `pwsh` su processo locale.
 - **Zero telemetria esterna**: nessun dato, richiesta, prompt o metadato viene trasmesso a servizi terzi o remoti.
-- **Consultazione con recupero delle scritture autorizzate**: all'avvio e nelle richieste il server tenta di integrare i [pendenti dei dossier](pending-writes.md), senza attendere il lock. I tool dichiarano `readOnlyHint=false`; le relative regole nominative includono questo effetto. Non si eseguono comandi arbitrari o nuove scritture richieste via MCP.
+- **Consultazione in sola lettura**: avvio e richieste non integrano mai i [pendenti dei dossier](pending-writes.md); lo fa solo `knowledge.ps1 -FlushPending`. Gli strumenti di consultazione dichiarano `readOnlyHint=true`; l'unica scrittura MCP è `submit_dossier_write`, con ricevuta locale. Non si eseguono comandi arbitrari.
 
 ### Prerequisiti di Sistema
 - **PowerShell 7.5+** (`pwsh`) installato su Windows.
@@ -306,7 +306,7 @@ La registrazione di Codex e Claude Code usa rispettivamente `codex mcp add` e `c
 
 Prima di modificare un file esistente viene conservata una copia dei byte con hash e metadati in `.runtime/backups/mcp-pairing`. La CLI nativa mantiene le proprie modalità di scrittura: il backup e la verifica successiva non rendono atomica l'intera installazione. In caso di errore consultare gli esiti e il backup, senza cancellare i materiali di recupero.
 
-L'anteprima mostra registrazione, ambito e regole opzionali. `-Apply` applica la registrazione; `-ApproveKnowledgeTools` (alias storico `-ApproveReadTools`) autorizza le regole nominative per i sette strumenti di conoscenza, che possono integrare solo richieste pendenti già autorizzate. `check_publication` resta soggetto a consenso.
+L'anteprima mostra registrazione, ambito e regole opzionali. `-Apply` applica la registrazione; `-ApproveKnowledgeTools` (alias storico `-ApproveReadTools`) autorizza le regole nominative per i sette strumenti di conoscenza, che sono in sola lettura. `check_publication` resta soggetto a consenso.
 
 ```powershell
 # Anteprima, senza scritture

@@ -27,7 +27,7 @@ pwsh -NoProfile -File scripts/knowledge.ps1 -Startup -NoRecovery
 pwsh -NoProfile -File scripts/mcp-server.ps1 -NoRecovery
 ```
 
-Il server MCP senza `-NoRecovery` mantiene il recupero gia previsto dal contratto. L'argomento tool `noRecovery=true` o `_meta.noRecovery=true` in JSON-RPC disabilita il recupero per quella richiesta, ma non annulla il recupero gia eseguito all'avvio: per un'intera sessione senza scritture e necessario avviare il server con `-NoRecovery`.
+Il server MCP non integra mai scritture pendenti. L'argomento tool `noRecovery=true` o `_meta.noRecovery=true` in JSON-RPC vieta nuove scritture per quella richiesta; per un'intera sessione senza scritture avviare il server con `-NoRecovery`.
 
 `Capture` e `Promote` richiedono `-InputPath`; senza `-Apply` mostrano un'anteprima. `Index -Repository <identita> -Apply` ricostruisce gli indici. Le applicazioni aprono una sessione Write con chiusura in finally se non viene fornito un SessionId. Le cartelle evidence vengono create con work.ps1 -Init; registro, originali e ricevute non sono soggetti a cancellazione automatica.
 

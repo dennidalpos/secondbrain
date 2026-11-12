@@ -51,13 +51,13 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 | `check_publication` | Controllare un progetto prima del push |
 | `list_ides` | Elencare le IDE rilevate con ambiti ammessi, per la scelta multipla in chat |
 
-Il server gira solo sul tuo PC e non apre porte di rete. All'avvio e durante le letture può integrare scritture di dossier già autorizzate e accodate; gli strumenti lo dichiarano con `readOnlyHint=false`.
+Il server gira solo sul tuo PC e non apre porte di rete. Non integra mai scritture accodate, né all'avvio né durante le letture: ogni strumento dichiara `readOnlyHint=true` tranne `submit_dossier_write`, che richiede una ricevuta di approvazione locale.
 
 ## Con o senza MCP
 
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
-| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
+| **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Avvio e letture non scrivono nel dossier. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
 | **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 9.959 caratteri in italiano e 9.625 in inglese, con dodici strumenti (misurazione del 2026-11-12 con `get_runner_status`; il solo `result` misura 9.925/9.591). Metodo: server avviato con `-NoRecovery` e `SECONDBRAIN_LANG=it|en`, `initialize` con `id=1`, notifica `initialized`, `tools/list` con `id=2`, lunghezza della riga JSON compatta restituita. Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
@@ -67,11 +67,11 @@ Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumen
 1. **Il collegamento è corretto?** `scripts/mcp-server.ps1 -Pair -Target <agente>` mostra l'anteprima di percorso e configurazione.
 2. **Il server risponde?** `scripts/test-secondbrain-mcp-handshake.ps1` simula l'avvio e le chiamate. Se passa, il problema sta nell'agente o nella sua configurazione.
 3. **L'agente lo vede?** In Claude Code apri `/mcp`; in Codex usa `codex mcp list`. Riavvia l'agente dopo ogni modifica.
-4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente per gli strumenti di conoscenza: possono integrare solo richieste pendenti già autorizzate; `check_publication` conserva il consenso separato.
+4. **Troppi popup?** Aggiungi `mcp__secondbrain__<strumento>` ai permessi dell'agente per gli strumenti di conoscenza, che sono in sola lettura; `check_publication` conserva il consenso separato.
 
 Limite: la verifica nelle interfacce grafiche degli IDE non è ancora provata dal vivo.
 
-Per una sessione rigorosamente senza scritture avvia il server con `mcp-server.ps1 -NoRecovery`; il solo `noRecovery=true` di una chiamata non annulla il recupero gia avvenuto all'avvio. L'equivalente CLI e `knowledge.ps1 -NoRecovery`. Registro dei turni, allegati e adattatori sono descritti nel [ciclo memorie per repository](riferimento/memory-cycle.md); le prove su fixture non attestano la cattura live.
+Per vietare nuove scritture in tutta la sessione avvia il server con `mcp-server.ps1 -NoRecovery`; `noRecovery=true` in una chiamata le vieta per quella chiamata. Le scritture accodate si integrano solo con `knowledge.ps1 -FlushPending`; l'equivalente CLI di NoRecovery è `knowledge.ps1 -NoRecovery`. Registro dei turni, allegati e adattatori sono descritti nel [ciclo memorie per repository](riferimento/memory-cycle.md); le prove su fixture non attestano la cattura live.
 
 ## Senza MCP
 

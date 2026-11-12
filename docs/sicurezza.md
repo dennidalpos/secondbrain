@@ -8,16 +8,16 @@ SecondBrain manages instructions, configuration and local knowledge. Its core wo
 
 | Command | Effects to review |
 |---|---|
-| `knowledge.ps1 -Startup/-Tasks -NoRecovery` | Knowledge lookup without pending-write recovery |
+| `knowledge.ps1 -Startup/-Tasks -NoRecovery` | Knowledge lookup; NoRecovery also refuses any write in the same command |
 | `knowledge.ps1` lookups | Never write; only `-FlushPending` integrates already-authorized pending writes of the own dossier |
-| `prompts.ps1`, `secondbrain.ps1 -Check`, default MCP startup/lookups | May process already-authorized pending dossier writes |
+| `prompts.ps1`, `secondbrain.ps1 -Check`, MCP startup and lookups | Never write; queued dossier writes stay queued |
 | `-Setup -Interactive` | Selected workstation configuration and integrations after confirmation; optional user environment registration |
 | `-Sync` | Approved managed blocks, generated local views and configured instruction files |
 | `mcp-server.ps1 -Pair -Apply` | Selected MCP client configuration, with backup |
 | `backup.ps1` / restore commands | Backup or restore operations; inspect the target and options first |
 | `mcp-server.ps1 -ExportPackage` | Managed writes into a new directory below `.runtime`; existing destinations are refused |
 
-Sync writes immediately. Inspect alignment first, preserve existing changes, and never treat a successful file write as proof that a live IDE loaded it. The original MCP knowledge tools advertise readOnlyHint=false because their lookups may process queued writes. The reviewed-write preview advertises readOnlyHint=true; submission needs a local receipt. See [reviewed MCP writes](riferimento/mcp-writes.md). Start the server with `-NoRecovery` for a strict no-recovery session; a single call's `noRecovery=true` cannot undo recovery that already happened at startup.
+Sync writes immediately. Inspect alignment first, preserve existing changes, and never treat a successful file write as proof that a live IDE loaded it. Every MCP tool advertises readOnlyHint=true except `submit_dossier_write`, which needs a local receipt. See [reviewed MCP writes](riferimento/mcp-writes.md). Start the server with `-NoRecovery` to forbid new writes for the whole session; a single call's `noRecovery=true` forbids them for that call.
 
 SecondBrain does not inspect authentication stores to discover credentials. Account and profile identities are declared and separately verified through SYS01.
 

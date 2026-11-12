@@ -41,11 +41,11 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 
 
 **Exit code.** `-Check` exits 1 only when `aligned` is false, and `aligned` depends only on files (`issues`). Environmental findings are listed apart in `environment` and never change the exit code: `ide-write-scope-*`, `ide-loading-unverified`, `ide-context-changed`, `ide-directive-stale`, `account-unverified`, `mcp-consent-unverified`, `authoritative-source` and `compaction-required`. They clear only with a real session receipt, a write-scope probe, a reviewed account, `resources.ps1 -Sync` or SYS05. `ide-map.ps1 -Verify` keeps its own contract (exit 1 when IDEs need alignment; 2 = error, 3 = writer busy, 4 = write denied).
-Check first attempts already-authorized deferred writes with zero lock wait. Asset checks do not apply their corrections. concurrent-writer/pending-transaction warnings mean the observed state may be intermediate.
+Check never integrates deferred writes (`knowledge.ps1 -FlushPending` does). Asset checks do not apply their corrections. concurrent-writer/pending-transaction warnings mean the observed state may be intermediate.
 
 Sync writes immediately through coordination, backups and hashes. It generates approved managed blocks/local views, preserves unrelated text and reports conflicts. New assets require explicit Setup selection; unapproved source text is not distributed. Neither command schedules monitoring.
 
-Use NoRecovery-capable knowledge lookup/server startup when the session forbids all writes. A filtered Check/Sync with Repository limits coverage to that managed identity; it does not certify other products, IDEs or global instructions.
+Use `-NoRecovery` on knowledge commands and on the MCP server when the session forbids all writes: it refuses writes outright. A filtered Check/Sync with Repository limits coverage to that managed identity; it does not certify other products, IDEs or global instructions.
 
 ## Knowledge and closure
 
@@ -63,11 +63,11 @@ A permitted transition to done records closure advice/lastClosure. The closure-m
 # Preview only: lists the tasks that would run and the prompt of each session; changes nothing.
 pwsh -NoProfile -File scripts/run-ready-tasks.ps1
 
-# Run the next task of this checkout (use -MaxTasks 0 for no limit, default 3).
-pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -MaxTasks 1 -Run > .runtime/run-result.json
+# Run the next task of this checkout (use -MaxTasks 0 for no limit, default 3) with the CLI's own model and effort.
+pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -MaxTasks 1 -Run -UseCliDefault > .runtime/run-result.json
 
 # Another repository: point the runner at its checkout (its own dossier and tracker are resolved from its Git identity).
-pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -CheckoutPath C:/Projects/MyProduct -MaxTasks 1 -Run
+pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -CheckoutPath C:/Projects/MyProduct -MaxTasks 1 -Run -Model <id> -Effort <level>
 ~~~
 
 **One script per repository.** The runner handles one repository only. Each managed repository carries its own thin launcher, `.secondbrain/run-tasks.ps1`, which holds no logic: it finds SecondBrain through the `SECONDBRAIN_HOME` environment variable and runs the runner for that checkout alone.
@@ -77,26 +77,26 @@ pwsh -NoProfile -File scripts/run-ready-tasks.ps1 -CheckoutPath C:/Projects/MyPr
 pwsh -NoProfile -File scripts/install-task-launcher.ps1
 pwsh -NoProfile -File scripts/install-task-launcher.ps1 -Apply [-Repository github.com/owner/product]
 
-# From a repository: preview, then run its next task.
+# From a repository: preview, then run its next task (-Provider, -Model, -Effort, -UseCliDefault and -AllowCustomModel reach the runner unchanged).
 pwsh -NoProfile -File .secondbrain/run-tasks.ps1
-pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run
+pwsh -NoProfile -File .secondbrain/run-tasks.ps1 -MaxTasks 1 -Run -UseCliDefault
 ~~~
 
 The installer never overwrites a different existing file (it reports it as `different`), skips SecondBrain itself and writes no personal path. The launcher files are untracked and exist only on the workstation where the installer ran. Committing one in a product repository is a separate, authorized step and needs that product's SEC07 gate to be ready (see [publication](#publication)); a product with unreviewed historic findings cannot publish it.
 
-**All repositories.** There is no single command for all repositories: loop over the launchers, one repository at a time. The loop below is a suggestion that has not been run on several repositories. It does not stop at quota exhaustion (each launcher stops only after its own three consecutive failures), so keep `-MaxTasks` low.
+**All repositories.** There is no single command for all repositories: loop over the launchers, one repository at a time. The loop below is a suggestion that has not been run on several repositories. The loop itself does not stop at quota exhaustion: each launcher reads the quota first and stops at once when it is exhausted, or after its own three consecutive failures, so keep `-MaxTasks` low.
 
 ~~~powershell
 Get-ChildItem C:/Projects -Directory |
   Where-Object { Test-Path "$($_.FullName)/.secondbrain/run-tasks.ps1" } |
-  ForEach-Object { pwsh -NoProfile -File "$($_.FullName)/.secondbrain/run-tasks.ps1" -MaxTasks 1 -Run }
+  ForEach-Object { pwsh -NoProfile -File "$($_.FullName)/.secondbrain/run-tasks.ps1" -MaxTasks 1 -Run -UseCliDefault }
 ~~~
 
-SecondBrain has no launcher: use `scripts/run-ready-tasks.ps1` there. Tasks in the `coordinamento-prodotti` stream are never selected, so a product may have nothing runnable; the preview shows what would start.
+A launcher installed from an earlier template, never edited, is reported as `outdated` and replaced by `install-task-launcher.ps1 -Apply` with a backup; an edited one stays `different` and is not touched. SecondBrain has no launcher: use `scripts/run-ready-tasks.ps1` there. Tasks in the `coordinamento-prodotti` stream are never selected, so a product may have nothing runnable; the preview shows what would start.
 
 **Read perimeter in code.** The runner starts each agent with `SECONDBRAIN_RUNNER_REPOSITORY` (the task repository). With these variables set, `knowledge.ps1` and the MCP tools refuse `-All`, `-AllDossiers`, `all=true` and `allDossiers=true`; they refuse any other repository (through `-Repository`, `-CheckoutPath` or `-Dossier`) for reads and writes. An unresolvable search scope falls back to the task repository instead of all areas. Project isolation (no switch) refuses the global views for everyone. The check is a guard against mistakes, not a sandbox: a process that clears the variables is no longer restricted. The test entry point clears them for its synthetic fixtures. Covered by the `runner` group on fixtures; not yet observed with a real agent and its MCP server.
 
-**Unattended start.** The runner is started by you or by a scheduler you configure; nothing is installed for it. With Windows Task Scheduler, run `pwsh -NoProfile -File <SecondBrain>\scripts\run-ready-tasks.ps1 -MaxTasks 0 -Run` as your own user, with `claude` and `SECONDBRAIN_HOME` available to that user. This setup is not tested here, and the computer must not sleep during the run. Agents have no sandbox: after each run check `git status` and the reports. A coding assistant session may refuse to start such unattended agents, so start it yourself or from the scheduler.
+**Unattended start.** The runner is started by you or by a scheduler you configure; nothing is installed for it. With Windows Task Scheduler, run `pwsh -NoProfile -File <SecondBrain>\scripts\run-ready-tasks.ps1 -MaxTasks 0 -Run -UseCliDefault` as your own user, with `claude` and `SECONDBRAIN_HOME` available to that user. This setup is not tested here, and the computer must not sleep during the run. Agents have no sandbox: after each run check `git status` and the reports. A coding assistant session may refuse to start such unattended agents, so start it yourself or from the scheduler.
 
 **Progress.** The console shows the tracker being read, the number of runnable tasks, `[n/total]` when a task starts and ends (exit code, status change, seconds), the agent's steps as they arrive, and a final summary. Progress lines go to standard error; standard output carries only the final JSON, so `> file` keeps the console readable and the file clean (it stays empty until the run ends).
 

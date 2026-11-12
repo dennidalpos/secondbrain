@@ -2,7 +2,7 @@
 
 [Retained Italian source; use this English page for current behavior](pending-writes.it.md)
 
-Supported changes are saved as requests before integration. A zero-wait central transaction then returns applied, deferred, conflict or invalid. Deferred means the request is retained, not that the dossier changed.
+Supported changes are saved as requests before integration. A central transaction then waits for the writer lock for at most SECONDBRAIN_PENDING_WAIT_SECONDS (0-120, default 8) and returns applied, deferred, conflict or invalid. A CLI submission also integrates the other queued requests of the same repository; MCP `submit_dossier_write` integrates only its own. Deferred means the request is retained, not that the dossier changed.
 
 ## Submit and inspect
 

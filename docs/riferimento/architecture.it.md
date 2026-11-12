@@ -60,7 +60,7 @@ flowchart TB
 
     PUBLICATION["SecondBrain.Publication.psm1<br/>- Pre-push gate: scansione credenziali e host-path<br/>- Validazione link Markdown e artefatti operativi<br/>- Verifica certificata screenshot reali (DOC03)"]
 
-    MCP["SecondBrain.Mcp.psm1<br/>- Server stdio JSON-RPC e recupero dei pendenti autorizzati<br/>- Esposizione tool per IDE: contesto, task, prompt"]
+    MCP["SecondBrain.Mcp.psm1<br/>- Server stdio JSON-RPC in sola lettura, tranne submit_dossier_write<br/>- Esposizione tool per IDE: contesto, task, prompt"]
 
     SOURCES["SecondBrain.Sources.psm1<br/>- Registro fonti autorevoli e schede di applicabilità<br/>- Check locale; Probe e Collect solo su richiesta esplicita<br/>- Versioni candidate distinte dall'adozione"]
 

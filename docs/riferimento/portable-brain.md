@@ -61,7 +61,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Sync
 pwsh -NoProfile -File scripts/ide-map.ps1 -Verify
 ~~~
 
-Check may integrate already-authorized pending dossier writes. Sync writes approved blocks and generated views, reporting dirty/conflicting files rather than forcing them. File alignment, profile/account observation and live loading are separate outcomes.
+Check never writes; queued dossier writes wait for `knowledge.ps1 -FlushPending`. Sync writes approved blocks and generated views, reporting dirty/conflicting files rather than forcing them. File alignment, profile/account observation and live loading are separate outcomes.
 
 SecondBrain work folders use work Init with category, slug, manifest and session. Product agents keep build output, caches, temporary files, fixtures and evidence in Git-ignored local folders of the product checkout. The product agent verifies any tool-specific paths. Preserve test runs and recovery records.
 

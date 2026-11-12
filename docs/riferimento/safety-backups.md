@@ -9,7 +9,7 @@ Review command effects first. Ordinary synchronization does not edit product sou
 | Operation | Behavior |
 |---|---|
 | knowledge lookup with NoRecovery | No deferred-write integration |
-| Default knowledge/prompt/Check/MCP read | May integrate already-authorized dossier requests |
+| Default knowledge/prompt/Check/MCP read | Never writes; `knowledge.ps1 -FlushPending` integrates queued requests of the own dossier |
 | Discover / Setup preview | May save runtime discovery/selection reports |
 | Setup/Activate Apply | Selected host configuration/new dossiers; optional environment registration |
 | Sync | Immediate approved-block/local-view updates |

@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 2.6.0](https://img.shields.io/badge/version-2.6.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.6.1](https://img.shields.io/badge/version-2.6.1-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -83,7 +83,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 
 A new dossier has no recorded tasks, so an empty ready-task list is expected.
 
-Check and default knowledge reads can integrate already-authorized queued writes. NoRecovery disables that recovery for the knowledge commands above.
+Check and knowledge reads never write: queued dossier writes are integrated only by an explicit `knowledge.ps1 -FlushPending`. NoRecovery additionally refuses any write in the same command.
 
 ## Configuration and agent connections
 
