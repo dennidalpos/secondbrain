@@ -4,7 +4,14 @@
     "work"
   ],
   "edition": "Testo originario, GU n.235 del 7 ottobre 2016 (art. 5 modifica l'art. 4 L. 300/1970; successive modifiche non incluse)",
-  "effectiveDates": [],
+  "effectiveDates": [
+    {
+      "date": "2016-10-08",
+      "provision": "Entrata in vigore",
+      "reference": "Normattiva: art. 4 L. 300/1970 modificato dall art. 5, comma 2, di questo decreto, versione 3 vigente dal 2016-10-08, letta 2026-11-08 (scheda it-statuto-lavoratori-art4); GU Serie Generale 235 del 07-10-2016",
+      "status": "verified"
+    }
+  ],
   "endpoints": [
     {
       "allowedHosts": [

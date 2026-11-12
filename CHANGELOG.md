@@ -2,8 +2,19 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.2.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.3.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [2.3.0] - 2026-11-12
+
+### Aggiunto
+- `sources.ps1 -Decide` (`accept`, `reject`, `known-variant`): chiude una versione di fonte senza modifiche a mano; ogni decisione si aggiunge a `entries/<id>/decisions.json` (`config/source-decisions.schema.json`) con motivo, autore, data e impronta, fuori dall'hash della scheda. Una candidata rifiutata (`reviewStatus` `rejected`) non è più pendente e lo stesso contenuto non viene ricollezionato; una variante nota di una versione verificata non è segnalata come `changed` (#490).
+- `sources.ps1 -AddEffectiveDate`: aggiunge una data di efficacia a una scheda validata; Check segnala `effective-date-unverified` per normativa e legale con date `requires-verification` (#489).
+- Categoria dichiarata derivata da `kind` (`Get-SBSourceCategory`: normativa, legale, prodotto, riferimento), con i nuovi tipi `dependency`, `license` e `runbook` e la colonna nel catalogo (#489).
+- Test end-to-end di `mapping-outdated` sulle schede dei dossier (#439).
+
+### Modificato
+- `source.schema.json`: per `regulation` e `decision` sono obbligatori giurisdizione diversa da `Global`, identificativo ufficiale e almeno una data di efficacia (#489).
+- Registro: date di efficacia per D.Lgs. 151/2015, D.Lgs. 185/2016 (verificate), L. 132/2025 e ARERA 135/2022 (da verificare); candidata nist-ssdf 20261110 rifiutata e variante nota EDPB 20261027 registrata (#448).
 ## [2.2.0] - 2026-11-12
 
 ### Modificato

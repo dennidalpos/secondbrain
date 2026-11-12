@@ -4,6 +4,7 @@
   "sources": [
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -17,18 +18,20 @@
     },
     {
       "acceptedVersion": null,
+      "category": "legal",
       "domains": [
         "sectoral"
       ],
       "id": "arera-135-2022",
       "kind": "decision",
-      "metadataSha256": "64ECE373FDEABE9B4257530D9FCB3E6EE60D024E9622562A10442C7A479AA464",
+      "metadataSha256": "FB79E163470CB493609641DAB8B0E9A3C1CF0D6175D9025881E745C676AD834A",
       "path": "entries/arera-135-2022/metadata.json",
       "title": "ARERA 135/2022/R/com - riferimento da qualificare",
       "versions": []
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "security",
         "identity",
@@ -43,6 +46,7 @@
     },
     {
       "acceptedVersion": "20261108-b0c5ea0a77cfa07f",
+      "category": "reference",
       "domains": [
         "ai",
         "privacy"
@@ -69,6 +73,7 @@
     },
     {
       "acceptedVersion": "20261104-e3ece462f199b730",
+      "category": "reference",
       "domains": [
         "privacy"
       ],
@@ -90,6 +95,7 @@
     },
     {
       "acceptedVersion": "20261027-842a8d865f7cc8dd",
+      "category": "reference",
       "domains": [
         "identity",
         "security",
@@ -109,6 +115,7 @@
     },
     {
       "acceptedVersion": "20261028-92a8c1b9e066aa7c",
+      "category": "normative",
       "domains": [
         "ai",
         "privacy"
@@ -127,6 +134,7 @@
     },
     {
       "acceptedVersion": "20261028-d98dc2ed94de1c6f",
+      "category": "normative",
       "domains": [
         "ai"
       ],
@@ -144,6 +152,7 @@
     },
     {
       "acceptedVersion": "20261027-ca7f8150ca790e24",
+      "category": "normative",
       "domains": [
         "privacy"
       ],
@@ -161,6 +170,7 @@
     },
     {
       "acceptedVersion": "20261028-6a31d0a65d635c77",
+      "category": "normative",
       "domains": [
         "privacy"
       ],
@@ -178,6 +188,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -191,6 +202,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -204,6 +216,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -217,6 +230,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -230,6 +244,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -243,6 +258,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "security",
         "identity"
@@ -256,6 +272,7 @@
     },
     {
       "acceptedVersion": "20261027-55cc325c4c47b78f",
+      "category": "normative",
       "domains": [
         "ai",
         "work",
@@ -263,7 +280,7 @@
       ],
       "id": "it-ai-law-132-2025",
       "kind": "regulation",
-      "metadataSha256": "A37211AD48788873AA8E07869E9AD7E840D07FB9D1159A6708AA155CC4105C97",
+      "metadataSha256": "54D2CAD42837EE357F4F6F91203DED1C36DD53D5313192B5B55891ED306CE871",
       "path": "entries/it-ai-law-132-2025/metadata.json",
       "title": "Legge 23 settembre 2025 n. 132 - intelligenza artificiale",
       "versions": [
@@ -275,12 +292,13 @@
     },
     {
       "acceptedVersion": "20261107-9bd9938c01d80c1c",
+      "category": "normative",
       "domains": [
         "work"
       ],
       "id": "it-dlgs-151-2015",
       "kind": "regulation",
-      "metadataSha256": "DDC921C670103DCB392EDF35B6EB269F2623CE18C36E6CB4F77D8A862A6EAFC5",
+      "metadataSha256": "0CB6E0127D0DB9873D2D9DC6EAE4FBD19A39EA567DF76EE1F24E655F210AB8F7",
       "path": "entries/it-dlgs-151-2015/metadata.json",
       "title": "D.Lgs. 151/2015 - art. 23, controlli a distanza (GU)",
       "versions": [
@@ -292,12 +310,13 @@
     },
     {
       "acceptedVersion": "20261107-89a10c7f213e5fb0",
+      "category": "normative",
       "domains": [
         "work"
       ],
       "id": "it-dlgs-185-2016",
       "kind": "regulation",
-      "metadataSha256": "F7593BBD81C86F5614BF17E26DC7D6156CC954501912C3D2909FC6915B7E70CF",
+      "metadataSha256": "B3105E34E17E5C0564385F7817A9D2EE78E7830D47A37DB125391C1039C937D0",
       "path": "entries/it-dlgs-185-2016/metadata.json",
       "title": "D.Lgs. 185/2016 - art. 5, modifica art. 4 Statuto (GU)",
       "versions": [
@@ -309,6 +328,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "normative",
       "domains": [
         "work",
         "privacy"
@@ -322,6 +342,7 @@
     },
     {
       "acceptedVersion": "20261027-beb0b6d126f7d291",
+      "category": "reference",
       "domains": [
         "identity",
         "security"
@@ -340,13 +361,14 @@
     },
     {
       "acceptedVersion": "20261027-4db66862b8cebd1b",
+      "category": "reference",
       "domains": [
         "development",
         "security"
       ],
       "id": "nist-ssdf",
       "kind": "standard",
-      "metadataSha256": "A340839A9D682161E06F408F39B519B25CF34F9C8D2EB64876E42CC69AC0A7D3",
+      "metadataSha256": "96938DD631E51EEFCACA534567B5DD11AD5F17AFAAF287CF5E590CA92B3051A1",
       "path": "entries/nist-ssdf/metadata.json",
       "title": "NIST SP 800-218 - SSDF 1.1, final 2022",
       "versions": [
@@ -356,12 +378,13 @@
         },
         {
           "id": "20261110-1241458c6d8c85b3",
-          "reviewStatus": "candidate"
+          "reviewStatus": "rejected"
         }
       ]
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "official-data",
         "sectoral"
@@ -375,6 +398,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "official-data",
         "sectoral"
@@ -388,6 +412,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "official-data",
         "sectoral"
@@ -401,6 +426,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -414,6 +440,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "ai",
         "development"
@@ -427,6 +454,7 @@
     },
     {
       "acceptedVersion": "20261027-214690bf36fdea07",
+      "category": "reference",
       "domains": [
         "development",
         "security"
@@ -445,6 +473,7 @@
     },
     {
       "acceptedVersion": "20261027-af7d03c7c740eee2",
+      "category": "reference",
       "domains": [
         "development",
         "security"
@@ -463,6 +492,7 @@
     },
     {
       "acceptedVersion": "20261104-3c8c9aa16d71d7d8",
+      "category": "reference",
       "domains": [
         "identity",
         "security"
@@ -485,6 +515,7 @@
     },
     {
       "acceptedVersion": null,
+      "category": "reference",
       "domains": [
         "identity",
         "security",
@@ -499,6 +530,7 @@
     },
     {
       "acceptedVersion": "20261027-99c47346a5064e4a",
+      "category": "reference",
       "domains": [
         "development"
       ],

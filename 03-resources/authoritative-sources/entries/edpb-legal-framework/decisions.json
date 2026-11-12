@@ -1,0 +1,14 @@
+{
+  "decisions": [
+    {
+      "decidedAt": "2026-11-12T09:48:16.0109054+00:00",
+      "decidedBy": "Claude Code (lotto #489/#490/#448 approvato dalla persona titolare il 2026-11-12)",
+      "decision": "known-variant",
+      "fingerprint": "AEF2D5A00BE06CA913B22872CF60437DECB4849D84F5D0C7262C877C8BE3B099",
+      "reason": "La pagina live alterna solo la maiuscola del selettore lingua tra le versioni verificate 20261027-aef2d5a0 e 20261104-e3ece462 (MNT06 2026-11-11); l impronta del probe coincide con 20261027. acceptedVersion resta 20261104 per decisione della persona titolare del 2026-11-12. Chiude #448.",
+      "versionId": "20261027-aef2d5a00be06ca9"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceId": "edpb-legal-framework"
+}

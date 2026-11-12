@@ -8,6 +8,8 @@ Resolve the resource-authoritative-sources identity through PARA and validate pa
 
 Cards follow source.schema.json and identify issuer, jurisdiction, language, rights, registered HTTPS endpoints, relationships and effective dates. Original bytes retain SHA-256 hashes; every version has a manifest, transcription and diagnostics.
 
+Kind sets the declared category: `regulation` is normative, `decision` is legal, `dependency`, `license` and `runbook` are product sources, the other kinds are reference material (`category` in catalog.json). The schema requires a jurisdiction other than `Global`, an official identifier and at least one effective date for normative and legal cards; an unknown date is declared `requires-verification` with a null date, never guessed, and Check reports it as `effective-date-unverified`.
+
 acceptedVersion requires a verified review.json with reviewer/date, fingerprint, transcription hash and checks of structure, tables/numbers and cited passages. This qualifies transcription, not product compliance or complete current legal validity.
 
 Dossier authoritative-sources.json follows source-applicability.schema.json. Applicability and implementation have separate states; a lexical citation proves neither. Inventories preserve locations/hashes/coverage and exclude secrets, dependencies, history and snapshots.
@@ -19,9 +21,11 @@ Registry profiles are advisory. New common instructions still require concrete t
 ~~~powershell
 pwsh -NoProfile -File scripts/sources.ps1 -Check
 pwsh -NoProfile -File scripts/sources.ps1 -Probe
+pwsh -NoProfile -File scripts/sources.ps1 -Decide -SourceId <id> -VersionId <version> -Decision reject -Reason <text> -DecidedBy <who> -SessionId <id>
+pwsh -NoProfile -File scripts/sources.ps1 -AddEffectiveDate -SourceId <id> -Provision <text> [-Date yyyy-MM-dd] -DateStatus verified -Reference <text> -SessionId <id>
 ~~~
 
-Run from the brain checkout. Check is local; Probe accesses the network and does not save unless SaveReport is requested. Collect stores a candidate, not an accepted version or directive. BuildIndex regenerates views. Writing operations require the authorized session.
+Run from the brain checkout. Check is local; Probe accesses the network and does not save unless SaveReport is requested. Collect stores a candidate, not an accepted version or directive. BuildIndex regenerates views. Decide closes a version without hand edits: `reject` (a candidate or incomplete version stops being pending and the same content is not collected again), `accept` (a verified version becomes accepted; a candidate needs an extracted transcript, `-ReviewScope` and `-ReviewedStructure -ReviewedNumbersAndTables -ReviewedCitedPassages`, and the command writes review.json) and `known-variant` (a verified version whose fingerprint the live endpoint may return again, for example a cosmetic toggle: Check no longer reports `changed` for that fingerprint). Each decision is appended to `entries/<id>/decisions.json` (config/source-decisions.schema.json) with reason, author, date and fingerprint; the log sits outside the card hash, so a known-variant decision keeps the probe report fresh, while accept and reject change the card and need a new Probe. AddEffectiveDate appends an effective date to a card. Writing operations require the authorized session; the generated views are rebuilt after each write.
 
 Repeated identical originals do not create another version. Preserve interrupted directories. Resume conversion into a new file with manifest preconditions and verified backups; retain originals and alternative transcriptions by hash.
 

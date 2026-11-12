@@ -4,7 +4,14 @@
     "sectoral"
   ],
   "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
-  "effectiveDates": [],
+  "effectiveDates": [
+    {
+      "date": null,
+      "provision": "Efficacia della delibera",
+      "reference": "https://www.arera.it/atti-e-provvedimenti/dettaglio/22/135-22 (testo non ancora acquisito: data non qualificata)",
+      "status": "requires-verification"
+    }
+  ],
   "endpoints": [],
   "id": "arera-135-2022",
   "issuer": "Autorita di Regolazione per Energia Reti e Ambiente",

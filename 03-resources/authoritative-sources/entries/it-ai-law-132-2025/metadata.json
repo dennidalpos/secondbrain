@@ -6,7 +6,14 @@
     "privacy"
   ],
   "edition": "Testo originario, GU n.223 del 25 settembre 2025",
-  "effectiveDates": [],
+  "effectiveDates": [
+    {
+      "date": "2025-10-10",
+      "provision": "Entrata in vigore",
+      "reference": "GU Serie Generale 223 del 25-09-2025; data calcolata con la vacatio legis ordinaria di 15 giorni, da verificare sulla clausola finale del testo pubblicato",
+      "status": "requires-verification"
+    }
+  ],
   "endpoints": [
     {
       "allowedHosts": [

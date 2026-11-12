@@ -3,8 +3,13 @@
 .SYNOPSIS
 Source registry: local Check, remote Probe, candidate collection and index. No scheduled execution.
 .DESCRIPTION
-Exit: 0 normal, 1 pending changes/reviews, 2 error/incomplete coverage, 3 contention.
+Exit: 0 normal, 1 pending changes/reviews, 2 error/incomplete coverage, 3 contention, 4 write denied.
 Check and Probe without SaveReport do not write. Collect does not accept a version.
+Decide closes a version: reject (candidate no longer pending), accept (verified version, or candidate with -ReviewScope and the
+three -Reviewed* confirmations), known-variant (verified version the live endpoint may return again). Each decision is appended
+to entries/<id>/decisions.json. AddEffectiveDate records an effective date; an unknown date stays requires-verification without -Date.
+.EXAMPLE
+pwsh -NoProfile -File scripts/sources.ps1 -Decide -SourceId nist-ssdf -VersionId 20261110-1241458c6d8c85b3 -Decision reject -Reason "Identical PDF" -DecidedBy "Owner" -SessionId <id>
 #>
 [CmdletBinding(DefaultParameterSetName='Check')]
 param(
@@ -13,9 +18,23 @@ param(
     [Parameter(Mandatory,ParameterSetName='Probe')][switch]$Probe,
     [Parameter(ParameterSetName='Probe')][switch]$SaveReport,
     [Parameter(Mandatory,ParameterSetName='Collect')][switch]$Collect,
-    [Parameter(Mandatory,ParameterSetName='Collect')][ValidatePattern('^[a-z0-9][a-z0-9-]{0,95}$')][string]$SourceId,
+    [Parameter(Mandatory,ParameterSetName='Collect')][Parameter(Mandatory,ParameterSetName='Decide')][Parameter(Mandatory,ParameterSetName='EffectiveDate')][ValidatePattern('^[a-z0-9][a-z0-9-]{0,95}$')][string]$SourceId,
     [Parameter(ParameterSetName='Collect')][string]$PythonPath,
-    [Parameter(Mandatory,ParameterSetName='Index')][switch]$BuildIndex
+    [Parameter(Mandatory,ParameterSetName='Index')][switch]$BuildIndex,
+    [Parameter(Mandatory,ParameterSetName='Decide')][switch]$Decide,
+    [Parameter(Mandatory,ParameterSetName='Decide')][ValidatePattern('^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,95}$')][string]$VersionId,
+    [Parameter(Mandatory,ParameterSetName='Decide')][ValidateSet('accept','reject','known-variant')][string]$Decision,
+    [Parameter(Mandatory,ParameterSetName='Decide')][string]$Reason,
+    [Parameter(Mandatory,ParameterSetName='Decide')][string]$DecidedBy,
+    [Parameter(ParameterSetName='Decide')][string]$ReviewScope,
+    [Parameter(ParameterSetName='Decide')][switch]$ReviewedStructure,
+    [Parameter(ParameterSetName='Decide')][switch]$ReviewedNumbersAndTables,
+    [Parameter(ParameterSetName='Decide')][switch]$ReviewedCitedPassages,
+    [Parameter(Mandatory,ParameterSetName='EffectiveDate')][switch]$AddEffectiveDate,
+    [Parameter(Mandatory,ParameterSetName='EffectiveDate')][string]$Provision,
+    [Parameter(ParameterSetName='EffectiveDate')][string]$Date,
+    [Parameter(Mandatory,ParameterSetName='EffectiveDate')][ValidateSet('verified','requires-verification')][string]$DateStatus,
+    [Parameter(Mandatory,ParameterSetName='EffectiveDate')][string]$Reference
 )
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
@@ -47,12 +66,15 @@ try {
     }
     if($BuildIndex){
         if($registry.archived){throw (New-SBError 'sourcescli.resource.archived')}
-        $catalog=Get-SBSourceCatalog $registry
-        foreach($view in @(@{name='catalog.json';text=$catalog.json},@{name='README.md';text=$catalog.markdown})){
-            $path=Join-Path $registry.root $view.name
-            Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($view.text)) (Get-SBFileHash $path) $config.backupRoot|Out-Null
-        }
+        $null=Write-SBSourceIndex $config $config.brainRoot
         'Indice fonti allineato';exit 0
+    }
+    if($Decide){
+        $review=if($ReviewScope -or $ReviewedStructure -or $ReviewedNumbersAndTables -or $ReviewedCitedPassages){@{scope=$ReviewScope;structure=$ReviewedStructure.IsPresent;numbersAndTables=$ReviewedNumbersAndTables.IsPresent;citedPassages=$ReviewedCitedPassages.IsPresent}}else{$null}
+        ConvertTo-SBJson (Invoke-SBSourceDecision $config $registry $SourceId $VersionId $Decision $Reason $DecidedBy $review);exit 0
+    }
+    if($AddEffectiveDate){
+        ConvertTo-SBJson (Add-SBSourceEffectiveDate $config $registry $SourceId $Provision $Date $DateStatus $Reference);exit 0
     }
     if($Collect){
         if(!$PythonPath){$PythonPath=if($config.ContainsKey('sourcePythonPath')){$config.sourcePythonPath}else{Join-Path $config.localStateRoot 'sources/python/Scripts/python.exe'}}

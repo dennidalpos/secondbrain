@@ -4,7 +4,14 @@
     "work"
   ],
   "edition": "Testo originario, GU n.221 del 23 settembre 2015, S.O. n.53 (art. 23 sostituisce l'art. 4 L. 300/1970; successive modifiche non incluse)",
-  "effectiveDates": [],
+  "effectiveDates": [
+    {
+      "date": "2015-09-24",
+      "provision": "Entrata in vigore",
+      "reference": "Normattiva: art. 4 L. 300/1970 nel testo sostituito dall art. 23 di questo decreto, versione 2 vigente dal 2015-09-24, letta 2026-11-08 (scheda it-statuto-lavoratori-art4); GU Serie Generale 221 del 23-09-2015, S.O. 53",
+      "status": "verified"
+    }
+  ],
   "endpoints": [
     {
       "allowedHosts": [
@@ -47,8 +54,8 @@
   "title": "D.Lgs. 151/2015 - art. 23, controlli a distanza (GU)",
   "versions": [
     {
-      "reviewStatus": "verified",
-      "id": "20261107-9bd9938c01d80c1c"
+      "id": "20261107-9bd9938c01d80c1c",
+      "reviewStatus": "verified"
     }
   ]
 }

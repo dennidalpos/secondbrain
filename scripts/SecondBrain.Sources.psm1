@@ -57,6 +57,17 @@ Add-SBMessages @{
     'sources.transcript.modified' = @{ it = 'Trascrizione esistente modificata'; en = 'Existing transcript modified' }
     'sources.version.incomplete' = @{ it = 'Versione incompleta gia presente: preservata per revisione'; en = 'Incomplete version already present: preserved for review' }
     'sources.converter.unavailable' = @{ it = 'Rapporto convertitore non disponibile'; en = 'Converter report unavailable' }
+    'sources.decisions.invalid' = @{ it = 'Registro delle decisioni non valido: {0}; ripristinarlo dal backup o da Git'; en = 'Invalid decision log: {0}; restore it from the backup or from Git' }
+    'sources.decision.input' = @{ it = 'Decisione senza motivo o autore: indicare -Reason e -DecidedBy'; en = 'Decision without reason or author: pass -Reason and -DecidedBy' }
+    'sources.decision.version' = @{ it = 'Versione {0} non registrata nella scheda: usare un id di versions'; en = 'Version {0} is not registered in the card: use an id from versions' }
+    'sources.decision.reject' = @{ it = 'Si rifiuta solo una versione candidate o incomplete non accettata'; en = 'Only a candidate or incomplete version that is not accepted can be rejected' }
+    'sources.decision.variant' = @{ it = 'Una variante nota deve essere una versione verified'; en = 'A known variant must be a verified version' }
+    'sources.decision.accepted' = @{ it = 'La versione e gia quella accettata'; en = 'The version is already the accepted one' }
+    'sources.decision.accept' = @{ it = 'Si accetta solo una versione verified o candidate'; en = 'Only a verified or candidate version can be accepted' }
+    'sources.decision.review' = @{ it = 'Accettare una candidata richiede -ReviewScope e le tre conferme di revisione'; en = 'Accepting a candidate requires -ReviewScope and the three review confirmations' }
+    'sources.decision.transcript' = @{ it = 'Candidata senza trascrizione estratta: ricollezionare o rifiutare'; en = 'Candidate without an extracted transcript: collect again or reject' }
+    'sources.effective.input' = @{ it = 'Data di efficacia non valida: verified richiede una data yyyy-MM-dd, sempre provision e reference'; en = 'Invalid effective date: verified requires a yyyy-MM-dd date, provision and reference are always required' }
+    'sources.effective.duplicate' = @{ it = 'Data di efficacia gia registrata per questa disposizione'; en = 'Effective date already registered for this provision' }
 }
 
 function Get-SBSourceChild([string]$Root,[string]$Relative) {
@@ -103,6 +114,16 @@ function Read-SBSourceRegistry([string]$BrainRoot) {
             if($source.endpoints.Count -and @($source.endpoints|Where-Object role -eq 'canonical').Count -ne 1){throw (New-SBError 'sources.endpoint.canonical')}
             $source['_path']=$path;$source['_hash']=Get-SBFileHash $path
             $source['_root']=$dir.FullName
+            # #490: decisions live beside the card, outside its hash, so a recorded decision does not invalidate the probe report.
+            $decisionsPath=Join-Path $dir.FullName 'decisions.json'
+            $source['_decisionsPath']=$decisionsPath;$source['_decisionsHash']=Get-SBFileHash $decisionsPath;$source['_decisions']=@()
+            if($source._decisionsHash -cne 'absent'){
+                $decisionsText=Read-SBText $decisionsPath
+                if(!(Test-Json -Json $decisionsText -SchemaFile (Join-Path $BrainRoot 'config/source-decisions.schema.json') -ErrorAction SilentlyContinue)){throw (New-SBError 'sources.decisions.invalid' @($dir.Name))}
+                $log=$decisionsText|ConvertFrom-Json -AsHashtable -DateKind String
+                if($log.sourceId -cne $source.id){throw (New-SBError 'sources.decisions.invalid' @($dir.Name))}
+                $source['_decisions']=@($log.decisions)
+            }
             $sources+=,$source
         }
     }
@@ -236,12 +257,95 @@ function Save-SBSourceReport($Config,$Report) {
     # Reports are retained regardless of age. Only an explicitly requested cleanup may remove them.
     Join-Path $dir ($id+'.json')
 }
+function Get-SBSourceCategory([string]$Kind) {
+    # #489: the declared type derives from kind. Normative and legal cards must declare a non-global jurisdiction,
+    # an official identifier and at least one effective date (source.schema.json); product covers dependencies, licences and runbooks.
+    if($Kind -ceq 'regulation'){return 'normative'}
+    if($Kind -ceq 'decision'){return 'legal'}
+    if($Kind -cin @('dependency','license','runbook')){return 'product'}
+    'reference'
+}
 function Get-SBSourceCatalog($Registry) {
-    $entries=@($Registry.sources|ForEach-Object {@{id=$_.id;title=$_.title;kind=$_.kind;domains=$_.domains;acceptedVersion=$_.acceptedVersion;versions=$_.versions;path='entries/'+$_.id+'/metadata.json';metadataSha256=$_._hash}})
+    $entries=@($Registry.sources|ForEach-Object {@{id=$_.id;title=$_.title;kind=$_.kind;category=(Get-SBSourceCategory $_.kind);domains=$_.domains;acceptedVersion=$_.acceptedVersion;versions=$_.versions;path='entries/'+$_.id+'/metadata.json';metadataSha256=$_._hash}})
     $catalog=@{schemaVersion=1;resourceId='resource-authoritative-sources';sources=$entries}
-    $lines=@('# Registro comune delle fonti autorevoli','','Indice generato dalle schede. Le guide sono consultive; le prescrizioni comuni seguono il processo di approvazione delle direttive.','','| Fonte | Tipo | Ambiti | Versione accettata |','|---|---|---|---|')
-    foreach($entry in $entries){$lines+='| ['+$entry.title.Replace('|','\|')+']('+ $entry.path +') | '+$entry.kind+' | '+($entry.domains -join ', ')+' | '+$(if($entry.acceptedVersion){$entry.acceptedVersion}else{'da revisionare / riferimento'})+' |'}
+    $lines=@('# Registro comune delle fonti autorevoli','','Indice generato dalle schede. Le guide sono consultive; le prescrizioni comuni seguono il processo di approvazione delle direttive.','','| Fonte | Categoria | Tipo | Ambiti | Versione accettata |','|---|---|---|---|---|')
+    foreach($entry in $entries){$lines+='| ['+$entry.title.Replace('|','\|')+']('+ $entry.path +') | '+$entry.category+' | '+$entry.kind+' | '+($entry.domains -join ', ')+' | '+$(if($entry.acceptedVersion){$entry.acceptedVersion}else{'da revisionare / riferimento'})+' |'}
     @{json=ConvertTo-SBJson $catalog;markdown=($lines -join "`n")+"`n"}
+}
+function Write-SBSourceIndex($Config,[string]$BrainRoot) {
+    # Rebuilds catalog.json and README.md from a fresh read, so card hashes in the index match what was just written.
+    # The views are generated in full: a dirty tracked copy is backed up (-BackupDirty), so several decisions fit in one commit.
+    $registry=Read-SBSourceRegistry $BrainRoot
+    $catalog=Get-SBSourceCatalog $registry
+    foreach($view in @(@{name='catalog.json';text=$catalog.json},@{name='README.md';text=$catalog.markdown})){
+        $path=Join-Path $registry.root $view.name
+        if((Get-SBFileHash $path) -cne (Get-SBTextHash $view.text)){Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes($view.text)) (Get-SBFileHash $path) $Config.backupRoot -BackupDirty|Out-Null}
+    }
+    $registry
+}
+function Get-SBSourceCardData($Source) {
+    $data=@{};foreach($key in $Source.Keys){if(!$key.StartsWith('_',[StringComparison]::Ordinal)){$data[$key]=$Source[$key]}}
+    $data
+}
+function Write-SBSourceCard($Config,$Registry,$Source) {
+    $text=ConvertTo-SBJson (Get-SBSourceCardData $Source)
+    if(!(Test-Json -Json $text -SchemaFile (Join-Path $Registry.brainRoot 'config/source.schema.json') -ErrorAction SilentlyContinue)){throw (New-SBError 'sources.card.invalid' @($Source.id))}
+    Write-SBFile $Source._path ([Text.Encoding]::UTF8.GetBytes($text)) $Source._hash $Config.backupRoot|Out-Null
+}
+function Invoke-SBSourceDecision($Config,$Registry,[string]$SourceId,[string]$VersionId,[ValidateSet('accept','reject','known-variant')][string]$Decision,[string]$Reason,[string]$DecidedBy,[hashtable]$Review) {
+    # #490: closes a version without hand edits. reject: a candidate stops being pending; accept: a verified version becomes
+    # accepted, or a candidate with an extracted transcript after an attested review; known-variant: a verified version whose
+    # fingerprint the live endpoint may return again is not reported as changed. Every decision is appended to decisions.json.
+    if($Registry.archived){throw (New-SBError 'sources.resource.archived')}
+    if([string]::IsNullOrWhiteSpace($Reason) -or [string]::IsNullOrWhiteSpace($DecidedBy)){throw (New-SBError 'sources.decision.input')}
+    $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
+    if($sources.Count -ne 1){throw (New-SBError 'sources.unregistered')}
+    $source=$sources[0]
+    $entries=@($source.versions|Where-Object id -ceq $VersionId)
+    if($entries.Count -ne 1){throw (New-SBError 'sources.decision.version' @($VersionId))}
+    $version=$entries[0]
+    $versionRoot=Get-SBSourceChild $source._root ('versions/'+$VersionId)
+    $manifest=Read-SBJson (Join-Path $versionRoot 'manifest.json') $null
+    if(!$manifest -or $manifest.schemaVersion -ne 1 -or $manifest.sourceId -cne $source.id -or $manifest.versionId -cne $VersionId){throw (New-SBError 'sources.manifest.invalid' @($source.id))}
+    $previous=$source.acceptedVersion;$cardChanged=$false;$reviewRecord=$null
+    if($Decision -eq 'reject'){
+        if($VersionId -ceq $source.acceptedVersion -or $version.reviewStatus -notin @('candidate','incomplete')){throw (New-SBError 'sources.decision.reject')}
+        $version.reviewStatus='rejected';$cardChanged=$true
+    }elseif($Decision -eq 'known-variant'){
+        if($version.reviewStatus -ne 'verified'){throw (New-SBError 'sources.decision.variant')}
+    }else{
+        if($VersionId -ceq $source.acceptedVersion){throw (New-SBError 'sources.decision.accepted')}
+        if($version.reviewStatus -eq 'candidate'){
+            if(!$Review -or $Review.structure -ne $true -or $Review.numbersAndTables -ne $true -or $Review.citedPassages -ne $true -or [string]::IsNullOrWhiteSpace([string]$Review.scope)){throw (New-SBError 'sources.decision.review')}
+            if($manifest.transcription.status -ne 'extracted' -or !$manifest.transcription.sha256){throw (New-SBError 'sources.decision.transcript')}
+            $reviewRecord=@{schemaVersion=1;reviewer=$DecidedBy;reviewedAt=[DateTimeOffset]::UtcNow.ToString('o');fingerprint=$manifest.fingerprint;transcriptSha256=$manifest.transcription.sha256;structure=$true;numbersAndTables=$true;citedPassages=$true;scope=[string]$Review.scope;corrections=@();limitations=@('Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance.')}
+            $version.reviewStatus='verified'
+        }elseif($version.reviewStatus -ne 'verified'){throw (New-SBError 'sources.decision.accept')}
+        $source.acceptedVersion=$VersionId;$cardChanged=$true
+    }
+    $record=@{decision=$Decision;versionId=$VersionId;fingerprint=$manifest.fingerprint;reason=$Reason;decidedBy=$DecidedBy;decidedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    if($Decision -eq 'accept'){$record['previousAcceptedVersion']=$previous}
+    $log=@{schemaVersion=1;sourceId=$source.id;decisions=@($source._decisions)+@($record)}
+    $logText=ConvertTo-SBJson $log
+    if(!(Test-Json -Json $logText -SchemaFile (Join-Path $Registry.brainRoot 'config/source-decisions.schema.json') -ErrorAction SilentlyContinue)){throw (New-SBError 'sources.decisions.invalid' @($source.id))}
+    if($reviewRecord){$reviewPath=Join-Path $versionRoot 'review.json';Write-SBFile $reviewPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $reviewRecord))) (Get-SBFileHash $reviewPath) $Config.backupRoot|Out-Null}
+    if($cardChanged){Write-SBSourceCard $Config $Registry $source}
+    Write-SBFile $source._decisionsPath ([Text.Encoding]::UTF8.GetBytes($logText)) $source._decisionsHash $Config.backupRoot|Out-Null
+    if($cardChanged){$null=Write-SBSourceIndex $Config $Registry.brainRoot}
+    @{sourceId=$source.id;versionId=$VersionId;decision=$Decision;acceptedVersion=$source.acceptedVersion;cardChanged=$cardChanged}
+}
+function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$Provision,[string]$Date,[ValidateSet('verified','requires-verification')][string]$Status,[string]$Reference) {
+    # #489: normative and legal cards need effective dates; an unknown date is declared as requires-verification with a null date, never guessed.
+    if($Registry.archived){throw (New-SBError 'sources.resource.archived')}
+    if([string]::IsNullOrWhiteSpace($Provision) -or [string]::IsNullOrWhiteSpace($Reference) -or ($Date -and $Date -notmatch '^\d{4}-\d{2}-\d{2}$') -or ($Status -eq 'verified' -and !$Date)){throw (New-SBError 'sources.effective.input')}
+    $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
+    if($sources.Count -ne 1){throw (New-SBError 'sources.unregistered')}
+    $source=$sources[0]
+    if(@($source.effectiveDates|Where-Object provision -ceq $Provision).Count){throw (New-SBError 'sources.effective.duplicate')}
+    $source.effectiveDates=@($source.effectiveDates)+@(@{provision=$Provision;date=$(if($Date){$Date}else{$null});status=$Status;reference=$Reference})
+    Write-SBSourceCard $Config $Registry $source
+    $null=Write-SBSourceIndex $Config $Registry.brainRoot
+    @{sourceId=$source.id;effectiveDates=$source.effectiveDates.Count}
 }
 function Test-SBMappingOutdated($Reference,$Source) {
     # A product mapping pinned to a version older than the accepted one, for normative sources (regulations and decisions) only.
@@ -273,13 +377,22 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
                 $review=Read-SBJson (Join-Path $root 'review.json') $null
                 if(!$review -or !$review.reviewer -or !$review.reviewedAt -or $review.fingerprint -cne $manifest.fingerprint -or $review.transcriptSha256 -cne $manifest.transcription.sha256 -or !$review.structure -or !$review.numbersAndTables -or !$review.citedPassages -or $manifest.transcription.status -ne 'extracted'){throw (New-SBError 'sources.transcript.revision')}
             }
-            elseif($version.id -cne $source.acceptedVersion){$issues.Add(@{kind='candidate-pending';sourceId=$source.id;versionId=$version.id})}
+            elseif($version.reviewStatus -ne 'rejected' -and $version.id -cne $source.acceptedVersion){$issues.Add(@{kind='candidate-pending';sourceId=$source.id;versionId=$version.id})}
+        }
+        if((Get-SBSourceCategory $source.kind) -in @('normative','legal')){
+            foreach($date in @($source.effectiveDates|Where-Object status -eq 'requires-verification')){$issues.Add(@{kind='effective-date-unverified';sourceId=$source.id;provision=$date.provision})}
         }
         if($source.acceptedVersion -and (!$versionIds.ContainsKey($source.acceptedVersion) -or @($source.versions|Where-Object { $_.id -ceq $source.acceptedVersion -and $_.reviewStatus -eq 'verified'}).Count -ne 1)){throw (New-SBError 'sources.version.unverified')}
         if($source.rights.status -ne 'reference-only' -and !$source.acceptedVersion){$issues.Add(@{kind='review-pending';sourceId=$source.id})}
         $checks=@(if($latest){$latest.sources|Where-Object sourceId -eq $source.id})
         if($source.endpoints.Count -and (!$checks.Count -or $checks[0].configurationHash -cne $source._hash -or [DateTimeOffset]::Parse($latest.checkedAt) -lt [DateTimeOffset]::UtcNow.AddDays(-14))){$issues.Add(@{kind='verification-stale';sourceId=$source.id})}
-        elseif($checks.Count -and $checks[0].status -notin @('unchanged','reference-only')){$issues.Add(@{kind=$checks[0].status;sourceId=$source.id})}
+        elseif($checks.Count -and $checks[0].status -notin @('unchanged','reference-only')){
+            # A live fingerprint recorded as a known variant of a verified version is not a change to review again.
+            $fingerprint=if($checks[0].ContainsKey('fingerprint')){[string]$checks[0].fingerprint}else{''}
+            $verified=@($source.versions|Where-Object reviewStatus -eq 'verified'|ForEach-Object {$_.id})
+            $known=$checks[0].status -eq 'changed' -and $fingerprint -and @($source._decisions|Where-Object {$_.decision -eq 'known-variant' -and $_.fingerprint -ceq $fingerprint -and $_.versionId -cin $verified}).Count
+            if(!$known){$issues.Add(@{kind=$checks[0].status;sourceId=$source.id})}
+        }
     }
     $catalog=Get-SBSourceCatalog $Registry
     foreach($view in @(@{name='catalog.json';text=$catalog.json},@{name='README.md';text=$catalog.markdown})){
@@ -372,9 +485,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
     $manifest=@{schemaVersion=1;sourceId=$SourceId;versionId=$versionId;edition=$source.edition;publicationDate=$source.publicationDate;language=$source.language;acquiredAt=[DateTimeOffset]::UtcNow.ToString('o');fingerprint=$fingerprint;configurationHash=$source._hash;artifacts=$artifacts;transcription=@{status=$result.status;path=$(if(Test-Path -LiteralPath $transcript){'transcript.md'}else{$null});sha256=$(if(Test-Path -LiteralPath $transcript){Get-SBFileHash $transcript}else{$null});diagnostics=$result}}
     Write-SBFile (Join-Path $versionRoot 'manifest.json') ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $manifest))) 'absent' $Config.backupRoot|Out-Null
     $source.versions+=@{id=$versionId;reviewStatus='candidate'}
-    $path=$source._path;$hash=$source._hash
-    $data=@{};foreach($key in $source.Keys){if(!$key.StartsWith('_',[StringComparison]::Ordinal)){$data[$key]=$source[$key]}}
-    Write-SBFile $path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $data))) $hash $Config.backupRoot|Out-Null
+    Write-SBFile $source._path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson (Get-SBSourceCardData $source)))) $source._hash $Config.backupRoot|Out-Null
     @{sourceId=$SourceId;versionId=$versionId;status=$result.status}
 }
 function Restore-SBSourceOriginals($Config,$Registry,[scriptblock]$Transport) {
@@ -444,6 +555,10 @@ function Get-SBSourceClosure($Registry,[string[]]$Seeds,[ValidateRange(0,10)][in
     @{sources=@($included.Keys);depths=$included;queue=@($queue.Keys|Sort-Object|ForEach-Object {$queue[$_]})}
 }
 Export-ModuleMember -Function @(
+    'Get-SBSourceCategory',
+    'Write-SBSourceIndex',
+    'Invoke-SBSourceDecision',
+    'Add-SBSourceEffectiveDate',
     'Test-SBMappingOutdated',
     'Get-SBSourceChild',
     'Read-SBSourceRegistry',

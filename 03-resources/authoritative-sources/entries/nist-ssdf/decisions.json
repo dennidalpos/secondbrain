@@ -1,0 +1,14 @@
+{
+  "decisions": [
+    {
+      "decidedAt": "2026-11-12T09:48:12.9690813+00:00",
+      "decidedBy": "Claude Code (lotto #489/#490/#448 approvato dalla persona titolare il 2026-11-12)",
+      "decision": "reject",
+      "fingerprint": "1241458C6D8C85B3D7FD326470B81F76EBC4944D697FCDF62E9D0B0608FD52D4",
+      "reason": "MNT06 2026-11-11: PDF canonico identico alla versione accettata 20261027-4db66862 (SHA-256 617746E5...); publication.html differisce solo per una riga di cronologia; nessuna trascrizione (converter-unavailable). Chiude #448.",
+      "versionId": "20261110-1241458c6d8c85b3"
+    }
+  ],
+  "schemaVersion": 1,
+  "sourceId": "nist-ssdf"
+}
