@@ -360,7 +360,10 @@ function New-SBAgentInvocation {
                 Add-Flag '--disallowedTools' $script:SBClaudeReadOnlyDenied
                 # The schema travels as one JSON argument: only to a real executable, never through a .cmd shim that re-parses quotes.
                 if($SchemaPath -and !$NoInlineSchema -and (Test-SBAgentFlagAvailable $Capabilities '--json-schema')){
-                    $list.Add('--json-schema');$list.Add(((Read-SBText $SchemaPath)|ConvertFrom-Json|ConvertTo-Json -Depth 40 -Compress));$native=$true
+                    # The CLI validator does not load the draft 2020-12 meta-schema: drop the $schema declaration (the
+                    # analysis schemas use no 2020-12-only keyword; local validation still reads the whole file).
+                    $inline=(Read-SBText $SchemaPath)|ConvertFrom-Json -AsHashtable;[void]$inline.Remove('$schema')
+                    $list.Add('--json-schema');$list.Add(($inline|ConvertTo-Json -Depth 40 -Compress));$native=$true
                 }
                 if($Model){Add-Flag '--model' @($Model)}
                 if($Effort){Add-Flag '--effort' @($Effort)}

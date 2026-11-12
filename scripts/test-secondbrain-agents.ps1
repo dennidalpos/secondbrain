@@ -186,6 +186,11 @@ $claudeSchemaCaps=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -Ex
 $ro=New-SBAgentInvocation -Provider claude -Capabilities $claudeSchemaCaps -Model 'haiku' -Profile ReadOnly -SchemaPath $schemaFile
 $a=$ro.arguments -join ' '
 Assert-Agent ($a.StartsWith('-p --output-format json --permission-mode plan --allowedTools Read,Grep,Glob --disallowedTools Bash Edit Write') -and $a -notmatch 'acceptEdits' -and $ro.nativeSchema -and $ro.arguments[[array]::IndexOf($ro.arguments,'--json-schema')+1] -match '^\{"type":"object"' -and $a.EndsWith('--model haiku') -and $ro.profile -eq 'ReadOnly') ('Claude ReadOnly: plan mode, read tools only, native schema: '+$a)
+foreach($analysisSchema in @(Get-ChildItem (Join-Path $PSScriptRoot '../config/analysis') -Filter '*.schema.json')){
+    $inv=New-SBAgentInvocation -Provider claude -Capabilities $claudeSchemaCaps -Profile ReadOnly -SchemaPath $analysisSchema.FullName
+    $inline=$inv.arguments[[array]::IndexOf($inv.arguments,'--json-schema')+1]|ConvertFrom-Json -AsHashtable
+    Assert-Agent ($inv.nativeSchema -and !$inline.Contains('$schema') -and $inline.type -eq 'object' -and $inline.Contains('properties')) ('the inline Claude schema drops the draft 2020-12 $schema the CLI cannot load: '+$analysisSchema.Name)
+}
 $roShim=New-SBAgentInvocation -Provider claude -Capabilities $claudeSchemaCaps -Profile ReadOnly -SchemaPath $schemaFile -NoInlineSchema
 Assert-Agent (!$roShim.nativeSchema -and '--json-schema' -notin $roShim.arguments) 'through a .cmd shim the Claude schema stays in the prompt'
 Assert-Agent (!(New-SBAgentInvocation -Provider claude -Capabilities $claude -Profile ReadOnly -SchemaPath $schemaFile).nativeSchema) 'a Claude help without --json-schema keeps the schema in the prompt'

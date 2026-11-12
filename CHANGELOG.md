@@ -2,7 +2,15 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.7.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.7.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.7.1] - 2026-11-12
+
+### Corretto
+- Analisi con modello leggero su Claude Code (`agents.ps1 -Analyze`, per esempio **Proponi struttura** delle direttive): lo schema passato in linea a `--json-schema` non contiene più la dichiarazione `$schema` della bozza 2020-12, che il validatore della CLI non carica e che faceva fallire l'analisi con «--json-schema is not a valid JSON Schema». Gli schemi di `config/analysis/` restano invariati e la verifica locale della risposta usa ancora il file intero.
+
+### Test
+- Gruppo `agents`: lo schema in linea per Claude di ogni schema di `config/analysis/` è privo di `$schema`.
 
 ## [2.7.0] - 2026-11-12
 
