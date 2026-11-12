@@ -9,11 +9,14 @@ src-tauri/Cargo.toml and src-tauri/tauri.conf.json. The build needs npm and carg
 missing, then npm run tauri build -- --no-bundle. The app starts detached with SECONDBRAIN_HOME set to this checkout; on macOS and Linux
 its output goes to .runtime/hosts/<host>/logs/runner-gui.log.
 -NoLaunch builds when needed and does not start the app. -WhatIf builds and starts nothing and reports the decision.
+-RepositoryPath <checkout> opens the app on that repository (passed as --repo <path>): its dossier, tracker and ready tasks load at start.
 -AppPath points to another copy of the app folder (tests). Progress goes to standard error, the final JSON to standard output.
-Exit codes: 0 success, 2 missing prerequisites or binary, 3 build failed.
+Exit codes: 0 success, 2 missing prerequisites or binary, 3 build failed, 4 no graphical session (Linux without DISPLAY or
+WAYLAND_DISPLAY), 5 the app did not start (it exited at once, e.g. without the WebView2 runtime). scripts/runner.ps1 turns 2-5 into
+the command-line fallback.
 #>
 [CmdletBinding(SupportsShouldProcess)]
-param([switch]$Rebuild,[switch]$NoLaunch,[string]$AppPath)
+param([switch]$Rebuild,[switch]$NoLaunch,[string]$AppPath,[string]$RepositoryPath)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
@@ -33,6 +36,9 @@ Add-SBMessages @{
     'runnergui.launch.log' = @{it='Output del runner in {0}';en='Runner output in {0}'}
     'runnergui.whatif.build' = @{it='Compilazione del runner ({0})';en='Build the runner ({0})'}
     'runnergui.whatif.launch' = @{it='Avvio del runner';en='Start the runner'}
+    'runnergui.display.missing' = @{it='Nessuna sessione grafica (DISPLAY o WAYLAND_DISPLAY assenti): il runner desktop non puo aprirsi';en='No graphical session (DISPLAY or WAYLAND_DISPLAY missing): the desktop runner cannot open'}
+    'runnergui.launch.failed' = @{it='Il runner desktop non si e avviato ({0}). Requisiti: docs/orchestratore.it.md';en='The desktop runner did not start ({0}). Requirements: docs/orchestratore.md'}
+    'runnergui.repository' = @{it='Repository da aprire: {0}';en='Repository to open: {0}'}
 }
 function Write-RunnerGuiLine([string]$Key,[object[]]$Arguments=@()){[Console]::Error.WriteLine((Get-SBMessage $Key $Arguments))}
 function Stop-RunnerGui([string]$Key,[object[]]$Arguments,[int]$Code){
@@ -53,7 +59,8 @@ foreach($file in @('index.html','package.json','package-lock.json','src-tauri/Ca
 $newest=$sources|Sort-Object LastWriteTimeUtc -Descending|Select-Object -First 1
 $exists=Test-Path -LiteralPath $binary -PathType Leaf
 $reason=if($Rebuild){'forced'}elseif(!$exists){'missing'}elseif($newest -and $newest.LastWriteTimeUtc -gt (Get-Item -LiteralPath $binary).LastWriteTimeUtc){'stale'}else{'current'}
-$result=[ordered]@{binary=$binary;exists=$exists;reason=$reason;build=($reason -ne 'current');newestSource=$(if($newest){[IO.Path]::GetRelativePath($app,$newest.FullName).Replace('\','/')}else{$null});built=$false;launched=$false;log=$null;whatIf=[bool]$WhatIfPreference}
+$repository=if($RepositoryPath){[IO.Path]::GetFullPath($RepositoryPath)}else{$null}
+$result=[ordered]@{binary=$binary;exists=$exists;reason=$reason;build=($reason -ne 'current');newestSource=$(if($newest){[IO.Path]::GetRelativePath($app,$newest.FullName).Replace('\','/')}else{$null});built=$false;launched=$false;log=$null;repository=$repository;whatIf=[bool]$WhatIfPreference}
 
 if($result.build){
     if($PSCmdlet.ShouldProcess($app,(Get-SBMessage 'runnergui.whatif.build' @($reason)))){
@@ -89,10 +96,20 @@ if($result.build){
 
 if(!$NoLaunch -and $PSCmdlet.ShouldProcess($binary,(Get-SBMessage 'runnergui.whatif.launch'))){
     if(!(Test-Path -LiteralPath $binary -PathType Leaf)){Write-RunnerGuiLine 'runnergui.binary.missing' @($binary);exit 2}
+    if($IsLinux -and !$env:DISPLAY -and !$env:WAYLAND_DISPLAY){Write-RunnerGuiLine 'runnergui.display.missing';exit 4}
     Write-RunnerGuiLine 'runnergui.launch' @($root)
-    $environment=@{SECONDBRAIN_HOME=$root}
+    if($repository){Write-RunnerGuiLine 'runnergui.repository' @($repository)}
+    $appArguments=if($repository){@('--repo',$repository)}else{@()}
     if($IsWindows){
-        Start-Process -FilePath $binary -WorkingDirectory $root -Environment $environment|Out-Null
+        # Started through ShellExecute, which passes no handles: with CreateProcess the app inherited this script's standard output and a
+        # caller reading it (an agent running sb runner) waited until the window was closed. The environment is inherited from this process.
+        # An app that exits with an error within three seconds did not start.
+        $info=[Diagnostics.ProcessStartInfo]::new($binary);$info.UseShellExecute=$true;$info.WorkingDirectory=$root
+        foreach($argument in $appArguments){$info.ArgumentList.Add($argument)}
+        $previousHome=$env:SECONDBRAIN_HOME;$env:SECONDBRAIN_HOME=$root
+        $process=$null
+        try{$process=[Diagnostics.Process]::Start($info)}catch{Write-RunnerGuiLine 'runnergui.launch.failed' @($_.Exception.Message);exit 5}finally{$env:SECONDBRAIN_HOME=$previousHome}
+        if($process){try{if($process.WaitForExit(3000) -and $process.ExitCode -ne 0){Write-RunnerGuiLine 'runnergui.launch.failed' @('exit '+$process.ExitCode);exit 5}}finally{$process.Dispose()}}
     }else{
         # A desktop app outlives this shell: nohup through /bin/sh detaches it and appends its output to a log under .runtime.
         $hostId=try{Get-SBHostId}catch{'ws-'+(Get-SBTextHash ([Environment]::MachineName+'|'+[Environment]::UserName)).Substring(0,16).ToLowerInvariant()}
@@ -101,7 +118,7 @@ if(!$NoLaunch -and $PSCmdlet.ShouldProcess($binary,(Get-SBMessage 'runnergui.wha
         $log=Join-Path $logDir 'runner-gui.log'
         # ProcessStartInfo.ArgumentList passes each argument as is (Start-Process would join them without quoting).
         $info=[Diagnostics.ProcessStartInfo]::new('/bin/sh')
-        foreach($argument in @('-c','nohup "$0" >>"$1" 2>&1 &',$binary,$log)){$info.ArgumentList.Add($argument)}
+        foreach($argument in @('-c','log="$1"; shift; nohup "$0" "$@" >>"$log" 2>&1 &',$binary,$log)+$appArguments){$info.ArgumentList.Add($argument)}
         $info.UseShellExecute=$false;$info.WorkingDirectory=$root;$info.Environment['SECONDBRAIN_HOME']=$root
         $shell=[Diagnostics.Process]::Start($info);$shell.WaitForExit();$shell.Dispose()
         $result.log=$log

@@ -14,6 +14,7 @@
     "@tauri-apps/plugin-dialog": "2.2.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
     "@tauri-apps/cli": "2.5.0",
     "typescript": "5.8.3",
     "vite": "6.4.6"

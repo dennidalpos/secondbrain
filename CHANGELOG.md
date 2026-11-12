@@ -2,7 +2,29 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.3.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.4.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.4.0] - 2026-11-12
+
+### Aggiunto
+- Monitoraggio del runner: l'agente scrive a eventi (Claude Code `stream-json`, Codex `exec --json`, Gemini `stream-json` se offerto) letti riga per riga in `agent-output.jsonl`; eventi `agent` compatti (`start`, `tool`, `text`, `result`, `error`). Con `-Run` ogni giro ha una cartella `report/<data>-runner-run-<ora>-<pid>` con `status.json` (fase, PID, task, ultimo segnale, conteggi, file di arresto) aggiornato a ogni evento e almeno ogni 15 secondi, ed `events.jsonl`. `-StallMinutes` (predefinito 5) emette `stalled` senza fermare nulla; un secondo `-Run` sullo stesso repository esce con 2 finché il primo è vivo.
+- `scripts/runner-status.ps1` (verdetto `working`, `stalled`, `finished`, `orphaned`, `none`; `-Follow`, `-Stop`) e lo strumento MCP in sola lettura `get_runner_status` (12 strumenti).
+- `scripts/runner.ps1`: `sb runner` apre l'orchestratore desktop sul repository corrente (`-Mode auto|gui|cli`) e ripiega sull'anteprima della CLI con il motivo (`prerequisites-missing`, `build-failed`, `no-display`, `launch-failed`); REP15 chiede prima la scelta fra app desktop e riga di comando.
+- Orchestratore: precaricamento del repository da `--repo`, flusso a passi con testata di riepilogo, rimozione dei repository recenti persistente, pannello di esecuzione con verdetto, passi dell'agente ed età dell'ultimo segnale, dialogo alla chiusura con coda attiva e riaggancio del run alla riapertura.
+- Suite `orchestrator-e2e` (Playwright via DevTools di WebView2 sul binario di rilascio, SecondBrain sintetico di `test-orchestrator-fixture.ps1`), inclusa in `-Full`.
+- Prompt DOC05 (diagrammi, locandine, infografiche e flussi per social, siti e marketing dal codice reale) e COM08 (intento del progetto, limiti, applicabilità in produzione e confronto con alternative note); catalogo a 116 prompt.
+
+### Modificato
+- Rilevamento degli agenti: oltre al `PATH` ereditato, `PATH` utente e di sistema dal registro, WinGet Links, WindowsApps, npm, pnpm, Volta, scoop, bun, Homebrew, snap, nvm, fnm e `~/.local/bin`, e Codex del Microsoft Store; probe in parallelo con `status` e `origin`; `agents.ps1 -Probe -Clients` elenca anche gli IDE non pilotabili con il motivo.
+- Modelli: gli elenchi contengono solo ciò che la CLI installata e la sua configurazione espongono; la tabella di riserva serve solo a convalidare un modello scritto a mano e un agente non installato non espone modelli.
+- Orchestratore: la coda parte come processo staccato con log su file; le impostazioni si leggono e si scrivono a ogni modifica invece di riscrivere una lista in memoria; «Importa testo da file» copia il testo nell'editor; il bersaglio delle direttive è sempre il blocco gestito del dossier.
+- `Get-SBHostId` funziona anche fuori da Windows.
+
+### Corretto
+- I repository rimossi dall'orchestratore non ricompaiono più dopo la riapertura o il salvataggio delle impostazioni.
+- Codex installato solo come pacchetto del Microsoft Store risultava non installato; Gemini non installato mostrava i modelli della tabella di riserva.
+- Processo agente con codifica UTF-8 esplicita su standard input, output ed errore.
+- Documentazione: il runner scrive il tracker solo per parcheggiare come `user_required` un task rimasto `todo`.
 
 ## [2.3.0] - 2026-11-12
 

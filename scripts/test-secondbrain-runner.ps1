@@ -107,9 +107,26 @@ try {
     # Fake agent (mode as its only positional argument): reads the prompt from stdin and echoes it in a claude-like JSON envelope; the mode drives the outcome.
     Put-Runner $fake @'
 param([string]$Mode='ok')
+# The runner talks UTF-8 on stdin and stdout, like the real agent CLIs.
+[Console]::InputEncoding=[Text.UTF8Encoding]::new($false);[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $prompt=[Console]::In.ReadToEnd()
 $id=if($prompt -match 'SOLO il task (\S+)'){$Matches[1]}else{''}
+function Set-FakeInProgress([string]$Reason){
+    & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -UpdateTaskId $id -Status in_progress -StateReason $Reason|Out-Null
+    if($LASTEXITCODE){[Console]::Error.WriteLine('update failed');exit 5}
+}
 switch($Mode){
+    # Streaming (Claude Code stream-json shape): init, a tool step and a text step, a pause long enough for status.json to be read, then the result.
+    'stream' {
+        [Console]::Out.WriteLine((@{type='system';subtype='init';model='fake-model'}|ConvertTo-Json -Compress));[Console]::Out.Flush()
+        [Console]::Out.WriteLine((@{type='assistant';message=@{content=@(@{type='tool_use';name='Read';input=@{file_path='src/app.ts'}})}}|ConvertTo-Json -Compress -Depth 6));[Console]::Out.Flush()
+        Start-Sleep -Seconds 4
+        [Console]::Out.WriteLine((@{type='assistant';message=@{content=@(@{type='text';text="Analisi completata`nseconda riga"})}}|ConvertTo-Json -Compress -Depth 6));[Console]::Out.Flush()
+        Set-FakeInProgress 'Fake agent stream'
+        [Console]::Out.WriteLine((@{type='result';subtype='success';is_error=$false;result='streamed è ok'}|ConvertTo-Json -Compress));exit 0
+    }
+    # Silent for 9 seconds, then a normal answer: with a short -StallMinutes the runner reports one possible stall and still finishes.
+    'quiet' {Start-Sleep -Seconds 9;Set-FakeInProgress 'Fake agent quiet';[Console]::Out.Write((@{type='result';is_error=$false;result='late'}|ConvertTo-Json -Compress));exit 0}
     'ok' {
         & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -UpdateTaskId $id -Status in_progress -StateReason 'Fake agent run'|Out-Null
         if($LASTEXITCODE){[Console]::Error.WriteLine('update failed');exit 5}
@@ -389,6 +406,63 @@ $r|ConvertTo-Json -Compress
     $orchMain=Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\app\orchestrator\src\main.ts') -Raw
     Assert-Runner ($orchMain -match 'state\.selected\s*=\s*new Set<string>\(\);' -and $orchMain -notmatch 'state\.selected\s*=\s*new Set\(state\.tasks') 'orchestrator queue preselects no task'
     Close-RunnerPhase 'orchestrator'
+    # Live monitoring: streamed agent steps, status.json and events.jsonl while the agent works, one runner per repository, stall notice, runner-status.ps1.
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.RunnerStatus.psm1') -Force
+    $codexLine='{"type":"item.started","item":{"id":"i1","type":"command_execution","command":"npm test"}}'
+    $e=ConvertTo-SBAgentEvent $codexLine
+    Assert-Runner ($e.kind -eq 'tool' -and $e.summary -ceq 'shell: npm test') ('Codex JSONL command becomes a tool step: '+($e|ConvertTo-Json -Compress))
+    $e=ConvertTo-SBAgentEvent '{"type":"tool_use","tool_name":"read_file","parameters":{"path":"a.md"}}'
+    Assert-Runner ($e.kind -eq 'tool' -and $e.summary -ceq 'read_file: a.md') 'Gemini stream-json tool step'
+    $e=ConvertTo-SBAgentEvent '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Write","input":{"file_path":"x.ts","content":"SECRET-CONTENT"}}]}}'
+    Assert-Runner ($e.summary -ceq 'Write: x.ts' -and $e.summary -notmatch 'SECRET') 'a tool step names the path, never the written content'
+    Assert-Runner ((ConvertTo-SBAgentEvent '{"type":"result","is_error":true,"subtype":"error_max_turns"}').kind -eq 'error' -and $null -eq (ConvertTo-SBAgentEvent '{"type":"user"}') -and (ConvertTo-SBAgentEvent 'plain text line').kind -eq 'text') 'result errors, silent events and plain text are classified'
+    Assert-Runner ((Get-SBAgentFinalOutput ("{`"type`":`"system`"}`n{`"type`":`"result`",`"result`":`"r`"}`n")) -ceq '{"type":"result","result":"r"}') 'the final output of a stream is its result line'
+    $nowUtc=[DateTimeOffset]::UtcNow
+    $fresh=@{state='running';phase='agent';updatedAt=$nowUtc.ToString('o');stallMinutes=1;lastAgentEventAt=$nowUtc.AddSeconds(-30).ToString('o')}
+    Assert-Runner ((Get-SBRunnerVerdict $fresh $nowUtc $true) -eq 'working' -and (Get-SBRunnerVerdict $fresh $nowUtc $false) -eq 'orphaned') 'verdict: alive and recent is working, dead is orphaned'
+    $fresh.lastAgentEventAt=$nowUtc.AddSeconds(-90).ToString('o')
+    Assert-Runner ((Get-SBRunnerVerdict $fresh $nowUtc $true) -eq 'stalled') 'verdict: silent agent past the stall threshold is stalled'
+    $fresh.phase='flush';$fresh.updatedAt=$nowUtc.AddSeconds(-120).ToString('o')
+    Assert-Runner ((Get-SBRunnerVerdict $fresh $nowUtc $true) -eq 'stalled' -and (Get-SBRunnerVerdict @{state='finished'} $nowUtc $true) -eq 'finished') 'verdict: a missed heartbeat is stalled, a closed run finished'
+    # A live runner (this test process) blocks a second run on the same repository; a dead one is marked orphaned and the run proceeds.
+    $reportRoot=Get-SBRunnerReportRoot $brain $hostId $identity2
+    $ghost=Join-Path $reportRoot '20000101-runner-run-000000-1'
+    Put-Runner (Join-Path $ghost 'status.json') (ConvertTo-SBJson @{schemaVersion=1;state='running';phase='agent';pid=$PID;processStartTicks=(Get-SBProcessStartTicks $PID);repository=$identity2;updatedAt=[DateTimeOffset]::UtcNow.ToString('o')})
+    $runsBefore=@(Get-ChildItem -LiteralPath $reportRoot -Directory -Filter '*-runner-run-*').Count
+    $busy=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','stream','-TaskIds','S-1')
+    Assert-Runner ($busy.code -eq 2 -and $busy.err -match 'runner-status' -and @(Get-ChildItem -LiteralPath $reportRoot -Directory -Filter '*-runner-run-*').Count -eq $runsBefore) ('a second runner on the same repository is refused: '+$busy.text)
+    Put-Runner (Join-Path $ghost 'status.json') (ConvertTo-SBJson @{schemaVersion=1;state='running';phase='agent';pid=2147483000;repository=$identity2;updatedAt='2000-01-01T00:00:00Z'})
+    (Get-Item -LiteralPath (Join-Path $ghost 'status.json')).LastWriteTimeUtc=[DateTime]::UtcNow.AddDays(-1)
+    $statusScript=Join-Path $brain 'scripts/runner-status.ps1'
+    $streamOut=Join-Path $fixture 'stream.out';$streamErr=Join-Path $fixture 'stream.err'
+    $streamProcess=Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList @('-NoProfile','-File',$runner,'-CheckoutPath',$checkout2,'-ConfigPath',$configPath,'-AgentPath',$fake,'-AgentArguments','stream','-TaskIds','S-1','-Run','-Events') -RedirectStandardOutput $streamOut -RedirectStandardError $streamErr -PassThru -NoNewWindow
+    $live=$null;$deadline=(Get-Date).AddSeconds(90)
+    while(!$streamProcess.HasExited -and (Get-Date) -lt $deadline){
+        $probeLive=(& pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath -Tail 50 2>$null|Out-String)
+        if($probeLive.Contains('{')){$candidate=$probeLive.Substring($probeLive.IndexOf('{'))|ConvertFrom-Json -AsHashtable;if($candidate.verdict -eq 'working' -and $candidate.status.lastAgentEvent -and $candidate.status.lastAgentEvent.kind -in @('tool','text')){$live=$candidate;break}}
+        Start-Sleep -Milliseconds 500
+    }
+    $streamProcess.WaitForExit();$streamCode=$streamProcess.ExitCode
+    Assert-Runner ($live -and $live.active -and $live.status.phase -eq 'agent' -and $live.status.task.id -eq 'S-1' -and $live.status.lastAgentEvent.summary -cin @('Read: src/app.ts','Analisi completata') -and @($live.events|Where-Object {$_.event -eq 'agent' -and $_.summary -ceq 'Read: src/app.ts'}).Count -eq 1 -and $null -ne $live.ages.agentEvent) ('runner-status sees the working agent and its last step while it runs: '+($live|ConvertTo-Json -Compress -Depth 6))
+    Assert-Runner (@($live.events|Where-Object {$_.event -eq 'agent' -and $_.kind -eq 'start'}).Count -eq 1) 'the session start is an agent event in events.jsonl'
+    $streamData=(Get-Content -LiteralPath $streamOut -Raw);$streamData=$streamData.Substring($streamData.IndexOf('{'))|ConvertFrom-Json -AsHashtable
+    $streamEvents=@(Get-Content -LiteralPath $streamErr|Where-Object {$_.Trim().StartsWith('{')}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
+    $agentEvents=@($streamEvents|Where-Object {$_.event -eq 'agent'})
+    Assert-Runner ($streamCode -eq 0 -and @($streamData.tasks)[0].state -eq 'finished' -and (@($agentEvents|ForEach-Object kind) -join ',') -ceq 'start,tool,text,result') ('-Events carries the agent steps in order: '+(@($agentEvents|ForEach-Object {$_.kind+'='+$_.summary}) -join ' | '))
+    Assert-Runner (@($agentEvents|Where-Object {$_.kind -eq 'text'})[0].summary -ceq 'Analisi completata') 'a text step keeps only its first line'
+    $streamFolder=@($streamData.tasks)[0].folder
+    Assert-Runner (@(Get-Content -LiteralPath (Join-Path $streamFolder 'agent-output.jsonl')|Where-Object {$_}).Count -eq 4 -and (Read-SBJson (Join-Path $streamFolder 'agent-output.json') $null).result -ceq 'streamed è ok') 'agent-output.jsonl keeps the stream, agent-output.json the UTF-8 result line'
+    $finalStatus=Read-SBJson ([string]$streamData.status) $null
+    Assert-Runner ($finalStatus.state -eq 'finished' -and $finalStatus.phase -eq 'closed' -and $finalStatus.counts.succeeded -eq 1 -and (Read-SBJson (Join-Path (Split-Path ([string]$streamData.status)) 'MANIFEST.json') $null).status -eq 'closed') ('status.json ends finished and the run folder is closed: '+($finalStatus|ConvertTo-Json -Compress -Depth 4))
+    Assert-Runner ((Read-SBJson (Join-Path $ghost 'status.json') $null).state -eq 'orphaned') 'the dead runner status is marked orphaned'
+    $after=(& pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath 2>$null|Out-String);$after=$after.Substring($after.IndexOf('{'))|ConvertFrom-Json -AsHashtable
+    Assert-Runner ($after.verdict -eq 'finished' -and !$after.active) ('runner-status reports the finished run: '+$after.verdict)
+    & pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath -Stop *>$null
+    Assert-Runner ($LASTEXITCODE -eq 2) 'runner-status -Stop without an active run exits 2'
+    $quiet=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','quiet','-TaskIds','S-2','-StallMinutes','0.1','-Events')
+    $quietEvents=@($quiet.err -split "`r?`n"|Where-Object {$_.Trim().StartsWith('{')}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
+    Assert-Runner ($quiet.code -eq 0 -and @($quietEvents|Where-Object {$_.event -eq 'stalled'}).Count -eq 1 -and @($quiet.data.tasks)[0].state -eq 'finished') ('a silent agent raises one stall notice and is not killed: '+$quiet.err)
+    Close-RunnerPhase 'monitor'
     # runner-gui.ps1 (sb runner): binary path and rebuild decision on a fake app with a fake binary; -WhatIf/-NoLaunch, never a real build.
     $guiApp=Join-Path $fixture 'gui-app'
     $guiBin=Join-Path $guiApp ('src-tauri/target/release/secondbrain-orchestrator'+$(if($IsWindows){'.exe'}else{''}))
@@ -412,6 +486,21 @@ $r|ConvertTo-Json -Compress
     $savedPath=$env:PATH
     try{$env:PATH='';$g=(& (Get-Process -Id $PID).Path -NoProfile -File $guiScript -AppPath $guiApp -NoLaunch 2>&1|Out-String);$gcode=$LASTEXITCODE}finally{$env:PATH=$savedPath}
     Assert-Runner ($gcode -eq 2 -and $g -match 'orchestratore') ('runner-gui without npm/cargo stops with exit 2 and the guide: '+$g)
+    $g=Invoke-Gui @('-WhatIf','-RepositoryPath',$checkout2)
+    Assert-Runner ($g.code -eq 0 -and $g.data.repository -eq [IO.Path]::GetFullPath($checkout2)) ('runner-gui records the repository passed to the app: '+$g.text)
+    # sb runner (runner.ps1): desktop by default, command-line fallback with the preview when the app cannot open, explicit modes.
+    (Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)
+    $dispatcher=Join-Path $brain 'scripts/runner.ps1'
+    function Invoke-Dispatcher([string[]]$DispatchArguments){$t=(& pwsh -NoProfile -File $dispatcher -AppPath $guiApp -RepositoryPath (Join-Path $checkout2 '.') -ConfigPath $configPath @DispatchArguments 2>&1|Out-String);$i=$t.IndexOf('{');@{code=$LASTEXITCODE;text=$t;data=$(if($i -ge 0){$t.Substring($i)|ConvertFrom-Json -AsHashtable}else{$null})}}
+    $cli=Invoke-Dispatcher @('-Mode','cli')
+    Assert-Runner ($cli.code -eq 0 -and $cli.data.mode -eq 'cli' -and $null -eq $cli.data.gui -and $cli.data.repository -eq [IO.Path]::GetFullPath($checkout2) -and $cli.data.preview.run -eq $false -and $cli.data.next -match '-Run') ('runner.ps1 -Mode cli prints the preview of the checkout root and the next command: '+$cli.text)
+    if($IsWindows){
+        # The fake binary cannot start: auto falls back to the command line, gui reports the failure.
+        $auto=Invoke-Dispatcher @()
+        Assert-Runner ($auto.code -eq 0 -and $auto.data.mode -eq 'cli' -and $auto.data.fallbackReason -eq 'launch-failed' -and $auto.data.preview.run -eq $false -and !$auto.data.launched) ('runner.ps1 falls back to the command line when the app does not start: '+$auto.text)
+        $guiOnly=Invoke-Dispatcher @('-Mode','gui')
+        Assert-Runner ($guiOnly.code -eq 2 -and $guiOnly.data.mode -eq 'gui' -and $guiOnly.data.fallbackReason -eq 'launch-failed' -and $null -eq $guiOnly.data.preview) ('runner.ps1 -Mode gui reports the failure without fallback: '+$guiOnly.text)
+    }
     Close-RunnerPhase 'runner-gui'
     $realAfter=Get-RealTrackerHashes
     # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session

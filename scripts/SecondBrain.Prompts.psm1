@@ -337,7 +337,7 @@ Add-SBMessages @{
     'cmd.check' = @{ it = 'SYS04: verifica l''allineamento degli asset gestiti senza correggere. Alias: sb check.'; en = 'SYS04: checks the alignment of managed assets without fixing. Alias: sb check.' }
     'cmd.sync' = @{ it = 'Applica i testi approvati agli asset gestiti e propone i nuovi, preservando i conflitti. Alias: sb sync.'; en = 'Applies the approved texts to managed assets and proposes the new ones, preserving conflicts. Alias: sb sync.' }
     'mode.run' = @{ it = 'avvio'; en = 'run' }
-    'cmd.runner' = @{ it = 'Apre il runner desktop (app/orchestrator) su Windows, macOS e Linux; lo compila prima se manca o se è più vecchio dei sorgenti (-Rebuild forza).'; en = 'Opens the desktop runner (app/orchestrator) on Windows, macOS and Linux; builds it first when it is missing or older than its sources (-Rebuild forces it).' }
+    'cmd.runner' = @{ it = 'Chiede con una scelta multipla runner desktop (consigliato) o riga di comando, poi apre il runner sul repository corrente con scripts/runner.ps1 -Mode auto|gui|cli: il desktop si compila se superato e, se non si apre, si passa da solo alla riga di comando (anteprima, poi REP15).'; en = 'Asks with a multiple choice for the desktop runner (recommended) or the command line, then opens the runner on the current repository with scripts/runner.ps1 -Mode auto|gui|cli: the desktop app is built when stale and, if it cannot open, the command line takes over by itself (preview, then REP15).' }
     'cmd.compact' = @{ it = 'SYS05: compatta il dossier indicato preservando originali, fatti e TOC (anteprima, poi -Apply). Alias: sb compact.'; en = 'SYS05: compacts the given dossier preserving originals, facts and TOC (preview, then -Apply). Alias: sb compact.' }
     'guide.safety.title' = @{ it = 'Cosa modifica SecondBrain e dove sono i backup'; en = 'What SecondBrain changes and where the backups are' }
     'guide.safety.for' = @{ it = 'Da leggere per primo: file toccati, backup, ripristino, disinstallazione.'; en = 'Read first: files touched, backups, recovery, uninstall.' }
@@ -399,7 +399,7 @@ function Get-SBWorkflowCommands {
         @{command='sb controlla';does=(Get-SBWorkflowMessage 'cmd.check');mode=(Get-SBWorkflowMessage 'mode.verify');script='scripts/secondbrain.ps1 -Check'},
         @{command='sb allinea';does=(Get-SBWorkflowMessage 'cmd.sync');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Sync'},
         @{command='sb compatta';does=(Get-SBWorkflowMessage 'cmd.compact');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/knowledge.ps1 -Compact -CandidatePath FILE'},
-        @{command='sb runner';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner-gui.ps1'}
+        @{command='sb runner';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner.ps1'}
     )
 }
 

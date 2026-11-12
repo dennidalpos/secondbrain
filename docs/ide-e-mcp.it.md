@@ -44,6 +44,7 @@ Il primo mostra l'anteprima, il secondo applica e salva prima il file esistente.
 |---|---|
 | `get_startup_context` | Leggere contesto e memoria del progetto |
 | `get_ready_tasks` | Vedere i task pronti |
+| `get_runner_status` | Vedere se il runner sta lavorando o è bloccato |
 | `get_task` | Leggere un task per intero (criteri, evidenze), anche archiviato |
 | `search_knowledge` | Cercare negli appunti (archivio e report inclusi, a pagine) |
 | `list_prompts`, `get_prompt`, `get_prompt_home` | Consultare i prompt |
@@ -57,7 +58,7 @@ Il server gira solo sul tuo PC e non apre porte di rete. All'avvio e durante le 
 | | Con MCP | Senza MCP (riga di comando) |
 |---|---|---|
 | **Pro** | Strumenti già nell'elenco dell'agente, con parametri e risposte compatte e a pagine. Durante avvio e letture recupera solo scritture di dossier già autorizzate e accodate. Stesso server per Claude, Codex e Antigravity. | Nessun processo da configurare. Funziona anche dove l'IDE non supporta MCP. Nessun costo fisso nel contesto. |
-| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 15.375 caratteri in italiano e 14.461 in inglese, con undici strumenti (misurazione del 2026-11-09 con `list_ides`; il solo `result` misura 15.341/14.427). Metodo: server avviato con `-NoRecovery` e `SECONDBRAIN_LANG=it|en`, `initialize` con `id=1`, notifica `initialized`, `tools/list` con `id=2`, lunghezza della riga JSON compatta restituita. Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
+| **Contro** | La risposta JSON-RPC compatta `tools/list` con `id=2` misura 9.959 caratteri in italiano e 9.625 in inglese, con dodici strumenti (misurazione del 2026-11-12 con `get_runner_status`; il solo `result` misura 9.925/9.591). Metodo: server avviato con `-NoRecovery` e `SECONDBRAIN_LANG=it|en`, `initialize` con `id=1`, notifica `initialized`, `tools/list` con `id=2`, lunghezza della riga JSON compatta restituita. Sono caratteri, non token. I consensi dipendono dal client e dalle sue impostazioni; i titoli e le annotazioni non li sostituiscono. Va riavviato l'agente dopo il collegamento. | L'agente deve conoscere i comandi e lanciarli da shell, con un permesso per comando. La vista globale `knowledge.ps1 -Tasks -All` è paginata come in MCP (50 voci, `-Offset` e `-Limit`; `-Limit 0` le restituisce tutte). |
 
 Il risultato è lo stesso: un test confronta i due percorsi su tutti gli strumenti. Se l'agente supporta MCP conviene collegarlo; altrimenti non perdi nulla.
 
@@ -79,6 +80,7 @@ MCP è opzionale. Senza server l'agente (o tu) ottiene gli stessi contenuti dall
 | Strumento MCP | Comando CLI | Comando `sb` nell'IDE |
 |---|---|---|
 | `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` | — |
+| `get_runner_status` | `runner-status.ps1` (`-Follow` segue gli eventi, `-Stop` chiede l'arresto dopo il task corrente) | — |
 | `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` (`-All` per la vista globale paginata, con `-Offset` e `-Limit`; risposta `total`, `nextOffset`, `tasks`) | — |
 | `get_task` | `knowledge.ps1 -Task <id o #seq>` | — |
 | `search_knowledge` | `knowledge.ps1 -Search <testo> [-Mode Relevance]` | — |

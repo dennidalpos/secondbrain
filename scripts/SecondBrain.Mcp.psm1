@@ -13,6 +13,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpWrites.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.RunnerStatus.psm1')
 Add-SBMessages @{
     'mcp.title.preview_dossier_write' = @{it='Anteprima scrittura dossier';en='Preview dossier write'}
     'mcp.title.submit_dossier_write' = @{it='Invia scrittura approvata';en='Submit approved write'}
@@ -36,6 +37,9 @@ Add-SBMessages @{
     'mcp.title.list_ides' = @{ it = 'IDE rilevate'; en = 'Detected IDEs' }
     'mcp.description.list_ides' = @{ it = 'IDE e client AI rilevati, con evidenze e ambiti (user, project, system).'; en = 'Detected IDEs and AI clients, with evidence and scopes (user, project, system).' }
     'mcp.description.list_ides.workspacePath' = @{ it = 'Percorso del progetto (ambito project)'; en = 'Project path (project scope)' }
+    'mcp.title.get_runner_status' = @{ it = 'Stato del runner'; en = 'Runner status' }
+    'mcp.description.get_runner_status' = @{ it = 'Runner dei task del repository: in lavoro, possibile stallo, concluso o orfano, con gli ultimi eventi.'; en = 'Task runner of the repository: working, possibly stalled, finished or orphaned, with the latest events.' }
+    'mcp.description.get_runner_status.tail' = @{ it = 'Eventi recenti (20)'; en = 'Recent events (20)' }
     'mcp.pending.contract' = @{it='Sola lettura: non integra mai scritture accodate. Il recupero e solo esplicito (knowledge.ps1 -FlushPending, limitato al proprio dossier).';en='Read-only: never integrates queued writes. Recovery is explicit only (knowledge.ps1 -FlushPending, limited to the own dossier).'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
@@ -240,6 +244,18 @@ function Get-SBMcpToolDefinitions {
                 type = 'object'
                 properties = @{
                     workspacePath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.list_ides.workspacePath') }
+                }
+            }
+        },
+        @{
+            name = 'get_runner_status'
+            description = (Get-SBMessage 'mcp.description.get_runner_status')
+            inputSchema = @{
+                type = 'object'
+                properties = @{
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.repository') }
+                    checkoutPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.checkoutPath') }
+                    tail = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_runner_status.tail') }
                 }
             }
         }
@@ -451,6 +467,14 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $summary.findingsTruncated = ($allFindings.Count -gt 20)
             if ($report.ContainsKey('excludedRefs')) { $summary.excludedRefsCount = @($report.excludedRefs).Count; $summary.Remove('excludedRefs') }
             return ConvertTo-SBMcpJson $summary
+        }
+        'get_runner_status' {
+            # Read-only: status.json and events.jsonl of the repository's runs on this workstation (the same view as runner-status.ps1).
+            $repo = Resolve-SBMcpRepository $BrainRoot $Arguments
+            $tail = if ($Arguments.ContainsKey('tail') -and $null -ne $Arguments.tail) { [int]$Arguments.tail } else { 20 }
+            if ($tail -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
+            $config = Read-SBConfiguration -ReadOnly
+            return ConvertTo-SBMcpJson (Get-SBRunnerStatus -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $repo -Tail $tail)
         }
         'list_ides' {
             $workspace = ''

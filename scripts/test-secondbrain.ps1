@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
     [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
     [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
-    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone')][string[]]$Only,
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')][string[]]$Only,
     [switch]$KeepFixtures,[switch]$Sequential
 )
 $profileWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -47,7 +47,7 @@ try {
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
             # 'pending' is both an essential group (in-process pending block) and the standalone CLI suite test-secondbrain-pending.ps1 (#521).
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone')})}elseif($Full){@('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')})}elseif($Full){@('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')}else{@()}
             # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
             $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
             function Start-SuiteJob($Spec){

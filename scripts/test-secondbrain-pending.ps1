@@ -157,7 +157,7 @@ try {
         $server.StandardInput.WriteLine('{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}');$server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture definitions timeout'}
         $definitions=($read.Result|ConvertFrom-Json).result.tools
-        Assert-Pending ($definitions.Count -eq 11 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint})[0].name -eq 'submit_dossier_write') '#474: every MCP tool but submit_dossier_write declares readOnlyHint=true'
+        Assert-Pending ($definitions.Count -eq 12 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint})[0].name -eq 'submit_dossier_write') '#474: every MCP tool but submit_dossier_write declares readOnlyHint=true'
     }finally{$server.StandardInput.Close();if(!$server.WaitForExit(5000)){$server.Kill();$server.WaitForExit()};$server.Dispose()}
 
     $txFirst=Join-Path $brain '.runtime/interruption-first.txt';$txSecond=Join-Path $brain '.runtime/interruption-second.txt'

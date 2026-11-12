@@ -8,93 +8,148 @@
   </head>
   <body>
     <header class="bar">
-      <h1>SecondBrain Orchestrator</h1>
-      <span id="repo-label" class="muted">Nessun repository</span>
+      <div class="brand">
+        <h1>SecondBrain Orchestrator</h1>
+        <span id="app-version" class="muted small"></span>
+      </div>
+      <div class="repo-summary" id="repo-summary">
+        <span id="repo-label" class="repo-name">Nessun repository</span>
+        <span id="repo-tracker" class="muted small"></span>
+      </div>
+      <span id="run-badge" class="badge" data-verdict="idle">Inattivo</span>
     </header>
-    <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="repo" aria-selected="true">1 · Repository</button>
-      <button role="tab" data-tab="directives">2 · Direttive</button>
-      <button role="tab" data-tab="queue">3 · Coda</button>
-      <button role="tab" data-tab="run">4 · Esecuzione</button>
-      <button role="tab" data-tab="settings">Impostazioni</button>
+    <nav class="steps" role="tablist" aria-label="Passi">
+      <button role="tab" data-tab="repo" aria-selected="true"><span class="num">1</span> Repository</button>
+      <button role="tab" data-tab="directives" disabled><span class="num">2</span> Direttive</button>
+      <button role="tab" data-tab="queue" disabled><span class="num">3</span> Coda</button>
+      <button role="tab" data-tab="run" disabled><span class="num">4</span> Esecuzione</button>
+      <span class="spacer"></span>
+      <button role="tab" data-tab="settings" class="settings-tab">Impostazioni</button>
     </nav>
     <main>
-      <section id="tab-repo" class="panel">
-        <h2>Repository in sviluppo</h2>
-        <p class="muted">Il checkout deve essere registrato in SecondBrain (dossier con tracker.json).</p>
+      <section id="tab-repo" class="panel" role="tabpanel">
+        <h2>Repository</h2>
+        <p class="muted">Un checkout registrato in SecondBrain: dossier e tracker si caricano da lì. Aperto con <code>sb runner</code>, è già quello da cui hai lanciato il prompt.</p>
         <div class="row">
-          <input id="repo-path" type="text" placeholder="Percorso del checkout" />
+          <input id="repo-path" type="text" placeholder="Percorso del checkout" aria-label="Percorso del checkout" />
           <button id="repo-browse">Sfoglia…</button>
           <button id="repo-load" class="primary">Carica</button>
         </div>
-        <div id="recent" class="chips"></div>
-        <pre id="repo-info" class="box"></pre>
+        <p id="repo-error" class="error" hidden></p>
+        <dl id="repo-info" class="facts" hidden></dl>
+        <h3>Usati di recente</h3>
+        <ul id="recent" class="recent"></ul>
+        <p id="recent-empty" class="muted small">Nessun repository recente.</p>
+        <div class="next"><button id="repo-next" class="primary" disabled>Avanti: direttive</button></div>
       </section>
 
-      <section id="tab-directives" class="panel" hidden>
+      <section id="tab-directives" class="panel" role="tabpanel" hidden>
         <h2>Direttive del repository</h2>
+        <p class="muted">Bersaglio: <code id="dir-target">AGENTS.managed.md</code> nel dossier. Dopo l'approvazione <code>secondbrain.ps1 -Sync</code> lo allinea nel blocco gestito di <code id="dir-agents">AGENTS.md</code> (che CLAUDE.md e GEMINI.md importano).</p>
+        <label for="dir-text">Direttive specifiche (sviluppo e tracciamento dei task)</label>
+        <textarea id="dir-text" rows="14" spellcheck="false"></textarea>
         <div class="row">
-          <input id="dir-file" type="text" placeholder="File delle direttive (AGENTS.md)" />
-          <button id="dir-browse">Scegli file…</button>
-          <button id="dir-read">Leggi</button>
-        </div>
-        <p class="muted">Il blocco gestito di AGENTS.md (CLAUDE.md e GEMINI.md lo importano) si aggiorna solo tramite proposta approvata e <code>secondbrain.ps1 -Sync</code>.</p>
-        <details><summary>Contenuto attuale del file</summary><pre id="dir-current" class="box"></pre></details>
-        <label for="dir-text">Direttive specifiche del repository (sviluppo e tracciamento dei task)</label>
-        <textarea id="dir-text" rows="14"></textarea>
-        <div class="row">
+          <button id="dir-import">Importa testo da file…</button>
           <button id="dir-template">Inserisci modello</button>
+          <button id="dir-reload">Ricarica dal dossier</button>
+          <span class="spacer"></span>
           <button id="dir-preview" class="primary">Anteprima proposta</button>
           <button id="dir-apply" disabled>Approva e applica</button>
         </div>
-        <pre id="dir-result" class="box"></pre>
+        <p id="dir-state" class="muted small"></p>
+        <p id="dir-error" class="error" hidden></p>
+        <details id="dir-preview-box" hidden><summary>Anteprima della proposta</summary><pre id="dir-result" class="box"></pre></details>
+        <details><summary>AGENTS.md attuale nel checkout</summary><pre id="dir-current" class="box"></pre></details>
+        <div class="next"><button id="dir-next" class="primary">Avanti: coda</button></div>
       </section>
 
-      <section id="tab-queue" class="panel" hidden>
+      <section id="tab-queue" class="panel" role="tabpanel" hidden>
         <h2>Coda dei task</h2>
+        <h3>Agente</h3>
+        <div id="q-agents" class="agents" role="radiogroup" aria-label="Agente"></div>
+        <p id="q-agents-state" class="muted small">Rilevamento degli agenti…</p>
         <div class="grid">
-          <label>Provider <select id="q-provider"></select></label>
           <label>Modello <select id="q-model"></select></label>
-          <label>Modello personalizzato <input id="q-custom" type="text" placeholder="facoltativo" /></label>
           <label>Impegno <select id="q-effort"></select></label>
-          <label>Timeout (min) <input id="q-timeout" type="number" min="1" max="240" value="30" /></label>
+          <label>Timeout per task (min) <input id="q-timeout" type="number" min="1" max="240" value="30" /></label>
+          <label>Avviso di stallo dopo (min) <input id="q-stall" type="number" min="1" max="240" value="5" /></label>
         </div>
-        <p id="q-agent" class="muted"></p>
         <div class="row">
-          <button id="q-refresh">Aggiorna task</button>
-          <button id="q-all">Seleziona tutti</button>
-          <button id="q-start" class="primary">Avvia la coda</button>
+          <label class="inline"><input id="q-custom-on" type="checkbox" /> Modello non in elenco</label>
+          <input id="q-custom" type="text" placeholder="ID del modello" aria-label="Modello personalizzato" hidden />
+          <span class="spacer"></span>
+          <button id="q-reprobe">Rileva di nuovo</button>
         </div>
+        <details id="q-clients-box"><summary>Altri IDE e client rilevati</summary><ul id="q-clients" class="clients"></ul></details>
+        <h3>Task pronti</h3>
+        <div class="row">
+          <button id="q-refresh">Aggiorna</button>
+          <button id="q-all">Seleziona tutti</button>
+          <button id="q-none">Nessuno</button>
+          <span id="q-count" class="muted small"></span>
+        </div>
+        <p id="q-error" class="error" hidden></p>
         <table class="tasks">
           <thead><tr><th></th><th>#</th><th>ID</th><th>Titolo</th><th>Priorità</th><th></th></tr></thead>
           <tbody id="q-tasks"></tbody>
         </table>
-        <h3>Esclusi</h3>
-        <ul id="q-skipped" class="muted"></ul>
+        <p id="q-empty" class="muted small" hidden>Nessun task pronto per l'esecuzione autonoma.</p>
+        <details><summary>Esclusi (<span id="q-skipped-count">0</span>)</summary><ul id="q-skipped" class="muted small"></ul></details>
+        <div class="next"><button id="q-start" class="primary">Avvia la coda</button></div>
       </section>
 
-      <section id="tab-run" class="panel" hidden>
+      <section id="tab-run" class="panel" role="tabpanel" hidden>
         <h2>Esecuzione</h2>
-        <div class="row">
-          <span id="run-status" class="status">Inattivo</span>
-          <button id="run-stop">Ferma dopo il task corrente</button>
-          <button id="run-abort" class="danger">Interrompi subito</button>
+        <div class="run-card">
+          <div class="run-head">
+            <span id="run-verdict" class="badge" data-verdict="idle">Inattivo</span>
+            <span id="run-task" class="run-task">Nessun task in corso</span>
+          </div>
+          <dl class="facts compact">
+            <dt>Trascorso</dt><dd id="run-elapsed">—</dd>
+            <dt>Ultimo segnale dell'agente</dt><dd id="run-last">—</dd>
+            <dt>Avanzamento</dt><dd id="run-counts">—</dd>
+            <dt>Cartella del run</dt><dd id="run-folder" class="mono small">—</dd>
+          </dl>
+          <p id="run-warning" class="warning" hidden></p>
+          <p id="run-error" class="error" hidden></p>
+          <div class="row">
+            <button id="run-stop">Ferma dopo il task corrente</button>
+            <button id="run-abort" class="danger">Interrompi subito</button>
+            <span class="spacer"></span>
+            <button id="run-refresh">Aggiorna stato</button>
+          </div>
         </div>
+        <h3>Passi dell'agente</h3>
+        <ol id="run-steps" class="steps-log"></ol>
+        <h3>Esiti</h3>
         <table class="tasks">
           <thead><tr><th>#</th><th>ID</th><th>Esito</th><th>Stato</th><th>Secondi</th><th>Cartella</th></tr></thead>
           <tbody id="run-results"></tbody>
         </table>
-        <pre id="run-log" class="box log"></pre>
+        <details><summary>Registro completo</summary><pre id="run-log" class="box log"></pre></details>
       </section>
 
-      <section id="tab-settings" class="panel" hidden>
+      <section id="tab-settings" class="panel" role="tabpanel" hidden>
         <h2>Impostazioni</h2>
-        <label>Radice SecondBrain <input id="s-home" type="text" placeholder="predefinito: SECONDBRAIN_HOME" /></label>
-        <label>Eseguibile PowerShell 7 <input id="s-pwsh" type="text" placeholder="pwsh" /></label>
-        <div class="row"><button id="s-save" class="primary">Salva</button><button id="s-probe">Rileva agenti</button></div>
-        <pre id="s-info" class="box"></pre>
+        <label>Radice SecondBrain <input id="s-home" type="text" /></label>
+        <label>Eseguibile PowerShell 7 <input id="s-pwsh" type="text" /></label>
+        <div class="row"><button id="s-save" class="primary">Salva</button></div>
+        <p id="s-info" class="muted small"></p>
+        <p id="s-error" class="error" hidden></p>
       </section>
     </main>
+
+    <dialog id="close-dialog" aria-labelledby="close-title">
+      <h2 id="close-title">Una coda è in esecuzione</h2>
+      <p>Chiudendo la finestra il runner continua a lavorare; alla riapertura viene ritrovato e riagganciato. Cosa vuoi fare?</p>
+      <div class="dialog-actions">
+        <button data-close="leave" class="primary">Lascia in esecuzione e chiudi</button>
+        <button data-close="stop">Ferma dopo il task e chiudi</button>
+        <button data-close="abort" class="danger">Interrompi subito e chiudi</button>
+        <button data-close="cancel">Annulla</button>
+      </div>
+    </dialog>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

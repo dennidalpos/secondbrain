@@ -153,7 +153,7 @@ if('portable' -in $Groups){
     $wire=@('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}','{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}') -join "`n"
     $out=@($wire|& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -BrainRoot $brain -ConfigPath $configPath)
     $messages=@($out|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
-    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 11) 'real MCP stdio negotiates and exposes eleven tools'
+    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 12) 'real MCP stdio negotiates and exposes twelve tools'
     if($Extended){
         $candidate=Join-Path $runtime 'directive-proposal'
         Put (Join-Path $candidate 'README.md') '# Synthetic proposal'
@@ -610,7 +610,7 @@ if('pending' -in $Groups){
     $pureTools=@(($pureMcpDefault|ConvertFrom-Json -AsHashtable).result.tools)
     Check ((Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint})[0].name -ceq 'submit_dossier_write') '#474: MCP lists tools without draining the queue; only submit_dossier_write is not read-only'
     $pureMcp=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=31;method='tools/list';params=@{_meta=@{noRecovery=$true}}}} $brain
-    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 11 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
+    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 12 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
     [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg)
     Reject {New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';DependsOn=@('T-1')} -Config $cfg} 'invalid dependency graph rejected before queuing'
     $target=Join-Path $brain 'untracked.txt';Put $target 'original';$hash=Get-SBFileHash $target

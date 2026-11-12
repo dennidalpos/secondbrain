@@ -176,7 +176,7 @@ Put (Join-Path $f5Dossier memory.md) ((Read-SBText (Join-Path $f5Dossier memory.
     $f5BeforeWire=F5-Snapshot
     $f5WireOut=@($f5Wire|& pwsh -NoProfile -File (Join-Path $f5Brain scripts/mcp-server.ps1) -BrainRoot $f5Brain -ConfigPath $f5ConfigPath -NoRecovery)
     $f5Replies=@($f5WireOut|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
-    Check ($LASTEXITCODE -eq 0 -and $f5Replies[1].result.tools.Count -eq 11 -and !$f5Replies[2].result.isError) 'stdio handshake discovers eleven tools and previews a write'
+    Check ($LASTEXITCODE -eq 0 -and $f5Replies[1].result.tools.Count -eq 12 -and !$f5Replies[2].result.isError) 'stdio handshake discovers twelve tools and previews a write'
     Check ($f5Replies[3].result.isError -and $f5BeforeWire -ceq (F5-Snapshot)) 'NoRecovery wire session refuses submit and remains write-free'
     $f5Defs=$f5Replies[1].result.tools
     Check (@($f5Defs|Where-Object name -eq preview_dossier_write)[0].annotations.readOnlyHint -and

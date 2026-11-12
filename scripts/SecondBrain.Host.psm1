@@ -29,7 +29,9 @@ Set-SBUiLanguageProvider {
 }
 
 function Get-SBHostId {
-    $identity=[Environment]::MachineName+'|'+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+    # Windows: machine and user SID (unchanged ids). Elsewhere: machine and user name, since WindowsIdentity exists only on Windows.
+    $user=if($IsWindows){[Security.Principal.WindowsIdentity]::GetCurrent().User.Value}else{'unix:'+[Environment]::UserName}
+    $identity=[Environment]::MachineName+'|'+$user
     'ws-'+(Get-SBTextHash $identity).Substring(0,16).ToLowerInvariant()
 }
 function Get-SBHostConfigPath([string]$BrainRoot) {
@@ -491,5 +493,6 @@ Export-ModuleMember -Function @(
     'Invoke-SBHostDiscovery',
     'Get-SBWorkEnvironment',
     'Get-SBRuntimeWorkPath',
-    'Get-SBRuntimeRepoSegment'
+    'Get-SBRuntimeRepoSegment',
+    'Resolve-SBWorkRoot'
 )

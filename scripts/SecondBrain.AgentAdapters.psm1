@@ -34,23 +34,105 @@ function Get-SBAgentProviderForPath([string]$AgentPath) {
     $leaf=[IO.Path]::GetFileNameWithoutExtension($AgentPath).ToLowerInvariant()
     if($script:SBAgentProviders.Contains($leaf)){$leaf}else{$null}
 }
+function Get-SBAgentSearchDirectories {
+    # Folders where agent CLIs live but that the inherited PATH can miss: PATH re-read from the registry (a CLI installed after the
+    # session started), package-manager shims and per-user installs. Existing folders only (all of them with -IncludeMissing), no duplicates.
+    # SECONDBRAIN_AGENT_SEARCH_PATH adds folders first (path-separator list); with SECONDBRAIN_AGENT_SEARCH_ONLY=1 they are the only ones
+    # (isolated end-to-end tests with fake CLIs). -Platform and -ProfileRoot make the list testable.
+    param([ValidateSet('','windows','unix')][string]$Platform='',[string]$ProfileRoot,[switch]$IncludeMissing)
+    $windows=if($Platform){$Platform -eq 'windows'}else{[bool]$IsWindows}
+    if(!$ProfileRoot){$ProfileRoot=if($env:USERPROFILE){[string]$env:USERPROFILE}else{[string]$env:HOME}}
+    $dirs=[Collections.Generic.List[string]]::new()
+    $candidates=[Collections.Generic.List[string]]::new()
+    foreach($d in ([string]$env:SECONDBRAIN_AGENT_SEARCH_PATH -split [regex]::Escape([string][IO.Path]::PathSeparator))){if($d.Trim()){$candidates.Add($d.Trim())}}
+    if($env:SECONDBRAIN_AGENT_SEARCH_ONLY){
+        foreach($d in $candidates){if($IncludeMissing -or (Test-Path -LiteralPath $d -PathType Container)){$dirs.Add($d)}}
+        return $dirs.ToArray()
+    }
+    if($windows){
+        if(!$Platform -or $IsWindows){foreach($scope in @('User','Machine')){foreach($d in ([string][Environment]::GetEnvironmentVariable('Path',$scope) -split ';')){if($d.Trim()){$candidates.Add([Environment]::ExpandEnvironmentVariables($d.Trim()))}}}}
+        $local=if($env:LOCALAPPDATA){[string]$env:LOCALAPPDATA}else{Join-Path $ProfileRoot 'AppData\Local'}
+        $roaming=if($env:APPDATA){[string]$env:APPDATA}else{Join-Path $ProfileRoot 'AppData\Roaming'}
+        foreach($d in @((Join-Path $local 'Microsoft\WinGet\Links'),(Join-Path $local 'Microsoft\WindowsApps'),(Join-Path $roaming 'npm'),(Join-Path $local 'pnpm'),
+            (Join-Path $local 'Volta\bin'),(Join-Path $ProfileRoot 'scoop\shims'),(Join-Path $ProfileRoot '.local\bin'),(Join-Path $ProfileRoot '.bun\bin'),
+            $(if($env:ProgramFiles){Join-Path $env:ProgramFiles 'nodejs'}))){if($d){$candidates.Add($d)}}
+    }else{
+        $unixHome=$ProfileRoot.TrimEnd('/','\')
+        if($env:NPM_CONFIG_PREFIX){$candidates.Add($env:NPM_CONFIG_PREFIX.TrimEnd('/')+'/bin')}
+        foreach($d in @('/opt/homebrew/bin','/usr/local/bin','/usr/bin',($unixHome+'/.local/bin'),($unixHome+'/.npm-global/bin'),
+            ($unixHome+'/.bun/bin'),($unixHome+'/.volta/bin'),($unixHome+'/.local/share/pnpm'),'/snap/bin',
+            ($unixHome+'/.local/share/fnm/aliases/default/bin'),($unixHome+'/Library/Application Support/fnm/aliases/default/bin'))){$candidates.Add($d)}
+        # nvm: the newest installed Node version.
+        $nvm=$unixHome+'/.nvm/versions/node'
+        if(Test-Path -LiteralPath $nvm -PathType Container){
+            $newest=@(Get-ChildItem -LiteralPath $nvm -Directory -ErrorAction SilentlyContinue|Sort-Object {try{[version]($_.Name.TrimStart('v'))}catch{[version]'0.0'}} -Descending|Select-Object -First 1)
+            if($newest.Count){$candidates.Add((Join-Path $newest[0].FullName 'bin'))}
+        }
+    }
+    foreach($d in $candidates){
+        $key=$d.TrimEnd('\','/')
+        if(!$key -or @($dirs|Where-Object {[string]::Equals($_,$key,[StringComparison]::OrdinalIgnoreCase)}).Count){continue}
+        if($IncludeMissing -or (Test-Path -LiteralPath $key -PathType Container)){$dirs.Add($key)}
+    }
+    $dirs.ToArray()
+}
+function Find-SBAgentInDirectories([string]$Command,[string[]]$Directories) {
+    # First executable named after the command: .exe/.cmd/.bat/.ps1 on Windows, the bare name elsewhere.
+    $names=if($IsWindows){@("$Command.exe","$Command.cmd","$Command.bat","$Command.ps1")}else{@($Command)}
+    foreach($d in @($Directories)){foreach($n in $names){$p=Join-Path $d $n;if(Test-Path -LiteralPath $p -PathType Leaf){return $p}}}
+    $null
+}
+function Get-SBAgentPackageExecutable([string]$Command) {
+    # CLIs shipped inside a Microsoft Store package: the Codex desktop app bundles codex.exe in app\resources, outside PATH.
+    if(!$IsWindows -or $Command -ne 'codex' -or $env:SECONDBRAIN_AGENT_NO_PACKAGES -or $env:SECONDBRAIN_AGENT_SEARCH_ONLY){return $null}
+    try{$packages=@(Get-AppxPackage -Name 'OpenAI.Codex' -ErrorAction Stop)}catch{return $null}
+    foreach($p in @($packages|Sort-Object {[version]$_.Version} -Descending)){
+        if(!$p.InstallLocation){continue}
+        $candidate=Join-Path $p.InstallLocation 'app\resources\codex.exe'
+        if(Test-Path -LiteralPath $candidate -PathType Leaf){return $candidate}
+    }
+    $null
+}
+function Get-SBAgentProcessPath([string]$AgentDirectory) {
+    # PATH for an agent process: the agent folder, the inherited PATH, then the search folders (a .cmd shim found outside PATH still needs node).
+    $parts=[Collections.Generic.List[string]]::new()
+    foreach($d in @(@($AgentDirectory)+@([string]$env:PATH -split [regex]::Escape([string][IO.Path]::PathSeparator))+@(Get-SBAgentSearchDirectories))){
+        if($d -and !@($parts|Where-Object {[string]::Equals($_.TrimEnd('\','/'),$d.TrimEnd('\','/'),[StringComparison]::OrdinalIgnoreCase)}).Count){$parts.Add($d)}
+    }
+    $parts -join [IO.Path]::PathSeparator
+}
 function Resolve-SBAgentExecutable([string]$Command) {
     # Prefer a real executable or a .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
+    # A bare command missing from PATH is looked up in the search folders, then (codex on Windows) in its Store package.
+    # origin: path (inherited PATH or an explicit path), search (a search folder), package (Store package).
     if(!$Command){return $null}
+    $origin='path'
     $found=@(Get-Command $Command -All -ErrorAction SilentlyContinue)
+    if(!$found.Count -and $Command -notmatch '[\\/]'){
+        $candidate=Find-SBAgentInDirectories $Command (Get-SBAgentSearchDirectories)
+        if($candidate){$found=@(Get-Command $candidate -ErrorAction SilentlyContinue);$origin='search'}
+        else{
+            $package=Get-SBAgentPackageExecutable $Command
+            if($package){return @{path=$package;prefix=@();origin='package'}}
+        }
+    }
     if(!$found.Count){return $null}
-    $app=@($found|Where-Object {$_.CommandType -eq 'Application' -and $_.Source -match '\.(exe|cmd|bat)$|^[^.]*$|/[^/.]+$'}|Sort-Object @{e={if($_.Source -like '*.exe'){0}else{1}}})|Select-Object -First 1
-    if($app){return @{path=$app.Source;prefix=@()}}
+    # Windows starts only .exe/.cmd/.bat (an extensionless npm shim is a sh script); elsewhere a file without extension is the executable.
+    $pattern=if($IsWindows){'\.(exe|cmd|bat)$'}else{'\.(exe|cmd|bat)$|/[^/.]+$'}
+    $app=@($found|Where-Object {$_.CommandType -eq 'Application' -and $_.Source -match $pattern}|Sort-Object @{e={if($_.Source -like '*.exe'){0}else{1}}})|Select-Object -First 1
+    if($app){return @{path=$app.Source;prefix=@();origin=$origin}}
     $source=$found[0].Source
-    if($source -like '*.ps1'){return @{path=(Get-Process -Id $PID).Path;prefix=@('-NoProfile','-File',$source);script=$source}}
-    @{path=$source;prefix=@()}
+    if($source -like '*.ps1'){return @{path=(Get-Process -Id $PID).Path;prefix=@('-NoProfile','-File',$source);script=$source;origin=$origin}}
+    @{path=$source;prefix=@();origin=$origin}
 }
 function Invoke-SBAgentProbeCommand($Executable,[string[]]$Arguments,[int]$TimeoutSeconds=20) {
     # Runs one read-only probe (--version, --help) and returns stdout+stderr, or $null on timeout or start failure.
     try{
         $start=[Diagnostics.ProcessStartInfo]::new($Executable.path);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
         $start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true;$start.RedirectStandardInput=$true
+        $start.StandardOutputEncoding=[Text.UTF8Encoding]::new($false);$start.StandardErrorEncoding=[Text.UTF8Encoding]::new($false)
         foreach($a in (@($Executable.prefix)+$Arguments)){$start.ArgumentList.Add([string]$a)}
+        $start.Environment['PATH']=Get-SBAgentProcessPath (Split-Path -Parent ([string]$Executable.path))
         $process=[Diagnostics.Process]::Start($start)
         try{
             $process.StandardInput.Close()
@@ -182,13 +264,19 @@ function Get-SBAgentCapabilities {
     if($Provider -eq 'codex'){foreach($m in (Read-SBCodexModelsCache $paths.models)){$configModels+=,$m}}
     if($configured.model -and !@($configModels|Where-Object {$_.id -eq $configured.model}).Count){$configModels+=,@{id=$configured.model;label=$configured.model;source='config';efforts=@();defaultEffort=$configured.effort}}
     $fallbackModels=@($fallback.models|ForEach-Object {@{id=$_.id;label=$_.label;source='fallback';efforts=@($_.efforts);defaultEffort=$null}})
-    $models=Merge-SBAgentModels @($probeModels,$configModels,$fallbackModels)
+    # Only what the installed CLI exposes (probe, its configuration) is offered; the fallback table validates a typed model but is not listed.
+    $installed=[bool]$Executable
+    $models=if($installed){Merge-SBAgentModels @($probeModels,$configModels)}else{,@()}
     $flags=@($parsed.flags)
     $known=@($flags).Count -gt 0
+    $responding=if(!$installed){$false}elseif($NoProbe){$null}else{[bool]($VersionText -or $HelpText)}
+    $status=if(!$installed){'not-found'}elseif($responding -eq $false){'not-responding'}else{'ready'}
     $supportsModel=if($known){$info.modelFlag -in $flags -or '-m' -in $flags}else{$false}
     $supportsEffort=if(!$info.effortFlag){$false}elseif($known){$info.effortFlag -in $flags -or ($Provider -eq 'codex' -and '-c' -in $flags)}else{$false}
+    # Streaming output (stream-json) when the installed --help names it: the runner then shows the agent's steps while it works.
+    $streamJson=[bool]($HelpText -and $HelpText -match 'stream-json')
     $efforts=@()
-    if($supportsEffort -or !$known){
+    if($installed -and ($supportsEffort -or !$known)){
         if(@($parsed.efforts).Count){$efforts=@($parsed.efforts|ForEach-Object {@{id=$_;source='probe'}})}
         else{
             $fromModels=@($models|ForEach-Object {@($_.efforts)}|Where-Object {$_}|Select-Object -Unique)
@@ -198,11 +286,26 @@ function Get-SBAgentCapabilities {
     }
     [ordered]@{
         provider=$Provider;name=$info.name;command=$info.command
-        installed=[bool]$Executable;path=$(if($Executable){$(if($Executable.ContainsKey('script')){$Executable.script}else{$Executable.path})}else{$null})
+        installed=$installed;status=$status;origin=$(if($Executable -and $Executable.ContainsKey('origin')){$Executable.origin}else{$null})
+        path=$(if($Executable){$(if($Executable.ContainsKey('script')){$Executable.script}else{$Executable.path})}else{$null})
         version=(Get-SBAgentVersion $VersionText);helpRead=$known
-        flags=$flags;supports=[ordered]@{model=$supportsModel;effort=$supportsEffort}
-        configured=$configured;models=@($models);efforts=@($efforts)
+        flags=$flags;supports=[ordered]@{model=$supportsModel;effort=$supportsEffort;streamJson=$streamJson}
+        configured=$configured;models=@($models);efforts=@($efforts);fallbackModels=@($fallbackModels|ForEach-Object {$_.id})
     }
+}
+function Get-SBAgentCapabilitiesAll {
+    # Every provider probed in parallel (each probe waits on two CLI processes): the slowest CLI sets the time, not the sum.
+    param([string[]]$Provider,[string]$BrainRoot)
+    $ids=@(if($Provider){$Provider}else{Get-SBAgentProviderIds})
+    if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
+    if($ids.Count -le 1){return @($ids|ForEach-Object {Get-SBAgentCapabilities -Provider $_ -BrainRoot $BrainRoot})}
+    $module=Join-Path $PSScriptRoot 'SecondBrain.AgentAdapters.psm1'
+    $results=@($ids|ForEach-Object -ThrottleLimit 4 -Parallel {
+        Import-Module $using:module
+        Get-SBAgentCapabilities -Provider $_ -BrainRoot $using:BrainRoot
+    })
+    # Parallel output order follows completion: restore the provider order.
+    $ids|ForEach-Object {$id=$_;@($results|Where-Object {$_.provider -eq $id})[0]}
 }
 function Test-SBAgentSelection($Capabilities,[string]$Model,[string]$Effort,[switch]$AllowCustomModel) {
     # Validates the queue choice against the probe; errors name the next step.
@@ -210,7 +313,8 @@ function Test-SBAgentSelection($Capabilities,[string]$Model,[string]$Effort,[swi
     if($Model){
         if(!$c.supports.model){throw (New-SBError 'agents.model.unsupported' @($name,(Get-SBAgentProvider $c.provider).modelFlag))}
         $ids=@($c.models|ForEach-Object {$_.id})
-        if($Model -notin $ids -and !$AllowCustomModel){throw (New-SBError 'agents.model.unknown' @($Model,$name,($ids -join ', '),$c.provider))}
+        $reserve=@($(if($c.Contains('fallbackModels')){$c.fallbackModels}))
+        if($Model -notin $ids -and $Model -notin $reserve -and !$AllowCustomModel){throw (New-SBError 'agents.model.unknown' @($Model,$name,($ids -join ', '),$c.provider))}
     }
     if($Effort){
         if(!$c.supports.effort){throw (New-SBError 'agents.effort.unsupported' @($name))}
@@ -232,11 +336,13 @@ function New-SBAgentInvocation {
     param([Parameter(Mandatory)][string]$Provider,$Capabilities,[string]$Model,[string]$Effort)
     $state=@{flags=@($(if($Capabilities){$Capabilities.flags}));list=[Collections.Generic.List[string]]::new();omitted=[Collections.Generic.List[string]]::new()}
     $list=$state.list
+    # Codex --json already streams JSONL events; Claude Code and Gemini CLI stream with stream-json when the probe found it.
+    $stream=[bool]($Capabilities -and $Capabilities.supports -and $Capabilities.supports.Contains('streamJson') -and $Capabilities.supports.streamJson)
     function Add-Flag([string]$Flag,[string[]]$Values=@(),[string]$Alias){Add-SBAgentFlag $state $Flag $Values $Alias}
     switch($Provider){
         'claude' {
             $list.Add('-p')
-            Add-Flag '--output-format' @('json')
+            if($stream){Add-Flag '--output-format' @('stream-json');Add-Flag '--verbose'}else{Add-Flag '--output-format' @('json')}
             Add-Flag '--permission-mode' @('acceptEdits')
             Add-Flag '--allowedTools' @($script:SBClaudeAllowed)
             Add-Flag '--disallowedTools' $script:SBClaudeDenied
@@ -253,7 +359,7 @@ function New-SBAgentInvocation {
             $list.Add('-')
         }
         'gemini' {
-            Add-Flag '--output-format' @('json') '-o'
+            Add-Flag '--output-format' @($(if($stream){'stream-json'}else{'json'})) '-o'
             Add-Flag '--approval-mode' @('auto_edit')
             if($Model){Add-Flag '--model' @($Model) '-m'}
         }
@@ -269,4 +375,4 @@ function Test-SBAgentErrorOutput([string]$Text) {
     # A JSON envelope that reports an error even with exit 0 (claude is_error, gemini error object).
     [bool]($Text -match '"is_error"\s*:\s*true|"error"\s*:\s*\{')
 }
-Export-ModuleMember -Function @('Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentQuotaPattern','Test-SBAgentErrorOutput')
+Export-ModuleMember -Function @('Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentQuotaPattern','Test-SBAgentErrorOutput')

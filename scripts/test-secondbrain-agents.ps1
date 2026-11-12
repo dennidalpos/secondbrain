@@ -56,12 +56,16 @@ Assert-Agent (($parsed.efforts -join ',') -ceq 'low,medium,high,xhigh,max') ('Cl
 Assert-Agent (($parsed.models -join ',') -ceq 'fable,opus,sonnet') ('Claude model aliases come from --model: '+($parsed.models -join ','))
 Assert-Agent ((Get-SBAgentVersion "2.1.319 (Claude Code)`n") -ceq '2.1.319' -and (Get-SBAgentVersion 'codex-cli 0.167.0') -ceq '0.167.0' -and $null -eq (Get-SBAgentVersion '')) 'version is the first dotted number'
 
-# Claude: probe first, then fallback; settings.json gives the configured model and effort.
+# Claude: probe, then configuration; the fallback table only validates and is never listed. settings.json gives the configured model and effort.
 $claudeSettings=Join-Path $fixture 'claude/settings.json'
 Write-AgentFixture $claudeSettings '{"model":"claude-opus-5-5","effortLevel":"high"}'
 $claude=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -Executable $fakeExe -HelpText $claudeHelp -VersionText '2.1.319' -ConfigPaths @{settings=$claudeSettings}
-Assert-Agent ($claude.installed -and $claude.helpRead -and $claude.version -ceq '2.1.319' -and $claude.supports.model -and $claude.supports.effort) 'Claude capabilities from the probe'
-Assert-Agent (@($claude.models|Where-Object {$_.id -eq 'opus' -and $_.source -eq 'probe'}).Count -eq 1 -and @($claude.models|Where-Object {$_.id -eq 'haiku' -and $_.source -eq 'fallback'}).Count -eq 1) 'Claude models mark probe and fallback sources'
+Assert-Agent ($claude.installed -and $claude.status -eq 'ready' -and $claude.helpRead -and $claude.version -ceq '2.1.319' -and $claude.supports.model -and $claude.supports.effort -and !$claude.supports.streamJson) 'Claude capabilities from the probe'
+Assert-Agent (@($claude.models|Where-Object {$_.id -eq 'opus' -and $_.source -eq 'probe'}).Count -eq 1 -and @($claude.models|Where-Object {$_.source -eq 'fallback'}).Count -eq 0 -and 'haiku' -in @($claude.fallbackModels)) 'Claude lists probe and config models only; fallback ids stay for validation'
+Assert-Agent ($true -eq (Test-SBAgentSelection $claude 'haiku' '')) 'a model of the fallback table is still accepted when typed'
+# Streaming: a help that names stream-json makes the runner read the agent steps live (stream-json plus --verbose).
+$streaming=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -Executable $fakeExe -HelpText ($claudeHelp+"`n  --verbose  Verbose`n  (choices: `"text`", `"json`", `"stream-json`")") -VersionText '2.1.319' -ConfigPaths $none
+Assert-Agent ($streaming.supports.streamJson -and ((New-SBAgentInvocation -Provider claude -Capabilities $streaming).arguments -join ' ').StartsWith('-p --output-format stream-json --verbose --permission-mode')) 'Claude streams with stream-json when the installed help offers it'
 Assert-Agent (@($claude.models|Where-Object {$_.id -eq 'claude-opus-5-5'})[0].source -eq 'config' -and $claude.configured.model -ceq 'claude-opus-5-5' -and $claude.configured.effort -ceq 'high') 'configured model and effort come from settings.json'
 Assert-Agent (@($claude.efforts|Where-Object {$_.source -ne 'probe'}).Count -eq 0 -and @($claude.efforts).Count -eq 5) 'Claude efforts all come from the probe'
 $inv=New-SBAgentInvocation -Provider claude -Capabilities $claude -Model 'opus' -Effort 'max'
@@ -99,13 +103,30 @@ $geminiSettings=Join-Path $fixture 'gemini/settings.json'
 Write-AgentFixture $geminiSettings '{"model":{"name":"gemini-x"}}'
 $gemini=Get-SBAgentCapabilities -Provider gemini -BrainRoot $brain -Executable $fakeExe -HelpText $geminiHelp -VersionText '0.9.0' -ConfigPaths @{settings=$geminiSettings}
 Assert-Agent ($gemini.supports.model -and !$gemini.supports.effort -and !@($gemini.efforts).Count) 'Gemini has a model flag and no effort'
-Assert-Agent ($gemini.configured.model -ceq 'gemini-x' -and @($gemini.models)[0].id -ceq 'gemini-x' -and @($gemini.models|Where-Object {$_.source -eq 'fallback'}).Count -ge 1) 'Gemini configured model first, then fallback models'
+Assert-Agent ($gemini.configured.model -ceq 'gemini-x' -and @($gemini.models)[0].id -ceq 'gemini-x' -and @($gemini.models|Where-Object {$_.source -eq 'fallback'}).Count -eq 0) 'Gemini lists its configured model and no fallback model'
 Assert-Agent (((New-SBAgentInvocation -Provider gemini -Capabilities $gemini -Model 'gemini-x').arguments -join ' ') -ceq '--output-format json --approval-mode auto_edit --model gemini-x') 'Gemini headless arguments'
 Assert-AgentError {Test-SBAgentSelection $gemini '' 'high'} 'Gemini' 'Gemini refuses an effort level'
 
-# Not installed: no probe, nothing supported, fallback still listed for the queue UI.
+# Not installed: no probe, nothing supported, no model or effort offered.
 $absent=Get-SBAgentCapabilities -Provider gemini -BrainRoot $brain -NoProbe -ConfigPaths $none
-Assert-Agent (!$absent.installed -and !$absent.helpRead -and !$absent.supports.model -and @($absent.models).Count -ge 1) 'an absent CLI reports fallback models only'
+Assert-Agent (!$absent.installed -and $absent.status -eq 'not-found' -and !$absent.helpRead -and !$absent.supports.model -and @($absent.models).Count -eq 0 -and @($absent.efforts).Count -eq 0) 'an absent CLI offers no model and no effort'
+# Found but silent (no --version, no --help): reported as not responding.
+$silent=Get-SBAgentCapabilities -Provider gemini -BrainRoot $brain -Executable $fakeExe -HelpText '' -VersionText '' -ConfigPaths $none
+Assert-Agent ($silent.installed -and $silent.status -eq 'not-responding') 'a CLI that answers neither --version nor --help is not responding'
+# Search folders outside PATH: per-OS lists (synthetic profile), the extra-folder variable and a CLI found only there.
+$winDirs=@(Get-SBAgentSearchDirectories -Platform windows -ProfileRoot 'C:\Profiles\u' -IncludeMissing)
+Assert-Agent (@($winDirs|Where-Object {$_ -match 'WinGet\\Links$'}).Count -eq 1 -and @($winDirs|Where-Object {$_ -match 'scoop\\shims$'}).Count -eq 1 -and @($winDirs|Where-Object {$_ -match 'npm$'}).Count -ge 1) ('Windows search folders include WinGet, npm and scoop: '+($winDirs -join ';'))
+$unixDirs=@(Get-SBAgentSearchDirectories -Platform unix -ProfileRoot '/srv/u' -IncludeMissing)
+Assert-Agent ('/opt/homebrew/bin' -in $unixDirs -and '/snap/bin' -in $unixDirs -and @($unixDirs|Where-Object {$_ -like '*/.volta/bin'}).Count -eq 1 -and @($unixDirs|Where-Object {$_ -like '*/.bun/bin'}).Count -eq 1) ('macOS/Linux search folders include Homebrew, snap, volta and bun: '+($unixDirs -join ';'))
+$hidden=Join-Path $fixture 'hidden-bin'
+Write-AgentFixture (Join-Path $hidden 'sbfakeagent.ps1') "'1.2.3'"
+$savedSearch=$env:SECONDBRAIN_AGENT_SEARCH_PATH
+try{
+    $env:SECONDBRAIN_AGENT_SEARCH_PATH=$hidden
+    $outside=Resolve-SBAgentExecutable 'sbfakeagent'
+    Assert-Agent ($outside -and $outside.origin -eq 'search' -and $outside.script -like '*sbfakeagent.ps1') ('a CLI outside PATH is found in the search folders: '+($outside|ConvertTo-Json -Compress))
+}finally{$env:SECONDBRAIN_AGENT_SEARCH_PATH=$savedSearch}
+Assert-Agent ($null -eq (Resolve-SBAgentExecutable 'sbfakeagent-missing')) 'a CLI found nowhere resolves to nothing'
 Assert-AgentError {Get-SBAgentProvider 'other'} 'claude, codex, gemini' 'an unknown provider lists the allowed values'
 Assert-Agent ((Get-SBAgentProviderForPath 'C:\x\codex.cmd') -ceq 'codex' -and $null -eq (Get-SBAgentProviderForPath 'fake-agent.ps1')) 'provider from the executable name'
 

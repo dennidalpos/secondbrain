@@ -807,6 +807,32 @@
       }
     },
     {
+      "id": "pmt-d586ebc5",
+      "code": "DOC05",
+      "category": "docs",
+      "summary": "Create diagrams, posters, infographics and social or site flows from real code",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "real code or the stated project intent, the audience and channel (social, site, marketing, docs) and the format",
+      "example": "DOC05: draw the architecture diagram and a one-page infographic of the runner from the code",
+      "file": "DOC05.md",
+      "related": [
+        "pmt-07430e8c",
+        "pmt-75786fd6",
+        "pmt-1c621902",
+        "pmt-203f2c25",
+        "pmt-f3614e6a"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Crea diagrammi, locandine, infografiche e flussi social o web dal codice reale",
+          "requires": "codice reale o intento dichiarato del progetto, pubblico e canale (social, sito, marketing, documentazione) e formato",
+          "example": "DOC05: disegna il diagramma di architettura e un'infografica di una pagina del runner partendo dal codice"
+        }
+      }
+    },
+    {
       "id": "pmt-adb9bfc0",
       "code": "GOV02",
       "category": "security",
@@ -1570,7 +1596,7 @@
       "target": "repository",
       "mode": "write",
       "scope": "repo",
-      "requires": "tracker with ready autonomous tasks, scripts/run-ready-tasks.ps1 or the repository launcher, and the user's go-ahead for -Run",
+      "requires": "ready autonomous tasks, the desktop runner (scripts/runner.ps1) or the command line (run-ready-tasks.ps1, launcher) and the user's go-ahead for -Run",
       "example": "REP15: run the ready autonomous tasks, follow the run and record the outcome",
       "file": "REP15.md",
       "related": [
@@ -1582,7 +1608,7 @@
       "i18n": {
         "it": {
           "summary": "Esegui i task autonomi pronti con il runner, monitora e registra l'esito",
-          "requires": "tracker con task autonomi pronti, scripts/run-ready-tasks.ps1 o il lanciatore del repository e il consenso dell'utente a -Run",
+          "requires": "task autonomi pronti, il runner desktop (scripts/runner.ps1) o la riga di comando (run-ready-tasks.ps1, lanciatore) e il consenso dell'utente a -Run",
           "example": "REP15: esegui i task autonomi pronti, segui l'esecuzione e registra l'esito"
         }
       }
@@ -2700,6 +2726,31 @@
           "summary": "Analizza il repository e proponi skill autorevoli di supporto al progetto",
           "requires": "accesso in lettura al repository e ai manifest, e fonti ufficiali di skill da consultare",
           "example": "COM07: analizza questo repository e proponi le skill che lo supporterebbero"
+        }
+      }
+    },
+    {
+      "id": "pmt-1c621902",
+      "code": "COM08",
+      "category": "understand",
+      "summary": "Analyze project intent, limits, production fit and known alternatives",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "the repository (code, README, dossier) and access to official sources of the comparable projects",
+      "example": "COM08: what this project solves, what it cannot, where it fits in production and how it differs from known tools",
+      "file": "COM08.md",
+      "related": [
+        "pmt-a709a792",
+        "pmt-25c97d58",
+        "pmt-3e0ad55e",
+        "pmt-d586ebc5"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Analizza intento, limiti, uso in produzione e differenze da alternative note",
+          "requires": "il repository (codice, README, dossier) e l'accesso alle fonti ufficiali dei progetti confrontabili",
+          "example": "COM08: cosa risolve il progetto, cosa non può risolvere, dove si applica in produzione e come differisce dagli strumenti noti"
         }
       }
     },

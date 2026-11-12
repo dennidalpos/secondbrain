@@ -55,6 +55,12 @@ COMPRENSIONE E ANALISI
   • Cosa serve: accesso in lettura al repository e ai manifest, e fonti ufficiali di skill da consultare
   • Esempio d'uso: COM07: analizza questo repository e proponi le skill che lo supporterebbero
 
+🔭 COM08 | Analizza intento, limiti, uso in produzione e differenze da alternative note
+  • ID: pmt-1c621902
+  • Ambito: repo | Modalità: read
+  • Cosa serve: il repository (codice, README, dossier) e l'accesso alle fonti ufficiali dei progetti confrontabili
+  • Esempio d'uso: COM08: cosa risolve il progetto, cosa non può risolvere, dove si applica in produzione e come differisce dagli strumenti noti
+
 
 REQUISITI, ARCHITETTURA E PIANIFICAZIONE
 🔭 PRG01 | Trasforma una richiesta in requisiti e criteri di accettazione.
@@ -353,6 +359,12 @@ DOCUMENTAZIONE
   • Cosa serve: La procedura, i sistemi coinvolti, gli accessi necessari, i guasti possibili e un operatore che la validi
   • Esempio d'uso: DOC04: scrivi un runbook per ripristinare il database da backup
 
+🔥 DOC05 | Crea diagrammi, locandine, infografiche e flussi social o web dal codice reale
+  • ID: pmt-d586ebc5
+  • Ambito: repo | Modalità: write
+  • Cosa serve: codice reale o intento dichiarato del progetto, pubblico e canale (social, sito, marketing, documentazione) e formato
+  • Esempio d'uso: DOC05: disegna il diagramma di architettura e un'infografica di una pagina del runner partendo dal codice
+
 
 RILASCIO E OPERATIVITÀ
 🔥 OPS01 | Prepara e verifica pacchetti e artefatti distribuibili.
@@ -470,7 +482,7 @@ BACKLOG, MEMORIA E CONTINUITÀ
 🔥 REP15 | Esegui i task autonomi pronti con il runner, monitora e registra l'esito
   • ID: pmt-802ff569
   • Ambito: repo | Modalità: write
-  • Cosa serve: tracker con task autonomi pronti, scripts/run-ready-tasks.ps1 o il lanciatore del repository e il consenso dell'utente a -Run
+  • Cosa serve: task autonomi pronti, il runner desktop (scripts/runner.ps1) o la riga di comando (run-ready-tasks.ps1, lanciatore) e il consenso dell'utente a -Run
   • Esempio d'uso: REP15: esegui i task autonomi pronti, segui l'esecuzione e registra l'esito
 
 🔥 REP16 | Sblocca i task bloccati: verifica il motivo reale e rendili autonomi

@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 2.3.0](https://img.shields.io/badge/version-2.3.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.4.0](https://img.shields.io/badge/version-2.4.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -78,7 +78,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 - **Read project knowledge:** use Startup, task lookup or search; [daily use](docs/uso-quotidiano.md) explains the CLI and chat conventions.
 - **Change a task or memory:** review the operation and its approval requirements. The [MCP write guide](docs/riferimento/mcp-writes.md) covers the local receipt for each submitted operation.
 - **Run the ready tasks:** `scripts/run-ready-tasks.ps1` runs them one at a time with Claude Code, Codex or Gemini CLI; the [desktop orchestrator](docs/orchestratore.md) picks the repository, the directives, the model and the effort level.
-- **Use prompt cards:** 114 English cards with Italian counterparts cover development, review, documentation and maintenance. [Prompt guide](docs/prompt.md).
+- **Use prompt cards:** 116 English cards with Italian counterparts cover development, review, documentation and maintenance. [Prompt guide](docs/prompt.md).
 - **Back up private knowledge:** preserve the dossier and recovery records separately from Git. [Backup and recovery](docs/sicurezza.md).
 
 A new dossier has no recorded tasks, so an empty ready-task list is expected.
@@ -93,7 +93,7 @@ Setup can select repositories and supported IDE integrations interactively. MCP 
 |---|---|---|
 | Repository instructions | Managed AGENTS.md blocks and CLAUDE.md/GEMINI.md pointers | Loading in a new agent session |
 | MCP configuration | Client-specific preview and pairing | Actual tool exposure, profile and popup behavior |
-| MCP server | Eleven tools, including reviewed dossier-write preview and submission | Client consent and the local receipt for each write |
+| MCP server | Twelve tools, including runner status and reviewed dossier-write preview and submission | Client consent and the local receipt for each write |
 | Memory collection | Guided envelopes, per-turn Permit CLI and a native bridge | Current implementation limits and live qualification |
 
 See [Agents and MCP](docs/ide-e-mcp.md) for client scopes. An updated file or a successful synthetic handshake does not prove that a client loaded the configuration.
@@ -146,7 +146,7 @@ Servono Windows, PowerShell 7.5+ e Git 2.42+. I comandi copiabili sono nella sez
 
 ### Compiti comuni e configurazione
 
-Consulta i task pronti, carica il dossier e usa una delle 114 schede prompt. Le scritture MCP richiedono un piano e una ricevuta CLI locale per operazione. [Uso quotidiano](docs/uso-quotidiano.md) · [Scritture approvate](docs/riferimento/mcp-writes.md) · [Agenti e MCP](docs/ide-e-mcp.md).
+Consulta i task pronti, carica il dossier e usa una delle 116 schede prompt. Le scritture MCP richiedono un piano e una ricevuta CLI locale per operazione. [Uso quotidiano](docs/uso-quotidiano.md) · [Scritture approvate](docs/riferimento/mcp-writes.md) · [Agenti e MCP](docs/ide-e-mcp.md).
 
 ### Limiti e aiuto
 

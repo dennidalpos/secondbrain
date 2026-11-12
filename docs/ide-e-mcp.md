@@ -36,6 +36,7 @@ Preview user-level pairing separately for Codex or Claude Desktop; neither targe
 |---|---|
 | `get_startup_context` | `knowledge.ps1 -Startup [-Profile Full]` |
 | `get_ready_tasks` | `knowledge.ps1 -Tasks -ReadyOnly` |
+| `get_runner_status` | `runner-status.ps1` |
 | `get_task` | `knowledge.ps1 -Task <id or sequence>` |
 | `search_knowledge` | `knowledge.ps1 -Search <text> [-Mode Relevance]` |
 | `get_prompt_home` | `prompts.ps1` |
@@ -48,7 +49,7 @@ Preview user-level pairing separately for Codex or Claude Desktop; neither targe
 
 `ide-detect.ps1` stays read-only. Its selection (`-Ides` with `-Scope`, or `-Interactive`) echoes each IDE, scope and location plus a `pairCommand`: the preview-only `mcp-server.ps1 -Pair -Target <id> -Scope <user|project>` command (no `-Apply`; `system` scope and IDEs without a Pair target get `null`). Run it yourself, then confirm with APPLICA to write; `secondbrain.ps1 -Setup` keeps its own `-Ides` selector.
 
-The server exposes eleven tools. The compact `tools/list` response (`id=2`) measures 14,461 characters in English and 15,375 in Italian (2026-11-09, with `list_ides`; `result` only: 14,427/15,341). Method: server started with `-NoRecovery` and `SECONDBRAIN_LANG=en|it`, `initialize` with `id=1`, `initialized` notification, `tools/list` with `id=2`, length of the compact JSON line returned. These are characters, not tokens. Task status/new-task writes and memory/history appends are available through reviewed MCP submission as well as the CLI. Activity submission remains disabled until its activation procedure is complete. Compaction still uses reviewed CLI maintenance. Use `-CheckoutPath` or `-Repository` when the current working directory does not resolve the product. The global task view is opt-in with `-All`, paginated by `-Offset` and `-Limit` (default 50).
+The server exposes twelve tools. The compact `tools/list` response (`id=2`) measures 9,625 characters in English and 9,959 in Italian (2026-11-12, with `get_runner_status`; `result` only: 9,591/9,925). Method: server started with `-NoRecovery` and `SECONDBRAIN_LANG=en|it`, `initialize` with `id=1`, `initialized` notification, `tools/list` with `id=2`, length of the compact JSON line returned. These are characters, not tokens. Task status/new-task writes and memory/history appends are available through reviewed MCP submission as well as the CLI. Activity submission remains disabled until its activation procedure is complete. Compaction still uses reviewed CLI maintenance. Use `-CheckoutPath` or `-Repository` when the current working directory does not resolve the product. The global task view is opt-in with `-All`, paginated by `-Offset` and `-Limit` (default 50).
 
 ## Reads may have side effects
 

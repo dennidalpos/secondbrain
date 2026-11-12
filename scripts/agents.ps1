@@ -4,7 +4,10 @@
 Agent CLIs for the task runner and the desktop orchestrator: capability probe and repository-specific directives.
 .DESCRIPTION
 -Probe [-Provider claude|codex|gemini] prints, for each agent CLI, whether it is installed, its version, the flags of its --help,
-the models and effort levels it accepts (each with its source: probe, config or fallback) and the model and effort configured locally. Read-only.
+the models and effort levels it exposes (each with its source: probe or config; the fallback table only validates a typed model), its
+status (ready, not-found, not-responding) and where it was found (path, search folder or Store package). Providers are probed in parallel.
+-Clients adds the IDEs and AI clients detected on the workstation (scripts/ide-detect.ps1), each with the runner provider it maps to,
+if any, and why it cannot be driven otherwise (no headless CLI). Read-only.
 -Directives -RepositoryPath <checkout> prints the repository directive files (AGENTS.md and its managed block) and the dossier-specific
 directives (AGENTS.managed.md). Read-only.
 Add -DirectivesFile <markdown> to prepare a proposal for that text in a work folder (work.ps1, category work) and preview it with
@@ -14,7 +17,7 @@ reviewed proposal with approve-revision.ps1 and aligns the repository with secon
 Without a mode the script lists the modes and exits 2.
 #>
 [CmdletBinding()]
-param([switch]$Probe,[ValidateSet('claude','codex','gemini')][string[]]$Provider,
+param([switch]$Probe,[ValidateSet('claude','codex','gemini')][string[]]$Provider,[switch]$Clients,
     [switch]$Directives,[string]$RepositoryPath,[string]$DirectivesFile,[string]$ProposalPath,
     [ValidatePattern('^$|^[0-9A-Fa-f]{64}$')][string]$ExpectedProposalHash,[string]$Authorization,[switch]$Apply,
     [string]$ConfigPath,[ValidateSet('en','it')][string]$Language)
@@ -59,7 +62,19 @@ function Get-AgentsRepository([string]$Path){
 try{
     if($Probe){
         $ids=if($Provider){@($Provider)}else{@(Get-SBAgentProviderIds)}
-        ConvertTo-SBJson @{agents=@($ids|ForEach-Object {Get-SBAgentCapabilities -Provider $_ -BrainRoot $brain})}
+        $agents=@(Get-SBAgentCapabilitiesAll -Provider $ids -BrainRoot $brain)
+        $output=[ordered]@{agents=$agents}
+        if($Clients){
+            # IDEs and clients seen on the workstation: only the ones with a headless CLI of a runner provider can run tasks.
+            Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
+            $map=@{'Claude Code'='claude';'Codex'='codex';'Gemini CLI'='gemini'}
+            $output.clients=@(@(Get-SBIDEDetection '')|ForEach-Object {
+                $name=[string]$_.name;$mapped=if($map.ContainsKey($name)){$map[$name]}else{$null}
+                $agent=if($mapped){@($agents|Where-Object {$_.provider -eq $mapped})[0]}else{$null}
+                [ordered]@{name=$name;confidence=$_.confidence;provider=$mapped;runnable=[bool]($agent -and $agent.status -eq 'ready');reason=$(if(!$mapped){'no-headless-cli'}elseif(!$agent -or $agent.status -ne 'ready'){'cli-'+$(if($agent){$agent.status}else{'not-found'})}else{$null})}
+            })
+        }
+        ConvertTo-SBJson $output
         exit 0
     }
     if(!$Directives){throw (New-SBError 'agents.usage')}
@@ -69,6 +84,8 @@ try{
         if(!$ProposalPath -or !$ExpectedProposalHash -or !$Authorization){throw (New-SBError 'agents.apply.required')}
         $approved=Invoke-AgentsStep 'approve-revision.ps1' (@('-ProposalPath',$ProposalPath,'-ExpectedProposalHash',$ExpectedProposalHash,'-Authorization',$Authorization)+$configArgs)
         $sync=Invoke-AgentsStep 'secondbrain.ps1' (@('-Sync','-Repository',[string]$repo.identity)+$configArgs)
+        # The proposal folder (work/<date>-directives) is closed once applied, so its retention starts and it does not stay open.
+        if((Split-Path -Leaf $ProposalPath) -match '^\d{8}-directives$'){try{[void](Invoke-AgentsStep 'work.ps1' (@('-Repository',[string]$repo.identity,'-Category','work','-Slug','directives','-Close')+$configArgs))}catch{[void]$_}}
         ConvertTo-SBJson @{applied=$true;identity=$repo.identity;approval=$approved;sync=$sync}
         exit 0
     }

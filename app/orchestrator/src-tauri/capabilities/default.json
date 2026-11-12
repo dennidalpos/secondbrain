@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Main window: core events and the open dialog only; every process runs through the Rust commands.",
+  "description": "Main window: core events, the open dialog and closing itself (after the run question); every process runs through the Rust commands.",
   "windows": ["main"],
-  "permissions": ["core:default", "dialog:allow-open"]
+  "permissions": ["core:default", "dialog:allow-open", "core:window:allow-close", "core:window:allow-destroy"]
 }

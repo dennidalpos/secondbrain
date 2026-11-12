@@ -55,6 +55,12 @@ UNDERSTANDING AND ANALYSIS
   • Needs: read access to the repository and its manifests, and official skill sources to consult
   • Example: COM07: analyze this repository and propose the skills that would support it
 
+🔭 COM08 | Analyze project intent, limits, production fit and known alternatives
+  • ID: pmt-1c621902
+  • Scope: repo | Mode: read
+  • Needs: the repository (code, README, dossier) and access to official sources of the comparable projects
+  • Example: COM08: what this project solves, what it cannot, where it fits in production and how it differs from known tools
+
 
 REQUIREMENTS, ARCHITECTURE AND PLANNING
 🔭 PRG01 | Turn a request into requirements and acceptance criteria.
@@ -353,6 +359,12 @@ DOCUMENTATION
   • Needs: The procedure, systems involved, access needed, failure modes and an operator who can validate it
   • Example: DOC04: write a runbook for restoring the database from backup
 
+🔥 DOC05 | Create diagrams, posters, infographics and social or site flows from real code
+  • ID: pmt-d586ebc5
+  • Scope: repo | Mode: write
+  • Needs: real code or the stated project intent, the audience and channel (social, site, marketing, docs) and the format
+  • Example: DOC05: draw the architecture diagram and a one-page infographic of the runner from the code
+
 
 RELEASE AND OPERATIONS
 🔥 OPS01 | Prepare and verify distributable packages and artifacts.
@@ -470,7 +482,7 @@ BACKLOG, MEMORY AND CONTINUITY
 🔥 REP15 | Run ready autonomous tasks with the runner, monitor and record the outcome
   • ID: pmt-802ff569
   • Scope: repo | Mode: write
-  • Needs: tracker with ready autonomous tasks, scripts/run-ready-tasks.ps1 or the repository launcher, and the user's go-ahead for -Run
+  • Needs: ready autonomous tasks, the desktop runner (scripts/runner.ps1) or the command line (run-ready-tasks.ps1, launcher) and the user's go-ahead for -Run
   • Example: REP15: run the ready autonomous tasks, follow the run and record the outcome
 
 🔥 REP16 | Unblock blocked tasks: verify the real reason, then make them autonomous
