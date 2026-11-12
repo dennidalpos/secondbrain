@@ -94,6 +94,26 @@ function Get-SBRunnerStatus {
         events=@(Get-SBRunnerTail (Join-Path $folder 'events.jsonl') $Tail)
     }
 }
+function Get-SBRunnerRunList {
+    # Past and current runs of the repository on this workstation, newest first: provider, model and effort (as resolved), counts, stop
+    # reason, verdict, per-task results and the run folder. -Limit 0 = all.
+    param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$HostId,[Parameter(Mandatory)][string]$Repository,[int]$Limit=50)
+    $files=@(Get-SBRunnerStatusFiles $BrainRoot $HostId $Repository)
+    $now=[DateTimeOffset]::UtcNow
+    $runs=@()
+    foreach($f in $(if($Limit -gt 0){@($files|Select-Object -First $Limit)}else{$files})){
+        $s=Read-SBRunnerStatusFile $f
+        if(!$s){continue}
+        $model=if($s.ContainsKey('resolvedModel') -and $s.resolvedModel){[string]$s.resolvedModel}elseif($s.ContainsKey('model')){[string]$s.model}else{$null}
+        $effort=if($s.ContainsKey('resolvedEffort') -and $s.resolvedEffort){[string]$s.resolvedEffort}elseif($s.ContainsKey('effort')){[string]$s.effort}else{$null}
+        $runs+=,[ordered]@{
+            runId=[string]$s['runId'];state=[string]$s['state'];verdict=(Get-SBRunnerVerdict $s $now);provider=[string]$s['provider'];model=$model;effort=$effort
+            startedAt=$s['startedAt'];finishedAt=$s['finishedAt'];counts=$s['counts'];stopReason=$s['stopReason'];resumedFrom=$s['resumedFrom']
+            results=@($s['results']);folder=(Split-Path $f -Parent)
+        }
+    }
+    [ordered]@{repository=$Repository;total=$files.Count;runs=$runs}
+}
 function Find-SBActiveRunner([string]$BrainRoot,[string]$HostId,[string]$Repository) {
     # The live runner of the repository, if any (one runner per repository); a dead one is returned with orphaned=$true so the caller can close it.
     foreach($f in @(Get-SBRunnerStatusFiles $BrainRoot $HostId $Repository)){
@@ -216,4 +236,4 @@ function Get-SBAgentFinalOutput([string]$Text) {
     }
     $Text
 }
-Export-ModuleMember -Function @('Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')
+Export-ModuleMember -Function @('Get-SBRunnerRunList','Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')

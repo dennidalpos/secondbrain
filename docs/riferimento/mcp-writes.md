@@ -7,7 +7,7 @@ Two tools extend the nine other tools: preview_dossier_write returns a plan with
 | Operation | Payload | Destination and precondition |
 |---|---|---|
 | task.status | taskId, status, optional reason | One task; hash of the complete current record |
-| task.update | taskId plus at least one of status, reason, priority, execution, stream, awaiting, requires (array of capabilities) | One task through the task-update queue; hash of the complete current record; same validation as `knowledge.ps1 -UpdateTaskId` |
+| task.update | taskId plus at least one of status, reason, priority, execution, stream, awaiting, requires (array of capabilities), evidence (array of `reference\|outcome` strings or `{reference, outcome}` objects, appended; outcome `passed`, `failed`, `partial` or `unverified`) | One task through the task-update queue; hash of the complete current record; same validation as `knowledge.ps1 -UpdateTaskId` |
 | task.new | title, acceptance array, provenance; optional description, priority, pointer, requires | Declared tracker and existing dossier history provenance; both hashes |
 | memory.append | content | memory.md; current hash; agent view regenerated |
 | activity.append | taskId, sessionId, when, outcome, detail | history/activity/report.md; current hash and local activation policy |

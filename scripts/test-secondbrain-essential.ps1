@@ -5,9 +5,12 @@ param([string[]]$Groups=@('portable','trackers','workflows','pending'),[switch]$
 $ErrorActionPreference='Stop'
 # A comma-separated list arrives as one element through -File.
 $Groups=@($Groups|ForEach-Object {$_ -split ','}|Where-Object {$_})
-foreach($name in @('Core','Access','Host','Para','Tracker','Knowledge','Pending','Portable','Mcp','Publication')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$name+'.psm1'))}
+foreach($name in @('Core','Access','Host','Para','TaskLedger','Tracker','Knowledge','Pending','Portable','Mcp','Publication')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$name+'.psm1'))}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
+# The ledger records who writes: the suite may run inside an agent CLI, so its executor signals are cleared for every write of the suite.
+$executorVars=@('SECONDBRAIN_EXECUTOR','CLAUDECODE','CLAUDE_CODE_ENTRYPOINT','CODEX_THREAD_ID','CODEX_SANDBOX','CODEX_SANDBOX_NETWORK_DISABLED','CODEX_MANAGED_BY_NPM','GEMINI_CLI','GEMINI_CLI_NO_RELAUNCH','ANTIGRAVITY_AGENT','ANTIGRAVITY_SESSION')
+$savedExecutor=@{};foreach($v in $executorVars){$savedExecutor[$v]=[Environment]::GetEnvironmentVariable($v,'Process');[Environment]::SetEnvironmentVariable($v,$null,'Process')}
 $checks=0
 $script:lastTick=[Diagnostics.Stopwatch]::StartNew()
 function Check($Value,[string]$Message){if(!$Value){throw ('FAIL ESSENTIAL: '+$Message)};$script:checks++;if($env:SECONDBRAIN_TEST_TIMING){Add-Content -LiteralPath $env:SECONDBRAIN_TEST_TIMING -Value ("{0}`t{1}" -f $script:lastTick.ElapsedMilliseconds,$Message);$script:lastTick.Restart()};'PASS ESSENTIAL: '+$Message}
@@ -478,6 +481,57 @@ if('trackers' -in $Groups){
     Check ($cli.code -ne 0) 'CLI rejects update without fields'
     $cli=Invoke-EssentialCli @('-Tasks')
     Check ($cli.code -eq 0 -and @($cli.text|ConvertFrom-Json).Count -eq 1) 'CLI lists only open local tasks'
+    # Dossier ledger: status, execution, evidence and analysis changes append one record each, in the same transaction as the tracker.
+    try{
+        $ledger=@(Read-SBTaskLedger $trackerPath)
+        Check (@($ledger|Where-Object {$_.taskId -eq 'T-2' -and $_.event -eq 'status' -and $_.statusAfter -eq 'done'}).Count -ge 2 -and @($ledger|Where-Object {$_.taskId -eq 'T-1' -and $_.executionAfter -eq 'user_required'}).Count -eq 1) ('status and execution changes are recorded in the dossier ledger: '+((@($ledger|ForEach-Object {"$($_.taskId):$($_.event):$($_.statusAfter):$($_.executionAfter)"})) -join ','))
+        Check (@($ledger|Where-Object {$_.executor.tool -ne 'unknown'}).Count -eq 0) 'a writer without any executor signal is recorded as unknown'
+        $count=$ledger.Count
+        [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Priority P3)
+        Check (@(Read-SBTaskLedger $trackerPath).Count -eq $count) 'a priority change adds no ledger record'
+        [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Execution autonomous -Executor @{tool='codex';mode='runner';model='gpt-test';runId='run-1'})
+        $last=@(Read-SBTaskLedger $trackerPath)[-1]
+        Check ($last.taskId -eq 'T-1' -and $last.executor.tool -eq 'codex' -and $last.executor.mode -eq 'runner' -and $last.executor.runId -eq 'run-1' -and $last.executionBefore -eq 'user_required' -and $last.executionAfter -eq 'autonomous') 'an explicit executor is recorded with its run'
+        $env:SECONDBRAIN_EXECUTOR='{"tool":"claude","mode":"analysis","model":"haiku"}'
+        [void](Update-SBTrackerTask @argsBase -TaskId T-1 -Decisions @(@{questionId='q1';question='Quale sezione?';answer='Installazione';decidedBy='owner (test)'}) -Acceptance @('README contiene Installazione'))
+        $env:SECONDBRAIN_EXECUTOR=$null
+        $task=@((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-1')[0]
+        $last=@(Read-SBTaskLedger $trackerPath)[-1]
+        Check ($task.extensions.decisions[0].answer -ceq 'Installazione' -and $task.extensions.decisions[0].decidedBy -ceq 'owner (test)' -and @($task.acceptance) -contains 'README contiene Installazione' -and $last.event -eq 'analysis' -and $last.executor.tool -eq 'claude' -and $last.executor.mode -eq 'analysis') 'owner decisions and acceptance are stored and recorded as an analysis by SECONDBRAIN_EXECUTOR'
+        Reject {Update-SBTrackerTask @argsBase -TaskId T-1 -Decisions @(@{question='senza risposta'})} 'a decision without an answer is rejected'
+        # Executor detection order: explicit, SECONDBRAIN_EXECUTOR, agent CLI environment, session client, unknown.
+        Check ((Resolve-SBExecutor).tool -eq 'unknown' -and (Resolve-SBExecutor -Client 'knowledge CLI/API').tool -eq 'unknown') 'no signal resolves to unknown'
+        Check ((Resolve-SBExecutor -Client 'codex').tool -eq 'codex' -and (Resolve-SBExecutor -Client 'codex').mode -eq 'mcp') 'a session client resolves to an MCP executor'
+        $env:CLAUDECODE='1'
+        Check ((Resolve-SBExecutor -Client 'codex').tool -eq 'claude' -and (Resolve-SBExecutor).mode -eq 'interactive') 'the agent CLI environment wins over the session client'
+        $env:SECONDBRAIN_EXECUTOR='{"tool":"gemini","mode":"runner"}'
+        Check ((Resolve-SBExecutor).tool -eq 'gemini' -and (Resolve-SBExecutor @{tool='codex';mode='bogus'}).mode -eq 'cli') 'SECONDBRAIN_EXECUTOR wins over the environment and an explicit executor over both, unknown modes fall back to cli'
+        $env:SECONDBRAIN_EXECUTOR=$null;$env:CLAUDECODE=$null
+        # Runner reports become run records with the provider of their run; the backfill copies them once.
+        $reportRoot=Join-Path $fixture 'ledger-reports'
+        $taskFolder=Join-Path $reportRoot '20261112-runner-1-101500'
+        Put (Join-Path $taskFolder 'report.json') (ConvertTo-SBJson @{repository=$identity;id='T-1';seq=1;state='finished';exitCode=0;statusBefore='todo';statusAfter='in_progress';seconds=42;folder=$taskFolder})
+        Put (Join-Path $reportRoot '20261112-runner-run-101400-1/status.json') (ConvertTo-SBJson @{provider='codex';resolvedModel='gpt-test';runId='run-9';results=@(@{id='T-1';folder=$taskFolder})})
+        $reports=@(Get-SBRunnerReportRecords $reportRoot)
+        Check ($reports.Count -eq 1 -and $reports[0].executor.tool -eq 'codex' -and $reports[0].executor.model -eq 'gpt-test' -and $reports[0].outcome.folder -eq '20261112-runner-1-101500') 'a runner report takes the provider and model of its run'
+        $preview=Invoke-SBTaskRunBackfill -BrainRoot $brain -Identity $identity -Ledger @(Read-SBTaskLedger $trackerPath) -Reports $reports
+        Check ($preview.added -eq 1 -and !$preview.applied) 'backfill previews the missing report'
+        [void](Invoke-SBTaskRunBackfill -BrainRoot $brain -Identity $identity -Ledger @(Read-SBTaskLedger $trackerPath) -Reports $reports -Apply)
+        $again=Invoke-SBTaskRunBackfill -BrainRoot $brain -Identity $identity -Ledger @(Read-SBTaskLedger $trackerPath) -Reports $reports -Apply
+        Check ($again.added -eq 0 -and @(Read-SBTaskLedger $trackerPath|Where-Object {$_.source -eq 'report'}).Count -eq 1) 'backfill is idempotent'
+        # Registry: active and archived tasks with their tools; the copied report is not counted twice.
+        $resolvedReg=Resolve-SBTracker -BrainRoot $brain -Identity $identity -CheckoutPath $repo -AllowedOwners @()
+        $archiveReg=Read-SBTrackerArchive $trackerPath $identity
+        $reg=Get-SBTaskRegistry -ActiveTasks @($resolvedReg.data.tasks) -ArchivedTasks @($archiveReg.data.tasks) -Ledger @(Read-SBTaskLedger $trackerPath) -Reports $reports
+        $t1=@($reg.tasks|Where-Object id -eq 'T-1')[0];$t2=@($reg.tasks|Where-Object id -eq 'T-2')[0]
+        Check ($t1 -and $t2 -and $t2.archived -and @($t1.tools) -contains 'codex' -and @($t1.tools) -contains 'claude' -and @($t1.runs|Where-Object {$_.outcome -and $_.outcome.folder -eq '20261112-runner-1-101500'}).Count -eq 1) 'registry joins active and archived tasks with their tools and does not repeat a copied report'
+        $onlyArchived=Get-SBTaskRegistry -ActiveTasks @($resolvedReg.data.tasks) -ArchivedTasks @($archiveReg.data.tasks) -Ledger @(Read-SBTaskLedger $trackerPath) -Archived only
+        $byTool=Get-SBTaskRegistry -ActiveTasks @($resolvedReg.data.tasks) -ArchivedTasks @($archiveReg.data.tasks) -Ledger @(Read-SBTaskLedger $trackerPath) -Reports $reports -Tool codex
+        Check ((ConvertTo-SBJson $onlyArchived) -match '"tasks":\s*\[') 'a registry page of one task stays a JSON array'
+        Check (@($onlyArchived.tasks|Where-Object {!$_.archived}).Count -eq 0 -and @($onlyArchived.tasks).Count -ge 1 -and @($byTool.tasks|ForEach-Object id) -contains 'T-1' -and @($byTool.tasks|ForEach-Object id) -notcontains 'T-2') 'registry filters by archive and by tool'
+        $cli=Invoke-EssentialCli @('-Registry','-Filter','T-2')
+        Check ($cli.code -eq 0 -and $cli.text -match '"archived":\s*true') ('CLI registry includes archived tasks: '+$cli.text)
+    }finally{foreach($v in $executorVars){[Environment]::SetEnvironmentVariable($v,$savedExecutor[$v],'Process')}}
 }
 if('workflows' -in $Groups){
     $empty=& (Get-Module SecondBrain.Knowledge) {New-SBStartupPackage -Record @{identity='github.com/test/empty'} -Tracker @{path=$null;source='absent';declared=$false} -TOC '# Empty' -ContextText '# Context' -MemoryText '# Memory' -Profile Slim -Budget 25000}

@@ -1,25 +1,27 @@
 // SecondBrain Orchestrator UI: a thin shell over the SecondBrain PowerShell CLIs (agents.ps1, run-ready-tasks.ps1, runner-status.ps1, prompts.ps1).
 // Every write goes through those scripts; the UI only collects choices and shows their JSON results. A run is followed through its
 // status.json and events.jsonl, so it can be found again after the window is closed and reopened.
-import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
+import { $, call, el, fmtDuration, input, option, select, setError, since, baseName, type AgentCaps, type AgentStatus, type LightChoice, type Source } from "./common";
+import { initRegistry, showRegistry } from "./registry";
+import { analyzeMany, analyzeTask, initAnalysis, openAnalysis, storedAnalysis, verdictOf, VERDICT_LABEL } from "./analysis";
 
-type Source = "probe" | "config" | "fallback";
-type AgentStatus = "ready" | "not-found" | "not-responding";
-interface ModelInfo { id: string; label: string; source: Source; efforts: string[]; defaultEffort: string | null }
-interface AgentCaps {
-  provider: string; name: string; installed: boolean; status: AgentStatus; origin: string | null; path: string | null; version: string | null; helpRead: boolean;
-  supports: { model: boolean; effort: boolean; streamJson: boolean };
-  configured: { model: string | null; effort: string | null };
-  models: ModelInfo[]; efforts: { id: string; source: Source }[];
-}
 interface ClientInfo { name: string; confidence: string; provider: string | null; runnable: boolean; reason: string | null }
 interface PreviewTask { id: string; seq: number; priority: string | null; title: string }
-interface Skipped { id?: string; seq?: number | null; reason: string; repository?: string }
-interface RunRecord { id: string; seq: number; state: string; exitCode: number | null; statusBefore: string; statusAfter: string; seconds: number; folder: string; parked: boolean }
-interface Settings { secondbrainHome: string; pwshPath: string; recentRepos: string[] }
+interface Skipped { id?: string; seq?: number | null; reason: string; repository?: string; title?: string; status?: string; execution?: string; stateReason?: string; awaiting?: string }
+interface RunRecord { id: string; seq: number; state: string; exitCode: number | null; statusBefore: string; statusAfter: string; seconds: number; folder: string; parked: boolean | string }
+interface Settings { secondbrainHome: string; pwshPath: string; recentRepos: string[]; lightProvider?: string; lightModel?: string; lightEffort?: string }
+interface DirectiveCounts { global: number; common: number; dossier: number; agentsOutside: number; composed: number; loaded: number; budget: number; percent: number }
+interface DirectivesRead {
+  managedBlock: string | null; dossierDirectives: string; agentsFile: string; dossierRelative: string;
+  globalBlock?: string; commonBlock?: string; agentsOutside?: string; composedPreview?: string; counts?: DirectiveCounts;
+}
+interface DirectivesProposal {
+  provider: string; model: string | null; effort: string | null; role: string; seconds: number; attempts: number; markdown: string; portable: boolean;
+  sections: { title: string; body: string; rationale: string; sources: string[] }[]; coveredElsewhere: { topic: string; where: string }[]; warnings: string[]; counts: DirectiveCounts;
+}
 interface Launch { repo: string | null; secondbrainHome: string | null; rootError: string | null; pwsh: string; version: string }
 interface RunStatusFile {
   state: string; phase: string; pid: number; startedAt: string; updatedAt: string; finishedAt: string | null;
@@ -31,11 +33,13 @@ interface RunReport { active: boolean; verdict: "working" | "stalled" | "finishe
 interface EventJson { event?: string; message?: string; time?: string; record?: RunRecord; kind?: string; summary?: string; minutes?: number }
 interface RunnerEvent { line: string; json: EventJson | null }
 
-const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
-const input = (id: string) => $<HTMLInputElement>(id);
-const select = (id: string) => $<HTMLSelectElement>(id);
-
 const state = {
+  settings: null as Settings | null,
+  directives: null as DirectivesRead | null,
+  directiveProposal: null as DirectivesProposal | null,
+  skipped: [] as Skipped[],
+  skippedSelected: new Set<string>(),
+  analyzing: false,
   launch: null as Launch | null,
   repo: "",
   identity: "",
@@ -49,65 +53,38 @@ const state = {
   timers: { events: 0, status: 0, clock: 0, find: 0 },
 };
 
-const DIRECTIVES_TEMPLATE = `## Direttive di sviluppo
-
-- Stack e versioni: <linguaggi, framework e versioni supportate>.
-- Struttura: <cartelle principali e responsabilità>.
-- Verifiche obbligatorie prima di chiudere un task: <comandi di build, lint e test>.
-- Stile: <convenzioni di codice, messaggi, nomi>.
-- Vietato senza richiesta esplicita: commit, push, pubblicazione, cancellazione di artefatti.
-
-## Tracciamento dei task
-
-- Lavora un solo task per sessione, quello indicato nel prompt del runner.
-- All'avvio porta il task a in_progress; alla fine imposta done solo con criteri di accettazione verificati ed evidenze (comandi e risultati).
-- Se serve una decisione o un accesso della persona, imposta blocked o user_required con il motivo nel campo stateReason.
-- Aggiorna il tracker solo con gli strumenti SecondBrain (knowledge.ps1 -UpdateTaskId o gli strumenti MCP preview/submit_dossier_write), mai a mano.
-- Nuovo lavoro scoperto durante il task: registralo come nuovo task con dipendenze, senza eseguirlo.
-`;
-
-const VERDICT_LABEL: Record<string, string> = {
+const RUN_VERDICT_LABEL: Record<string, string> = {
   idle: "Inattivo", starting: "Avvio…", working: "In lavoro", stalled: "Possibile stallo", finished: "Concluso", orphaned: "Interrotto", none: "Inattivo",
 };
 const STATUS_LABEL: Record<AgentStatus, string> = { ready: "pronto", "not-found": "non installato", "not-responding": "non risponde" };
 const ORIGIN_LABEL: Record<string, string> = { path: "", search: "trovato fuori dal PATH", package: "dal pacchetto Store" };
 const SOURCE_LABEL: Record<Source, string> = { probe: "dalla CLI", config: "dalla configurazione", fallback: "tabella di riserva" };
 const REASON_LABEL: Record<string, string> = { "no-headless-cli": "nessuna CLI pilotabile dal runner", "cli-not-found": "CLI non installata", "cli-not-responding": "CLI non risponde" };
-
-function errorText(e: unknown): string { return typeof e === "string" ? e : e instanceof Error ? e.message : JSON.stringify(e); }
-function setError(id: string, e: unknown | null) {
-  const el = $(id);
-  el.hidden = e === null;
-  el.textContent = e === null ? "" : errorText(e);
-}
-async function call<T>(cmd: string, args: Record<string, unknown> = {}, errorId?: string): Promise<T | null> {
-  try {
-    const r = await invoke<T>(cmd, args);
-    if (errorId) setError(errorId, null);
-    return r;
-  } catch (e) {
-    if (errorId) setError(errorId, e);
-    return null;
+const STATUS_TEXT: Record<string, string> = { blocked: "bloccato", unknown: "stato sconosciuto", in_progress: "in corso", done: "fatto", cancelled: "annullato" };
+/** Readable reason of a runner exclusion (stable codes from SecondBrain.TaskRunner.psm1 and run-ready-tasks.ps1). */
+function reasonText(code: string): string {
+  const [kind, value = ""] = code.split(/:(.*)/s, 2);
+  switch (kind) {
+    case "execution": return value === "user_required" ? "richiede la persona (user_required)" : "modalità di esecuzione non indicata";
+    case "status": return STATUS_TEXT[value] ?? "stato " + value;
+    case "stream": return "flusso escluso dal runner: " + value;
+    case "awaiting": return "in attesa: " + value;
+    case "requires": return "richiede l'uso del computer";
+    case "dependency": return "dipende da " + value.split(",").join(", ");
+    case "not-ready": return "non pronto (dipendenze o stato)";
+    case "not-queued": return "non in coda";
+    case "max-tasks": return "oltre il limite di task";
+    default: return code;
   }
 }
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string, unknown> = {}, ...children: (string | Node)[]): HTMLElementTagNameMap[K] {
-  const node = document.createElement(tag);
-  Object.assign(node, props);
-  node.append(...children);
-  return node;
-}
-function fmtDuration(seconds: number): string {
-  if (!isFinite(seconds) || seconds < 0) return "—";
-  const s = Math.floor(seconds % 60), m = Math.floor(seconds / 60) % 60, h = Math.floor(seconds / 3600);
-  return h ? `${h} h ${m} min` : m ? `${m} min ${s} s` : `${s} s`;
-}
-function since(iso: string | null | undefined): number { return iso ? (Date.now() - Date.parse(iso)) / 1000 : NaN; }
-function baseName(p: string) { return p.split(/[\\/]/).filter(Boolean).pop() ?? p; }
+/** Exclusions that an analysis can change; excluded streams and queue cuts stay with the runner rules. */
+function analyzable(code: string): boolean { return /^(execution|status|awaiting|requires|dependency|not-ready)/.test(code) && !/^status:(done|cancelled|in_progress)/.test(code); }
 
 // Steps
 function selectTab(name: string) {
   document.querySelectorAll<HTMLButtonElement>(".steps button[data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
   document.querySelectorAll<HTMLElement>(".panel").forEach((p) => (p.hidden = p.id !== "tab-" + name));
+  if (name === "registry") showRegistry();
 }
 function updateSteps() {
   const loaded = Boolean(state.repo);
@@ -115,6 +92,7 @@ function updateSteps() {
   tab("directives").disabled = !loaded;
   tab("queue").disabled = !loaded;
   tab("run").disabled = !loaded && !state.run.active;
+  tab("registry").disabled = !loaded;
   tab("repo").classList.toggle("done", loaded);
   tab("queue").classList.toggle("done", state.run.active || state.run.verdict === "finished");
   $<HTMLButtonElement>("repo-next").disabled = !loaded;
@@ -124,16 +102,68 @@ let navigated = false;
 document.querySelectorAll<HTMLButtonElement>(".steps button[data-tab]").forEach((b) => b.addEventListener("click", () => { if (!b.disabled) { navigated = true; selectTab(b.dataset.tab!); } }));
 $("repo-next").addEventListener("click", () => selectTab("directives"));
 $("dir-next").addEventListener("click", () => selectTab("queue"));
+$("run-registry").addEventListener("click", () => selectTab("registry"));
 
 // Settings
 async function loadSettings() {
   const s = await call<Settings>("get_settings", {}, "s-error");
   if (!s) return;
+  state.settings = s;
   input("s-home").value = s.secondbrainHome;
   input("s-pwsh").value = s.pwshPath;
   input("s-home").placeholder = state.launch?.secondbrainHome ? "automatica: " + state.launch.secondbrainHome : "SECONDBRAIN_HOME";
   input("s-pwsh").placeholder = state.launch?.pwsh ?? "pwsh";
+  renderLightSettings();
 }
+// Light model of the one-shot analyses: saved in the window settings; empty = agent of the queue with its light role.
+function currentLight(): LightChoice | null {
+  const s = state.settings;
+  const provider = s?.lightProvider || state.provider;
+  const a = state.agents.find((x) => x.provider === provider && x.status === "ready");
+  if (!a) return null;
+  const explicit = Boolean(s?.lightProvider) && s?.lightProvider === provider;
+  const model = explicit ? s?.lightModel ?? "" : "";
+  const effort = explicit ? s?.lightEffort ?? "" : "";
+  const shownModel = model || a.light?.model || (a.configured.model ? `predefinito della CLI (${a.configured.model})` : "predefinito della CLI");
+  const shownEffort = effort || a.light?.effort || "";
+  return { provider, model, effort, label: `${a.name} · ${shownModel}${shownEffort ? " · " + shownEffort : ""}` };
+}
+function renderLightLabels() {
+  const l = currentLight();
+  const text = l ? `Analisi con ${l.label} (modello leggero, sola lettura).` : "Nessun agente pronto per le analisi.";
+  $("dir-light").textContent = text;
+  $("q-light").textContent = text;
+  $<HTMLButtonElement>("dir-propose").disabled = !l || !state.repo;
+  $<HTMLButtonElement>("dir-propose").title = l ? "" : "Installa o rileva un agente (Coda → Rileva di nuovo) oppure scegli il modello leggero nelle impostazioni.";
+}
+function renderLightSettings() {
+  const s = state.settings;
+  const prov = select("s-light-provider");
+  prov.replaceChildren(option("", "Agente scelto nella coda"), ...state.agents.filter((a) => a.status === "ready").map((a) => option(a.provider, a.name)));
+  prov.value = s?.lightProvider && [...prov.options].some((o) => o.value === s.lightProvider) ? s.lightProvider : "";
+  renderLightModelOptions();
+  renderLightLabels();
+}
+function renderLightModelOptions() {
+  const s = state.settings;
+  const a = state.agents.find((x) => x.provider === select("s-light-provider").value);
+  const model = select("s-light-model"), effort = select("s-light-effort");
+  const lightDefault = a?.light?.model ? `leggero predefinito (${a.light.model})` : "leggero predefinito";
+  model.replaceChildren(option("", lightDefault), ...(a?.supports.model ? a.models.map((m) => option(m.id, m.label)) : []));
+  if (a?.light?.model && ![...model.options].some((o) => o.value === a.light!.model)) model.append(option(a.light.model, a.light.model));
+  effort.replaceChildren(option("", a?.light?.effort ? `predefinito (${a.light.effort})` : "predefinito"), ...(a?.supports.effort ? a.efforts.map((e) => option(e.id, e.id)) : []));
+  model.disabled = effort.disabled = !a;
+  if (a && s?.lightProvider === a.provider) {
+    if ([...model.options].some((o) => o.value === s.lightModel)) model.value = s.lightModel ?? "";
+    if ([...effort.options].some((o) => o.value === s.lightEffort)) effort.value = s.lightEffort ?? "";
+  }
+}
+select("s-light-provider").addEventListener("change", renderLightModelOptions);
+$("s-light-save").addEventListener("click", async () => {
+  const provider = select("s-light-provider").value;
+  const s = await call<Settings>("save_light_model", { provider, model: provider ? select("s-light-model").value : "", effort: provider ? select("s-light-effort").value : "" }, "s-error");
+  if (s) { state.settings = s; $("s-light-info").textContent = "Modello leggero salvato."; renderLightLabels(); }
+});
 $("s-save").addEventListener("click", async () => {
   const ok = await call<Settings>("save_settings", { secondbrainHome: input("s-home").value, pwshPath: input("s-pwsh").value }, "s-error");
   if (ok) { $("s-info").textContent = "Impostazioni salvate."; state.launch = await call<Launch>("get_launch_context"); probeAgents(); }
@@ -221,23 +251,86 @@ $("dir-import").addEventListener("click", async () => {
   area.value = text;
   setProposal(null, `Testo importato da ${file}: crea l'anteprima per proporlo.`);
 });
-$("dir-template").addEventListener("click", () => {
-  const area = $<HTMLTextAreaElement>("dir-text");
-  area.value = area.value.trim() ? area.value.trimEnd() + "\n\n" + DIRECTIVES_TEMPLATE : DIRECTIVES_TEMPLATE;
-  setProposal(null, "Modello inserito: completa i segnaposto e crea l'anteprima.");
+// Proposal of the light model (agents.ps1 -Analyze -Kind directives, DOC06): it surveys the checkout read-only and proposes only what the
+// global block, the common block and AGENTS.md do not already say. The text reaches the editor only when the person chooses so.
+$("dir-propose").addEventListener("click", async () => {
+  const l = currentLight();
+  if (!state.repo || !l) return;
+  const button = $<HTMLButtonElement>("dir-propose");
+  button.disabled = true;
+  setError("dir-error", null);
+  $("dir-state").textContent = `Ricognizione del repository con ${l.label}: può richiedere qualche minuto…`;
+  const started = Date.now();
+  const r = await call<DirectivesProposal>("analyze_directives", { repo: state.repo, provider: l.provider, model: l.model || null, effort: l.effort || null }, "dir-error");
+  button.disabled = false;
+  if (!r) { $("dir-state").textContent = ""; return; }
+  state.directiveProposal = r;
+  $("dir-state").textContent = `Proposta pronta in ${fmtDuration((Date.now() - started) / 1000)}: rileggila e scegli se usarla.`;
+  renderDirectiveProposal(r);
 });
+function renderDirectiveProposal(r: DirectivesProposal) {
+  const box = $("dir-analysis");
+  box.hidden = false;
+  $("dir-analysis-meta").textContent = `${r.provider}${r.model ? " · " + r.model : ""}${r.effort ? " · " + r.effort : ""} · ${r.sections.length} sezioni · ${r.markdown.length} caratteri` + (r.attempts > 1 ? ` · ${r.attempts} tentativi` : "");
+  $("dir-sections").replaceChildren(...r.sections.map((s) => el("li", {},
+    el("strong", {}, s.title), el("pre", { className: "box small" }, s.body),
+    el("div", { className: "muted small" }, s.rationale), s.sources.length ? el("div", { className: "muted small mono" }, "Fonti: " + s.sources.join(", ")) : "")));
+  const warnings = [...r.warnings, ...(r.portable ? [] : ["Il testo contiene percorsi assoluti, commenti secondbrain o segnaposto {{ }}: l'anteprima lo rifiuterà finché non li togli."])];
+  $("dir-warnings").hidden = warnings.length === 0;
+  $("dir-warnings").textContent = warnings.join(" · ");
+  $("dir-covered-count").textContent = String(r.coveredElsewhere.length);
+  const where: Record<string, string> = { global: "direttive globali", common: "blocco comune", dossier: "direttive attuali del dossier", "agents-md": "AGENTS.md" };
+  $("dir-covered").replaceChildren(...r.coveredElsewhere.map((c) => el("li", {}, `${c.topic} — ${where[c.where] ?? c.where}`)));
+}
+function useDirectiveProposal(append: boolean) {
+  const r = state.directiveProposal;
+  if (!r) return;
+  const area = $<HTMLTextAreaElement>("dir-text");
+  area.value = append && area.value.trim() ? area.value.trimEnd() + "\n\n" + r.markdown : r.markdown;
+  $("dir-analysis").hidden = true;
+  updateComposed();
+  setProposal(null, "Proposta inserita nell'editor: rileggila, correggila se serve e crea l'anteprima.");
+}
+$("dir-use").addEventListener("click", () => useDirectiveProposal(false));
+$("dir-append").addEventListener("click", () => useDirectiveProposal(true));
+$("dir-discard").addEventListener("click", () => { state.directiveProposal = null; $("dir-analysis").hidden = true; $("dir-state").textContent = "Proposta scartata."; });
 $("dir-reload").addEventListener("click", () => readDirectives());
-$<HTMLTextAreaElement>("dir-text").addEventListener("input", () => { if (state.proposal) setProposal(null, "Testo modificato: l'anteprima precedente non vale più."); });
+$<HTMLTextAreaElement>("dir-text").addEventListener("input", () => { updateComposed(); if (state.proposal) setProposal(null, "Testo modificato: l'anteprima precedente non vale più."); });
+/** Repository block composed with the editor text and the characters every session loads (global + AGENTS.md outside + repository block). */
+function updateComposed() {
+  const d = state.directives;
+  if (!d?.counts) return;
+  const text = $<HTMLTextAreaElement>("dir-text").value.trim();
+  const base = (d.composedPreview ?? "").slice(0, Math.max(0, (d.composedPreview ?? "").length - (d.dossierDirectives ?? "").trim().length)).trimEnd();
+  const composed = [base, text].filter(Boolean).join("\n\n");
+  $("dir-composed").textContent = composed;
+  $("dir-composed-count").textContent = composed.length.toLocaleString();
+  const loaded = d.counts.global + d.counts.agentsOutside + composed.length;
+  const pct = Math.round((1000 * loaded) / d.counts.budget) / 10;
+  $("dir-budget-box").hidden = false;
+  const fill = $("dir-budget-fill");
+  fill.style.width = Math.min(100, pct) + "%";
+  fill.dataset.level = pct >= 80 ? "high" : pct >= 50 ? "mid" : "low";
+  $("dir-budget").textContent = `Direttive caricate a ogni sessione: ${loaded.toLocaleString()} di ${d.counts.budget.toLocaleString()} caratteri del tetto di avvio (${pct}%) — globali ${d.counts.global.toLocaleString()}, AGENTS.md fuori dai blocchi ${d.counts.agentsOutside.toLocaleString()}, blocco di repository ${composed.length.toLocaleString()}. Il pacchetto di avvio del dossier si aggiunge a queste.`;
+}
 async function readDirectives() {
   if (!state.repo) return;
-  const d = await call<{ managedBlock: string | null; dossierDirectives: string; agentsFile: string; dossierRelative: string }>("read_directives", { repo: state.repo }, "dir-error");
+  const d = await call<DirectivesRead>("read_directives", { repo: state.repo }, "dir-error");
   if (!d) return;
+  state.directives = d;
   $<HTMLTextAreaElement>("dir-text").value = d.dossierDirectives ?? "";
   $("dir-target").textContent = d.dossierRelative ?? "AGENTS.managed.md";
   $("dir-agents").textContent = d.agentsFile || "AGENTS.md";
   $("dir-current").textContent = d.agentsFile ? ((await call<string>("read_text_file", { path: d.agentsFile })) ?? "") : "";
+  for (const [id, text] of [["global", d.globalBlock], ["common", d.commonBlock], ["outside", d.agentsOutside]] as const) {
+    $("dir-" + id).textContent = text ?? "";
+    $("dir-" + id + "-count").textContent = (text ?? "").length.toLocaleString();
+  }
+  updateComposed();
   $("dir-preview-box").hidden = true;
-  setProposal(null, d.dossierDirectives ? "Testo attuale del dossier." : "Nessuna direttiva specifica nel dossier: usa il modello o importa un file.");
+  $("dir-analysis").hidden = true;
+  renderLightLabels();
+  setProposal(null, d.dossierDirectives ? "Testo attuale del dossier." : "Nessuna direttiva specifica nel dossier: fai proporre la struttura al modello leggero o importa un file.");
 }
 $("dir-preview").addEventListener("click", async () => {
   if (!state.repo) return;
@@ -274,6 +367,7 @@ async function probeAgents() {
   const before = state.provider;
   if (!state.agents.some((a) => a.provider === state.provider && a.status === "ready")) state.provider = state.agents.find((a) => a.status === "ready")?.provider ?? "";
   renderAgents();
+  renderLightSettings();
   // The task preview depends on the agent (computer-use filter): read it again when the default agent changed.
   // An empty choice previewed with the runner default (claude).
   if (state.repo && (before || "claude") !== (state.provider || "claude")) refreshTasks();
@@ -282,7 +376,7 @@ function renderAgents() {
   $("q-agents").replaceChildren(...state.agents.map((a) => {
     const ready = a.status === "ready";
     const radio = el("input", { type: "radio", name: "agent", value: a.provider, checked: a.provider === state.provider, disabled: !ready });
-    radio.addEventListener("change", () => { state.provider = a.provider; renderAgentOptions(); refreshTasks(); });
+    radio.addEventListener("change", () => { state.provider = a.provider; renderAgentOptions(); renderLightLabels(); refreshTasks(); });
     const meta = [a.version, a.origin ? ORIGIN_LABEL[a.origin] : "", ready && a.supports.streamJson ? "passi in tempo reale" : ""].filter(Boolean).join(" · ");
     return el("label", { className: "agent" + (ready ? "" : " off"), title: a.path ?? "" }, radio,
       el("span", { className: "agent-name" }, a.name),
@@ -297,7 +391,6 @@ function renderAgents() {
   renderAgentOptions();
 }
 function currentAgent(): AgentCaps | undefined { return state.agents.find((a) => a.provider === state.provider); }
-function option(value: string, label: string) { return el("option", { value, textContent: label }); }
 function renderAgentOptions() {
   const a = currentAgent();
   const model = select("q-model");
@@ -342,10 +435,58 @@ async function refreshTasks() {
   // Nothing is preselected (#517): the person opts in task by task, or with "Seleziona tutti".
   state.selected = new Set<string>();
   renderTasks();
-  const skipped = (r.skipped ?? []).filter((s) => s.id);
-  $("q-skipped-count").textContent = String(skipped.length);
-  $("q-skipped").replaceChildren(...skipped.map((s) => el("li", {}, `${s.id} — ${s.reason}`)));
+  state.skipped = (r.skipped ?? []).filter((s) => s.id);
+  state.skippedSelected = new Set([...state.skippedSelected].filter((id) => state.skipped.some((s) => s.id === id)));
+  renderSkipped();
 }
+// Tasks the runner does not take: reason in words, the verdict of an analysis already made, and the action that starts or reopens it.
+function renderSkipped() {
+  const showStreams = input("q-show-streams").checked;
+  const list = state.skipped.filter((s) => showStreams || !s.reason.startsWith("stream:"));
+  $("q-skipped-count").textContent = list.length === state.skipped.length ? String(list.length) : `${list.length} di ${state.skipped.length}`;
+  $("q-skipped").replaceChildren(...list.map((s) => {
+    const id = s.id!;
+    const can = analyzable(s.reason);
+    const cb = el("input", { type: "checkbox", checked: state.skippedSelected.has(id), disabled: !can || state.analyzing });
+    cb.setAttribute("aria-label", "Seleziona per l'analisi " + id);
+    cb.addEventListener("change", () => { cb.checked ? state.skippedSelected.add(id) : state.skippedSelected.delete(id); updateAnalyzeButton(); });
+    const verdict = verdictOf(id);
+    const has = Boolean(storedAnalysis(id));
+    const badge = verdict ? el("span", { className: "tag verdict-" + verdict }, VERDICT_LABEL[verdict] ?? verdict) : has ? el("span", { className: "tag" }, "analisi salvata") : "—";
+    const action = el("button", { textContent: has ? "Apri" : "Analizza", disabled: (!can && !has) || state.analyzing, className: has ? "" : "accent" });
+    action.addEventListener("click", async () => {
+      action.disabled = true;
+      $("q-analysis-state").textContent = has ? "" : `Analisi di ${id} con ${currentLight()?.label ?? "—"}…`;
+      if (has) await openAnalysis(id); else await analyzeTask(id);
+      $("q-analysis-state").textContent = "";
+      action.disabled = false;
+    });
+    const again = has ? el("button", { textContent: "Rifai", className: "ghost", title: "Nuova analisi da zero", disabled: !can || state.analyzing }) : "";
+    if (again) again.addEventListener("click", async () => { again.disabled = true; $("q-analysis-state").textContent = `Nuova analisi di ${id}…`; await analyzeTask(id); $("q-analysis-state").textContent = ""; });
+    const reason = el("span", { title: s.reason }, reasonText(s.reason), s.stateReason ? el("div", { className: "muted small clamp", title: s.stateReason }, s.stateReason) : "");
+    const tr = el("tr");
+    [cb, s.seq != null ? String(s.seq) : "—", id, s.title ?? "", reason, badge, el("span", { className: "row-actions" }, action, again)].forEach((c) => tr.append(el("td", {}, c)));
+    return tr;
+  }));
+  updateAnalyzeButton();
+}
+function updateAnalyzeButton() {
+  const n = state.skippedSelected.size;
+  const b = $<HTMLButtonElement>("q-analyze-selected");
+  b.disabled = n === 0 || state.analyzing || !currentLight();
+  b.textContent = n ? `Analizza selezionati (${n})` : "Analizza selezionati";
+}
+input("q-show-streams").addEventListener("change", renderSkipped);
+$("q-analyze-selected").addEventListener("click", async () => {
+  const ids = state.skipped.filter((s) => state.skippedSelected.has(s.id!)).map((s) => s.id!);
+  if (!ids.length) return;
+  state.analyzing = true;
+  renderSkipped();
+  await analyzeMany(ids, (done, total, id) => { $("q-analysis-state").textContent = done < total ? `Analisi ${done + 1} di ${total}: ${id}…` : `Analisi completate: ${total}. Apri ciascun task per rispondere o applicare.`; });
+  state.analyzing = false;
+  state.skippedSelected.clear();
+  renderSkipped();
+});
 function renderTasks() {
   const order = state.tasks;
   $("q-empty").hidden = order.length > 0;
@@ -404,7 +545,7 @@ $("q-start").addEventListener("click", async () => {
 // 4. Run: status card from status.json, steps and results from events.jsonl.
 function setVerdict(v: string) {
   state.run.verdict = v;
-  for (const id of ["run-verdict", "run-badge"]) { const b = $(id); b.dataset.verdict = v; b.textContent = VERDICT_LABEL[v] ?? v; }
+  for (const id of ["run-verdict", "run-badge"]) { const b = $(id); b.dataset.verdict = v; b.textContent = RUN_VERDICT_LABEL[v] ?? v; }
 }
 function resetRunView() {
   stopPolling();
@@ -418,13 +559,23 @@ function resetRunView() {
 function stopPolling() {
   window.clearInterval(state.timers.events); window.clearInterval(state.timers.status); window.clearInterval(state.timers.clock); window.clearInterval(state.timers.find);
 }
+/** A note of the window kept in the run's events.jsonl (it comes back through the event stream and survives a reattach); before the
+ *  run folder exists it stays in the local log only. */
+function note(text: string) {
+  if (state.run.folder) persistNote(text, true); else appendLog(text);
+}
+async function persistNote(text: string, fallbackToLog: boolean) {
+  if (!state.run.folder || !state.repo) return;
+  const ok = await call("add_run_note", { repo: state.repo, folder: state.run.folder, note: text });
+  if (!ok && fallbackToLog) appendLog(text);
+}
 function appendLog(line: string) {
   const log = $("run-log");
   log.textContent += line + "\n";
   log.scrollTop = log.scrollHeight;
 }
 function addResult(r: RunRecord) {
-  const badge = el("span", { className: "state-" + r.state }, r.state + (r.parked ? " (parcheggiato)" : ""));
+  const badge = el("span", { className: "state-" + r.state }, r.state + (r.parked === true ? " (parcheggiato)" : r.parked === "deferred" ? " (parcheggio in coda di scrittura)" : ""));
   const tr = el("tr");
   [String(r.seq), r.id, badge, `${r.statusBefore} → ${r.statusAfter}`, String(r.seconds), el("span", { className: "mono small" }, r.folder)].forEach((c) => tr.append(el("td", {}, c)));
   $("run-results").append(tr);
@@ -494,7 +645,9 @@ async function finishRun(rep: RunReport) {
     $("run-warning").textContent = "Il runner si è interrotto senza chiudere il run (processo terminato o arresto forzato).";
     $("run-warning").hidden = false;
   }
-  appendLog("Run concluso: " + (VERDICT_LABEL[rep.verdict] ?? rep.verdict));
+  const ended = "Run concluso: " + (RUN_VERDICT_LABEL[rep.verdict] ?? rep.verdict);
+  appendLog(ended);
+  persistNote(ended, false);
   updateSteps();
   refreshTasks();
 }
@@ -515,20 +668,20 @@ function attachRun(rep: RunReport) {
 async function checkExistingRun() {
   const rep = await call<RunReport>("get_run_status", { repo: state.repo, tail: 0 });
   if (!rep) return;
-  if (rep.active && rep.folder) { attachRun(rep); appendLog("Run in corso ritrovato e riagganciato."); selectTab("run"); }
+  if (rep.active && rep.folder) { attachRun(rep); note("Run in corso ritrovato e riagganciato dalla finestra."); selectTab("run"); }
   else if (rep.status) renderStatus(rep);
 }
 $("run-refresh").addEventListener("click", () => pullStatus());
 $("run-stop").addEventListener("click", async () => {
   if (!state.run.active && !state.run.starting) return setError("run-error", "Nessuna coda in esecuzione.");
   const ok = await call<boolean>("stop_queue", { repo: state.repo, force: false }, "run-error");
-  if (ok) appendLog("Arresto richiesto: la coda si ferma dopo il task corrente.");
+  if (ok) note("Arresto richiesto dalla finestra: la coda si ferma dopo il task corrente.");
 });
 $("run-abort").addEventListener("click", async () => {
   if (!state.run.active && !state.run.starting) return setError("run-error", "Nessuna coda in esecuzione.");
   if (!confirm("Interrompere subito l'agente in corso? Il task resta nello stato lasciato dall'agente.")) return;
   const ok = await call<boolean>("stop_queue", { repo: state.repo, force: true }, "run-error");
-  if (ok) { appendLog("Interruzione immediata richiesta."); window.setTimeout(pullStatus, 1500); }
+  if (ok) { note("Interruzione immediata richiesta dalla finestra."); window.setTimeout(pullStatus, 1500); }
 });
 
 listen<{ code: number | null; pid: number; log: string; stdout: string }>("runner-finished", async (e) => {
@@ -568,6 +721,8 @@ async function start() {
     $("app-version").textContent = "v" + state.launch.version;
     if (state.launch.rootError) setError("repo-error", state.launch.rootError);
   }
+  initRegistry(() => state.repo);
+  initAnalysis({ repo: () => state.repo, identity: () => state.identity, light: currentLight, onChange: () => { renderSkipped(); } });
   await loadSettings();
   await renderRecent();
   updateSteps();

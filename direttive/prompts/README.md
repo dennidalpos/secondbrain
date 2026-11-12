@@ -365,6 +365,12 @@ DOCUMENTATION
   • Needs: real code or the stated project intent, the audience and channel (social, site, marketing, docs) and the format
   • Example: DOC05: draw the architecture diagram and a one-page infographic of the runner from the code
 
+🔭 DOC06 | Survey a repository and propose its specific agent directives
+  • ID: pmt-e9de72a0
+  • Scope: repo | Mode: read
+  • Needs: the checkout, the global and common directive blocks, the current AGENTS.md and dossier directives, the startup budget
+  • Example: DOC06: survey this repository and propose the directives agents need here beyond the common blocks
+
 
 RELEASE AND OPERATIONS
 🔥 OPS01 | Prepare and verify distributable packages and artifacts.
@@ -508,6 +514,12 @@ BACKLOG, MEMORY AND CONTINUITY
   • Scope: repo | Mode: write
   • Needs: tracker with its archive, the priority scheme chosen by the user and the list of tasks with real prerequisites
   • Example: REP17: archive the done tasks and move qualifications below development
+
+🔭 REP18 | Analyze a non-runnable task and ask what makes it autonomous
+  • ID: pmt-cca5cbfd
+  • Scope: repo | Mode: read
+  • Needs: one task the runner skips, its reason and dependencies, the checkout read-only and the owner's answers to multiple-choice questions
+  • Example: REP18: analyze task #42 and ask me only what is needed to make it autonomous
 
 🔥 SYS13 | Set or remove the greenfield lock (versions, changelog, migrations, aliases).
   • ID: pmt-29b3278f

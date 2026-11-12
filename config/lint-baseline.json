@@ -108,6 +108,11 @@
     },
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/agents.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/backup.ps1",
       "count": 1
     },
@@ -129,6 +134,16 @@
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/SecondBrain.Activity.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.AgentAdapters.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.AgentAnalysis.psm1",
       "count": 1
     },
     {
@@ -194,6 +209,16 @@
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/test-mcp-writes.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-orchestrator-fixture.ps1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/test-secondbrain-agents.ps1",
       "count": 1
     },
     {

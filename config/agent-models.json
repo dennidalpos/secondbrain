@@ -1,6 +1,13 @@
 {
   "schemaVersion": 1,
-  "description": "Fallback models and effort levels per agent CLI, used only where the installed CLI and its local configuration expose nothing. Every entry is marked source=fallback in the probe; a local override in .runtime/hosts/<host>/agent-models.local.json adds entries.",
+  "description": "Fallback models and effort levels per agent CLI, used only where the installed CLI and its local configuration expose nothing. Every entry is marked source=fallback in the probe; a local override in .runtime/hosts/<host>/agent-models.local.json adds entries. roles.light is the default light model of one-shot read-only analyses (directive proposals, task analysis); a null model means the CLI default, and the local override replaces a role per provider.",
+  "roles": {
+    "light": {
+      "claude": { "model": "haiku", "effort": null },
+      "codex": { "model": null, "effort": "low" },
+      "gemini": { "model": "gemini-2.5-flash", "effort": null }
+    }
+  },
   "providers": {
     "claude": {
       "models": [

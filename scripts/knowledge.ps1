@@ -5,7 +5,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][ValidateSet('Slim','Full')][string]$Profile='Slim',
     [Parameter(ParameterSetName='Startup')][switch]$Report,
     [Parameter(Mandatory,ParameterSetName='Compact')][switch]$Compact,
-    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][Parameter(ParameterSetName='ArchiveTasks')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
+    [Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Renumber')][Parameter(ParameterSetName='HistoryMigration')][Parameter(ParameterSetName='ArchiveTasks')][Parameter(ParameterSetName='BackfillTaskRuns')][switch]$Apply,[Parameter(ParameterSetName='Compact')][string]$CandidatePath,
     [Parameter(Mandatory,ParameterSetName='ArchiveTasks')][switch]$ArchiveTasks,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=25000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
@@ -18,9 +18,14 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='PendingWrites')][ValidateSet('deferred','conflict','applied','discarded','invalid')][string[]]$PendingState,
     [Parameter(ParameterSetName='PendingWrites')][switch]$PendingSummary,
     [Parameter(Mandatory,ParameterSetName='DiscardPending')][ValidatePattern('^[a-f0-9]{32}$')][string]$DiscardPending,
-    [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][string]$Description,
+    [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$NewTask,[Parameter(ParameterSetName='TaskNew')][string]$TaskId,[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Description,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string]$Priority='P2',[Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][ValidateSet('autonomous','user_required','unspecified')][string]$Execution='autonomous',
-    [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][string[]]$Acceptance,
+    [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$DependsOn=@(),[Parameter(Mandatory,ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][string[]]$Acceptance,
+    [Parameter(ParameterSetName='TaskUpdate')][string]$DecisionsFile,[Parameter(ParameterSetName='TaskUpdate')][string[]]$Evidence,
+    [Parameter(Mandatory,ParameterSetName='Registry')][switch]$Registry,[Parameter(ParameterSetName='Registry')][string]$Tool,[Parameter(ParameterSetName='Registry')][string]$TaskStatus,
+    [Parameter(ParameterSetName='Registry')][ValidateSet('include','exclude','only')][string]$Archived='include',[Parameter(ParameterSetName='Registry')][string]$Filter,
+    [Parameter(ParameterSetName='Registry')][ValidateRange(0,[int]::MaxValue)][int]$Page=0,[Parameter(ParameterSetName='Registry')][ValidateRange(0,500)][int]$PageSize=50,
+    [Parameter(Mandatory,ParameterSetName='BackfillTaskRuns')][switch]$BackfillTaskRuns,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Stream,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Awaiting,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
@@ -53,6 +58,8 @@ trap { if (Test-SBWriteDeniedError $_) { Write-SBWriteDeniedDiagnostic $_ $PSCom
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Add-SBMessages @{
     'knowledgecli.pending.summary.next' = @{it='Elenco filtrato: -PendingWrites -PendingState conflict (o deferred); scarto di un conflitto: -DiscardPending <id>';en='Filtered list: -PendingWrites -PendingState conflict (or deferred); discard a conflict with -DiscardPending <id>'}
     'knowledgecli.pending.size' = @{it='Il contenuto supera il limite di 2 MiB';en='Content exceeds the 2 MiB limit'}
@@ -176,12 +183,32 @@ try{
         $repoId=if($Repository){$Repository}else{$working}
         if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
         $arguments=@{TaskId=$UpdateTaskId}
-        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires')){
+        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Description')){
             if($PSBoundParameters.ContainsKey($field)){$arguments[$field]=$PSBoundParameters[$field]}
         }
+        # With pwsh -File, lists arrive as one string: ';' separates acceptance criteria; evidence is reference|outcome.
+        if($PSBoundParameters.ContainsKey('Acceptance')){$arguments.Acceptance=@($Acceptance|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_})}
+        if($PSBoundParameters.ContainsKey('Evidence')){$arguments.Evidence=@($Evidence|ForEach-Object{$_ -split ';'}|ForEach-Object{$_.Trim()}|Where-Object{$_}|ForEach-Object{ConvertTo-SBTaskEvidence $_})}
+        if($DecisionsFile){Assert-SBPlainPath $DecisionsFile;$arguments.Decisions=@(ConvertTo-SBTaskDecisions (Read-SBText $DecisionsFile))}
         if($arguments.Count -eq 1){throw (New-SBError 'tracker.update.empty')}
         $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.update -Arguments $arguments -Config $config -SessionId $SessionId
         $result=Complete-SBPendingSubmission $submission $config $SessionId
+    }
+    elseif($Registry -or $BackfillTaskRuns){
+        # Registry: every task of the working repository (active and archived) with the executors from the dossier ledger and the runner
+        # reports of this workstation. Backfill copies those reports into the ledger (preview unless -Apply), once per report.
+        $registryRepository=& $resolveWorking
+        $resolved=Resolve-SBTracker -BrainRoot $brain -Identity $registryRepository -AllowedOwners @()
+        $reportRoot=(Resolve-SBWorkRoot $brain $config.workstationId ('repos/'+(Get-SBRuntimeRepoSegment $registryRepository)+'/report')).root
+        $ledger=@(Read-SBTaskLedger $resolved.path)
+        $reports=@(Get-SBRunnerReportRecords $reportRoot)
+        if($Registry){
+            $result=Get-SBTaskRegistry -ActiveTasks @($resolved.data.tasks) -ArchivedTasks @($resolved.archive.data.tasks) -Ledger $ledger -Reports $reports -Tool $Tool -Status $TaskStatus -Archived $Archived -Search $Filter -Offset ($Page*$PageSize) -Limit $PageSize
+            $result.repository=$registryRepository
+        }else{
+            if($Apply){& $writeScope $registryRepository}
+            $result=Invoke-SBTaskRunBackfill -BrainRoot $brain -Identity $registryRepository -Ledger $ledger -Reports $reports -Archive @($resolved.archive.data.tasks) -BackupRoot $config.backupRoot -Apply:$Apply
+        }
     }
     elseif($SetLifecycle){
         # Greenfield guard: like tasks, lifecycle changes are limited to the working repository.

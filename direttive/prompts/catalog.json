@@ -833,6 +833,29 @@
       }
     },
     {
+      "id": "pmt-e9de72a0",
+      "code": "DOC06",
+      "category": "docs",
+      "summary": "Survey a repository and propose its specific agent directives",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "the checkout, the global and common directive blocks, the current AGENTS.md and dossier directives, the startup budget",
+      "example": "DOC06: survey this repository and propose the directives agents need here beyond the common blocks",
+      "file": "DOC06.md",
+      "related": [
+        "pmt-07430e8c",
+        "pmt-876bccc6"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Esamina un repository e proponi le sue direttive specifiche per gli agenti",
+          "requires": "il checkout, i blocchi di direttive globale e comune, AGENTS.md e le direttive attuali del dossier, il tetto dell'avvio",
+          "example": "DOC06: esamina questo repository e proponi le direttive che servono qui oltre ai blocchi comuni"
+        }
+      }
+    },
+    {
       "id": "pmt-adb9bfc0",
       "code": "GOV02",
       "category": "security",
@@ -1712,6 +1735,29 @@
           "summary": "Riordina tracker, archivia i completati e metti le qualifiche dopo lo sviluppo",
           "requires": "tracker con il suo archivio, lo schema di priorità scelto dall'utente e l'elenco dei task con prerequisiti reali",
           "example": "REP17: archivia i task completati e porta le qualifiche sotto lo sviluppo"
+        }
+      }
+    },
+    {
+      "id": "pmt-cca5cbfd",
+      "code": "REP18",
+      "category": "backlog",
+      "summary": "Analyze a non-runnable task and ask what makes it autonomous",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "one task the runner skips, its reason and dependencies, the checkout read-only and the owner's answers to multiple-choice questions",
+      "example": "REP18: analyze task #42 and ask me only what is needed to make it autonomous",
+      "file": "REP18.md",
+      "related": [
+        "pmt-876bccc6",
+        "pmt-802ff569"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Analizza un task non avviabile e chiedi cosa lo rende autonomo",
+          "requires": "un task che il runner salta, motivo e dipendenze, il checkout in sola lettura e le risposte della persona a domande a scelta multipla",
+          "example": "REP18: analizza il task #42 e chiedimi solo ciò che serve per renderlo autonomo"
         }
       }
     },

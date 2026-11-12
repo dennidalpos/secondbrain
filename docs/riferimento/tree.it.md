@@ -27,7 +27,7 @@ Regola generale: nulla viene cancellato dagli strumenti, salvo la fixture di `te
 | `config/local/` | Segnaposto locale facoltativo che inoltra alla configurazione sotto `.runtime/hosts/<id>/`; ignorato da Git. | No | Con cautela |
 | `direttive/` | Testo comune approvato (`AGENTS.global_ide.md`, `workstation.template.md`), [`AGENTS.repo.template.md`](../../direttive/AGENTS.repo.template.md) (modello da compilare a mano per le istruzioni specifiche di un prodotto; il blocco gestito `secondbrain:repository` è generato da `New-SBPortableRepositoryBody` in `SecondBrain.Portable.psm1`, non dal modello), `approved.json` con hash e autorizzazione. | Sì | No |
 | `direttive/proposals/` | Proposta concreta di ogni revisione: testo e motivazioni. | Sì | Con cautela |
-| `direttive/prompts/` | 118 schede del catalogo in inglese, con le traduzioni italiane in `it/`, più metadati; gli indici (uno per lingua) si generano con `build-prompts.ps1`. | Sì | No |
+| `direttive/prompts/` | 120 schede del catalogo in inglese, con le traduzioni italiane in `it/`, più metadati; gli indici (uno per lingua) si generano con `build-prompts.ps1`. | Sì | No |
 | `.github/ISSUE_TEMPLATE/` | Form delle issue (`bug.yml`, `feature.yml`, `config.yml`) usati da REP11; ammessi dal controllo di distribuzione. | Sì | No |
 | `docs/` | Guide, architettura, procedure e questo file. | Sì | No |
 | `docs/assets/` | Screenshot pubblici (copie ripulite dai metadati) e archivio tracker di esempio. Gli originali stanno in `.runtime/captures`. | Sì | Con cautela (sono linkati da README e guide) |

@@ -179,4 +179,87 @@ Assert-Agent ((Get-SBAgentQuota -Provider claude).state -ceq 'unknown') 'Claude 
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(1).ToString('o');observedAt=$now.ToString('o')}).state -ceq 'exhausted') 'an observed exhaustion with a future reset is exhausted'
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(-1).ToString('o');observedAt=$now.AddHours(-3).ToString('o')}).state -ceq 'unknown') 'an exhaustion past its reset is unknown'
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$null;observedAt=$now.ToString('o')}).state -ceq 'unknown') 'an exhaustion without a reset time does not block'
+# ReadOnly profile of the one-shot analyses: plan/read-only modes, no edit tools, the schema native only when the installed help offers it.
+$schemaFile=Join-Path $fixture 'schema/ok.schema.json'
+Write-AgentFixture $schemaFile '{"type":"object","required":["ok"],"properties":{"ok":{"type":"boolean"},"note":{"type":["string","null"]}},"additionalProperties":false}'
+$claudeSchemaCaps=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -Executable $fakeExe -HelpText ($claudeHelp+"`n  --json-schema <schema>                JSON Schema for structured output") -VersionText '2.1.319' -ConfigPaths $none
+$ro=New-SBAgentInvocation -Provider claude -Capabilities $claudeSchemaCaps -Model 'haiku' -Profile ReadOnly -SchemaPath $schemaFile
+$a=$ro.arguments -join ' '
+Assert-Agent ($a.StartsWith('-p --output-format json --permission-mode plan --allowedTools Read,Grep,Glob --disallowedTools Bash Edit Write') -and $a -notmatch 'acceptEdits' -and $ro.nativeSchema -and $ro.arguments[[array]::IndexOf($ro.arguments,'--json-schema')+1] -match '^\{"type":"object"' -and $a.EndsWith('--model haiku') -and $ro.profile -eq 'ReadOnly') ('Claude ReadOnly: plan mode, read tools only, native schema: '+$a)
+$roShim=New-SBAgentInvocation -Provider claude -Capabilities $claudeSchemaCaps -Profile ReadOnly -SchemaPath $schemaFile -NoInlineSchema
+Assert-Agent (!$roShim.nativeSchema -and '--json-schema' -notin $roShim.arguments) 'through a .cmd shim the Claude schema stays in the prompt'
+Assert-Agent (!(New-SBAgentInvocation -Provider claude -Capabilities $claude -Profile ReadOnly -SchemaPath $schemaFile).nativeSchema) 'a Claude help without --json-schema keeps the schema in the prompt'
+$codexSchemaCaps=Get-SBAgentCapabilities -Provider codex -BrainRoot $brain -Executable $fakeExe -HelpText ($codexHelp+"`n      --output-schema <FILE>  JSON Schema of the final answer") -VersionText 'codex-cli 0.167.0' -ConfigPaths $codexPaths
+$ro=New-SBAgentInvocation -Provider codex -Capabilities $codexSchemaCaps -Effort 'low' -Profile ReadOnly -SchemaPath $schemaFile
+Assert-Agent (($ro.arguments -join ' ') -ceq ('exec --json --sandbox read-only --output-schema '+$schemaFile+' --config model_reasoning_effort="low" -') -and $ro.nativeSchema) ('Codex ReadOnly: read-only sandbox and --output-schema: '+($ro.arguments -join ' '))
+$ro=New-SBAgentInvocation -Provider gemini -Capabilities $gemini -Model 'gemini-x' -Profile ReadOnly -SchemaPath $schemaFile
+Assert-Agent (($ro.arguments -join ' ') -ceq '--output-format json --approval-mode plan --model gemini-x' -and !$ro.nativeSchema) ('Gemini ReadOnly: plan approval mode, schema in the prompt: '+($ro.arguments -join ' '))
+
+# Structured output from each CLI envelope, then schema validation (errors returned, never thrown).
+$p=ConvertFrom-SBAgentStructuredOutput -Provider claude -Output '{"type":"result","is_error":false,"result":"done","structured_output":{"ok":true}}'
+Assert-Agent ($p.json -ceq '{"ok":true}' -and $p.text -ceq 'done') 'Claude structured_output wins over the result text'
+$p=ConvertFrom-SBAgentStructuredOutput -Provider claude -Output ('{"type":"result","is_error":false,"result":"Here it is:\n```json\n{\"ok\":false,\"note\":\"n\"}\n```"}')
+Assert-Agent (($p.json|ConvertFrom-Json).note -ceq 'n') ('Claude result text with a fenced JSON block: '+$p.json)
+$p=ConvertFrom-SBAgentStructuredOutput -Provider codex -Output ("{`"type`":`"thread.started`"}`n{`"type`":`"item.completed`",`"item`":{`"type`":`"agent_message`",`"text`":`"{\`"ok\`":true}`"}}`n{`"type`":`"turn.completed`"}")
+Assert-Agent ($p.json -ceq '{"ok":true}') ('Codex JSONL: the last agent message: '+$p.json)
+$p=ConvertFrom-SBAgentStructuredOutput -Provider gemini -Output '{"response":"{\"ok\":true}","stats":{}}'
+Assert-Agent ($p.json -ceq '{"ok":true}') ('Gemini JSON: the response field: '+$p.json)
+$p=ConvertFrom-SBAgentStructuredOutput -Provider gemini -Output 'Answer: {"ok":true} end'
+Assert-Agent ($p.json -ceq '{"ok":true}') 'plain text holding one JSON object'
+$schemaText=Read-SBText $schemaFile
+Assert-Agent ((Test-SBAgentStructuredOutput '{"ok":true}' $schemaText).valid) 'a conforming answer validates'
+$bad=Test-SBAgentStructuredOutput '{"ok":"yes"}' $schemaText
+Assert-Agent (!$bad.valid -and @($bad.errors).Count -ge 1) ('a wrong type is reported: '+(@($bad.errors) -join '; '))
+Assert-Agent (!(Test-SBAgentStructuredOutput '' $schemaText).valid -and !(Test-SBAgentStructuredOutput $null $schemaText).valid) 'no JSON object is invalid, not an exception'
+
+# Invoke-SBAgentOneShot with a fake Claude Code (.ps1): valid answer, one retry after an invalid one, invalid twice, quota stop, quota read first.
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.AgentAnalysis.psm1') -Force
+$oneShotCli=Join-Path $fixture 'oneshot/claude.ps1'
+Write-AgentFixture $oneShotCli @'
+$prompt=[Console]::In.ReadToEnd()
+$log=$env:SB_FAKE_LOG
+$n=@(Get-ChildItem -LiteralPath $log -Filter 'prompt-*.txt' -ErrorAction SilentlyContinue).Count+1
+[IO.File]::WriteAllText((Join-Path $log "prompt-$n.txt"),$prompt)
+[IO.File]::WriteAllText((Join-Path $log "args-$n.txt"),($args -join ' '))
+$valid='{"type":"result","is_error":false,"result":"{\"ok\":true,\"note\":\"read only\"}"}'
+$invalid='{"type":"result","is_error":false,"result":"I could not decide."}'
+switch($env:SB_FAKE_MODE){
+    'valid' {$valid}
+    'retry' {if($n -eq 1){$invalid}else{$valid}}
+    'invalid' {$invalid}
+    'quota' {'{"type":"result","is_error":true,"result":"You''ve hit your limit · resets 5pm"}';exit 1}
+}
+'@
+$checkout=Join-Path $fixture 'checkout'
+[IO.Directory]::CreateDirectory($checkout)|Out-Null
+$oneShotCaps=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -Executable $fakeExe -HelpText $claudeHelp -VersionText '2.1.319' -ConfigPaths $none
+$savedMode=$env:SB_FAKE_MODE;$savedLog=$env:SB_FAKE_LOG
+function Invoke-FakeOneShot([string]$Mode,[string]$Name,[hashtable]$Extra=@{}){
+    $env:SB_FAKE_MODE=$Mode;$env:SB_FAKE_LOG=Join-Path $fixture ('oneshot-log/'+$Name);[IO.Directory]::CreateDirectory($env:SB_FAKE_LOG)|Out-Null
+    $common=@{Provider='claude';Prompt='Analyze the checkout.';SchemaPath=$schemaFile;CheckoutPath=$checkout;OutputFolder=(Join-Path $fixture ('oneshot-out/'+$Name));BrainRoot=$brain;AgentPath=$oneShotCli;Capabilities=$oneShotCaps;TimeoutSeconds=120}
+    Invoke-SBAgentOneShot @common @Extra
+}
+try{
+    $r=Invoke-FakeOneShot 'valid' 'valid'
+    $out=Join-Path $fixture 'oneshot-out/valid'
+    Assert-Agent ($r.result.ok -eq $true -and $r.attempts -eq 1 -and $r.role -eq 'light' -and $r.model -ceq 'haiku' -and !$r.nativeSchema -and (Test-Path -LiteralPath (Join-Path $out 'result.json')) -and (Test-Path -LiteralPath (Join-Path $out 'agent-output-1.jsonl'))) ('a valid answer on the first attempt with the light model, files in the output folder: '+($r|ConvertTo-Json -Compress -Depth 6))
+    $sent=Read-SBText (Join-Path $fixture 'oneshot-log/valid/prompt-1.txt')
+    $argsSent=Read-SBText (Join-Path $fixture 'oneshot-log/valid/args-1.txt')
+    Assert-Agent ($sent -match 'Analyze the checkout\.' -and $sent -match '"additionalProperties":\s*false' -and $argsSent -match '--permission-mode plan' -and $argsSent -match '--model haiku') ('the prompt carries the schema and the CLI runs read-only: '+$argsSent)
+    $r=Invoke-FakeOneShot 'retry' 'retry' @{Model='opus'}
+    $second=Read-SBText (Join-Path $fixture 'oneshot-log/retry/prompt-2.txt')
+    Assert-Agent ($r.attempts -eq 2 -and $r.result.ok -eq $true -and $r.role -eq 'explicit' -and $second -match '# Correction' -and $second -match 'did not validate') 'an invalid answer is retried once with the validation errors'
+    Assert-AgentError {Invoke-FakeOneShot 'invalid' 'invalid'} 'schema|schema' 'an answer invalid twice stops with the schema error'
+    Assert-Agent (@(Get-ChildItem -LiteralPath (Join-Path $fixture 'oneshot-log/invalid') -Filter 'prompt-*.txt').Count -eq 2) 'two attempts at most'
+    Assert-AgentError {Invoke-FakeOneShot 'quota' 'quota'} 'limit' 'a quota envelope stops the analysis as a limit'
+    # An exhaustion observed by a runner of this workstation blocks the analysis before the CLI starts.
+    $now=[DateTimeOffset]::UtcNow
+    $statusDir=Join-Path $brain ('.runtime/hosts/'+(Get-SBHostId)+'/repos/r1/report/20261112-runner-run-000000-1')
+    Write-AgentFixture (Join-Path $statusDir 'status.json') (ConvertTo-SBJson @{quotaObserved=@{provider='claude';state='exhausted';resetAt=$now.AddHours(2).ToString('o');observedAt=$now.ToString('o')}})
+    Assert-AgentError {Invoke-FakeOneShot 'valid' 'blocked'} 'quota|Quota' 'an exhausted quota stops the analysis before the CLI runs'
+    Assert-Agent (@(Get-ChildItem -LiteralPath (Join-Path $fixture 'oneshot-log/blocked') -Filter 'prompt-*.txt' -ErrorAction SilentlyContinue).Count -eq 0) 'the CLI is not started when the quota is exhausted'
+    Remove-Item -LiteralPath $statusDir -Recurse -Force
+    $notReady=Get-SBAgentCapabilities -Provider claude -BrainRoot $brain -NoProbe -ConfigPaths $none
+    Assert-AgentError {Invoke-SBAgentOneShot -Provider claude -Prompt 'x' -SchemaPath $schemaFile -CheckoutPath $checkout -BrainRoot $brain -AgentPath $oneShotCli -Capabilities $notReady} 'not-found' 'a CLI that is not ready is refused with its state'
+}finally{$env:SB_FAKE_MODE=$savedMode;$env:SB_FAKE_LOG=$savedLog}
 'SUCCESS AGENTS: '+$script:agentChecks+' checks; retained fixture '+$fixture

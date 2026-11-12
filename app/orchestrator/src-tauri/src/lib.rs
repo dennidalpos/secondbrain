@@ -112,6 +112,24 @@ fn save_settings(app: AppHandle, secondbrain_home: String, pwsh_path: String) ->
 }
 
 #[tauri::command]
+fn save_light_model(app: AppHandle, provider: String, model: String, effort: String) -> Result<Settings, String> {
+    // Empty values are allowed: they mean "agent of the queue" and "light role of the model table".
+    if !provider.is_empty() && !valid_provider(&provider) {
+        return Err(format!("Provider non supportato: {provider}"));
+    }
+    for v in [&model, &effort] {
+        if !v.is_empty() && !valid_token(v) {
+            return Err(format!("Valore non valido: {v}"));
+        }
+    }
+    settings::update(&app, |s| {
+        s.light_provider = provider.trim().to_string();
+        s.light_model = model.trim().to_string();
+        s.light_effort = effort.trim().to_string();
+    })
+}
+
+#[tauri::command]
 fn list_recent_repos(app: AppHandle) -> Value {
     let s = settings::load(&app);
     Value::Array(s.recent_repos.iter().map(|p| serde_json::json!({ "path": p, "exists": Path::new(p).is_dir() })).collect())
@@ -220,6 +238,197 @@ async fn apply_directives(app: AppHandle, repo: String, proposal_path: String, p
 fn valid_token(value: &str) -> bool {
     !value.is_empty() && value.len() <= 120 && value.chars().all(|c| c.is_ascii_alphanumeric() || "._-:/@[]".contains(c))
 }
+/// Model and effort of an analysis: the explicit choice, or nothing for the light role of the model table.
+fn analysis_args(args: &mut Vec<String>, provider: &str, model: Option<String>, effort: Option<String>) -> Result<(), String> {
+    if !valid_provider(provider) {
+        return Err(format!("Provider non supportato: {provider}"));
+    }
+    args.push("-Provider".into());
+    args.push(provider.into());
+    if let Some(m) = model.filter(|m| !m.trim().is_empty()) {
+        if !valid_token(m.trim()) {
+            return Err(format!("Nome del modello non valido: {m}"));
+        }
+        args.push("-Model".into());
+        args.push(m.trim().into());
+        args.push("-AllowCustomModel".into());
+    }
+    if let Some(e) = effort.filter(|e| !e.trim().is_empty()) {
+        if !valid_token(e.trim()) {
+            return Err(format!("Livello di impegno non valido: {e}"));
+        }
+        args.push("-Effort".into());
+        args.push(e.trim().into());
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn analyze_directives(app: AppHandle, repo: String, provider: String, model: Option<String>, effort: Option<String>) -> Result<Value, String> {
+    // One read-only run of the light model in the checkout (DOC06): proposed sections, what is covered elsewhere, warnings, counts.
+    let mut args = vec!["-Analyze".into(), "-Kind".into(), "directives".into(), "-RepositoryPath".into(), checkout(&repo)?];
+    analysis_args(&mut args, &provider, model, effort)?;
+    script(app, "agents.ps1", args).await
+}
+
+#[tauri::command]
+async fn analyze_task(app: AppHandle, repo: String, task_id: String, provider: String, model: Option<String>, effort: Option<String>) -> Result<Value, String> {
+    // First round of the autonomy analysis of one task (REP18): verdict and tool calls (questions or the proposed update).
+    if !valid_token(&task_id) {
+        return Err("ID del task non valido.".into());
+    }
+    let mut args = vec!["-Analyze".into(), "-Kind".into(), "task".into(), "-RepositoryPath".into(), checkout(&repo)?, "-TaskId".into(), task_id];
+    analysis_args(&mut args, &provider, model, effort)?;
+    script(app, "agents.ps1", args).await
+}
+
+fn analysis_folder(path: &str) -> Result<String, String> {
+    let p = PathBuf::from(path.trim());
+    let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    if !p.is_dir() || !name.contains("-analysis-task-") {
+        return Err(format!("Cartella di analisi non valida: {path}"));
+    }
+    Ok(p.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+async fn view_task_analysis(app: AppHandle, repo: String, analysis_path: String) -> Result<Value, String> {
+    let args = vec![
+        "-Analyze".into(),
+        "-Kind".into(),
+        "task-view".into(),
+        "-RepositoryPath".into(),
+        checkout(&repo)?,
+        "-AnalysisPath".into(),
+        analysis_folder(&analysis_path)?,
+    ];
+    script(app, "agents.ps1", args).await
+}
+
+#[tauri::command]
+async fn resolve_task_analysis(app: AppHandle, repo: String, analysis_path: String, answers: Value) -> Result<Value, String> {
+    // The owner's answers go to a temporary JSON file; agents.ps1 records them in the analysis folder and runs the next round.
+    if answers.as_array().map(|a| a.is_empty()).unwrap_or(true) {
+        return Err("Nessuna risposta da inviare.".into());
+    }
+    let dir = app.path().app_cache_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let file = dir.join(format!("answers-{}.json", stamp()));
+    std::fs::write(&file, serde_json::to_string(&answers).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    let args = vec![
+        "-Analyze".into(),
+        "-Kind".into(),
+        "task-resolve".into(),
+        "-RepositoryPath".into(),
+        checkout(&repo)?,
+        "-AnalysisPath".into(),
+        analysis_folder(&analysis_path)?,
+        "-AnswersFile".into(),
+        file.to_string_lossy().into_owned(),
+    ];
+    let result = script(app, "agents.ps1", args).await;
+    let _ = std::fs::remove_file(&file);
+    result
+}
+
+#[tauri::command]
+async fn apply_task_analysis(app: AppHandle, repo: String, analysis_path: String, authorization: String) -> Result<Value, String> {
+    if authorization.trim().is_empty() || authorization.len() > 300 {
+        return Err("Autorizzazione mancante o troppo lunga.".into());
+    }
+    let args = vec![
+        "-Analyze".into(),
+        "-Kind".into(),
+        "task-apply".into(),
+        "-RepositoryPath".into(),
+        checkout(&repo)?,
+        "-AnalysisPath".into(),
+        analysis_folder(&analysis_path)?,
+        "-Authorization".into(),
+        authorization,
+    ];
+    script(app, "agents.ps1", args).await
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegistryQuery {
+    pub repo: String,
+    #[serde(default)]
+    pub page: u32,
+    #[serde(default)]
+    pub page_size: Option<u32>,
+    pub tool: Option<String>,
+    pub status: Option<String>,
+    pub archived: Option<String>,
+    pub search: Option<String>,
+}
+
+/// Arguments of knowledge.ps1 -Registry from the window's filters (values checked against their closed sets).
+fn registry_args(q: &RegistryQuery, checkout_path: String) -> Result<Vec<String>, String> {
+    let mut args = vec![
+        "-Registry".into(),
+        "-CheckoutPath".into(),
+        checkout_path,
+        "-Page".into(),
+        q.page.to_string(),
+        "-PageSize".into(),
+        q.page_size.unwrap_or(50).min(500).to_string(),
+    ];
+    if let Some(t) = q.tool.as_deref().filter(|t| !t.is_empty()) {
+        if !["claude", "codex", "gemini", "antigravity", "human", "unknown"].contains(&t) {
+            return Err(format!("Strumento non valido: {t}"));
+        }
+        args.push("-Tool".into());
+        args.push(t.into());
+    }
+    if let Some(s) = q.status.as_deref().filter(|s| !s.is_empty()) {
+        if !["todo", "in_progress", "blocked", "done", "cancelled", "unknown"].contains(&s) {
+            return Err(format!("Stato non valido: {s}"));
+        }
+        args.push("-TaskStatus".into());
+        args.push(s.into());
+    }
+    if let Some(a) = q.archived.as_deref().filter(|a| !a.is_empty()) {
+        if !["include", "exclude", "only"].contains(&a) {
+            return Err(format!("Filtro archivio non valido: {a}"));
+        }
+        args.push("-Archived".into());
+        args.push(a.into());
+    }
+    if let Some(s) = q.search.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        if s.len() > 100 || s.chars().any(|c| c.is_control()) {
+            return Err("Testo di ricerca non valido.".into());
+        }
+        args.push("-Filter".into());
+        args.push(s.into());
+    }
+    Ok(args)
+}
+
+#[tauri::command]
+async fn read_registry(app: AppHandle, query: RegistryQuery) -> Result<Value, String> {
+    // Every task of the repository (active and archived) with the tools that worked on it: dossier ledger plus runner reports.
+    let args = registry_args(&query, checkout(&query.repo)?)?;
+    script(app, "knowledge.ps1", args).await
+}
+
+#[tauri::command]
+async fn list_runs(app: AppHandle, repo: String, limit: Option<u32>) -> Result<Value, String> {
+    let n = limit.unwrap_or(50).min(1000).to_string();
+    script(app, "runner-status.ps1", vec!["-CheckoutPath".into(), checkout(&repo)?, "-List".into(), "-Limit".into(), n]).await
+}
+
+#[tauri::command]
+async fn add_run_note(app: AppHandle, repo: String, folder: String, note: String) -> Result<Value, String> {
+    // A note of the window (start, stop, reattach) kept in the run's events.jsonl, so it survives a reattach.
+    let note = note.trim().to_string();
+    if note.is_empty() || note.len() > 500 || note.chars().any(|c| c.is_control()) {
+        return Err("Nota non valida.".into());
+    }
+    script(app, "runner-status.ps1", vec!["-CheckoutPath".into(), checkout(&repo)?, "-Note".into(), note, "-RunFolder".into(), folder]).await
+}
+
 
 #[tauri::command]
 fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest) -> Result<Value, String> {
@@ -367,8 +576,22 @@ fn local_run(state: State<'_, AppState>) -> Option<u32> {
     state.run.lock().ok().and_then(|g| g.as_ref().map(|r| r.pid))
 }
 
+/// Browser arguments of the windows when WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS is set: wry always passes its own arguments through the
+/// WebView2 API, and the runtime then ignores the variable, so the app forwards it after wry's defaults (the end-to-end tests open the
+/// DevTools port this way). None leaves wry's defaults untouched.
+fn browser_args(extra: Option<String>) -> Option<String> {
+    let extra = extra.map(|e| e.trim().to_string()).filter(|e| !e.is_empty())?;
+    Some(format!("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection {extra}"))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let mut context = tauri::generate_context!();
+    if let Some(args) = browser_args(std::env::var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").ok()) {
+        for window in context.config_mut().app.windows.iter_mut() {
+            window.additional_browser_args = Some(args.clone());
+        }
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
@@ -376,6 +599,7 @@ pub fn run() {
             get_launch_context,
             get_settings,
             save_settings,
+            save_light_model,
             list_recent_repos,
             add_recent_repo,
             remove_recent_repo,
@@ -390,15 +614,32 @@ pub fn run() {
             get_run_status,
             read_run_events,
             stop_queue,
-            local_run
+            local_run,
+            analyze_directives,
+            analyze_task,
+            view_task_analysis,
+            resolve_task_analysis,
+            apply_task_analysis,
+            read_registry,
+            list_runs,
+            add_run_note
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running the orchestrator");
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{repo_argument, valid_token};
+    use super::{analysis_args, browser_args, registry_args, repo_argument, valid_token, RegistryQuery};
+
+    #[test]
+    fn webview_arguments() {
+        assert_eq!(browser_args(None), None);
+        assert_eq!(browser_args(Some("  ".into())), None);
+        let args = browser_args(Some("--remote-debugging-port=9333".into())).unwrap();
+        assert!(args.starts_with("--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection "));
+        assert!(args.ends_with("--remote-debugging-port=9333"));
+    }
 
     #[test]
     fn tokens() {
@@ -407,6 +648,33 @@ mod tests {
         assert!(!valid_token("a b"));
         assert!(!valid_token("x;rm"));
         assert!(!valid_token(""));
+    }
+
+    #[test]
+    fn analysis_and_registry_arguments() {
+        let mut a: Vec<String> = Vec::new();
+        assert!(analysis_args(&mut a, "claude", Some("haiku".into()), None).is_ok());
+        assert_eq!(a, vec!["-Provider", "claude", "-Model", "haiku", "-AllowCustomModel"]);
+        let mut b: Vec<String> = Vec::new();
+        assert!(analysis_args(&mut b, "other", None, None).is_err());
+        assert!(analysis_args(&mut b, "codex", Some("x;y".into()), None).is_err());
+        let q = |tool: Option<&str>, status: Option<&str>, search: Option<&str>| RegistryQuery {
+            repo: ".".into(),
+            page: 1,
+            page_size: Some(20),
+            tool: tool.map(Into::into),
+            status: status.map(Into::into),
+            archived: Some("only".into()),
+            search: search.map(Into::into),
+        };
+        let args = registry_args(&q(Some("codex"), Some("done"), Some(" runner ")), "C".into()).unwrap();
+        assert!(args.windows(2).any(|w| w == ["-Tool", "codex"]));
+        assert!(args.windows(2).any(|w| w == ["-TaskStatus", "done"]));
+        assert!(args.windows(2).any(|w| w == ["-Filter", "runner"]));
+        assert!(args.windows(2).any(|w| w == ["-Page", "1"]));
+        assert!(registry_args(&q(Some("vim"), None, None), "C".into()).is_err());
+        assert!(registry_args(&q(None, Some("open"), None), "C".into()).is_err());
+        assert!(registry_args(&q(None, None, Some("a\nb")), "C".into()).is_err());
     }
 
     #[test]

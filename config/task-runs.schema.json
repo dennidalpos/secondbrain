@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "One record of the dossier task ledger (history/task-runs.jsonl): a change of a task and the executor that made it",
+  "type": "object",
+  "required": ["schemaVersion", "recordId", "taskId", "at", "statusAfter", "executor", "event"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "recordId": { "type": "string", "pattern": "^[A-Za-z0-9-]{8,64}$" },
+    "taskId": { "type": "string", "minLength": 1 },
+    "seq": { "type": ["integer", "null"] },
+    "at": { "type": "string", "format": "date-time" },
+    "event": { "enum": ["created", "status", "execution", "evidence", "run", "analysis"] },
+    "statusBefore": { "type": ["string", "null"] },
+    "statusAfter": { "type": ["string", "null"] },
+    "executionBefore": { "type": ["string", "null"] },
+    "executionAfter": { "type": ["string", "null"] },
+    "executor": {
+      "type": "object",
+      "required": ["tool", "mode"],
+      "properties": {
+        "tool": { "enum": ["claude", "codex", "gemini", "antigravity", "human", "unknown"] },
+        "mode": { "enum": ["runner", "interactive", "mcp", "cli", "analysis", "memory-cycle", "backfill"] },
+        "model": { "type": "string" },
+        "effort": { "type": "string" },
+        "runId": { "type": "string" }
+      }
+    },
+    "reason": { "type": "string", "maxLength": 600 },
+    "evidence": { "type": "array" },
+    "source": { "enum": ["report", "closure"] },
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "state": { "type": "string" },
+        "exitCode": { "type": ["integer", "null"] },
+        "seconds": { "type": ["integer", "null"] },
+        "parked": {},
+        "folder": { "type": "string" }
+      }
+    }
+  }
+}

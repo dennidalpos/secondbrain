@@ -75,6 +75,16 @@ try {
     Check (F5-Submit $f5Clear).applied 'approved MCP task update clears the field'
     $f5Ext=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0].extensions
     Check (!$f5Ext.ContainsKey('awaiting')) 'empty awaiting removes the field'
+    # evidence: "reference|outcome" strings or {reference, outcome} objects appended to the task, as knowledge.ps1 -Evidence.
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';evidence='README|passed'}} 'MCP task update requires evidence as an array'
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';evidence=@('README|great')}} 'MCP task update rejects an unknown evidence outcome'
+    Reject {F5-Plan 'task.update' @{taskId='F5-1';evidence=@(@{reference='README';outcome='passed';extra=1})}} 'MCP task update rejects extra evidence fields'
+    $f5Ev=F5-Plan 'task.update' @{taskId='F5-1';evidence=@('scripts/test-mcp-writes.ps1|passed',@{reference='README.md';outcome='partial'})}
+    Check ((@($f5Ev.pending.arguments.Evidence) -join ';') -ceq 'scripts/test-mcp-writes.ps1|passed;README.md|partial') 'MCP task update previews evidence entries'
+    [void](F5-Approve $f5Ev)
+    Check (F5-Submit $f5Ev).applied 'approved MCP task update applies evidence'
+    $f5EvTask=@((Read-SBJson (Join-Path $f5Dossier tracker.json) $null).tasks|Where-Object id -eq 'F5-1')[0]
+    Check (@($f5EvTask.evidence|Where-Object {$_.reference -eq 'README.md' -and $_.outcome -eq 'partial'}).Count -eq 1) 'MCP evidence is stored on the task'
     # requires: only the allowed capability names, as an array; an empty array clears the field; the runner then excludes the task.
     Reject {F5-Plan 'task.update' @{taskId='F5-1';requires=@('gpu')}} 'MCP task update rejects an unknown required capability'
     Reject {F5-Plan 'task.update' @{taskId='F5-1';requires='computer-use'}} 'MCP task update requires the capability list as an array'

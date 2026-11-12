@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Task autonomy analysis (one-shot analysis, REP18): verdict plus tool calls for the orchestrator to dispatch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "verdict", "summary", "calls", "blockersRemaining"],
+  "properties": {
+    "taskId": { "type": "string" },
+    "verdict": { "type": "string", "enum": ["autonomous-now", "needs-answers", "not-automatable"] },
+    "summary": { "type": "string", "maxLength": 1200 },
+    "calls": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "arguments"],
+        "properties": {
+          "name": { "type": "string", "enum": ["ask_user", "propose_task_update", "mark_not_automatable"] },
+          "arguments": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["questionId", "header", "question", "options", "multiSelect", "recommended", "description", "acceptance", "execution", "awaiting", "requires", "dependencies", "stateReason", "reason"],
+            "properties": {
+              "questionId": { "type": ["string", "null"], "maxLength": 40 },
+              "header": { "type": ["string", "null"], "maxLength": 24 },
+              "question": { "type": ["string", "null"], "maxLength": 400 },
+              "options": {
+                "type": ["array", "null"],
+                "maxItems": 4,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "label", "description"],
+                  "properties": {
+                    "id": { "type": "string", "maxLength": 40 },
+                    "label": { "type": "string", "maxLength": 60 },
+                    "description": { "type": "string", "maxLength": 300 }
+                  }
+                }
+              },
+              "multiSelect": { "type": ["boolean", "null"] },
+              "recommended": { "type": ["string", "null"], "maxLength": 40 },
+              "description": { "type": ["string", "null"], "maxLength": 4000 },
+              "acceptance": { "type": ["array", "null"], "maxItems": 12, "items": { "type": "string", "maxLength": 400 } },
+              "execution": { "type": ["string", "null"], "enum": ["autonomous", "user_required", null] },
+              "awaiting": { "type": ["string", "null"], "maxLength": 80 },
+              "requires": { "type": ["array", "null"], "maxItems": 4, "items": { "type": "string", "maxLength": 40 } },
+              "dependencies": { "type": ["array", "null"], "maxItems": 12, "items": { "type": "string", "maxLength": 120 } },
+              "stateReason": { "type": ["string", "null"], "maxLength": 600 },
+              "reason": { "type": ["string", "null"], "maxLength": 600 }
+            }
+          }
+        }
+      }
+    },
+    "blockersRemaining": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "detail"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["owner-consent", "credential", "hardware", "live-access", "computer-use", "other-repository"] },
+          "detail": { "type": "string", "maxLength": 400 }
+        }
+      }
+    }
+  }
+}

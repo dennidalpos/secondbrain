@@ -365,6 +365,12 @@ DOCUMENTAZIONE
   • Cosa serve: codice reale o intento dichiarato del progetto, pubblico e canale (social, sito, marketing, documentazione) e formato
   • Esempio d'uso: DOC05: disegna il diagramma di architettura e un'infografica di una pagina del runner partendo dal codice
 
+🔭 DOC06 | Esamina un repository e proponi le sue direttive specifiche per gli agenti
+  • ID: pmt-e9de72a0
+  • Ambito: repo | Modalità: read
+  • Cosa serve: il checkout, i blocchi di direttive globale e comune, AGENTS.md e le direttive attuali del dossier, il tetto dell'avvio
+  • Esempio d'uso: DOC06: esamina questo repository e proponi le direttive che servono qui oltre ai blocchi comuni
+
 
 RILASCIO E OPERATIVITÀ
 🔥 OPS01 | Prepara e verifica pacchetti e artefatti distribuibili.
@@ -508,6 +514,12 @@ BACKLOG, MEMORIA E CONTINUITÀ
   • Ambito: repo | Modalità: write
   • Cosa serve: tracker con il suo archivio, lo schema di priorità scelto dall'utente e l'elenco dei task con prerequisiti reali
   • Esempio d'uso: REP17: archivia i task completati e porta le qualifiche sotto lo sviluppo
+
+🔭 REP18 | Analizza un task non avviabile e chiedi cosa lo rende autonomo
+  • ID: pmt-cca5cbfd
+  • Ambito: repo | Modalità: read
+  • Cosa serve: un task che il runner salta, motivo e dipendenze, il checkout in sola lettura e le risposte della persona a domande a scelta multipla
+  • Esempio d'uso: REP18: analizza il task #42 e chiedimi solo ciò che serve per renderlo autonomo
 
 🔥 SYS13 | Fissa o rimuovi il blocco greenfield (versioni, changelog, migrazioni, alias).
   • ID: pmt-29b3278f

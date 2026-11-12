@@ -141,6 +141,16 @@ function Invoke-Json([string[]]$ScriptArgs){
     if($i -lt 0 -or $LASTEXITCODE -ne 0){throw $out}
     $out.Substring($i)|ConvertFrom-Json
 }
+function Invoke-RunnerTaskUpdate([string[]]$UpdateArgs){
+    # A tracker update by the runner through knowledge.ps1: $true applied, 'deferred' accepted but queued behind another writer (exit 5,
+    # applied by the next -FlushPending), $false refused. The runner records itself as the executor of its own updates.
+    $previous=$env:SECONDBRAIN_EXECUTOR
+    try{
+        $env:SECONDBRAIN_EXECUTOR=(ConvertTo-Json ([ordered]@{tool=$Provider;mode='runner';model=$(if($script:runStatus){$script:runStatus.resolvedModel});effort=$(if($script:runStatus){$script:runStatus.resolvedEffort});runId=$(if($script:runStatus){$script:runStatus.runId})}) -Compress)
+        $null=(& pwsh -NoProfile -File $knowledge @UpdateArgs @configArgs 2>&1|Out-String)
+        switch($LASTEXITCODE){0{$true}5{'deferred'}default{$false}}
+    }catch{$false}finally{$env:SECONDBRAIN_EXECUTOR=$previous}
+}
 function Invoke-RunnerChild([string[]]$ScriptArgs){
     # A SecondBrain CLI that can wait (the writer lock of -FlushPending): started as a process so status.json keeps its heartbeat meanwhile.
     $start=[Diagnostics.ProcessStartInfo]::new((Get-Process -Id $PID).Path);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
@@ -179,10 +189,14 @@ function Read-RunnerTasks($Target,$Index,$Count){
     # Unverified trackers come back as diagnostic entries without seq: they are not tasks and are skipped.
     $ready=@($list|Where-Object {$_.PSObject.Properties['seq'] -and $null -ne $_.seq})
     $byId=@{}
+    $tracker=$null
     $source=@($ready|Where-Object {$_.PSObject.Properties['source'] -and $_.source}|Select-Object -First 1)
+    if($source.Count -ne 1 -and !$Run){
+        # No ready task: the preview still needs the tracker to list the open tasks for analysis.
+        try{$source=@(@(Invoke-Json (@($knowledge,'-Tasks','-CheckoutPath',$checkout)+$configArgs))|Where-Object {$_.PSObject.Properties['source'] -and $_.source}|Select-Object -First 1)}catch{$source=@()}
+    }
     if($source.Count -eq 1){
         # Objects, not the hashtables of Read-SBJson: selection reads PSObject properties, the same shape as the CLI fallback (#376).
-        $tracker=$null
         try{if(Test-Path -LiteralPath ([string]$source[0].source)){$tracker=Read-SBText ([string]$source[0].source)|ConvertFrom-Json}}catch{$tracker=$null}
         if($tracker -and $tracker.PSObject.Properties['tasks']){foreach($t in @($tracker.tasks)){$byId[[string]$t.id]=$t}}
     }
@@ -208,6 +222,36 @@ function Read-RunnerTasks($Target,$Index,$Count){
     }
     $pickedIds=@($picked|ForEach-Object {[string]$_.id})
     foreach($t in $all){if([string]$t.id -notin $pickedIds){$excluded+=,[ordered]@{id=[string]$t.id;seq=$t.seq;reason='max-tasks'}}}
+    # Preview only: the open tasks that are not ready at all (blocked, unknown, waiting on dependencies) are listed too, so the queue can
+    # offer them for analysis; every excluded entry carries title, status, execution and state reason.
+    $info=@{};foreach($t in @($detail)){$info[[string]$t.id]=$t}
+    if(!$Run -and $tracker -and $tracker.PSObject.Properties['tasks'] -and !$TaskIds.Count){
+        $readyIds=@($ready|ForEach-Object {[string]$_.id})
+        $statusById=@{};foreach($t in @($tracker.tasks)){$statusById[[string]$t.id]=[string]$t.status}
+        foreach($t in @($tracker.tasks)){
+            $id=[string]$t.id
+            if([string]$t.status -in @('done','cancelled') -or $id -in $readyIds){continue}
+            $reason=if([string]$t.status -in @('blocked','unknown')){"status:$($t.status)"}else{
+                # A dependency missing from the active tracker is archived (done or cancelled); another repository's is named as repo#id.
+                $open=@(@($t.dependencies)|Where-Object {$_}|ForEach-Object {
+                    $depId=[string]$_.id;$depRepo=if($_.PSObject.Properties['repository']){[string]$_.repository}else{''}
+                    if($depRepo){"$depRepo#$depId"}elseif($statusById.ContainsKey($depId) -and $statusById[$depId] -ne 'done'){$depId}
+                })
+                if($open.Count){'dependency:'+($open -join ',')}else{'not-ready'}
+            }
+            $excluded+=,[ordered]@{id=$id;seq=$t.seq;reason=$reason}
+            $info[$id]=$t
+        }
+    }
+    $excluded=@($excluded|ForEach-Object {
+        $t=$info[[string]$_.id]
+        if($t){
+            $ext=Get-SBRunnerValue $t 'extensions'
+            $_.title=[string](Get-SBRunnerValue $t 'title');$_.status=[string](Get-SBRunnerValue $t 'status');$_.execution=[string](Get-SBRunnerValue $t 'execution')
+            $_.priority=[string](Get-SBRunnerValue $t 'priority');$_.stateReason=[string](Get-SBRunnerValue $ext 'stateReason');$_.awaiting=[string](Get-SBRunnerValue $ext 'awaiting')
+        }
+        $_
+    })
     @{tasks=$picked;excluded=$excluded;ready=$ready.Count;source=$(if($source.Count -eq 1){[string]$source[0].source}else{$null})}
 }
 function Resolve-RunnerIdentity($Plan,$Task){
@@ -227,7 +271,7 @@ foreach($target in $targets){
         $skipped+=,[ordered]@{repository=$label;reason=$read.skip};continue
     }
     $selected=@($read.tasks)
-    foreach($x in @($read.excluded)){$skipped+=,[ordered]@{repository=$label;id=$x.id;seq=$x.seq;reason=$x.reason}}
+    foreach($x in @($read.excluded)){$entry=[ordered]@{repository=$label};foreach($k in @($x.Keys)){$entry[$k]=$x[$k]};$skipped+=,$entry}
     Show-RunnerLine 'runner.progress.selected' @($selected.Count,$read.ready)
     if($selected.Count -gt 0){$plans+=,@{target=$target;tasks=$selected;source=$read.source};$totalSelected+=$selected.Count}
 }
@@ -247,7 +291,7 @@ $config=Read-SBConfiguration $ConfigPath
 $active=Find-SBActiveRunner $config.brainRoot $config.workstationId $runIdentity
 if($active){[Console]::Error.WriteLine((Get-SBMessage 'runner.busy' @($active.status.pid,(Split-Path $active.path -Parent))));exit 2}
 $script:runSlug=Get-SBRunnerRunSlug
-$runFolder=(Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$runIdentity,'-Category','report','-Slug',$script:runSlug,'-Init','-Task','Run del runner')+$configArgs)).root
+$runFolder=(Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$runIdentity,'-Category','report','-Slug',$script:runSlug,'-Init','-Task','Run del runner','-Client',$Provider)+$configArgs)).root
 if(!$StopFile){$StopFile=Join-Path $runFolder 'stop.flag'}
 $script:runStatusPath=Join-Path $runFolder 'status.json';$script:runEventsPath=Join-Path $runFolder 'events.jsonl'
 $script:runStatus=[ordered]@{
@@ -289,8 +333,6 @@ Initialize-RunnerInvocation
 $resolved=Resolve-SBAgentExecutable $AgentPath
 if(!$resolved){[Console]::Error.WriteLine((New-SBError 'runner.agent.missing' $AgentPath).Message);exit 2}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
-$agent=$resolved.path;$agentPrefix=@($resolved.prefix)
-$agentProcessPath=Get-SBAgentProcessPath (Split-Path -Parent $agent)
 $results=@();$consecutiveFailures=0;$stopReason=$null;$position=0
 if($script:resumeFrom){
     # The resume point is consumed by this run: mark it so 'latest' does not pick it again.
@@ -309,77 +351,42 @@ foreach($plan in $plans){
         $position++
         Set-RunnerPhase 'init'
         $identity=Resolve-RunnerIdentity $plan $task
-        $slug="runner-$($task.seq)"
-        $folder=Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$identity,'-Category','report','-Slug',$slug,'-Init','-Task',"Run autonomo $($task.id)")+$configArgs)
+        # Unique per run of the task: a same-day rerun keeps its own output and report.
+        $slug="runner-$($task.seq)-"+(Get-Date).ToString('HHmmss')
+        $folder=Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$identity,'-Category','report','-Slug',$slug,'-Init','-Task',"Run autonomo $($task.id)",'-Client',$Provider)+$configArgs)
         $root=$folder.root
         $began=Get-Date
         $script:runStatus.task=[ordered]@{id=[string]$task.id;seq=$task.seq;title=[string]$task.title;position=$position;total=$totalSelected;startedAt=[DateTimeOffset]::UtcNow.ToString('o');folder=$root}
         $script:runStatus.lastAgentEventAt=$null;$script:runStatus.lastAgentEvent=$null;$script:runStatus.phase='agent'
         Show-RunnerLine 'runner.progress.start' @($position,$totalSelected,$task.seq,$(if($plan.target.identity){$plan.target.identity}else{[string]$task.id})) @{position=$position;total=$totalSelected;id=[string]$task.id;seq=$task.seq;title=[string]$task.title;folder=$root}
-        $start=[Diagnostics.ProcessStartInfo]::new($agent);$start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.WorkingDirectory=$checkout
-        $start.RedirectStandardInput=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
-        # UTF-8 both ways: the Italian prompt reaches the agent intact and its JSON comes back without code-page damage.
-        $start.StandardInputEncoding=$utf8;$start.StandardOutputEncoding=$utf8;$start.StandardErrorEncoding=$utf8
-        foreach($a in ($agentPrefix+$AgentArguments)){$start.ArgumentList.Add($a)}
-        $start.Environment['PATH']=$agentProcessPath
         # Session perimeter enforced in code (#382): knowledge.ps1 and the MCP tools started by the agent refuse global reads and foreign repositories.
+        # UTF-8 both ways (Invoke-SBAgentProcess): the Italian prompt reaches the agent intact and its JSON comes back without code-page damage.
         $scopeVariables=Get-SBRunnerScopeVariables
-        $start.Environment[$scopeVariables.repository]=[string]$identity
+        $agentEnv=@{}
+        $agentEnv[$scopeVariables.repository]=[string]$identity
+        # The executor of this session (tool, mode, model, effort, run): the agent's tracker writes record it in the dossier ledger.
+        $agentEnv['SECONDBRAIN_EXECUTOR']=(ConvertTo-Json ([ordered]@{tool=$Provider;mode='runner';model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId}) -Compress)
         $prompt=if($external){New-SBTaskRunPrompt $task $PSScriptRoot $checkout}else{New-SBTaskRunPrompt $task}
         if($script:resumeFrom -and $script:resumeFrom.interrupted -is [hashtable] -and [string]$script:resumeFrom.interrupted.id -eq [string]$task.id){
             $prompt+="`nRipresa: una sessione precedente su questo task si e fermata per limite di quota. Prima di tutto leggi $($script:resumeFrom.interrupted.folder) (agent-output.jsonl, report.json) e lo stato Git del checkout, conserva il lavoro gia fatto e prosegui dal punto interrotto senza ripeterlo."
         }
-        $process=[Diagnostics.Process]::Start($start);$state='finished';$code=$null
-        $outBuilder=[Text.StringBuilder]::new();$errBuilder=[Text.StringBuilder]::new()
-        $outLog=[IO.StreamWriter]::new((Join-Path $root 'agent-output.jsonl'),$false,$utf8)
-        try{
-            $process.StandardInput.Write($prompt);$process.StandardInput.Close()
-            # Line-by-line reading in one-second slices: every agent line is kept at once, summarized as a progress line and counted as activity.
-            $outRead=$process.StandardOutput.ReadLineAsync();$errRead=$process.StandardError.ReadLineAsync()
-            $outDone=$false;$errDone=$false;$lastActivity=Get-Date;$stallReported=$false;$nextTick=60;$exitedAt=$null
-            while($true){
-                $progress=$false
-                while(!$outDone -and $outRead.IsCompleted){
-                    $line=$outRead.GetAwaiter().GetResult()
-                    if($null -eq $line){$outDone=$true;break}
-                    [void]$outBuilder.AppendLine($line);$outLog.WriteLine($line);$outLog.Flush()
-                    $lastActivity=Get-Date;$progress=$true
-                    $rateLimit=ConvertFrom-SBAgentRateLimitEvent $line
-                    if($rateLimit){$script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state=$rateLimit.state;status=$rateLimit.status;kind=$rateLimit.kind;resetAt=$rateLimit.resetAt;observedAt=[DateTimeOffset]::UtcNow.ToString('o');source='agent'}}
-                    $ev=ConvertTo-SBAgentEvent $line
-                    if($ev){Show-RunnerLine 'runner.progress.agent' @($task.seq,$ev.kind,$ev.summary) @{id=[string]$task.id;seq=$task.seq;kind=$ev.kind;summary=$ev.summary} -Agent}
-                    $outRead=$process.StandardOutput.ReadLineAsync()
-                }
-                while(!$errDone -and $errRead.IsCompleted){
-                    $line=$errRead.GetAwaiter().GetResult()
-                    if($null -eq $line){$errDone=$true;break}
-                    [void]$errBuilder.AppendLine($line);$lastActivity=Get-Date;$progress=$true
-                    $errRead=$process.StandardError.ReadLineAsync()
-                }
-                if($progress -and $stallReported){$stallReported=$false;$script:runStatus.phase='agent'}
-                if($process.HasExited){
-                    if($outDone -and $errDone){break}
-                    # A grandchild that inherited the pipes can keep them open after the agent exits: stop waiting after five seconds.
-                    if(!$exitedAt){$exitedAt=Get-Date}elseif(((Get-Date)-$exitedAt).TotalSeconds -ge 5){break}
-                }
-                $elapsed=((Get-Date)-$began).TotalSeconds
-                if($elapsed -ge $TimeoutMinutes*60){$process.Kill($true);$process.WaitForExit();$state='timeout';break}
-                if($elapsed -ge $nextTick){Show-RunnerLine 'runner.progress.tick' @($task.seq,[int]$elapsed,$TimeoutMinutes) @{id=[string]$task.id;seconds=[int]$elapsed};$nextTick+=60}
-                $silent=((Get-Date)-$lastActivity).TotalMinutes
-                if(!$stallReported -and $silent -ge $StallMinutes){
-                    $stallReported=$true
-                    Show-RunnerLine 'runner.progress.stalled' @($task.seq,[math]::Round($silent,1),$TimeoutMinutes) @{id=[string]$task.id;minutes=[math]::Round($silent,1)}
-                }
-                Save-RunnerState
-                if(!$progress){Start-Sleep -Milliseconds 250}
-            }
-            if($state -eq 'finished'){$process.WaitForExit();$code=$process.ExitCode}
-            $outText=$outBuilder.ToString();$errText=$errBuilder.ToString()
-            # agent-output.json keeps the final answer (the stream-json result line, or the whole output of a non-streaming CLI).
-            [IO.File]::WriteAllText((Join-Path $root 'agent-output.json'),(Get-SBAgentFinalOutput $outText),$utf8)
-            [IO.File]::WriteAllText((Join-Path $root 'agent-error.txt'),$errText,$utf8)
-        }finally{$outLog.Dispose();$process.Dispose()}
-        $finalText=Get-SBAgentFinalOutput $outText
+        # One process through the shared loop: every agent line is kept at once, summarized as a progress line and counted as activity.
+        $agentRun=Invoke-SBAgentProcess -Executable $resolved -Arguments $AgentArguments -Prompt $prompt -WorkingDirectory $checkout -Environment $agentEnv `
+            -TimeoutSeconds ($TimeoutMinutes*60) -StallMinutes $StallMinutes -OutputLog (Join-Path $root 'agent-output.jsonl') `
+            -OnOutputLine {param($line)
+                $rateLimit=ConvertFrom-SBAgentRateLimitEvent $line
+                if($rateLimit){$script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state=$rateLimit.state;status=$rateLimit.status;kind=$rateLimit.kind;resetAt=$rateLimit.resetAt;observedAt=[DateTimeOffset]::UtcNow.ToString('o');source='agent'}}
+                $ev=ConvertTo-SBAgentEvent $line
+                if($ev){Show-RunnerLine 'runner.progress.agent' @($task.seq,$ev.kind,$ev.summary) @{id=[string]$task.id;seq=$task.seq;kind=$ev.kind;summary=$ev.summary} -Agent}
+            } `
+            -OnTick {param($elapsed) Show-RunnerLine 'runner.progress.tick' @($task.seq,$elapsed,$TimeoutMinutes) @{id=[string]$task.id;seconds=$elapsed}} `
+            -OnStall {param($silent) Show-RunnerLine 'runner.progress.stalled' @($task.seq,$silent,$TimeoutMinutes) @{id=[string]$task.id;minutes=$silent}} `
+            -OnResume {$script:runStatus.phase='agent'} `
+            -OnIdle {Save-RunnerState}
+        $state=$agentRun.state;$code=$agentRun.exitCode;$outText=$agentRun.output;$errText=$agentRun.error
+        # agent-output.json keeps the final answer (the stream-json result line, or the whole output of a non-streaming CLI).
+        [IO.File]::WriteAllText((Join-Path $root 'agent-output.json'),(Get-SBAgentFinalOutput $outText),$utf8)
+        [IO.File]::WriteAllText((Join-Path $root 'agent-error.txt'),$errText,$utf8)
         # A negative exit code is an operating-system crash of the agent (e.g. 0xC0000409) and an empty answer with exit 0 carries no result: neither counts as finished.
         if($state -eq 'finished'){
             if($code -lt 0){$state='crashed'}elseif($code -eq 0 -and [string]::IsNullOrWhiteSpace($outText)){$state='no-output'}
@@ -393,7 +400,7 @@ foreach($plan in $plans){
             # An archived task is gone from the active tracker; the CLI still resolves it.
             $statusAfter=(Invoke-Json (@($knowledge,'-Task',[string]$task.seq,'-CheckoutPath',$checkout)+$configArgs)).task.status
         }
-        $record=[ordered]@{repository=$identity;id=$task.id;seq=$task.seq;state=$state;exitCode=$code;statusBefore=$task.status;statusAfter=$statusAfter;seconds=[int]((Get-Date)-$began).TotalSeconds;folder=$root}
+        $record=[ordered]@{repository=$identity;id=$task.id;seq=$task.seq;state=$state;exitCode=$code;statusBefore=$task.status;statusAfter=$statusAfter;seconds=[int]((Get-Date)-$began).TotalSeconds;folder=$root;provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId;finishedAt=[DateTimeOffset]::UtcNow.ToString('o')}
         # Limits only from the agent's final error envelope with the provider's own texts (a timed-out agent keeps its timeout state).
         # quota stops the run and leaves a resume point; throttled (transient rate limit) waits briefly and the run goes on.
         $limit=if($state -ne 'timeout'){Get-SBAgentLimitState -Provider $Provider -Output $outText -ErrorOutput $errText -ExitCode $code}else{$null}
@@ -401,7 +408,7 @@ foreach($plan in $plans){
         # A run that leaves the task todo made no progress: park it as user_required (the agent's reason stays) so the same limit is not repeated.
         $record.parked=$false
         if(!$limit -and $state -eq 'finished' -and $code -eq 0 -and $statusAfter -eq 'todo'){
-            try{[void](Invoke-Json (@($knowledge,'-UpdateTaskId',[string]$task.id,'-Execution','user_required','-CheckoutPath',$checkout)+$configArgs));$record.parked=$true}catch{$record.parked=$false}
+            $record.parked=Invoke-RunnerTaskUpdate @('-UpdateTaskId',[string]$task.id,'-Execution','user_required','-CheckoutPath',$checkout)
         }
         # Stop the whole run when the plan quota is exhausted, or after three consecutive failures (no retry loops).
         # Classified before report.json is written, so the report and the run summary agree.
@@ -411,7 +418,8 @@ foreach($plan in $plans){
             $script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state='exhausted';status='limit';kind=$(if($prior){$prior.kind}else{$null});resetAt=$(if($prior -and $prior.resetAt){$prior.resetAt}else{$null});observedAt=[DateTimeOffset]::UtcNow.ToString('o');source='agent';message=$limit.message}
             # The interrupted task goes back to todo when the agent left it in progress, so -Resume selects it again.
             if($statusAfter -eq 'in_progress'){
-                try{[void](Invoke-Json (@($knowledge,'-UpdateTaskId',[string]$task.id,'-Status','todo','-StateReason','Interrotto dal limite di quota del runner: riprendere con run-ready-tasks.ps1 -Resume latest','-CheckoutPath',$checkout)+$configArgs));$record.statusAfter='todo';$record.requeued=$true}catch{$record.requeued=$false}
+                $record.requeued=Invoke-RunnerTaskUpdate @('-UpdateTaskId',[string]$task.id,'-Status','todo','-StateReason','Interrotto dal limite di quota del runner: riprendere con run-ready-tasks.ps1 -Resume latest','-CheckoutPath',$checkout)
+                if($record.requeued -ne $false){$record.statusAfter='todo'}
             }
             Save-RunnerResumePoint ([ordered]@{id=[string]$task.id;seq=$task.seq;folder=$root;statusAfter=$record.statusAfter}) 'quota' $limit
         }

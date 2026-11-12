@@ -13,6 +13,11 @@ pub struct Settings {
     pub secondbrain_home: String,
     pub pwsh_path: String,
     pub recent_repos: Vec<String>,
+    /// Light model of the one-shot analyses (directive proposals, task analysis): provider, model and effort; empty = the agent
+    /// chosen in the queue with the light role of config/agent-models.json.
+    pub light_provider: String,
+    pub light_model: String,
+    pub light_effort: String,
 }
 
 fn config_dir(app: &AppHandle) -> Result<PathBuf, String> {

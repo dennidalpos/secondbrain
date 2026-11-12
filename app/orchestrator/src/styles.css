@@ -134,3 +134,58 @@ table.tasks tbody:empty { display: none; }
 dialog { border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); max-width: 520px; padding: 18px 20px; }
 dialog::backdrop { background: rgb(0 0 0 / 0.35); }
 .dialog-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+/* Tool badges (registry, runs): one color per agent tool. */
+.tool-list { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.tool-badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 10px; white-space: nowrap; background: var(--surface-2); color: var(--muted); border: 1px solid var(--border); }
+.tool-badge[data-tool="claude"] { background: #f7e7dc; color: #8a3f12; border-color: #e0b89c; }
+.tool-badge[data-tool="codex"] { background: #e2f0ea; color: #1f5f45; border-color: #a9d3c0; }
+.tool-badge[data-tool="gemini"] { background: #e3ebfb; color: #2a4f9e; border-color: #b0c4ef; }
+.tool-badge[data-tool="antigravity"] { background: #efe5fa; color: #5b2d91; border-color: #cdb4ec; }
+.tool-badge[data-tool="human"] { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+@media (prefers-color-scheme: dark) {
+  .tool-badge[data-tool="claude"] { background: #3a2518; color: #f2b48a; border-color: #6b4127; }
+  .tool-badge[data-tool="codex"] { background: #15302a; color: #7fd3b0; border-color: #2a5a49; }
+  .tool-badge[data-tool="gemini"] { background: #1a2742; color: #9bb8f5; border-color: #33497a; }
+  .tool-badge[data-tool="antigravity"] { background: #2a1d3d; color: #c9a8f2; border-color: #4d3670; }
+}
+button.accent { border-color: var(--accent); color: var(--accent); }
+
+/* Directives: light-model proposal and the startup budget. */
+.analysis-card { background: var(--surface); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 16px; margin: 12px 0; }
+.analysis-card h3 { margin-top: 0; }
+.sections { padding-left: 20px; margin: 6px 0; }
+.sections li { margin: 8px 0; }
+.sections pre { margin: 4px 0; }
+.budget { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
+.budget-bar { flex: 0 0 180px; height: 8px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); overflow: hidden; }
+.budget-bar span { display: block; height: 100%; background: var(--ok); }
+.budget-bar span[data-level="mid"] { background: var(--warn); }
+.budget-bar span[data-level="high"] { background: var(--danger); }
+
+/* Queue: excluded tasks and analyses. */
+.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 520px; }
+.row-actions { display: inline-flex; gap: 4px; }
+.tag.verdict-autonomous-now { color: var(--ok); border-color: var(--ok); }
+.tag.verdict-needs-answers { color: var(--accent); border-color: var(--accent); }
+.tag.verdict-not-automatable { color: var(--warn); border-color: var(--warn); }
+dialog.wide { max-width: 860px; width: 92vw; }
+.questions fieldset { border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; padding: 8px 12px; }
+.questions legend { font-weight: 600; padding: 0 4px; }
+.choice { flex-direction: row; align-items: flex-start; gap: 8px; margin: 4px 0; color: var(--text); }
+.choice input[type="text"] { flex: 1 1 auto; }
+table.diff td.pre { white-space: pre-wrap; font-size: 12px; }
+table.diff tr.changed td:last-child { background: var(--accent-soft); }
+.ok-note { color: var(--ok); background: var(--ok-soft); border-radius: 6px; padding: 8px 10px; }
+
+/* Registry. */
+.segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.segmented button { border: 0; border-radius: 0; }
+.segmented button[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); }
+table.registry .reg-row { cursor: pointer; }
+table.registry .reg-row:hover, table.registry .reg-row.open { background: var(--surface-2); }
+table.registry .reg-row.archived td { color: var(--muted); }
+.reg-detail td { background: var(--bg); }
+.reg-runs { padding: 4px 0; }
+.state-done { color: var(--ok); }
+.state-blocked, .state-cancelled { color: var(--warn); }

@@ -809,7 +809,8 @@ function Get-SBRoadmap {
     })
     if($Since){$interventions=@($interventions|Where-Object {!$_.date -or $_.date -ge $Since});$commits=@($commits|Where-Object {$_.date -ge $Since})}
     $interventions=@($interventions|Sort-Object {if($_.date){$_.date}else{'9999-99-99'}},{$_.order})
-    $done=@($tracker.data.tasks|Where-Object {$_.status -in @('done','completed')}|ForEach-Object {@{id=[string]$_.id;title=[string]$_.title}})
+    # Done tasks move to the archive on every save: count them across the active tracker and the archive.
+    $done=@(@($tracker.data.tasks)+@($(if($archive){$archive.tasks}))|Where-Object {$_ -and $_.status -eq 'done'}|ForEach-Object {@{id=[string]$_.id;title=[string]$_.title}})
     [ordered]@{repository=[string]$record.identity;customer=$(if($record.ContainsKey('customer')){[string]$record.customer}else{''});interventions=$interventions;commits=$commits;completedTasks=$done.Count}
 }
 function ConvertTo-SBRoadmapMarkdown($Roadmap) {

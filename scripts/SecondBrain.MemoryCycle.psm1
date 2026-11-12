@@ -5,6 +5,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 $script:SBCycleModulePath=$PSCommandPath
 $script:SBCycleModuleHash=Get-SBFileHash $PSCommandPath
@@ -581,24 +582,10 @@ function Invoke-SBCyclePromotion {
     }
     $ops+=@{path=$receipt;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson @{schemaVersion=1;repository=$Candidate.repository;candidateSha256=$key;captureSha256=$Candidate.captureSha256;candidate=$Candidate;appliedAt=[DateTimeOffset]::UtcNow.ToString('o')}))}
     if($taskChanges.Count){
-        # Reuse tracker validation and terminal-task archiving in the SAME transaction as memories.
-        & (Get-Module SecondBrain.Tracker) {
-            param($brain,$repository,$changes,$extra,$backups,$apply,$expected)
-            $target=Resolve-SBTrackerWriteTarget $brain $repository
-            if($target.hash -cne $expected){throw (New-SBError 'cycle.conflict' @('tracker revision'))}
-            $archive=Read-SBTrackerArchive $target.path $target.identity
-            foreach($change in $changes){
-                $task=Get-SBTrackerTaskForUpdate $target $archive $change.id
-                if($change.status -cnotin @('todo','in_progress','blocked','done','cancelled')){throw (New-SBError 'cycle.invalid' @('task status'))}
-                if($change.status -eq 'done'){
-                    if(!$change.ContainsKey('verifiedAcceptance') -or (ConvertTo-SBJson @($change.verifiedAcceptance)) -cne (ConvertTo-SBJson @($task.acceptance))){throw (New-SBError 'cycle.invalid' @('task acceptance evidence'))}
-                    $target.data.extensions.lastClosure=@{taskId=$task.id;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
-                }
-                $task.status=$change.status
-                $task.evidence+=@{reference=$change.evidenceReference;outcome='passed'}
-            }
-            [void](Save-SBTrackerData $target $target.data $backups -WhatIf:(!$apply) -Archive $archive -ExtraOperations $extra)
-        } $BrainRoot $Candidate.repository $taskChanges $ops $BackupRoot ([bool]$Apply) $Candidate.sources['tracker.json']
+        # Tracker validation, closure signal, terminal-task archiving and ledger records in the SAME transaction as memories (public Tracker API).
+        $cycleClient=if($Candidate.Contains('client') -and $Candidate['client']){[string]$Candidate.client}else{'unknown'}
+        [void](Invoke-SBTrackerTaskChanges -BrainRoot $BrainRoot -Identity $Candidate.repository -Changes $taskChanges -ExpectedHash $Candidate.sources['tracker.json'] `
+            -ExtraOperations $ops -BackupRoot $BackupRoot -Apply:([bool]$Apply) -Executor @{tool=(ConvertTo-SBLedgerTool $cycleClient);mode='memory-cycle'})
     }elseif($Apply){[void](Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot)}
     if($Apply){[void](Save-SBCycleKnowledgeIndex $BrainRoot $Candidate.repository $BackupRoot -Apply)}
     @{state=$(if($Apply){'applied'}else{'preview'});receipt=$receipt;operations=$ops.Count;applied=[bool]$Apply}

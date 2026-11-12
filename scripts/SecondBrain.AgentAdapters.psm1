@@ -2,7 +2,8 @@
 # Agent CLI adapters for the task runner and the desktop orchestrator: Claude Code (claude -p), Codex (codex exec) and Gemini CLI (gemini).
 # Capabilities come from the installed CLI (--version, --help), its local configuration and, last, the fallback table config/agent-models.json.
 # Every model and effort level carries its source (probe, config, fallback). Only flags present in the installed --help are passed.
-# Read-only: the probe runs --version and --help with a timeout and reads configuration files; nothing here writes.
+# The probe runs --version and --help with a timeout and reads configuration files. Invoke-SBAgentProcess starts one agent process and
+# writes only the output log its caller names; selection, prompts and tracker writes stay with the callers.
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
@@ -18,6 +19,9 @@ Add-SBMessages @{
 # Fixed permission profile for unattended runs: file edits inside the checkout, no git history changes, no deletion.
 $script:SBClaudeAllowed='Bash,Read,Edit,Write,Grep,Glob,Skill'
 $script:SBClaudeDenied=@('Bash(git commit:*)','Bash(git push:*)','Bash(git tag:*)','Bash(git reset:*)','Bash(git clean:*)','Bash(rm:*)','Bash(Remove-Item:*)')
+# Read-only profile of one-shot analyses: file reads and searches only, no shell, no edits, no network.
+$script:SBClaudeReadOnlyTools='Read,Grep,Glob'
+$script:SBClaudeReadOnlyDenied=@('Bash','Edit','Write','NotebookEdit','WebFetch','WebSearch')
 $script:SBAgentProviders=[ordered]@{
     claude=@{id='claude';name='Claude Code';command='claude';modelFlag='--model';effortFlag='--effort'}
     codex=@{id='codex';name='Codex';command='codex';modelFlag='--model';effortFlag='--config'}
@@ -330,15 +334,58 @@ function Add-SBAgentFlag($State,[string]$Flag,[string[]]$Values,[string]$Alias) 
     $flags=@($State.flags)
     if($flags.Count -eq 0 -or $Flag -in $flags -or ($Alias -and $Alias -in $flags)){$State.list.Add($Flag);foreach($v in @($Values)){$State.list.Add($v)}}else{$State.omitted.Add($Flag)}
 }
+function Test-SBAgentFlagAvailable($Capabilities,[string]$Flag,[string]$Alias) {
+    # A flag is used only when the probed --help lists it (an unprobed help passes nothing optional).
+    $flags=@($(if($Capabilities){$Capabilities.flags}))
+    [bool]($flags.Count -and ($Flag -in $flags -or ($Alias -and $Alias -in $flags)))
+}
 function New-SBAgentInvocation {
     # Headless arguments per provider with the fixed permission profile; the prompt always goes on stdin.
     # With a probed --help, flags it does not list are left out and reported in omitted.
-    param([Parameter(Mandatory)][string]$Provider,$Capabilities,[string]$Model,[string]$Effort)
+    # -Profile ReadOnly (one-shot analyses): no edits, no shell, plan/read-only modes; a JSON schema goes to the CLI natively
+    # when the installed --help offers it (claude --json-schema, codex --output-schema), and nativeSchema says whether it did.
+    param([Parameter(Mandatory)][string]$Provider,$Capabilities,[string]$Model,[string]$Effort,[ValidateSet('Edit','ReadOnly')][string]$Profile='Edit',
+        [string]$SchemaPath,[switch]$NoInlineSchema)
     $state=@{flags=@($(if($Capabilities){$Capabilities.flags}));list=[Collections.Generic.List[string]]::new();omitted=[Collections.Generic.List[string]]::new()}
     $list=$state.list
+    function Add-Flag([string]$Flag,[string[]]$Values=@(),[string]$Alias){Add-SBAgentFlag $state $Flag $Values $Alias}
+    if($Profile -eq 'ReadOnly'){
+        $native=$false
+        switch($Provider){
+            'claude' {
+                $list.Add('-p')
+                Add-Flag '--output-format' @('json')
+                Add-Flag '--permission-mode' @('plan')
+                Add-Flag '--allowedTools' @($script:SBClaudeReadOnlyTools)
+                Add-Flag '--disallowedTools' $script:SBClaudeReadOnlyDenied
+                # The schema travels as one JSON argument: only to a real executable, never through a .cmd shim that re-parses quotes.
+                if($SchemaPath -and !$NoInlineSchema -and (Test-SBAgentFlagAvailable $Capabilities '--json-schema')){
+                    $list.Add('--json-schema');$list.Add(((Read-SBText $SchemaPath)|ConvertFrom-Json|ConvertTo-Json -Depth 40 -Compress));$native=$true
+                }
+                if($Model){Add-Flag '--model' @($Model)}
+                if($Effort){Add-Flag '--effort' @($Effort)}
+            }
+            'codex' {
+                $list.Add('exec')
+                Add-Flag '--json'
+                Add-Flag '--sandbox' @('read-only') '-s'
+                Add-Flag '--skip-git-repo-check'
+                if($SchemaPath -and (Test-SBAgentFlagAvailable $Capabilities '--output-schema')){$list.Add('--output-schema');$list.Add($SchemaPath);$native=$true}
+                if($Model){Add-Flag '--model' @($Model) '-m'}
+                if($Effort){Add-Flag '--config' @('model_reasoning_effort="'+$Effort+'"') '-c'}
+                $list.Add('-')
+            }
+            'gemini' {
+                Add-Flag '--output-format' @('json') '-o'
+                Add-Flag '--approval-mode' @('plan')
+                if($Model){Add-Flag '--model' @($Model) '-m'}
+            }
+            default {throw (New-SBError 'agents.provider.unknown' @($Provider,(@($script:SBAgentProviders.Keys) -join ', ')))}
+        }
+        return @{arguments=@($state.list);omitted=@($state.omitted);nativeSchema=$native;profile='ReadOnly'}
+    }
     # Codex --json already streams JSONL events; Claude Code and Gemini CLI stream with stream-json when the probe found it.
     $stream=[bool]($Capabilities -and $Capabilities.supports -and $Capabilities.supports.Contains('streamJson') -and $Capabilities.supports.streamJson)
-    function Add-Flag([string]$Flag,[string[]]$Values=@(),[string]$Alias){Add-SBAgentFlag $state $Flag $Values $Alias}
     switch($Provider){
         'claude' {
             $list.Add('-p')
@@ -484,4 +531,103 @@ function Get-SBAgentQuota {
     }
     $result
 }
-Export-ModuleMember -Function @('Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentLimitPatterns','ConvertFrom-SBAgentRateLimitEvent','Get-SBAgentErrorText','Get-SBAgentLimitState','Read-SBCodexRateLimits','Get-SBAgentQuota')
+function Invoke-SBAgentProcess {
+    # One agent process: prompt on stdin, UTF-8 both ways, stdout read line by line (kept in -OutputLog as it arrives), stderr collected,
+    # timeout as the only kill. Shared by the task runner and the one-shot analyses. Callbacks run in the caller's scope:
+    # OnOutputLine (each stdout line), OnTick (every -TickSeconds, with the elapsed seconds), OnStall (once, after -StallMinutes of silence,
+    # with the silent minutes), OnResume (first output after a stall), OnIdle (each loop pass, e.g. a heartbeat).
+    # Returns state (finished, timeout), exitCode, output, error, seconds.
+    param([Parameter(Mandatory)]$Executable,[string[]]$Arguments=@(),[string]$Prompt='',[string]$WorkingDirectory,[hashtable]$Environment=@{},
+        [int]$TimeoutSeconds=1800,[double]$StallMinutes=0,[string]$OutputLog,[int]$TickSeconds=60,
+        [scriptblock]$OnOutputLine,[scriptblock]$OnTick,[scriptblock]$OnStall,[scriptblock]$OnResume,[scriptblock]$OnIdle)
+    $utf8=[Text.UTF8Encoding]::new($false)
+    $start=[Diagnostics.ProcessStartInfo]::new([string]$Executable.path);$start.UseShellExecute=$false;$start.CreateNoWindow=$true
+    if($WorkingDirectory){$start.WorkingDirectory=$WorkingDirectory}
+    $start.RedirectStandardInput=$true;$start.RedirectStandardOutput=$true;$start.RedirectStandardError=$true
+    $start.StandardInputEncoding=$utf8;$start.StandardOutputEncoding=$utf8;$start.StandardErrorEncoding=$utf8
+    foreach($a in (@($Executable.prefix)+@($Arguments))){if($null -ne $a){$start.ArgumentList.Add([string]$a)}}
+    $start.Environment['PATH']=Get-SBAgentProcessPath (Split-Path -Parent ([string]$Executable.path))
+    foreach($k in @($Environment.Keys)){$start.Environment[[string]$k]=[string]$Environment[$k]}
+    $began=Get-Date
+    $process=[Diagnostics.Process]::Start($start);$state='finished';$code=$null
+    $outBuilder=[Text.StringBuilder]::new();$errBuilder=[Text.StringBuilder]::new()
+    $outLog=if($OutputLog){[IO.StreamWriter]::new($OutputLog,$false,$utf8)}else{$null}
+    try{
+        $process.StandardInput.Write($Prompt);$process.StandardInput.Close()
+        $outRead=$process.StandardOutput.ReadLineAsync();$errRead=$process.StandardError.ReadLineAsync()
+        $outDone=$false;$errDone=$false;$lastActivity=Get-Date;$stallReported=$false;$nextTick=$TickSeconds;$exitedAt=$null
+        while($true){
+            $progress=$false
+            while(!$outDone -and $outRead.IsCompleted){
+                $line=$outRead.GetAwaiter().GetResult()
+                if($null -eq $line){$outDone=$true;break}
+                [void]$outBuilder.AppendLine($line)
+                if($outLog){$outLog.WriteLine($line);$outLog.Flush()}
+                $lastActivity=Get-Date;$progress=$true
+                if($OnOutputLine){& $OnOutputLine $line}
+                $outRead=$process.StandardOutput.ReadLineAsync()
+            }
+            while(!$errDone -and $errRead.IsCompleted){
+                $line=$errRead.GetAwaiter().GetResult()
+                if($null -eq $line){$errDone=$true;break}
+                [void]$errBuilder.AppendLine($line);$lastActivity=Get-Date;$progress=$true
+                $errRead=$process.StandardError.ReadLineAsync()
+            }
+            if($progress -and $stallReported){$stallReported=$false;if($OnResume){& $OnResume}}
+            if($process.HasExited){
+                if($outDone -and $errDone){break}
+                # A grandchild that inherited the pipes can keep them open after the agent exits: stop waiting after five seconds.
+                if(!$exitedAt){$exitedAt=Get-Date}elseif(((Get-Date)-$exitedAt).TotalSeconds -ge 5){break}
+            }
+            $elapsed=((Get-Date)-$began).TotalSeconds
+            if($elapsed -ge $TimeoutSeconds){$process.Kill($true);$process.WaitForExit();$state='timeout';break}
+            if($TickSeconds -gt 0 -and $elapsed -ge $nextTick){if($OnTick){& $OnTick ([int]$elapsed)};$nextTick+=$TickSeconds}
+            $silent=((Get-Date)-$lastActivity).TotalMinutes
+            if($StallMinutes -gt 0 -and !$stallReported -and $silent -ge $StallMinutes){$stallReported=$true;if($OnStall){& $OnStall ([math]::Round($silent,1))}}
+            if($OnIdle){& $OnIdle}
+            if(!$progress){Start-Sleep -Milliseconds 250}
+        }
+        if($state -eq 'finished'){$process.WaitForExit();$code=$process.ExitCode}
+    }finally{if($outLog){$outLog.Dispose()};$process.Dispose()}
+    [ordered]@{state=$state;exitCode=$code;output=$outBuilder.ToString();error=$errBuilder.ToString();seconds=[int]((Get-Date)-$began).TotalSeconds}
+}
+function Get-SBJsonObjectText([string]$Text) {
+    # The JSON object inside an answer: fenced ```json blocks first, then the span from the first { to the last }.
+    if([string]::IsNullOrWhiteSpace($Text)){return $null}
+    $fence=[regex]::Match($Text,'(?s)```(?:json)?\s*(\{.*\})\s*```')
+    if($fence.Success){return $fence.Groups[1].Value}
+    $a=$Text.IndexOf('{');$b=$Text.LastIndexOf('}')
+    if($a -lt 0 -or $b -le $a){return $null}
+    $Text.Substring($a,$b-$a+1)
+}
+function ConvertFrom-SBAgentStructuredOutput {
+    # The structured answer of a one-shot run as JSON text, whatever the CLI envelope: Claude Code result (structured_output or result),
+    # Codex JSONL (last agent_message), Gemini CLI JSON (response), or plain text holding one JSON object. text is the raw answer.
+    param([string]$Provider,[string]$Output)
+    $answer=$null;$structured=$null
+    $documents=@()
+    foreach($line in @([string]$Output -split "`r?`n")){$l=$line.Trim();if($l.StartsWith('{')){try{$documents+=,($l|ConvertFrom-Json -AsHashtable -Depth 64 -ErrorAction Stop)}catch{[void]$_}}}
+    if(!$documents.Count){try{$whole=([string]$Output).Trim();if($whole.StartsWith('{')){$documents=@(($whole|ConvertFrom-Json -AsHashtable -Depth 64 -ErrorAction Stop))}}catch{[void]$_}}
+    foreach($o in $documents){
+        if($o -isnot [System.Collections.IDictionary]){continue}
+        $type=[string]$o['type']
+        if($type -eq 'result'){
+            if($o.Contains('structured_output') -and $o.structured_output -is [System.Collections.IDictionary]){$structured=$o.structured_output}
+            if($o.Contains('result')){$answer=[string]$o.result}
+        }elseif($type -eq 'item.completed' -and $o['item'] -is [System.Collections.IDictionary] -and [string]$o.item['type'] -in @('agent_message','assistant_message')){
+            $answer=[string]$o.item['text']
+        }elseif($o.Contains('response') -and $o.response -is [string]){$answer=[string]$o.response}
+    }
+    if($structured){return @{json=($structured|ConvertTo-Json -Depth 40 -Compress);text=$answer}}
+    if($null -eq $answer -and !$documents.Count){$answer=[string]$Output}
+    if($null -eq $answer -and $documents.Count -eq 1 -and !$documents[0].Contains('type')){return @{json=($documents[0]|ConvertTo-Json -Depth 40 -Compress);text=$null}}
+    @{json=(Get-SBJsonObjectText $answer);text=$answer}
+}
+function Test-SBAgentStructuredOutput([string]$Json,[string]$SchemaText) {
+    # Validation of the answer against the JSON schema (Test-Json); errors are returned, never thrown.
+    if([string]::IsNullOrWhiteSpace($Json)){return @{valid=$false;errors=@('no JSON object in the answer')}}
+    $errs=$null
+    $ok=Test-Json -Json $Json -Schema $SchemaText -ErrorAction SilentlyContinue -ErrorVariable errs
+    @{valid=[bool]$ok;errors=@(@($errs)|ForEach-Object {[string]$_.Exception.Message}|Where-Object {$_}|Select-Object -First 8)}
+}
+Export-ModuleMember -Function @('Invoke-SBAgentProcess','ConvertFrom-SBAgentStructuredOutput','Test-SBAgentStructuredOutput','Get-SBJsonObjectText','Test-SBAgentFlagAvailable','Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentLimitPatterns','ConvertFrom-SBAgentRateLimitEvent','Get-SBAgentErrorText','Get-SBAgentLimitState','Read-SBCodexRateLimits','Get-SBAgentQuota')

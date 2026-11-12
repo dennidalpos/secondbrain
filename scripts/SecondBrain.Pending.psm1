@@ -5,6 +5,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
@@ -76,9 +77,9 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     }
     if($Request.arguments -isnot [Collections.IDictionary] -or $Request.expected -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('arguments'))}
     $allowed=switch($Request.operation){
-        'task.status' {@('TaskId','Status','StateReason','Evidence')}
-        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence')}
-        'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer','Requires')}
+        'task.status' {@('TaskId','Status','StateReason','Evidence','Executor')}
+        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Executor')}
+        'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer','Requires','Executor')}
         'file.save' {@('relativePath','content')}
         'file.append' {@('relativePath','content')}
         default {throw (New-SBError 'pending.invalid' @('operation'))}
@@ -93,7 +94,7 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
         if(!$Request.arguments.ContainsKey('TaskId') -or !$Request.arguments.TaskId -or
            !$Request.expected.ContainsKey('taskHash') -or $Request.expected.taskHash -notmatch '^[A-Fa-f0-9]{64}$'){throw (New-SBError 'pending.invalid' @('task status'))}
         if($Request.operation -eq 'task.status' -and !$Request.arguments.ContainsKey('Status')){throw (New-SBError 'pending.invalid' @('status required'))}
-        if($Request.arguments.Count -lt 2){throw (New-SBError 'tracker.update.empty')}
+        if(@($Request.arguments.Keys|Where-Object {$_ -notin @('TaskId','Executor')}).Count -lt 1){throw (New-SBError 'tracker.update.empty')}
         if($Request.arguments.ContainsKey('Status') -and $Request.arguments.Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Request.arguments.Status))}
         if($Request.arguments.ContainsKey('Priority') -and $Request.arguments.Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
         if($Request.arguments.ContainsKey('Execution') -and $Request.arguments.Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
@@ -137,8 +138,13 @@ function New-SBPendingWrite {
         $prior=Read-SBPendingIdempotent $idempotentPath $Repository $RequestId $PreparedHash
         if($prior){return $prior}
     }
+    # The executor is captured at submission: a deferred write applied later by another process keeps who asked for it.
+    if($Operation -like 'task.*' -and !$Arguments.ContainsKey('Executor')){
+        $Arguments=@{}+$Arguments
+        $Arguments.Executor=Resolve-SBExecutor -Client $(if($session){[string]$session.client}else{''})
+    }
     if($Operation -eq 'task.update' -and $Arguments.ContainsKey('Status') -and
-       !@($Arguments.Keys|Where-Object {$_ -notin @('TaskId','Status','StateReason','Evidence')}).Count){
+       !@($Arguments.Keys|Where-Object {$_ -notin @('TaskId','Status','StateReason','Evidence','Executor')}).Count){
         $Operation='task.status'
         $Arguments=@{}+$Arguments
         if($Arguments.ContainsKey('StateReason')){$Arguments.StateReason=([string]$Arguments.StateReason).Trim()}
@@ -407,9 +413,7 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
     if($receipt){
         $result.state=$receipt.state;$result.applied=($receipt.state -eq 'applied')
         foreach($key in $receipt.result.Keys){$result[$key]=$receipt.result[$key]}
-        if($result.applied -and $receipt.result.ContainsKey('closureAdvice')){
-            $result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
-        }
+        if($result.applied -and $receipt.result.ContainsKey('closureAdvice')){$result.closureAdvice=Get-SBClosureAdvice ''}
     }
     $result
     } finally {if($clock){$Diagnostics.responseMs=$clock.Elapsed.TotalMilliseconds}}

@@ -2,7 +2,26 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.5.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.6.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.6.0] - 2026-11-12
+
+### Aggiunto
+- Analisi in sola lettura con un modello leggero (`agents.ps1 -Analyze -Kind directives|task|task-resolve`, `Invoke-SBAgentOneShot`): profilo `ReadOnly` (Claude Code `plan` con Read, Grep e Glob, Codex `read-only`, Gemini `--approval-mode plan`), schema JSON nativo se la CLI lo offre (`--json-schema`, `--output-schema`) o nel prompt, quota letta prima, una nuova richiesta se la risposta non rispetta lo schema. `roles.light` in `config/agent-models.json`, sostituibile in `agent-models.local.json`; schemi in `config/analysis/`.
+- Prompt DOC06 (direttive di repository proposte dal modello leggero, solo ciò che i blocchi caricati non coprono) e REP18 (analisi che rende autonomo un task, con chiamate `ask_user`, `propose_task_update`, `mark_not_automatable`); catalogo di 120 prompt.
+- Registro delle esecuzioni del dossier `history/task-runs.jsonl` (schema `config/task-runs.schema.json`): un record per cambio di stato, esecuzione o evidenze nella stessa transazione del tracker, con l'esecutore (`Resolve-SBExecutor`: esplicito, `SECONDBRAIN_EXECUTOR`, ambiente della CLI, client MCP, `unknown`). `knowledge.ps1 -Registry` unisce tracker, archivio, registro e rapporti del runner; `-BackfillTaskRuns` copia i rapporti precedenti una volta sola.
+- `knowledge.ps1 -UpdateTaskId` accetta `-Evidence`, `-Description`, `-Acceptance` e `-Decisions` (in `extensions.decisions[]`); MCP `task.update` accetta `evidence` (stringhe `riferimento|esito` o oggetti `{reference, outcome}`). Il prompt del runner passa all'agente il blocco «Decisioni della persona».
+- Orchestratore: **Proponi struttura (modello leggero)** nelle Direttive con motivazioni, fonti e anteprima dei blocchi già caricati rispetto al budget di 25.000 caratteri; in Coda l'elenco completo dei task non avviabili con **Analizza**, domande a scelta multipla e conferma del confronto prima/dopo; passo **5 Registro** con badge per strumento, task archiviati e storico dei run (`runner-status.ps1 -List`); **Modello leggero per le analisi** nelle Impostazioni; note della finestra come eventi `ui` in `events.jsonl`.
+
+### Modificato
+- Un solo ciclo di processo per runner e analisi (`Invoke-SBAgentProcess`); cartelle per task uniche `<data>-runner-<seq>-<HHmmss>`; il runner passa `work.ps1 -Client <provider>`; chiusura dei task unificata in `Set-SBTaskClosure`.
+- `orchestrator-e2e`: sei scenari, con proposta delle direttive, registro e analisi di un task.
+
+### Corretto
+- Il runner legge l'uscita 5 (scrittura accettata ma rinviata) come `deferred`, non come errore.
+- `Get-SBRoadmap` conta i task completati anche nell'archivio; `archivedTasksCount` si ricalcola al salvataggio.
+- L'orchestratore passa `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` alle finestre dopo gli argomenti di wry: il runtime WebView2 ignorava la variabile e la porta DevTools dei test restava chiusa.
+- Registro: una pagina con un solo task restava un oggetto JSON invece di un elenco; una risposta lenta a un filtro precedente non sovrascrive più le righe.
 
 ## [2.5.0] - 2026-11-12
 

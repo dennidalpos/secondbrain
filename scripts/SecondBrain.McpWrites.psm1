@@ -56,7 +56,7 @@ function New-SBMcpWritePlan {
         }
         'task.update' {
             # Same fields and validation as knowledge.ps1 -UpdateTaskId: Update-SBTrackerTask validates the candidate during preview.
-            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','requires') @('taskId')
+            Assert-SBMcpWriteFields $Payload @('taskId','status','reason','priority','execution','stream','awaiting','requires','evidence') @('taskId')
             Assert-SBMcpWriteText $Payload.taskId 128
             if($Payload.Keys.Count -lt 2){throw (New-SBError 'mcpwrite.invalid' @('fields'))}
             $args=@{TaskId=$Payload.taskId}
@@ -78,6 +78,22 @@ function New-SBMcpWritePlan {
             if($Payload.ContainsKey('requires')){
                 # An empty array clears the capability list; only the values of Get-SBTaskRequiresValues are accepted.
                 $args.Requires=Get-SBMcpWriteRequires $Payload.requires
+            }
+            if($Payload.ContainsKey('evidence')){
+                # Evidence entries appended to the task, as knowledge.ps1 -Evidence: "reference|outcome" strings or {reference, outcome} objects.
+                $items=@($Payload.evidence)
+                if($Payload.evidence -is [string] -or !$items.Count -or $items.Count -gt 20){throw (New-SBError 'mcpwrite.invalid' @('evidence'))}
+                $args.Evidence=@(foreach($item in $items){
+                    if($item -is [Collections.IDictionary]){
+                        if(@($item.Keys|Where-Object {$_ -notin @('reference','outcome')}).Count -or $item['reference'] -isnot [string] -or $item['outcome'] -isnot [string]){throw (New-SBError 'mcpwrite.invalid' @('evidence'))}
+                        Assert-SBMcpWriteText $item.reference 1024
+                        $item=$item.reference+'|'+$item.outcome
+                    }elseif($item -isnot [string]){throw (New-SBError 'mcpwrite.invalid' @('evidence'))}
+                    Assert-SBMcpWriteText $item 1100
+                    $parts=$item -split '\|',2
+                    if(!$parts[0].Trim() -or ($parts.Count -eq 2 -and $parts[1].Trim() -cnotin @('passed','failed','partial','unverified'))){throw (New-SBError 'mcpwrite.invalid' @('evidence'))}
+                    $item
+                })
             }
             $pendingOperation='task.update'
         }

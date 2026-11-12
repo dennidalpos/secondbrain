@@ -5,8 +5,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
 Add-SBMessages @{
-    'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires o -StateReason'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires or -StateReason' }
+    'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions o -Evidence'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions or -Evidence' }
+    'tracker.decisions.invalid' = @{ it = 'Decisioni non valide: ogni voce richiede question e answer (testo); correggere il file JSON delle decisioni'; en = 'Invalid decisions: every entry needs question and answer (text); fix the decisions JSON file' }
+    'tracker.evidence.invalid' = @{ it = 'Evidenza non valida: usare riferimento|esito con esito passed, failed, partial o unverified'; en = 'Invalid evidence: use reference|outcome with outcome passed, failed, partial or unverified' }
     'tracker.priority.invalid' = @{it='Priorità non valida: usare P0, P1, P2, P3 o P4';en='Invalid priority: use P0, P1, P2, P3 or P4'}
     'tracker.execution.invalid' = @{ it = 'Modalità di esecuzione non valida: usare autonomous, user_required o unspecified'; en = 'Invalid execution mode: use autonomous, user_required or unspecified' }
     'tracker.requires.invalid' = @{it='Capacità richiesta non valida: {0} (ammessi: {1})';en='Invalid required capability: {0} (allowed: {1})'}
@@ -526,10 +529,13 @@ function Assert-SBTrackerWriteData([string]$BrainRoot,[string]$Identity,$Data,[s
     if($Archive){$archives[$Identity]=$Archive}
     [void](Test-SBTrackerData $Data $Identity $managedIdentities $schemaPath $related $archives)
 }
-function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@(),$Archive,$ArchiveForValidation) {
+function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@(),$Archive,$ArchiveForValidation,[object[]]$LedgerRecords=@()) {
     $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
     if($Archive){$ArchiveForValidation=$Archive.data}
     Assert-SBTrackerWriteData $Target.brainRoot $Target.identity $Data $Target.path $ArchiveForValidation
+    # Ledger records of this change go into history/task-runs.jsonl in the same transaction as the tracker.
+    $ledger=Get-SBTaskLedgerOperation $Target.path $LedgerRecords
+    if($ledger){$ExtraOperations=@($ExtraOperations)+@($ledger)}
     if($Archive){
         $terminal=@($Data.tasks|Where-Object {$_.status -in @('done','cancelled')})
         $Data.tasks=@($Data.tasks|Where-Object {$_.status -notin @('done','cancelled')})
@@ -540,6 +546,10 @@ function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[o
             $Archive.data.archivedAt=$Data.updatedAt
             $Archive.data.tasksCount=$Archive.data.tasks.Count
             $ExtraOperations+=@{path=$Archive.path;expected=$Archive.hash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $Archive.data))}
+        }
+        # A count kept in the tracker extensions follows the archive instead of going stale.
+        if($Data.extensions -is [Collections.IDictionary] -and $Data.extensions['archive'] -is [Collections.IDictionary] -and $Data.extensions.archive.Contains('archivedTasksCount')){
+            $Data.extensions.archive.archivedTasksCount=@($Archive.data.tasks).Count
         }
     }
     if($WhatIf){return @{applied=$false;path=$Target.path;data=$Data;extraOperations=$ExtraOperations}}
@@ -605,7 +615,8 @@ function Set-SBTrackerTaskStatus {
         $Evidence=@(),
         [string]$BackupRoot,
         [switch]$WhatIf,
-        [string]$WorkingRepository
+        [string]$WorkingRepository,
+        $Executor
     )
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
     if($Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){
@@ -614,10 +625,8 @@ function Set-SBTrackerTaskStatus {
     $next=$target.data
     $archive=Read-SBTrackerArchive $target.path $target.identity
     $targetTask=Get-SBTrackerTaskForUpdate $target $archive $TaskId
-    if($Status -eq 'done' -and $targetTask.status -ne 'done'){
-        # Keep the latest closure on the tracker so archiving tasks preserves the signal.
-        $next.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
-    }
+    $before=Get-SBTaskLedgerSnapshot $targetTask
+    if($Status -eq 'done' -and $targetTask.status -ne 'done'){Set-SBTaskClosure $next $TaskId}
     $targetTask.status=$Status
     if($PSBoundParameters.ContainsKey('StateReason')){
         if(!$targetTask.ContainsKey('extensions') -or $null -eq $targetTask.extensions){$targetTask.extensions=@{}}
@@ -626,14 +635,40 @@ function Set-SBTrackerTaskStatus {
     }
     if($Evidence -and @($Evidence).Count -gt 0){
         if(!$targetTask.ContainsKey('evidence') -or $null -eq $targetTask.evidence){$targetTask.evidence=@()}
-        foreach($ev in @($Evidence)){$targetTask.evidence+=,$ev}
+        foreach($ev in @($Evidence)){$targetTask.evidence+=,(ConvertTo-SBTaskEvidence $ev)}
     }
-    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -Archive $archive
+    $record=New-SBTaskRunRecord -Task $targetTask -Before $before -Executor $Executor
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -Archive $archive -LedgerRecords @($record)
     $result=$saved+@{taskId=$TaskId;status=$Status}
-    if($Status -eq 'done'){
-        $result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');dossier=(Split-Path $target.path);steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
-    }
+    if($Status -eq 'done'){$result.closureAdvice=Get-SBClosureAdvice (Split-Path $target.path)}
     $result
+}
+# Closure signal and advice, shared by every writer that closes a task (status, update, memory cycle).
+function Set-SBTaskClosure($Tracker,[string]$TaskId) {
+    # Keep the latest closure on the tracker so archiving tasks preserves the signal.
+    if($null -eq $Tracker.extensions){$Tracker.extensions=@{}}
+    $Tracker.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+}
+function Get-SBClosureAdvice([string]$Dossier) {
+    $advice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
+    if($Dossier){$advice.dossier=$Dossier}
+    $advice
+}
+function ConvertTo-SBTaskEvidence($Value) {
+    # Evidence entries as the schema wants them: {reference, outcome, observedAt}; a "reference|outcome" string is accepted from the CLI.
+    if($Value -is [Collections.IDictionary]){return $Value}
+    $parts=([string]$Value) -split '\|',2
+    $outcome=if($parts.Count -eq 2){$parts[1].Trim()}else{'unverified'}
+    if(!$parts[0].Trim() -or $outcome -notin @('passed','failed','partial','unverified')){throw (New-SBError 'tracker.evidence.invalid')}
+    @{reference=$parts[0].Trim();outcome=$outcome;observedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+}
+function ConvertTo-SBTaskDecisions($Value) {
+    # Owner decisions recorded on a task (extensions.decisions): {questionId, question, answer, at, decidedBy}, from objects or a JSON text.
+    $items=if($Value -is [string]){if($Value.Trim()){@($Value|ConvertFrom-Json -AsHashtable)}else{@()}}else{@($Value)}
+    @($items|Where-Object {$_}|ForEach-Object {
+        if($_ -isnot [Collections.IDictionary] -or [string]::IsNullOrWhiteSpace([string]$_['question']) -or [string]::IsNullOrWhiteSpace([string]$_['answer'])){throw (New-SBError 'tracker.decisions.invalid')}
+        [ordered]@{questionId=[string]$_['questionId'];question=([string]$_.question).Trim();answer=([string]$_.answer).Trim();at=$(if($_['at']){[string]$_.at}else{[DateTimeOffset]::UtcNow.ToString('o')});decidedBy=$(if($_['decidedBy']){[string]$_.decidedBy}else{'owner'})}
+    })
 }
 
 # Create a task with the next sequential number (never reused) and a "#NNN - " title.
@@ -657,7 +692,8 @@ function New-SBTrackerTaskEntry {
         [hashtable]$Extensions=@{},
         [AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires=@(),
         [string]$BackupRoot,
-        [switch]$WhatIf
+        [switch]$WhatIf,
+        $Executor
     )
     if($Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
     if($Id -and $Id -cnotmatch '^[A-Za-z0-9][A-Za-z0-9._-]{2,79}$'){throw (New-SBError 'tracker.id.invalid' @($Id))}
@@ -692,7 +728,7 @@ function New-SBTrackerTaskEntry {
     $next.tasks+=,$task
     if($null -eq $next.extensions){$next.extensions=@{}}
     $next.extensions.lastSeq=$seq
-    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -LedgerRecords @(New-SBTaskRunRecord -Task $task -Executor $Executor -Created)
     $saved+@{taskId=$Id;seq=$seq;title=$task.title}
 }
 
@@ -856,11 +892,15 @@ function Update-SBTrackerTask {
         [AllowEmptyString()][string]$Awaiting,
         [AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
         $Evidence=@(),
+        [string]$Description,
+        [string[]]$Acceptance,
+        $Decisions,
         [string]$BackupRoot,
         [switch]$WhatIf,
-        [string]$WorkingRepository
+        [string]$WorkingRepository,
+        $Executor
     )
-    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence')
+    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions')
     if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
     if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
     if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
@@ -871,8 +911,19 @@ function Update-SBTrackerTask {
     $next=$target.data
     $archive=Read-SBTrackerArchive $target.path $target.identity
     $task=Get-SBTrackerTaskForUpdate $target $archive $TaskId
+    $before=Get-SBTaskLedgerSnapshot $task
     $wasDone=$task.status -eq 'done'
     if(!$task.ContainsKey('extensions') -or $null -eq $task.extensions){$task.extensions=@{}}
+    if($PSBoundParameters.ContainsKey('Description')){if($Description.Trim()){$task.description=$Description.Trim()}else{[void]$task.Remove('description')}}
+    if($PSBoundParameters.ContainsKey('Acceptance')){
+        $criteria=@($Acceptance|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})
+        if(!$criteria.Count){throw (New-SBError 'tracker.acceptance.required')}
+        $task.acceptance=$criteria
+    }
+    if($PSBoundParameters.ContainsKey('Decisions')){
+        $added=@(ConvertTo-SBTaskDecisions $Decisions)
+        if($added.Count){$task.extensions.decisions=@(@($task.extensions['decisions']|Where-Object {$_})+$added)}
+    }
     foreach($field in @('Status','Priority','Execution')){
         if($PSBoundParameters.ContainsKey($field)){$task[$field.ToLowerInvariant()]=$PSBoundParameters[$field]}
     }
@@ -892,15 +943,58 @@ function Update-SBTrackerTask {
             if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$_}}
         })
     }
-    if($Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@($Evidence)}
+    if($Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@(@($Evidence)|ForEach-Object {ConvertTo-SBTaskEvidence $_})}
     $closing=$PSBoundParameters.ContainsKey('Status') -and $Status -eq 'done'
-    if($closing -and !$wasDone){
-        $next.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
-    }
-    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -Archive $archive
+    if($closing -and !$wasDone){Set-SBTaskClosure $next $TaskId}
+    $record=New-SBTaskRunRecord -Task $task -Before $before -Executor $Executor
+    # A reviewed analysis that rewrites the task records itself even when status and execution stay the same.
+    if(!$record -and ($PSBoundParameters.ContainsKey('Decisions') -or $PSBoundParameters.ContainsKey('Acceptance'))){$record=New-SBTaskRunRecord -Task $task -Executor $Executor -Created;$record.event='analysis'}
+    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -Archive $archive -LedgerRecords @($record)
     $result=$saved+@{taskId=$TaskId;status=$task.status}
-    if($closing){$result.closureAdvice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');dossier=(Split-Path $target.path);steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}}
+    if($closing){$result.closureAdvice=Get-SBClosureAdvice (Split-Path $target.path)}
     $result
+}
+function Invoke-SBTaskRunBackfill {
+    # Copies the runner reports of this workstation that the ledger does not hold yet into history/task-runs.jsonl (idempotent: one record per
+    # report folder and task). Preview unless -Apply; tasks without any record keep the "unknown" executor in the registry.
+    param([string]$BrainRoot,[string]$Identity,$Ledger=@(),$Reports=@(),$Archive=@(),[string]$BackupRoot,[switch]$Apply)
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity
+    $known=@{}
+    foreach($r in @($Ledger)){
+        $known['r|'+[string]$r.recordId]=$true
+        if($r['outcome'] -is [Collections.IDictionary] -and $r.outcome['folder']){$known['f|'+[string]$r.taskId+'|'+[string]$r.outcome.folder]=$true}
+    }
+    $new=@(@($Reports)|Where-Object {$_ -and !$known.ContainsKey('r|'+[string]$_.recordId) -and !$known.ContainsKey('f|'+[string]$_.taskId+'|'+[string]$_.outcome['folder'])})
+    $result=[ordered]@{repository=$Identity;ledger=(Get-SBTaskLedgerPath $target.path);existing=@($Ledger).Count;reports=@($Reports).Count;added=$new.Count;applied=$false;taskIds=@($new|ForEach-Object {[string]$_.taskId}|Select-Object -Unique)}
+    if(!$Apply -or !$new.Count){return $result}
+    if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $target.brainRoot}
+    $op=Get-SBTaskLedgerOperation $target.path @($new|Sort-Object {[string]$_.at})
+    [IO.Directory]::CreateDirectory((Split-Path $op.path))|Out-Null
+    $result.manifest=Invoke-SBParaTransaction -Operations @($op) -BackupRoot $BackupRoot -BrainRoot $target.brainRoot
+    $result.applied=$true
+    $result
+}
+function Invoke-SBTrackerTaskChanges {
+    # Status changes with evidence applied by another writer (memory cycle) in its own transaction: the same closure signal, archive and
+    # ledger as the CLI writers. -ExpectedHash guards the tracker revision the caller planned on; -ExtraOperations join the transaction.
+    param([string]$BrainRoot,[string]$Identity,[Parameter(Mandatory)][object[]]$Changes,[string]$ExpectedHash,[object[]]$ExtraOperations=@(),[string]$BackupRoot,[switch]$Apply,$Executor)
+    $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity
+    if($ExpectedHash -and $target.hash -cne $ExpectedHash){throw (New-SBError 'cycle.conflict' @('tracker revision'))}
+    $archive=Read-SBTrackerArchive $target.path $target.identity
+    $records=@()
+    foreach($change in $Changes){
+        $task=Get-SBTrackerTaskForUpdate $target $archive $change.id
+        $before=Get-SBTaskLedgerSnapshot $task
+        if($change.status -cnotin @('todo','in_progress','blocked','done','cancelled')){throw (New-SBError 'cycle.invalid' @('task status'))}
+        if($change.status -eq 'done'){
+            if(!$change.ContainsKey('verifiedAcceptance') -or (ConvertTo-SBJson @($change.verifiedAcceptance)) -cne (ConvertTo-SBJson @($task.acceptance))){throw (New-SBError 'cycle.invalid' @('task acceptance evidence'))}
+            Set-SBTaskClosure $target.data $task.id
+        }
+        $task.status=$change.status
+        $task.evidence+=@{reference=$change.evidenceReference;outcome='passed'}
+        $records+=,(New-SBTaskRunRecord -Task $task -Before $before -Executor $Executor)
+    }
+    Save-SBTrackerData $target $target.data $BackupRoot -WhatIf:(!$Apply) -Archive $archive -ExtraOperations $ExtraOperations -LedgerRecords $records
 }
 
 Export-ModuleMember -Function @(
@@ -925,6 +1019,12 @@ Export-ModuleMember -Function @(
     'Get-SBTrackerHistoryMessages',
     'Invoke-SBTrackerHistoryMigration',
     'Update-SBTrackerTask',
+    'Invoke-SBTrackerTaskChanges',
+    'Invoke-SBTaskRunBackfill',
+    'Set-SBTaskClosure',
+    'Get-SBClosureAdvice',
+    'ConvertTo-SBTaskEvidence',
+    'ConvertTo-SBTaskDecisions',
     'Get-SBTaskRequiresValues',
     'ConvertTo-SBTaskRequires'
 )

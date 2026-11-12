@@ -10,10 +10,14 @@ Verdict: working (alive, recent heartbeat and agent output), stalled (alive but 
 stopped), finished (the run closed itself), orphaned (marked running but its process is gone: interrupted or killed), none (no run).
 Default output is JSON with the status, the ages in seconds and the last -Tail events. -Follow prints each new event as it arrives
 (JSON lines with -Json) until the run ends. -Stop creates the run's stop file: the runner ends after the current task.
+-List prints the runs of the repository on this workstation, newest first (provider, model, effort, counts, stop reason, results,
+folder; -Limit, default 50, 0 = all). -Note <text> appends a "ui" event to the events.jsonl of the given -RunFolder (a runner run folder
+of this repository), so the notes of the desktop orchestrator survive a reattach.
 Exit codes: 0 status shown, 2 repository not resolved or no run to stop.
 #>
 [CmdletBinding()]
-param([string]$CheckoutPath='.',[string]$Repository,[int]$Tail=20,[switch]$Follow,[switch]$Json,[switch]$Stop,[string]$ConfigPath)
+param([string]$CheckoutPath='.',[string]$Repository,[int]$Tail=20,[switch]$Follow,[switch]$Json,[switch]$Stop,[switch]$List,[ValidateRange(0,1000)][int]$Limit=50,
+    [ValidateLength(1,500)][string]$Note,[string]$RunFolder,[string]$ConfigPath)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
@@ -26,6 +30,7 @@ Add-SBMessages @{
     'runnerstatus.stop' = @{it='Arresto richiesto: il runner si ferma dopo il task corrente ({0})';en='Stop requested: the runner ends after the current task ({0})'}
     'runnerstatus.line' = @{it='[{0}] {1}';en='[{0}] {1}'}
     'runnerstatus.end' = @{it='Run concluso: {0}';en='Run ended: {0}'}
+    'runnerstatus.folder' = @{it='Cartella di run non valida per {0}: {1}. Usa la cartella riportata da runner-status.ps1 -List';en='Invalid run folder for {0}: {1}. Use the folder reported by runner-status.ps1 -List'}
 }
 try{
     $config=Read-SBConfiguration $ConfigPath
@@ -33,6 +38,17 @@ try{
         $full=[IO.Path]::GetFullPath($CheckoutPath)
         $Repository=try{Resolve-SBWorkingRepository $full @($config.bindings)}catch{$null}
         if(!$Repository){throw (New-SBError 'runnerstatus.repository' @($full))}
+    }
+    if($List){ConvertTo-SBJson (Get-SBRunnerRunList -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $Repository -Limit $Limit);exit 0}
+    if($Note){
+        # Only a run folder of this repository on this workstation (its status.json listed by the report root) accepts a note.
+        $folders=@(Get-SBRunnerStatusFiles $config.brainRoot $config.workstationId $Repository|ForEach-Object {Split-Path $_ -Parent})
+        $target=if($RunFolder){[IO.Path]::GetFullPath($RunFolder).TrimEnd('\','/')}else{''}
+        if(!$target -or !@($folders|Where-Object {[string]::Equals($_.TrimEnd('\','/'),$target,[StringComparison]::OrdinalIgnoreCase)}).Count){throw (New-SBError 'runnerstatus.folder' @($Repository,$RunFolder))}
+        $event=[ordered]@{event='ui';message=$Note;time=[DateTimeOffset]::UtcNow.ToString('o')}
+        Add-SBRunnerEventLine (Join-Path $target 'events.jsonl') $event
+        ConvertTo-SBJson ([ordered]@{repository=$Repository;folder=$target;event=$event})
+        exit 0
     }
     $report=Get-SBRunnerStatus -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $Repository -Tail $Tail
     if($Stop){

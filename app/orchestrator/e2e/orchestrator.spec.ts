@@ -1,6 +1,7 @@
 // End-to-end scenarios on the real orchestrator binary (Windows, WebView2) with a synthetic SecondBrain:
-// preload from --repo, removal of recent repositories across restarts, every Directives button and its persistence after a restart,
-// agents and models limited to the installed CLIs, a queue run followed live, closed while running and found again after reopening.
+// preload from --repo, removal of recent repositories across restarts, the directives proposed by the light model and every Directives
+// button with its persistence after a restart, agents and models limited to the installed CLIs, a queue run followed live, closed while
+// running and found again after reopening, the registry with tool badges and archived tasks, and the analysis that makes a task autonomous.
 // The fixture comes from scripts/test-orchestrator-fixture.ps1 through SB_E2E_FIXTURE; real user settings are never touched.
 import { test, expect, chromium, type Browser, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -74,7 +75,7 @@ async function closeApp(app: App) {
   await app.browser.close().catch(() => {});
 }
 
-function readTracker(): { tasks: { id: string; status: string }[] } {
+function readTracker(): { tasks: { id: string; status: string; execution: string; acceptance?: string[]; extensions?: Record<string, unknown> }[] } {
   return JSON.parse(fs.readFileSync(fixture.tracker, "utf8"));
 }
 
@@ -109,15 +110,23 @@ test("repository preloaded from --repo, recent entries removed for good across r
   await closeApp(app);
 });
 
-test("directives: template, preview, approve and apply, reload; the text survives a restart", async () => {
+test("directives: light-model proposal, preview, approve and apply, reload; the text survives a restart", async () => {
   let app = await launch({ repo: fixture.checkout });
   let { page } = app;
   await expect(page.locator("#repo-label")).toHaveText(fixture.identity);
   await expect(page.locator('.steps button[data-tab="queue"]')).toHaveAttribute("aria-selected", "true");
   await page.locator('.steps button[data-tab="directives"]').click();
   await expect(page.locator("#dir-target")).toContainText("AGENTS.managed.md");
-  await page.locator("#dir-template").click();
-  await expect(page.locator("#dir-text")).toHaveValue(/## Direttive di sviluppo/);
+  // The global, common and composed blocks are shown read-only with the startup budget.
+  await expect(page.locator("#dir-global")).not.toBeEmpty({ timeout: 60_000 });
+  await expect(page.locator("#dir-budget")).toContainText("%");
+  await expect(page.locator("#dir-light")).toContainText("Claude Code");
+  await page.locator("#dir-propose").click();
+  await expect(page.locator("#dir-analysis")).toBeVisible({ timeout: 120_000 });
+  await expect(page.locator("#dir-sections")).toContainText("Script di test del prodotto.");
+  await expect(page.locator("#dir-covered")).toContainText("Commit e push");
+  await page.locator("#dir-use").click();
+  await expect(page.locator("#dir-text")).toHaveValue(/## Verifiche/);
   await expect(page.locator("#dir-apply")).toBeDisabled();
   const text = "## Direttive sintetiche E2E\n\n- Verifiche: npm test prima di chiudere un task.\n";
   await page.locator("#dir-text").fill(text);
@@ -205,5 +214,54 @@ test("a queue run is followed live, survives closing the window and is found aga
   expect(readTracker().tasks.find((t) => t.id === "E2E-1")?.status).toBe("in_progress");
   await page.locator('.steps button[data-tab="queue"]').click();
   await expect(page.locator("#q-tasks tr")).toHaveCount(2);
+  await closeApp(app);
+});
+
+test("registry: every task with its tool badge, archived tasks and the runner history", async () => {
+  const app = await launch({ repo: fixture.checkout });
+  const { page } = app;
+  await page.locator('.steps button[data-tab="registry"]').click();
+  await expect(page.locator("#reg-rows tr.reg-row")).toHaveCount(5, { timeout: 60_000 });
+  const archived = page.locator("#reg-rows tr.reg-row").filter({ hasText: "E2E-0" });
+  await expect(archived).toContainText("archiviato");
+  await expect(archived.locator(".tool-badge")).toHaveAttribute("data-tool", "unknown");
+  const ran = page.locator("#reg-rows tr.reg-row").filter({ hasText: "E2E-1" });
+  await expect(ran.locator('.tool-badge[data-tool="claude"]')).toBeVisible();
+  await ran.click();
+  await expect(page.locator("#reg-rows .reg-runs").first()).toContainText("Claude");
+  await page.locator("#reg-archived").selectOption("only");
+  await expect(page.locator("#reg-rows tr.reg-row")).toHaveCount(1, { timeout: 30_000 });
+  await page.locator('[data-reg-view="runs"]').click();
+  await expect(page.locator("#reg-run-rows tr").first()).toContainText("Claude", { timeout: 30_000 });
+  await closeApp(app);
+});
+
+test("queue: a task that cannot run alone is analyzed, the owner answers and the update makes it autonomous", async () => {
+  const app = await launch({ repo: fixture.checkout });
+  const { page } = app;
+  const row = page.locator("#q-skipped tr").filter({ hasText: "E2E-4" });
+  await expect(row).toContainText("Serve una scelta della persona", { timeout: 60_000 });
+  await row.locator("button", { hasText: "Analizza" }).click();
+  const dialog = page.locator("#an-dialog");
+  await expect(dialog).toBeVisible({ timeout: 120_000 });
+  await expect(dialog.locator("legend")).toContainText("Quale sezione aggiungere al README?");
+  await expect(dialog.locator("label.choice").first()).toContainText("Installazione (consigliata)");
+  await expect(page.locator("#an-primary")).toBeDisabled();
+  await dialog.locator("label.choice").first().locator("input").check();
+  await page.locator("#an-primary").click();
+  await expect(page.locator("#an-primary")).toHaveText("Applica al tracker", { timeout: 120_000 });
+  await expect(dialog.locator("table.diff")).toContainText("autonomous");
+  await page.locator("#an-primary").click();
+  await expect(page.locator("#an-state")).toHaveText("Task aggiornato.", { timeout: 120_000 });
+  const task = readTracker().tasks.find((t) => t.id === "E2E-4");
+  expect(task?.execution).toBe("autonomous");
+  expect(task?.acceptance).toContain("npm test passa");
+  expect(JSON.stringify(task?.extensions?.decisions)).toContain("Installazione");
+  const ledger = fs.readFileSync(path.join(fixture.dossier, "history", "task-runs.jsonl"), "utf8");
+  expect(ledger).toMatch(/"taskId":"E2E-4".*"mode":"analysis"/);
+  await page.locator("#an-close").click();
+  await page.locator("#q-refresh").click();
+  await expect(page.locator("#q-tasks tr").filter({ hasText: "E2E-4" })).toHaveCount(1, { timeout: 60_000 });
+  await expect(page.locator("#q-skipped tr").filter({ hasText: "E2E-4" })).toHaveCount(0);
   await closeApp(app);
 });
