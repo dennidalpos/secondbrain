@@ -276,6 +276,13 @@ fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest
     if request.allow_custom_model {
         args.push("-AllowCustomModel".into());
     }
+    // The person confirmed model and effort in the window (a "predefinito" entry is an explicit choice of the CLI default):
+    // the runner refuses an unattended start without that choice, so the window states it.
+    let has_model = request.model.as_deref().is_some_and(|m| !m.is_empty());
+    let has_effort = request.effort.as_deref().is_some_and(|e| !e.is_empty());
+    if !has_model || !has_effort {
+        args.push("-UseCliDefault".into());
+    }
     // Output to files, not pipes: the runner must outlive the window (a closed pipe would break its progress writes).
     let err = std::fs::File::create(&log_file).map_err(|e| e.to_string())?;
     let out = std::fs::File::create(log_file.with_extension("out")).map_err(|e| e.to_string())?;

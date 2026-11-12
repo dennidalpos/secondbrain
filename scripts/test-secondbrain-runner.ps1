@@ -156,6 +156,20 @@ switch($Mode){
         [Console]::Out.Write((@{type='result';is_error=$false;result=($r|ConvertTo-Json -Compress -Depth 4)}|ConvertTo-Json -Compress));exit 0
     }
     'quota' {[Console]::Out.Write((@{type='result';is_error=$true;result='Claude AI usage limit reached|usage_limit_reached'}|ConvertTo-Json -Compress));exit 1}
+    # Quota words in the agent's own text and in a failure: not a limit (only the final error envelope counts).
+    'quotawords' {
+        [Console]::Out.WriteLine((@{type='assistant';message=@{content=@(@{type='text';text='Checked the quota code: usage limit reached, rate limit, RESOURCE_EXHAUSTED'})}}|ConvertTo-Json -Compress -Depth 6))
+        [Console]::Out.Write((@{type='result';is_error=$false;result='quota handling reviewed'}|ConvertTo-Json -Compress));[Console]::Error.WriteLine('synthetic failure');exit 2
+    }
+    # Real Claude Code shape of a limit: a rejected rate_limit_event with its reset, the task left in progress, an error result with the typographic apostrophe.
+    'quotarl' {
+        $reset=[DateTimeOffset]::UtcNow.AddHours(2).ToUnixTimeSeconds()
+        [Console]::Out.WriteLine((@{type='rate_limit_event';rate_limit_info=@{status='rejected';resetsAt=$reset;rateLimitType='five_hour'}}|ConvertTo-Json -Compress -Depth 4));[Console]::Out.Flush()
+        Set-FakeInProgress 'Fake agent quota'
+        [Console]::Out.Write((@{type='result';is_error=$true;result=('You'+[char]0x2019+'ve hit your limit · resets 5pm')}|ConvertTo-Json -Compress));exit 1
+    }
+    # Echoes the prompt and fails: the task stays todo and the prompt can be checked.
+    'echofail' {[Console]::Out.Write((@{type='result';is_error=$false;result=$prompt}|ConvertTo-Json -Compress));exit 2}
     'fail' {[Console]::Error.WriteLine('synthetic failure');exit 2}
     'hang' {Start-Sleep -Seconds 600;exit 0}
     'crash' {exit -1073740791}
@@ -201,6 +215,14 @@ switch($Mode){
     Assert-Runner (($cutReasons -join ',') -ceq 'R-3,R-4,R-5') ('preview skipped reports the tasks cut by MaxTasks: '+$cut.text)
 
     Close-RunnerPhase 'preview'
+    # Unattended start needs an explicit model and effort read now from the probe (or -UseCliDefault): a CLI that accepts both is refused without them.
+    $choiceCli=Join-Path $fixture 'agent/claude.ps1'
+    Put-Runner $choiceCli ("if(`$args -contains '--version'){'4.5.6 (Claude Code)';exit 0}`n"+
+        "if(`$args -contains '--help'){`"Options:``n  --model <model>  Model for the session``n  --effort <level>  Effort level (low, high)``n  --output-format <format>  Output format`";exit 0}`nexit 9`n")
+    $hashChoice=Get-SBFileHash $trackerPath
+    $noChoiceText=(& pwsh -NoProfile -File $runner -CheckoutPath $checkout -ConfigPath $configPath -AgentPath $choiceCli -Run -MaxTasks 1 2>&1|Out-String);$noChoiceCode=$LASTEXITCODE
+    Assert-Runner ($noChoiceCode -eq 2 -and $noChoiceText -match 'UseCliDefault' -and $noChoiceText -match 'low, high') ('-Run without model and effort is refused with the choices read now: '+$noChoiceText)
+    Assert-Runner ((Get-SBFileHash $trackerPath) -ceq $hashChoice) 'the refused start runs no agent and writes nothing to the tracker'
     # Success: prompt delivered on stdin, the agent updates the task through its own CLI session, closed report folder.
     $ok=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','ok')
     Assert-Runner ($ok.code -eq 0 -and $ok.data.run -and $null -eq $ok.data.stopReason -and @($ok.data.tasks).Count -eq 1) ('fake agent run succeeds: '+$ok.text)
@@ -220,6 +242,29 @@ switch($Mode){
     Assert-Runner ($quota.code -eq 1 -and $quota.data.stopReason -eq 'quota' -and @($quota.data.tasks).Count -eq 1 -and @($quota.data.tasks)[0].state -eq 'quota') ('quota stops the run after one task: '+$quota.text)
     Assert-Folder @($quota.data.tasks)[0] 'quota'
     Assert-Runner ((Get-SBFileHash $trackerPath) -ceq $hash) 'the runner does not write the tracker'
+    Assert-Runner ($quota.text -match 'Quota claude: unknown') ('the quota is read before the task and an unknown state proceeds: '+$quota.text)
+    # False positives: quota words in the agent text and a plain failure are a failure, not a quota stop.
+    $words=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','quotawords')
+    Assert-Runner ($words.code -eq 1 -and $null -eq $words.data.stopReason -and @($words.data.tasks)[0].state -eq 'finished' -and @($words.data.tasks)[0].exitCode -eq 2) ('quota words outside the error envelope do not stop the run: '+$words.text)
+    # A real limit: rejected rate_limit_event and error result; the interrupted task goes back to todo and resume.json keeps the queue.
+    $limited=Invoke-Runner @('-Run','-MaxTasks','3','-AgentArguments','quotarl')
+    $limitedRecord=@($limited.data.tasks)[0]
+    Assert-Runner ($limited.data.stopReason -eq 'quota' -and $limitedRecord.state -eq 'quota' -and $limitedRecord.statusAfter -eq 'todo' -and $limitedRecord.requeued) ('a limit stops the run and puts the task back to todo: '+$limited.text)
+    $limitedFolder=Split-Path $limited.data.status -Parent
+    $point=Read-SBJson (Join-Path $limitedFolder 'resume.json') $null
+    Assert-Runner ($point -and $point.reason -eq 'quota' -and $point.interrupted.id -eq $limitedRecord.id -and (@($point.remaining) -join ',') -ceq 'R-2,R-3,R-4' -and $point.quota.state -eq 'exhausted' -and $point.quota.resetAt) ('resume.json names the interrupted task, the remaining queue and the reset: '+($point|ConvertTo-Json -Compress -Depth 5))
+    # The next run reads the observed exhaustion (reset in the future) and does not start any agent.
+    $refused=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','ok')
+    Assert-Runner ($refused.data.stopReason -eq 'quota' -and @($refused.data.tasks).Count -eq 0 -and $refused.text -match 'Quota claude: exhausted') ('an exhausted quota with a future reset stops before starting: '+$refused.text)
+    # Reset reached: drop the observations, then resume the stopped run by name; the interrupted task runs first with the resume note.
+    foreach($s in @(Get-ChildItem -LiteralPath $runtime -Recurse -Filter 'status.json' -File)){$j=Read-SBText $s.FullName|ConvertFrom-Json -AsHashtable;if($j.ContainsKey('quotaObserved')){$j.quotaObserved=$null;Put-Runner $s.FullName (ConvertTo-SBJson $j)}}
+    $resumed=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','echofail','-Resume',(Split-Path $limitedFolder -Leaf))
+    $resumedRecord=@($resumed.data.tasks)[0]
+    $resumedPrompt=(Read-SBJson (Join-Path $resumedRecord.folder 'agent-output.json') $null).result
+    Assert-Runner ($resumedRecord.id -eq $limitedRecord.id -and $resumedPrompt -match 'Ripresa:' -and $resumedPrompt -match [regex]::Escape($limitedRecord.folder)) ('-Resume runs the interrupted task first with the resume note: '+$resumed.text)
+    Assert-Runner ((Read-SBJson (Join-Path $limitedFolder 'resume.json') $null).resumedBy) 'the resume point is marked as used'
+    # The limit case wrote the tracker through the agent and the requeue: the following checks start from this state.
+    $hash=Get-SBFileHash $trackerPath
 
     Close-RunnerPhase 'quota'
     # Three consecutive failures stop the run before the fourth task.

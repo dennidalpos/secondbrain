@@ -106,6 +106,7 @@ Add-SBMessages @{
     'mcp.mode.invalid' = @{ it = 'Modalità non valida: usare literal o relevance'; en = 'Invalid mode: use literal or relevance' }
     'mcp.search.invalid' = @{ it = 'offset, limit e budget devono essere interi non negativi'; en = 'offset, limit and budget must be non-negative integers' }
     'mcp.startup.invalid' = @{ it = 'budget deve essere un intero non negativo e taskIds un array di ID'; en = 'budget must be a non-negative integer and taskIds an array of IDs' }
+    'mcp.description.get_prompt.repositoryPath' = @{ it = 'Checkout del repository corrente (facoltativo): aggiunge contesto e task pronti ai prossimi passi; senza dossier la composizione resta autonoma.'; en = 'Current repository checkout (optional): adds context and ready tasks to the next steps; without a dossier the composition stays standalone.' }
     'mcp.prompt.required' = @{ it = 'Il parametro prompt è obbligatorio per get_prompt'; en = 'The prompt parameter is required for get_prompt' }
     'mcp.path.required' = @{ it = 'Il parametro repositoryPath è obbligatorio per check_publication'; en = 'The repositoryPath parameter is required for check_publication' }
     'mcp.tool.deprecated' = @{ it = 'Alias deprecato {0}: usare {1}. Lʼalias sarà rimosso in una versione futura.'; en = 'Deprecated alias {0}: use {1}. The alias will be removed in a future version.' }
@@ -221,6 +222,7 @@ function Get-SBMcpToolDefinitions {
                 properties = @{
                     prompt = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_prompt.prompt') }
                     objective = @{ type = 'string'; description = (Get-SBMessage 'mcp.prompt.objective') }
+                    repositoryPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_prompt.repositoryPath') }
                     language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.get_prompt.language') }
                 }
             }
@@ -436,7 +438,18 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $resolution = Resolve-SBWorkflowPrompt $catalog ([string]$Arguments.prompt)
             $objective = if ($Arguments.ContainsKey('objective')) { [string]$Arguments.objective } else { '' }
-            return New-SBWorkflowComposition $BrainRoot $catalog $resolution.prompt @{repositories=@();project=$null;sourceRegistry=$null} $objective -Standalone
+            # With repositoryPath the composition carries that repository's context and ready tasks in next_steps; a checkout without
+            # a dossier (or any context error) falls back to the standalone composition.
+            $context = @{repositories=@();project=$null;sourceRegistry=$null}
+            if ($Arguments.ContainsKey('repositoryPath') -and $Arguments.repositoryPath) {
+                try { $context = Get-SBWorkflowContext -Config (Read-SBConfiguration -ReadOnly) -RepositoryPath ([string]$Arguments.repositoryPath) } catch { Write-Verbose $_.Exception.Message }
+            }
+            if (@($context.repositories).Count) {
+                # A central prompt outside the SecondBrain checkout keeps the standalone composition it always had.
+                try { return New-SBWorkflowComposition $BrainRoot $catalog $resolution.prompt $context $objective } catch { Write-Verbose $_.Exception.Message }
+                $context = @{repositories=@();project=$null;sourceRegistry=$null}
+            }
+            return New-SBWorkflowComposition $BrainRoot $catalog $resolution.prompt $context $objective -Standalone
         }
         'preview_dossier_write' {
             Assert-SBMcpWriteFields $Arguments @('repository','checkoutPath','requestId','operation','payload','noRecovery') @('repository','checkoutPath','requestId','operation','payload')

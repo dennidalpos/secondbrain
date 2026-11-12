@@ -25,7 +25,7 @@ interface RunStatusFile {
   state: string; phase: string; pid: number; startedAt: string; updatedAt: string; finishedAt: string | null;
   lastAgentEventAt: string | null; lastAgentEvent: { kind: string; summary: string; time: string } | null;
   task: { id: string; seq: number; title: string; position: number; total: number; startedAt: string; folder: string } | null;
-  counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string;
+  counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string; quota?: { state: string; source: string; resetAt?: string | null } | null;
 }
 interface RunReport { active: boolean; verdict: "working" | "stalled" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null }
 interface EventJson { event?: string; message?: string; time?: string; record?: RunRecord; kind?: string; summary?: string; minutes?: number }
@@ -363,6 +363,14 @@ function renderTasks() {
 }
 $("q-start").addEventListener("click", async () => {
   if (state.run.active || state.run.starting) return selectTab("run");
+  // Model, effort and defaults are read again now: the probe at window start can be stale (CLI updated or reconfigured since).
+  const chosen = { model: select("q-model").value, effort: select("q-effort").value, provider: state.provider };
+  await probeAgents();
+  if (state.provider === chosen.provider) {
+    if ([...select("q-model").options].some((o) => o.value === chosen.model)) select("q-model").value = chosen.model;
+    renderEffortOptions();
+    if ([...select("q-effort").options].some((o) => o.value === chosen.effort)) select("q-effort").value = chosen.effort;
+  }
   const a = currentAgent();
   const taskIds = state.tasks.filter((t) => state.selected.has(t.id)).map((t) => t.id);
   if (!state.repo || !a || !taskIds.length) return setError("q-error", "Scegli un agente pronto e almeno un task.");
@@ -374,7 +382,9 @@ $("q-start").addEventListener("click", async () => {
     allowCustomModel: Boolean(custom),
     taskIds, timeoutMinutes: Number(input("q-timeout").value) || 30, stallMinutes: Number(input("q-stall").value) || 5,
   };
-  if (!confirm(`Avviare ${taskIds.length} task con ${a.name}${request.model ? " · " + request.model : ""}${request.effort ? " · " + request.effort : ""}?\nGli agenti modificano file nel checkout; commit, push e cancellazioni sono vietati.`)) return;
+  const shownModel = request.model ?? (a.configured.model ? `predefinito della CLI (${a.configured.model})` : "predefinito della CLI");
+  const shownEffort = !a.supports.effort ? "impegno non regolabile" : request.effort ?? (a.configured.effort ? `impegno predefinito (${a.configured.effort})` : "impegno predefinito");
+  if (!confirm(`Avviare ${taskIds.length} task con ${a.name} · ${shownModel} · ${shownEffort}?\nModello e impegno letti ora dalla CLI installata.\nGli agenti modificano file nel checkout; commit, push e cancellazioni sono vietati.`)) return;
   resetRunView();
   const r = await call<{ pid: number; log: string }>("start_queue", { request }, "q-error");
   if (!r) return;
@@ -444,7 +454,7 @@ function renderStatus(rep: RunReport) {
   if (!s) return;
   state.run.startedAt = s.startedAt;
   $("run-folder").textContent = rep.folder ?? s.folder ?? "—";
-  $("run-counts").textContent = `${s.counts.done} di ${s.counts.total} task (${s.counts.succeeded} riusciti, ${s.counts.failed} non riusciti)` + (s.stopReason ? ` · arresto: ${s.stopReason}` : "");
+  $("run-counts").textContent = `${s.counts.done} di ${s.counts.total} task (${s.counts.succeeded} riusciti, ${s.counts.failed} non riusciti)` + (s.stopReason ? ` · arresto: ${s.stopReason}${!rep.active && s.finishedAt ? " (run chiuso il " + new Date(s.finishedAt).toLocaleString() + ")" : ""}` : "") + (s.quota ? ` · quota letta: ${s.quota.state}${s.quota.resetAt ? " fino a " + new Date(s.quota.resetAt).toLocaleString() : ""}` : "");
   $("run-task").textContent = s.task ? `[${s.task.position}/${s.task.total}] #${s.task.seq} ${s.task.id} — ${s.task.title}` : rep.active ? `Fase: ${s.phase}` : "Nessun task in corso";
   renderClock();
 }

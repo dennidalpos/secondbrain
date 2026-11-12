@@ -467,6 +467,18 @@ BACKLOG, MEMORIA E CONTINUITÀ
   • Cosa serve: checkout del repository aperto
   • Esempio d'uso: sb prompt MEM06: carica il contesto del repository ed elenca i task pronti
 
+🔥 MEM07 | Riprendi il lavoro fermato da un limite d'uso, importandolo da un altro account
+  • ID: pmt-d0c0d000
+  • Ambito: repo | Modalità: write
+  • Cosa serve: il lavoro fermato (resume.json del runner, rapporto del task o MEM03, branch o worktree) e il metodo di importazione scelto dalla persona
+  • Esempio d'uso: MEM07: il runner si è fermato per quota sull'altro account, importa il suo lavoro e prosegui il task
+
+🔭 MEM08 | Avvia la sessione: contesto, stato del repository, allineamento e prossimi task
+  • ID: pmt-5916b85a
+  • Ambito: repo | Modalità: read
+  • Cosa serve: qualsiasi cartella; un repository gestito aggiunge dossier, tracker e controllo di allineamento
+  • Esempio d'uso: MEM08: avvia la sessione in questo repository e proponi i prossimi task
+
 🔥 REP01 | Completa il prossimo task pronto del repository aperto.
   • ID: pmt-4cc383ba
   • Ambito: repo | Modalità: write

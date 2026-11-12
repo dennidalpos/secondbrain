@@ -63,7 +63,7 @@ try {
     }
     if($ConfigPath){$config=Read-SBConfiguration $ConfigPath -ReadOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly;Write-SBReadWarnings $lock $config}
     if($PSCmdlet.ParameterSetName -eq 'Home'){
-        $homeState=if($RepositoryPath){Get-SBWorkflowState $brain $RepositoryPath}else{$null}
+        $homeState=Get-SBWorkflowState $brain $(if($RepositoryPath){$RepositoryPath}else{(Get-Location).Path})
         Format-SBWorkflowHome $brain $catalog $homeState
     } elseif($PSCmdlet.ParameterSetName -eq 'List'){
         Format-SBWorkflowList $catalog $Category -Compact:$Compact
@@ -84,13 +84,24 @@ try {
         if(!$ConfigPath){throw (New-SBError 'promptscli.workstation.inactive')}
         if(($Repository -and $RepositoryPath) -or ($ProjectId -and ($Repository -or $RepositoryPath)) -or ($CheckoutPath -and $RepositoryPath)){throw (New-SBError 'promptscli.context.incompatible')}
         if($PSBoundParameters.ContainsKey('Objective') -and !$Objective.Trim()){throw (New-SBError 'promptscli.goal.empty')}
-        $resolved=Get-SBWorkflowContext -Config $config -RepositoryPath $RepositoryPath -Repository $Repository -ProjectId $ProjectId -CheckoutPath $CheckoutPath -CheckoutMapPath $CheckoutMapPath
+        $degraded=$null
+        try{$resolved=Get-SBWorkflowContext -Config $config -RepositoryPath $RepositoryPath -Repository $Repository -ProjectId $ProjectId -CheckoutPath $CheckoutPath -CheckoutMapPath $CheckoutMapPath}
+        catch{
+            # Reduced mode: a Git checkout with no dossier still gets repository prompts (read, verify and code work), composed without SecondBrain context.
+            # Central prompts and MEM/SYS writes to the dossier keep the error, as does any other context failure.
+            $code=$_.Exception.Data['code']
+            $candidate=if($Compose -and $code -eq 'prompts.dossier.unbound' -and !$Repository -and !$ProjectId){(Resolve-SBWorkflowPrompt $catalog $Prompt).prompt}else{$null}
+            if(!$candidate -or $candidate.target -eq 'central' -or ($candidate.mode -eq 'write' -and $candidate.code -match '^(MEM|SYS)')){throw}
+            $where=if($RepositoryPath){[IO.Path]::GetFullPath($RepositoryPath)}elseif($CheckoutPath){[IO.Path]::GetFullPath($CheckoutPath)}else{(Get-Location).Path}
+            $degraded=(Get-SBWorkflowMessage 'home.degraded.compose' @(($where -replace '\\','/')))+"`n"+(Get-SBWorkflowMessage 'home.degraded')
+            $resolved=@{repositories=@();project=$null;sourceRegistry=$null}
+        }
         if($Context){ConvertTo-SBJson $resolved}
         else {
             $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
             if($resolution.warning){Write-Warning $resolution.warning}
             $selected=@($resolution.prompt)
-            $body=New-SBWorkflowComposition $brain $catalog $selected[0] $resolved $Objective
+            $body=if($degraded){New-SBWorkflowComposition $brain $catalog $selected[0] $resolved $Objective -Standalone -Degraded $degraded}else{New-SBWorkflowComposition $brain $catalog $selected[0] $resolved $Objective}
             if($OutputPath){
                 $full=[IO.Path]::GetFullPath($OutputPath);Assert-SBPlainPath $full
                 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$full=Assert-SBCentralDataPath $brain $full}

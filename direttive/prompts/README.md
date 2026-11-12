@@ -467,6 +467,18 @@ BACKLOG, MEMORY AND CONTINUITY
   • Needs: checkout of the open repository
   • Example: sb prompt MEM06: load the repository context and list the ready tasks
 
+🔥 MEM07 | Resume work stopped by a usage limit, importing it from another account
+  • ID: pmt-d0c0d000
+  • Scope: repo | Mode: write
+  • Needs: the stopped work (runner resume.json, task or MEM03 report, branch or worktree) and the import method the person picks
+  • Example: MEM07: the runner stopped for quota on the other account, import its work and continue the task
+
+🔭 MEM08 | Start a session: context, repository state, alignment and next tasks
+  • ID: pmt-5916b85a
+  • Scope: repo | Mode: read
+  • Needs: any folder; a managed repository adds the dossier, the tracker and the alignment check
+  • Example: MEM08: start the session in this repository and propose the next tasks
+
 🔥 REP01 | Complete the next ready task of the open repository.
   • ID: pmt-4cc383ba
   • Scope: repo | Mode: write

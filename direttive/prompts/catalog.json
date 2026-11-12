@@ -1100,6 +1100,59 @@
       }
     },
     {
+      "id": "pmt-d0c0d000",
+      "code": "MEM07",
+      "category": "backlog",
+      "summary": "Resume work stopped by a usage limit, importing it from another account",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "the stopped work (runner resume.json, task or MEM03 report, branch or worktree) and the import method the person picks",
+      "example": "MEM07: the runner stopped for quota on the other account, import its work and continue the task",
+      "file": "MEM07.md",
+      "related": [
+        "pmt-802ff569",
+        "pmt-821f7dec",
+        "pmt-76604e4a",
+        "pmt-4cc383ba"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Riprendi il lavoro fermato da un limite d'uso, importandolo da un altro account",
+          "requires": "il lavoro fermato (resume.json del runner, rapporto del task o MEM03, branch o worktree) e il metodo di importazione scelto dalla persona",
+          "example": "MEM07: il runner si è fermato per quota sull'altro account, importa il suo lavoro e prosegui il task"
+        }
+      }
+    },
+    {
+      "id": "pmt-5916b85a",
+      "code": "MEM08",
+      "category": "backlog",
+      "summary": "Start a session: context, repository state, alignment and next tasks",
+      "target": "repository",
+      "mode": "read",
+      "scope": "repo",
+      "requires": "any folder; a managed repository adds the dossier, the tracker and the alignment check",
+      "example": "MEM08: start the session in this repository and propose the next tasks",
+      "file": "MEM08.md",
+      "related": [
+        "pmt-821f7dec",
+        "pmt-a709a792",
+        "pmt-d0c0d000",
+        "pmt-677a10ab",
+        "pmt-4cc383ba",
+        "pmt-802ff569",
+        "pmt-5f9f93e0"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Avvia la sessione: contesto, stato del repository, allineamento e prossimi task",
+          "requires": "qualsiasi cartella; un repository gestito aggiunge dossier, tracker e controllo di allineamento",
+          "example": "MEM08: avvia la sessione in questo repository e proponi i prossimi task"
+        }
+      }
+    },
+    {
       "id": "pmt-a5c78cc6",
       "code": "OPS01",
       "category": "operations",
@@ -1603,7 +1656,8 @@
         "pmt-821f7dec",
         "pmt-77d7bf7a",
         "pmt-4cc383ba",
-        "pmt-cc2c5f5a"
+        "pmt-cc2c5f5a",
+        "pmt-d0c0d000"
       ],
       "i18n": {
         "it": {

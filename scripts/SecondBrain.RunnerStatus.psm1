@@ -68,7 +68,7 @@ function Get-SBRunnerVerdict($Status,[DateTimeOffset]$Now=[DateTimeOffset]::UtcN
     'working'
 }
 function Read-SBRunnerStatusFile([string]$Path) {
-    try{$s=Read-SBText $Path|ConvertFrom-Json -AsHashtable -Depth 32;if($s -is [hashtable]){$s}else{$null}}catch{$null}
+    try{$s=Read-SBText $Path|ConvertFrom-Json -AsHashtable -Depth 32 -DateKind String;if($s -is [hashtable]){$s}else{$null}}catch{$null}
 }
 function Get-SBRunnerTail([string]$Path,[int]$Count) {
     if($Count -le 0 -or !(Test-Path -LiteralPath $Path -PathType Leaf)){return}
@@ -102,6 +102,41 @@ function Find-SBActiveRunner([string]$BrainRoot,[string]$HostId,[string]$Reposit
         if(Test-SBRunnerProcessAlive $s){return @{path=$f;status=$s;orphaned=$false}}
         $s.state='orphaned';$s.phase='closed'
         try{Save-SBRunnerStatus $f $s}catch{[void]$_}
+    }
+    $null
+}
+function Get-SBRunnerQuotaObservation([string]$BrainRoot,[string]$HostId,[string]$Provider) {
+    # Newest quota observation an agent itself reported to a runner of this workstation (status.json quotaObserved: a rate_limit_event
+    # or a quota stop), any repository; $null when none. The runner's own pre-reads are not observations, so they never feed themselves.
+    $repos=(Resolve-SBWorkRoot $BrainRoot $HostId 'repos').root
+    if(!(Test-Path -LiteralPath $repos -PathType Container)){return $null}
+    $files=@(Get-ChildItem -LiteralPath $repos -Directory -ErrorAction SilentlyContinue|ForEach-Object {
+            $r=Join-Path $_.FullName 'report'
+            if(Test-Path -LiteralPath $r -PathType Container){Get-ChildItem -LiteralPath $r -Directory -Filter '*-runner-run-*' -ErrorAction SilentlyContinue}
+        }|ForEach-Object {Join-Path $_.FullName 'status.json'}|Where-Object {Test-Path -LiteralPath $_ -PathType Leaf}|
+        Sort-Object {(Get-Item -LiteralPath $_).LastWriteTimeUtc} -Descending|Select-Object -First 40)
+    foreach($f in $files){
+        $s=Read-SBRunnerStatusFile $f
+        if($s -and $s.ContainsKey('quotaObserved') -and $s.quotaObserved -is [hashtable] -and [string]$s.quotaObserved.provider -eq $Provider -and $s.quotaObserved.observedAt){return $s.quotaObserved}
+    }
+    $null
+}
+function Get-SBRunnerResumePoint([string]$BrainRoot,[string]$HostId,[string]$Checkout,[string]$Name='latest') {
+    # resume.json written by a quota stop for this checkout: the named run folder, or the newest one ('latest'); $null when there is none.
+    # Looked up by checkout path, so it works before the repository identity is resolved; a resume point already used is skipped.
+    $repos=(Resolve-SBWorkRoot $BrainRoot $HostId 'repos').root
+    if(!(Test-Path -LiteralPath $repos -PathType Container)){return $null}
+    $want=[IO.Path]::GetFullPath($Checkout).TrimEnd('\','/')
+    $files=@(Get-ChildItem -LiteralPath $repos -Directory -ErrorAction SilentlyContinue|ForEach-Object {
+            $r=Join-Path $_.FullName 'report'
+            if(Test-Path -LiteralPath $r -PathType Container){Get-ChildItem -LiteralPath $r -Directory -Filter '*-runner-run-*' -ErrorAction SilentlyContinue}
+        }|Where-Object {$Name -eq 'latest' -or $_.Name -eq $Name}|ForEach-Object {Join-Path $_.FullName 'resume.json'}|Where-Object {Test-Path -LiteralPath $_ -PathType Leaf}|
+        Sort-Object {(Get-Item -LiteralPath $_).LastWriteTimeUtc} -Descending)
+    foreach($path in $files){
+        try{$r=Read-SBText $path|ConvertFrom-Json -AsHashtable -Depth 32 -DateKind String}catch{continue}
+        if($r -isnot [hashtable] -or ![string]::Equals(([string]$r.checkout).TrimEnd('\','/'),$want,[StringComparison]::OrdinalIgnoreCase)){continue}
+        if($Name -eq 'latest' -and $r.ContainsKey('resumedBy') -and $r.resumedBy){continue}
+        $r.path=$path;return $r
     }
     $null
 }
@@ -181,4 +216,4 @@ function Get-SBAgentFinalOutput([string]$Text) {
     }
     $Text
 }
-Export-ModuleMember -Function @('Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')
+Export-ModuleMember -Function @('Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')

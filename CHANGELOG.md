@@ -2,7 +2,27 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.4.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.5.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.5.0] - 2026-11-12
+
+### Aggiunto
+- Quota letta prima del run e prima di ogni task, mai riusata (`Get-SBAgentQuota`): Codex dai file di sessione (`rate_limits`, finestre di 5 ore e settimanale), Claude Code e Gemini CLI dall'ultimo limite segnalato da un agente sulla postazione (`rate_limit_event` o arresto per quota). `exhausted` con ripristino futuro non avvia agenti; `unknown` procede finché l'agente segnala il limite. Riga `quota` negli eventi e `quota`/`quotaObserved` in `status.json`.
+- Ripresa dopo un limite: l'arresto per quota scrive `resume.json` (task interrotto, coda residua, riga del limite, ripristino, stato Git) e rimette in `todo` il task lasciato in corso; `run-ready-tasks.ps1 -Resume latest|<run>` riparte da lì con una nota di ripresa per l'agente.
+- Prompt MEM07 (riprendi il lavoro fermato da un limite d'uso, importandolo da un altro account, branch o worktree) e MEM08 (avvio di sessione: posizione, stato del repository, allineamento e prossimi task); catalogo di 118 prompt.
+- `sb prompt` legge la cartella corrente e ne indica la posizione (repository gestito, senza onboarding, checkout di SecondBrain, nessun progetto), separa i comandi per il repository da quelli di attivazione e manutenzione di SecondBrain e propone la catena iniziale standard.
+- Modalità ridotta: in un repository senza dossier i prompt di repository si compongono senza dossier con un blocco `<degraded>` che elenca le funzioni non disponibili.
+- MCP `get_prompt` accetta `repositoryPath` facoltativo: contesto e task pronti del repository nei prossimi passi.
+- `sb runner` da riga di comando riporta `choices` (modelli, impegni, predefiniti e quota di ogni agente pronto, letti al momento).
+
+### Modificato
+- `run-ready-tasks.ps1 -Run` richiede `-Model` ed `-Effort` (se la CLI li accetta) oppure `-UseCliDefault`; senza scelta esce con 2 ed elenca le opzioni appena lette. REP15 chiede agente, modello e impegno in chat con una domanda a scelta multipla prima di ogni avvio.
+- Orchestratore: alla pressione di Avvia rileva di nuovo gli agenti, la conferma mostra modello e impegno effettivi e passa `-UseCliDefault` per il predefinito; lo stato mostra la quota letta e la data di chiusura di un run concluso.
+
+### Corretto
+- Falsi arresti per quota: il limite si riconosce solo nell'involucro d'errore finale dell'agente con i testi di ciascun provider, mai nel testo dell'agente, nell'output degli strumenti o nello stderr di un agente interrotto; un limite di frequenza temporaneo (429, `rate_limit_error`, quota al minuto di Gemini) è `throttled` e non ferma il giro; timeout e crash conservano il proprio stato.
+- `Get-SBAgentCapabilitiesAll` senza `-Provider` passava l'elenco dei provider come un solo valore.
+- Fixture `orchestrator-e2e`: titoli dei task con il separatore `—` richiesto dal tracker.
 
 ## [2.4.0] - 2026-11-12
 

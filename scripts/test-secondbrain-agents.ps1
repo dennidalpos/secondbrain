@@ -155,4 +155,28 @@ Assert-Agent ($code -eq 0 -and @($data.agents).Count -eq 1 -and $data.agents[0].
 Assert-Agent ($LASTEXITCODE -eq 2) 'agents.ps1 without a mode exits 2'
 & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'agents.ps1') -Directives *> $null
 Assert-Agent ($LASTEXITCODE -eq 2) 'agents.ps1 -Directives without -RepositoryPath exits 2'
+# Limits: only the final error envelope counts, with each provider's own texts; transient rate limits are throttled, not quota.
+$apos=[string][char]0x2019
+Assert-Agent ((Get-SBAgentLimitState -Provider claude -Output ('{"type":"result","is_error":true,"result":"You'+$apos+'ve hit your limit · resets 5pm"}') -ExitCode 1).state -ceq 'quota') 'Claude limit with the typographic apostrophe is quota'
+Assert-Agent ((Get-SBAgentLimitState -Provider claude -Output '{"type":"rate_limit_event","rate_limit_info":{"status":"rejected","resetsAt":1900000000,"rateLimitType":"five_hour"}}' -ExitCode 1).state -ceq 'quota') 'a rejected rate_limit_event is quota'
+Assert-Agent ((Get-SBAgentLimitState -Provider claude -Output '' -ErrorOutput 'API Error: 429 rate_limit_error' -ExitCode 1).state -ceq 'throttled') 'a Claude 429 is throttled'
+Assert-Agent ($null -eq (Get-SBAgentLimitState -Provider claude -Output '{"type":"assistant","message":{"content":[{"type":"text","text":"usage limit reached, quota, rate limit"}]}}' -ExitCode 2)) 'quota words in the agent text are not a limit'
+Assert-Agent ($null -eq (Get-SBAgentLimitState -Provider claude -Output 'x' -ErrorOutput 'usage limit reached' -ExitCode $null)) 'the stderr of a killed agent is not read'
+Assert-Agent ($null -eq (Get-SBAgentLimitState -Provider claude -Output '{"type":"result","is_error":false,"result":"usage limit reached"}' -ExitCode 0)) 'a successful result that mentions a limit is not a limit'
+Assert-Agent ((Get-SBAgentLimitState -Provider codex -Output '{"type":"error","message":"You''ve hit your usage limit. Try again at 3:00 PM."}' -ExitCode 1).state -ceq 'quota') 'Codex usage limit error is quota'
+Assert-Agent ($null -eq (Get-SBAgentLimitState -Provider codex -Output '{"type":"item.completed","item":{"type":"agent_message","text":"usage_limit_reached"}}' -ExitCode 1)) 'a Codex agent message is not a limit'
+Assert-Agent ((Get-SBAgentLimitState -Provider gemini -Output '{"error":{"code":429,"message":"Quota exceeded for quota metric requests per day","status":"RESOURCE_EXHAUSTED"}}' -ExitCode 1).state -ceq 'quota') 'Gemini daily quota is quota'
+Assert-Agent ((Get-SBAgentLimitState -Provider gemini -Output '{"error":{"code":429,"message":"Quota exceeded for quota metric requests per minute","status":"RESOURCE_EXHAUSTED"}}' -ExitCode 1).state -ceq 'throttled') 'Gemini per-minute quota is throttled'
+# Quota read: Codex session files (rate_limits windows), else the runner observation; unknown when nothing is known.
+$codexHome=Join-Path $fixture 'codex-home'
+$now=[DateTimeOffset]::UtcNow
+$line=@{timestamp=$now.ToString('o');type='event_msg';payload=@{type='token_count';rate_limits=@{primary=@{used_percent=100.0;window_minutes=300;resets_at=$now.AddHours(1).ToUnixTimeSeconds()};secondary=@{used_percent=40.0;window_minutes=10080;resets_at=$now.AddDays(2).ToUnixTimeSeconds()}}}}|ConvertTo-Json -Compress -Depth 6
+Write-AgentFixture (Join-Path $codexHome ('sessions/'+$now.ToString('yyyy/MM/dd')+'/rollout-test.jsonl')) ("{`"type`":`"session_meta`"}`n"+$line+"`n")
+$cq=Get-SBAgentQuota -Provider codex -CodexHome $codexHome
+Assert-Agent ($cq.state -ceq 'exhausted' -and $cq.source -ceq 'codex-session' -and $cq.resetAt -and @($cq.windows).Count -eq 2) ('Codex full primary window is exhausted until its reset: '+($cq|ConvertTo-Json -Compress -Depth 5))
+Assert-Agent ((Get-SBAgentQuota -Provider codex -CodexHome (Join-Path $fixture 'no-codex')).state -ceq 'unknown') 'no Codex session is unknown'
+Assert-Agent ((Get-SBAgentQuota -Provider claude).state -ceq 'unknown') 'Claude without an observation is unknown'
+Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(1).ToString('o');observedAt=$now.ToString('o')}).state -ceq 'exhausted') 'an observed exhaustion with a future reset is exhausted'
+Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(-1).ToString('o');observedAt=$now.AddHours(-3).ToString('o')}).state -ceq 'unknown') 'an exhaustion past its reset is unknown'
+Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$null;observedAt=$now.ToString('o')}).state -ceq 'unknown') 'an exhaustion without a reset time does not block'
 'SUCCESS AGENTS: '+$script:agentChecks+' checks; retained fixture '+$fixture

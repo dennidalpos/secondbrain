@@ -38,7 +38,7 @@ $tasks=@();$n=0
 foreach($spec in @(@{id='E2E-1';priority='P1'},@{id='E2E-2';priority='P2'},@{id='E2E-3';priority='P3'})){
     $n++
     $task=New-SBTrackerTask @{id=$spec.id;title=('Task '+$spec.id);status='todo'} $identity 'fixture' 'history/seed/report.md' (Get-SBTextHash 'Synthetic provenance') 'fixture'
-    $task.seq=$n;$task.title='#'+$n.ToString('000')+' - Task sintetico '+$spec.id;$task.priority=$spec.priority;$task.execution='autonomous';$task.extensions=@{stream='evoluzione-team'}
+    $task.seq=$n;$task.title='#'+$n.ToString('000')+' '+[char]0x2014+' Task sintetico '+$spec.id;$task.priority=$spec.priority;$task.execution='autonomous';$task.extensions=@{stream='evoluzione-team'}
     $tasks+=,$task
 }
 Put (Join-Path $dossier 'tracker.json') (ConvertTo-SBJson @{schemaVersion=1;repository=$identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=$tasks;history=@();extensions=@{lastSeq=$n}})

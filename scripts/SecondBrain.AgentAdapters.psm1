@@ -296,7 +296,7 @@ function Get-SBAgentCapabilities {
 function Get-SBAgentCapabilitiesAll {
     # Every provider probed in parallel (each probe waits on two CLI processes): the slowest CLI sets the time, not the sum.
     param([string[]]$Provider,[string]$BrainRoot)
-    $ids=@(if($Provider){$Provider}else{Get-SBAgentProviderIds})
+    $ids=@(if($Provider){$Provider}else{@(Get-SBAgentProviderIds)|ForEach-Object {$_}})
     if(!$BrainRoot){$BrainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))}
     if($ids.Count -le 1){return @($ids|ForEach-Object {Get-SBAgentCapabilities -Provider $_ -BrainRoot $BrainRoot})}
     $module=Join-Path $PSScriptRoot 'SecondBrain.AgentAdapters.psm1'
@@ -367,12 +367,121 @@ function New-SBAgentInvocation {
     }
     @{arguments=@($state.list);omitted=@($state.omitted)}
 }
-function Get-SBAgentQuotaPattern {
-    # Exhausted plan or rate limit, as reported by Claude Code, Codex and Gemini CLI.
-    'usage_limit_reached|usage limit|weekly limit|rate_limit_error|rate limit|quota|RESOURCE_EXHAUSTED'
+function Get-SBAgentLimitPatterns([string]$Provider) {
+    # Per-provider texts of a plan limit (quota: the run stops) and of transient throttling (throttled: the run goes on).
+    # Applied only to the final error envelope of the agent (Get-SBAgentErrorText), never to the agent's own text or to tool output.
+    # Claude Code strings come from the installed 2.1 binary ("You've hit your limit", "You've reached your ...", "You're out of usage credits");
+    # Codex from its usage_limit_reached error; Gemini from the RESOURCE_EXHAUSTED envelope, daily quota only.
+    switch($Provider){
+        'codex' {@{quota="usage_limit_reached|You['’]ve hit your usage limit|usage limit reached";throttle='rate_limit_exceeded|\b429\b|Too Many Requests'}}
+        'gemini' {@{quota='exhausted your (?:daily )?quota|Quota exceeded for quota metric[^\r\n]*(?:per ?day|daily)|RESOURCE_EXHAUSTED[^\r\n]*(?:per ?day|daily)';throttle='RESOURCE_EXHAUSTED|\b429\b|Too Many Requests|per ?minute'}}
+        default {@{quota="You['’]ve hit your (?:[\w'-]+ )*limit|You['’]ve reached your (?:[\w'-]+ )*limit|You['’]re out of (?:extra )?usage|usage limit reached|usage_limit_reached|out of extra usage|weekly limit reached";throttle='rate_limit_error|overloaded_error|\b429\b|\b529\b'}}
+    }
 }
-function Test-SBAgentErrorOutput([string]$Text) {
-    # A JSON envelope that reports an error even with exit 0 (claude is_error, gemini error object).
-    [bool]($Text -match '"is_error"\s*:\s*true|"error"\s*:\s*\{')
+function ConvertFrom-SBAgentRateLimitEvent([string]$Line) {
+    # Claude Code stream-json rate_limit_event (rate_limit_info.status allowed|allowed_warning|rejected, resetsAt epoch seconds, rateLimitType).
+    if(!$Line -or $Line -notmatch 'rate_limit_event'){return $null}
+    try{$o=$Line|ConvertFrom-Json -AsHashtable -Depth 32 -ErrorAction Stop}catch{return $null}
+    if($o -isnot [System.Collections.IDictionary] -or [string]$o['type'] -ne 'rate_limit_event'){return $null}
+    $info=if($o.Contains('rate_limit_info') -and $o.rate_limit_info -is [System.Collections.IDictionary]){$o.rate_limit_info}else{@{}}
+    $status=[string]$info['status']
+    $reset=$null;if($info.Contains('resetsAt') -and $info.resetsAt){try{$reset=[DateTimeOffset]::FromUnixTimeSeconds([long]$info.resetsAt).ToString('o')}catch{$reset=$null}}
+    [ordered]@{state=$(if($status -eq 'rejected'){'exhausted'}elseif($status -like 'allowed*'){'available'}else{'unknown'});status=$status;kind=[string]$info['rateLimitType'];resetAt=$reset}
 }
-Export-ModuleMember -Function @('Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentQuotaPattern','Test-SBAgentErrorOutput')
+function Get-SBAgentErrorText {
+    # The agent's error envelope only: Claude/Gemini result lines with is_error or an error status, Codex error and turn.failed events,
+    # a single JSON error object, a rejected rate_limit_event; plus the tail of standard error when the process exited non-zero.
+    # Assistant messages, tool output and the stderr of a timed-out or killed agent are left out, so a task that talks about quotas is not a quota stop.
+    param([string]$Provider,[string]$Output,[string]$ErrorOutput,$ExitCode)
+    $parts=[Collections.Generic.List[string]]::new()
+    foreach($line in @([string]$Output -split "`r?`n")){
+        $l=$line.Trim();if(!$l.StartsWith('{')){continue}
+        try{$o=$l|ConvertFrom-Json -AsHashtable -Depth 64 -ErrorAction Stop}catch{continue}
+        if($o -isnot [System.Collections.IDictionary]){continue}
+        $type=[string]$o['type']
+        $err=if($o.Contains('error')){$o.error}else{$null}
+        $errMsg=if($err -is [System.Collections.IDictionary]){(@($err['message'],$err['status'],$err['code'],$err['type'])|Where-Object {$_}) -join ' '}elseif($err -is [string]){$err}else{''}
+        switch -Regex ($type){
+            '^result$' {if(($o.Contains('is_error') -and [bool]$o.is_error) -or ($o.Contains('status') -and [string]$o.status -notin @('','success'))){$parts.Add(((@([string]$o['result'],[string]$o['subtype'],$errMsg))|Where-Object {$_}) -join ' ')}}
+            '^(error|turn\.failed)$' {$parts.Add($(if($errMsg){$errMsg}else{[string]$o['message']}))}
+            '^rate_limit_event$' {$r=ConvertFrom-SBAgentRateLimitEvent $l;if($r -and $r.state -eq 'exhausted'){$parts.Add('usage limit reached '+$r.kind)}}
+            '^$' {if($errMsg){$parts.Add($errMsg)}}
+        }
+    }
+    if($null -ne $ExitCode -and $ExitCode -ne 0 -and $ErrorOutput){$parts.Add(((@($ErrorOutput -split "`r?`n")|Where-Object {$_.Trim()}|Select-Object -Last 20) -join "`n"))}
+    ($parts|Where-Object {$_}) -join "`n"
+}
+function Get-SBAgentLimitState {
+    # quota (plan exhausted: stop the run), throttled (transient rate limit: go on) or $null, with the matching line as message.
+    param([string]$Provider,[string]$Output,[string]$ErrorOutput,$ExitCode)
+    $text=Get-SBAgentErrorText -Provider $Provider -Output $Output -ErrorOutput $ErrorOutput -ExitCode $ExitCode
+    if(!$text){return $null}
+    $p=Get-SBAgentLimitPatterns $Provider
+    foreach($kind in @('quota','throttle')){
+        $m=[regex]::Match($text,$p[$kind],[Text.RegularExpressions.RegexOptions]::IgnoreCase)
+        if($m.Success){
+            $line=@($text -split "`r?`n"|Where-Object {$_ -match [regex]::Escape($m.Value)}|Select-Object -First 1)[0]
+            return [ordered]@{state=$(if($kind -eq 'quota'){'quota'}else{'throttled'});match=$m.Value;message=([string]$line).Trim()}
+        }
+    }
+    $null
+}
+function Read-SBCodexRateLimits {
+    # The last rate_limits record Codex wrote in its session files (CODEX_HOME/sessions/yyyy/MM/dd/rollout-*.jsonl, newest first):
+    # primary (5 h) and secondary (weekly) windows with used_percent and resets_at. $null when no session of the last 8 days has one.
+    param([string]$CodexHome,[int]$Files=6)
+    if(!$CodexHome){$CodexHome=Split-Path -Parent (Get-SBAgentConfigPaths 'codex').config}
+    $sessions=Join-Path $CodexHome 'sessions'
+    if(!(Test-Path -LiteralPath $sessions -PathType Container)){return $null}
+    $since=(Get-Date).AddDays(-8)
+    $candidates=@(Get-ChildItem -LiteralPath $sessions -Recurse -File -Filter 'rollout-*.jsonl' -ErrorAction SilentlyContinue|Where-Object {$_.LastWriteTime -ge $since}|Sort-Object LastWriteTime -Descending|Select-Object -First $Files)
+    foreach($f in $candidates){
+        $hit=$null
+        try{$hit=@(Select-String -LiteralPath $f.FullName -Pattern '"rate_limits"\s*:\s*\{' -SimpleMatch:$false -ErrorAction Stop|Select-Object -Last 1)}catch{continue}
+        if(!$hit.Count){continue}
+        try{$o=$hit[0].Line|ConvertFrom-Json -AsHashtable -Depth 64 -DateKind String -ErrorAction Stop}catch{continue}
+        $limits=$null
+        foreach($node in @($o,$o['payload'],$(if($o['payload'] -is [System.Collections.IDictionary]){$o.payload['info']}))){if($node -is [System.Collections.IDictionary] -and $node.Contains('rate_limits')){$limits=$node.rate_limits;break}}
+        if($limits -isnot [System.Collections.IDictionary]){continue}
+        $windows=@()
+        foreach($name in @('primary','secondary')){
+            $w=$limits[$name];if($w -isnot [System.Collections.IDictionary]){continue}
+            $reset=$null;if($w['resets_at']){try{$reset=[DateTimeOffset]::FromUnixTimeSeconds([long]$w.resets_at)}catch{$reset=$null}}
+            $windows+=,[ordered]@{name=$name;usedPercent=[double]$w['used_percent'];windowMinutes=$w['window_minutes'];resetAt=$(if($reset){$reset.ToString('o')}else{$null})}
+        }
+        $observed=if($o['timestamp']){[string]$o.timestamp}else{([DateTimeOffset]$f.LastWriteTimeUtc).ToString('o')}
+        return [ordered]@{observedAt=$observed;file=$f.FullName;windows=$windows}
+    }
+    $null
+}
+function ConvertTo-SBQuotaTime($Value) {
+    # Stored times are ISO strings; a DateTime from an older JSON read is accepted too.
+    if($Value -is [DateTimeOffset]){$Value}elseif($Value -is [datetime]){[DateTimeOffset]$Value}else{[DateTimeOffset]::Parse([string]$Value,[Globalization.CultureInfo]::InvariantCulture)}
+}
+function Get-SBAgentQuota {
+    # Quota read at the moment of use (never cached): available, exhausted (with resetAt) or unknown. Unknown never stops a run:
+    # the runner proceeds until the agent itself reports the limit. Sources: Codex session files; for Claude Code and Gemini CLI,
+    # which offer no headless usage read, the last observation the runner recorded (-Observation: rate_limit_event or a quota stop).
+    param([Parameter(Mandatory)][string]$Provider,[string]$CodexHome,$Observation,[DateTimeOffset]$Now=[DateTimeOffset]::UtcNow)
+    $result=[ordered]@{provider=$Provider;state='unknown';resetAt=$null;source='none';observedAt=$null;windows=@()}
+    if($Provider -eq 'codex'){
+        $r=Read-SBCodexRateLimits -CodexHome $CodexHome
+        if($r){
+            $result.source='codex-session';$result.observedAt=$r.observedAt;$result.windows=@($r.windows)
+            $current=@($r.windows|Where-Object {$_.resetAt -and (ConvertTo-SBQuotaTime $_.resetAt) -gt $Now})
+            $full=@($current|Where-Object {$_.usedPercent -ge 100})
+            if($full.Count){$result.state='exhausted';$result.resetAt=@($full|Sort-Object {(ConvertTo-SBQuotaTime $_.resetAt)} -Descending)[0].resetAt}
+            elseif($current.Count){$result.state='available'}
+        }
+        return $result
+    }
+    if($Observation -and $Observation.observedAt){
+        $result.source='runner-observation';$result.observedAt=[string]$Observation.observedAt
+        $age=($Now-(ConvertTo-SBQuotaTime $Observation.observedAt)).TotalMinutes
+        $reset=if($Observation.resetAt){(ConvertTo-SBQuotaTime $Observation.resetAt)}else{$null}
+        if($Observation.state -eq 'exhausted' -and $reset -and $reset -gt $Now){$result.state='exhausted';$result.resetAt=$reset.ToString('o')}
+        elseif($Observation.state -eq 'available' -and $age -le 60){$result.state='available';$result.resetAt=$(if($reset){$reset.ToString('o')})}
+    }
+    $result
+}
+Export-ModuleMember -Function @('Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentLimitPatterns','ConvertFrom-SBAgentRateLimitEvent','Get-SBAgentErrorText','Get-SBAgentLimitState','Read-SBCodexRateLimits','Get-SBAgentQuota')

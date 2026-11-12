@@ -312,8 +312,26 @@ Add-SBMessages @{
     'home.step.inactive' = @{ it = 'Postazione non attivata. Usa `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -PreviewOnly -Interactive` per vedere le opzioni. Per il team aggiungi `-TeamRoot <UNC>`. Per una configurazione guidata usa `sb setup` (SYS17). Per attivare, usa `-Setup -Interactive` e, in modalità team, imposta prima `SECONDBRAIN_STATE_ROOT` su un disco fisso locale.'; en = 'Workstation not activated. Run `pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -PreviewOnly -Interactive` to review your options. For team setup, add `-TeamRoot <UNC>`. For a guided setup use `sb setup` (SYS17). To activate, use `-Setup -Interactive` and, in team mode, set `SECONDBRAIN_STATE_ROOT` to a directory on a fixed local drive first.' }
     'home.step.norepo' = @{ it = 'Postazione attivata. Indica il checkout corrente (`-RepositoryPath` o `repositoryPath`) per vedere lo stato del repository; intanto `sb controlla`.'; en = 'Workstation activated. Give the current checkout (`-RepositoryPath` or `repositoryPath`) to see the repository state; meanwhile `sb controlla`.' }
     'home.step.noidentity' = @{ it = 'La cartella non è un checkout Git con origin riconoscibile: apri il repository oppure indica un altro percorso.'; en = 'The folder is not a Git checkout with a recognizable origin: open the repository or give another path.' }
-    'home.step.unmanaged' = @{ it = 'Repository non gestito da questa postazione: `sb attiva` per aggiungerlo (anteprima, poi conferma).'; en = 'Repository not managed by this workstation: `sb attiva` to add it (preview, then confirm).' }
-    'home.step.ready' = @{ it = 'Carica il contesto con `sb prompt MEM06`, poi scegli il task con `sb prompt REP01`; a lavoro finito `sb prompt MEM03`.'; en = 'Load the context with `sb prompt MEM06`, then pick the task with `sb prompt REP01`; when the work is done `sb prompt MEM03`.' }
+    'home.step.unmanaged' = @{ it = 'Repository senza onboarding: funziona in modalità ridotta, a partire da `sb prompt MEM08`. L''onboarding è facoltativo: `sb attiva` per aggiungerlo (anteprima, poi conferma).'; en = 'Repository not onboarded: it works in reduced mode, starting with `sb prompt MEM08`. Onboarding is optional: `sb attiva` to add it (preview, then confirm).' }
+    'home.step.ready' = @{ it = 'Avvia con `sb prompt MEM08` (stato, allineamento, prossimi task), poi `sb prompt REP01` o `sb runner`; a lavoro finito `sb prompt MEM03`.'; en = 'Start with `sb prompt MEM08` (state, alignment, next tasks), then `sb prompt REP01` or `sb runner`; when the work is done `sb prompt MEM03`.' }
+    'home.location.line' = @{ it = 'Posizione: {0}'; en = 'Location: {0}' }
+    'home.location.secondbrain' = @{ it = 'checkout di SecondBrain (manutenzione e dossier di SecondBrain)'; en = 'SecondBrain checkout (maintenance and SecondBrain''s own dossier)' }
+    'home.location.repo-managed' = @{ it = 'repository gestito (dossier, tracker e runner disponibili)'; en = 'managed repository (dossier, tracker and runner available)' }
+    'home.location.repo-unmanaged' = @{ it = 'repository senza onboarding (modalità ridotta)'; en = 'repository not onboarded (reduced mode)' }
+    'home.location.none' = @{ it = 'nessun progetto (cartella fuori da un checkout Git)'; en = 'no project (folder outside a Git checkout)' }
+    'home.step.none' = @{ it = 'Fuori da un progetto valgono solo i comandi di attivazione e manutenzione di SecondBrain. Per lavorare su un progetto apri il suo checkout e ripeti `sb prompt`.'; en = 'Outside a project only the SecondBrain activation and maintenance commands apply. To work on a project open its checkout and run `sb prompt` again.' }
+    'home.step.secondbrain' = @{ it = 'Checkout di SecondBrain: avvio con `sb prompt MEM08`, poi `sb controlla` per l''allineamento della postazione e i task del dossier di SecondBrain con `sb prompt REP01`.'; en = 'SecondBrain checkout: start with `sb prompt MEM08`, then `sb controlla` for the workstation alignment and the SecondBrain dossier tasks with `sb prompt REP01`.' }
+    'home.degraded' = @{ it = 'Senza onboarding non sono disponibili: contesto e memoria all''avvio (knowledge.ps1 -Startup), tracker e task pronti nei prossimi passi, runner e Orchestrator, rapporti di passaggio MEM03 e ripresa MEM07 dal runner, scritture di memoria e tracker, allineamento del blocco gestito di AGENTS.md (sb allinea), fonti autorevoli applicabili, compattazione SYS05, -Check di questo repository. Restano disponibili: home, elenco e schede dei prompt, composizione senza dossier, prompt basati su codice e Git.'; en = 'Without onboarding these are not available: startup context and memory (knowledge.ps1 -Startup), tracker and ready tasks in the next steps, runner and Orchestrator, MEM03 handoff reports and the runner resume MEM07, memory and tracker writes, sync of the managed AGENTS.md block (sb allinea), applicable authoritative sources, SYS05 compaction, -Check of this repository. Still available: home, prompt list and cards, composition without a dossier, code- and Git-based prompts.' }
+    'home.degraded.compose' = @{ it = 'Repository {0} senza onboarding: prompt composto senza dossier, nessun contesto, memoria o tracker di SecondBrain.'; en = 'Repository {0} not onboarded: prompt composed without a dossier, no SecondBrain context, memory or tracker.' }
+    'home.chain.title' = @{ it = 'CATENA INIZIALE STANDARD'; en = 'STANDARD STARTING CHAIN' }
+    'home.chain.start' = @{ it = '`sb prompt MEM08` — stato del repository, allineamento con SecondBrain se gestito, proposta dei prossimi task.'; en = '`sb prompt MEM08` — repository state, SecondBrain alignment when managed, proposed next tasks.' }
+    'home.chain.work' = @{ it = '`sb prompt REP01` per il task scelto, oppure `sb runner` per i task autonomi (modello e impegno chiesti in chat).'; en = '`sb prompt REP01` for the chosen task, or `sb runner` for the autonomous ones (model and effort asked in chat).' }
+    'home.chain.close' = @{ it = '`sb prompt MEM03` a lavoro finito: tracker, memoria e passaggio; ogni prompt termina proponendo prompt e task successivi.'; en = '`sb prompt MEM03` when the work is done: tracker, memory and handoff; every prompt ends by proposing the next prompts and tasks.' }
+    'home.chain.resume' = @{ it = 'Lavoro fermato da un limite d''uso (anche in un altro account): `sb prompt MEM07`.'; en = 'Work stopped by a usage limit (also in another account): `sb prompt MEM07`.' }
+    'home.chain.reduced' = @{ it = '`sb prompt CHIAVE: obiettivo` con i prompt di codice e Git (sviluppo, test, review, documentazione); tracker, runner e MEM03 richiedono l''onboarding. A fine lavoro proponi prompt e passi successivi.'; en = '`sb prompt CHIAVE: objective` with the code and Git prompts (develop, test, review, docs); tracker, runner and MEM03 need onboarding. When the work is done propose the next prompts and steps.' }
+    'home.chain.explore' = @{ it = '`sb prompt COM01` per conoscere il repository; onboarding facoltativo con `sb attiva` (SYS03).'; en = '`sb prompt COM01` to learn the repository; optional onboarding with `sb attiva` (SYS03).' }
+    'home.commands.repo' = @{ it = 'COMANDI PER IL REPOSITORY'; en = 'REPOSITORY COMMANDS' }
+    'home.commands.brain' = @{ it = 'ATTIVAZIONE E MANUTENZIONE DI SECONDBRAIN'; en = 'SECONDBRAIN ACTIVATION AND MAINTENANCE' }
     'home.catalog' = @{ it = 'Catalogo completo ({0} prompt in {1} aree, file Markdown): {2}'; en = 'Full catalog ({0} prompts in {1} areas, Markdown file): {2}' }
     'home.relpath' = @{ it = 'Percorso relativo alla radice SecondBrain: {0}'; en = 'Path relative to the SecondBrain root: {0}' }
     'home.twoways' = @{ it = 'Due modi di usare SecondBrain: in chat (comando `sb`, negli IDE e agent supportati) o da script (stesso risultato, comando PowerShell).'; en = 'Two ways to use SecondBrain: in chat (`sb` command, in supported IDEs and agents) or from a script (same result, PowerShell command).' }
@@ -389,17 +407,17 @@ function Get-SBWorkflowIndexPath([string]$Language) {
 # `sb` command registry: single source for the home screen.
 function Get-SBWorkflowCommands {
     @(
-        @{command='sb prompt';does=(Get-SBWorkflowMessage 'cmd.prompt');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1'},
-        @{command='sb prompt list';does=(Get-SBWorkflowMessage 'cmd.list');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -List -Compact'},
-        @{command='sb prompt ambito AREA';does=(Get-SBWorkflowMessage 'cmd.scope');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -List -Category AREA'},
-        @{command='sb prompt mostra CHIAVE';does=(Get-SBWorkflowMessage 'cmd.show');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -Show -Prompt CODICE'},
-        @{command='sb prompt CHIAVE: obiettivo';does=(Get-SBWorkflowMessage 'cmd.compose');mode=(Get-SBWorkflowMessage 'mode.card');script='scripts/prompts.ps1 -Compose -Prompt CODICE -Objective TESTO'},
-        @{command='sb attiva';does=(Get-SBWorkflowMessage 'cmd.activate');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Setup -Interactive'},
-        @{command='sb setup';does=(Get-SBWorkflowMessage 'cmd.setup');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/setup-status.ps1'},
-        @{command='sb controlla';does=(Get-SBWorkflowMessage 'cmd.check');mode=(Get-SBWorkflowMessage 'mode.verify');script='scripts/secondbrain.ps1 -Check'},
-        @{command='sb allinea';does=(Get-SBWorkflowMessage 'cmd.sync');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Sync'},
-        @{command='sb compatta';does=(Get-SBWorkflowMessage 'cmd.compact');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/knowledge.ps1 -Compact -CandidatePath FILE'},
-        @{command='sb runner';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner.ps1'}
+        @{command='sb prompt';scope='repository';does=(Get-SBWorkflowMessage 'cmd.prompt');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1'},
+        @{command='sb prompt list';scope='repository';does=(Get-SBWorkflowMessage 'cmd.list');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -List -Compact'},
+        @{command='sb prompt ambito AREA';scope='repository';does=(Get-SBWorkflowMessage 'cmd.scope');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -List -Category AREA'},
+        @{command='sb prompt mostra CHIAVE';scope='repository';does=(Get-SBWorkflowMessage 'cmd.show');mode=(Get-SBWorkflowMessage 'mode.read');script='scripts/prompts.ps1 -Show -Prompt CODICE'},
+        @{command='sb prompt CHIAVE: obiettivo';scope='repository';does=(Get-SBWorkflowMessage 'cmd.compose');mode=(Get-SBWorkflowMessage 'mode.card');script='scripts/prompts.ps1 -Compose -Prompt CODICE -Objective TESTO'},
+        @{command='sb attiva';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.activate');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Setup -Interactive'},
+        @{command='sb setup';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.setup');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/setup-status.ps1'},
+        @{command='sb controlla';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.check');mode=(Get-SBWorkflowMessage 'mode.verify');script='scripts/secondbrain.ps1 -Check'},
+        @{command='sb allinea';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.sync');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Sync'},
+        @{command='sb compatta';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.compact');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/knowledge.ps1 -Compact -CandidatePath FILE'},
+        @{command='sb runner';scope='repository';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner.ps1'}
     )
 }
 
@@ -465,7 +483,11 @@ function Get-SBWorkflowState([string]$BrainRoot, [string]$RepositoryPath) {
         $full=[IO.Path]::GetFullPath($RepositoryPath);Assert-SBPlainPath $full
         $identity=$null
         if(Test-Path -LiteralPath $full -PathType Container){$identity=try{Resolve-SBWorkingRepository $full $bindings}catch{$null}}
-        $state.repository=[ordered]@{path=$full;identity=$identity;managed=[bool]($identity -and @($bindings|Where-Object {$_.identity -ceq $identity}).Count -gt 0)}
+        $top=if(Test-Path -LiteralPath $full -PathType Container){Invoke-SBGit $full @('rev-parse','--show-toplevel')}else{@{code=1;output=$null}}
+        $root=if($top.code -eq 0 -and $top.output){[IO.Path]::GetFullPath(([string]$top.output).Trim())}else{$null}
+        $managed=[bool]($identity -and @($bindings|Where-Object {$_.identity -ceq $identity}).Count -gt 0)
+        $location=if(!$root){'none'}elseif([string]::Equals($root.TrimEnd('\','/'),$brain.TrimEnd('\','/'),[StringComparison]::OrdinalIgnoreCase)){'secondbrain'}elseif($managed){'repo-managed'}else{'repo-unmanaged'}
+        $state.repository=[ordered]@{path=$full;root=$root;identity=$identity;managed=$managed;location=$location}
     }
     $state
 }
@@ -473,9 +495,24 @@ function Get-SBWorkflowState([string]$BrainRoot, [string]$RepositoryPath) {
 function Get-SBWorkflowNextStep($State) {
     if(!$State.activated){return (Get-SBWorkflowMessage 'home.step.inactive')}
     if(!$State.repository){return (Get-SBWorkflowMessage 'home.step.norepo')}
+    $location=if($State.repository.Contains('location')){$State.repository.location}else{$null}
+    if($location -eq 'none'){return (Get-SBWorkflowMessage 'home.step.none')}
+    if($location -eq 'secondbrain'){return (Get-SBWorkflowMessage 'home.step.secondbrain')}
     if(!$State.repository.identity){return (Get-SBWorkflowMessage 'home.step.noidentity')}
     if(!$State.repository.managed){return (Get-SBWorkflowMessage 'home.step.unmanaged')}
     Get-SBWorkflowMessage 'home.step.ready'
+}
+
+# Standard starting chain for the location: start (MEM08), work, close, resume; a repository not onboarded starts by exploring it.
+function Get-SBWorkflowStartChain($State) {
+    $location=if($State -and $State.repository -and $State.repository.Contains('location')){$State.repository.location}else{$null}
+    if(!$location -or $location -eq 'none'){return @()}
+    $steps=@((Get-SBWorkflowMessage 'home.chain.start'))
+    if($location -eq 'repo-unmanaged'){$steps+=(Get-SBWorkflowMessage 'home.chain.explore')}
+    if($location -eq 'repo-unmanaged'){$steps+=(Get-SBWorkflowMessage 'home.chain.reduced')}
+    else{$steps+=@((Get-SBWorkflowMessage 'home.chain.work'),(Get-SBWorkflowMessage 'home.chain.close'))}
+    if($location -ne 'repo-unmanaged'){$steps+=(Get-SBWorkflowMessage 'home.chain.resume')}
+    $steps
 }
 
 function Format-SBWorkflowHome([string]$BrainRoot, $Catalog, $State=$null) {
@@ -491,15 +528,28 @@ function Format-SBWorkflowHome([string]$BrainRoot, $Catalog, $State=$null) {
         if($State.repository){
             $repositoryLabel=if($State.repository.identity){$State.repository.identity+$(if($State.repository.managed){Get-SBWorkflowMessage 'home.repo.managed'}else{Get-SBWorkflowMessage 'home.repo.unmanaged'})}else{Get-SBWorkflowMessage 'home.repo.noidentity'}
             $lines+=('- '+(Get-SBWorkflowMessage 'home.repo.line' @($repositoryLabel,($State.repository.path -replace '\\','/'))))
+            if($State.repository.Contains('location')){$lines+=('- '+(Get-SBWorkflowMessage 'home.location.line' @((Get-SBWorkflowMessage ('home.location.'+$State.repository.location)))))}
         }
         $lines+=@('',(Get-SBWorkflowMessage 'home.next'),('- '+(Get-SBWorkflowNextStep $State)),'')
+        $chain=@(Get-SBWorkflowStartChain $State)
+        if($chain.Count){
+            $lines+=@((Get-SBWorkflowMessage 'home.chain.title'))
+            $n=0;foreach($s in $chain){$n++;$lines+=($n.ToString()+'. '+$s)}
+            $lines+=''
+        }
+        if($State.repository -and $State.repository.Contains('location') -and $State.repository.location -eq 'repo-unmanaged'){$lines+=@((Get-SBWorkflowMessage 'home.degraded'),'')}
     }
     $lines+=@((Get-SBWorkflowMessage 'home.catalog' @(@($Catalog.prompts).Count,$areas,($index -replace '\\','/'))),
         (Get-SBWorkflowLegend),
         (Get-SBWorkflowMessage 'home.relpath' @($indexPath)),'',
-        (Get-SBWorkflowMessage 'home.twoways'),'',
-        (Get-SBWorkflowMessage 'home.table.commands'),'|---|---|---|---|')
-    foreach($command in Get-SBWorkflowCommands){$lines+=('| `'+$command.command+'` | '+$command.does+' | '+$command.mode+' | `'+$command.script+'` |')}
+        (Get-SBWorkflowMessage 'home.twoways'))
+    # Two groups: commands for the repository you are in, and SecondBrain activation and maintenance; outside a project and in SecondBrain the latter come first.
+    $groups=@(@{scope='repository';title='home.commands.repo'},@{scope='secondbrain';title='home.commands.brain'})
+    if($State -and $State.repository -and $State.repository.Contains('location') -and $State.repository.location -in @('none','secondbrain')){[array]::Reverse($groups)}
+    foreach($g in $groups){
+        $lines+=@('',(Get-SBWorkflowMessage $g.title),'',(Get-SBWorkflowMessage 'home.table.commands'),'|---|---|---|---|')
+        foreach($command in @(Get-SBWorkflowCommands|Where-Object {$_.scope -eq $g.scope})){$lines+=('| `'+$command.command+'` | '+$command.does+' | '+$command.mode+' | `'+$command.script+'` |')}
+    }
     if($State -and $State.activated){
         $lines+=@('',(Get-SBWorkflowMessage 'home.flow.title'),'',(Get-SBWorkflowMessage 'home.flow.table'),'|---|---|---|---|')
         $number=0
@@ -647,7 +697,7 @@ function Get-SBWorkflowNextProposals([string]$BrainRoot,$Catalog,$Prompt,$Contex
 }
 
 # Composed prompt: one XML-structured document. Mapping to CO-STAR: task=Objective, context=Context, role=Audience+Style, constraints=Style+Tone, output_format=Response.
-function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,[string]$Objective,[switch]$Standalone) {
+function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,[string]$Objective,[switch]$Standalone,[string]$Degraded) {
     if(!$Standalone -and $Prompt.target -eq 'central' -and (@($Context.repositories).Count -ne 1 -or [IO.Path]::GetFullPath($Context.repositories[0].checkout) -ne [IO.Path]::GetFullPath($BrainRoot))){
         $suggested=if(@($Context.repositories).Count -eq 1 -and $Context.repositories[0].identity){[string]$Context.repositories[0].identity}else{'<identity>'}
         throw (New-SBError 'prompts.central.noswitch' @($suggested))
@@ -659,6 +709,8 @@ function New-SBWorkflowComposition([string]$BrainRoot,$Catalog,$Prompt,$Context,
     $lines=@(('<prompt code="'+$Prompt.code+'" id="'+$Prompt.id+'" mode="'+$Prompt.mode+'" target="'+$Prompt.target+'" language="'+$language+'">'),
         '<task>',$(if($Objective){$Objective}else{$T.requestDefault}),'</task>',
         '<context>',(Get-SBWorkflowField $Prompt 'summary'),'',$tags['context'],'',$T.localNote)
+    # Reduced mode: a repository without onboarding is composed without a dossier and the missing functions are stated, not failed.
+    if($Degraded){$lines+=@('','<degraded>',$Degraded,'</degraded>')}
     foreach($record in $Context.repositories){
         $lines+=@('',('Repository: '+$record.identity),('Checkout: '+$record.checkout),($T.read+': '+$record.agents),($T.context+': '+$record.context),($T.memory+': '+$record.memory))
         if($record.tracker){$lines+='Tracker: '+$record.tracker+' ('+$T.trackerSource+': '+$record.trackerSource+')'}
@@ -698,7 +750,7 @@ Export-ModuleMember -Function @(
     'Get-SBWorkflowGuides',
     'Get-SBWorkflowFirstSteps',
     'Get-SBWorkflowProductFlow',
-    'Get-SBWorkflowState',
+    'Get-SBWorkflowState','Get-SBWorkflowMessage','Get-SBWorkflowStartChain',
     'Format-SBWorkflowHome',
     'New-SBWorkflowIndex',
     'Get-SBWorkflowDrift',

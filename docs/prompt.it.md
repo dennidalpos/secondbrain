@@ -1,6 +1,6 @@
 # Prompt
 
-116 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+118 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list
@@ -10,6 +10,14 @@ sb prompt DEV01: aggiungi l'esportazione in PDF
 ```
 
 Elenco completo: [catalogo](../direttive/prompts/README.it.md) ([English](../direttive/prompts/README.md)). I prompt che gestiscono SecondBrain stesso (aree `system`, `knowledge`, `maintenance`) sono nella stessa lista.
+
+## Dove sei
+
+`sb prompt` (`scripts/prompts.ps1`) legge la cartella corrente e ne indica la posizione: **repository gestito** (dossier, tracker e runner disponibili), **repository senza onboarding** (modalità ridotta), **checkout di SecondBrain** o **nessun progetto** (fuori da un checkout Git). La home mostra poi due gruppi di comandi, **comandi per il repository** e **attivazione e manutenzione di SecondBrain**, con la manutenzione in testa nel checkout di SecondBrain e fuori da un progetto.
+
+**Catena iniziale standard:** `sb prompt MEM08` (stato del repository, allineamento con SecondBrain se gestito, prossimi task proposti), poi `sb prompt REP01` o `sb runner`, e `sb prompt MEM03` a lavoro finito; `sb prompt MEM07` riprende il lavoro fermato da un limite d'uso, anche da un altro account. Ogni prompt composto termina con `<next_steps>`: da due a quattro prompt e task pronti successivi, proposti come scelta multipla.
+
+**Senza onboarding** un repository funziona comunque: i prompt di repository si compongono senza dossier e riportano un blocco `<degraded>`. Non sono disponibili: contesto e memoria all'avvio, tracker e task pronti nei prossimi passi, runner e Orchestrator, rapporti di passaggio MEM03 e ripresa del runner, scritture di memoria e tracker, allineamento del blocco gestito di `AGENTS.md`, fonti autorevoli applicabili, compattazione SYS05 e `-Check` di quel repository. I prompt centrali e le scritture MEM/SYS richiedono comunque un dossier. L'onboarding resta facoltativo (`sb attiva`, SYS03).
 
 ## Come è fatta una scheda
 
@@ -49,7 +57,7 @@ I prompt sono raggruppati per area di sviluppo o necessità, non per prefisso de
 | `docs` | Documentazione | DOC01, DOC02, DOC03, DOC04 |
 | `operations` | Rilascio e operatività | OPS01, OPS02, OPS03, OPS04, OPS06, OPS07 |
 | `git` | Git e GitHub | OPS05, REP04, REP11, REP12, REP13, REP14 |
-| `backlog` | Backlog, memoria e continuità | MEM01, MEM02, MEM03, MEM06, REP01, REP08, REP15, REP16, REP17, SYS13 |
+| `backlog` | Backlog, memoria e continuità | MEM01, MEM02, MEM03, MEM06, MEM07, MEM08, REP01, REP08, REP15, REP16, REP17, SYS13 |
 | `web` | Siti e applicazioni web | WEB01, WEB02, WEB03, WEB04, WEB05, WEB06, WEB07, WEB08, WEB09 |
 | `ai` | AI e funzioni basate su modelli linguistici | AIS01, AIS02, AIS03, AIS04, AIS05, AIS06, AIS07, AIS08, AIS09, DEV12 |
 

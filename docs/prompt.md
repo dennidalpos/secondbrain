@@ -2,7 +2,7 @@
 
 [Retained Italian source; use this English page for current behavior](prompt.it.md)
 
-The catalog contains 116 prompt cards in 17 categories, in two groups (current repository and central SecondBrain). The reference cards are in English, with Italian counterparts under `direttive/prompts/it/`.
+The catalog contains 118 prompt cards in 17 categories, in two groups (current repository and central SecondBrain). The reference cards are in English, with Italian counterparts under `direttive/prompts/it/`.
 
 ~~~text
 sb prompt list
@@ -12,6 +12,14 @@ sb prompt DEV01: add PDF export
 ~~~
 
 See the generated [English catalog](../direttive/prompts/README.md) or [Italian catalog](../direttive/prompts/README.it.md). Memory and central maintenance prompts belong to the same list.
+
+## Where you are
+
+`sb prompt` (`scripts/prompts.ps1`) reads the current folder and names its location: a **managed repository** (dossier, tracker and runner available), a **repository not onboarded** (reduced mode), the **SecondBrain checkout**, or **no project** (outside a Git checkout). The home screen then shows two command groups, **repository commands** and **SecondBrain activation and maintenance**, with the maintenance group first in the SecondBrain checkout and outside a project.
+
+**Standard starting chain:** `sb prompt MEM08` (repository state, SecondBrain alignment when managed, proposed next tasks), then `sb prompt REP01` or `sb runner`, and `sb prompt MEM03` when the work is done; `sb prompt MEM07` resumes work stopped by a usage limit, also from another account. Every composed prompt ends with `<next_steps>`: two to four next prompts and ready tasks, proposed as a multiple choice.
+
+**Without onboarding** a repository still works: repository prompts are composed without a dossier and carry a `<degraded>` block. Not available: startup context and memory, tracker and ready tasks in the next steps, runner and Orchestrator, MEM03 handoff reports and the runner resume, memory and tracker writes, sync of the managed `AGENTS.md` block, applicable authoritative sources, SYS05 compaction and `-Check` of that repository. Central prompts and MEM/SYS writes still need a dossier. Onboarding stays optional (`sb attiva`, SYS03).
 
 ## Card structure
 
@@ -49,7 +57,7 @@ Prompts are grouped by development area or need, not by code prefix. A repositor
 | `docs` | Documentation | DOC01, DOC02, DOC03, DOC04 |
 | `operations` | Release and operations | OPS01, OPS02, OPS03, OPS04, OPS06, OPS07 |
 | `git` | Git and GitHub | OPS05, REP04, REP11, REP12, REP13, REP14 |
-| `backlog` | Backlog, memory and continuity | MEM01, MEM02, MEM03, MEM06, REP01, REP08, REP15, REP16, REP17, SYS13 |
+| `backlog` | Backlog, memory and continuity | MEM01, MEM02, MEM03, MEM06, MEM07, MEM08, REP01, REP08, REP15, REP16, REP17, SYS13 |
 | `web` | Websites and web apps | WEB01, WEB02, WEB03, WEB04, WEB05, WEB06, WEB07, WEB08, WEB09 |
 | `ai` | AI and language-model features | AIS01, AIS02, AIS03, AIS04, AIS05, AIS06, AIS07, AIS08, AIS09, DEV12 |
 

@@ -35,7 +35,7 @@ flowchart LR
 
 ## 1. Architettura dei Workflow e Catalogo Prompts
 
-I prompt di SecondBrain sono una lista unica: metadati in `catalog.json`, una scheda Markdown inglese per prompt (`direttive/prompts/<CODICE>.md`), la traduzione italiana in `direttive/prompts/it/<CODICE>.md` e due indici generati (`README.md`, `README.it.md`). Il catalogo conta 116 prompt in 17 aree tematiche; le aree `memory` (MEM) e `system` (SYS) contengono i prompt che gestiscono SecondBrain stesso. Non esistono pacchetti, alias, deprecazioni o stati: i codici sono identificatori stabili, mai riusati, e un prompt superato si rimuove (restano vuoti nella numerazione).
+I prompt di SecondBrain sono una lista unica: metadati in `catalog.json`, una scheda Markdown inglese per prompt (`direttive/prompts/<CODICE>.md`), la traduzione italiana in `direttive/prompts/it/<CODICE>.md` e due indici generati (`README.md`, `README.it.md`). Il catalogo conta 118 prompt in 17 aree tematiche; le aree `memory` (MEM) e `system` (SYS) contengono i prompt che gestiscono SecondBrain stesso. Non esistono pacchetti, alias, deprecazioni o stati: i codici sono identificatori stabili, mai riusati, e un prompt superato si rimuove (restano vuoti nella numerazione).
 
 Il caricamento è selettivo: l'elenco legge solo i metadati; `-Show` e `-Compose` caricano la sola scheda richiesta. La build valida tutte le schede prima di generare gli indici. Una riga dell'elenco è lunga al massimo 88 caratteri.
 

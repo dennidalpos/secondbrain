@@ -9,7 +9,8 @@ prints its preview (scripts/run-ready-tasks.ps1 without -Run: nothing runs and n
 runner and reports its failure; -Mode cli prints only the command-line preview.
 The repository is the Git root of -RepositoryPath (default: the current directory), so a prompt started inside a product checkout
 opens that product's dossier, tracker and ready tasks. The JSON on standard output names the mode used, the reason of a fallback and,
-for the command line, the preview and the next command (the run itself starts only after the person confirms it, see REP15).
+for the command line, the preview, the choices read now (models, efforts and quota of each ready agent) and the next command with
+-Provider/-Model/-Effort placeholders: the run starts only after the person picks model and effort in chat (see REP15).
 Exit codes: 0 runner opened or preview shown, 2 gui mode failed or the preview failed.
 #>
 [CmdletBinding()]
@@ -55,6 +56,13 @@ if($Mode -ne 'cli'){
 [Console]::Error.WriteLine((Get-SBMessage 'runner.mode.cli' @($repository)))
 $preview=Invoke-RunnerScript 'run-ready-tasks.ps1' (@('-CheckoutPath',$repository,'-MaxTasks','0')+$configArgs)
 $result.mode='cli';$result.preview=$preview.data
-$result.next='pwsh -NoProfile -File "'+(Join-Path $PSScriptRoot 'run-ready-tasks.ps1')+'" -CheckoutPath "'+$repository+'" -Run -Events'
+# Choices read now, never cached: models and efforts from the installed CLIs and the quota of each ready agent. The agent asks the person
+# which model and effort to use (multiple-choice question, REP15) and only then fills the placeholders of the next command.
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.AgentAdapters.psm1')
+$result.choices=@(Get-SBAgentCapabilitiesAll|Where-Object {$_.status -eq 'ready'}|ForEach-Object {
+    $a=$_
+    [ordered]@{provider=$a.provider;name=$a.name;models=@($a.models|ForEach-Object {$_.id});efforts=@($a.efforts|ForEach-Object {$_.id});configured=$a.configured;supports=$a.supports;quota=(Get-SBAgentQuota -Provider $a.provider)}
+})
+$result.next='pwsh -NoProfile -File "'+(Join-Path $PSScriptRoot 'run-ready-tasks.ps1')+'" -CheckoutPath "'+$repository+'" -Provider <provider> -Model <model> -Effort <effort> -Run -Events'
 ConvertTo-SBJson $result
 exit $(if($preview.code -eq 0){0}else{2})
