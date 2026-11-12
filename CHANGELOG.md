@@ -2,7 +2,12 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.0.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.1.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.1.0] - 2026-11-12
+
+### Aggiunto
+- Comando `sb runner` (`scripts/runner-gui.ps1`): apre il runner desktop `app/orchestrator` su Windows, macOS e Linux e lo compila prima con `npm run tauri build -- --no-bundle` quando il binario manca o è più vecchio dei sorgenti; `-Rebuild` forza la compilazione, `-NoLaunch` e `-WhatIf` non avviano l'app. Fase `runner-gui` in `-Only runner`.
 
 ## [2.0.0] - 2026-11-12
 

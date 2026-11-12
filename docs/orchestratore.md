@@ -17,6 +17,20 @@ flowchart LR
   A -->|approve-revision.ps1 + secondbrain.ps1 -Sync| D[AGENTS.md managed block]
 ```
 
+## Quick start
+
+In the chat, `sb runner`; from a script, from the SecondBrain clone root:
+
+```bash
+pwsh -NoProfile -File scripts/runner-gui.ps1
+```
+
+The script opens the app on Windows, macOS and Linux. It first builds the app with `npm run tauri build -- --no-bundle` (and `npm ci` when `node_modules` is missing) if `src-tauri/target/release/secondbrain-orchestrator` (`.exe` on Windows) is missing or older than the newest of `src/**`, `index.html`, `package.json`, `package-lock.json`, `src-tauri/src/**`, `Cargo.toml` and `tauri.conf.json`. The build needs `npm` and `cargo` on the `PATH` (see Requirements); on Linux also the WebKitGTK libraries listed below. The app starts detached with `SECONDBRAIN_HOME` set to the clone; on macOS and Linux its output goes to `.runtime/hosts/<host>/logs/runner-gui.log`.
+
+- `-Rebuild` forces the build, `-NoLaunch` builds when needed without starting the app, `-WhatIf` builds and starts nothing and reports the decision.
+- Standard output carries a JSON summary (`reason`: `current`, `stale`, `missing` or `forced`; `built`; `launched`). Exit 2 means a missing prerequisite or binary, exit 3 a failed build.
+- On Linux: `sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf`.
+
 ## Requirements
 
 - PowerShell 7.5+ (`pwsh`) and a SecondBrain checkout. The app finds the checkout through the Settings tab, then `SECONDBRAIN_HOME`, then the checkout it was built from.

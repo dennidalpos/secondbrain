@@ -389,6 +389,30 @@ $r|ConvertTo-Json -Compress
     $orchMain=Get-Content -LiteralPath (Join-Path $PSScriptRoot '..\app\orchestrator\src\main.ts') -Raw
     Assert-Runner ($orchMain -match 'state\.selected\s*=\s*new Set<string>\(\);' -and $orchMain -notmatch 'state\.selected\s*=\s*new Set\(state\.tasks') 'orchestrator queue preselects no task'
     Close-RunnerPhase 'orchestrator'
+    # runner-gui.ps1 (sb runner): binary path and rebuild decision on a fake app with a fake binary; -WhatIf/-NoLaunch, never a real build.
+    $guiApp=Join-Path $fixture 'gui-app'
+    $guiBin=Join-Path $guiApp ('src-tauri/target/release/secondbrain-orchestrator'+$(if($IsWindows){'.exe'}else{''}))
+    foreach($f in 'src/main.ts','index.html','package.json','package-lock.json','src-tauri/src/main.rs','src-tauri/Cargo.toml','src-tauri/tauri.conf.json'){Put-Runner (Join-Path $guiApp $f) 'x'}
+    $past=[DateTime]::UtcNow.AddHours(-2)
+    Get-ChildItem -LiteralPath $guiApp -Recurse -File|ForEach-Object {$_.LastWriteTimeUtc=$past}
+    $guiScript=Join-Path $PSScriptRoot 'runner-gui.ps1'
+    function Invoke-Gui([string[]]$GuiArguments){$t=(& pwsh -NoProfile -File $guiScript -AppPath $guiApp @GuiArguments 2>&1|Out-String);$i=$t.IndexOf('{');@{code=$LASTEXITCODE;text=$t;data=$(if($i -ge 0){$t.Substring($i)|ConvertFrom-Json -AsHashtable}else{$null})}}
+    $g=Invoke-Gui @('-WhatIf')
+    Assert-Runner ($g.code -eq 0 -and $g.data.reason -eq 'missing' -and $g.data.build -and !$g.data.built -and !$g.data.launched -and $g.data.binary -eq $guiBin) ('runner-gui: a missing binary needs a build: '+$g.text)
+    Put-Runner $guiBin 'fake binary'
+    $g=Invoke-Gui @('-WhatIf')
+    Assert-Runner ($g.code -eq 0 -and $g.data.reason -eq 'current' -and !$g.data.build) ('runner-gui: a binary newer than its sources is current: '+$g.text)
+    $g=Invoke-Gui @('-NoLaunch')
+    Assert-Runner ($g.code -eq 0 -and $g.data.reason -eq 'current' -and !$g.data.built -and !$g.data.launched) ('runner-gui -NoLaunch on a current binary does nothing: '+$g.text)
+    $g=Invoke-Gui @('-WhatIf','-Rebuild')
+    Assert-Runner ($g.data.reason -eq 'forced' -and $g.data.build) '-Rebuild forces the build'
+    (Get-Item -LiteralPath (Join-Path $guiApp 'src-tauri/src/main.rs')).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(1)
+    $g=Invoke-Gui @('-WhatIf')
+    Assert-Runner ($g.data.reason -eq 'stale' -and $g.data.newestSource -eq 'src-tauri/src/main.rs') ('runner-gui: a newer Rust source makes the binary stale: '+$g.text)
+    $savedPath=$env:PATH
+    try{$env:PATH='';$g=(& (Get-Process -Id $PID).Path -NoProfile -File $guiScript -AppPath $guiApp -NoLaunch 2>&1|Out-String);$gcode=$LASTEXITCODE}finally{$env:PATH=$savedPath}
+    Assert-Runner ($gcode -eq 2 -and $g -match 'orchestratore') ('runner-gui without npm/cargo stops with exit 2 and the guide: '+$g)
+    Close-RunnerPhase 'runner-gui'
     $realAfter=Get-RealTrackerHashes
     # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session
     # itself): a plain before/after hash comparison failed intermittently (#460). The guard checks the actual risk instead: every real tracker
