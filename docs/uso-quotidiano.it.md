@@ -24,6 +24,7 @@ flowchart LR
 | `sb attiva` | Aggiunge progetti o agenti |
 | `sb compatta` | Accorcia gli appunti di un progetto, conservando gli originali |
 | `sb runner` | Esegue i task pronti del repository corrente dall'app desktop o dalla riga di comando |
+| `sb stop` | Ferma l'agente, salva la sessione nel dossier e la riprende da un altro IDE o account con `sb prompt MEM07` (MEM09) |
 
 I passi in ordine, in chat e da script, sono nel [flusso per prodotto](flusso-prodotto.md).
 

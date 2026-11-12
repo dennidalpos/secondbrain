@@ -25,11 +25,12 @@ Use from SecondBrain, even before local configuration, via `sb attiva`. It prepa
 3. Show coverage, checkouts, IDE profiles and environments. If both roots have an active dossier for the same identity, present both paths and the checkout. Compare with the actual code before agreeing on consolidation.
 4. Use `-Setup -Interactive` to review and activate in one run. Confirm with `APPLICA` only after reviewing the plan. Alternatively, pass `-Roots`, `-Select`, `-Ides` and `-ApproveExistingBlocks` as needed, and use `-Yes -Apply` for the approved scope.
 5. Review the receipt for the registered `SECONDBRAIN_HOME`, deployed approved directives and MCP configuration for the selected IDEs.
+6. Tracker of each newly activated repository. Binding `tracker-import-required` (the checkout has its own `tracker.json`, `tasks.json`, `legacy-tasks.json` or `tracker.md`): preview `scripts/import-tracker.ps1 -Repository <identity> -SourcePath <file>`, show kept IDs, mapped statuses and `unknown` items, then run `-Activate -Apply` only after confirmation (resume with `-ResumeManifest`, undo with `-RollbackManifest`; MEM02 rules). No tracker source: do a reconnaissance of the repository (COM01 map, REP08 checks: TODO/FIXME, skipped or failing tests, stubs, CI and dependency problems, docs drifting from code), save it as `history/<yyyy-MM-dd>-ricognizione/report.md`, propose the tasks with evidence in one multiple-choice question, and create only the approved ones with `knowledge.ps1 -NewTask` and `-Provenance` pointing to that report.
 </procedure>
 
 <constraints>
 - Exclude forbidden repositories and external projects strictly; do not initialize other repositories.
-- Never replace an existing source with an empty tracker; identify trackers and memories to migrate.
+- Never replace an existing source with an empty tracker; identify trackers and memories to migrate. Reconnaissance findings become tasks only after the person approves them.
 - No monitors; unapproved texts stay candidates; no implicit commit or push.
 </constraints>
 

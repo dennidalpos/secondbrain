@@ -290,10 +290,29 @@ function ConvertTo-SBTracker {
     param([string]$SourcePath,[string]$Identity,[string]$Reference=$SourcePath,[string]$Commit='',[string]$HistoryPath='',[string]$ReviewPath='')
     Assert-SBPlainPath $SourcePath
     $hash=Get-SBFileHash $SourcePath;$text=Read-SBText $SourcePath
-    $tasks=[Collections.Generic.List[object]]::new();$history=@();$originalData=$null
+    $tasks=[Collections.Generic.List[object]]::new();$history=@();$originalData=$null;$passThrough=$false;$carried=@{}
     if([IO.Path]::GetExtension($SourcePath) -eq '.json'){
         $originalData=Read-SBJson $SourcePath $null
         if($originalData -isnot [Collections.IDictionary]){throw (New-SBError 'tracker.original.object')}
+        $passThrough=$originalData.Contains('schemaVersion') -and $originalData.schemaVersion -eq 1
+    }
+    if($passThrough){
+        # Already a schema-1 tracker: ids, seq, status, evidence, provenance and history pass through
+        # unchanged; only the repository is realigned (the original stays in extensions.original).
+        if($originalData['tasks'] -isnot [array]){throw (New-SBError 'tracker.collection.invalid' @('tasks'))}
+        $copy=ConvertTo-SBJson $originalData|ConvertFrom-Json -AsHashtable -DateKind String
+        $originalRepository=if($copy.Contains('repository')){[string]$copy.repository}else{''}
+        foreach($task in @($copy.tasks)){
+            if($task -is [Collections.IDictionary] -and $task['dependencies'] -is [array]){
+                foreach($dependency in $task.dependencies){
+                    if($originalRepository -and $dependency -is [Collections.IDictionary] -and $dependency.Contains('repository') -and $dependency.repository -ceq $originalRepository){[void]$dependency.Remove('repository')}
+                }
+            }
+            $tasks.Add($task)
+        }
+        if($copy['history'] -is [array]){$history=@($copy.history)}
+        if($copy['extensions'] -is [Collections.IDictionary]){$carried=$copy.extensions}
+    } elseif([IO.Path]::GetExtension($SourcePath) -eq '.json'){
         foreach($collection in @('tasks','todos','current_tasks','next_tasks','remainingTasks','residuals','todo_autonomous','todo_user_required')){
             if(!$originalData.ContainsKey($collection)){continue}
             if($originalData[$collection] -isnot [array]){throw (New-SBError 'tracker.collection.invalid' @($collection))}
@@ -350,6 +369,7 @@ function ConvertTo-SBTracker {
     } else {throw (New-SBError 'tracker.original.format')}
     $ids=@{};foreach($task in $tasks){if($ids.ContainsKey($task.id)){throw (New-SBError 'tracker.id.collision' @($task.id))};$ids[$task.id]=$true}
     foreach($task in $tasks){
+        if($passThrough){break}
         $raw=$task.extensions.original
         if($raw -isnot [Collections.IDictionary]){continue}
         foreach($key in @('dependencies','dependsOn')){
@@ -379,7 +399,8 @@ function ConvertTo-SBTracker {
             $task.extensions.review=@{reason=$item.reason;sourceSha256=$hash;reviewSha256=Get-SBFileHash $ReviewPath}
         }
     }
-    $result=@{schemaVersion=1;repository=$Identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($tasks);history=$history;extensions=@{original=$originalData;source=@{reference=$Reference;sha256=$hash}}}
+    $extensions=@{}+$carried;$extensions.original=$originalData;$extensions.source=@{reference=$Reference;sha256=$hash}
+    $result=@{schemaVersion=1;repository=$Identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($tasks);history=$history;extensions=$extensions}
     if($review){$result.extensions.review=@{sha256=Get-SBFileHash $ReviewPath;decisions=$review}}
     $result
 }

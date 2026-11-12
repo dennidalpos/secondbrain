@@ -16,7 +16,7 @@ The standard opening chain, whatever the folder: `sb prompt` (`scripts/prompts.p
 <procedure>
 1. Run `scripts/prompts.ps1` from the current folder and report the location and the command groups it shows: repository commands, and SecondBrain activation and maintenance commands.
 2. Repository state from Git: branch and tracking, uncommitted changes, last commits, open worktrees; for a repository not onboarded also its manifests, build and test commands (COM01).
-3. Managed repository: load context, memory and ready tasks (MEM06); if the runner left a `resume.json` or a task was interrupted by a usage limit, say so and point to MEM07.
+3. Managed repository: load context, memory and ready tasks (MEM06); if the runner left a `resume.json`, a task was interrupted by a usage limit, or a task in progress has a `stateReason` pointing to a MEM09 handoff report, say so, cite the report and propose MEM07 as the first step.
 4. Alignment, only for a managed repository or the SecondBrain checkout: run `scripts/secondbrain.ps1 -Check` and report only the findings that concern this repository (instruction block, dossier, IDE files, compaction advice); a clean result is stated in one line. Changes go to SYS04 on request.
 5. Propose two to four next steps as one multiple-choice question: ready tasks by priority (REP01), the runner for autonomous ones (REP15), the resume (MEM07) or the onboarding (SYS03) when they apply, each with its prompt code.
 </procedure>

@@ -20,6 +20,7 @@ The command words below remain unchanged in every documentation language.
 | `sb attiva` | Discover and activate selected integrations |
 | `sb compatta` | Preview dossier compaction; applying it requires confirmation |
 | `sb runner` | Run the ready tasks of the current repository from the desktop app or the command line |
+| `sb stop` | Stop the agent, save the session in the dossier and resume it from another IDE or account with `sb prompt MEM07` (MEM09) |
 
 See the [per-repository workflow](flusso-prodotto.md) for the order of operations.
 

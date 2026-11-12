@@ -313,7 +313,7 @@ Add-SBMessages @{
     'home.step.norepo' = @{ it = 'Postazione attivata. Indica il checkout corrente (`-RepositoryPath` o `repositoryPath`) per vedere lo stato del repository; intanto `sb controlla`.'; en = 'Workstation activated. Give the current checkout (`-RepositoryPath` or `repositoryPath`) to see the repository state; meanwhile `sb controlla`.' }
     'home.step.noidentity' = @{ it = 'La cartella non è un checkout Git con origin riconoscibile: apri il repository oppure indica un altro percorso.'; en = 'The folder is not a Git checkout with a recognizable origin: open the repository or give another path.' }
     'home.step.unmanaged' = @{ it = 'Repository senza onboarding: funziona in modalità ridotta, a partire da `sb prompt MEM08`. L''onboarding è facoltativo: `sb attiva` per aggiungerlo (anteprima, poi conferma).'; en = 'Repository not onboarded: it works in reduced mode, starting with `sb prompt MEM08`. Onboarding is optional: `sb attiva` to add it (preview, then confirm).' }
-    'home.step.ready' = @{ it = 'Avvia con `sb prompt MEM08` (stato, allineamento, prossimi task), poi `sb prompt REP01` o `sb runner`; a lavoro finito `sb prompt MEM03`.'; en = 'Start with `sb prompt MEM08` (state, alignment, next tasks), then `sb prompt REP01` or `sb runner`; when the work is done `sb prompt MEM03`.' }
+    'home.step.ready' = @{ it = 'Avvia con `sb prompt MEM08` (stato, allineamento, prossimi task), poi `sb prompt REP01` o `sb runner`; a lavoro finito `sb prompt MEM03`; per fermarti e riprendere da un altro IDE o account `sb stop`, poi `sb prompt MEM07` dall''altra parte.'; en = 'Start with `sb prompt MEM08` (state, alignment, next tasks), then `sb prompt REP01` or `sb runner`; when the work is done `sb prompt MEM03`; to stop and resume from another IDE or account `sb stop`, then `sb prompt MEM07` on the other side.' }
     'home.location.line' = @{ it = 'Posizione: {0}'; en = 'Location: {0}' }
     'home.location.secondbrain' = @{ it = 'checkout di SecondBrain (manutenzione e dossier di SecondBrain)'; en = 'SecondBrain checkout (maintenance and SecondBrain''s own dossier)' }
     'home.location.repo-managed' = @{ it = 'repository gestito (dossier, tracker e runner disponibili)'; en = 'managed repository (dossier, tracker and runner available)' }
@@ -356,6 +356,7 @@ Add-SBMessages @{
     'cmd.sync' = @{ it = 'Applica i testi approvati agli asset gestiti e propone i nuovi, preservando i conflitti. Alias: sb sync.'; en = 'Applies the approved texts to managed assets and proposes the new ones, preserving conflicts. Alias: sb sync.' }
     'mode.run' = @{ it = 'avvio'; en = 'run' }
     'cmd.runner' = @{ it = 'Chiede con una scelta multipla runner desktop (consigliato) o riga di comando, poi apre il runner sul repository corrente con scripts/runner.ps1 -Mode auto|gui|cli: il desktop si compila se superato e, se non si apre, si passa da solo alla riga di comando (anteprima, poi REP15).'; en = 'Asks with a multiple choice for the desktop runner (recommended) or the command line, then opens the runner on the current repository with scripts/runner.ps1 -Mode auto|gui|cli: the desktop app is built when stale and, if it cannot open, the command line takes over by itself (preview, then REP15).' }
+    'cmd.stop' = @{ it = 'MEM09: ferma l''agente, salva la sessione nel dossier (rapporto di handoff, tracker, prossimo passo) e la prepara per la ripresa da un altro IDE o account con MEM07. Alias: sb ferma.'; en = 'MEM09: stops the agent, saves the session in the dossier (handoff report, tracker, next step) and prepares it to be resumed from another IDE or account with MEM07. Alias: sb ferma.' }
     'cmd.compact' = @{ it = 'SYS05: compatta il dossier indicato preservando originali, fatti e TOC (anteprima, poi -Apply). Alias: sb compact.'; en = 'SYS05: compacts the given dossier preserving originals, facts and TOC (preview, then -Apply). Alias: sb compact.' }
     'guide.safety.title' = @{ it = 'Cosa modifica SecondBrain e dove sono i backup'; en = 'What SecondBrain changes and where the backups are' }
     'guide.safety.for' = @{ it = 'Da leggere per primo: file toccati, backup, ripristino, disinstallazione.'; en = 'Read first: files touched, backups, recovery, uninstall.' }
@@ -417,7 +418,8 @@ function Get-SBWorkflowCommands {
         @{command='sb controlla';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.check');mode=(Get-SBWorkflowMessage 'mode.verify');script='scripts/secondbrain.ps1 -Check'},
         @{command='sb allinea';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.sync');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/secondbrain.ps1 -Sync'},
         @{command='sb compatta';scope='secondbrain';does=(Get-SBWorkflowMessage 'cmd.compact');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/knowledge.ps1 -Compact -CandidatePath FILE'},
-        @{command='sb runner';scope='repository';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner.ps1'}
+        @{command='sb runner';scope='repository';does=(Get-SBWorkflowMessage 'cmd.runner');mode=(Get-SBWorkflowMessage 'mode.run');script='scripts/runner.ps1'},
+        @{command='sb stop';scope='repository';does=(Get-SBWorkflowMessage 'cmd.stop');mode=(Get-SBWorkflowMessage 'mode.write');script='scripts/prompts.ps1 -Compose -Prompt MEM09'}
     )
 }
 

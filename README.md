@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 2.6.1](https://img.shields.io/badge/version-2.6.1-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.7.0](https://img.shields.io/badge/version-2.7.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -78,7 +78,7 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
 - **Read project knowledge:** use Startup, task lookup or search; [daily use](docs/uso-quotidiano.md) explains the CLI and chat conventions.
 - **Change a task or memory:** review the operation and its approval requirements. The [MCP write guide](docs/riferimento/mcp-writes.md) covers the local receipt for each submitted operation.
 - **Run the ready tasks:** `scripts/run-ready-tasks.ps1` runs them one at a time with Claude Code, Codex or Gemini CLI; the [desktop orchestrator](docs/orchestratore.md) picks the repository, the directives, the model and the effort level.
-- **Use prompt cards:** 120 English cards with Italian counterparts cover development, review, documentation and maintenance. [Prompt guide](docs/prompt.md).
+- **Use prompt cards:** 121 English cards with Italian counterparts cover development, review, documentation and maintenance. [Prompt guide](docs/prompt.md).
 - **Back up private knowledge:** preserve the dossier and recovery records separately from Git. [Backup and recovery](docs/sicurezza.md).
 
 A new dossier has no recorded tasks, so an empty ready-task list is expected.
@@ -146,7 +146,7 @@ Servono Windows, PowerShell 7.5+ e Git 2.42+. I comandi copiabili sono nella sez
 
 ### Compiti comuni e configurazione
 
-Consulta i task pronti, carica il dossier e usa una delle 120 schede prompt. Le scritture MCP richiedono un piano e una ricevuta CLI locale per operazione. [Uso quotidiano](docs/uso-quotidiano.md) · [Scritture approvate](docs/riferimento/mcp-writes.md) · [Agenti e MCP](docs/ide-e-mcp.md).
+Consulta i task pronti, carica il dossier e usa una delle 121 schede prompt. Le scritture MCP richiedono un piano e una ricevuta CLI locale per operazione. [Uso quotidiano](docs/uso-quotidiano.md) · [Scritture approvate](docs/riferimento/mcp-writes.md) · [Agenti e MCP](docs/ide-e-mcp.md).
 
 ### Limiti e aiuto
 

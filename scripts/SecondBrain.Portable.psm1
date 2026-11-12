@@ -146,6 +146,31 @@ function Get-SBSetupDossierConflicts([string]$BrainRoot,[string]$PersonalRoot,$R
         }
     }
 }
+# The checkout's own tracker, in the order Resolve-SBTracker uses: tracker.md is enough by itself; JSON
+# candidates count only when they parse as an object. compatible = valid schema-1 tracker once its
+# repository is realigned to the target identity (the import keeps ids, seq, evidence and provenance).
+function Get-SBCheckoutTrackerSource([string]$CheckoutPath,[string]$Identity) {
+    foreach($name in @('tracker.json','tracker.md','tasks.json','legacy-tasks.json')){
+        $path=Join-Path $CheckoutPath $name
+        if(!(Test-Path -LiteralPath $path -PathType Leaf)){continue}
+        if($name -eq 'tracker.md'){return @{path=$name;compatible=$false}}
+        $data=try{Read-SBJson $path $null}catch{$null}
+        if($data -isnot [Collections.IDictionary]){continue}
+        $compatible=$false
+        if($data.Contains('schemaVersion') -and $data.schemaVersion -eq 1){
+            $copy=ConvertTo-SBJson $data|ConvertFrom-Json -AsHashtable -DateKind String
+            $original=if($copy.Contains('repository')){[string]$copy.repository}else{''}
+            foreach($task in @($copy['tasks'])){
+                if($task -isnot [Collections.IDictionary] -or $task['dependencies'] -isnot [array]){continue}
+                foreach($dependency in $task.dependencies){if($original -and $dependency -is [Collections.IDictionary] -and $dependency.Contains('repository') -and $dependency.repository -ceq $original){[void]$dependency.Remove('repository')}}
+            }
+            $copy.repository=$Identity
+            $compatible=try{[bool](Test-SBTrackerData $copy $Identity @($Identity) (Join-Path $PSScriptRoot '../config/tracker.schema.json'))}catch{$false}
+        }
+        return @{path=$name;compatible=$compatible}
+    }
+    $null
+}
 function Invoke-SBHostActivation {
     param([string]$BrainRoot,[string]$SelectionPath,[string]$SessionId,[switch]$Apply,[switch]$RegisterEnvironment,
           [hashtable]$PreviewSelection,[hashtable]$PreviewReport,[string]$TeamPersonalRoot,[switch]$PlanSync)
@@ -196,7 +221,8 @@ function Invoke-SBHostActivation {
                 $operations+=@{path=$metadataPath;expected=(Get-SBFileHash $metadataPath);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $metadata))}
             }
         }
-        $requiresImport=(!$existing.Count -and (Test-Path -LiteralPath (Join-Path $asset.path 'tracker.md')))
+        $trackerSource=if(!$existing.Count){Get-SBCheckoutTrackerSource $asset.path $identity}else{$null}
+        $requiresImport=($null -ne $trackerSource)
         if(!$existing.Count){
             $metadata=New-SBParaMetadata ('project-'+(Get-SBTextHash $identity).Substring(0,20).ToLowerInvariant()) 'project' $asset.name
             $repo=@{schemaVersion=1;identity=$identity}
@@ -215,7 +241,7 @@ function Invoke-SBHostActivation {
             $managedHash=Get-SBTextHash $existingBlock
         }
         $newBindings+=@{path=$asset.path;identity=$identity;remoteIdentity=$current.remoteIdentity;fingerprint=$current.fingerprint;dossier=$dossierRelative;managedHash=$managedHash;status=$(if($requiresImport){'tracker-import-required'}else{'managed'})}
-        $plans+=@{identity=$identity;path=$asset.path;dossier=$dossierRelative;trackerImportRequired=$requiresImport}
+        $plans+=@{identity=$identity;path=$asset.path;dossier=$dossierRelative;trackerImportRequired=$requiresImport;trackerSource=$trackerSource}
     }
     $selectedIDEs=@()
     foreach($choice in $selection.ides){

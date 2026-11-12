@@ -1,6 +1,6 @@
 # Prompt
 
-120 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
+121 prompt in un'unica lista, in 17 aree e due gruppi (repository corrente e SecondBrain centrale). Scegli, aggiungi il tuo obiettivo, e l'agente ha tutto ciò che serve.
 
 ```text
 sb prompt list
@@ -15,7 +15,7 @@ Elenco completo: [catalogo](../direttive/prompts/README.it.md) ([English](../dir
 
 `sb prompt` (`scripts/prompts.ps1`) legge la cartella corrente e ne indica la posizione: **repository gestito** (dossier, tracker e runner disponibili), **repository senza onboarding** (modalità ridotta), **checkout di SecondBrain** o **nessun progetto** (fuori da un checkout Git). La home mostra poi due gruppi di comandi, **comandi per il repository** e **attivazione e manutenzione di SecondBrain**, con la manutenzione in testa nel checkout di SecondBrain e fuori da un progetto.
 
-**Catena iniziale standard:** `sb prompt MEM08` (stato del repository, allineamento con SecondBrain se gestito, prossimi task proposti), poi `sb prompt REP01` o `sb runner`, e `sb prompt MEM03` a lavoro finito; `sb prompt MEM07` riprende il lavoro fermato da un limite d'uso, anche da un altro account. Ogni prompt composto termina con `<next_steps>`: da due a quattro prompt e task pronti successivi, proposti come scelta multipla.
+**Catena iniziale standard:** `sb prompt MEM08` (stato del repository, allineamento con SecondBrain se gestito, prossimi task proposti), poi `sb prompt REP01` o `sb runner`, e `sb prompt MEM03` a lavoro finito; `sb prompt MEM07` riprende il lavoro fermato da un limite d'uso, anche da un altro account. `sb stop` (MEM09) ferma l'agente prima di un limite, salva un rapporto di passaggio nel dossier e lascia il task in corso, così `sb prompt MEM07` lo riprende da un altro IDE o account. Quando `sb attiva` (SYS03) attiva un repository con un proprio tracker, lo importa con `import-tracker.ps1`; senza tracker esegue una ricognizione e crea i task che approvi. Ogni prompt composto termina con `<next_steps>`: da due a quattro prompt e task pronti successivi, proposti come scelta multipla.
 
 **Senza onboarding** un repository funziona comunque: i prompt di repository si compongono senza dossier e riportano un blocco `<degraded>`. Non sono disponibili: contesto e memoria all'avvio, tracker e task pronti nei prossimi passi, runner e Orchestrator, rapporti di passaggio MEM03 e ripresa del runner, scritture di memoria e tracker, allineamento del blocco gestito di `AGENTS.md`, fonti autorevoli applicabili, compattazione SYS05 e `-Check` di quel repository. I prompt centrali e le scritture MEM/SYS richiedono comunque un dossier. L'onboarding resta facoltativo (`sb attiva`, SYS03).
 
@@ -46,7 +46,7 @@ I prompt sono raggruppati per area di sviluppo o necessità, non per prefisso de
 
 | ID | Area | Codici |
 |---|---|---|
-| `understand` | Comprensione e analisi | COM01, COM02, COM03, COM04, COM05, COM06, COM07 |
+| `understand` | Comprensione e analisi | COM01, COM02, COM03, COM04, COM05, COM06, COM07, COM08 |
 | `design` | Requisiti, architettura e pianificazione | PRG01, PRG02, PRG03, PRG04, PRG05, PRG07 |
 | `develop` | Sviluppo e manutenzione del codice | DEV01, DEV02, DEV03, DEV04, DEV05, DEV06 |
 | `test` | Test e prestazioni | TST01, TST02, TST03, TST04, TST05, TST06, TST07, TST08 |
@@ -54,10 +54,10 @@ I prompt sono raggruppati per area di sviluppo o necessità, non per prefisso de
 | `security` | Sicurezza, privacy e licenze | AUD07, GOV02, SEC02, SEC03, SEC04, SEC05, SEC06, SEC07, SEC09 |
 | `data` | Dati e integrazioni | DAT01, DAT02, DAT03, DAT04 |
 | `interface` | Interfaccia ed esperienza utente | INT01, INT02, INT03, INT04, INT05 |
-| `docs` | Documentazione | DOC01, DOC02, DOC03, DOC04 |
+| `docs` | Documentazione | DOC01, DOC02, DOC03, DOC04, DOC05, DOC06 |
 | `operations` | Rilascio e operatività | OPS01, OPS02, OPS03, OPS04, OPS06, OPS07 |
 | `git` | Git e GitHub | OPS05, REP04, REP11, REP12, REP13, REP14 |
-| `backlog` | Backlog, memoria e continuità | MEM01, MEM02, MEM03, MEM06, MEM07, MEM08, REP01, REP08, REP15, REP16, REP17, SYS13 |
+| `backlog` | Backlog, memoria e continuità | MEM01, MEM02, MEM03, MEM06, MEM07, MEM08, MEM09, REP01, REP08, REP15, REP16, REP17, REP18, SYS13 |
 | `web` | Siti e applicazioni web | WEB01, WEB02, WEB03, WEB04, WEB05, WEB06, WEB07, WEB08, WEB09 |
 | `ai` | AI e funzioni basate su modelli linguistici | AIS01, AIS02, AIS03, AIS04, AIS05, AIS06, AIS07, AIS08, AIS09, DEV12 |
 

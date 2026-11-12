@@ -1035,7 +1035,8 @@
       "file": "MEM02.md",
       "related": [
         "pmt-32e3cf59",
-        "pmt-f02db9d0"
+        "pmt-f02db9d0",
+        "pmt-5f9f93e0"
       ],
       "i18n": {
         "it": {
@@ -1130,19 +1131,20 @@
       "target": "repository",
       "mode": "write",
       "scope": "repo",
-      "requires": "the stopped work (runner resume.json, task or MEM03 report, branch or worktree) and the import method the person picks",
+      "requires": "the stopped work (MEM09 or MEM03 report, runner resume.json, branch or worktree) and the import method the person picks",
       "example": "MEM07: the runner stopped for quota on the other account, import its work and continue the task",
       "file": "MEM07.md",
       "related": [
         "pmt-802ff569",
         "pmt-821f7dec",
         "pmt-76604e4a",
-        "pmt-4cc383ba"
+        "pmt-4cc383ba",
+        "pmt-039a5879"
       ],
       "i18n": {
         "it": {
           "summary": "Riprendi il lavoro fermato da un limite d'uso, importandolo da un altro account",
-          "requires": "il lavoro fermato (resume.json del runner, rapporto del task o MEM03, branch o worktree) e il metodo di importazione scelto dalla persona",
+          "requires": "il lavoro fermato (rapporto MEM09 o MEM03, resume.json del runner, branch o worktree) e il metodo di importazione scelto dalla persona",
           "example": "MEM07: il runner si è fermato per quota sull'altro account, importa il suo lavoro e prosegui il task"
         }
       }
@@ -1165,13 +1167,39 @@
         "pmt-677a10ab",
         "pmt-4cc383ba",
         "pmt-802ff569",
-        "pmt-5f9f93e0"
+        "pmt-5f9f93e0",
+        "pmt-039a5879"
       ],
       "i18n": {
         "it": {
           "summary": "Avvia la sessione: contesto, stato del repository, allineamento e prossimi task",
           "requires": "qualsiasi cartella; un repository gestito aggiunge dossier, tracker e controllo di allineamento",
           "example": "MEM08: avvia la sessione in questo repository e proponi i prossimi task"
+        }
+      }
+    },
+    {
+      "id": "pmt-039a5879",
+      "code": "MEM09",
+      "category": "backlog",
+      "summary": "Stop the agent, save the session and hand it over to another IDE or account",
+      "target": "repository",
+      "mode": "write",
+      "scope": "repo",
+      "requires": "the task in progress, the Git state of the checkout and the person's choice for uncommitted work",
+      "example": "sb stop: I am at the end of my weekly limit, save the session so I can resume from another account",
+      "file": "MEM09.md",
+      "related": [
+        "pmt-d0c0d000",
+        "pmt-76604e4a",
+        "pmt-802ff569",
+        "pmt-821f7dec"
+      ],
+      "i18n": {
+        "it": {
+          "summary": "Ferma l'agente, salva la sessione e passala a un altro IDE o account",
+          "requires": "il task in corso, lo stato Git del checkout e la scelta della persona per il lavoro non committato",
+          "example": "sb stop: sono a fine limite settimanale, salva la sessione per riprenderla da un altro account"
         }
       }
     },
@@ -2025,7 +2053,10 @@
       "related": [
         "pmt-26817a61",
         "pmt-677a10ab",
-        "pmt-2d3c1d51"
+        "pmt-2d3c1d51",
+        "pmt-64dfa49f",
+        "pmt-cc2c5f5a",
+        "pmt-a709a792"
       ],
       "i18n": {
         "it": {

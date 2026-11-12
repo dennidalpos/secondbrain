@@ -1,5 +1,5 @@
 #requires -Version 7.5
-param([ValidateSet('All','Source','References','Graph','Para','Greenfield')][string]$Case='All')
+param([ValidateSet('All','Source','References','Graph','Para','Greenfield','Onboard')][string]$Case='All')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
@@ -267,6 +267,47 @@ try {
         & pwsh -NoProfile -File (Join-Path $f.brain 'scripts/recover.ps1') -ManifestPath $marker.manifest -ConfigPath $f.config.configPath -Apply|Out-Null
         Assert-Audit ($LASTEXITCODE -eq 0 -and (Get-SBFileHash $manifest) -eq $before -and (Test-Path -LiteralPath (Join-Path $f.dir 'repository.json')) -and !(Test-Path -LiteralPath (Join-Path $f.brain '.runtime/access/para-transaction.json'))) 'CLI recupera insieme dossier e manifest esterno'
         Assert-Audit (@(Get-SBTrackerImportIssues $f.config).Count -eq 0) 'Check coerente dopo recupero transazionale'
+    }
+    if($Case -in @('All','Onboard')){
+        # Onboarding a checkout that already has its own schema-1 tracker: activation must require the import
+        # (no empty dossier tracker), and the import must keep ids, seq, status, evidence and provenance.
+        Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Portable.psm1') -Force
+        $f=New-AuditFixture 'onboard'
+        $onboard=Join-Path (Split-Path $f.checkout) 'Onboard';$onboardIdentity='github.com/test/onboard'
+        [IO.Directory]::CreateDirectory($onboard)|Out-Null
+        if((Invoke-SBGit $onboard @('init','-q')).code -ne 0 -or (Invoke-SBGit $onboard @('remote','add','origin','https://github.com/test/onboard.git')).code -ne 0){throw 'Onboard fixture Git setup failed'}
+        $sep=' '+[char]0x2014+' '
+        $provenance=@(@{reference='docs/plan.md';sha256=('a'*64);pointer='line:3'})
+        $sourceTracker=@{schemaVersion=1;repository='github.com/old/onboard';updatedAt='2026-11-01T10:00:00Z';history=@();extensions=@{lastSeq=7};tasks=@(
+            @{id='ONB-7';seq=7;title=('#007'+$sep+'Completed');status='done';execution='autonomous';priority='P1';dependencies=@();acceptance=@('verified');evidence=@(@{reference='tests/run.log';outcome='passed'});provenance=$provenance;extensions=@{}}
+            @{id='ONB-3';seq=3;title=('#003'+$sep+'Open');status='todo';execution='user_required';priority=$null;dependencies=@(@{id='ONB-7';repository='github.com/old/onboard'});acceptance=@();evidence=@();provenance=$provenance;extensions=@{}})}
+        $trackerPath=Join-Path $onboard 'tracker.json'
+        Put-Audit $trackerPath (ConvertTo-SBJson $sourceTracker)
+        $savedState=$env:SECONDBRAIN_STATE_ROOT
+        try{
+            $env:SECONDBRAIN_STATE_ROOT=$null
+            $stateRoot=Get-SBWorkstationStateRoot $f.brain (Get-SBHostId)
+            $reportPath=Join-Path $stateRoot 'discovery.json';$selectionPath=Join-Path $stateRoot 'selection.json'
+            $discovery=Invoke-SBHostDiscovery -BrainRoot $f.brain -Roots @($onboard) -ReportPath $reportPath
+            $asset=@($discovery.repositories|Where-Object {$_.kind -ne 'bare'})[0]
+            Put-Audit $selectionPath (ConvertTo-SBJson @{schemaVersion=1;confirmed=$true;confirmation='synthetic onboarding';reportPath=$reportPath;reportSha256=(Get-SBFileHash $reportPath);repositories=@(@{id=$asset.id});ides=@()})
+            $activation=Invoke-SBHostActivation -BrainRoot $f.brain -SelectionPath $selectionPath -Apply
+            $plan=$activation.repositories[0]
+            Assert-Audit ($plan.trackerImportRequired -and $plan.trackerSource.path -ceq 'tracker.json' -and $plan.trackerSource.compatible) ('attivazione rileva tracker.json schema 1 del checkout: '+(ConvertTo-SBJson $plan.trackerSource))
+            $hostConfig=Read-SBConfiguration $activation.configuration -BrainRoot $f.brain
+            $binding=@($hostConfig.bindings|Where-Object {Test-SBSamePath $_.path $onboard})
+            $onboardDir=Join-Path $f.brain $plan.dossier
+            Assert-Audit ($binding.Count -eq 1 -and $binding[0].status -ceq 'tracker-import-required') 'binding tracker-import-required'
+            Assert-Audit (!(Test-Path -LiteralPath (Join-Path $onboardDir 'tracker.json')) -and !(Read-SBJson (Join-Path $onboardDir 'repository.json') @{}).ContainsKey('tracker')) 'nessun tracker vuoto nel dossier'
+        }finally{$env:SECONDBRAIN_STATE_ROOT=$savedState}
+        $hostConfig.allowedOwners=@('test')
+        $manifest=Invoke-SBTrackerImport -Config $hostConfig -Identity $onboardIdentity -SourcePath $trackerPath -Activate
+        Assert-Audit ((Read-SBTrackerManifest $hostConfig $manifest).phase -ceq 'completed') 'importazione tracker schema 1 completata'
+        $imported=Read-SBJson (Join-Path $onboardDir 'tracker.json') $null
+        $byId=@{};foreach($task in $imported.tasks){$byId[$task.id]=$task}
+        Assert-Audit ($imported.repository -ceq $onboardIdentity -and $imported.extensions.original.repository -ceq 'github.com/old/onboard' -and $imported.extensions.lastSeq -eq 7) 'identita riallineata, originale in extensions.original'
+        Assert-Audit ($byId.Count -eq 2 -and $byId['ONB-7'].seq -eq 7 -and $byId['ONB-3'].seq -eq 3 -and $byId['ONB-7'].status -ceq 'done' -and $byId['ONB-3'].status -ceq 'todo') 'id, seq e stato conservati'
+        Assert-Audit ($byId['ONB-7'].evidence[0].reference -ceq 'tests/run.log' -and $byId['ONB-7'].provenance[0].reference -ceq 'docs/plan.md' -and $byId['ONB-3'].dependencies[0].id -ceq 'ONB-7' -and !$byId['ONB-3'].dependencies[0].ContainsKey('repository')) 'evidenze, provenienza e dipendenze conservate'
     }
     $success=$true
     'SUCCESS TRACKER AUDIT: '+$script:auditChecks+' verifiche; runtime='+$PSVersionTable.PSVersion

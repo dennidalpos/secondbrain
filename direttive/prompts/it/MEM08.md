@@ -16,7 +16,7 @@ La catena di apertura standard, in qualsiasi cartella: `sb prompt` (`scripts/pro
 <procedure>
 1. Esegui `scripts/prompts.ps1` dalla cartella corrente e riporta la posizione e i gruppi di comandi mostrati: comandi per il repository e comandi di attivazione e manutenzione di SecondBrain.
 2. Stato del repository da Git: branch e tracciamento, modifiche non committate, ultimi commit, worktree aperti; per un repository senza onboarding anche manifest, comandi di build e test (COM01).
-3. Repository gestito: carica contesto, memoria e task pronti (MEM06); se il runner ha lasciato un `resume.json` o un task è stato interrotto da un limite d'uso, dillo e rimanda a MEM07.
+3. Repository gestito: carica contesto, memoria e task pronti (MEM06); se il runner ha lasciato un `resume.json`, un task è stato interrotto da un limite d'uso o un task in corso ha uno `stateReason` che rimanda a un rapporto di passaggio MEM09, dillo, cita il rapporto e proponi MEM07 come primo passo.
 4. Allineamento, solo per un repository gestito o per il checkout di SecondBrain: esegui `scripts/secondbrain.ps1 -Check` e riporta solo i rilievi che riguardano questo repository (blocco di istruzioni, dossier, file degli IDE, consiglio di compattazione); un esito pulito si dice in una riga. Le correzioni passano da SYS04 su richiesta.
 5. Proponi da due a quattro passi successivi con una sola domanda a scelta multipla: task pronti per priorità (REP01), il runner per quelli autonomi (REP15), la ripresa (MEM07) o l'onboarding (SYS03) quando si applicano, ciascuno con il suo codice di prompt.
 </procedure>

@@ -14,7 +14,7 @@ Use only on explicit request to transfer design notes, plans and trackers of the
 
 <procedure>
 1. Inventory contents and consumers; decide what must stay in the product (sources, tests and documents needed by build and CI).
-2. Use the central resolver and migrators, which keep backup, manifest and resume; if a prerequisite is missing, stop the transfer.
+2. Use the central resolver and migrators, which keep backup, manifest and resume; if a prerequisite is missing, stop the transfer. For a tracker (`tracker.json` already in schema 1, `tasks.json`, `legacy-tasks.json` or `tracker.md`) use `scripts/import-tracker.ps1 -Repository -SourcePath` as a preview, then `-Activate -Apply` after confirmation; `-ResumeManifest` resumes and `-RollbackManifest` undoes. When the repository has no tracker, run the reconnaissance of SYS03 step 6 and create only the approved tasks.
 3. Preserve IDs, provenance, statuses and references.
 4. Compare originals and copies, reconcile links and verify recovery before removing originals.
 5. Run Sync and Check.

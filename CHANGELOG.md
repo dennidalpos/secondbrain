@@ -2,7 +2,21 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.6.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.7.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.7.0] - 2026-11-12
+
+### Aggiunto
+- Prompt MEM09 e comando `sb stop` (alias `sb ferma`): ferma l'agente prima di un limite d'uso orario, giornaliero o settimanale, ferma un eventuale giro del runner, chiede cosa fare del lavoro non committato (lasciarlo nel checkout, commit WIP su branch dedicato con push solo se autorizzato, nessuna azione), salva il rapporto di passaggio nel dossier in `history/<data>-stop-<slug>/report.md`, lascia il task `in_progress` con `stateReason` che lo cita e aggiorna «Prossimo passo» in `context.md`. Il dossier è condiviso tra postazioni e account, quindi la ripresa con MEM07 funziona anche da un altro IDE, account o postazione; catalogo di 121 prompt.
+- Attivazione (`Invoke-SBHostActivation`): un repository con un proprio `tracker.json`, `tasks.json` o `legacy-tasks.json` (oltre a `tracker.md`) passa a `tracker-import-required` invece di ricevere un tracker vuoto; il piano indica la fonte e se è già compatibile con lo schema 1.
+
+### Modificato
+- SYS03, passo 6: per ogni repository attivato importa il tracker con `import-tracker.ps1` (anteprima, poi `-Activate -Apply` su conferma); senza tracker esegue una ricognizione (COM01, controlli REP08: TODO/FIXME, test saltati o in errore, stub, CI, dipendenze, documentazione), la salva in `history/<data>-ricognizione/report.md` e crea con `knowledge.ps1 -NewTask -Provenance` solo i task approvati.
+- MEM02 cita `import-tracker.ps1` (`-ResumeManifest`, `-RollbackManifest`) e il ramo di ricognizione; MEM07 legge per primo il rapporto MEM09 e il branch WIP; MEM08 propone MEM07 quando un task in corso rimanda a un rapporto MEM09; schermata `sb prompt` con `sb stop`.
+- Documentazione: conteggio a 121 schede, tabella delle aree completata (COM08, DOC05, DOC06, MEM09, REP18), `sb stop` nelle tabelle dei comandi.
+
+### Test
+- Gruppo `prompts`: `sb stop` nel registro dei comandi e composizione di MEM09.
 
 ## [2.6.1] - 2026-11-12
 

@@ -31,6 +31,10 @@ After verified acceptance, terminal done/cancelled records move into history/tra
 
 ## Import workflow
 
+Activation (SYS03) never seeds an empty tracker over a repository's own. For a new dossier it looks in the checkout, in the resolver's order, for `tracker.json`, `tracker.md`, `tasks.json` and `legacy-tasks.json`; `tracker.md` counts by existing, a JSON file only if it parses as an object. When one is found the dossier is created without `tracker.json` or a tracker declaration, the binding gets status `tracker-import-required`, and the activation report shows `trackerSource` with the relative `path` and `compatible` (true when the file passes the schema 1 checks once its `repository` is realigned to the target identity). The import below then makes the dossier tracker authoritative.
+
+A source that is already schema 1 passes through the conversion unchanged: IDs, `seq`, statuses, evidence, provenance, dependencies, history and its own extensions (for example `lastSeq`) stay as they are. Only `repository` is realigned to the target identity; dependencies that named the original identity become same-repository ones, and the whole original document, original `repository` included, stays in `extensions.original`.
+
 `import-tracker.ps1 -Repository <identity> -SourcePath <path>` previews source conversion. The supplied path must match the original source identified for the dossier. Supported collections preserve values and provenance. Ambiguous statuses or dependencies become unknown and block activation. Unsupported Markdown task rows raise an error.
 
 Preparation Apply records manifest, verified exact original, candidate and recovery payload under backupRoot. A verified candidate is not yet authoritative. Activation needs separately approved concrete migration and Activate/Apply. Source changes after preparation block resume; do not edit hashes or candidate bytes to bypass it.

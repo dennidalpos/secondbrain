@@ -25,11 +25,12 @@ Da usare da SecondBrain, anche prima della configurazione locale, con `sb attiva
 3. Mostra copertura, checkout, profili IDE e ambienti. Se entrambe le radici hanno un dossier attivo per la stessa identità, presenta entrambi i percorsi e il checkout. Confronta i dossier con il codice reale prima di concordare il consolidamento.
 4. Usa `-Setup -Interactive` per rivedere e attivare nella stessa esecuzione. Conferma con `APPLICA` dopo aver esaminato il piano. In alternativa, passa `-Roots`, `-Select`, `-Ides` e `-ApproveExistingBlocks` secondo necessità e usa `-Yes -Apply` per il perimetro approvato.
 5. Verifica nella ricevuta la registrazione di `SECONDBRAIN_HOME`, la distribuzione delle direttive approvate e la configurazione MCP per gli IDE selezionati.
+6. Tracker di ogni repository appena attivato. Binding `tracker-import-required` (il checkout ha un proprio `tracker.json`, `tasks.json`, `legacy-tasks.json` o `tracker.md`): anteprima con `scripts/import-tracker.ps1 -Repository <identità> -SourcePath <file>`, mostra gli ID conservati, gli stati mappati e le voci `unknown`, poi esegui `-Activate -Apply` solo dopo conferma (ripresa con `-ResumeManifest`, annullamento con `-RollbackManifest`; regole di MEM02). Nessuna fonte di tracker: fai una ricognizione del repository (mappa COM01, controlli REP08: TODO/FIXME, test saltati o in errore, stub, problemi di CI e dipendenze, documentazione non allineata al codice), salvala come `history/<yyyy-MM-dd>-ricognizione/report.md`, proponi i task con le evidenze in una sola domanda a scelta multipla e crea solo quelli approvati con `knowledge.ps1 -NewTask` e `-Provenance` che punta a quel rapporto.
 </procedure>
 
 <constraints>
 - Escludi rigorosamente repository vietati e progetti esterni; non inizializzare altri repository.
-- Non sostituire mai una fonte esistente con un tracker vuoto; individua tracker e memorie da migrare.
+- Non sostituire mai una fonte esistente con un tracker vuoto; individua tracker e memorie da migrare. I risultati della ricognizione diventano task solo dopo l'approvazione della persona.
 - Nessun monitor; i testi non approvati restano candidati; nessun commit o push implicito.
 </constraints>
 
