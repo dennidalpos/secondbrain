@@ -875,7 +875,18 @@ if('git-environment' -in $Groups){
 
     $before=@{};foreach($name in @('GIT_CONFIG_COUNT','GIT_CONFIG_GLOBAL','GIT_TEMPLATE_DIR')){$before[$name]=[Environment]::GetEnvironmentVariable($name,'Process')}
     $nested=Enter-SBTestGitEnvironment
-    try{Assert-SBTestGitEnvironment;Check $true 'isolated Git environment is effective'}finally{Exit-SBTestGitEnvironment $nested}
+    try{
+        Assert-SBTestGitEnvironment;Check $true 'isolated Git environment is effective'
+        # #527: the wrapper lives in a conforming tmp container whose MANIFEST.json passes the .runtime ownership check.
+        $wrapperDir=Split-Path $env:GIT_CONFIG_GLOBAL;$container=Split-Path $wrapperDir
+        $brainRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+        $relativeContainer=[IO.Path]::GetRelativePath((Join-Path $brainRoot '.runtime'),$container).Replace('\','/')
+        Check ($relativeContainer -cmatch '^hosts/[^/]+/repos/tests-[0-9a-f]{8}/tmp/\d{8}-git-env$') 'Git wrapper container follows hosts/<id>/repos/<repo>/tmp/<yyyyMMdd>-<slug>'
+        $parts=$relativeContainer -split '/'
+        $entry=@{path=$relativeContainer;host=$parts[1];repo=$parts[3];area=$parts[4]}
+        $ownership=Get-SBRuntimeOwnership $brainRoot @($entry) @()
+        Check ($ownership.owned -eq 1 -and $ownership.outOfSchemaCount -eq 0) 'Git wrapper container manifest passes the ownership check'
+    }finally{Exit-SBTestGitEnvironment $nested}
     foreach($name in $before.Keys){Check ([Environment]::GetEnvironmentVariable($name,'Process') -ceq $before[$name]) ('Git environment restored: '+$name)}
     $relative=(('long-payload-segment-'+('x'*24)+'/')*5)+'payload.bin'
     $payload=Join-Path $repo $relative

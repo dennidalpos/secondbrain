@@ -47,11 +47,28 @@ function Enter-SBTestGitEnvironment {
         $hostIdentity = [Environment]::MachineName+'|'+[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
         $hostId = 'ws-'+(Get-SBTextHash $hostIdentity).Substring(0,16).ToLowerInvariant()
         $repositoryKey = 'tests-'+(Get-SBTextHash $brainRoot).Substring(0,8).ToLowerInvariant()
-        $slug = 'tmp-'+(Get-Date -Format yyyyMMdd)+'-git-env-'+[guid]::NewGuid().ToString('N')
-        $directory = Assert-SBCentralDataPath $brainRoot (Join-Path (Get-SBLocalRoot $brainRoot $hostId) ('repos/'+$repositoryKey+'/tmp/'+$slug))
+        # One daily tmp container per workstation (hosts/<id>/repos/tests-<hash>/tmp/<yyyyMMdd>-git-env) with MANIFEST.json;
+        # each process writes its wrapper in its own subfolder. The container is closed with a seven-day expiry: the wrappers
+        # are needed only while the owning test process runs, and Regenerable still skips recently written folders.
+        $today = Get-Date
+        $name = $today.ToString('yyyyMMdd')+'-git-env'
+        $container = Assert-SBCentralDataPath $brainRoot (Join-Path (Get-SBLocalRoot $brainRoot $hostId) ('repos/'+$repositoryKey+'/tmp/'+$name))
+        $directory = Join-Path $container ([guid]::NewGuid().ToString('N').Substring(0,12))
         $wrapper = Join-Path $directory 'global.config'
         if ($wrapper.Length -ge 260) { throw 'The test Git bootstrap must be readable below MAX_PATH; fixture roots are not shortened.' }
         [IO.Directory]::CreateDirectory($directory) | Out-Null
+        $manifestPath = Join-Path $container 'MANIFEST.json'
+        if (![IO.File]::Exists($manifestPath)) {
+            $record = [ordered]@{schemaVersion=1;category='tmp';name=$name;created=$today.ToString('yyyy-MM-dd');hostId=$hostId;repository=$repositoryKey
+                owner=@{user=$env:USERNAME;computer=$env:COMPUTERNAME;client='test-git-environment'};sessionId=$null;task='Process-only Git configuration for SecondBrain test suites'
+                status='closed';closed=$today.ToString('yyyy-MM-dd');expires=$today.AddDays(7).ToString('yyyy-MM-dd')}
+            $manifestBytes = [Text.UTF8Encoding]::new($false).GetBytes(($record | ConvertTo-Json -Depth 4))
+            # Parallel suites may race to create it: the first writer wins, the others keep its content.
+            try {
+                $manifestStream = [IO.FileStream]::new($manifestPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+                try { $manifestStream.Write($manifestBytes); $manifestStream.Flush($true) } finally { $manifestStream.Dispose() }
+            } catch [IO.IOException] { if (![IO.File]::Exists($manifestPath)) { throw } }
+        }
         $bytes = [Text.UTF8Encoding]::new($false).GetBytes($includes+"[core]`nlongpaths = true`n")
         $stream = [IO.FileStream]::new($wrapper,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try { $stream.Write($bytes); $stream.Flush($true) } finally { $stream.Dispose() }
