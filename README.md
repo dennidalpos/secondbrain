@@ -29,7 +29,7 @@ Two profiles are supported:
 
 Isolation is per repository: a dossier is read and written only for its own repository, and cross-project reads are refused unless the workstation configuration explicitly allows them. Dossiers are private local data and are never part of the public Git content.
 
-SecondBrain also holds a registry of authoritative sources (laws, standards, product documentation) with a verification state per source ([guide](docs/riferimento/authoritative-sources.md)). The registry and its tooling are in the repository; the downloaded source versions are local files and are not distributed by Git today.
+SecondBrain also holds a registry of authoritative sources (laws, standards, product documentation) with a verification state per source ([guide](docs/riferimento/authoritative-sources.md)). The registry, its tooling and the Markdown transcripts of reusable sources are in the repository, each under its own terms ([CREDITS](CREDITS.md#4-testi-di-terzi-nel-registro-delle-fonti)); the downloaded originals stay local and are not distributed by Git.
 
 Alternatives are often enough. Prefer a plain `AGENTS.md` or `CLAUDE.md` file for a single small repository whose notes fit in one page. Do not use SecondBrain if you are not on Windows, if you cannot run PowerShell 7.5+, or if you need context captured automatically from every chat: loading is explicit and native capture is partial (see the limits below).
 
@@ -138,7 +138,7 @@ SecondBrain conserva dossier privati che l'agente consulta tramite PowerShell o 
 
 ### Per chi, isolamento e quando non usarlo
 
-Due profili: **singolo utente** (una persona, una postazione Windows, le stesse note per ogni agente) e **studio di progettazione e sviluppo** (un dossier per cliente o progetto, separato dal repository del cliente; la modalità con radice condivisa non è ancora qualificata su una share di rete reale né con account distinti: è una prova). L'isolamento è per repository: ogni dossier si legge e si scrive solo per il proprio repository, salvo consenso esplicito nella configurazione. Il registro delle fonti autorevoli è nel repository, mentre le versioni scaricate restano file locali e oggi non sono distribuite da Git. Per un solo repository piccolo bastano un file `AGENTS.md` o `CLAUDE.md`; non serve SecondBrain senza Windows e PowerShell 7.5+, né se vuoi la cattura automatica di ogni chat.
+Due profili: **singolo utente** (una persona, una postazione Windows, le stesse note per ogni agente) e **studio di progettazione e sviluppo** (un dossier per cliente o progetto, separato dal repository del cliente; la modalità con radice condivisa non è ancora qualificata su una share di rete reale né con account distinti: è una prova). L'isolamento è per repository: ogni dossier si legge e si scrive solo per il proprio repository, salvo consenso esplicito nella configurazione. Il registro delle fonti autorevoli e le trascrizioni delle fonti riutilizzabili sono nel repository, ciascuna con le proprie condizioni ([CREDITS](CREDITS.md#4-testi-di-terzi-nel-registro-delle-fonti)); gli originali scaricati restano locali e non sono distribuiti da Git. Per un solo repository piccolo bastano un file `AGENTS.md` o `CLAUDE.md`; non serve SecondBrain senza Windows e PowerShell 7.5+, né se vuoi la cattura automatica di ogni chat.
 
 ### Inizia con un progetto
 
