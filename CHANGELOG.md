@@ -2,7 +2,21 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.10.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.11.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.11.0] - 2026-11-13
+
+Source-card corrections by command, the Gemini light role on a supported model, and workstation cleanups.
+
+### Added
+- `sources.ps1 -AddEffectiveDate ... -Correct` replaces only the reference text of an existing provision, which must keep its date and status (`sources.effective.correct` otherwise) (#558).
+- `sources.ps1 -SetPublicationDate -SourceId <id> -Date yyyy-MM-dd -Reference <primary source>` records a card's publication date, cites the reference in its notes and drops a note that declared the date unqualified (#558).
+
+### Changed
+- `config/agent-models.json`: Gemini models checked against the official model list; `gemini-2.5-flash` and `gemini-2.5-pro` are labelled deprecated (requests routed to newer models on 2026-12-01), and the light role for Gemini is now `gemini-3.1-flash-lite` (#513).
+
+### Fixed
+- ARERA 135/2022 source card: reference typo, arts. 7 and 9 applying from 2023-01-01 (art. 12.2) and publication date 2022-04-01 (#558).
 
 ## [2.10.1] - 2026-11-13
 

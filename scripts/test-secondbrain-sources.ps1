@@ -189,6 +189,21 @@ try {
     $added=Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Applicazione' '2026-02-01' 'verified' 'GU 1/2026, art. 2'
     $registry=Read-SBSourceRegistry $root;$lawCard=@($registry.sources|Where-Object id -eq 'fixture-law')[0]
     Assert-Source ($added.effectiveDates -eq 2 -and @($lawCard.effectiveDates|Where-Object {$_.provision -eq 'Applicazione' -and $_.status -eq 'verified' -and $_.date -eq '2026-02-01'}).Count -eq 1) 'data di efficacia aggiunta tramite comando con scheda validata'
+    # #558: -Correct fixes only the reference of an existing provision; a different date or status, or an unknown provision, is refused.
+    [void](Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Applicazione' '2026-02-01' 'verified' 'GU 1/2026, art. 2, comma 1' -Correct)
+    $registry=Read-SBSourceRegistry $root;$lawCard=@($registry.sources|Where-Object id -eq 'fixture-law')[0]
+    Assert-Source (@($lawCard.effectiveDates).Count -eq 2 -and @($lawCard.effectiveDates|Where-Object {$_.provision -eq 'Applicazione' -and $_.date -eq '2026-02-01' -and $_.status -eq 'verified' -and $_.reference -ceq 'GU 1/2026, art. 2, comma 1'}).Count -eq 1) '#558: -Correct replaces the reference and keeps date and status'
+    Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Applicazione' '2026-02-02' 'verified' 'GU 1/2026' -Correct} 'sources.effective.correct' '#558: -Correct with a different date is refused'
+    Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Missing' '2026-02-01' 'verified' 'GU 1/2026' -Correct} 'sources.effective.correct' '#558: -Correct on an unknown provision is refused'
+    # #558: the publication date is set by command with its primary-source reference; an unqualified-date note is dropped.
+    $raw=Read-SBJson $lawPath $null
+    $raw.notes=@('Data di pubblicazione puntuale non qualificata: non inferirla.','Other note');$raw.publicationDate=$null
+    Put-Source $lawPath (ConvertTo-SBJson $raw)
+    $registry=Read-SBSourceRegistry $root
+    Assert-SourceError {Set-SBSourcePublicationDate $config $registry 'fixture-law' '01-04-2022' 'https://example.com/act'} 'sources.publication.input' '#558: publication date not in yyyy-MM-dd is refused'
+    $pub=Set-SBSourcePublicationDate $config $registry 'fixture-law' '2026-01-01' 'https://example.com/act'
+    $registry=Read-SBSourceRegistry $root;$lawCard=@($registry.sources|Where-Object id -eq 'fixture-law')[0]
+    Assert-Source ($pub.publicationDate -eq '2026-01-01' -and $lawCard.publicationDate -eq '2026-01-01' -and @($lawCard.notes).Count -eq 2 -and 'Other note' -in @($lawCard.notes) -and @($lawCard.notes|Where-Object {$_ -match 'https://example.com/act'}).Count -eq 1) '#558: publication date recorded with its reference and the stale note dropped'
     $catalogView=Read-SBJson (Join-Path $registryPath 'catalog.json') $null
     Assert-Source (@($catalogView.sources|Where-Object {$_.id -eq 'fixture-law' -and $_.category -eq 'normative'}).Count -eq 1 -and !@(Get-SBSourceChecks $registry $config|Where-Object kind -eq 'index-drift').Count) 'indice rigenerato con la categoria dopo la scrittura'
     # #490: candidates are accepted or rejected by command, with the decision appended to decisions.json.

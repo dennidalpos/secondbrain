@@ -70,6 +70,8 @@ Add-SBMessages @{
     'sources.proposal.unrecognized' = @{ it = 'Riferimento non riconosciuto o ambiguo: {0}'; en = 'Reference not recognised or ambiguous: {0}' }
     'sources.proposal.origin' = @{ it = 'Fonte di origine del riferimento non indicata o non registrata: usare -SourceId'; en = 'Origin source of the reference missing or not registered: pass -SourceId' }
     'sources.effective.duplicate' = @{ it = 'Data di efficacia gia registrata per questa disposizione'; en = 'Effective date already registered for this provision' }
+    'sources.effective.correct' = @{ it = 'Impossibile correggere il riferimento di {0}: la disposizione deve esistere una volta e mantenere data e stato'; en = 'Cannot correct the reference of {0}: the provision must exist once and keep the same date and status' }
+    'sources.publication.input' = @{ it = 'Data di pubblicazione non valida: servono una data yyyy-MM-dd e il riferimento alla fonte primaria'; en = 'Invalid publication date: a yyyy-MM-dd date and the primary-source reference are required' }
 }
 
 function Get-SBSourceChild([string]$Root,[string]$Relative) {
@@ -336,8 +338,9 @@ function Invoke-SBSourceDecision($Config,$Registry,[string]$SourceId,[string]$Ve
     if($cardChanged){$null=Write-SBSourceIndex $Config $Registry.brainRoot}
     @{sourceId=$source.id;versionId=$VersionId;decision=$Decision;acceptedVersion=$source.acceptedVersion;cardChanged=$cardChanged}
 }
-function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$Provision,[string]$Date,[ValidateSet('verified','requires-verification')][string]$Status,[string]$Reference) {
+function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$Provision,[string]$Date,[ValidateSet('verified','requires-verification')][string]$Status,[string]$Reference,[switch]$Correct) {
     # #489: normative and legal cards need effective dates; an unknown date is declared as requires-verification with a null date, never guessed.
+    # #558: -Correct replaces only the reference text of an existing provision; its date and status must be repeated unchanged.
     if($Registry.archived){throw (New-SBError 'sources.resource.archived')}
     if([string]::IsNullOrWhiteSpace($Provision) -or [string]::IsNullOrWhiteSpace($Reference) -or ($Date -and $Date -notmatch '^\d{4}-\d{2}-\d{2}$') -or ($Status -eq 'verified' -and !$Date)){throw (New-SBError 'sources.effective.input')}
     $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
@@ -345,7 +348,10 @@ function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$
     $source=$sources[0]
     $existing=@($source.effectiveDates|Where-Object provision -ceq $Provision)
     $entry=@{provision=$Provision;date=$(if($Date){$Date}else{$null});status=$Status;reference=$Reference}
-    if($existing.Count){
+    if($Correct){
+        if($existing.Count -ne 1 -or [string]$existing[0].date -cne [string]$entry.date -or $existing[0].status -cne $Status){throw (New-SBError 'sources.effective.correct' @($Provision))}
+        $source.effectiveDates=@($source.effectiveDates|ForEach-Object{if($_.provision -ceq $Provision){$entry}else{$_}})
+    } elseif($existing.Count){
         # A provision still marked requires-verification is resolved in place once its date is verified; any other repeat is a duplicate.
         if($existing.Count -ne 1 -or $existing[0].status -ne 'requires-verification' -or $Status -ne 'verified'){throw (New-SBError 'sources.effective.duplicate')}
         $source.effectiveDates=@($source.effectiveDates|ForEach-Object{if($_.provision -ceq $Provision){$entry}else{$_}})
@@ -355,6 +361,21 @@ function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$
     Write-SBSourceCard $Config $Registry $source
     $null=Write-SBSourceIndex $Config $Registry.brainRoot
     @{sourceId=$source.id;effectiveDates=$source.effectiveDates.Count}
+}
+function Set-SBSourcePublicationDate($Config,$Registry,[string]$SourceId,[string]$Date,[string]$Reference) {
+    # #558: records a publication date read on the primary source, with the reference in the card notes. A note that declared the
+    # date unqualified is dropped, since it no longer holds; the date is never inferred from the acquisition date.
+    if($Registry.archived){throw (New-SBError 'sources.resource.archived')}
+    if($Date -notmatch '^\d{4}-\d{2}-\d{2}$' -or [string]::IsNullOrWhiteSpace($Reference)){throw (New-SBError 'sources.publication.input')}
+    $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
+    if($sources.Count -ne 1){throw (New-SBError 'sources.unregistered')}
+    $source=$sources[0]
+    $source.publicationDate=$Date
+    $notes=@($source.notes|Where-Object {$_ -and [string]$_ -notmatch '(?i)(data di pubblicazione|publication date).*(non qualificat|not qualified)'})
+    $source.notes=@($notes)+@('Publication date '+$Date+' verified on the primary source: '+$Reference.Trim())
+    Write-SBSourceCard $Config $Registry $source
+    $null=Write-SBSourceIndex $Config $Registry.brainRoot
+    @{sourceId=$source.id;publicationDate=$Date}
 }
 function Test-SBMappingOutdated($Reference,$Source) {
     # A product mapping pinned to a version older than the accepted one, for normative sources (regulations and decisions) only.
@@ -720,6 +741,7 @@ Export-ModuleMember -Function @(
     'Write-SBSourceIndex',
     'Invoke-SBSourceDecision',
     'Add-SBSourceEffectiveDate',
+    'Set-SBSourcePublicationDate',
     'Test-SBMappingOutdated',
     'Get-SBSourceChild',
     'Read-SBSourceRegistry',

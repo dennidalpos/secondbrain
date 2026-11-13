@@ -4,16 +4,18 @@
   "verification": {
     "gemini": {
       "date": "2026-11-13",
-      "source": "Gemini CLI 0.68.0 installed: gemini --list-models and the model constants of its bundle; not checked against ai.google.dev (web access denied in the session)",
+      "source": "Gemini CLI 0.68.0 installed (gemini --list-models) and the official model list at aistudio.google.com/docs/models (redirect of ai.google.dev/gemini-api/docs/models), read 2026-11-13",
       "confirmed": ["gemini-2.5-pro", "gemini-3.5-flash", "gemini-3.1-flash-lite"],
-      "recognizedNotListed": ["gemini-2.5-flash"]
+      "stableInDocs": ["gemini-3.1-flash-lite"],
+      "deprecated": {"gemini-2.5-flash": "routed to gemini-3.5-flash-lite on 2026-12-01", "gemini-2.5-pro": "routed to gemini-3.8-flash on 2026-12-01"},
+      "cliOnly": ["gemini-3.5-flash"]
     }
   },
   "roles": {
     "light": {
       "claude": { "model": "haiku", "effort": null },
       "codex": { "model": null, "effort": "low" },
-      "gemini": { "model": "gemini-2.5-flash", "effort": null }
+      "gemini": { "model": "gemini-3.1-flash-lite", "effort": null }
     }
   },
   "providers": {
@@ -36,8 +38,8 @@
     },
     "gemini": {
       "models": [
-        { "id": "gemini-2.5-pro", "label": "Gemini 2.5 Pro" },
-        { "id": "gemini-2.5-flash", "label": "Gemini 2.5 Flash" },
+        { "id": "gemini-2.5-pro", "label": "Gemini 2.5 Pro (deprecated)" },
+        { "id": "gemini-2.5-flash", "label": "Gemini 2.5 Flash (deprecated)" },
         { "id": "gemini-3.5-flash", "label": "Gemini 3.5 Flash" },
         { "id": "gemini-3.1-flash-lite", "label": "Gemini 3.1 Flash-Lite" }
       ],
