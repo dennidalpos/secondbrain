@@ -155,8 +155,12 @@ function New-SBPendingWrite {
     }
     if($Operation -in @('task.status','task.update')){
         $tracker=Read-SBPendingTracker $BrainRoot $Repository $dir
+        $archiveTasks=@((Read-SBTrackerArchive $tracker.path $Repository).data.tasks)
+        # #593: a #seq is resolved to the task ID at submission, so a deferred request names the same task when applied.
+        $resolvedId=Resolve-SBTrackerTaskId ([string]$Arguments.TaskId) (@($tracker.data.tasks)+$archiveTasks)
+        if($resolvedId -cne [string]$Arguments.TaskId){$Arguments=@{}+$Arguments;$Arguments.TaskId=$resolvedId}
         $task=@($tracker.data.tasks|Where-Object id -eq $Arguments.TaskId)
-        if(!$task.Count){$task=@((Read-SBTrackerArchive $tracker.path $Repository).data.tasks|Where-Object id -eq $Arguments.TaskId)}
+        if(!$task.Count){$task=@($archiveTasks|Where-Object id -eq $Arguments.TaskId)}
         if($task.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($Arguments.TaskId))}
         $Expected=@{taskHash=(Get-SBTextHash (ConvertTo-SBJson $task[0]))}
     }elseif($Operation -eq 'task.new'){

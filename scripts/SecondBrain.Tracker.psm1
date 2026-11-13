@@ -608,7 +608,17 @@ function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[o
     @{applied=$true;manifest=$manifest;path=$Target.path;data=$Data}
 }
 
+function Resolve-SBTrackerTaskId([string]$TaskId,$Tasks) {
+    # #593: "#<seq>" names a task of this tracker by number, active or archived, as -Task and -DependsOn do (#591); other values are IDs.
+    if($TaskId -notmatch '^#(\d+)$'){return $TaskId}
+    $seq=[int]$Matches[1]
+    $bySeq=@(@($Tasks)|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('seq') -and [int]$_.seq -eq $seq})
+    if($bySeq.Count -ne 1){throw (New-SBError 'tracker.task.notfound' @($TaskId+' (no task with this number in the tracker or its archive; use the task ID or an existing #seq)'))}
+    [string]$bySeq[0].id
+}
+
 function Get-SBTrackerTaskForUpdate($Target,$Archive,[string]$TaskId) {
+    $TaskId=Resolve-SBTrackerTaskId $TaskId (@($Target.data.tasks)+@($Archive.data.tasks))
     $matching=@($Target.data.tasks|Where-Object id -eq $TaskId)
     if(!$matching.Count){
         $matching=@($Archive.data.tasks|Where-Object id -eq $TaskId)
@@ -1053,6 +1063,7 @@ Export-ModuleMember -Function @(
     'Test-SBTrackerData',
     'Assert-SBTrackerWriteData',
     'Read-SBTrackerArchive',
+    'Resolve-SBTrackerTaskId',
     'Move-SBTerminalTrackerTasks',
     'Get-SBTrackerRelatedData',
     'Resolve-SBTracker',

@@ -2,7 +2,14 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.11.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.11.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.11.1] - 2026-11-13
+
+Tracker updates by task number.
+
+### Changed
+- `knowledge.ps1 -UpdateTaskId` accepts `#<seq>` (padded or not) for an active or archived task, like `-Task` and `-DependsOn`; a deferred write stores the resolved task ID, and an unknown number is refused naming the ID form (#593).
 
 ## [2.11.0] - 2026-11-13
 

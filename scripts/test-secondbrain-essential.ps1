@@ -533,6 +533,16 @@ if('trackers' -in $Groups){
     $refused=$null
     try{Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn '#999'|Out-Null}catch{$refused=$_}
     Check ((Test-SBError $refused 'tracker.dependency.missing') -and [string]$refused -match '#999' -and [string]$refused -match 'task ID' -and (Get-SBFileHash $trackerPath) -ceq $before) '#591: unknown #seq is refused naming the ID form, tracker bytes unchanged'
+    # #593: -TaskId accepts #seq (padded or not) for active and archived tasks; an unknown number names the ID form.
+    [void](Update-SBTrackerTask @argsBase -TaskId '#1' -StateReason 'seq-active')
+    Check ((Read-SBJson $trackerPath $null).tasks[0].extensions.stateReason -ceq 'seq-active') '#593: -TaskId #seq updates the active task with that number'
+    [void](Update-SBTrackerTask @argsBase -TaskId '#002' -Priority P3)
+    $seqArchived=Get-SBTaskDetail -BrainRoot $brain -Dossier $dossier -Task 'T-2'
+    Check ($seqArchived.task.priority -ceq 'P3' -and $seqArchived.task.status -eq 'done') '#593: -TaskId #seq updates the archived task with that number'
+    $before=Get-SBFileHash $trackerPath
+    $refused=$null
+    try{Update-SBTrackerTask @argsBase -TaskId '#999' -Priority P1|Out-Null}catch{$refused=$_}
+    Check ((Test-SBError $refused 'tracker.task.notfound') -and [string]$refused -match '#999' -and [string]$refused -match 'task ID' -and (Get-SBFileHash $trackerPath) -ceq $before) '#593: unknown -TaskId #seq is refused naming the ID form, tracker bytes unchanged'
     [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn ($identity+'#T-2;github.com/test/other#O-1'))
     Check ((Read-SBJson $trackerPath $null).tasks[0].dependencies.Count -eq 2) 'semicolon-separated qualified dependencies preserve managed repository identities'
     $archivePreview=Move-SBTerminalTrackerTasks -BrainRoot $brain -Identity 'github.com/test/other'

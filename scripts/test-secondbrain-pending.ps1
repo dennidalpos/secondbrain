@@ -110,6 +110,14 @@ try {
     $again=Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg
     Assert-Pending (!$again.applied.Count -and (Get-SBFileHash (Join-Path $dossier 'history/session/report.md')) -eq $reportHash -and (Test-Path -LiteralPath $first.path)) 'receipts prevent duplicate application and original requests are retained'
 
+    # #593: a #seq TaskId is stored as the task ID in the request, so the deferred write names the same task; an unknown number is refused.
+    $bySeq=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='#002';Priority='P3'} -Config $cfg
+    $bySeqRequest=Read-SBJson $bySeq.path $null
+    $bySeqResult=Complete-SBPendingSubmission $bySeq $cfg
+    Assert-Pending ($bySeqRequest.arguments.TaskId -ceq 'T-2' -and $bySeqResult.applied -and @((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-2')[0].priority -ceq 'P3') '#593: task.update with #seq is submitted by ID and applied'
+    $seqRefused=$null
+    try{[void](New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='#99';Priority='P3'} -Config $cfg)}catch{$seqRefused=$_}
+    Assert-Pending ((Test-SBError $seqRefused 'tracker.task.notfound') -and [string]$seqRefused -match 'task ID') '#593: unknown #seq is refused at submission naming the ID form'
     $independent=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='done'} -Config $cfg
     [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Status in_progress -BackupRoot $cfg.backupRoot)
     $done=Complete-SBPendingSubmission $independent $cfg
