@@ -286,6 +286,18 @@ function Read-SBTrackerReview([string]$Path,[string]$Identity,[string]$SourceHas
     $review
 }
 
+# Schema-1 import: a dependency that names the tracker's own original repository becomes local once the
+# tracker is realigned to a new identity. Mutates the given tasks; shared by ConvertTo-SBTracker and Portable.
+function Remove-SBOriginDependencyRepository([object[]]$Tasks,[string]$OriginalRepository) {
+    if(!$OriginalRepository){return}
+    foreach($task in $Tasks){
+        if($task -isnot [Collections.IDictionary] -or $task['dependencies'] -isnot [array]){continue}
+        foreach($dependency in $task.dependencies){
+            if($dependency -is [Collections.IDictionary] -and $dependency.Contains('repository') -and $dependency.repository -ceq $OriginalRepository){[void]$dependency.Remove('repository')}
+        }
+    }
+}
+
 function ConvertTo-SBTracker {
     param([string]$SourcePath,[string]$Identity,[string]$Reference=$SourcePath,[string]$Commit='',[string]$HistoryPath='',[string]$ReviewPath='')
     Assert-SBPlainPath $SourcePath
@@ -302,14 +314,8 @@ function ConvertTo-SBTracker {
         if($originalData['tasks'] -isnot [array]){throw (New-SBError 'tracker.collection.invalid' @('tasks'))}
         $copy=ConvertTo-SBJson $originalData|ConvertFrom-Json -AsHashtable -DateKind String
         $originalRepository=if($copy.Contains('repository')){[string]$copy.repository}else{''}
-        foreach($task in @($copy.tasks)){
-            if($task -is [Collections.IDictionary] -and $task['dependencies'] -is [array]){
-                foreach($dependency in $task.dependencies){
-                    if($originalRepository -and $dependency -is [Collections.IDictionary] -and $dependency.Contains('repository') -and $dependency.repository -ceq $originalRepository){[void]$dependency.Remove('repository')}
-                }
-            }
-            $tasks.Add($task)
-        }
+        Remove-SBOriginDependencyRepository @($copy.tasks) $originalRepository
+        foreach($task in @($copy.tasks)){$tasks.Add($task)}
         if($copy['history'] -is [array]){$history=@($copy.history)}
         if($copy['extensions'] -is [Collections.IDictionary]){$carried=$copy.extensions}
     } elseif([IO.Path]::GetExtension($SourcePath) -eq '.json'){
@@ -1029,6 +1035,7 @@ Export-ModuleMember -Function @(
     'New-SBTrackerTask',
     'Read-SBTrackerReview',
     'ConvertTo-SBTracker',
+    'Remove-SBOriginDependencyRepository',
     'Convert-SBTrackerLocation',
     'Get-SBCuratedReferenceIssues',
     'Get-SBTrackerAuthorityIssues',

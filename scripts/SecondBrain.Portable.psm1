@@ -160,10 +160,7 @@ function Get-SBCheckoutTrackerSource([string]$CheckoutPath,[string]$Identity) {
         if($data.Contains('schemaVersion') -and $data.schemaVersion -eq 1){
             $copy=ConvertTo-SBJson $data|ConvertFrom-Json -AsHashtable -DateKind String
             $original=if($copy.Contains('repository')){[string]$copy.repository}else{''}
-            foreach($task in @($copy['tasks'])){
-                if($task -isnot [Collections.IDictionary] -or $task['dependencies'] -isnot [array]){continue}
-                foreach($dependency in $task.dependencies){if($original -and $dependency -is [Collections.IDictionary] -and $dependency.Contains('repository') -and $dependency.repository -ceq $original){[void]$dependency.Remove('repository')}}
-            }
+            Remove-SBOriginDependencyRepository @($copy['tasks']) $original
             $copy.repository=$Identity
             $compatible=try{[bool](Test-SBTrackerData $copy $Identity @($Identity) (Join-Path $PSScriptRoot '../config/tracker.schema.json'))}catch{$false}
         }
