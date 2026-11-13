@@ -10,6 +10,12 @@
       "provision": "Efficacia della delibera",
       "reference": "Delibera ARERA 29 marzo 2022 135/2022/R/com, art. 12.1 (https://www.arera.it/fileadmin/allegati/docs/22/135-22.pdf; scheda https://www.arera.it/atti-e-provvedimenti/dettaglio/22/135-22, pubblicazione 01-04-2022): nessuna clausola generale di entrata in vigore; gli artt. 1, 6, 8 e 10 si applicano dall'1-07-2022",
       "status": "verified"
+    },
+    {
+      "date": "2023-01-01",
+      "provision": "Applicazione artt. 7 e 9",
+      "reference": "Delibera ARERA 135/2022/R/com, art. 12.2 (https://www.arera.it/fileadmin/allegati/docs/22/135-22.pdf): gli artt. 7 e 9 si applicano dal 1-01-2023",
+      "status": "verified"
     }
   ],
   "endpoints": [],
