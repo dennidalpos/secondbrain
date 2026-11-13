@@ -5,7 +5,7 @@ param([string[]]$Groups=@('portable','trackers','workflows','pending'),[switch]$
 $ErrorActionPreference='Stop'
 # A comma-separated list arrives as one element through -File.
 $Groups=@($Groups|ForEach-Object {$_ -split ','}|Where-Object {$_})
-foreach($name in @('Core','Access','Host','Para','TaskLedger','Tracker','Knowledge','Pending','Portable','Mcp','Publication')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$name+'.psm1'))}
+foreach($name in @('Core','Access','Host','Para','TaskLedger','Tracker','Knowledge','Pending','Portable','Mcp','McpConfig','McpPackage','Publication')){Import-Module (Join-Path $PSScriptRoot ('SecondBrain.'+$name+'.psm1'))}
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 . (Join-Path $PSScriptRoot 'test-run-evidence.ps1')
 # The ledger records who writes: the suite may run inside an agent CLI, so its executor signals are cleared for every write of the suite.
@@ -72,7 +72,7 @@ if($LASTEXITCODE){throw 'Git fixture init failed'}
 if($LASTEXITCODE){throw 'Git fixture remote failed'}
 Check ((& git -C $repo rev-parse --show-toplevel).Replace('\','/') -ceq $repo.Replace('\','/')) 'Git fixture is isolated'
 $hostId=Get-SBHostId;$runtime=Join-Path $brain ('.runtime/hosts/'+$hostId);$configPath=Join-Path $runtime 'workstation.json'
-$cfg=@{schemaVersion=1;mode='portable';brainRoot=$brain;workstationId=$hostId;runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');repositoryRoot=$brain;coordinationRoot=(Join-Path $brain '.runtime/access');bindings=@(@{identity=$identity;path=$repo;remoteIdentity=$identity});ides=@();sessionTimeoutMinutes=30;lockWaitMs=1000;configPath=$configPath}
+$cfg=@{schemaVersion=1;mode='portable';brainRoot=$brain;workstationId=$hostId;runtimeRoot=$runtime;backupRoot=(Join-Path $runtime 'backups');repositoryRoot=$brain;coordinationRoot=(Join-Path $brain '.runtime/access');bindings=@(@{identity=$identity;path=$repo;remoteIdentity=$identity;repositoryFiles=@()});ides=@();sessionTimeoutMinutes=30;lockWaitMs=1000;configPath=$configPath}
 Put $configPath (ConvertTo-SBJson $cfg)
 $argsBase=@{BrainRoot=$brain;Identity=$identity;WorkingRepository=$identity}
 function Invoke-EssentialCli([string[]]$Arguments){$out=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/knowledge.ps1') -ConfigPath $configPath -CheckoutPath $repo @Arguments 2>&1);@{code=$LASTEXITCODE;text=($out -join "`n")}}
@@ -140,6 +140,45 @@ if('portable' -in $Groups){
     $one=Invoke-SBHostActivation $brain $selectionPath -Apply
     $two=Invoke-SBHostActivation $brain $selectionPath -Apply
     Check ($one.applied -and $two.applied -and (Read-SBJson $one.configuration $null).bindings.Count -eq 1) 'activation is idempotent on one synthetic checkout'
+    # #484 zero footprint: the default activation and Sync leave the checkout byte-identical; files are written only after an explicit choice.
+    $treeOf={param($root) @(Get-ChildItem -LiteralPath $root -Recurse -Force -File|Where-Object {$_.FullName -notmatch '[\\/]\.git[\\/]'}|Sort-Object FullName|ForEach-Object {$_.FullName+'|'+(Get-SBFileHash $_.FullName)}) -join "`n"}
+    $treeBefore=& $treeOf $repo
+    # Writes go through the copied CLI (its own registry); reads run in-process.
+    & pwsh -NoProfile -File (Join-Path $brain 'scripts/access.ps1') -Reconcile -ConfigPath $configPath|Out-Null
+    function Invoke-EssentialSecondBrain([string[]]$Arguments){$out=@(& pwsh -NoProfile -File (Join-Path $brain 'scripts/secondbrain.ps1') -ConfigPath $configPath @Arguments 2>&1);@{code=$LASTEXITCODE;text=($out -join "`n")}}
+    $footprintConfig=Read-SBConfiguration $one.configuration -ReadOnly;$footprintConfig.brainRoot=$brain
+    $defaultSync=Invoke-EssentialSecondBrain @('-Sync','-Repository',$identity)
+    $defaultCheck=Invoke-SBPortableSync $footprintConfig -Check -Repository $identity
+    Check ((Read-SBJson $one.configuration $null).bindings[0].repositoryFiles.Count -eq 0 -and (& $treeOf $repo) -ceq $treeBefore -and !@($defaultCheck.issues|Where-Object kind -in @('directive-pending','directive-conflict','pointer-pending','pointer-conflict')).Count) ('default activation and Sync leave the checkout unchanged '+$defaultSync.text)
+    Reject {ConvertTo-SBRepositoryFiles 'CLAUDE.md'} 'CLAUDE.md without AGENTS.md is refused'
+    Reject {ConvertTo-SBRepositoryFiles 'README.md'} 'an unknown repository file is refused'
+    $selection.repositories[0].repositoryFiles=@('AGENTS.md','CLAUDE.md');Put $selectionPath (ConvertTo-SBJson $selection)
+    [void](Invoke-SBHostActivation $brain $selectionPath -Apply)
+    $optIn=Invoke-EssentialSecondBrain @('-Sync','-Repository',$identity)
+    $agentsPath=Join-Path $repo 'AGENTS.md'
+    Check ((Read-SBText $agentsPath).Contains('<!-- secondbrain:repository:begin -->') -and (Read-SBText (Join-Path $repo 'CLAUDE.md')).Contains('@AGENTS.md') -and ![IO.File]::Exists((Join-Path $repo 'GEMINI.md'))) ('explicit choice writes only the chosen files '+$optIn.text)
+    # The checkout now holds the managed files: new discovery, and the existing block is approved explicitly.
+    $discovery=Invoke-SBHostDiscovery -BrainRoot $brain -Roots @($repo) -ReportPath $discoveryPath
+    $selection.reportSha256=Get-SBFileHash $discoveryPath;$selection.repositories[0].id=$discovery.repositories[0].id;$selection.repositories[0].approveExistingBlock=$true
+    $selection.repositories[0].Remove('repositoryFiles');Put $selectionPath (ConvertTo-SBJson $selection)
+    [void](Invoke-SBHostActivation $brain $selectionPath -Apply)
+    Check (@((Read-SBJson $one.configuration $null).bindings[0].repositoryFiles) -join ',' -ceq 'AGENTS.md,CLAUDE.md') 'a repeated activation keeps the earlier file choice'
+    # Hand-edited managed block: guided resolution with diff, nothing lost.
+    $generated=Read-SBText $agentsPath
+    Put $agentsPath ($generated.Replace('Le direttive non autorizzano','Riga modificata a mano. Le direttive non autorizzano'))
+    $editedText=Read-SBText $agentsPath
+    $resolveConfig=Read-SBConfiguration $one.configuration -ReadOnly;$resolveConfig.brainRoot=$brain
+    $conflict=Invoke-SBPortableSync $resolveConfig -Check -Repository $identity
+    Check (@($conflict.issues|Where-Object kind -eq 'directive-conflict').Count -eq 1) 'a hand-edited managed block is reported as a conflict'
+    $previewResolve=Invoke-SBRepositoryBlockResolve $resolveConfig $identity 'AGENTS.md'
+    Check ($previewResolve.conflicts -eq 1 -and !$previewResolve.applied -and @($previewResolve.files[0].diff|Where-Object {$_.StartsWith('- ') -and $_.Contains('Riga modificata a mano')}).Count -eq 1 -and (Read-SBText $agentsPath) -ceq $editedText) 'resolution preview shows the diff and writes nothing'
+    Reject {Invoke-SBRepositoryBlockResolve $resolveConfig $identity 'AGENTS.md' -Apply} 'resolution requires an explicit choice'
+    $resolveRun=Invoke-EssentialSecondBrain @('-ResolveBlock',$identity,'-File','AGENTS.md','-Resolution','Preserve','-ApplyResolve')
+    $resolved=$resolveRun.text|ConvertFrom-Json -AsHashtable
+    $afterResolve=Read-SBText $agentsPath
+    Check ($resolveRun.code -eq 0 -and $resolved.applied -and $resolved.files[0].status -ceq 'resolved' -and $resolved.files[0].previousBlock.Contains('Riga modificata a mano') -and $afterResolve.Contains('Riga modificata a mano') -and
+        !@((Invoke-SBPortableSync $resolveConfig -Check -Repository $identity).issues|Where-Object kind -in @('directive-conflict','directive-pending')).Count) 'Preserve restores the generated block and keeps the hand-written content'
+    foreach($leftover in 'AGENTS.md','CLAUDE.md'){Remove-Item -LiteralPath (Join-Path $repo $leftover) -Force}
     $decisionMemory=Join-Path $dossier 'memory.md';$decisionOriginal=Read-SBText $decisionMemory
     Put $decisionMemory ($decisionOriginal+"`n## Decisione old`n<!-- sb:decision id=old state=superseded supersededBy=new -->`nSuperseded detail.`n")
     $decisionConfig=Read-SBConfiguration $one.configuration -ReadOnly
@@ -220,6 +259,14 @@ if('portable' -in $Groups){
             Check ($LASTEXITCODE -eq 0 -and $readOnlyPreview.mode -eq 'single' -and !$readOnlyPreview.applied -and !$readOnlyPreview.confirmed -and !$readOnlyPreview.discovery.report -and $readOnlyPreview.activation.repositories.Count -eq 1 -and $readOnlyPreview.mcp.targets[0].ConfigFile -eq $cursorConfig -and ($beforePreview -join ',') -eq ($afterPreview -join ',')) 'read-only setup plans activation and MCP without writing discovery, selection or pairing files'
             $teamError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $repo -Language en 2>&1) -join "`n"
             Check ($LASTEXITCODE -eq 2 -and $teamError.Contains('reachable UNC root')) 'team preview rejects a local path'
+            $soloPreview=(& pwsh -NoProfile -File $setupScript -Setup -SetupProfile Solo -PreviewOnly -Roots $repo -Select $repo)|ConvertFrom-Json -AsHashtable
+            Check ($LASTEXITCODE -eq 0 -and $soloPreview.profile -eq 'solo' -and $soloPreview.mode -eq 'single' -and !$soloPreview.sharedRoot -and $soloPreview.acl -eq 'none' -and $soloPreview.state -eq 'checkout' -and ($beforePreview -join ',') -eq (@($previewPaths|ForEach-Object {Get-SBFileHash $_}) -join ',')) 'Solo profile previews in one command with no shared root, no ACL and no writes'
+            $soloTeam=(& pwsh -NoProfile -File $setupScript -Setup -SetupProfile Solo -PreviewOnly -TeamRoot $repo -Roots $repo -Language en 2>&1) -join "`n"
+            Check ($LASTEXITCODE -eq 2 -and $soloTeam.Contains('no shared root')) 'Solo profile rejects -TeamRoot'
+            $studioNoRoot=(& pwsh -NoProfile -File $setupScript -Setup -SetupProfile Studio -PreviewOnly -Roots $repo -Language en 2>&1) -join "`n"
+            Check ($LASTEXITCODE -eq 2 -and $studioNoRoot.Contains('requires -TeamRoot')) 'Studio profile requires the shared root'
+            $studioLocal=(& pwsh -NoProfile -File $setupScript -Setup -SetupProfile Studio -PreviewOnly -TeamRoot $repo -Language en 2>&1) -join "`n"
+            Check ($LASTEXITCODE -eq 2 -and $studioLocal.Contains('reachable UNC root')) 'Studio profile rejects a local path as shared root'
             $allError=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -All -Roots $repo -Language en 2>&1) -join "`n"
             Check ($LASTEXITCODE -eq 2 -and $allError.Contains('use -AllIdes')) 'Setup rejects the removed -All (no silent binding to -AllIdes) with the next step'
             $personalRoot=Join-Path $fixture 'personal'
@@ -238,6 +285,12 @@ if('portable' -in $Groups){
                     Put (Join-Path $personalRoot 'config/shared.json') (Read-SBText (Join-Path $brain 'config/shared.json'))
                     $teamCli=(& pwsh -NoProfile -File $setupScript -Setup -PreviewOnly -TeamRoot $loopback -Roots $repo -Select $repo -ApproveExistingBlocks)|ConvertFrom-Json -AsHashtable
                     Check ($LASTEXITCODE -eq 0 -and $teamCli.mode -eq 'team' -and $teamCli.dossierConflicts.Count -eq 1 -and (Test-SBSamePath $teamCli.dossierConflicts[0].teamDossier $personalDossier) -and ![IO.Directory]::Exists((Join-Path $personalRoot '.runtime'))) 'team CLI reports the conflict over loopback UNC without creating runtime'
+                    $studioCli=(& pwsh -NoProfile -File $setupScript -Setup -SetupProfile Studio -PreviewOnly -TeamRoot $loopback -Roots $repo -Select $repo -ApproveExistingBlocks)|ConvertFrom-Json -AsHashtable
+                    Check ($LASTEXITCODE -eq 0 -and $studioCli.profile -eq 'studio' -and $studioCli.mode -eq 'team' -and $studioCli.sharedRoot -and $studioCli.acl -eq 'share-managed' -and $studioCli.state -eq 'local') 'Studio profile previews in one command over loopback UNC with shared root and local state'
+                    # The personal root has no scripts: the Solo check runs the fixture brain's own script through the same loopback share.
+                    $brainLoopback=if($brain -match '^(?<drive>[A-Za-z]):(?<tail>\\.*)$'){'\\localhost\'+$Matches.drive+'$'+$Matches.tail}else{$brain}
+                    $soloUnc=(& pwsh -NoProfile -File (Join-Path $brainLoopback 'scripts/secondbrain.ps1') -Setup -SetupProfile Solo -PreviewOnly -Roots $repo -Language en 2>&1) -join "`n"
+                    Check ($LASTEXITCODE -eq 2 -and $soloUnc.Contains('no shared root')) 'Solo profile refuses a checkout reached through a share'
                     $conflict=(& pwsh -NoProfile -File $setupScript -Setup -TeamRoot $loopback -Roots $repo -Select $repo -ApproveExistingBlocks -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
                     Check ($LASTEXITCODE -eq 1 -and $conflict.stage -eq 'dossier-conflict' -and !$conflict.applied -and $conflict.dossierConflicts.Count -eq 1 -and ![IO.Directory]::Exists((Join-Path $personalRoot '.runtime'))) 'team conflict stops activation before writes even with explicit confirmation'
 
@@ -615,6 +668,17 @@ if('workflows' -in $Groups){
             Check ($LASTEXITCODE -ne 0 -and ![IO.Directory]::Exists($foreignRoot) -and $foreignWork -match 'runner|task') 'work.ps1 refuses to create a work folder for another repository in a scoped session'
             $ownWork=(& pwsh -NoProfile -File $workCli -Repository $identity -Category work -Slug perimeter -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
             Check ($LASTEXITCODE -eq 0) ('work.ps1 still serves the session repository: '+$ownWork)
+            # #414: nothing of the product's TEMP/cache/build is redirected into .runtime; evidence and report folders carry an expiry.
+            $plan=Get-SBWorkEnvironment -BrainRoot $brain -HostId $hostId -Repository $identity -Category work -Slug native-temp
+            Check (@($plan.environment.Keys).Count -eq 1 -and $plan.environment.ContainsKey('SECONDBRAIN_WORK_ROOT') -and !$plan.ContainsKey('buildRoot') -and $plan.status -ceq 'os-native-temp-cache') 'work environment exports only SECONDBRAIN_WORK_ROOT (no TEMP, TMP, cache or build redirection)'
+            $legacyPlan=Get-SBWorkEnvironment $brain $hostId $identity 'root' 'default'
+            Check (@($legacyPlan.environment.Keys).Count -eq 1 -and !$legacyPlan.ContainsKey('buildRoot')) 'legacy work plan without category exports only SECONDBRAIN_WORK_ROOT'
+            foreach($expiring in @(@('evidence',90),@('report',90),@('work',30),@('fixture',7),@('tmp',7))){
+                $null=(& pwsh -NoProfile -File $workCli -Repository $identity -Category $expiring[0] -Slug 'expiry-check' -Init -Task synthetic -ConfigPath $configPath 2>&1|Out-String)
+                $initPlan=Get-SBWorkEnvironment -BrainRoot $brain -HostId $hostId -Repository $identity -Category $expiring[0] -Slug 'expiry-check'
+                $manifest=Read-SBJson (Join-Path $initPlan.root 'MANIFEST.json') $null
+                Check ($manifest -and $manifest.expires -ceq (Get-Date).AddDays($expiring[1]).ToString('yyyy-MM-dd')) ('work.ps1 -Init sets a '+$expiring[1]+'-day expiry for '+$expiring[0])
+            }
         }finally{$env:SECONDBRAIN_RUNNER_REPOSITORY=$null}
     }finally{Put $otherContext $otherContextBytes}
 }
@@ -758,6 +822,12 @@ if('audit2' -in $Groups){
     [void](Restore-SBParaTransaction $manifest $brain $cfg.backupRoot)
     Check ((Read-SBText $tx) -ceq 'before') 'transaction rollback recovers original bytes'
     Put $tx 'changed';Reject {Restore-SBParaTransaction $manifest $brain $cfg.backupRoot} 'rollback refuses changed destination'
+    # Rollback of a created file prunes the folders it leaves empty (#419) but keeps first-level folders and non-empty siblings.
+    $createdTop=Join-Path $brain 'rollback-empty';$createdFile=Join-Path $createdTop 'a/b/created.txt';$keepFile=Join-Path $createdTop 'keep/kept.txt'
+    Put $keepFile 'keep'
+    $createdManifest=Invoke-SBParaTransaction @(@{path=$createdFile;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes('new')}) $cfg.backupRoot $brain
+    [void](Restore-SBParaTransaction $createdManifest $brain $cfg.backupRoot)
+    Check (!(Test-Path -LiteralPath (Join-Path $createdTop 'a')) -and (Test-Path -LiteralPath $keepFile) -and (Test-Path -LiteralPath $createdTop)) 'transaction rollback prunes empty folders it created and keeps populated ones'
     $clean=@(Test-SBPublicationText 'Public synthetic documentation.' 'README.md' 'working')
     $privateText='token=gh'+'p_'+('x'*36)
     $private=@(Test-SBPublicationText $privateText 'README.md' 'working')
@@ -919,6 +989,21 @@ if('audit2' -in $Groups){
     Check ($treeTag.code -eq 0) 'created annotated tag pointing directly to the alias tree'
     $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
     Check ($scan.ready -and @($scan.findings|Where-Object {$_.surface -eq 'history' -and $_.reviewed}).Count -eq 2) 'annotated tree tags retain both path-specific reviews'
+    # Git-ignored build folders (#546): reviewable by exact path in ignoredReviews, never by allowances or other paths.
+    $excludeFile=Join-Path $repo '.git/info/exclude'
+    $excludeBefore=if(Test-Path -LiteralPath $excludeFile){[IO.File]::ReadAllText($excludeFile)}else{''}
+    [IO.File]::WriteAllText($excludeFile,$excludeBefore+"`nnode_modules/`ndist/`n")
+    New-Item -ItemType Directory -Force (Join-Path $repo 'node_modules'),(Join-Path $repo 'dist')|Out-Null
+    Set-Content -LiteralPath (Join-Path $repo 'node_modules/a.txt') -Value 'x';Set-Content -LiteralPath (Join-Path $repo 'dist/a.txt') -Value 'x'
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check (!$scan.ready -and @($scan.findings|Where-Object {$_.rule -eq 'ignored-operational-residue' -and !$_.reviewed}).Count -eq 2) 'ignored build folders stay unreviewed without ignoredReviews'
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=$reviews;binaryReviews=$sizeReviews;ignoredReviews=@(@{path='node_modules/';reviewed=$true;reason='synthetic build folder review'},@{path='dist/';reviewed=$true;reason=''})})
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check (!$scan.ready -and @($scan.findings|Where-Object {$_.rule -eq 'ignored-operational-residue' -and !$_.reviewed}).path -ceq 'dist/') 'an ignored folder is reviewed only by its exact path with a reason'
+    Put $policy (ConvertTo-SBJson @{schemaVersion=1;allowances=$reviews;binaryReviews=$sizeReviews;ignoredReviews=@(@{path='node_modules/';reviewed=$true;reason='synthetic build folder review'},@{path='dist/';reviewed=$true;reason='synthetic build folder review'})})
+    $scan=Test-SBPublication -BrainRoot $brain -RepositoryPath $repo -PolicyPath $policy
+    Check ($scan.ready -and @($scan.findings|Where-Object {$_.rule -eq 'ignored-operational-residue' -and $_.reviewed}).Count -eq 2) 'reviewed ignored build folders no longer block readiness'
+    [IO.File]::WriteAllText($excludeFile,$excludeBefore)
 }
 if('git-environment' -in $Groups){
     $runner=Join-Path $PSScriptRoot 'test-secondbrain.ps1'
@@ -960,5 +1045,12 @@ if('git-environment' -in $Groups){
     $run.inputsBefore=Get-SBTestInputSnapshot $run.brainRoot
     Complete-SBTestRun $run $true 1 @() $false
     Check ((Read-SBJson $run.report $null).status -eq 'passed' -and (Test-Path $run.directory)) 'nested report is durable and fixtures retained'
+    # The time budget is a warning, never a failure (#498).
+    $slow=New-SBTestRun ([IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))) 'Only' @{}
+    $slow.inputsBefore=Get-SBTestInputSnapshot $slow.brainRoot;$slow.budgetSeconds=0.000001
+    $slowThrew=$false;$slowWarnings=@()
+    try{Complete-SBTestRun $slow $true 1 @() $false 3>&1|ForEach-Object {$slowWarnings+=[string]$_}}catch{$slowThrew=$true}
+    $slowRecord=Read-SBJson $slow.report $null
+    Check (!$slowThrew -and $slowRecord.status -eq 'passed' -and $slowRecord.budgetExceeded -eq $true -and @($slowRecord.warnings).Count -eq 1 -and @($slowWarnings|Where-Object {$_ -match 'time budget'}).Count -eq 1) 'exceeding the time budget warns and does not fail the run'
 }
 'SUCCESS ESSENTIAL: '+$checks+' behavioral checks; retained fixture: '+$fixture

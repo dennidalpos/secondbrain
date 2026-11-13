@@ -172,10 +172,10 @@ function Approve-SBMcpWritePlan {
     if($fresh.planHash -cne $ExpectedPlanHash){throw (New-SBError 'mcpwrite.stale')}
     if([IO.File]::Exists($ctx.approvalPath)){
         $existing=Read-SBMcpWriteApproval $ctx $ExpectedPlanHash
-        if([DateTimeOffset]::Parse($existing.expiresAt) -le [DateTimeOffset]::UtcNow){throw (New-SBError 'mcpwrite.approval')}
+        if([DateTimeOffset]::Parse($existing.expiresAt) -le (Get-SBNow)){throw (New-SBError 'mcpwrite.approval')}
         return @{approved=$true;planHash=$ExpectedPlanHash;requestId=$Plan.requestId;expiresAt=$existing.expiresAt;receiptPath=$ctx.approvalPath}
     }
-    $now=[DateTimeOffset]::UtcNow
+    $now=(Get-SBNow)
     $receipt=@{schemaVersion=1;plan=$fresh;planHash=$ExpectedPlanHash;workstationId=$ctx.config.workstationId;
         user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;approvedAt=$now.ToString('o');expiresAt=$now.AddMinutes(10).ToString('o');authorization=$Authorization}
     $receipt.receiptHash=Get-SBMcpWriteHash $receipt receiptHash
@@ -192,8 +192,8 @@ function Submit-SBMcpWrite {
     Assert-SBPlainPath $queuedPath
     $queued=[IO.File]::Exists($queuedPath)
     if(!$queued){
-        if([DateTimeOffset]::Parse($receipt.approvedAt) -gt [DateTimeOffset]::UtcNow -or
-           [DateTimeOffset]::Parse($receipt.expiresAt) -le [DateTimeOffset]::UtcNow){throw (New-SBError 'mcpwrite.approval')}
+        if([DateTimeOffset]::Parse($receipt.approvedAt) -gt (Get-SBNow) -or
+           [DateTimeOffset]::Parse($receipt.expiresAt) -le (Get-SBNow)){throw (New-SBError 'mcpwrite.approval')}
         if($plan.operation -eq 'activity.append' -and (!$ctx.config.ContainsKey('activityLogEnabled') -or $ctx.config.activityLogEnabled -ne $true)){throw (New-SBError 'mcpwrite.activity')}
         $fresh=New-SBMcpWritePlan $BrainRoot $ConfigPath $Repository $CheckoutPath $RequestId $plan.operation $plan.payload
         if($fresh.planHash -cne $PlanHash){throw (New-SBError 'mcpwrite.stale')}

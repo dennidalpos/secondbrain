@@ -33,7 +33,7 @@ if($Operation -eq 'Validate'){
 }
 $sinceValue=[DateTimeOffset]::MinValue
 if($Since -and ![DateTimeOffset]::TryParse($Since,[ref]$sinceValue)){throw (New-SBError 'activity.invalid' @('since'))}
-$asOfValue=[DateTimeOffset]::UtcNow
+$asOfValue=(Get-SBNow)
 if($AsOf -and ![DateTimeOffset]::TryParse($AsOf,[ref]$asOfValue)){throw (New-SBError 'activity.invalid' @('asOf'))}
 $config=Read-SBConfiguration $ConfigPath -ReadOnly:(!$Apply)
 $owned=$null;$lock=$null

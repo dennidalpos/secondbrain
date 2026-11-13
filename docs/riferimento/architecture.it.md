@@ -62,6 +62,10 @@ flowchart TB
 
     MCP["SecondBrain.Mcp.psm1<br/>- Server stdio JSON-RPC in sola lettura, tranne submit_dossier_write<br/>- Esposizione tool per IDE: contesto, task, prompt"]
 
+    MCPCONFIG["SecondBrain.McpConfig.psm1<br/>- Pairing, permessi e scrittura della configurazione MCP degli IDE"]
+
+    MCPPACKAGE["SecondBrain.McpPackage.psm1<br/>- Pacchetto di configurazione MCP e bundle Claude Desktop"]
+
     SOURCES["SecondBrain.Sources.psm1<br/>- Registro fonti autorevoli e schede di applicabilità<br/>- Check locale; Probe e Collect solo su richiesta esplicita<br/>- Versioni candidate distinte dall'adozione"]
 
     EXTAUDIT["SecondBrain.ExternalAudit.psm1<br/>- Audit GitHub in sola lettura (scripts/audit-github.ps1)<br/>- Paginazione, copertura e protezione dei contenuti"]
@@ -77,6 +81,9 @@ flowchart TB
     CORE --> PROMPTS
     CORE --> PUBLICATION
     CORE --> MCP
+    CORE --> MCPCONFIG
+    MCPCONFIG --> MCPPACKAGE
+    MCPCONFIG --> PORTABLE
     CORE --> SOURCES
     CORE --> EXTAUDIT
     CORE --> TRACKERIMP

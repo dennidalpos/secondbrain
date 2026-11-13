@@ -8,7 +8,7 @@ This map describes ownership and recovery boundaries. Regenerable does not mean 
 
 | Path | Responsibility |
 |---|---|
-| scripts/ | PowerShell modules, CLI, tests and source-converter dependencies |
+| scripts/ | PowerShell modules (MCP server, IDE configuration and package in separate modules), CLI, tests and source-converter dependencies |
 | config/ | Local schemas, shared policy and configuration example |
 | direttive/ | Approved common instructions, original proposals and approval hashes |
 | direttive/prompts/ | English cards, Italian counterparts and generated indexes |

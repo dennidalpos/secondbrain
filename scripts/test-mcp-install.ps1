@@ -55,7 +55,7 @@ $missing=Set-SBMcpConfiguration -BrainRoot $brain -Target claude-code -ConfigFil
 Assert-Portable ($missing.Action -eq 'cli-unavailable') 'missing native CLI has explicit outcome, no fallback'
 $failedLauncher=Join-Path $installRoot "native launcher's failure.cmd"
 Put-Portable $failedLauncher "@echo off`r`nexit /b 9`r`n"
-$launcherResult=& (Get-Module SecondBrain.Mcp) {param($launcher) Invoke-SBMcpNative $launcher @('literal $()','two words') $null @{}} $failedLauncher
+$launcherResult=& (Get-Module SecondBrain.McpConfig) {param($launcher) Invoke-SBMcpNative $launcher @('literal $()','two words') $null @{}} $failedLauncher
 Assert-Portable ($launcherResult.status -eq 'cli-failed' -and $launcherResult.exitCode -eq 9) 'native Windows command launcher preserves a nonzero process exit code'
 $conflictDir=Join-Path $installRoot 'cursor-conflict'
 Put-Portable (Join-Path $conflictDir 'permissions.json') '{"mcpAllowlist":["secondbrain:*"]}'

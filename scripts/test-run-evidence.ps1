@@ -147,9 +147,11 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
     function Publish-Outcome {
         $Run.finishedAt=[DateTimeOffset]::UtcNow.ToString('o')
         $Run.durationSeconds=[Math]::Round($Run.watch.Elapsed.TotalSeconds,3)
-        $Run.status=if(!$Success -or $overBudget -or !$Checks){'failed'}elseif(!$stable){'invalidated'}else{'passed'}
+        # The time budget is a warning (#498): exceeding it is recorded in run.json and reported, never a failure.
+        $Run.budgetExceeded=[bool]$overBudget
+        $Run.status=if(!$Success -or !$Checks){'failed'}elseif(!$stable){'invalidated'}else{'passed'}
         $Run.eligibleForClosure=$Run.status -eq 'passed'
-        if($overBudget){$Run.error='Profile exceeded its time budget.'}
+        $Run.warnings=@($(if($overBudget){'Profile exceeded its time budget of '+$Run.budgetSeconds+' seconds.'}))
         $summary.observedAt=$Run.finishedAt
         foreach($key in @('durationSeconds','status','eligibleForClosure')){$summary[$key]=$Run[$key]}
         Save-SBTestRunRecord $Run
@@ -180,5 +182,5 @@ function Complete-SBTestRun($Run,[bool]$Success,[int]$Checks,$Suites,[bool]$Keep
     $Run.watch.Stop()
     if($Success -and !$Checks){throw 'No test suite ran. See run.json.'}
     if($Success -and !$stable){throw 'Test inputs changed or were not captured; evidence is insufficient for closure. See run.json.'}
-    if($overBudget){throw ('Profile exceeded '+$Run.budgetSeconds+' seconds; see run.json.')}
+    if($overBudget){Write-Warning ('Profile exceeded its time budget of '+$Run.budgetSeconds+' seconds ('+[Math]::Round($Run.watch.Elapsed.TotalSeconds,1)+' s); the run is not failed, see run.json.')}
 }

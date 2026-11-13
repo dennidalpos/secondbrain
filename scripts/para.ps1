@@ -17,8 +17,11 @@ param(
     [Parameter(Mandatory,ParameterSetName='New')][string[]]$Acceptance,
     [Parameter(Mandatory,ParameterSetName='Status')][ValidateSet('active','completed','cancelled','retired')][string]$Status,
     [Parameter(Mandatory,ParameterSetName='Migrate')][switch]$MigrateToProjects,
-    [Parameter(ParameterSetName='Migrate')][switch]$Apply,
-    [Parameter(ParameterSetName='Migrate')][string[]]$Only,
+    [Parameter(Mandatory,ParameterSetName='Customer')][switch]$SetCustomer,
+    [Parameter(ParameterSetName='Customer')][string]$Customer,
+    [Parameter(ParameterSetName='Customer')][switch]$Clear,
+    [Parameter(ParameterSetName='Migrate')][Parameter(ParameterSetName='Customer')][switch]$Apply,
+    [Parameter(ParameterSetName='Migrate')][Parameter(Mandatory,ParameterSetName='Customer')][string[]]$Only,
     [Parameter(Mandatory,ParameterSetName='Archive')][switch]$Archive,
     [Parameter(Mandatory,ParameterSetName='Restore')][switch]$Restore,
     [Parameter(Mandatory,ParameterSetName='Archive')][Parameter(Mandatory,ParameterSetName='Restore')][Parameter(Mandatory,ParameterSetName='Status')][string]$EntityId
@@ -50,13 +53,18 @@ Add-SBMessages @{
     'paracli.migrate.plan' = @{ it = 'Anteprima migrazione ({0} dossier): rilanciare con -Apply per spostarli in 01-projects'; en = 'Migration preview ({0} dossiers): rerun with -Apply to move them to 01-projects' }
     'paracli.migrate.done' = @{ it = 'Migrati {0} dossier in 01-projects'; en = 'Migrated {0} dossiers to 01-projects' }
     'paracli.migrate.dirty' = @{ it = 'Dossier non migrabile ({0}): {1}'; en = 'Dossier cannot be migrated ({0}): {1}' }
+    'paracli.customer.required' = @{ it = 'Indicare -Customer con un nome valido (una riga, al massimo 120 caratteri) oppure -Clear'; en = 'Provide -Customer with a valid name (single line, at most 120 characters) or -Clear' }
+    'paracli.customer.none' = @{ it = 'Nessun dossier repository corrisponde a -Only'; en = 'No repository dossier matches -Only' }
+    'paracli.customer.plan' = @{ it = 'Anteprima cliente ({0} dossier): rilanciare con -Apply per scrivere repository.json (id PARA e task invariati)'; en = 'Customer preview ({0} dossiers): rerun with -Apply to write repository.json (PARA ids and tasks unchanged)' }
+    'paracli.customer.done' = @{ it = 'Cliente assegnato a {0} dossier; id PARA, identita e task verificati invariati'; en = 'Customer assigned to {0} dossiers; PARA ids, identities and tasks verified unchanged' }
+    'paracli.customer.diverged' = @{ it = 'Verifica post-scrittura fallita: identificatori divergenti per {0}'; en = 'Post-write check failed: identifiers diverge for {0}' }
     'paracli.tracker.changed' = @{ it = 'Tracker modificato durante la preparazione dello spostamento'; en = 'Tracker modified while preparing the move' }
 }
 $config=Read-SBConfiguration $ConfigPath
 if(!$BackupRoot){$BackupRoot=$config.backupRoot}
 if($config.ContainsKey('mode') -and $config.mode -eq 'portable'){$BackupRoot=Assert-SBCentralDataPath $config.brainRoot $BackupRoot}
 if((Read-SBJson (Join-Path $config.brainRoot 'config/shared.json') @{}).schemaVersion -ne 1){throw (New-SBError 'paracli.policy.invalid')}
-$writing=$BuildIndex -or $NewProject -or $NewResource -or $NewArea -or $SetStatus -or $Archive -or $Restore -or ($MigrateToProjects -and $Apply)
+$writing=$BuildIndex -or $NewProject -or $NewResource -or $NewArea -or $SetStatus -or $Archive -or $Restore -or ($MigrateToProjects -and $Apply) -or ($SetCustomer -and $Apply)
 $lock=Enter-SBOperation $config $SessionId -ReadOnly:(!$writing)
 try {
     $index=Get-SBParaIndex $config.brainRoot $config.allowedOwners
@@ -150,6 +158,51 @@ try {
                 $moved++
             }
             (Get-SBMessage 'paracli.migrate.done' @($moved))
+        }
+    }elseif($SetCustomer){
+        # Customer grouping: only the "customer" field of repository.json changes (PARA id, repository identity, tracker and folder stay as they are).
+        # Preview by default; -Apply writes every selected dossier in one transaction and verifies the identifiers afterwards.
+        $wanted=if($Clear){''}else{([string]$Customer).Trim()}
+        if(!$Clear -and (!$wanted -or $wanted.Length -gt 120 -or $wanted -match '[\p{Cc}\p{Cf}]')){throw (New-SBError 'paracli.customer.required')}
+        if($Clear -and $Customer){throw (New-SBError 'paracli.customer.required')}
+        $snapshot={
+            param($entities)
+            @($entities|Where-Object {(Test-SBRepoDossier $_) -and $_.id -in $selectedIds}|Sort-Object id|ForEach-Object {
+                $dir=Resolve-SBParaPath $config.brainRoot $_.path
+                $record=Read-SBJson (Join-Path $dir 'repository.json') @{}
+                $trackerPath=if($record.ContainsKey('tracker') -and $record.tracker.location -eq 'dossier' -and $record.tracker.path){Join-Path $dir ([string]$record.tracker.path)}else{''}
+                $tracker=if($trackerPath -and (Test-Path -LiteralPath $trackerPath -PathType Leaf)){Read-SBJson $trackerPath @{}}else{@{}}
+                $ids=if($tracker.ContainsKey('tasks')){@($tracker.tasks|ForEach-Object {[string]$_.id}|Sort-Object)}else{@()}
+                [ordered]@{id=$_.id;repository=$_.repository;path=$_.path;paraHash=(Get-SBFileHash (Join-Path $dir 'para.json'));trackerHash=$(if($trackerPath){Get-SBFileHash $trackerPath}else{''});taskIds=($ids -join ',')}
+            })
+        }
+        # With -File an array is passed as one string: accept comma-separated values too.
+        $Only=@($Only|ForEach-Object {$_ -split ','}|ForEach-Object {$_.Trim()}|Where-Object {$_})
+        $selected=@($index.entities|Where-Object {(Test-SBRepoDossier $_) -and ($_.id -in $Only -or $_.repository -in $Only)})
+        if(!$selected.Count){throw (New-SBError 'paracli.customer.none')}
+        $selectedIds=@($selected|ForEach-Object id)
+        $before=& $snapshot $index.entities
+        $plan=@(foreach($item in ($selected|Sort-Object id)){
+            $path=Join-Path (Resolve-SBParaPath $config.brainRoot $item.path) 'repository.json'
+            $record=Read-SBJson $path $null
+            if($wanted){$record.customer=$wanted}else{[void]$record.Remove('customer')}
+            $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $record))
+            $previous=Get-SBFileHash $path
+            [ordered]@{id=$item.id;repository=$item.repository;path=$item.path;archived=$item.archived;customerBefore=$item.customer;customerAfter=$wanted;changed=($previous -ne (Get-SBHash $bytes));file=$path;expected=$previous;bytes=$bytes}
+        })
+        $view=@($plan|ForEach-Object {[ordered]@{id=$_.id;repository=$_.repository;path=$_.path;archived=$_.archived;customerBefore=$_.customerBefore;customerAfter=$_.customerAfter;changed=$_.changed}})
+        if(!$Apply){
+            ConvertTo-SBJson @{apply=$false;dossiers=$view;identifiers=@($before|ForEach-Object {[ordered]@{id=$_.id;repository=$_.repository;tasks=$(if($_.taskIds){($_.taskIds -split ',').Count}else{0})}})}
+            (Get-SBMessage 'paracli.customer.plan' @($plan.Count))
+        }else{
+            $ops=@($plan|Where-Object changed|ForEach-Object {@{path=$_.file;expected=$_.expected;bytes=$_.bytes}})
+            if($ops.Count){Invoke-SBParaTransaction $ops $BackupRoot $config.brainRoot}
+            $after=& $snapshot (Get-SBParaEntities $config.brainRoot $config.allowedOwners -Refresh)
+            foreach($old in $before){
+                $new=@($after|Where-Object id -eq $old.id)
+                if($new.Count -ne 1 -or $new[0].repository -cne $old.repository -or $new[0].path -cne $old.path -or $new[0].paraHash -cne $old.paraHash -or $new[0].trackerHash -cne $old.trackerHash -or $new[0].taskIds -cne $old.taskIds){throw (New-SBError 'paracli.customer.diverged' @($old.id))}
+            }
+            (Get-SBMessage 'paracli.customer.done' @($plan.Count))
         }
     }elseif($Archive -or $Restore){
         $matches=@($index.entities|Where-Object id -eq $EntityId)

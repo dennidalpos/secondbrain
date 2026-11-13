@@ -89,7 +89,7 @@ function Update-SBResourceViews($Config) {
 function Test-SBResourceStale($Config,[int]$MaxAgeDays=14) {
     $latest=Read-SBJson (Join-Path $Config.runtimeRoot 'sources/latest.json') $null
     if(!$latest){return $true}
-    [DateTimeOffset]::Parse($latest.checkedAt) -lt [DateTimeOffset]::UtcNow.AddDays(-$MaxAgeDays)
+    [DateTimeOffset]::Parse($latest.checkedAt) -lt (Get-SBNow).AddDays(-$MaxAgeDays)
 }
 function Invoke-SBResourceSync($Config,$Registry,[string]$PythonPath,[ValidateRange(0,10)][int]$MaxDepth=3,[ValidateRange(1,500)][int]$MaxSources=50,[scriptblock]$Transport) {
     if($Registry.archived){throw (New-SBError 'resources.sync.archived')}

@@ -145,7 +145,7 @@ function Test-SBPublication {
     param([string]$RepositoryPath,[string]$BrainRoot,[string]$PolicyPath,[ValidateRange(0,[int]::MaxValue)][int]$MaxHistoryBlobs=10000,[ValidateRange(0,[int]::MaxValue)][int]$MaxTextBytes=2097152,[switch]$Initial,
         [ValidatePattern('^(?:[0-9a-f]{40}|[0-9a-f]{64})$')][string[]]$PushObjectIds=@())
     $repo=Invoke-SBGit $RepositoryPath @('rev-parse','--show-toplevel');if($repo.code -ne 0){throw (New-SBError 'publication.checkout')};$root=$repo.output
-    $allowances=@();$binaryReviews=@();if($PolicyPath){$policyFile=if([IO.Path]::GetFullPath($PolicyPath) -ieq [IO.Path]::GetFullPath((Get-SBTrackedPublicationPolicyPath $BrainRoot))){Assert-SBPlainPath $PolicyPath;[IO.Path]::GetFullPath($PolicyPath)}else{Assert-SBCentralDataPath $BrainRoot $PolicyPath};$policy=Read-SBJson $policyFile $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)}}
+    $allowances=@();$binaryReviews=@();$ignoredReviews=@();if($PolicyPath){$policyFile=if([IO.Path]::GetFullPath($PolicyPath) -ieq [IO.Path]::GetFullPath((Get-SBTrackedPublicationPolicyPath $BrainRoot))){Assert-SBPlainPath $PolicyPath;[IO.Path]::GetFullPath($PolicyPath)}else{Assert-SBCentralDataPath $BrainRoot $PolicyPath};$policy=Read-SBJson $policyFile $null;if(!$policy -or $policy.schemaVersion -ne 1){throw (New-SBError 'publication.policy')};if($policy.ContainsKey('allowances')){$allowances=@($policy.allowances)};if($policy.ContainsKey('binaryReviews')){$binaryReviews=@($policy.binaryReviews)};if($policy.ContainsKey('ignoredReviews')){$ignoredReviews=@($policy.ignoredReviews)}}
     $findings=@();$incomplete=@();$checked=0
 
     $baselineFile = if ($BrainRoot) { Get-SBPublicationBaselinePath $BrainRoot $root }
@@ -246,7 +246,7 @@ function Test-SBPublication {
     $historyAvailable = !@($incomplete | Where-Object surface -eq 'history').Count
     $historyKey = Get-SBTextHash (ConvertTo-SBJson @{
         repository=$root; refs=$selectedRefs; head=$currentHead; pushObjects=$pushObjects
-        policy=@{allowances=$allowances;binaryReviews=$binaryReviews}
+        policy=@{allowances=$allowances;binaryReviews=$binaryReviews;ignoredReviews=$ignoredReviews}
         limits=@{history=$MaxHistoryBlobs;text=$MaxTextBytes}
         scanner=(Get-SBFileHash $PSCommandPath)
         gitReader=(Get-SBFileHash (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1'))
@@ -318,7 +318,10 @@ function Test-SBPublication {
         if($line.StartsWith('!! ')){
             $ignored=$line.Substring(3)
             if($ignored -match '(^|/)(?:node_modules|bin|obj|build|dist|\.gradle|\.venv|__pycache__|test-results|backups?)(/|$)|(^|/)\.env(?:\.|$)|\.(?:bak|tmp)$'){
-                $findings+=@{rule='ignored-operational-residue';severity='review';path=$ignored;surface='ignored';reviewed=$false}
+                # Git-ignored build output never reaches a push; a policy ignoredReviews entry (exact path, reviewed, reason) records the review.
+                $ignoredPath=$ignored
+                $ignoredReviewed=[bool]@($ignoredReviews|Where-Object {$_.path -ceq $ignoredPath -and $_.reviewed -and $_.reason}).Count
+                $findings+=@{rule='ignored-operational-residue';severity='review';path=$ignored;surface='ignored';reviewed=$ignoredReviewed}
             }
         }elseif($line){
             $dirty=$true
@@ -331,7 +334,7 @@ function Test-SBPublication {
         $baselineObj = @{
             schemaVersion = 2
             historyKey = $historyKey
-            generatedAt = [DateTimeOffset]::UtcNow.ToString('o')
+            generatedAt = (Get-SBNow).ToString('o')
             historyBlobs = $historyCount
             historyFindings = @($findings | Where-Object surface -eq 'history')
             repository = $root

@@ -2,6 +2,7 @@
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ExternalAudit.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpPackage.psm1')
 $contractRoot = Join-Path $root "message-contract's root"
 $trackerPath = Join-Path $contractRoot 'dossier/tracker.json'
 $archivePath = Join-Path $contractRoot 'dossier/history/tracker-archive.json'

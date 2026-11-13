@@ -6,10 +6,10 @@
   "edition": "Edizione da qualificare; eventuale snapshot identificato da manifest e hash",
   "effectiveDates": [
     {
-      "date": null,
+      "date": "2022-07-01",
       "provision": "Efficacia della delibera",
-      "reference": "https://www.arera.it/atti-e-provvedimenti/dettaglio/22/135-22 (testo non ancora acquisito: data non qualificata)",
-      "status": "requires-verification"
+      "reference": "Delibera ARERA 29 marzo 2022 135/2022/R/com, art. 12.1 (https://www.arera.it/fileadmin/allegati/docs/22/135-22.pdf; scheda https://www.arera.it/atti-e-provvedimenti/dettaglio/22/135-22, pubblicazione 01-04-2022): nessuna clausola generale di entrata in vigore; gli artt. 1, 6, 8 e 10 si applicano dall1-07-2022",
+      "status": "verified"
     }
   ],
   "endpoints": [],

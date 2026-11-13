@@ -555,6 +555,26 @@ $r|ConvertTo-Json -Compress
     Assert-Runner ($gcode -eq 2 -and $g -match 'orchestratore') ('runner-gui without npm/cargo stops with exit 2 and the guide: '+$g)
     $g=Invoke-Gui @('-WhatIf','-RepositoryPath',$checkout2)
     Assert-Runner ($g.code -eq 0 -and $g.data.repository -eq [IO.Path]::GetFullPath($checkout2)) ('runner-gui records the repository passed to the app: '+$g.text)
+    if($IsWindows){
+        # Outside the caller's package and job (WMI): a file that is not a program is refused by Win32_Process.Create; a real program
+        # (whoami.exe standing in for the app, which exits 0 at once without arguments) starts with its own PID and is reported as
+        # launched through WMI.
+        (Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)
+        $g=Invoke-Gui @('-LaunchMethod','wmi','-RepositoryPath',$checkout2)
+        Assert-Runner ($g.code -eq 5 -and $g.text -match 'Win32_Process\.Create') ('runner-gui -LaunchMethod wmi reports a binary that cannot start: '+$g.text)
+        $savedBin=[IO.File]::ReadAllBytes($guiBin)
+        try{
+            Copy-Item -LiteralPath (Join-Path ([Environment]::SystemDirectory) 'whoami.exe') -Destination $guiBin -Force
+            (Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)
+            $g=Invoke-Gui @('-LaunchMethod','wmi')
+            Assert-Runner ($g.code -eq 0 -and $g.data.launched -and $g.data.launchMethod -eq 'wmi' -and $g.data.pid -gt 0 -and $g.data.pid -ne $PID) ('runner-gui -LaunchMethod wmi starts the app outside the caller: '+$g.text)
+            # whoami rejects --repo and exits 1: the arguments reach the app and its early exit code is read across WMI.
+            $g=Invoke-Gui @('-LaunchMethod','wmi','-RepositoryPath',$checkout2)
+            Assert-Runner ($g.code -eq 5 -and $g.text -match 'exit 1') ('runner-gui -LaunchMethod wmi reports an app that exits with an error at once: '+$g.text)
+            $g=Invoke-Gui @('-LaunchMethod','shell')
+            Assert-Runner ($g.code -eq 0 -and $g.data.launched -and $g.data.launchMethod -eq 'shell' -and $g.data.Contains('inJob')) ('runner-gui -LaunchMethod shell keeps ShellExecute and reports the containment: '+$g.text)
+        }finally{[IO.File]::WriteAllBytes($guiBin,$savedBin);(Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)}
+    }
     # sb runner (runner.ps1): desktop by default, command-line fallback with the preview when the app cannot open, explicit modes.
     (Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)
     $dispatcher=Join-Path $brain 'scripts/runner.ps1'

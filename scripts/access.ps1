@@ -66,7 +66,7 @@ if ($End -or $Renew) {
     $metadata=Read-SBJson (Join-Path $sessions ($SessionId+'.json')) $null
     if (!$metadata -or $metadata.computer -ne [Environment]::MachineName -or $metadata.user -ne [Security.Principal.WindowsIdentity]::GetCurrent().Name -or $metadata.workstationId -ne $config.workstationId) { throw (New-SBError 'access.session.foreign') }
     $signal=Join-Path $sessions ($SessionId+$(if($End){'.stop'}else{'.renew'}))
-    Write-SBAccessMetadata $signal @{at=[DateTimeOffset]::UtcNow.ToString('o')}
+    Write-SBAccessMetadata $signal @{at=(Get-SBNow).ToString('o')}
     if ($End) {
         for($i=0;$i -lt 50;$i++){if((Read-SBJson (Join-Path $sessions ($SessionId+'.json')) @{}).status -ne 'active'){break};Start-Sleep -Milliseconds 100}
     }
@@ -77,7 +77,7 @@ Assert-SBPlainPath $sessions
 if ($Start) {
     # A caller-supplied SessionId is honoured (it must be new); otherwise one is generated and returned in the metadata.
     if($SessionId){Test-SBSessionId $SessionId;if(Test-Path -LiteralPath (Join-Path $sessions ($SessionId+'.json'))){throw (New-SBError 'access.session.exists')}}
-    else{$SessionId=[guid]::NewGuid().ToString('N')}
+    else{$SessionId=(New-SBId)}
     # Closed, expired or abandoned sessions of earlier runs are removed here, so the folder never accumulates them.
     Clear-SBStaleSessions $config 60|Out-Null
     $processInfo=[Diagnostics.ProcessStartInfo]::new((Get-Command pwsh).Source)
@@ -102,7 +102,7 @@ if ($Start) {
 Test-SBSessionId $SessionId
 $writer=$null;$lease=$null
 $path=Join-Path $sessions ($SessionId+'.json')
-$metadata=@{sessionId=$SessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client=$Client;repository=$Repository;path=[IO.Path]::GetFullPath($TargetPath);mode=$Mode;exclusive=[bool]$Exclusive;workstationId=$config.workstationId;startedAt=[DateTimeOffset]::UtcNow.ToString('o');heartbeat=[DateTimeOffset]::UtcNow.ToString('o');status='active'}
+$metadata=@{sessionId=$SessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client=$Client;repository=$Repository;path=[IO.Path]::GetFullPath($TargetPath);mode=$Mode;exclusive=[bool]$Exclusive;workstationId=$config.workstationId;startedAt=(Get-SBNow).ToString('o');heartbeat=(Get-SBNow).ToString('o');status='active'}
 try {
     if($Mode -eq 'Write' -and $Exclusive) {
         $writerPath=Join-Path $config.coordinationRoot 'writer.lock';Assert-SBPlainPath $writerPath
@@ -111,16 +111,16 @@ try {
         $writer=Open-SBWriterLock $config $writerPath $waitMs $onWait
     }
     $lease=[IO.File]::Open((Join-Path $sessions ($SessionId+'.lease')),[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
-    $expires=[DateTimeOffset]::UtcNow.AddMinutes($config.sessionTimeoutMinutes)
+    $expires=(Get-SBNow).AddMinutes($config.sessionTimeoutMinutes)
     while($true) {
         if(Test-Path -LiteralPath (Join-Path $sessions ($SessionId+'.stop'))){break}
         $renewPath=Join-Path $sessions ($SessionId+'.renew')
-        if(Test-Path -LiteralPath $renewPath){$expires=[DateTimeOffset]::UtcNow.AddMinutes($config.sessionTimeoutMinutes);[IO.File]::Delete($renewPath)}
-        if([DateTimeOffset]::UtcNow -ge $expires){$metadata.status='expired';break}
+        if(Test-Path -LiteralPath $renewPath){$expires=(Get-SBNow).AddMinutes($config.sessionTimeoutMinutes);[IO.File]::Delete($renewPath)}
+        if((Get-SBNow) -ge $expires){$metadata.status='expired';break}
         # Flush also checks that the handle is still usable; no further writes after an error.
         if($writer){$writer.Flush($true)}
         $lease.Flush($true)
-        $metadata.heartbeat=[DateTimeOffset]::UtcNow.ToString('o');$metadata.expiresAt=$expires.ToString('o')
+        $metadata.heartbeat=(Get-SBNow).ToString('o');$metadata.expiresAt=$expires.ToString('o')
         Write-SBAccessMetadata $path $metadata
         Start-Sleep -Milliseconds 500
     }

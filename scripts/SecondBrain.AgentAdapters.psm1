@@ -483,7 +483,7 @@ function Read-SBCodexRateLimits {
     if(!$CodexHome){$CodexHome=Split-Path -Parent (Get-SBAgentConfigPaths 'codex').config}
     $sessions=Join-Path $CodexHome 'sessions'
     if(!(Test-Path -LiteralPath $sessions -PathType Container)){return $null}
-    $since=(Get-Date).AddDays(-8)
+    $since=(Get-SBNow).LocalDateTime.AddDays(-8)
     $candidates=@(Get-ChildItem -LiteralPath $sessions -Recurse -File -Filter 'rollout-*.jsonl' -ErrorAction SilentlyContinue|Where-Object {$_.LastWriteTime -ge $since}|Sort-Object LastWriteTime -Descending|Select-Object -First $Files)
     foreach($f in $candidates){
         $hit=$null
@@ -512,7 +512,7 @@ function Get-SBAgentQuota {
     # Quota read at the moment of use (never cached): available, exhausted (with resetAt) or unknown. Unknown never stops a run:
     # the runner proceeds until the agent itself reports the limit. Sources: Codex session files; for Claude Code and Gemini CLI,
     # which offer no headless usage read, the last observation the runner recorded (-Observation: rate_limit_event or a quota stop).
-    param([Parameter(Mandatory)][string]$Provider,[string]$CodexHome,$Observation,[DateTimeOffset]$Now=[DateTimeOffset]::UtcNow)
+    param([Parameter(Mandatory)][string]$Provider,[string]$CodexHome,$Observation,[DateTimeOffset]$Now=(Get-SBNow))
     $result=[ordered]@{provider=$Provider;state='unknown';resetAt=$null;source='none';observedAt=$null;windows=@()}
     if($Provider -eq 'codex'){
         $r=Read-SBCodexRateLimits -CodexHome $CodexHome
@@ -551,14 +551,14 @@ function Invoke-SBAgentProcess {
     foreach($a in (@($Executable.prefix)+@($Arguments))){if($null -ne $a){$start.ArgumentList.Add([string]$a)}}
     $start.Environment['PATH']=Get-SBAgentProcessPath (Split-Path -Parent ([string]$Executable.path))
     foreach($k in @($Environment.Keys)){$start.Environment[[string]$k]=[string]$Environment[$k]}
-    $began=Get-Date
+    $began=(Get-SBNow).LocalDateTime
     $process=[Diagnostics.Process]::Start($start);$state='finished';$code=$null
     $outBuilder=[Text.StringBuilder]::new();$errBuilder=[Text.StringBuilder]::new()
     $outLog=if($OutputLog){[IO.StreamWriter]::new($OutputLog,$false,$utf8)}else{$null}
     try{
         $process.StandardInput.Write($Prompt);$process.StandardInput.Close()
         $outRead=$process.StandardOutput.ReadLineAsync();$errRead=$process.StandardError.ReadLineAsync()
-        $outDone=$false;$errDone=$false;$lastActivity=Get-Date;$stallReported=$false;$nextTick=$TickSeconds;$exitedAt=$null
+        $outDone=$false;$errDone=$false;$lastActivity=(Get-SBNow).LocalDateTime;$stallReported=$false;$nextTick=$TickSeconds;$exitedAt=$null
         while($true){
             $progress=$false
             while(!$outDone -and $outRead.IsCompleted){
@@ -566,33 +566,33 @@ function Invoke-SBAgentProcess {
                 if($null -eq $line){$outDone=$true;break}
                 [void]$outBuilder.AppendLine($line)
                 if($outLog){$outLog.WriteLine($line);$outLog.Flush()}
-                $lastActivity=Get-Date;$progress=$true
+                $lastActivity=(Get-SBNow).LocalDateTime;$progress=$true
                 if($OnOutputLine){& $OnOutputLine $line}
                 $outRead=$process.StandardOutput.ReadLineAsync()
             }
             while(!$errDone -and $errRead.IsCompleted){
                 $line=$errRead.GetAwaiter().GetResult()
                 if($null -eq $line){$errDone=$true;break}
-                [void]$errBuilder.AppendLine($line);$lastActivity=Get-Date;$progress=$true
+                [void]$errBuilder.AppendLine($line);$lastActivity=(Get-SBNow).LocalDateTime;$progress=$true
                 $errRead=$process.StandardError.ReadLineAsync()
             }
             if($progress -and $stallReported){$stallReported=$false;if($OnResume){& $OnResume}}
             if($process.HasExited){
                 if($outDone -and $errDone){break}
                 # A grandchild that inherited the pipes can keep them open after the agent exits: stop waiting after five seconds.
-                if(!$exitedAt){$exitedAt=Get-Date}elseif(((Get-Date)-$exitedAt).TotalSeconds -ge 5){break}
+                if(!$exitedAt){$exitedAt=(Get-SBNow).LocalDateTime}elseif(((Get-SBNow).LocalDateTime-$exitedAt).TotalSeconds -ge 5){break}
             }
-            $elapsed=((Get-Date)-$began).TotalSeconds
+            $elapsed=((Get-SBNow).LocalDateTime-$began).TotalSeconds
             if($elapsed -ge $TimeoutSeconds){$process.Kill($true);$process.WaitForExit();$state='timeout';break}
             if($TickSeconds -gt 0 -and $elapsed -ge $nextTick){if($OnTick){& $OnTick ([int]$elapsed)};$nextTick+=$TickSeconds}
-            $silent=((Get-Date)-$lastActivity).TotalMinutes
+            $silent=((Get-SBNow).LocalDateTime-$lastActivity).TotalMinutes
             if($StallMinutes -gt 0 -and !$stallReported -and $silent -ge $StallMinutes){$stallReported=$true;if($OnStall){& $OnStall ([math]::Round($silent,1))}}
             if($OnIdle){& $OnIdle}
             if(!$progress){Start-Sleep -Milliseconds 250}
         }
         if($state -eq 'finished'){$process.WaitForExit();$code=$process.ExitCode}
     }finally{if($outLog){$outLog.Dispose()};$process.Dispose()}
-    [ordered]@{state=$state;exitCode=$code;output=$outBuilder.ToString();error=$errBuilder.ToString();seconds=[int]((Get-Date)-$began).TotalSeconds}
+    [ordered]@{state=$state;exitCode=$code;output=$outBuilder.ToString();error=$errBuilder.ToString();seconds=[int]((Get-SBNow).LocalDateTime-$began).TotalSeconds}
 }
 function Get-SBJsonObjectText([string]$Text) {
     # The JSON object inside an answer: fenced ```json blocks first, then the span from the first { to the last }.

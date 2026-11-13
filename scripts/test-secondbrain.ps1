@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory,ParameterSetName='Full')][switch]$Full,
     [Parameter(Mandatory,ParameterSetName='Quick')][switch]$Quick,
     [Parameter(Mandatory,ParameterSetName='Only')][ValidateNotNullOrEmpty()]
-    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')][string[]]$Only,
+    [ValidateSet('portable','workflows','trackers','audit2','trace','concurrency','shared','pending','sources','resources','setup-status','external-audit','quick','git-environment','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')][string[]]$Only,
     [switch]$KeepFixtures,[switch]$Sequential
 )
 $profileWatch=[Diagnostics.Stopwatch]::StartNew()
@@ -47,7 +47,7 @@ try {
         if(!$pure){
             $groups=if($Only){@($Only|Where-Object {$_ -in @('portable','trackers','workflows','pending','audit2','git-environment')})}elseif($Full){@('portable','trackers','workflows','pending','audit2','git-environment')}else{@('portable','trackers','workflows','pending')}
             # 'pending' is both an essential group (in-process pending block) and the standalone CLI suite test-secondbrain-pending.ps1 (#521).
-            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')})}elseif($Full){@('trace','concurrency','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')}else{@()}
+            $extras=if($Only){@($Only|Where-Object {$_ -in @('trace','concurrency','shared','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')})}elseif($Full){@('trace','concurrency','shared','pending','sources','resources','setup-status','external-audit','runtime','prompts','tracker-audit','mcp-writes','runner','ide','agents','lint','cleanclone','orchestrator-e2e')}else{@()}
             # Full runs the extra suites as separate processes alongside the essential suite (own fixtures, own logs); -Sequential restores one-by-one execution.
             $parallel=[bool]($Full -and !$Sequential -and $extras.Count)
             function Start-SuiteJob($Spec){
@@ -63,12 +63,13 @@ try {
             if($parallel){
                 # Portable's extended checks use an independent fixture. Run them
                 # alongside the remaining groups; Sequential keeps the original order.
-                $specs=@($extras|Where-Object {$_ -ne 'concurrency'}|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
+                $specs=@($extras|Where-Object {$_ -notin @('concurrency','shared')}|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
                 $specs+=@{key='essential-portable';file=(Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1');arguments=@('-Groups','portable','-Extended')}
                 $groups=@($groups|Where-Object {$_ -ne 'portable'})
                 $jobs=@($specs|ForEach-Object {Start-SuiteJob $_})
                 # concurrency measures lock contention and failed under the load of the parallel suites (#431): it runs alone after them.
-                $extras=@($extras|Where-Object {$_ -eq 'concurrency'})
+                # shared creates tasks from concurrent processes and expects exit 0 or 3; under the same load a write is deferred (exit 5) and the suite fails (#546).
+                $extras=@($extras|Where-Object {$_ -in @('concurrency','shared')})
             }
             # Default profile: the essential groups run as separate processes with their own fixtures so the profile stays within its budget (#465); -Sequential, -Only and -Full keep their own behavior.
             if(!$Full -and !$Sequential -and !$Only -and $groups.Count -gt 1){

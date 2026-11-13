@@ -49,6 +49,8 @@ param(
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpConfig.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpPackage.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 if ($Language) { $env:SECONDBRAIN_LANG = $Language }

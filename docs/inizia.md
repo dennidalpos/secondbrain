@@ -21,6 +21,20 @@ Run from the SecondBrain checkout; $project is the path selected in the quick st
 
 Check and knowledge lookups never process pending writes; only `knowledge.ps1 -FlushPending` does. File alignment and actual loading in an agent session are different evidence.
 
+## Setup profiles: solo and studio
+
+One command per profile (add `-Roots`/`-Select` for an explicit selection, `-PreviewOnly` to review first):
+
+~~~powershell
+# Solo: one person, local checkout. No shared root, no share ACLs; state stays in the checkout's .runtime.
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Solo -Roots $project -Interactive
+# Studio: shared authoritative root on a UNC share; workstation state stays local (SECONDBRAIN_STATE_ROOT).
+$env:SECONDBRAIN_STATE_ROOT = 'D:/SecondBrainState'
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Studio -TeamRoot '\\server\share' -Roots $project -Interactive
+~~~
+
+`Solo` rejects `-TeamRoot` and a checkout on a network drive. `Studio` requires `-TeamRoot`, with the same checks as team setup (reachable UNC root, local state outside the share). Access in `Studio` is whatever the share's ACLs grant; SecondBrain sets no ACL in either profile. The JSON result reports `profile`, `sharedRoot`, `acl` and `state`. Without `-SetupProfile` Setup behaves as before. `Studio` on a real share and with distinct accounts is still unqualified (see [shared root](riferimento/shared-brain.md)); the profile commands are checked on synthetic fixtures and, for `Studio`, over loopback UNC when available.
+
 ## Optional interactive setup
 
 For interactive confirmation of the selected project, run:

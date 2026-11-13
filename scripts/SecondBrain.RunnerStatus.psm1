@@ -9,7 +9,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 # Heartbeat: the runner rewrites status.json at least this often while it is alive; a status older than three beats means a stuck runner.
 $script:SBRunnerHeartbeatSeconds=15
 function Get-SBRunnerHeartbeatSeconds { $script:SBRunnerHeartbeatSeconds }
-function Get-SBRunnerRunSlug([datetime]$Date=(Get-Date),[int]$ProcessId=$PID) {
+function Get-SBRunnerRunSlug([datetime]$Date=(Get-SBNow).LocalDateTime,[int]$ProcessId=$PID) {
     # Work-folder slug of one run: unique per second and process, within the work.ps1 slug rules.
     'runner-run-'+$Date.ToString('HHmmss')+'-'+$ProcessId
 }
@@ -26,8 +26,8 @@ function Get-SBRunnerStatusFiles([string]$BrainRoot,[string]$HostId,[string]$Rep
 }
 function Save-SBRunnerStatus([string]$Path,$Status) {
     # Whole-file replace through a temporary sibling, so readers never see a partial document. The file lives in the run's own work folder.
-    $Status.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
-    $temp=$Path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+    $Status.updatedAt=(Get-SBNow).ToString('o')
+    $temp=$Path+'.'+(New-SBId)+'.tmp'
     [IO.File]::WriteAllText($temp,(ConvertTo-SBJson $Status),[Text.UTF8Encoding]::new($false))
     [IO.File]::Move($temp,$Path,$true)
 }
@@ -50,7 +50,7 @@ function Get-SBRunnerAge($Value,[DateTimeOffset]$Now) {
     if(!$Value){return $null}
     try{[int][math]::Max(0,($Now-[DateTimeOffset]::Parse([string]$Value,[Globalization.CultureInfo]::InvariantCulture)).TotalSeconds)}catch{$null}
 }
-function Get-SBRunnerVerdict($Status,[DateTimeOffset]$Now=[DateTimeOffset]::UtcNow,[Nullable[bool]]$Alive=$null) {
+function Get-SBRunnerVerdict($Status,[DateTimeOffset]$Now=(Get-SBNow),[Nullable[bool]]$Alive=$null) {
     # finished: the run closed itself. orphaned: marked running but its process is gone. stalled: alive but silent past the stall
     # threshold (agent phase) or past three heartbeats (runner phases). working: everything else.
     if(!$Status){return 'none'}
@@ -80,7 +80,7 @@ function Get-SBRunnerStatus {
     # The active run of the repository (newest status marked running), else the newest run; with ages, verdict and the event tail.
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$HostId,[Parameter(Mandatory)][string]$Repository,[int]$Tail=20)
     $files=@(Get-SBRunnerStatusFiles $BrainRoot $HostId $Repository)
-    $now=[DateTimeOffset]::UtcNow
+    $now=(Get-SBNow)
     $chosen=$null;$chosenPath=$null
     foreach($f in $files){$s=Read-SBRunnerStatusFile $f;if($s -and [string]$s.state -eq 'running'){$chosen=$s;$chosenPath=$f;break}}
     if(!$chosen){foreach($f in $files){$s=Read-SBRunnerStatusFile $f;if($s){$chosen=$s;$chosenPath=$f;break}}}
@@ -99,7 +99,7 @@ function Get-SBRunnerRunList {
     # reason, verdict, per-task results and the run folder. -Limit 0 = all.
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$HostId,[Parameter(Mandatory)][string]$Repository,[int]$Limit=50)
     $files=@(Get-SBRunnerStatusFiles $BrainRoot $HostId $Repository)
-    $now=[DateTimeOffset]::UtcNow
+    $now=(Get-SBNow)
     $runs=@()
     foreach($f in $(if($Limit -gt 0){@($files|Select-Object -First $Limit)}else{$files})){
         $s=Read-SBRunnerStatusFile $f

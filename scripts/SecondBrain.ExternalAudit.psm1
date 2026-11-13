@@ -76,7 +76,7 @@ function Get-SBAuditItem($Item,[string]$Kind) {
 }
 
 function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Context,[scriptblock]$Request,[int]$MaxPages=1000) {
-    $resource=@{url=$Url;startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;status='unverified';complete=$false;count=$null;observedCount=0;pages=@();items=@();reason=$null}
+    $resource=@{url=$Url;startedAt=(Get-SBNow).ToString('o');finishedAt=$null;status='unverified';complete=$false;count=$null;observedCount=0;pages=@();items=@();reason=$null}
     $initial=[uri]$Url;$next=$Url;$seen=@{};$data=$null
     try {
         while($next){
@@ -84,10 +84,10 @@ function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Conte
             if($seen.ContainsKey($next) -or $resource.pages.Count -ge $MaxPages){$resource.reason='pagination_cycle_or_limit';break}
             $uri=[uri]$next
             if($uri.Scheme -ne 'https' -or $uri.Host -ne 'api.github.com' -or !$uri.IsDefaultPort -or $uri.UserInfo -or $uri.Fragment -or $uri.AbsolutePath -ne $initial.AbsolutePath -or ($uri.Query -and $uri.Query -notmatch '^\?(?:(?:page|per_page)=[0-9]+|state=(?:all|open|closed))(?:&(?:(?:page|per_page)=[0-9]+|state=(?:all|open|closed)))*$')){$resource.reason='unsafe_pagination_link';break}
-            $seen[$next]=$true;$at=[DateTimeOffset]::UtcNow.ToString('o')
+            $seen[$next]=$true;$at=(Get-SBNow).ToString('o')
             $response=& $Request $next
             $code=[int]$response.statusCode;$headers=$response.headers
-            $page=@{url=$next;requestedAt=$at;finishedAt=[DateTimeOffset]::UtcNow.ToString('o');httpStatus=$code;bodySha256=$response.bodySha256;items=$null}
+            $page=@{url=$next;requestedAt=$at;finishedAt=(Get-SBNow).ToString('o');httpStatus=$code;bodySha256=$response.bodySha256;items=$null}
             $resource.pages+=@($page)
             if($code -ne 200){
                 $resource.status=switch($code){401{'authentication_required'}403{'access_denied'}404{'not_found_or_inaccessible'}429{'rate_limited'}default{'unverified'}}
@@ -122,7 +122,7 @@ function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Conte
     } catch {$resource.status='unverified';$resource.complete=$false;$resource.reason='invalid_response_or_transport'}
     $resource.observedCount=$resource.items.Count
     if(!$resource.complete -and $resource.observedCount -gt 0){$resource.status='partial'}
-    $resource.finishedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    $resource.finishedAt=(Get-SBNow).ToString('o')
     [void](Add-SBReportDiagnostic $resource 'audit')
     @{resource=$resource;data=$(if(!$Collection -and $resource.complete){$data}else{$null})}
 }
@@ -130,11 +130,11 @@ function Get-SBAuditResource([string]$Url,[string]$Kind,[bool]$Collection,$Conte
 function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[scriptblock]$Request=${function:Invoke-SBAuditRequest}) {
     foreach($identity in $Identities){Assert-SBAuditIdentity $identity $AllowedOwners}
     if(!$Identities.Count -or @($Identities|Sort-Object -Unique).Count -ne $Identities.Count){throw (New-SBError 'audit.scope')}
-    $audit=@{schemaVersion=1;kind='github-readonly-audit';startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;apiVersion='2022-11-28';remoteMutation=$false;repositories=@();complete=$false;limits=@((Get-SBMessage 'audit.limit.snapshot'),(Get-SBMessage 'audit.limit.wiki'),(Get-SBMessage 'audit.limit.scope'))}
+    $audit=@{schemaVersion=1;kind='github-readonly-audit';startedAt=(Get-SBNow).ToString('o');finishedAt=$null;apiVersion='2022-11-28';remoteMutation=$false;repositories=@();complete=$false;limits=@((Get-SBMessage 'audit.limit.snapshot'),(Get-SBMessage 'audit.limit.wiki'),(Get-SBMessage 'audit.limit.scope'))}
     $context=@{halted=$false;reason=$null}
     foreach($identity in $Identities){
         $slug=$identity.Substring(11);$base='https://api.github.com/repos/'+$slug
-        $repo=@{identity=$identity;startedAt=[DateTimeOffset]::UtcNow.ToString('o');finishedAt=$null;resources=@{};metadata=$null;complete=$false}
+        $repo=@{identity=$identity;startedAt=(Get-SBNow).ToString('o');finishedAt=$null;resources=@{};metadata=$null;complete=$false}
         $info=Get-SBAuditResource $base 'repository' $false $context $Request
         $repo.resources.repository=$info.resource
         $endpoints=[ordered]@{issues='issues?state=all&per_page=100';pullRequests='pulls?state=all&per_page=100';issueComments='issues/comments?per_page=100';reviewComments='pulls/comments?per_page=100';branches='branches?per_page=100';tags='tags?per_page=100';forks='forks?per_page=100'}
@@ -150,7 +150,7 @@ function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[sc
             if($repo.metadata){$repo.resources[$entry.Key]=(Get-SBAuditResource $url $entry.Key $true $context $Request).resource}
             else{$repo.resources[$entry.Key]=@{url=$url;status='not_attempted';complete=$false;count=$null;observedCount=0;pages=@();items=@();reason='repository_unavailable'}}
         }
-        $reviews=@{url=$base+'/pulls/{number}/reviews';startedAt=[DateTimeOffset]::UtcNow.ToString('o');status='accessible';complete=$repo.resources.pullRequests.complete;count=$null;observedCount=0;requests=@();items=@()}
+        $reviews=@{url=$base+'/pulls/{number}/reviews';startedAt=(Get-SBNow).ToString('o');status='accessible';complete=$repo.resources.pullRequests.complete;count=$null;observedCount=0;requests=@();items=@()}
         foreach($pull in $repo.resources.pullRequests.items){
             if(!$pull.ContainsKey('number') -or [string]$pull.number -notmatch '^[1-9][0-9]*$'){throw (New-SBError 'audit.pr.number')}
             $review=(Get-SBAuditResource ($base+'/pulls/'+$pull.number+'/reviews?per_page=100') 'reviews' $true $context $Request).resource
@@ -159,17 +159,17 @@ function Invoke-SBGitHubAudit([string[]]$Identities,[string[]]$AllowedOwners,[sc
         }
         $reviews.observedCount=$reviews.items.Count
         if($reviews.complete){$reviews.count=$reviews.observedCount}else{$reviews.status='partial'}
-        $reviews.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$repo.resources.reviews=$reviews
+        $reviews.finishedAt=(Get-SBNow).ToString('o');$repo.resources.reviews=$reviews
         $disabled=$repo.metadata -and $repo.metadata.ContainsKey('has_wiki') -and !$repo.metadata.has_wiki
-        $repo.resources.wiki=@{url=('https://github.com/'+$slug+'/wiki');status=$(if($disabled){'disabled'}else{'unverified'});complete=[bool]$disabled;count=$(if($disabled){0}else{$null});observedAt=[DateTimeOffset]::UtcNow.ToString('o');reason=$(if($disabled){'repository_metadata'}else{'wiki_content_not_collected'})}
+        $repo.resources.wiki=@{url=('https://github.com/'+$slug+'/wiki');status=$(if($disabled){'disabled'}else{'unverified'});complete=[bool]$disabled;count=$(if($disabled){0}else{$null});observedAt=(Get-SBNow).ToString('o');reason=$(if($disabled){'repository_metadata'}else{'wiki_content_not_collected'})}
         foreach($diagnostic in $repo.resources.Values){
             if($diagnostic.ContainsKey('reason')){[void](Add-SBReportDiagnostic $diagnostic 'audit')}
         }
         $repo.complete=@($repo.resources.Values|Where-Object {!$_.complete}).Count -eq 0
-        $repo.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$audit.repositories+=@($repo)
+        $repo.finishedAt=(Get-SBNow).ToString('o');$audit.repositories+=@($repo)
     }
     $audit.complete=@($audit.repositories|Where-Object {!$_.complete}).Count -eq 0
-    $audit.finishedAt=[DateTimeOffset]::UtcNow.ToString('o');$audit
+    $audit.finishedAt=(Get-SBNow).ToString('o');$audit
 }
 
 Export-ModuleMember -Function Assert-SBAuditIdentity,Invoke-SBAuditRequest,Get-SBAuditResource,Invoke-SBGitHubAudit

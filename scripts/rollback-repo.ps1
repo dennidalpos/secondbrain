@@ -188,7 +188,7 @@ try {
             }
         }
     } else {
-        $backupPath = Join-Path $config.backupRoot ('rollback-' + [guid]::NewGuid().ToString('N'))
+        $backupPath = Join-Path $config.backupRoot ('rollback-' + (New-SBId))
         $transferred = Copy-RollbackTree $dossierPath (Join-Path $backupPath 'dossier')
         Write-Warning (Get-SBMessage 'rollback.out.nocheckout' @($backupPath))
     }
@@ -208,7 +208,7 @@ try {
                 identity = $resolvedIdentity
                 path = if ($checkoutPath) { $checkoutPath } else { '' }
                 reason = 'user-requested-rollback'
-                forbiddenAt = [DateTimeOffset]::UtcNow.ToString('o')
+                forbiddenAt = (Get-SBNow).ToString('o')
             }
             Write-Host (Get-SBMessage 'rollback.out.forbidden' @($resolvedIdentity)) -ForegroundColor Magenta
         }

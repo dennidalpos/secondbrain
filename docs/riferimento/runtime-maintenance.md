@@ -34,7 +34,7 @@ CheckRuntime (read-only) verifies that every hosts/<id>/repos/<repo>/<category>/
 
 ## Work folders and sessions
 
-New work uses hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> with work/evidence/report/fixture/tmp. The repository segment includes an identity hash. TEMP/TMP use the repository temp area.
+New work uses hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug> with work/evidence/report/fixture/tmp. The repository segment includes an identity hash. TEMP/TMP, tool caches and build outputs stay in the native OS and product folders (nothing is redirected into .runtime). Every folder gets an expiry in its MANIFEST.json: work 30 days after closing, fixture and tmp 7 days, evidence and report 90 days (review date; nothing is removed automatically).
 
 For SecondBrain work folders, initialize with work.ps1 Repository/Category/Slug/Init/Task/SessionId; Close marks the manifest closed. A plan without Init/Run creates nothing. Normal access Start/End belongs in one try/finally script; pass the same SessionId to CLIs.
 

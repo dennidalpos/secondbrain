@@ -30,6 +30,11 @@ try {
     function Test-ReadmeBadge([string]$Text,[string]$Version){$Text.Contains('https://img.shields.io/badge/version-'+$Version+'-blue') -and $Text.Contains('![Version '+$Version+']')}
     Assert-Quick (Test-ReadmeBadge (Read-SBText (Join-Path $productRoot 'README.md')) $productVersion) 'README badge matches VERSION'
     Assert-Quick (!(Test-ReadmeBadge '![Version 9.9.9](https://img.shields.io/badge/version-9.9.9-blue)' $productVersion)) 'stale README badge rejected'
+    # #484 zero footprint: the user-scope text carries the loading rule and the repository files are opt-in only.
+    $userScope=Get-SBPortableGlobal $productRoot
+    Assert-Quick ($userScope.Contains('knowledge.ps1 -Startup') -and $userScope.Contains('get_startup_context') -and $userScope.Contains('SECONDBRAIN_HOME')) 'le istruzioni di ambito utente caricano il contesto senza file nel repository'
+    Assert-Quick (@(ConvertTo-SBRepositoryFiles 'none').Count -eq 0 -and (@(ConvertTo-SBRepositoryFiles 'agents.md,CLAUDE.md') -join ',') -ceq 'AGENTS.md,CLAUDE.md' -and @(Get-SBBindingRepositoryFiles @{identity='x';repositoryFiles=@()}).Count -eq 0 -and @(Get-SBBindingRepositoryFiles $null).Count -eq 0) 'un binding con scelta vuota, o nessun binding, non gestisce alcun file del repository'
+    Assert-Quick ((@(Get-SBBindingRepositoryFiles @{identity='x'}) -join ',') -ceq 'AGENTS.md,CLAUDE.md,GEMINI.md') 'un binding precedente a repositoryFiles continua a gestire AGENTS.md, CLAUDE.md e GEMINI.md'
     foreach($file in Get-ChildItem -LiteralPath $PSScriptRoot -File|Where-Object Extension -in @('.ps1','.psm1')){
         $tokens=$null;$errors=$null
         [void][Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
@@ -247,5 +252,22 @@ try {
         Assert-Quick (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self'}) 'runner: lettura del repository del task consentita'
         Assert-Quick (!(Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/other' -Write}) -and (Test-QuickScope {Assert-SBRunnerReadScope -Repository 'github.com/x/self' -Write})) 'runner: scritture solo nel repository del task'
     }finally{foreach($n in $scopeNames.Values){[Environment]::SetEnvironmentVariable($n,$savedScope[$n])}}
+    # Injectable clock and identifiers (#498): fixed values, then a stepping source, then the system sources again.
+    $fixedNow=[DateTimeOffset]::new(2026,11,13,10,30,0,[TimeSpan]::Zero)
+    try{
+        Set-SBClockSource {[DateTimeOffset]::new(2026,11,13,10,30,0,[TimeSpan]::Zero)}
+        Assert-Quick ((Get-SBNow).ToString('o') -ceq '2026-11-13T10:30:00.0000000+00:00' -and (Get-SBNow).Offset -eq [TimeSpan]::Zero) 'orologio fisso: Get-SBNow restituisce il valore iniettato in UTC'
+        Assert-Quick ((Get-SBNow).AddDays(-14).ToString('yyyyMMdd') -ceq '20261030' -and (Get-SBNow -Local).UtcDateTime -eq $fixedNow.UtcDateTime) 'orologio fisso: aritmetica e variante locale coerenti'
+        $script:tick=0;Set-SBClockSource {$script:tick++;[DateTimeOffset]::new(2026,11,13,10,30,0,[TimeSpan]::Zero).AddSeconds($script:tick)}
+        Assert-Quick (((Get-SBNow)-(Get-SBNow)).TotalSeconds -eq -1) 'orologio a passi: ogni lettura avanza di un secondo'
+        $script:seq=0;Set-SBIdSource {$script:seq++;('{0:x32}' -f $script:seq)}
+        Assert-Quick ((New-SBId) -ceq ('0'*31+'1') -and (New-SBId) -ceq ('0'*31+'2')) 'ID iniettati: sequenza deterministica'
+        Set-SBClockSource $null;Set-SBIdSource $null
+        $real=New-SBId
+        Assert-Quick ($real -match '^[0-9a-f]{32}$' -and $real -cne (New-SBId) -and [Math]::Abs(((Get-SBNow)-[DateTimeOffset]::UtcNow).TotalMinutes) -lt 1) 'senza iniezione: GUID e orologio di sistema'
+    }finally{Set-SBClockSource $null;Set-SBIdSource $null}
+    # Only Core reads the system clock or creates GUIDs outside the tests.
+    $direct=@(Get-ChildItem -LiteralPath $PSScriptRoot -File|Where-Object {$_.Extension -in '.ps1','.psm1' -and $_.Name -notlike 'test-*' -and $_.Name -ne 'SecondBrain.Core.psm1'}|Select-String -Pattern 'Get-Date|\[Date[Tt]ime(Offset)?\]::(Now|UtcNow)|NewGuid|Get-Random')
+    Assert-Quick ($direct.Count -eq 0) ('nessun orologio o GUID diretto fuori da Core e dai test'+$(if($direct.Count){': '+$direct[0].Filename+':'+$direct[0].LineNumber}))
     'SUCCESS QUICK: '+$script:quickChecks+' verifiche pure (nessun Git, nessun processo figlio).'
 } finally { $env:SECONDBRAIN_LANG=$savedLang; Set-SBUiLanguage '' }

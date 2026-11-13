@@ -67,6 +67,8 @@ Add-SBMessages @{
     'sources.decision.review' = @{ it = 'Accettare una candidata richiede -ReviewScope e le tre conferme di revisione'; en = 'Accepting a candidate requires -ReviewScope and the three review confirmations' }
     'sources.decision.transcript' = @{ it = 'Candidata senza trascrizione estratta: ricollezionare o rifiutare'; en = 'Candidate without an extracted transcript: collect again or reject' }
     'sources.effective.input' = @{ it = 'Data di efficacia non valida: verified richiede una data yyyy-MM-dd, sempre provision e reference'; en = 'Invalid effective date: verified requires a yyyy-MM-dd date, provision and reference are always required' }
+    'sources.proposal.unrecognized' = @{ it = 'Riferimento non riconosciuto o ambiguo: {0}'; en = 'Reference not recognised or ambiguous: {0}' }
+    'sources.proposal.origin' = @{ it = 'Fonte di origine del riferimento non indicata o non registrata: usare -SourceId'; en = 'Origin source of the reference missing or not registered: pass -SourceId' }
     'sources.effective.duplicate' = @{ it = 'Data di efficacia gia registrata per questa disposizione'; en = 'Effective date already registered for this provision' }
 }
 
@@ -244,11 +246,11 @@ function Invoke-SBSourceProbe($Registry,[scriptblock]$Transport) {
         $status=if(!$source.endpoints.Count){'reference-only'}elseif($errors.Count){if($items.Count){'partial'}else{'unverifiable'}}elseif(!$baseline){'unbaselined'}elseif($baseline.fingerprint -ceq $fingerprint){'unchanged'}else{'changed'}
         $results+=@{sourceId=$source.id;configurationHash=$source._hash;status=$status;complete=(!$errors.Count -and $source.endpoints.Count -gt 0);fingerprint=$fingerprint;endpoints=$items;errors=$errors}
     }
-    @{schemaVersion=1;checkedAt=[DateTimeOffset]::UtcNow.ToString('o');sources=$results;complete=(@($results|Where-Object { !$_.complete -and $_.status -ne 'reference-only'}).Count -eq 0)}
+    @{schemaVersion=1;checkedAt=(Get-SBNow).ToString('o');sources=$results;complete=(@($results|Where-Object { !$_.complete -and $_.status -ne 'reference-only'}).Count -eq 0)}
 }
 function Save-SBSourceReport($Config,$Report) {
     $dir=Join-Path $Config.runtimeRoot 'sources/reports';Assert-SBPlainPath $dir
-    $id=[DateTimeOffset]::UtcNow.ToString('yyyyMMddTHHmmssfffffffZ')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8)
+    $id=(Get-SBNow).ToString('yyyyMMddTHHmmssfffffffZ')+'-'+(New-SBId).Substring(0,8)
     $text=ConvertTo-SBJson $Report
     Write-SBFile (Join-Path $dir ($id+'.json')) ([Text.Encoding]::UTF8.GetBytes($text)) 'absent' $Config.backupRoot|Out-Null
     $latest=Join-Path $Config.runtimeRoot 'sources/latest.json'
@@ -318,12 +320,12 @@ function Invoke-SBSourceDecision($Config,$Registry,[string]$SourceId,[string]$Ve
         if($version.reviewStatus -eq 'candidate'){
             if(!$Review -or $Review.structure -ne $true -or $Review.numbersAndTables -ne $true -or $Review.citedPassages -ne $true -or [string]::IsNullOrWhiteSpace([string]$Review.scope)){throw (New-SBError 'sources.decision.review')}
             if($manifest.transcription.status -ne 'extracted' -or !$manifest.transcription.sha256){throw (New-SBError 'sources.decision.transcript')}
-            $reviewRecord=@{schemaVersion=1;reviewer=$DecidedBy;reviewedAt=[DateTimeOffset]::UtcNow.ToString('o');fingerprint=$manifest.fingerprint;transcriptSha256=$manifest.transcription.sha256;structure=$true;numbersAndTables=$true;citedPassages=$true;scope=[string]$Review.scope;corrections=@();limitations=@('Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance.')}
+            $reviewRecord=@{schemaVersion=1;reviewer=$DecidedBy;reviewedAt=(Get-SBNow).ToString('o');fingerprint=$manifest.fingerprint;transcriptSha256=$manifest.transcription.sha256;structure=$true;numbersAndTables=$true;citedPassages=$true;scope=[string]$Review.scope;corrections=@();limitations=@('Verification qualifies transcription of the acquired edition only. It does not establish legal currency, completeness of regulatory obligations or product compliance.')}
             $version.reviewStatus='verified'
         }elseif($version.reviewStatus -ne 'verified'){throw (New-SBError 'sources.decision.accept')}
         $source.acceptedVersion=$VersionId;$cardChanged=$true
     }
-    $record=@{decision=$Decision;versionId=$VersionId;fingerprint=$manifest.fingerprint;reason=$Reason;decidedBy=$DecidedBy;decidedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    $record=@{decision=$Decision;versionId=$VersionId;fingerprint=$manifest.fingerprint;reason=$Reason;decidedBy=$DecidedBy;decidedAt=(Get-SBNow).ToString('o')}
     if($Decision -eq 'accept'){$record['previousAcceptedVersion']=$previous}
     $log=@{schemaVersion=1;sourceId=$source.id;decisions=@($source._decisions)+@($record)}
     $logText=ConvertTo-SBJson $log
@@ -341,8 +343,15 @@ function Add-SBSourceEffectiveDate($Config,$Registry,[string]$SourceId,[string]$
     $sources=@($Registry.sources|Where-Object id -ceq $SourceId)
     if($sources.Count -ne 1){throw (New-SBError 'sources.unregistered')}
     $source=$sources[0]
-    if(@($source.effectiveDates|Where-Object provision -ceq $Provision).Count){throw (New-SBError 'sources.effective.duplicate')}
-    $source.effectiveDates=@($source.effectiveDates)+@(@{provision=$Provision;date=$(if($Date){$Date}else{$null});status=$Status;reference=$Reference})
+    $existing=@($source.effectiveDates|Where-Object provision -ceq $Provision)
+    $entry=@{provision=$Provision;date=$(if($Date){$Date}else{$null});status=$Status;reference=$Reference}
+    if($existing.Count){
+        # A provision still marked requires-verification is resolved in place once its date is verified; any other repeat is a duplicate.
+        if($existing.Count -ne 1 -or $existing[0].status -ne 'requires-verification' -or $Status -ne 'verified'){throw (New-SBError 'sources.effective.duplicate')}
+        $source.effectiveDates=@($source.effectiveDates|ForEach-Object{if($_.provision -ceq $Provision){$entry}else{$_}})
+    } else {
+        $source.effectiveDates=@($source.effectiveDates)+@($entry)
+    }
     Write-SBSourceCard $Config $Registry $source
     $null=Write-SBSourceIndex $Config $Registry.brainRoot
     @{sourceId=$source.id;effectiveDates=$source.effectiveDates.Count}
@@ -385,7 +394,7 @@ function Get-SBSourceChecks($Registry,$Config,[switch]$IncludeDossiers) {
         if($source.acceptedVersion -and (!$versionIds.ContainsKey($source.acceptedVersion) -or @($source.versions|Where-Object { $_.id -ceq $source.acceptedVersion -and $_.reviewStatus -eq 'verified'}).Count -ne 1)){throw (New-SBError 'sources.version.unverified')}
         if($source.rights.status -ne 'reference-only' -and !$source.acceptedVersion){$issues.Add(@{kind='review-pending';sourceId=$source.id})}
         $checks=@(if($latest){$latest.sources|Where-Object sourceId -eq $source.id})
-        if($source.endpoints.Count -and (!$checks.Count -or $checks[0].configurationHash -cne $source._hash -or [DateTimeOffset]::Parse($latest.checkedAt) -lt [DateTimeOffset]::UtcNow.AddDays(-14))){$issues.Add(@{kind='verification-stale';sourceId=$source.id})}
+        if($source.endpoints.Count -and (!$checks.Count -or $checks[0].configurationHash -cne $source._hash -or [DateTimeOffset]::Parse($latest.checkedAt) -lt (Get-SBNow).AddDays(-14))){$issues.Add(@{kind='verification-stale';sourceId=$source.id})}
         elseif($checks.Count -and $checks[0].status -notin @('unchanged','reference-only')){
             # A live fingerprint recorded as a known variant of a verified version is not a change to review again.
             $fingerprint=if($checks[0].ContainsKey('fingerprint')){[string]$checks[0].fingerprint}else{''}
@@ -444,7 +453,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
             return @{sourceId=$SourceId;versionId=$version.id;status='unchanged'}
         }
     }
-    $versionId=[DateTimeOffset]::UtcNow.ToString('yyyyMMdd')+'-'+$fingerprint.Substring(0,16).ToLowerInvariant()
+    $versionId=(Get-SBNow).ToString('yyyyMMdd')+'-'+$fingerprint.Substring(0,16).ToLowerInvariant()
     $versionRoot=Get-SBSourceChild $source._root ('versions/'+$versionId)
     if(Test-Path -LiteralPath $versionRoot){throw (New-SBError 'sources.version.incomplete')}
     foreach($item in $downloads){
@@ -459,7 +468,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
     if($PythonPath -and (Test-Path -LiteralPath $PythonPath)){
         $layout=if($canonical.endpoint.ContainsKey('layout')){$canonical.endpoint.layout}else{'single'}
         $start=[Diagnostics.ProcessStartInfo]::new($PythonPath)
-        $workRoot=Join-Path $Config.runtimeRoot ('sources/work/'+[guid]::NewGuid().ToString('N'))
+        $workRoot=Join-Path $Config.runtimeRoot ('sources/work/'+(New-SBId))
         foreach($name in @('TEMP','TMP','TMPDIR','PIP_CACHE_DIR','PYTHONPYCACHEPREFIX')){
             $directory=Join-Path $workRoot $name
             [IO.Directory]::CreateDirectory($directory)|Out-Null;$start.Environment[$name]=$directory
@@ -482,7 +491,7 @@ function Invoke-SBSourceCollect($Config,$Registry,[string]$SourceId,[string]$Pyt
         if($source.ContainsKey('dataset')){$prefix+="`nMetadati del dataset:`n"+(ConvertTo-SBJson $source.dataset)+"`n---`n"}
         Write-SBFile $transcript ([Text.Encoding]::UTF8.GetBytes($prefix+"`n"+(Read-SBText $transcript))) $previousHash $Config.backupRoot|Out-Null
     }
-    $manifest=@{schemaVersion=1;sourceId=$SourceId;versionId=$versionId;edition=$source.edition;publicationDate=$source.publicationDate;language=$source.language;acquiredAt=[DateTimeOffset]::UtcNow.ToString('o');fingerprint=$fingerprint;configurationHash=$source._hash;artifacts=$artifacts;transcription=@{status=$result.status;path=$(if(Test-Path -LiteralPath $transcript){'transcript.md'}else{$null});sha256=$(if(Test-Path -LiteralPath $transcript){Get-SBFileHash $transcript}else{$null});diagnostics=$result}}
+    $manifest=@{schemaVersion=1;sourceId=$SourceId;versionId=$versionId;edition=$source.edition;publicationDate=$source.publicationDate;language=$source.language;acquiredAt=(Get-SBNow).ToString('o');fingerprint=$fingerprint;configurationHash=$source._hash;artifacts=$artifacts;transcription=@{status=$result.status;path=$(if(Test-Path -LiteralPath $transcript){'transcript.md'}else{$null});sha256=$(if(Test-Path -LiteralPath $transcript){Get-SBFileHash $transcript}else{$null});diagnostics=$result}}
     Write-SBFile (Join-Path $versionRoot 'manifest.json') ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $manifest))) 'absent' $Config.backupRoot|Out-Null
     $source.versions+=@{id=$versionId;reviewStatus='candidate'}
     Write-SBFile $source._path ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson (Get-SBSourceCardData $source)))) $source._hash $Config.backupRoot|Out-Null
@@ -514,27 +523,179 @@ function Restore-SBSourceOriginals($Config,$Registry,[scriptblock]$Transport) {
     }
     @{restored=$restored;failed=$failed}
 }
+$script:SBReferenceMonths=@{gennaio=1;febbraio=2;marzo=3;aprile=4;maggio=5;giugno=6;luglio=7;agosto=8;settembre=9;ottobre=10;novembre=11;dicembre=12;january=1;february=2;march=3;april=4;may=5;june=6;july=7;august=8;september=9;october=10;november=11;december=12}
+function ConvertTo-SBReferenceDate([string]$Day,[string]$Month,[string]$Year) {
+    $m=0;$lower=$Month.ToLowerInvariant()
+    if($Month -match '^\d{1,2}$'){$m=[int]$Month}elseif($script:SBReferenceMonths.ContainsKey($lower)){$m=$script:SBReferenceMonths[$lower]}
+    $d=[int]$Day;$y=[int]$Year
+    if($y -lt 1 -or $m -lt 1 -or $m -gt 12 -or $d -lt 1 -or $d -gt [DateTime]::DaysInMonth($y,$m)){return $null}
+    '{0:0000}-{1:00}-{2:00}' -f $y,$m,$d
+}
+function Get-SBTextReferences([string]$Text,[switch]$StructuredOnly) {
+    # #438: citations of other acts in a text. Kinds: eli, celex, oj (EU Official Journal), gu (Gazzetta Ufficiale), number (YYYY/N, "n. N del <date> <year>").
+    # Each citation has a display `reference` that this function recognises again and `ids` that identify the same act in other spellings. Detection only: nothing is resolved or downloaded.
+    $found=[ordered]@{};$covered=[Collections.Generic.List[int[]]]::new()
+    function Add-Citation($Match,[string]$Kind,[string]$Reference,[string[]]$Ids) {
+        $covered.Add(@($Match.Index,($Match.Index+$Match.Length)))
+        if(!$found.Contains($Reference)){$found[$Reference]=@{kind=$Kind;reference=$Reference;ids=@($Ids)}}else{$found[$Reference].ids=@(@($found[$Reference].ids)+$Ids|Select-Object -Unique)}
+    }
+    function Get-NumberIds([string]$Year,[string]$Number) {
+        $n=[string][int]$Number;$y=[string][int]$Year
+        @("n:$y/$n","n:$n/$y")
+    }
+    function Test-Covered($Match) {
+        foreach($span in $covered){if($Match.Index -lt $span[1] -and ($Match.Index+$Match.Length) -gt $span[0]){return $true}}
+        $false
+    }
+    foreach($m in [regex]::Matches($Text,'(?i)\beli/id/(\d{4})/(\d{2})/(\d{2})/([0-9A-Z]{5,14})(?:/[a-z]+)?(?![0-9A-Za-z])')){
+        $date=ConvertTo-SBReferenceDate $m.Groups[3].Value $m.Groups[2].Value $m.Groups[1].Value
+        if(!$date){continue}
+        $id=$m.Groups[4].Value.ToUpperInvariant()
+        Add-Citation $m 'eli' ('eli/id/'+($date -replace '-','/')+'/'+$id) @('eli:id/'+$date+'/'+$id)
+    }
+    foreach($m in [regex]::Matches($Text,'(?i)\beli/((?:reg|dir|dec)(?:_impl|_del)?|recomm|resol|opin)/(\d{4})/(\d{1,4})(?![0-9])')){
+        $type=$m.Groups[1].Value.ToLowerInvariant();$year=$m.Groups[2].Value;$number=[string][int]$m.Groups[3].Value
+        $ids=@('eli:'+$type+'/'+$year+'/'+$number)
+        if($type -match '^(reg|dir|dec)'){$ids+=Get-NumberIds $year $number}
+        Add-Citation $m 'eli' ('eli/'+$type+'/'+$year+'/'+$number) $ids
+    }
+    foreach($pattern in @('(?<![0-9A-Za-z])([0-9])((?:19|20)\d{2})([A-Z])(\d{4})(?:-\d{8})?(?![0-9A-Za-z])','(?i)celex\W{0,3}([0-9])((?:19|20)\d{2})([A-Z])(\d{4})(?:-\d{8})?(?![0-9A-Za-z])')){
+        foreach($m in [regex]::Matches($Text,$pattern)){
+            if(Test-Covered $m){continue}
+            $sector=$m.Groups[1].Value;$year=$m.Groups[2].Value;$letter=$m.Groups[3].Value.ToUpperInvariant();$number=$m.Groups[4].Value
+            $celex=$sector+$year+$letter+$number
+            $ids=@('celex:'+$celex)
+            if($sector -in @('0','3') -and $letter -in @('R','L','D')){$ids+=Get-NumberIds $year $number}
+            Add-Citation $m 'celex' ('CELEX:'+$celex) $ids
+        }
+    }
+    foreach($m in [regex]::Matches($Text,'(?i)\b(?:OJ|GU(?:UE)?)\s+([LC])\s*(\d{1,4})\s*(?:,|del)?\s*(\d{1,2})[./](\d{1,2})[./](\d{4})')){
+        $date=ConvertTo-SBReferenceDate $m.Groups[3].Value $m.Groups[4].Value $m.Groups[5].Value
+        if(!$date){continue}
+        $series=$m.Groups[1].Value.ToUpperInvariant();$issue=[string][int]$m.Groups[2].Value
+        $parts=$date -split '-'
+        Add-Citation $m 'oj' ('OJ '+$series+' '+$issue+', '+$parts[2]+'.'+$parts[1]+'.'+$parts[0]) @('oj:'+$series+$issue+'/'+$date)
+    }
+    $dateAlternatives='(?:(?<d>\d{1,2})\s+(?<mo>\p{L}+)\s+(?<y>\d{4})|(?<d>\d{1,2})[./-](?<mo>\d{1,2})[./-](?<y>\d{4}))'
+    $gu='(?:Gazzetta\s+Ufficiale(?:\s+della\s+Repubblica(?:\s+italiana)?)?|G\.\s?U\.|GU)'
+    foreach($pattern in @("(?i)\b$gu(?:\s*[-,]?\s*Serie\s+Generale)?\s*,?\s*n\.?\s*(?<n>\d{1,4})\s+del\s+$dateAlternatives","(?i)\b$gu(?:\s*[-,]?\s*Serie\s+Generale)?\s*,?\s*$dateAlternatives\s*,?\s*n\.?\s*(?<n>\d{1,4})")){
+        foreach($m in [regex]::Matches($Text,$pattern)){
+            if(Test-Covered $m){continue}
+            $date=ConvertTo-SBReferenceDate $m.Groups['d'].Value $m.Groups['mo'].Value $m.Groups['y'].Value
+            if(!$date){continue}
+            $issue=[string][int]$m.Groups['n'].Value;$parts=$date -split '-'
+            Add-Citation $m 'gu' ('GU n. '+$issue+' del '+$parts[2]+'.'+$parts[1]+'.'+$parts[0]) @('gu:'+$date+'#'+$issue)
+        }
+    }
+    if(!$StructuredOnly){
+        foreach($m in [regex]::Matches($Text,'(?<![\d/])(\d{4})/(\d{1,4})(?![\d/])')){
+            if(Test-Covered $m){continue}
+            Add-Citation $m 'number' ($m.Groups[1].Value+'/'+$m.Groups[2].Value) (Get-NumberIds $m.Groups[1].Value $m.Groups[2].Value)
+        }
+        foreach($m in [regex]::Matches($Text,'(?i)\bn\.?\s*(\d{1,4})\s+del\s+\d{1,2}\s+\p{L}+\s+(\d{4})')){
+            if(Test-Covered $m){continue}
+            Add-Citation $m 'number' ($m.Groups[2].Value+'/'+$m.Groups[1].Value) (Get-NumberIds $m.Groups[2].Value $m.Groups[1].Value)
+        }
+    }
+    @($found.Values)
+}
+function Get-SBSourceReferenceIds($Source) {
+    # Spellings under which a registered source can be cited: its official identifier, plus ELI and CELEX found in its endpoint addresses.
+    $ids=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    if($Source.officialId){foreach($ref in Get-SBTextReferences ([string]$Source.officialId)){foreach($id in $ref.ids){[void]$ids.Add($id)}}}
+    foreach($endpoint in @($Source.endpoints)){foreach($ref in Get-SBTextReferences ([string]$endpoint.url) -StructuredOnly){foreach($id in $ref.ids){[void]$ids.Add($id)}}}
+    ,$ids
+}
 function Find-SBSourceReferences($Registry,$Source) {
-    # Heuristic: official numbers (YYYY/N or N/YYYY, "n. N del <date> <year>") found in the accepted, else latest, transcript.
+    # Citations (ELI, CELEX, Official Journal, Gazzetta Ufficiale, official numbers) found in the accepted, else latest, transcript. Unresolved ones are returned for the review queue; nothing is downloaded.
     $version=if($Source.acceptedVersion){@($Source.versions|Where-Object id -ceq $Source.acceptedVersion)[0]}elseif($Source.versions.Count){@($Source.versions|Sort-Object id)[-1]}else{$null}
-    $resolved=[Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal);$tokens=[Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+    $citations=@()
     if($version){
         $versionRoot=Get-SBSourceChild $Source._root ('versions/'+$version.id)
         $manifest=Read-SBJson (Join-Path $versionRoot 'manifest.json') $null
-        if($manifest -and $manifest.transcription.path){
-            $text=Read-SBText (Get-SBSourceChild $versionRoot $manifest.transcription.path)
-            foreach($m in [regex]::Matches($text,'(?<![\d/])(\d{4})/(\d{1,4})(?![\d/])')){[void]$tokens.Add($m.Groups[1].Value+'/'+$m.Groups[2].Value)}
-            foreach($m in [regex]::Matches($text,'(?i)\bn\.?\s*(\d{1,4})\s+del\s+\d{1,2}\s+\p{L}+\s+(\d{4})')){[void]$tokens.Add($m.Groups[1].Value+'/'+$m.Groups[2].Value)}
+        if($manifest -and $manifest.transcription.path){$citations=@(Get-SBTextReferences (Read-SBText (Get-SBSourceChild $versionRoot $manifest.transcription.path)))}
+    }
+    $resolved=[Collections.Generic.SortedSet[string]]::new([StringComparer]::Ordinal)
+    $own=Get-SBSourceReferenceIds $Source
+    $others=@($Registry.sources|Where-Object {$_.id -cne $Source.id}|ForEach-Object {@{id=$_.id;known=(Get-SBSourceReferenceIds $_)}})
+    $unresolved=@();$detail=@()
+    foreach($citation in $citations){
+        if(@($citation.ids|Where-Object {$own.Contains($_)}).Count){continue}
+        $hits=@($others|Where-Object {$known=$_.known;@($citation.ids|Where-Object {$known.Contains($_)}).Count})
+        if($hits.Count){foreach($hit in $hits){[void]$resolved.Add($hit.id)}}else{$unresolved+=$citation.reference;$detail+=@{kind=$citation.kind;reference=$citation.reference}}
+    }
+    @{sourceId=$Source.id;resolved=@($resolved);unresolved=@($unresolved);unresolvedDetail=@($detail)}
+}
+function Get-SBSourceCardProposal($Registry,[string]$Reference,[string]$OriginId) {
+    # #438: proposes the card (metadata.json content) for a citation that is not in the registry. Read-only: no write, no network, no download.
+    # The proposal is always reference-only, so Invoke-SBSourceCollect refuses it until a person verifies the rights and registers an endpoint.
+    $citations=@(Get-SBTextReferences $Reference)
+    if(!$citations.Count -and $Reference -match '^\s*(\d{1,4})/(\d{4})\s*$'){$citations=@(@{kind='number';reference=($Matches[2]+'/'+$Matches[1]);ids=@("n:$([int]$Matches[2])/$([int]$Matches[1])","n:$([int]$Matches[1])/$([int]$Matches[2])")})}
+    if($citations.Count -ne 1){throw (New-SBError 'sources.proposal.unrecognized' @($Reference))}
+    $citation=$citations[0]
+    $hits=@($Registry.sources|Where-Object {$known=Get-SBSourceReferenceIds $_;@($citation.ids|Where-Object {$known.Contains($_)}).Count})
+    if($hits.Count){return @{status='registered';reference=$citation.reference;sourceIds=@($hits|ForEach-Object {$_.id})}}
+    $origins=@($Registry.sources|Where-Object id -ceq $OriginId)
+    if($origins.Count -ne 1){throw (New-SBError 'sources.proposal.origin')}
+    $origin=$origins[0]
+    $first=[string]$citation.ids[0];$kind='regulation';$location=$null;$issuer='Da verificare';$jurisdictions=@($origin.jurisdictions|Where-Object {$_ -cne 'Global'})
+    if(!$jurisdictions.Count){$jurisdictions=@('unverified')}
+    if($first -match '^eli:id/(\d{4})-(\d{2})-(\d{2})/(.+)$'){$slug='it-eli-'+$Matches[1]+'-'+$Matches[2]+'-'+$Matches[3]+'-'+$Matches[4].ToLowerInvariant();$jurisdictions=@('IT');$issuer='Repubblica italiana'}
+    elseif($first -match '^eli:([a-z_]+)/(\d{4})/(\d+)$'){
+        $type=$Matches[1];$slug='eu-'+($type -replace '_','-')+'-'+$Matches[2]+'-'+$Matches[3];$jurisdictions=@('EU');$issuer='Unione europea'
+        if($type -match '^dec'){$kind='decision'}
+        $location='https://eur-lex.europa.eu/eli/'+$type+'/'+$Matches[2]+'/'+$Matches[3]+'/oj'
+    }
+    elseif($first -match '^celex:([0-9])(\d{4})([A-Z])(\d{4})$'){
+        $sector=$Matches[1];$letter=$Matches[3];$celex=$Matches[1]+$Matches[2]+$Matches[3]+$Matches[4]
+        $names=@{R='reg';L='dir';D='dec'}
+        $slug=if($sector -in @('0','3') -and $names.ContainsKey($letter)){'eu-'+$names[$letter]+'-'+$Matches[2]+'-'+[int]$Matches[4]}else{'celex-'+$celex.ToLowerInvariant()}
+        if($letter -ceq 'D'){$kind='decision'}
+        $jurisdictions=@('EU');$issuer='Unione europea'
+        $location='https://eur-lex.europa.eu/legal-content/IT/TXT/?uri=CELEX:'+$celex
+    }
+    elseif($first -match '^oj:([LC])(\d+)/(\d{4})-(\d{2})-(\d{2})$'){$slug='eu-oj-'+$Matches[1].ToLowerInvariant()+$Matches[2]+'-'+$Matches[3]+'-'+$Matches[4]+'-'+$Matches[5];$jurisdictions=@('EU');$issuer='Unione europea'}
+    elseif($first -match '^gu:(\d{4})-(\d{2})-(\d{2})#(\d+)$'){$slug='it-gu-'+$Matches[1]+'-'+$Matches[2]+'-'+$Matches[3]+'-n'+$Matches[4];$jurisdictions=@('IT');$issuer='Repubblica italiana'}
+    elseif($first -match '^n:(\d+)/(\d+)$'){$slug='ref-'+$citation.reference.Replace('/','-')}
+    else{throw (New-SBError 'sources.proposal.unrecognized' @($Reference))}
+    $slug=($slug -replace '[^a-z0-9-]','-').Trim('-')
+    $id=$slug;$suffix=2
+    while(@($Registry.sources|Where-Object id -ceq $id).Count){$id=$slug+'-'+$suffix;$suffix++}
+    $card=[ordered]@{
+        schemaVersion=1;id=$id;title=('Riferimento da verificare: '+$citation.reference);kind=$kind;issuer=$issuer
+        domains=@($origin.domains);jurisdictions=@($jurisdictions);language=$origin.language
+        officialId=$citation.reference;edition='da-verificare';publicationDate=$null
+        rights=@{status='reference-only';reference='Condizioni di riutilizzo da verificare';notes='Proposta: nessun download finche le condizioni di riutilizzo non sono verificate.'}
+        endpoints=@();versions=@();acceptedVersion=$null
+        relatedSources=@(@{id=$origin.id;relation='related'})
+        effectiveDates=@(@{provision='Entrata in vigore';date=$null;status='requires-verification';reference='Da verificare'})
+        notes=@('Proposta da riferimento in coda: '+$citation.reference+' (citato da '+$origin.id+')')
+    }
+    if(!(Test-Json -Json (ConvertTo-SBJson $card) -SchemaFile (Join-Path $Registry.brainRoot 'config/source.schema.json') -ErrorAction SilentlyContinue)){throw (New-SBError 'sources.card.invalid' @($id))}
+    @{status='proposed';reference=$citation.reference;referenceKind=$citation.kind;origin=$origin.id;card=$card;suggestedLocation=$location;downloaded=$false
+        toVerify=@('title','kind','issuer','jurisdictions','officialId','edition','rights','effectiveDates','endpoints')}
+}
+function Get-SBSourceCardProposals($Registry,[string]$Reference,[string]$OriginId) {
+    # One proposal for -Reference (origin from the queue item, else -SourceId), or one per distinct unresolved reference in normative-queue.json.
+    $queuePath=Join-Path $Registry.root 'normative-queue.json'
+    $queue=Read-SBJson $queuePath $null
+    $items=@(if($queue){@($queue.items)|Where-Object {$_.kind -eq 'unresolved-reference'}})
+    $proposals=@();$registered=@();$skipped=@()
+    if($Reference){
+        $spelled=@(Get-SBTextReferences $Reference);$canonical=if($spelled.Count -eq 1){$spelled[0].reference}else{$Reference}
+        $origin=if($OriginId){$OriginId}else{@($items|Where-Object reference -ceq $canonical|ForEach-Object {$_.sourceId})|Select-Object -First 1}
+        $proposal=Get-SBSourceCardProposal $Registry $Reference ([string]$origin)
+        if($proposal.status -eq 'registered'){$registered+=$proposal}else{$proposals+=$proposal}
+    }else{
+        foreach($group in @($items|Group-Object reference|Sort-Object Name)){
+            $origins=@($group.Group|ForEach-Object {$_.sourceId}|Select-Object -Unique)
+            try{$proposal=Get-SBSourceCardProposal $Registry $group.Name $origins[0]}catch{$skipped+=@{reference=$group.Name;reason=$_.Exception.Message};continue}
+            if($proposal.status -eq 'registered'){$registered+=$proposal;continue}
+            $proposal.alsoCitedBy=@($origins|Select-Object -Skip 1)
+            $proposals+=$proposal
         }
     }
-    $unresolved=@()
-    foreach($token in $tokens){
-        $parts=$token -split '/'
-        $pattern='(?<![\d/])'+[regex]::Escape($token)+'(?![\d/])|(?<![\d/])'+[regex]::Escape($parts[1]+'/'+$parts[0])+'(?![\d/])'
-        $hits=@($Registry.sources|Where-Object {$_.id -cne $Source.id -and $_.officialId -and $_.officialId -match $pattern})
-        if($hits.Count){foreach($hit in $hits){[void]$resolved.Add($hit.id)}}elseif($token -ne ($Source.officialId -replace '^.*?(\d{4}/\d+).*$','$1')){$unresolved+=$token}
-    }
-    @{sourceId=$Source.id;resolved=@($resolved);unresolved=@($unresolved)}
+    @{schemaVersion=1;proposals=@($proposals);registered=@($registered);skipped=@($skipped)}
 }
 function Get-SBSourceClosure($Registry,[string[]]$Seeds,[ValidateRange(0,10)][int]$MaxDepth=3,[ValidateRange(1,500)][int]$MaxSources=50) {
     $included=[ordered]@{};$queue=@{};$frontier=@($Seeds|Where-Object {$_})
@@ -547,7 +708,7 @@ function Get-SBSourceClosure($Registry,[string[]]$Seeds,[ValidateRange(0,10)][in
             $included[$id]=$depth
             $found=Find-SBSourceReferences $Registry $byId[$id]
             $next+=@($byId[$id].relatedSources|ForEach-Object {$_.id})+@($found.resolved)
-            foreach($token in $found.unresolved){$queue[$id+'|'+$token]=@{kind='unresolved-reference';sourceId=$id;reference=$token}}
+            foreach($item in $found.unresolvedDetail){$queue[$id+'|'+$item.reference]=@{kind='unresolved-reference';sourceId=$id;reference=$item.reference;referenceKind=$item.kind}}
         }
         $frontier=@($next|Select-Object -Unique)
     }
@@ -572,5 +733,8 @@ Export-ModuleMember -Function @(
     'Invoke-SBSourceCollect',
     'Restore-SBSourceOriginals',
     'Find-SBSourceReferences',
+    'Get-SBTextReferences',
+    'Get-SBSourceCardProposal',
+    'Get-SBSourceCardProposals',
     'Get-SBSourceClosure'
 )

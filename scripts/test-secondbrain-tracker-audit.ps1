@@ -6,6 +6,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TrackerImport.psm1') -Force
+# Get-SBHostId: imported here rather than reached through another module (the Mcp split no longer loads Host as a side effect).
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1') -Force
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:auditLabel='TRACKER AUDIT';$script:auditChecks=0
 function Reject-Audit([scriptblock]$Action,[string]$Message,[string[]]$Codes=@()){$caught=$false;try{& $Action|Out-Null}catch{$ErrorRecord=$_;if($Codes.Count -and !@($Codes|Where-Object {Test-SBError $ErrorRecord $_}).Count){throw};$caught=$true};Assert-Audit $caught $Message}

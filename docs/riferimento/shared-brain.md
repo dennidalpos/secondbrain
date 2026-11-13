@@ -23,7 +23,7 @@ Windows/SMB/NTFS enforce rights; SecondBrain is not a user-authorization service
 
 Assign script/policy/catalog maintenance only to intended maintainers. Writers also need create/replace access to the relevant runtime/coordination paths. Approval hashes establish integrity, not access control.
 
-Prefer an explicit UNC path over user/session-specific drive mappings. From the local SecondBrain checkout, use `-Setup -TeamRoot <UNC> -Interactive` with `SECONDBRAIN_STATE_ROOT` on a fixed local drive. The same run previews the selection and applies it after confirmation. Use the authoritative root for later commands. A real workstation relocation needs Reconcile.
+Prefer an explicit UNC path over user/session-specific drive mappings. From the local SecondBrain checkout, use `-Setup -TeamRoot <UNC> -Interactive` with `SECONDBRAIN_STATE_ROOT` on a fixed local drive. The same run previews the selection and applies it after confirmation. Use the authoritative root for later commands. A real workstation relocation needs Reconcile. `-SetupProfile Studio` is the named form of this command (it requires `-TeamRoot`); `-SetupProfile Solo` refuses a shared root.
 
 ExecutionPolicy/zone classification and Git ownership must be checked on the actual host. Do not weaken global policy or trust arbitrary safe.directory entries to hide a configuration error.
 
@@ -51,6 +51,8 @@ Before claiming multi-host support, test on two or three actual PCs with the int
 4. Interrupted writer and recovery from another host.
 5. Short-name/FQDN/mapped aliases, effective permissions and execution policy.
 6. FileShare.None/leases, clock behavior, latency and any NAS/Samba implementation.
+
+A shared-root fixture with two simulated identities (`pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Only shared`, 19 checks, about 40 s) gives each identity its own `workstationId`, runtime/backup roots, checkout and binding over one dossier and runs the real CLIs in concurrent processes. It verifies: both identities read the same dossier; 6 simultaneous task creations (3 per identity) all present after `-FlushPending` with unique numbers and consistent `lastSeq`; two saves of one file from the same base hash leave exactly one winner and the other as a visible conflict (exit 5), never mixed content; a read from `pc-b` during an exclusive write session of `pc-a` returns without waiting and with a warning, while a second exclusive writer times out with exit 3; the workstation registry lists both identities with distinct roots; a third identity reusing `pc-a`'s roots is refused. Declared limits: same PC, user, MachineName and SID; local root, no SMB/NAS/Samba; clock skew, latency, leases and cross-PC ACLs not exercised. Real two-PC qualification remains in #348.
 
 Local process concurrency and a simulated second profile do not change actual MachineName/SID. Loopback SMB exercises the stack on one PC/user and therefore does not satisfy this checklist. Record outcomes as partial until those missing cases are observed.
 

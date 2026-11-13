@@ -6,5 +6,5 @@ Indice generato da `scripts/resources.ps1`; non modificare a mano. Controllo int
 |---|---|---|
 | (radice) | 7 | 50033 |
 | census/ | 2 | 98076 |
-| entries/ | 158 | 19421646 |
+| entries/ | 158 | 19422020 |
 | profiles/ | 3 | 5471 |

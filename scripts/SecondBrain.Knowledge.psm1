@@ -37,7 +37,22 @@ Add-SBMessages @{
     'knowledge.startup.minimum' =@{ it = 'Budget insufficiente per lʼavvio Slim. Caratteri minimi: {0}'; en = 'Budget too small for Slim startup. Minimum characters: {0}' }
 }
 
-function Get-SBDossierTOC([string]$Dossier) {
+# Source applicability of a dossier (#492): validates authoritative-sources.json against the schema and the dossier identity,
+# then lists only applicable and conditional sources (not-applicable and unassessed stay in the file).
+function Get-SBDossierSourceLine([string]$Dossier,[string]$BrainRoot,$Record) {
+    $path=Join-Path $Dossier 'authoritative-sources.json'
+    if(!(Test-Path -LiteralPath $path)){return $null}
+    $prefix='- [Applicabilità delle fonti](authoritative-sources.json): '
+    $map=Read-SBJson $path $null
+    $schema=if($BrainRoot){Join-Path $BrainRoot 'config/source-applicability.schema.json'}else{''}
+    $valid=$map -and $map.ContainsKey('sources') -and $map.repository -ceq $Record.identity
+    if($valid -and $schema -and (Test-Path -LiteralPath $schema)){$valid=[bool](Test-Json -Json (Read-SBText $path) -SchemaFile $schema -ErrorAction SilentlyContinue)}
+    if(!$valid){return $prefix+'scheda non valida o di un altro repository: eseguire sources.ps1 -Check prima di usarla.'}
+    $listed=@($map.sources|Where-Object {$_.applicability -in @('applicable','conditional')}|ForEach-Object {$_.sourceId+$(if($_.applicability -eq 'conditional'){' (condizionale)'}else{''})})
+    if(!$listed.Count){return $prefix+'nessuna fonte applicabile dichiarata.'}
+    $prefix+'fonti applicabili: '+($listed -join ', ')+'; motivazioni e versioni nel file.'
+}
+function Get-SBDossierTOC([string]$Dossier,[string]$BrainRoot='') {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.record.missing')}
     $lines=@('# Indice del dossier','',('Repository: `'+$record.identity+'`'),'','## Avvio selettivo','',
@@ -49,7 +64,8 @@ function Get-SBDossierTOC([string]$Dossier) {
         $root=Join-Path $Dossier $directory
         if(Test-Path -LiteralPath $root){foreach($file in Get-ChildItem -LiteralPath $root -File -Filter '*.md'|Sort-Object Name){$lines+='- ['+$file.BaseName+']('+[Uri]::EscapeUriString($directory+'/'+$file.Name)+'): leggere per questo argomento.'}}
     }
-    if(Test-Path -LiteralPath (Join-Path $Dossier 'authoritative-sources.json')){$lines+='- [Applicabilità delle fonti](authoritative-sources.json): leggere quando il task dipende da fonti autorevoli.'}
+    $sourceLine=Get-SBDossierSourceLine $Dossier $BrainRoot $record
+    if($sourceLine){$lines+=$sourceLine}
     if(Test-Path -LiteralPath (Join-Path $Dossier 'knowledge-index.json')){$lines+='- [Indice tematico derivato](knowledge-index.json): revisioni e riferimenti, fonti da verificare prima di usarle.'}
     ($lines -join "`n")+"`n"
 }
@@ -334,7 +350,7 @@ function Get-SBStartupContext {
     $record=Read-SBJson (Join-Path $Dossier 'repository.json') $null
     if(!$record){throw (New-SBError 'knowledge.dossier.invalid')}
     $slim=($Profile -eq 'Slim')
-    $toc=Get-SBDossierTOC $Dossier
+    $toc=Get-SBDossierTOC $Dossier $BrainRoot
     $tracker=Resolve-SBTracker -BrainRoot $BrainRoot -Identity $record.identity -CheckoutPath $CheckoutPath -DossierPath $Dossier -AllowedOwners @() -Entities $Entities
     $contextText=Read-SBText (Join-Path $Dossier 'context.md');$memoryText=Read-SBText (Join-Path $Dossier 'memory.md')
     $viewPath=Join-Path $Dossier 'memory.agent.md'
@@ -567,6 +583,8 @@ function Find-SBKnowledge {
         [Parameter(Mandatory)][string]$Search,
         [string]$Dossier='',
         [string]$Repository='',
+        # Customer filter (repository.json "customer"): restricts the search to the dossiers of that customer.
+        [string]$Customer='',
         # -1 = default (Get-SBSearchDefaultLimit / Get-SBSearchDefaultBudget); 0 = explicitly unlimited.
         [ValidateRange(-1,[int]::MaxValue)][int]$Budget=-1,
         $Entities=@(),
@@ -587,12 +605,13 @@ function Find-SBKnowledge {
         $resolved=[IO.Path]::GetFullPath($Dossier)
         if(!(Test-Path -LiteralPath $resolved)){$resolved=Resolve-SBParaPath $root $Dossier}
         $targetDirs=@($resolved)
+        if($Customer){$recordCustomer=[string](Read-SBJson (Join-Path $resolved 'repository.json') @{}).customer;if(!(Test-SBCustomerMatch $recordCustomer $Customer)){$targetDirs=@()}}
     }elseif($Repository){
         if(!$Entities.Count){$Entities=@(Get-SBParaEntities $root @())}
-        $targetDirs=@($Entities|Where-Object {(Test-SBRepoDossier $_) -and !$_.archived -and $_.repository -eq $Repository}|ForEach-Object {Resolve-SBParaPath $root $_.path})
+        $targetDirs=@($Entities|Where-Object {(Test-SBRepoDossier $_) -and !$_.archived -and $_.repository -eq $Repository -and (Test-SBCustomerMatch $_.customer $Customer)}|ForEach-Object {Resolve-SBParaPath $root $_.path})
     }else{
         if(!$Entities.Count){$Entities=@(Get-SBParaEntities $root @())}
-        $targetDirs=@($Entities|Where-Object {(Test-SBRepoDossier $_) -and !$_.archived}|ForEach-Object {Resolve-SBParaPath $root $_.path})
+        $targetDirs=@($Entities|Where-Object {(Test-SBRepoDossier $_) -and !$_.archived -and (Test-SBCustomerMatch $_.customer $Customer)}|ForEach-Object {Resolve-SBParaPath $root $_.path})
     }
     $extracts=[Collections.Generic.List[object]]::new()
     $candidates=[Collections.Generic.List[object]]::new()
@@ -913,7 +932,7 @@ function Invoke-SBDossierCompaction {
     $tracker=Resolve-SBTracker -BrainRoot $root -Identity $record.identity -DossierPath $dir -CheckoutPath $CheckoutPath -AllowedOwners @()
     $openIds=@($tracker.data.tasks|Where-Object status -notin @('done','cancelled')|ForEach-Object id)
     if(@($openIds|Where-Object {$_ -notin $candidate.openTaskIds}).Count){throw (New-SBError 'knowledge.candidate.tasks')}
-    $toc=Get-SBDossierTOC $dir;$index=Join-Path $dir 'index.md'
+    $toc=Get-SBDossierTOC $dir $root;$index=Join-Path $dir 'index.md'
     $ops+=@{path=$index;expected=(Get-SBFileHash $index);bytes=[Text.Encoding]::UTF8.GetBytes($toc)}
     # Measure exactly the Slim package that startup will load after this transaction.
     $startup=New-SBStartupPackage -Record $record -Tracker $tracker -TOC $toc -ContextText $planned['context.md'] -MemoryText $planned['memory.md'] -AgentViewHash (Get-SBTextHash $planned['memory.agent.md']) -Profile Slim -Budget $Budget

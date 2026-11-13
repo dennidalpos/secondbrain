@@ -38,6 +38,21 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Interactive
 
 Elenca i progetti e gli agenti trovati. Scegli i tuoi, poi conferma scrivendo `CONFERMO` e `APPLICA`.
 
+
+### Profili di Setup: solo e studio
+
+Un comando per profilo (aggiungere `-PreviewOnly` per rivedere prima):
+
+~~~powershell
+# Solo: una persona, checkout locale. Nessuna radice condivisa né ACL di share; lo stato resta nel .runtime del checkout.
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Solo -Roots $project -Interactive
+# Studio: radice autorevole condivisa su UNC; lo stato della postazione resta locale (SECONDBRAIN_STATE_ROOT).
+$env:SECONDBRAIN_STATE_ROOT = 'D:/SecondBrainState'
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Studio -TeamRoot '\\server\share' -Roots $project -Interactive
+~~~
+
+`Solo` rifiuta `-TeamRoot` e un checkout su unità di rete. `Studio` richiede `-TeamRoot` con gli stessi controlli del Setup team (radice UNC raggiungibile, stato locale fuori dalla share). In `Studio` l'accesso è quello concesso dalle ACL della share; SecondBrain non imposta ACL in nessuno dei due profili. L'esito JSON riporta `profile`, `sharedRoot`, `acl` e `state`. Senza `-SetupProfile` il Setup non cambia. `Studio` su una share reale e con account distinti non è ancora qualificato ([radice condivisa](riferimento/shared-brain.it.md)).
+
 ## 4. Distribuisci le regole
 
 ```powershell

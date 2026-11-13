@@ -1,10 +1,11 @@
-#requires -Version 7.5
+﻿#requires -Version 7.5
 [CmdletBinding()]
 param([string]$PythonPath)
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Sources.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $passed=0
@@ -180,7 +181,11 @@ try {
     $registry=Read-SBSourceRegistry $root
     Assert-Source (@(Get-SBSourceChecks $registry $config|Where-Object {$_.kind -eq 'effective-date-unverified' -and $_.sourceId -eq 'fixture-law'}).Count -eq 1) 'data di efficacia da verificare segnalata'
     Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Applicazione' '' 'verified' 'GU 1/2026'} 'sources.effective.input' 'data verified senza giorno rifiutata'
-    Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Entrata in vigore' '2026-01-16' 'verified' 'GU 1/2026'} 'sources.effective.duplicate' 'disposizione gia registrata rifiutata'
+    Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Entrata in vigore' '' 'requires-verification' 'GU 1/2026'} 'sources.effective.duplicate' 'disposizione da verificare non ripetuta senza data verificata'
+    $resolved=Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Entrata in vigore' '2026-01-16' 'verified' 'GU 1/2026'
+    $registry=Read-SBSourceRegistry $root;$lawCard=@($registry.sources|Where-Object id -eq 'fixture-law')[0]
+    Assert-Source ($resolved.effectiveDates -eq 1 -and @($lawCard.effectiveDates|Where-Object {$_.provision -eq 'Entrata in vigore' -and $_.status -eq 'verified' -and $_.date -eq '2026-01-16'}).Count -eq 1 -and !@(Get-SBSourceChecks $registry $config|Where-Object {$_.kind -eq 'effective-date-unverified' -and $_.sourceId -eq 'fixture-law'}).Count) 'disposizione da verificare risolta sul posto con data verificata'
+    Assert-SourceError {Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Entrata in vigore' '2026-01-17' 'verified' 'GU 1/2026'} 'sources.effective.duplicate' 'disposizione gia verificata rifiutata'
     $added=Add-SBSourceEffectiveDate $config $registry 'fixture-law' 'Applicazione' '2026-02-01' 'verified' 'GU 1/2026, art. 2'
     $registry=Read-SBSourceRegistry $root;$lawCard=@($registry.sources|Where-Object id -eq 'fixture-law')[0]
     Assert-Source ($added.effectiveDates -eq 2 -and @($lawCard.effectiveDates|Where-Object {$_.provision -eq 'Applicazione' -and $_.status -eq 'verified' -and $_.date -eq '2026-02-01'}).Count -eq 1) 'data di efficacia aggiunta tramite comando con scheda validata'
@@ -250,6 +255,20 @@ try {
     Assert-Source ($outdated.Count -eq 1 -and $outdated[0].areaId -eq 'area-fixture' -and $outdated[0].versionId -ceq $v1 -and $outdated[0].currentVersionId -ceq $v3) 'mappatura di prodotto a versione precedente produce mapping-outdated nel controllo'
     $mapping.sources[0].versionId=$v3;Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
     Assert-Source (!@(Get-SBSourceChecks (Read-SBSourceRegistry $root) $config -IncludeDossiers|Where-Object kind -eq 'mapping-outdated').Count) 'mappatura aggiornata alla versione accettata senza rilievo'
+    # #492: the startup index lists only applicable and conditional sources of the dossier and rejects an invalid or foreign card.
+    $mapping.sources=@(
+        @{sourceId='fixture-law';versionId=$v3;applicability='applicable';rationale='Fixture';implementation='unverified';requirements=@();evidence=@();tasks=@()},
+        @{sourceId='fixture-cond';versionId=$null;applicability='conditional';rationale='Fixture';implementation='unverified';requirements=@();evidence=@();tasks=@()},
+        @{sourceId='fixture-na';versionId=$null;applicability='not-applicable';rationale='Fixture';implementation='not-required';requirements=@();evidence=@();tasks=@()},
+        @{sourceId='fixture-un';versionId=$null;applicability='unassessed';rationale='Fixture';implementation='unverified';requirements=@();evidence=@();tasks=@()})
+    Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
+    $tocLine=@((Get-SBDossierTOC $areaPath $root) -split "`n"|Where-Object {$_ -like '*authoritative-sources.json*'})
+    Assert-Source ($tocLine.Count -eq 1 -and $tocLine[0] -match 'fixture-law' -and $tocLine[0] -match 'fixture-cond \(condizionale\)' -and $tocLine[0] -notmatch 'fixture-na|fixture-un') 'lo startup elenca solo le fonti applicabili e condizionali'
+    $mapping.repository='github.com/test/other';Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
+    $foreign=@((Get-SBDossierTOC $areaPath $root) -split "`n"|Where-Object {$_ -like '*authoritative-sources.json*'})
+    Assert-Source ($foreign[0] -match 'non valida' -and $foreign[0] -notmatch 'fixture-law') 'scheda di un altro repository non è elencata nello startup'
+    $mapping.repository='github.com/test/fixture';$mapping.applicability='x';Put-Source (Join-Path $areaPath 'authoritative-sources.json') (ConvertTo-SBJson $mapping)
+    $bad=@((Get-SBDossierTOC $areaPath $root) -split "`n"|Where-Object {$_ -like "*authoritative-sources.json*"})[0];Assert-Source ($bad -match "non valida") ("scheda che viola lo schema non è elencata nello startup: "+$bad)
     if($PythonPath){
         # -B: no bytecode cache in scripts/.
         & $PythonPath -B (Join-Path $PSScriptRoot 'test-source-convert.py') -v

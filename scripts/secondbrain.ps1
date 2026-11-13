@@ -10,6 +10,9 @@ Reads (-Check) take no blocking locks: an active writer or pending transaction a
 -Setup registers SECONDBRAIN_HOME on confirmed activation unless -NoRegisterEnvironment is supplied.
 -Setup -Status: binding, IDE and latest selection receipt status (read-only, exit 0).
 -Setup -Unbind <repo|path|ideId|ideName>[,..]: unbinds managed repositories and IDE integrations with proposal, confirmation (-Yes or -Interactive) and preview, like activation; -Apply applies it. Dossiers and IDE files are not deleted.
+-Setup -SetupProfile Solo: one person, local checkout, no shared root and no share ACLs (rejects -TeamRoot and a checkout on a network drive). -Setup -SetupProfile Studio -TeamRoot <UNC>: shared authoritative root, workstation state local (SECONDBRAIN_STATE_ROOT), access by the share's ACLs. The result reports profile, sharedRoot, acl and state.
+Zero footprint: by default nothing is written into a repository. Instructions reach the agents from the user-scope IDE text and MCP. -Setup -RepositoryFiles AGENTS.md[,CLAUDE.md,GEMINI.md] (none = clear) opts a selected repository in; Sync then manages only those files.
+-ResolveBlock <repo|path> [-File <name>]: preview of a managed block edited by hand (diff); -Resolution Generated|Preserve -ApplyResolve restores the generated block keeping the previous content (backup, previousBlock, or the lines added by hand with Preserve).
 Portable operations and contracts: docs/riferimento/portable-brain.md.
 .EXAMPLE
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Check
@@ -22,6 +25,11 @@ pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots D:\Projects -Select 
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Activate -SelectionPath .runtime/hosts/<id>/selection.json -Apply -NoRegisterEnvironment
 pwsh -NoProfile -File scripts/secondbrain.ps1 -AddRepo D:\Projects\my-product -Customer Acme
 pwsh -NoProfile -File scripts/secondbrain.ps1 -AddRepo D:\Projects\my-product -Customer Acme -ApplyAdd
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Solo -Roots D:\Projects -Interactive
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -SetupProfile Studio -TeamRoot \\server\share -Roots D:\Projects -Interactive
+pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Roots D:\Projects -Select my-product -RepositoryFiles AGENTS.md,CLAUDE.md -Yes -Apply
+pwsh -NoProfile -File scripts/secondbrain.ps1 -ResolveBlock github.com/my-org/my-product
+pwsh -NoProfile -File scripts/secondbrain.ps1 -ResolveBlock github.com/my-org/my-product -Resolution Preserve -ApplyResolve
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Status
 pwsh -NoProfile -File scripts/secondbrain.ps1 -Setup -Unbind github.com/my-org/my-product -Yes -Apply
 #>
@@ -53,9 +61,15 @@ param(
     [Parameter(ParameterSetName='Setup')][Alias('ApproveMcpKnowledgeTools')][switch]$ApproveMcpReadTools,
     [Parameter(ParameterSetName='Setup')][string[]]$IdeAccount=@(),
     [Parameter(ParameterSetName='Setup')][switch]$ApproveExistingBlocks,
+    [Parameter(ParameterSetName='Setup')][string[]]$RepositoryFiles=@(),
+    [Parameter(Mandatory,ParameterSetName='ResolveBlock')][string]$ResolveBlock,
+    [Parameter(ParameterSetName='ResolveBlock')][string]$File,
+    [Parameter(ParameterSetName='ResolveBlock')][ValidateSet('Generated','Preserve')][string]$Resolution,
+    [Parameter(ParameterSetName='ResolveBlock')][switch]$ApplyResolve,
     [Parameter(ParameterSetName='Setup')][switch]$Interactive,
     [Parameter(ParameterSetName='Setup')][switch]$PreviewOnly,
     [Parameter(ParameterSetName='Setup')][string]$TeamRoot,
+    [Parameter(ParameterSetName='Setup')][ValidateSet('Solo','Studio')][string]$SetupProfile,
     [Parameter(ParameterSetName='Setup')][switch]$Yes,
     [Parameter(ParameterSetName='Setup')][switch]$RegisterEnvironment,
     [Parameter(ParameterSetName='Setup')][Parameter(ParameterSetName='Activate')][Parameter(ParameterSetName='AddRepo')][Parameter(ParameterSetName='NewProject')][switch]$NoRegisterEnvironment,
@@ -83,6 +97,8 @@ Add-SBMessages @{
     'cli.setup.all.removed' = @{ it = '-All non esiste piu: usare -AllIdes per selezionare tutti gli IDE'; en = '-All no longer exists: use -AllIdes to select every IDE' }
     'cli.setup.team.root' = @{ it = '-TeamRoot richiede una radice UNC raggiungibile'; en = '-TeamRoot requires a reachable UNC root' }
     'cli.setup.team.mode' = @{ it = '-TeamRoot richiede -PreviewOnly, -Interactive oppure -Yes -Apply'; en = '-TeamRoot requires -PreviewOnly, -Interactive or -Yes -Apply' }
+    'cli.setup.profile.solo' = @{ it = 'Il profilo Solo non usa una radice condivisa: togliere -TeamRoot (usare -SetupProfile Studio per la radice condivisa) e lanciare Setup da un checkout su disco locale'; en = 'The Solo profile uses no shared root: drop -TeamRoot (use -SetupProfile Studio for a shared root) and run Setup from a checkout on a local drive' }
+    'cli.setup.profile.studio' = @{ it = 'Il profilo Studio richiede -TeamRoot con la radice UNC condivisa (stato locale in SECONDBRAIN_STATE_ROOT)'; en = 'The Studio profile requires -TeamRoot with the shared UNC root (local state in SECONDBRAIN_STATE_ROOT)' }
     'cli.setup.conflict' = @{ it = '-Status/-Unbind non accettano: -{0}'; en = '-Status/-Unbind do not accept: -{0}' }
     'cli.alternatives' = @{ it = '-Status e -Unbind sono alternativi'; en = '-Status and -Unbind are alternatives' }
     'cli.newproject.git' = @{ it = 'git init non riuscito nella cartella del nuovo progetto'; en = 'git init failed in the new project folder' }
@@ -95,7 +111,7 @@ try {
     if ($Setup) {
         if ($Status -or $PSBoundParameters.ContainsKey('Unbind')) {
             if ($Status -and $PSBoundParameters.ContainsKey('Unbind')) { throw (New-SBError 'cli.alternatives') }
-            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools', 'PreviewOnly', 'TeamRoot') | Where-Object { $PSBoundParameters.ContainsKey($_) }
+            $conflicting = @('Roots', 'MaxDirectories', 'Select', 'Ides', 'AllIdes', 'IdeAccount', 'ApproveExistingBlocks', 'RepositoryFiles', 'RegisterEnvironment', 'NoRegisterEnvironment', 'AndSync', 'McpTargets', 'ApproveMcpReadTools', 'PreviewOnly', 'TeamRoot', 'SetupProfile') | Where-Object { $PSBoundParameters.ContainsKey($_) }
             if ($conflicting) { throw (New-SBError 'cli.setup.conflict' @(($conflicting -join ', -'))) }
             if ($Status) {
                 if ($Apply -or $Yes -or $Interactive) { throw (New-SBError 'cli.status.readonly') }
@@ -110,6 +126,12 @@ try {
         if ($PreviewOnly -and ($Yes -or $Apply -or $RegisterEnvironment)) {
             throw (New-SBError 'cli.setup.conflict' @('-PreviewOnly / -Yes / -Apply / -RegisterEnvironment'))
         }
+        # Profiles: Solo = local checkout, no shared root, no share ACLs; Studio = shared UNC root (-TeamRoot) with workstation state kept local.
+        if ($SetupProfile -eq 'Solo') {
+            $onNetwork = $brain.StartsWith('\\') -or $(try { [IO.DriveInfo]::new([IO.Path]::GetPathRoot($brain)).DriveType -eq [IO.DriveType]::Network } catch { $false })
+            if ($PSBoundParameters.ContainsKey('TeamRoot') -or $onNetwork) { throw (New-SBError 'cli.setup.profile.solo') }
+        }
+        if ($SetupProfile -eq 'Studio' -and !$PSBoundParameters.ContainsKey('TeamRoot')) { throw (New-SBError 'cli.setup.profile.studio') }
         $personalRoot=$null
         if ($PSBoundParameters.ContainsKey('TeamRoot')) {
             if ($TeamRoot -notmatch '^\\\\[^\\.?][^\\]*\\[^\\]+' -or ![IO.Directory]::Exists($TeamRoot)) {
@@ -123,16 +145,30 @@ try {
             $brain=[IO.Path]::GetFullPath($TeamRoot)
         }
         $result = Invoke-SBSetup -BrainRoot $brain -Roots $Roots -MaxDirectories $MaxDirectories -Select $Select -Ides $Ides -AllIdes:$AllIdes -IdeAccount $IdeAccount `
-            -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId -PreviewOnly:$PreviewOnly -PersonalRoot $personalRoot
+            -McpTargets $McpTargets -ApproveMcpReadTools:$ApproveMcpReadTools -ApproveExistingBlocks:$ApproveExistingBlocks -RepositoryFiles $RepositoryFiles -Interactive:$Interactive -Yes:$Yes -Apply:$Apply -RegisterEnvironment:$RegisterEnvironment -NoRegisterEnvironment:$NoRegisterEnvironment -AndSync:$AndSync -SessionId $SessionId -PreviewOnly:$PreviewOnly -PersonalRoot $personalRoot
         if ($PreviewOnly -or $personalRoot) {
             $result.mode=if ($brain.StartsWith('\\')) {'team'} else {'single'}
             $result.brainRoot=$brain
+        }
+        if ($SetupProfile) {
+            $result.profile=$SetupProfile.ToLowerInvariant()
+            $result.sharedRoot=($SetupProfile -eq 'Studio')
+            $result.acl=if ($SetupProfile -eq 'Studio') {'share-managed'} else {'none'}
+            $result.state=if ($SetupProfile -eq 'Studio') {'local'} else {'checkout'}
         }
         ConvertTo-SBJson $result
         # 0: valid preview or activation applied; 1: unconfirmed proposal, paused discovery or unavailable subsequent check.
         if($result.Contains('mcp') -and $result.mcp.Contains('complete') -and !$result.mcp.complete){exit 1}
         if ($result.stage -in @('preview', 'applied') -and !($result.Contains('check') -and $result.check.Contains('error'))) { exit 0 }
         exit 1
+    }
+    if ($ResolveBlock) {
+        # Guided resolution of a hand-edited managed block: preview (diff) by default; -Resolution with -ApplyResolve writes, keeping the previous content.
+        $resolveConfig = Read-SBConfiguration $ConfigPath -ReadOnly:(!$ApplyResolve)
+        $resolved = Invoke-SBRepositoryBlockResolve -Config $resolveConfig -Repository $ResolveBlock -File $File -Resolution $Resolution -Apply:$ApplyResolve -SessionId $SessionId
+        ConvertTo-SBJson $resolved
+        if ($resolved.conflicts -gt 0) { exit 1 }
+        exit 0
     }
     if ($NewProject) {
         # Project from scratch in one command: preview by default; -ApplyNew creates the folder, git init, remote, allowlist, dossier, tracker seed, greenfield lifecycle and customer.

@@ -115,6 +115,8 @@ try {
     $done=Complete-SBPendingSubmission $independent $cfg
     $archived=Read-SBJson (Join-Path $dossier 'history/tracker-archive.json') $null
     Assert-Pending ($done.applied -and $done.closureAdvice.code -eq 'tracker.closure.advice' -and $archived.tasks[0].id -eq 'T-1' -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'in_progress') 'closure archives the task without replacing another task changes'
+    $taskReceipt=(Get-SBPendingWrites $brain|Where-Object id -eq $independent.id).receipt
+    Assert-Pending ($taskReceipt.schemaVersion -eq 1 -and $taskReceipt.state -eq 'applied' -and !$taskReceipt.error -and $taskReceipt.result.taskId -eq 'T-1' -and $taskReceipt.result.status -eq 'done' -and $taskReceipt.result.ContainsKey('closureAdvice') -and $taskReceipt.requestHash -and $taskReceipt.sourceHash -and $taskReceipt.observedAt) '#466: applied task receipt keeps schema, result keys, hashes and timestamp'
     $validTracker=Read-SBText $trackerPath
     $invalidTracker=Read-SBJson $trackerPath $null;$invalidTracker.tasks[0].unexpectedField='invalid central schema'
     Put-Pending $trackerPath (ConvertTo-SBJson $invalidTracker)
@@ -127,6 +129,8 @@ try {
     [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Status blocked -BackupRoot $cfg.backupRoot)
     $conflicted=Complete-SBPendingSubmission $conflict $cfg
     Assert-Pending ($conflicted.state -eq 'conflict' -and !$conflicted.applied -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'blocked' -and (Test-Path -LiteralPath $conflict.path)) 'same-task conflict preserves the central value and request'
+    $conflictReceipt=(Get-SBPendingWrites $brain|Where-Object id -eq $conflict.id).receipt
+    Assert-Pending ($conflictReceipt.state -eq 'conflict' -and $conflictReceipt.error -eq 'pending.conflict' -and $conflictReceipt.result.Count -eq 0 -and $conflictReceipt.repository -eq $identity) '#466: conflict receipt carries pending.conflict and an empty result'
 
     $saved=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.save -Arguments @{relativePath='context.md';content='Queued replacement'} -Expected @{hash=(Get-SBFileHash (Join-Path $dossier 'context.md'))} -Config $cfg
     Put-Pending (Join-Path $dossier 'context.md') 'Other agent context'
@@ -135,6 +139,8 @@ try {
     $append=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Verified note`n"} -Config $cfg
     Put-Pending (Join-Path $dossier 'memory.md') "Other agent note`n"
     Assert-Pending ((Complete-SBPendingSubmission $append $cfg).applied -and (Read-SBText (Join-Path $dossier 'memory.md')) -eq "Other agent note`nVerified note`n") 'explicit append preserves intervening text'
+    $appendReceipt=(Get-SBPendingWrites $brain|Where-Object id -eq $append.id).receipt
+    Assert-Pending ($appendReceipt.state -eq 'applied' -and $appendReceipt.result.relativePath -eq 'memory.md') '#466: applied file receipt reports the relative path'
     Assert-Pending ((Read-SBText (Join-Path $dossier 'memory.agent.md')) -eq (ConvertTo-SBAgentMemoryView (Read-SBText (Join-Path $dossier 'memory.md')))) 'memory integration regenerates its agent view atomically'
     $null = New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='memory.md';content="Root override recovery`n"} -Config $cfg
     $rootInit=Invoke-SBMcpMessage $brain @{jsonrpc='2.0';id=100;method='initialize';params=@{}}|ConvertFrom-Json
@@ -261,6 +267,49 @@ try {
         }
     }catch{$rejected=(Test-SBError $_.Exception 'core.reparse.unwritable')}
     Assert-Pending ($rejected -and $seen -eq 1) 'scan-local ancestor reuse still rejects a receipt directory replaced by a junction between items'
+    # #497: an abandoned write session closes by itself (expiry without renewal, or holder interrupted) and frees writer.lock.
+    $sharedPath=Join-Path $brain 'config/shared.json'
+    $sharedBase=Read-SBJson $sharedPath $null
+    foreach($bad in @(0,9,86401,'60')){
+        Put-Pending $sharedPath (ConvertTo-SBJson ($sharedBase+@{sessionTimeoutSeconds=$bad}))
+        $rejectedTimeout=Invoke-PendingCli 'access.ps1' @('-Status')
+        Assert-Pending ($rejectedTimeout.code -ne 0) ('sessionTimeoutSeconds out of range or not an integer is rejected: '+$bad)
+    }
+    Put-Pending $sharedPath (ConvertTo-SBJson ($sharedBase+@{sessionTimeoutSeconds=10}))
+    $sessionRoot=Join-Path $brain '.runtime/access/sessions'
+    $expiring=Invoke-PendingCli 'access.ps1' @('-Start','-Mode','Write','-Exclusive','-Client','lease-expiry','-WaitSeconds','0')
+    Assert-Pending ($expiring.code -eq 0 -and $expiring.data.exclusive -and $expiring.data.status -eq 'active') 'exclusive session opens with the short timeout'
+    $expiringId=$expiring.data.sessionId;$sessions+=$expiringId
+    $busyProbe=try{Enter-SBOperation $cfg -WaitMs 0}catch{$null}
+    Assert-Pending (!$busyProbe) 'an unrenewed exclusive session holds writer.lock while it is alive'
+    if($busyProbe){Exit-SBOperation $busyProbe}
+    $closed=$null
+    for($i=0;$i -lt 300;$i++){$closed=Read-SBJson (Join-Path $sessionRoot ($expiringId+'.json')) $null;if($closed.status -ne 'active'){break};Start-Sleep -Milliseconds 100}
+    Assert-Pending ($closed.status -eq 'expired') 'a session left without -Renew or -End closes by itself as expired'
+    $freed=$null
+    for($i=0;$i -lt 50 -and !$freed;$i++){$freed=try{Enter-SBOperation $cfg -WaitMs 0}catch{$null};if(!$freed){Start-Sleep -Milliseconds 100}}
+    Assert-Pending ([bool]$freed) 'the expired session releases writer.lock without forcing any lock'
+    if($freed){Exit-SBOperation $freed}
+    Assert-Pending (!(Test-Path -LiteralPath (Join-Path $sessionRoot ($expiringId+'.lease')))) 'the expired session leaves no lease behind'
+    $guarded=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-AppendFile','history/session/expired.md','-ContentPath',$content,'-SessionId',$expiringId)
+    Assert-Pending ($guarded.code -ne 0 -and !(Test-Path -LiteralPath (Join-Path $dossier 'history/session/expired.md'))) 'an expired SessionId can no longer write'
+    $renewed=Invoke-PendingCli 'access.ps1' @('-Start','-Mode','Write','-Client','lease-renew','-WaitSeconds','0')
+    $renewedId=$renewed.data.sessionId;$sessions+=$renewedId
+    for($i=0;$i -lt 4;$i++){Start-Sleep -Seconds 4;[void](Invoke-PendingCli 'access.ps1' @('-Renew','-SessionId',$renewedId))}
+    Assert-Pending ((Read-SBJson (Join-Path $sessionRoot ($renewedId+'.json')) $null).status -eq 'active') 'a renewed session outlives the timeout'
+    $interrupted=Invoke-PendingCli 'access.ps1' @('-Start','-Mode','Write','-Exclusive','-Client','lease-kill','-WaitSeconds','0')
+    $interruptedId=$interrupted.data.sessionId;$sessions+=$interruptedId
+    Stop-Process -Id $interrupted.data.processId -Force
+    $abandoned=$null
+    for($i=0;$i -lt 50;$i++){$abandoned=@((Invoke-PendingCli 'access.ps1' @('-Status')).data|Where-Object sessionId -eq $interruptedId);if($abandoned.Count -and $abandoned[0].status -eq 'abandoned'){break};Start-Sleep -Milliseconds 100}
+    Assert-Pending ($abandoned.Count -eq 1 -and $abandoned[0].status -eq 'abandoned') 'an interrupted holder is reported abandoned, not active'
+    $freedAfterKill=$null
+    for($i=0;$i -lt 50 -and !$freedAfterKill;$i++){$freedAfterKill=try{Enter-SBOperation $cfg -WaitMs 0}catch{$null};if(!$freedAfterKill){Start-Sleep -Milliseconds 100}}
+    Assert-Pending ([bool]$freedAfterKill) 'an interrupted exclusive holder releases writer.lock'
+    if($freedAfterKill){Exit-SBOperation $freedAfterKill}
+    $purged=Invoke-PendingCli 'access.ps1' @('-Status','-Purge')
+    Assert-Pending ($purged.code -eq 0 -and (Read-SBJson (Join-Path $sessionRoot ($interruptedId+'.json')) $null).status -eq 'abandoned') '-Purge persists abandonment of the interrupted session'
+    Put-Pending $sharedPath (ConvertTo-SBJson $sharedBase)
     'SUCCESS PENDING: '+$checks+' verifiche; fixture conservata: '+$fixture
 } finally {
     Exit-SBOperation $holder

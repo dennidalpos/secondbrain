@@ -83,7 +83,7 @@ $config=Read-SBConfiguration $ConfigPath -ReadOnly:($ListInstallBackups)
 if($ListInstallBackups){
     $root=Join-Path $config.localStateRoot 'install-backups'
     Assert-SBPlainPath $root
-    $cutoff=[DateTime]::UtcNow.AddDays(-$InstallBackupDays)
+    $cutoff=(Get-SBNow).UtcDateTime.AddDays(-$InstallBackupDays)
     $eligible=if([IO.Directory]::Exists($root)){
         foreach($file in Get-ChildItem -LiteralPath $root -File -Filter '*.bin.json'){
             if($file.Name -cnotmatch '^[0-9a-f]{32}\.bin\.json$' -or $file.LastWriteTimeUtc -gt $cutoff -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)){continue}
@@ -113,8 +113,8 @@ try {
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
         if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
         $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
-        $registryPath=Join-Path $registryDir ('migrate-'+[DateTimeOffset]::Now.ToString('yyyyMMddTHHmmss')+'.json')
-        $record=@{schemaVersion=1;executedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;scope='runtime-migrate';status='started';hostId=$config.workstationId;segment=$segment;planned=@($plan.moves|ForEach-Object {@{from=$_.fromRelative;to=$_.toRelative;kind=$_.kind;files=$_.files;bytes=$_.bytes}});skipped=@($plan.skipped)}
+        $registryPath=Join-Path $registryDir ('migrate-'+(Get-SBNow -Local).ToString('yyyyMMddTHHmmss')+'.json')
+        $record=@{schemaVersion=1;executedAt=(Get-SBNow -Local).ToString('o');authorization=$Authorization;scope='runtime-migrate';status='started';hostId=$config.workstationId;segment=$segment;planned=@($plan.moves|ForEach-Object {@{from=$_.fromRelative;to=$_.toRelative;kind=$_.kind;files=$_.files;bytes=$_.bytes}});skipped=@($plan.skipped)}
         $stream=[IO.FileStream]::new($registryPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try{$stream.Write([Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $record)));$stream.Flush($true)}finally{$stream.Dispose()}
         $result=Invoke-SBRuntimeMigration $config.brainRoot $plan
@@ -140,8 +140,8 @@ try {
         $busy=@(Get-SBAccessStatus $config|Where-Object {$_ -is [Collections.IDictionary] -and $_.ContainsKey('sessionId') -and $_.sessionId -ne $operation.ownerSessionId -and $_.status -in @('active','unverified')})
         if($busy.Count){throw (New-SBError 'cleanup.sessions.active' @($busy.Count))}
         $registryDir=Join-Path $config.brainRoot '.runtime/cleanup';[IO.Directory]::CreateDirectory($registryDir)|Out-Null
-        $registryPath=Join-Path $registryDir ('regenerable-'+[DateTimeOffset]::Now.ToString('yyyyMMddTHHmmss')+'.json')
-        $record=@{schemaVersion=1;executedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;scope='runtime-regenerable-only';status='started';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;items=@();skipped=@($plan.skipped);failed=@()}
+        $registryPath=Join-Path $registryDir ('regenerable-'+(Get-SBNow -Local).ToString('yyyyMMddTHHmmss')+'.json')
+        $record=@{schemaVersion=1;executedAt=(Get-SBNow -Local).ToString('o');authorization=$Authorization;scope='runtime-regenerable-only';status='started';keepFixtures=$KeepFixtures;minAgeMinutes=$MinAgeMinutes;items=@();skipped=@($plan.skipped);failed=@()}
         $stream=[IO.FileStream]::new($registryPath,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try{$stream.Write([Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $record)));$stream.Flush($true)}finally{$stream.Dispose()}
         $removedItems=@();$failures=@();$changed=@()
@@ -227,7 +227,7 @@ try {
         $seen[$path]=$true;$files+=@{path=$path;sha256=$entry.sha256}
     }
     if(Test-Path -LiteralPath (Get-SBTransactionMarkerPath $config.brainRoot)){throw (New-SBError 'cleanup.transaction.pending')}
-    $backup=Join-Path $config.backupRoot ('cleanup-'+[guid]::NewGuid().ToString('N'))
+    $backup=Join-Path $config.backupRoot ('cleanup-'+(New-SBId))
     $removed=@();$failure=$null
     if($Apply){
         foreach($entry in $files){

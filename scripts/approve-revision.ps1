@@ -75,11 +75,11 @@ try {
     $relativeProposal=[IO.Path]::GetRelativePath($brain,$ProposalPath).Replace('\','/')
     if($relativeProposal.StartsWith('direttive/proposals/')){$proposal.path=$relativeProposal}
     if($commonSupplied){
-        $approval=@{schemaVersion=1;approvedAt=[DateTimeOffset]::Now.ToString('o');authorization=$Authorization;files=$files;proposal=$proposal}
+        $approval=@{schemaVersion=1;approvedAt=(Get-SBNow -Local).ToString('o');authorization=$Authorization;files=$files;proposal=$proposal}
         $ops+=@{path=$approvalPath;expected=$beforeApproval;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $approval))}
     }
     if($privateSupplied){
-        $private.approvedAt=[DateTimeOffset]::Now.ToString('o');$private.authorization=$Authorization
+        $private.approvedAt=(Get-SBNow -Local).ToString('o');$private.authorization=$Authorization
         $private.proposal=@{path=$relativeProposal;readmeHash=$readmeHash;sha256=$proposalHash}
         $ops+=@{path=$privatePath;expected=$privateHash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $private))}
     }

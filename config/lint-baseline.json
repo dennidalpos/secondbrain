@@ -168,6 +168,11 @@
     },
     {
       "rule": "PSUseBOMForUnicodeEncodedFile",
+      "file": "scripts/SecondBrain.McpConfig.psm1",
+      "count": 1
+    },
+    {
+      "rule": "PSUseBOMForUnicodeEncodedFile",
       "file": "scripts/SecondBrain.McpWrites.psm1",
       "count": 1
     },

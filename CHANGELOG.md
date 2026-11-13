@@ -2,7 +2,43 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.7.2**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.8.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.8.0] - 2026-11-13
+
+Raccoglie il lavoro dei task autonomi eseguiti dal runner nella notte del 13 novembre, rivisto prima del commit, e la correzione del runner desktop.
+
+### Aggiunto
+- Repository senza impronta (#484): un repository attivato da ora non riceve file nel checkout. Le istruzioni arrivano dal testo di ambito utente degli IDE e da MCP. `secondbrain.ps1 -Setup -RepositoryFiles AGENTS.md[,CLAUDE.md,GEMINI.md]` (`none` azzera) abilita i file gestiti; `-Interactive` lo chiede e un nuovo Setup mantiene la scelta. I binding creati prima della 2.8.0, senza il campo `repositoryFiles`, continuano a gestire `AGENTS.md`, `CLAUDE.md` e `GEMINI.md` come prima: l'aggiornamento non cambia nessun checkout.
+- `secondbrain.ps1 -ResolveBlock <repo|percorso> [-File x]`: anteprima con differenze di un blocco gestito modificato a mano; `-Resolution Generated|Preserve -ApplyResolve` ripristina il blocco generato con backup, e `Preserve` tiene le righe aggiunte a mano dopo il blocco.
+- Profili di Setup (#486): `-SetupProfile Solo` (checkout locale, nessuna radice condivisa né ACL; rifiuta `-TeamRoot` e un checkout su share) e `-SetupProfile Studio -TeamRoot <UNC>` (radice condivisa, stato della postazione locale). Il JSON riporta `profile`, `sharedRoot`, `acl` e `state`.
+- Raggruppamento per cliente (#485), sul campo `customer` di `repository.json`: `knowledge.ps1 -Customer` e argomento `customer` dello strumento MCP `search_knowledge` (da solo è una lettura globale, soggetta all'isolamento come `-AllDossiers`); `backup.ps1 -Customer` archivia solo i dossier del cliente; `para.ps1 -SetCustomer (-Customer <nome> | -Clear) -Only <id|identità>[,…] [-Apply]` in anteprima per impostazione predefinita, con verifica che id PARA, identità e task restino invariati.
+- Riferimenti normativi (#438): `Get-SBTextReferences` riconosce ELI, CELEX, Gazzetta Ufficiale e Gazzetta ufficiale UE oltre ai numeri ufficiali, e li risolve sulle schede registrate. `sources.ps1 -Propose [-Reference …] [-SourceId …]` propone in sola lettura, senza rete, il `metadata.json` di un riferimento in coda, sempre `reference-only`. La forma normalizzata di «n. N del <data> <anno>» diventa `anno/N`.
+- Fonti applicabili nello startup (#492): l'indice del dossier elenca solo le fonti `applicable` e `conditional` di `authoritative-sources.json`, dopo averne validato schema e identità.
+- Scadenza configurabile delle sessioni (#497): `sessionTimeoutSeconds` in `config/shared.json` (10-86400, predefinito 1800).
+- Orologio e identificatori unici (#498): `Get-SBNow` e `New-SBId` in `SecondBrain.Core.psm1`, con `Set-SBClockSource` e `Set-SBIdSource` per i test; un controllo del gruppo `quick` impedisce nuovi usi diretti fuori da Core e dai test.
+- `config/agent-models.json`: verifica dei modelli Gemini (Gemini CLI 0.68.0, 2026-11-13) e i modelli `gemini-3.5-flash` e `gemini-3.1-flash-lite`.
+- `config/publication-policy.json`: `ignoredReviews` registra la revisione di cartelle ignorate da Git (`app/orchestrator/dist/`, `app/orchestrator/node_modules/`), che la scansione di pubblicazione riporta come riviste.
+
+### Modificato
+- Cartelle di lavoro (#414): `work.ps1` esporta solo `SECONDBRAIN_WORK_ROOT`; TEMP, TMP, cache degli strumenti e output di build restano nelle cartelle native del sistema e del prodotto. `evidence` e `report` hanno una scadenza di revisione di 90 giorni, senza rimozione automatica.
+- `SecondBrain.Mcp.psm1` diviso (#464): il server resta in `Mcp`; configurazione dei client e funzioni native in `SecondBrain.McpConfig.psm1`, pacchetto in `SecondBrain.McpPackage.psm1`. Gli export complessivi sono invariati e `Portable` non dipende più dal server.
+- `Invoke-SBPendingWrites` scomposto in funzioni di supporto con test di caratterizzazione (#466, primo passo).
+- Il budget di tempo dei profili di test è un avviso: il superamento è scritto in `run.json` (`budgetExceeded`, `warnings`) e non fa fallire la suite (#498).
+
+### Corretto
+- `sb runner` su Windows (`scripts/runner-gui.ps1`): lanciato da un agente dentro un'app pacchettizzata come Claude desktop, il runner desktop restava nel pacchetto MSIX o nel job object del chiamante, e Windows lo chiudeva insieme all'app quando questa si chiudeva, andava in crash o si aggiornava. La coda si fermava al task in corso e la corsa restava `orphaned`. Ora lo script riconosce pacchetto e job e in quel caso avvia l'app tramite WMI (`Win32_Process.Create`), fuori da entrambi, con l'ambiente del chiamante e `SECONDBRAIN_HOME`. Altrimenti resta ShellExecute. Il JSON riporta `launchMethod`, `packageFullName`, `inJob` e `pid`; `-LaunchMethod auto|shell|wmi` forza il metodo. Guida in `docs/orchestratore.it.md`.
+
+- `recover.ps1`: il ripristino di una transazione PARA rimuove le cartelle rimaste vuote dai file che aveva creato (#419).
+- `resources.ps1 -Restore` usciva con codice 2 dopo aver scaricato, perché una variabile coincideva con il parametro `-Restore` (#526).
+- `sources.ps1 -AddEffectiveDate` risolve sul posto una disposizione ancora `requires-verification` quando la nuova data è verificata (TASK-533). Date di efficacia verificate per L. 132/2025 (2025-10-10) e per la delibera ARERA 135/2022/R/com (2022-07-01), con `CONTROL.json` e `INDEX.md` rigenerati.
+
+### Test
+- Gruppo `runner`, fase `runner-gui` (solo Windows): un file non eseguibile è rifiutato da `Win32_Process.Create`; un programma vero avviato via WMI riceve un PID diverso da quello del chiamante; un'uscita con errore immediata viene letta anche via WMI; `-LaunchMethod shell` mantiene ShellExecute e riporta `inJob`.
+- Nuovo gruppo `shared` (#487, `test-secondbrain-shared.ps1`): due identità simulate sullo stesso dossier, creazioni concorrenti senza perdite, conflitti visibili e registro delle postazioni. In `-Full` gira dopo le suite parallele, come `concurrency`.
+- Nuova suite `test-secondbrain-customer.ps1` nel gruppo `trace`; controlli nuovi in `portable` (profili, file del repository, `-ResolveBlock`), `quick` (orologio, identificatori, compatibilità dei binding), `pending` (sessioni scadute, ricevute), `sources` e `resources` (riferimenti e proposte).
+- `tracker-audit` importa direttamente `SecondBrain.Host.psm1`; il controllo del profilo Solo su share usa lo script della fixture tramite loopback.
+- `test-secondbrain-mcp-handshake.ps1`: le annotazioni attese seguono le letture pure (#474) e `get_ready_tasks` è chiamato nell'ambito del repository, perché la lettura globale `all=true` è rifiutata dall'isolamento dei progetti.
 
 ## [2.7.2] - 2026-11-12
 

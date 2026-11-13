@@ -294,12 +294,12 @@ function Invoke-SBTrackerImport {
             $bindings=if($Config.ContainsKey('bindings')){$Config.bindings}else{@()}
             if((Resolve-SBBoundIdentity $checkout $bindings) -cne $Identity){throw (New-SBError 'trackerimport.checkout.identity')}
         }
-        $id=[guid]::NewGuid().ToString('N');$journal=Join-Path $Config.backupRoot ('tracker-'+$id)
+        $id=(New-SBId);$journal=Join-Path $Config.backupRoot ('tracker-'+$id)
         $ManifestPath=Join-Path $journal 'manifest.json'
         $archive=Join-Path $dir ('history/tracker-import-'+$id)
         $m=@{schemaVersion=1;kind='tracker-import';id=$id;identity=$Identity;brainRoot=$Config.brainRoot;dossier=$area.path;phase='pending';lastError=$null;
             source=@{path=$SourcePath;sha256=Get-SBFileHash $SourcePath;backup=(Join-Path $journal 'source.bin');archive=(Join-Path $archive ([IO.Path]::GetFileName($SourcePath)))};
-            historySource=$null;candidate=(Join-Path $journal 'candidate.json');candidateHash=$null;target=(Join-Path $dir 'tracker.json');operations=@();review=@();createdAt=[DateTimeOffset]::UtcNow.ToString('o')}
+            historySource=$null;candidate=(Join-Path $journal 'candidate.json');candidateHash=$null;target=(Join-Path $dir 'tracker.json');operations=@();review=@();createdAt=(Get-SBNow).ToString('o')}
         if($m.source.sha256 -eq 'absent'){throw (New-SBError 'trackerimport.original.missing')}
         if($HistoryPath){
             $HistoryPath=[IO.Path]::GetFullPath($HistoryPath);Assert-SBPlainPath $HistoryPath
@@ -319,7 +319,7 @@ function Invoke-SBTrackerImport {
     if($m.dossier -ne $area.path -or $m.target -ne $expectedTarget){throw (New-SBError 'trackerimport.dossier.moved')}
     $manifestHash=Get-SBFileHash $ManifestPath
     $save={
-        $m.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
+        $m.updatedAt=(Get-SBNow).ToString('o')
         [void](Write-SBFile $ManifestPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $m))) $manifestHash $Config.backupRoot)
         $manifestHash=Get-SBFileHash $ManifestPath
     }

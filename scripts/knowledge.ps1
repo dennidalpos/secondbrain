@@ -42,7 +42,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Task')][Parameter(ParameterSetName='Section')][string]$Dossier,[string]$CheckoutPath,[string]$ConfigPath,[string]$SessionId,
     [Parameter(ParameterSetName='Search')][ValidateSet('Literal','Relevance')][string]$Mode='Literal',
     [Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Offset=0,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Tasks')][ValidateRange(0,[int]::MaxValue)][int]$Limit=0,
-    [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,
+    [Parameter(ParameterSetName='Search')][switch]$AllDossiers,[Parameter(ParameterSetName='Search')][switch]$IncludeOriginals,[Parameter(ParameterSetName='Search')][string]$Customer,
     [Parameter(ParameterSetName='Search')][ValidateSet('normative','policy','informazioni','prompt','memoria')][string[]]$Category=@(),
     [Parameter(ParameterSetName='Startup')][string[]]$TaskIds=@(),
     [Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Search')][string]$PreviousRevision,
@@ -98,7 +98,9 @@ try{
     $resolveWorking={$id=& $resolveWorkingRaw;Assert-SBRunnerReadScope -Repository $id;$id}
     $writeScope={param($Id) Assert-SBRunnerReadScope -Repository $Id -Write}
     if($Dossier){Assert-SBRunnerReadScope -Dossier $Dossier -BrainRoot $brain -Write:($Apply -or [bool]$SetLifecycle)}
-    if($All -or $AllDossiers){Assert-SBRunnerReadScope -Global;Assert-SBProjectIsolation $brain}
+    # -Customer without -Dossier/-Repository selects every dossier of that customer: same global scope as -AllDossiers.
+    $customerScope=[bool]$Customer -and !$Dossier -and !$Repository
+    if($All -or $AllDossiers -or $customerScope){Assert-SBRunnerReadScope -Global;Assert-SBProjectIsolation $brain}
     if($Startup){
         if(!$Dossier){$Dossier=Join-Path $brain (Resolve-SBWorkingDossier $brain (& $resolveWorking))}
         elseif(![IO.Path]::IsPathRooted($Dossier)){$Dossier=Join-Path $brain $Dossier}
@@ -130,13 +132,13 @@ try{
     elseif($Search){
         # Default scope: the working repository's dossier, if resolvable; -AllDossiers selects all active dossiers (refused under project isolation).
         $searchRepository=$Repository
-        if(!$Dossier -and !$Repository -and !$AllDossiers){try{$searchRepository=& $resolveWorking}catch{$searchRepository=''}}
+        if(!$Dossier -and !$Repository -and !$AllDossiers -and !$customerScope){try{$searchRepository=& $resolveWorking}catch{$searchRepository=''}}
         # In a runner session an unresolvable scope falls back to the task repository instead of all dossiers.
         $runnerScope=Get-SBRunnerReadScope
         if($runnerScope -and !$Dossier -and !$searchRepository){$searchRepository=$runnerScope.repository}
-        if(!$Dossier -and !$searchRepository -and !$AllDossiers){Assert-SBProjectIsolation $brain}
+        if(!$Dossier -and !$searchRepository -and !$AllDossiers -and !$customerScope){Assert-SBProjectIsolation $brain}
         if($Repository){Assert-SBRunnerReadScope -Repository $Repository}
-        $result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $searchRepository -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $effectiveLimit -IncludeOriginals:$IncludeOriginals -Category $Category -PreviousRevision $PreviousRevision
+        $result=Find-SBKnowledge -BrainRoot $brain -Search $Search -Dossier $Dossier -Repository $searchRepository -Customer $Customer -Budget $effectiveBudget -Mode $Mode -Offset $Offset -Limit $effectiveLimit -IncludeOriginals:$IncludeOriginals -Category $Category -PreviousRevision $PreviousRevision
     }
     elseif($Roadmap){
         # Single-repository roadmap: only this repository's tracker history and git log.

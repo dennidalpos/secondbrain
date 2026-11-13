@@ -27,7 +27,7 @@ try {
 
 Replace the example identity and checkout with the actual binding. Pass ConfigPath for a nondefault configuration and inspect each child exit code before continuing dependent work.
 
-Sessions expire after 30 minutes without renewal; use Renew with the same SessionId when necessary. Start launches a hidden helper maintaining the lease and heartbeat. A normal Write session records identity without holding writer.lock throughout the session. Exclusive sessions are for explicitly bounded exclusive work.
+Sessions expire by themselves after 30 minutes without renewal (`sessionTimeoutSeconds` in `config/shared.json`, integer 10-86400, default 1800): the lease and heartbeat end, an exclusive session releases writer.lock and its SessionId can no longer write. If the helper process is interrupted the session reports abandoned and the lock is free. Use Renew with the same SessionId to continue. Start launches a hidden helper maintaining the lease and heartbeat. A normal Write session records identity without holding writer.lock throughout the session. Exclusive sessions are for explicitly bounded exclusive work.
 
 ## Locks
 

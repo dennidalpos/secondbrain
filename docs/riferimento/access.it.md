@@ -29,7 +29,7 @@ try {
 }
 ```
 
-La sessione scade dopo 30 minuti senza rinnovo: usare `access.ps1 -Renew -ConfigPath $cfg -SessionId $session.sessionId` durante il lavoro. `-Start` avvia un supporto nascosto che mantiene lease e heartbeat.
+La sessione scade da sola dopo 30 minuti senza rinnovo (`sessionTimeoutSeconds` in `config/shared.json`, intero tra 10 e 86400, predefinito 1800): lease e heartbeat terminano, una sessione esclusiva rilascia `writer.lock` e il suo `SessionId` non scrive più. Se il processo di supporto viene interrotto la sessione risulta `abandoned` e il lock è libero. Per proseguire usare `access.ps1 -Renew -ConfigPath $cfg -SessionId $session.sessionId` durante il lavoro. `-Start` avvia un supporto nascosto che mantiene lease e heartbeat.
 
 Una normale sessione `Write` registra l'identita del lavoro e non mantiene `writer.lock` per tutta la durata. Ogni CLI acquisisce il lock solo durante l'operazione centrale. Per task, memoria, contesto e rapporti usare i [comandi con scritture differite](pending-writes.md): salvano la richiesta e continuano se il centro e occupato. La sessione non protegge scritture dirette con editor o API del filesystem. `-Exclusive` mantiene il comportamento esclusivo, per prove o operazioni esplicitamente circoscritte; non e la modalita ordinaria degli agenti.
 

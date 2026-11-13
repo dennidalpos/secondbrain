@@ -10,8 +10,8 @@
     {
       "date": "2025-10-10",
       "provision": "Entrata in vigore",
-      "reference": "GU Serie Generale 223 del 25-09-2025; data calcolata con la vacatio legis ordinaria di 15 giorni, da verificare sulla clausola finale del testo pubblicato",
-      "status": "requires-verification"
+      "reference": "GU Serie Generale n. 223 del 25-09-2025 (L. 23 settembre 2025 n. 132, 25G00143): il testo pubblicato (artt. 27-28, Capo VI) non reca una clausola propria di entrata in vigore, quindi vale la vacatio legis ordinaria di quindici giorni dalla pubblicazione (art. 73, comma 3, Costituzione; art. 3 disp. prel. c.c.): 25-09-2025 + 15 giorni = 10-10-2025",
+      "status": "verified"
     }
   ],
   "endpoints": [

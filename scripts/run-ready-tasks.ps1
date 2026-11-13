@@ -82,10 +82,10 @@ function Save-RunnerState([switch]$Force,[int]$MinimumSeconds=0){
     # Rewrites status.json: always with -Force, otherwise when the heartbeat (or the given minimum interval) has passed.
     # A change skipped by the interval stays pending (dirty) and is written within a second by the wait loop.
     if(!$script:runStatus){return}
-    $since=((Get-Date)-$script:lastStatusSave).TotalSeconds
+    $since=((Get-SBNow).LocalDateTime-$script:lastStatusSave).TotalSeconds
     $limit=if($MinimumSeconds -gt 0){$MinimumSeconds}elseif($script:statusDirty){1}else{Get-SBRunnerHeartbeatSeconds}
     if(!$Force -and $since -lt $limit){if($MinimumSeconds -gt 0){$script:statusDirty=$true};return}
-    try{Save-SBRunnerStatus $script:runStatusPath $script:runStatus;$script:lastStatusSave=Get-Date;$script:statusDirty=$false}catch{[void]$_}
+    try{Save-SBRunnerStatus $script:runStatusPath $script:runStatus;$script:lastStatusSave=(Get-SBNow).LocalDateTime;$script:statusDirty=$false}catch{[void]$_}
 }
 function Set-RunnerPhase([string]$Phase){if($script:runStatus){$script:runStatus.phase=$Phase;Save-RunnerState -Force}}
 # Progress goes to standard error so that `> file` keeps only the final JSON while the console still shows the advance.
@@ -93,7 +93,7 @@ function Set-RunnerPhase([string]$Phase){if($script:runStatus){$script:runStatus
 # Every event also goes to events.jsonl and refreshes status.json once the run folder exists.
 function Show-RunnerLine([string]$Key,[object[]]$Arguments=@(),$Data,[switch]$Agent){
     $text=Get-SBMessage $Key $Arguments
-    $now=[DateTimeOffset]::UtcNow.ToString('o')
+    $now=(Get-SBNow).ToString('o')
     $event=[ordered]@{event=($Key -replace '^runner\.(progress\.)?','');message=$text;time=$now}
     if($Data){foreach($k in $Data.Keys){$event[$k]=$Data[$k]}}
     if($Events){[Console]::Error.WriteLine(($event|ConvertTo-Json -Compress -Depth 8))}else{[Console]::Error.WriteLine($text)}
@@ -130,7 +130,7 @@ function Initialize-RunnerInvocation{
 function Close-RunnerState([string]$State){
     # Final status of the run and closure of its work folder (the retention clock starts).
     if(!$script:runStatus){return}
-    $script:runStatus.state=$State;$script:runStatus.phase='closed';$script:runStatus.finishedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    $script:runStatus.state=$State;$script:runStatus.phase='closed';$script:runStatus.finishedAt=(Get-SBNow).ToString('o')
     Save-RunnerState -Force
     try{& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'work.ps1') -Repository $script:runStatus.repository -Category report -Slug $script:runSlug -Close @configArgs|Out-Null}catch{[void]$_}
     $script:runStatus=$null
@@ -297,7 +297,7 @@ $script:runStatusPath=Join-Path $runFolder 'status.json';$script:runEventsPath=J
 $script:runStatus=[ordered]@{
     schemaVersion=1;runId=(Split-Path $runFolder -Leaf);state='running';phase='probe';pid=$PID;processStartTicks=(Get-SBProcessStartTicks $PID)
     repository=$runIdentity;checkout=$targets[0].path;provider=$Provider;model=$Model;effort=$Effort
-    startedAt=[DateTimeOffset]::UtcNow.ToString('o');updatedAt=$null;finishedAt=$null;lastRunnerEventAt=$null;lastAgentEventAt=$null;lastAgentEvent=$null
+    startedAt=(Get-SBNow).ToString('o');updatedAt=$null;finishedAt=$null;lastRunnerEventAt=$null;lastAgentEventAt=$null;lastAgentEvent=$null
     timeoutMinutes=$TimeoutMinutes;stallMinutes=$StallMinutes;stopFile=$StopFile;folder=$runFolder
     task=$null;counts=[ordered]@{total=$totalSelected;done=0;succeeded=0;failed=0};stopReason=$null;results=@()
     resolvedModel=$null;resolvedEffort=$null;quota=$null;quotaObserved=$null;resumedFrom=$(if($script:resumeFrom){$script:resumeFrom.path}else{$null})
@@ -306,7 +306,7 @@ function Read-RunnerQuota{
     # Quota read now (never reused from an earlier read): Codex session files, else the newest observation an agent reported on this workstation.
     $observation=Get-SBRunnerQuotaObservation $config.brainRoot $config.workstationId $Provider
     $q=Get-SBAgentQuota -Provider $Provider -Observation $observation
-    $q.readAt=[DateTimeOffset]::UtcNow.ToString('o')
+    $q.readAt=(Get-SBNow).ToString('o')
     $script:runStatus.quota=$q
     Show-RunnerLine 'runner.progress.quota' @($Provider,$q.state,$q.source,$(if($q.resetAt){', reset '+$q.resetAt}else{''})) @{quota=$q}
     $q
@@ -318,7 +318,7 @@ function Save-RunnerResumePoint($Interrupted,[string]$Reason,$Limit){
     $git=$null;try{$git=(& git -C $targets[0].path status --porcelain=v1 --branch 2>$null|Out-String).Trim()}catch{$git=$null}
     $point=[ordered]@{
         schemaVersion=1;runId=$script:runStatus.runId;repository=$script:runStatus.repository;checkout=$targets[0].path;reason=$Reason
-        stoppedAt=[DateTimeOffset]::UtcNow.ToString('o');provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort
+        stoppedAt=(Get-SBNow).ToString('o');provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort
         limit=$Limit;quota=$(if($script:runStatus.quotaObserved){$script:runStatus.quotaObserved}else{$script:runStatus.quota})
         interrupted=$Interrupted;remaining=$remaining;git=$git;resumedBy=$null
     }
@@ -352,11 +352,11 @@ foreach($plan in $plans){
         Set-RunnerPhase 'init'
         $identity=Resolve-RunnerIdentity $plan $task
         # Unique per run of the task: a same-day rerun keeps its own output and report.
-        $slug="runner-$($task.seq)-"+(Get-Date).ToString('HHmmss')
+        $slug="runner-$($task.seq)-"+(Get-SBNow).LocalDateTime.ToString('HHmmss')
         $folder=Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$identity,'-Category','report','-Slug',$slug,'-Init','-Task',"Run autonomo $($task.id)",'-Client',$Provider)+$configArgs)
         $root=$folder.root
-        $began=Get-Date
-        $script:runStatus.task=[ordered]@{id=[string]$task.id;seq=$task.seq;title=[string]$task.title;position=$position;total=$totalSelected;startedAt=[DateTimeOffset]::UtcNow.ToString('o');folder=$root}
+        $began=(Get-SBNow).LocalDateTime
+        $script:runStatus.task=[ordered]@{id=[string]$task.id;seq=$task.seq;title=[string]$task.title;position=$position;total=$totalSelected;startedAt=(Get-SBNow).ToString('o');folder=$root}
         $script:runStatus.lastAgentEventAt=$null;$script:runStatus.lastAgentEvent=$null;$script:runStatus.phase='agent'
         Show-RunnerLine 'runner.progress.start' @($position,$totalSelected,$task.seq,$(if($plan.target.identity){$plan.target.identity}else{[string]$task.id})) @{position=$position;total=$totalSelected;id=[string]$task.id;seq=$task.seq;title=[string]$task.title;folder=$root}
         # Session perimeter enforced in code (#382): knowledge.ps1 and the MCP tools started by the agent refuse global reads and foreign repositories.
@@ -375,7 +375,7 @@ foreach($plan in $plans){
             -TimeoutSeconds ($TimeoutMinutes*60) -StallMinutes $StallMinutes -OutputLog (Join-Path $root 'agent-output.jsonl') `
             -OnOutputLine {param($line)
                 $rateLimit=ConvertFrom-SBAgentRateLimitEvent $line
-                if($rateLimit){$script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state=$rateLimit.state;status=$rateLimit.status;kind=$rateLimit.kind;resetAt=$rateLimit.resetAt;observedAt=[DateTimeOffset]::UtcNow.ToString('o');source='agent'}}
+                if($rateLimit){$script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state=$rateLimit.state;status=$rateLimit.status;kind=$rateLimit.kind;resetAt=$rateLimit.resetAt;observedAt=(Get-SBNow).ToString('o');source='agent'}}
                 $ev=ConvertTo-SBAgentEvent $line
                 if($ev){Show-RunnerLine 'runner.progress.agent' @($task.seq,$ev.kind,$ev.summary) @{id=[string]$task.id;seq=$task.seq;kind=$ev.kind;summary=$ev.summary} -Agent}
             } `
@@ -400,7 +400,7 @@ foreach($plan in $plans){
             # An archived task is gone from the active tracker; the CLI still resolves it.
             $statusAfter=(Invoke-Json (@($knowledge,'-Task',[string]$task.seq,'-CheckoutPath',$checkout)+$configArgs)).task.status
         }
-        $record=[ordered]@{repository=$identity;id=$task.id;seq=$task.seq;state=$state;exitCode=$code;statusBefore=$task.status;statusAfter=$statusAfter;seconds=[int]((Get-Date)-$began).TotalSeconds;folder=$root;provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId;finishedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+        $record=[ordered]@{repository=$identity;id=$task.id;seq=$task.seq;state=$state;exitCode=$code;statusBefore=$task.status;statusAfter=$statusAfter;seconds=[int]((Get-SBNow).LocalDateTime-$began).TotalSeconds;folder=$root;provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId;finishedAt=(Get-SBNow).ToString('o')}
         # Limits only from the agent's final error envelope with the provider's own texts (a timed-out agent keeps its timeout state).
         # quota stops the run and leaves a resume point; throttled (transient rate limit) waits briefly and the run goes on.
         $limit=if($state -ne 'timeout'){Get-SBAgentLimitState -Provider $Provider -Output $outText -ErrorOutput $errText -ExitCode $code}else{$null}
@@ -415,7 +415,7 @@ foreach($plan in $plans){
         if($limit -and $limit.state -eq 'quota'){
             $record.state='quota';$stopReason='quota'
             $prior=$script:runStatus.quotaObserved
-            $script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state='exhausted';status='limit';kind=$(if($prior){$prior.kind}else{$null});resetAt=$(if($prior -and $prior.resetAt){$prior.resetAt}else{$null});observedAt=[DateTimeOffset]::UtcNow.ToString('o');source='agent';message=$limit.message}
+            $script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state='exhausted';status='limit';kind=$(if($prior){$prior.kind}else{$null});resetAt=$(if($prior -and $prior.resetAt){$prior.resetAt}else{$null});observedAt=(Get-SBNow).ToString('o');source='agent';message=$limit.message}
             # The interrupted task goes back to todo when the agent left it in progress, so -Resume selects it again.
             if($statusAfter -eq 'in_progress'){
                 $record.requeued=Invoke-RunnerTaskUpdate @('-UpdateTaskId',[string]$task.id,'-Status','todo','-StateReason','Interrotto dal limite di quota del runner: riprendere con run-ready-tasks.ps1 -Resume latest','-CheckoutPath',$checkout)

@@ -39,9 +39,9 @@ try {
     }
     if($Restore){
         $registry=Read-SBSourceRegistry $config.brainRoot
-        $restore=Restore-SBSourceOriginals $config $registry
-        ConvertTo-SBJson @{schemaVersion=1;restored=@($restore.restored).Count;failed=@($restore.failed)}
-        if(@($restore.failed).Count){exit 1};exit 0
+        $outcome=Restore-SBSourceOriginals $config $registry
+        ConvertTo-SBJson @{schemaVersion=1;restored=@($outcome.restored).Count;failed=@($outcome.failed)}
+        if(@($outcome.failed).Count){exit 1};exit 0
     }
     if($Sync){
         if($IfStale -and !(Test-SBResourceStale $config)){ConvertTo-SBJson @{schemaVersion=1;status='fresh'};exit 0}

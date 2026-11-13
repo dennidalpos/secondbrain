@@ -148,7 +148,7 @@ function Invoke-AgentsTaskRound($Repo,$Analysis,$Context){
         -CheckoutPath ([string]$Repo.checkout) -OutputFolder (Join-Path $Analysis.path "round-$round") -BrainRoot $brain -TimeoutSeconds $TimeoutSeconds -AllowCustomModel:$AllowCustomModel
     if(!$state.model -and $out.model){$state.model=$out.model}
     if(!$state.effort -and $out.effort){$state.effort=$out.effort}
-    $state.rounds=@($state.rounds)+@([ordered]@{round=$round;at=[DateTimeOffset]::UtcNow.ToString('o');result=$out.result;answers=@();attempts=$out.attempts;seconds=$out.seconds;nativeSchema=$out.nativeSchema})
+    $state.rounds=@($state.rounds)+@([ordered]@{round=$round;at=(Get-SBNow).ToString('o');result=$out.result;answers=@();attempts=$out.attempts;seconds=$out.seconds;nativeSchema=$out.nativeSchema})
     Save-AgentsAnalysis $Analysis
     $out
 }
@@ -190,7 +190,7 @@ try{
             'directives' {
                 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.AgentAnalysis.psm1')
                 $blocks=Get-AgentsDirectiveBlocks $repo
-                $slug='analysis-directives-'+(Get-Date).ToString('HHmmss')
+                $slug='analysis-directives-'+(Get-SBNow).LocalDateTime.ToString('HHmmss')
                 $root=Initialize-AgentsWork $repo $slug 'Analisi delle direttive di repository (orchestratore, DOC06)'
                 try{
                     $counts=Get-AgentsCounts $blocks $blocks.dossier
@@ -208,9 +208,9 @@ try{
             'task' {
                 if(!$TaskId){throw (New-SBError 'agents.analysis.task')}
                 $context=Get-AgentsTaskContext $repo $TaskId
-                $slug='analysis-task-'+[string]$context.task['seq']+'-'+(Get-Date).ToString('HHmmss')
+                $slug='analysis-task-'+[string]$context.task['seq']+'-'+(Get-SBNow).LocalDateTime.ToString('HHmmss')
                 $root=Initialize-AgentsWork $repo $slug ("Analisi di autonomia del task $TaskId (orchestratore, REP18)")
-                $analysis=@{path=$root;file=(Join-Path $root 'analysis.json');state=[ordered]@{schemaVersion=1;taskId=[string]$context.task['id'];seq=$context.task['seq'];repository=[string]$repo.identity;slug=$slug;provider=$Provider[0];model=$Model;effort=$Effort;language=$lang;createdAt=[DateTimeOffset]::UtcNow.ToString('o');rounds=@();applied=$null}}
+                $analysis=@{path=$root;file=(Join-Path $root 'analysis.json');state=[ordered]@{schemaVersion=1;taskId=[string]$context.task['id'];seq=$context.task['seq'];repository=[string]$repo.identity;slug=$slug;provider=$Provider[0];model=$Model;effort=$Effort;language=$lang;createdAt=(Get-SBNow).ToString('o');rounds=@();applied=$null}}
                 Save-AgentsAnalysis $analysis
                 [void](Invoke-AgentsTaskRound $repo $analysis $context)
                 ConvertTo-SBJson (Get-AgentsAnalysisView $analysis $context)
@@ -231,7 +231,7 @@ try{
                 try{$answers=@(Read-SBText $AnswersFile|ConvertFrom-Json -AsHashtable)}catch{throw (New-SBError 'agents.analysis.answers' @($AnswersFile))}
                 if(!$answers.Count -or @($answers|Where-Object {$_ -isnot [hashtable] -or !$_['question'] -or !$_['answer']}).Count){throw (New-SBError 'agents.analysis.answers' @($AnswersFile))}
                 if(@($analysis.state.rounds).Count -ge $maxRounds){throw (New-SBError 'agents.analysis.rounds' @($maxRounds))}
-                $stamp=[DateTimeOffset]::UtcNow.ToString('o')
+                $stamp=(Get-SBNow).ToString('o')
                 @($analysis.state.rounds)[-1].answers=@($answers|ForEach-Object {[ordered]@{questionId=[string]$_['questionId'];question=[string]$_.question;answer=[string]$_.answer;at=$stamp}})
                 Save-AgentsAnalysis $analysis
                 $context=Get-AgentsTaskContext $repo ([string]$analysis.state.taskId)
@@ -286,7 +286,7 @@ try{
                     $written=Invoke-AgentsStep 'knowledge.ps1' (@($updateArgs)+$configArgs) -AllowedExit @(0,5)
                 }finally{$env:SECONDBRAIN_EXECUTOR=$previous}
                 $applied=if($written -and $written.exitCode -eq 5){'deferred'}else{$true}
-                $state.applied=[ordered]@{at=[DateTimeOffset]::UtcNow.ToString('o');authorization=$Authorization;verdict=$result.verdict;state=$applied}
+                $state.applied=[ordered]@{at=(Get-SBNow).ToString('o');authorization=$Authorization;verdict=$result.verdict;state=$applied}
                 Save-AgentsAnalysis $analysis
                 Close-AgentsWork $repo ([string]$state.slug)
                 ConvertTo-SBJson ([ordered]@{applied=$applied;taskId=$state.taskId;verdict=$result.verdict;analysisPath=$analysis.path;update=$written})

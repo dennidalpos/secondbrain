@@ -130,7 +130,7 @@ function New-SBPendingWrite {
     $session=$null
     if($SessionId){$session=Assert-SBSession $Config $SessionId}
     $dir=Resolve-SBPendingDossier $BrainRoot $Repository
-    if(!$RequestId){$RequestId=[guid]::NewGuid().ToString('N')}
+    if(!$RequestId){$RequestId=(New-SBId)}
     if($RequestId -cnotmatch '^[a-f0-9]{32}$'){throw (New-SBError 'pending.invalid' @('request ID'))}
     $pendingPaths=Get-SBPendingPaths $BrainRoot
     $idempotentPath=Join-Path $(if($Operation -eq 'task.update'){$pendingPaths.taskUpdates}else{$pendingPaths.queue}) ($RequestId+'.json')
@@ -168,7 +168,7 @@ function New-SBPendingWrite {
         if($Operation -eq 'task.new'){$Expected.trackerHash=(Read-SBPendingTracker $BrainRoot $Repository $dir).hash}
         if($Operation -eq 'file.append'){$Expected.hash=Get-SBFileHash (Resolve-SBParaPath $dir $Arguments.relativePath)}
     }
-    $request=@{schemaVersion=1;id=$RequestId;repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=[DateTimeOffset]::UtcNow.ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
+    $request=@{schemaVersion=1;id=$RequestId;repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=(Get-SBNow).ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
     $request.sha256=Get-SBPendingHash $request
     Assert-SBPendingRequest $request $request.id
     if($Operation -eq 'task.update'){
@@ -258,6 +258,97 @@ function Get-SBPendingSubmitWaitMs {
     8000
 }
 
+function Resolve-SBPendingDrainConfig($Summary,[string]$BrainRoot,$Config,[string]$ConfigPath) {
+    # Returns the configuration to drain with, or $null after recording why it is unusable in the summary.
+    if(!$Config){
+        try{
+            if(!$ConfigPath){$ConfigPath=Get-SBHostConfigPath $BrainRoot}
+            $Config=Read-SBConfiguration $ConfigPath -ReadOnly -BrainRoot $BrainRoot
+        }catch{$Summary.state='unconfigured';$Summary.errors+=@{code='pending.configuration';message=$_.Exception.Message};return $null}
+    }
+    if(!(Test-SBSamePath $Config.brainRoot $BrainRoot)){$Summary.state='unconfigured';$Summary.errors+=@{code='pending.configuration.root'};return $null}
+    $Config
+}
+
+function Test-SBPendingRecoveryGate($Summary,[string]$BrainRoot,$Config) {
+    # True when a transaction marker exists; the summary then says busy, unavailable or recovery-required.
+    if(!(Get-SBPendingTransaction $BrainRoot)){return $false}
+    # A marker can belong to a live transaction: report busy, never ask to recover it.
+    $probe=$null
+    try{
+        $writerPath=Join-Path $Config.coordinationRoot 'writer.lock'
+        if(Test-Path -LiteralPath $writerPath){$probe=[IO.File]::Open($writerPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
+        $Summary.state='recovery-required'
+    }catch{if(Test-SBBusyError $_){$Summary.state='busy'}else{$Summary.state='unavailable';$Summary.errors+=@{code='pending.coordination.unavailable';message=$_.Exception.Message}}}
+    finally{if($probe){$probe.Dispose()}}
+    $true
+}
+
+function Get-SBPendingTaskPlan([string]$BrainRoot,$Request,[string]$Dossier) {
+    # Plans a task.* request: state applied|conflict|invalid, operations for the journal and result keys for the receipt.
+    $state='applied';$errorCode=$null;$result=@{};$ops=@()
+    $target=Read-SBPendingTracker $BrainRoot $Request.repository $Dossier
+    $before=$target.hash
+    if($Request.operation -in @('task.status','task.update')){
+        $task=@($target.data.tasks|Where-Object id -eq $Request.arguments.TaskId)
+        if(!$task.Count){$task=@((Read-SBTrackerArchive $target.path $Request.repository).data.tasks|Where-Object id -eq $Request.arguments.TaskId)}
+        if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $Request.expected.taskHash){$state='conflict'}
+        else{
+            $arguments=@{}+$Request.arguments
+            $updater=if($Request.operation -eq 'task.status'){'Set-SBTrackerTaskStatus'}else{'Update-SBTrackerTask'}
+            try{$candidate=& $updater -BrainRoot $BrainRoot -Identity $Request.repository -WorkingRepository $Request.repository @arguments -WhatIf}
+            catch{
+                $failure=$_
+                if(!(Test-SBPendingCandidateValidationError $failure)){throw}
+                # If the current graph is broken, this throws before a terminal receipt is written.
+                Assert-SBTrackerWriteData $BrainRoot $Request.repository $target.data $target.path
+                $state='invalid';$errorCode=$failure.Exception.Message
+            }
+        }
+    }else{
+        $source=Resolve-SBParaPath $BrainRoot $Request.expected.provenancePath
+        if(($Request.expected.ContainsKey('trackerHash') -and $before -ine $Request.expected.trackerHash) -or (Get-SBFileHash $source) -ine $Request.expected.provenanceHash -or
+           ($Request.arguments.ContainsKey('Id') -and $Request.arguments.Id -and @($target.data.tasks|Where-Object id -eq $Request.arguments.Id).Count)){$state='conflict'}
+        else{$arguments=@{}+$Request.arguments;$candidate=New-SBTrackerTaskEntry -BrainRoot $BrainRoot -Identity $Request.repository -WorkingRepository $Request.repository @arguments -WhatIf}
+    }
+    if($state -eq 'applied'){
+        $ops+=@{path=$target.path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $candidate.data))}
+        $ops+=@($candidate.extraOperations)
+        foreach($key in @('taskId','status','seq','title','closureAdvice')){if($candidate.ContainsKey($key)){$result[$key]=$candidate[$key]}}
+    }
+    @{state=$state;errorCode=$errorCode;result=$result;ops=$ops}
+}
+
+function Get-SBPendingFilePlan($Request,[string]$Dossier) {
+    # Plans a file.* request: state applied|conflict, operations (file, memory view, history index) and result keys.
+    $state='applied';$result=@{};$ops=@()
+    $path=Resolve-SBParaPath $Dossier $Request.arguments.relativePath
+    $before=Get-SBFileHash $path
+    if(($Request.operation -eq 'file.save' -or $Request.expected.ContainsKey('hash')) -and $before -ine $Request.expected.hash){$state='conflict'}
+    else{
+        $text=[string]$Request.arguments.content
+        if($Request.operation -eq 'file.append' -and $before -ne 'absent'){$text=(Read-SBText $path)+$text}
+        $ops+=@{path=$path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
+        if($Request.arguments.relativePath -eq 'memory.md'){
+            $view=Join-Path $Dossier 'memory.agent.md'
+            $ops+=@{path=$view;expected=(Get-SBFileHash $view);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBAgentMemoryView $text))}
+        }
+        if($Request.arguments.relativePath -like 'history/*'){
+            [IO.Directory]::CreateDirectory((Split-Path $path))|Out-Null
+            $historyIndex=Join-Path $Dossier 'history/index.md'
+            $ops+=@{path=$historyIndex;expected=(Get-SBFileHash $historyIndex);bytes=[Text.Encoding]::UTF8.GetBytes((Get-SBDossierHistoryIndex $Dossier))}
+        }
+        $result.relativePath=$Request.arguments.relativePath
+    }
+    @{state=$state;errorCode=$null;result=$result;ops=$ops}
+}
+
+function New-SBPendingReceiptOperation($Entry,$Request,[string]$State,$Result,$ErrorCode,$Config) {
+    $repository=if($Request -and $Request.ContainsKey('repository')){$Request.repository}else{$null}
+    $receipt=@{schemaVersion=1;id=$Entry.id;repository=$repository;state=$State;requestHash=$(if($Request -and $Request.ContainsKey('sha256')){$Request.sha256}else{Get-SBFileHash $Entry.path});sourceHash=(Get-SBFileHash $Entry.path);observedAt=(Get-SBNow).ToString('o');result=$Result;error=$ErrorCode;appliedBy=@{workstationId=$Config.workstationId;computer=[Environment]::MachineName}}
+    @{path=$Entry.receiptPath;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $receipt))}
+}
+
 function Invoke-SBPendingWrites {
     [CmdletBinding()]
     param([string]$BrainRoot,$Config,[string]$ConfigPath,[string]$SessionId,[ValidateRange(1,100)][int]$Limit=10,[hashtable]$Diagnostics,[string]$RequestId,[ValidateRange(0,600000)][int]$WaitMs=0,[string]$Repository)
@@ -276,24 +367,9 @@ function Invoke-SBPendingWrites {
     $summary.pending=$todo.Count
     if($clock){$Diagnostics.queueDepth=$entries.Count;$Diagnostics.deferredCount=$todo.Count}
     if(!$todo.Count){return $summary}
-    if(!$Config){
-        try{
-            if(!$ConfigPath){$ConfigPath=Get-SBHostConfigPath $BrainRoot}
-            $Config=Read-SBConfiguration $ConfigPath -ReadOnly -BrainRoot $BrainRoot
-        }catch{$summary.state='unconfigured';$summary.errors+=@{code='pending.configuration';message=$_.Exception.Message};return $summary}
-    }
-    if(!(Test-SBSamePath $Config.brainRoot $BrainRoot)){$summary.state='unconfigured';$summary.errors+=@{code='pending.configuration.root'};return $summary}
-    if(Get-SBPendingTransaction $BrainRoot){
-        # A marker can belong to a live transaction: report busy, never ask to recover it.
-        $probe=$null
-        try{
-            $writerPath=Join-Path $Config.coordinationRoot 'writer.lock'
-            if(Test-Path -LiteralPath $writerPath){$probe=[IO.File]::Open($writerPath,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)}
-            $summary.state='recovery-required'
-        }catch{if(Test-SBBusyError $_){$summary.state='busy'}else{$summary.state='unavailable';$summary.errors+=@{code='pending.coordination.unavailable';message=$_.Exception.Message}}}
-        finally{if($probe){$probe.Dispose()}}
-        return $summary
-    }
+    $Config=Resolve-SBPendingDrainConfig $summary $BrainRoot $Config $ConfigPath
+    if(!$Config){return $summary}
+    if(Test-SBPendingRecoveryGate $summary $BrainRoot $Config){return $summary}
     foreach($entry in @($todo|Select-Object -First $Limit)){
         $scope=$null;$sourceLease=$null
         try{
@@ -314,57 +390,8 @@ function Invoke-SBPendingWrites {
                 if($request.operation -in @('task.status','task.update')){$targetResolved=$true}
                 $dossier=Resolve-SBPendingDossier $BrainRoot $request.repository
                 $targetResolved=$true
-                $ops=@()
-                if($request.operation -like 'task.*'){
-                    $target=Read-SBPendingTracker $BrainRoot $request.repository $dossier
-                    $before=$target.hash
-                    if($request.operation -in @('task.status','task.update')){
-                        $task=@($target.data.tasks|Where-Object id -eq $request.arguments.TaskId)
-                        if(!$task.Count){$task=@((Read-SBTrackerArchive $target.path $request.repository).data.tasks|Where-Object id -eq $request.arguments.TaskId)}
-                        if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $request.expected.taskHash){$state='conflict'}
-                        else{
-                            $arguments=@{}+$request.arguments
-                            $updater=if($request.operation -eq 'task.status'){'Set-SBTrackerTaskStatus'}else{'Update-SBTrackerTask'}
-                            try{$candidate=& $updater -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
-                            catch{
-                                $failure=$_
-                                if(!(Test-SBPendingCandidateValidationError $failure)){throw}
-                                # If the current graph is broken, this throws before a terminal receipt is written.
-                                Assert-SBTrackerWriteData $BrainRoot $request.repository $target.data $target.path
-                                $state='invalid';$errorCode=$failure.Exception.Message
-                            }
-                        }
-                    }else{
-                        $source=Resolve-SBParaPath $BrainRoot $request.expected.provenancePath
-                        if(($request.expected.ContainsKey('trackerHash') -and $before -ine $request.expected.trackerHash) -or (Get-SBFileHash $source) -ine $request.expected.provenanceHash -or
-                           ($request.arguments.ContainsKey('Id') -and $request.arguments.Id -and @($target.data.tasks|Where-Object id -eq $request.arguments.Id).Count)){$state='conflict'}
-                        else{$arguments=@{}+$request.arguments;$candidate=New-SBTrackerTaskEntry -BrainRoot $BrainRoot -Identity $request.repository -WorkingRepository $request.repository @arguments -WhatIf}
-                    }
-                    if($state -eq 'applied'){
-                        $ops+=@{path=$target.path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $candidate.data))}
-                        $ops+=@($candidate.extraOperations)
-                        foreach($key in @('taskId','status','seq','title','closureAdvice')){if($candidate.ContainsKey($key)){$result[$key]=$candidate[$key]}}
-                    }
-                }else{
-                    $path=Resolve-SBParaPath $dossier $request.arguments.relativePath
-                    $before=Get-SBFileHash $path
-                    if(($request.operation -eq 'file.save' -or $request.expected.ContainsKey('hash')) -and $before -ine $request.expected.hash){$state='conflict'}
-                    else{
-                        $text=[string]$request.arguments.content
-                        if($request.operation -eq 'file.append' -and $before -ne 'absent'){$text=(Read-SBText $path)+$text}
-                        $ops+=@{path=$path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes($text)}
-                        if($request.arguments.relativePath -eq 'memory.md'){
-                            $view=Join-Path $dossier 'memory.agent.md'
-                            $ops+=@{path=$view;expected=(Get-SBFileHash $view);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBAgentMemoryView $text))}
-                        }
-                        if($request.arguments.relativePath -like 'history/*'){
-                            [IO.Directory]::CreateDirectory((Split-Path $path))|Out-Null
-                            $historyIndex=Join-Path $dossier 'history/index.md'
-                            $ops+=@{path=$historyIndex;expected=(Get-SBFileHash $historyIndex);bytes=[Text.Encoding]::UTF8.GetBytes((Get-SBDossierHistoryIndex $dossier))}
-                        }
-                        $result.relativePath=$request.arguments.relativePath
-                    }
-                }
+                $plan=if($request.operation -like 'task.*'){Get-SBPendingTaskPlan $BrainRoot $request $dossier}else{Get-SBPendingFilePlan $request $dossier}
+                $state=$plan.state;$errorCode=$plan.errorCode;$result=$plan.result;$ops=@($plan.ops)
                 if($state -eq 'conflict'){$errorCode='pending.conflict'}
             }catch [IO.IOException]{throw}
             catch{
@@ -374,8 +401,7 @@ function Invoke-SBPendingWrites {
             }
             [IO.Directory]::CreateDirectory((Split-Path $entry.receiptPath))|Out-Null
             $repository=if($request -and $request.ContainsKey('repository')){$request.repository}else{$null}
-            $receipt=@{schemaVersion=1;id=$entry.id;repository=$repository;state=$state;requestHash=$(if($request -and $request.ContainsKey('sha256')){$request.sha256}else{Get-SBFileHash $entry.path});sourceHash=(Get-SBFileHash $entry.path);observedAt=[DateTimeOffset]::UtcNow.ToString('o');result=$result;error=$errorCode;appliedBy=@{workstationId=$Config.workstationId;computer=[Environment]::MachineName}}
-            $receiptOp=@{path=$entry.receiptPath;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $receipt))}
+            $receiptOp=New-SBPendingReceiptOperation $entry $request $state $result $errorCode $Config
             if($state -eq 'applied'){
                 foreach($op in $ops){[IO.Directory]::CreateDirectory((Split-Path $op.path))|Out-Null}
                 # Data and receipt share the recovery journal: a replay cannot apply twice.
@@ -434,7 +460,7 @@ function Move-SBPendingConflict {
     Assert-SBPlainPath $target
     [IO.Directory]::CreateDirectory($target)|Out-Null
     $requestHash=Get-SBFileHash $entry.path
-    $note=@{schemaVersion=1;id=$Id;state=$entry.state;repository=$entry.repository;requestHash=$requestHash;discardedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    $note=@{schemaVersion=1;id=$Id;state=$entry.state;repository=$entry.repository;requestHash=$requestHash;discardedAt=(Get-SBNow).ToString('o')}
     [IO.File]::WriteAllText((Join-Path $target 'discarded.json'),(ConvertTo-SBJson $note),[Text.UTF8Encoding]::new($false))
     Move-Item -LiteralPath $entry.path -Destination (Join-Path $target ($Id+'.json'))
     if(Test-Path -LiteralPath $entry.receiptPath){Move-Item -LiteralPath $entry.receiptPath -Destination (Join-Path $target ($Id+'.receipt.json'))}

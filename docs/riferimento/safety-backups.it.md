@@ -26,7 +26,7 @@ Leggi questa pagina prima di lanciare gli script. SecondBrain non installa softw
 | `publication.ps1 -InstallHook -Apply` / `-UninstallHook -Apply` | `.git/hooks/pre-push` (o `core.hooksPath`); la rimozione rifiuta hook non creati da SecondBrain | No | Senza `-Apply` |
 | `cleanup.ps1`, `recover.ps1` | No | Solo dentro `.runtime` | Senza `-Apply` |
 | `backup.ps1` | Solo con `-OutputPath` | Zip in `backupRoot`; esclusi i dati rigenerabili (#396): cartelle `fixture`, `tmp`/`temp` e `fixture-*`, `tmp-*`, `tests-*` sotto `.runtime/hosts/<host>/repos/`, `sources/python`, ogni `cache` e le `work` con MANIFEST.json `closed`; evidenze, rapporti, work aperti, configurazione e dossier restano | No |
-| `work.ps1 -Run` | Esegue il programma che indichi | Cartelle sotto `.runtime` (con `-Category` e `-Slug`: `hosts/<id>/repos/<repo>/<categoria>/<data>-<slug>` e area `temp`) | Senza `-Run` stampa il piano |
+| `work.ps1 -Run` | Esegue il programma che indichi | Cartelle sotto `.runtime` (con `-Category` e `-Slug`: `hosts/<id>/repos/<repo>/<categoria>/<data>-<slug>`; TEMP e cache restano nel sistema operativo) | Senza `-Run` stampa il piano |
 
 File MCP scritti da `-Pair -Apply` (solo per i target scelti; con `-Target all` sono tutti):
 

@@ -47,6 +47,12 @@ function Resolve-SBParaPath([string]$Root,[string]$Relative) {
     $full
 }
 
+function Test-SBCustomerMatch([string]$Actual,[string]$Wanted) {
+    # Customer filter: empty $Wanted selects everything; otherwise trimmed, case-insensitive equality with the repository.json "customer" field.
+    if([string]::IsNullOrWhiteSpace($Wanted)){return $true}
+    [string]::Equals(([string]$Actual).Trim(),$Wanted.Trim(),[StringComparison]::OrdinalIgnoreCase)
+}
+
 $script:SBParaCache=@{}
 function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners,[switch]$Refresh) {
     # On a share, scanning every dossier on each call is costly: short-lived memoization, invalidated by each write
@@ -55,9 +61,9 @@ function Get-SBParaEntities([string]$BrainRoot,[string[]]$AllowedOwners,[switch]
     $key=[IO.Path]::GetFullPath($BrainRoot).ToLowerInvariant()+'|'+((@($AllowedOwners)|Sort-Object) -join ',')
     $generation=Get-SBWriteGeneration
     $entry=if($script:SBParaCache.ContainsKey($key)){$script:SBParaCache[$key]}else{$null}
-    if(!$Refresh -and $entry -and $entry.generation -eq $generation -and ([DateTimeOffset]::UtcNow-$entry.at).TotalSeconds -lt 10){return @($entry.items)}
+    if(!$Refresh -and $entry -and $entry.generation -eq $generation -and ((Get-SBNow)-$entry.at).TotalSeconds -lt 10){return @($entry.items)}
     $items=@(Read-SBParaEntitiesFromDisk $BrainRoot $AllowedOwners)
-    $script:SBParaCache[$key]=@{generation=$generation;at=[DateTimeOffset]::UtcNow;items=$items}
+    $script:SBParaCache[$key]=@{generation=$generation;at=(Get-SBNow);items=$items}
     $items
 }
 function Read-SBParaEntitiesFromDisk([string]$BrainRoot,[string[]]$AllowedOwners) {
@@ -106,7 +112,7 @@ function Read-SBParaEntitiesFromDisk([string]$BrainRoot,[string[]]$AllowedOwners
                 if($repositories.ContainsKey($repo.identity)){throw (New-SBError 'para.area.repoduplicate')};$repositories[$repo.identity]=$true
                 foreach($file in @('context.md','memory.md')){if(!(Test-Path -LiteralPath (Join-Path $dir $file) -PathType Leaf)){throw (New-SBError 'para.area.incomplete' @($relative, $file))}}
             }
-            $items.Add(@{id=$m.id;kind=$m.kind;title=$m.title;status=$m.status;path=$relative;archived=$archived;metadata=$m;repository=$(if($repo){$repo.identity}else{''})})
+            $items.Add(@{id=$m.id;kind=$m.kind;title=$m.title;status=$m.status;path=$relative;archived=$archived;metadata=$m;repository=$(if($repo){$repo.identity}else{''});customer=$(if($repo -and $repo.ContainsKey('customer')){([string]$repo.customer).Trim()}else{''})})
         }
     }
     foreach($item in $items|Where-Object {$_.kind -eq 'project' -and !$_.repository}){
@@ -164,7 +170,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
         [void](Assert-SBCentralDataPath $BrainRoot $backupFull)
     }
     Assert-SBPlainPath $BackupRoot
-    $journalRoot=Join-Path $BackupRoot ('para-'+[guid]::NewGuid().ToString('N'))
+    $journalRoot=Join-Path $BackupRoot ('para-'+(New-SBId))
     [IO.Directory]::CreateDirectory($journalRoot)|Out-Null
     $records=@();$seen=@{}
     foreach($op in $Operations){
@@ -182,7 +188,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
     $manifest=Join-Path $journalRoot 'manifest.json'
     $journal=@{schemaVersion=1;brainRoot=[IO.Path]::GetFullPath($BrainRoot);status='applying';records=$records}
     function Save-Journal {
-        $temp=$manifest+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+        $temp=$manifest+'.'+(New-SBId)+'.tmp'
         try {
             $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $journal))
             $stream=[IO.FileStream]::new($temp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -199,7 +205,7 @@ function Invoke-SBParaTransaction([object[]]$Operations,[string]$BackupRoot,[str
         $pendingManifest=if($pending.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pending.manifest) ([string]$pending.brainRoot) $BrainRoot}else{[string]$pending.manifest}
         if(!$RecoveryManifest -or $pendingManifest -ne [IO.Path]::GetFullPath($RecoveryManifest)){throw (New-SBError 'para.transaction.incomplete')}
     }
-    $markerText=ConvertTo-SBJson @{manifest=$manifest;brainRoot=[IO.Path]::GetFullPath($BrainRoot);computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;processId=$PID;startedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    $markerText=ConvertTo-SBJson @{manifest=$manifest;brainRoot=[IO.Path]::GetFullPath($BrainRoot);computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;processId=$PID;startedAt=(Get-SBNow).ToString('o')}
     Write-SBFile $marker ([Text.Encoding]::UTF8.GetBytes($markerText)) $markerHash $journalRoot|Out-Null
     try {
         for($i=0;$i -lt $Operations.Count;$i++){
@@ -231,7 +237,7 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
     if(!$manifestFull.StartsWith($backupBoundary,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'para.manifest.outside')}
     $journal=Read-SBJson $ManifestPath $null
     if(!$journal -or $journal.schemaVersion -ne 1 -or !(Test-SBSamePath $journal.brainRoot $BrainRoot)){throw (New-SBError 'para.manifest.foreign')}
-    $ops=@()
+    $ops=@();$createdPaths=@()
     foreach($r in $journal.records){
         # The journal may have been written by another host accessing the same brain through a different alias.
         $r.path=Convert-SBBrainAlias $r.path $journal.brainRoot $BrainRoot
@@ -241,21 +247,45 @@ function Restore-SBParaTransaction([string]$ManifestPath,[string]$BrainRoot,[str
         if(!$path.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase) -and $path -notin $AllowedPaths){throw (New-SBError 'para.recovery.outside')}
         # Also covers a process killed after a file change but before journal flush.
         $current=Get-SBFileHash $r.path
+        # Files the transaction created (previously absent): their parent folders may be left empty after the rollback.
+        if($r.previousHash -eq 'absent'){$createdPaths+=$path}
         if($current -eq $r.previousHash){continue}
         if($current -ne $r.deployedHash){throw (New-SBError 'para.restore.refused' @($r.path))}
         if($r.previousHash -ne 'absent' -and (Get-SBFileHash $r.backup) -ne $r.previousHash){throw (New-SBError 'para.backup.altered')}
         if($r.previousHash -ne 'absent' -and ![IO.Path]::GetFullPath($r.backup).StartsWith((Split-Path $manifestFull)+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)){throw (New-SBError 'para.payload.outside')}
         $ops=@(@{path=$r.path;expected=$current;bytes=$(if($r.previousHash -eq 'absent'){$null}else{[IO.File]::ReadAllBytes($r.backup)})})+$ops
     }
-    if($ops.Count){Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot $AllowedPaths $ManifestPath}else{
+    if($ops.Count){
+        $result=Invoke-SBParaTransaction $ops $BackupRoot $BrainRoot $AllowedPaths $ManifestPath
+        foreach($created in $createdPaths){Remove-SBParaEmptyAncestors $created $BrainRoot}
+        $result
+    }else{
         $marker=Get-SBTransactionMarkerPath $BrainRoot
         if(Test-Path -LiteralPath $marker){
             $pendingMarker=Read-SBJson $marker @{}
             $pendingManifest=if($pendingMarker.ContainsKey('brainRoot')){Convert-SBBrainAlias ([string]$pendingMarker.manifest) ([string]$pendingMarker.brainRoot) $BrainRoot}else{[string]$pendingMarker.manifest}
             if($pendingManifest -ne $manifestFull){throw (New-SBError 'para.recovery.pending')}
             Assert-SBWriteGuard;[IO.File]::Delete($marker)
+            foreach($created in $createdPaths){Remove-SBParaEmptyAncestors $created $BrainRoot}
         }
         'Nessun ripristino necessario'
+    }
+}
+
+# After a rollback, removes the folders that a created file leaves empty, from its parent up to (excluding) the first-level PARA folder.
+# Stops at the first non-empty folder; paths outside the brain (allowed runtime paths) are left alone.
+function Remove-SBParaEmptyAncestors([string]$Path,[string]$BrainRoot) {
+    $root=[IO.Path]::GetFullPath($BrainRoot).TrimEnd('\','/')
+    $boundary=$root+[IO.Path]::DirectorySeparatorChar
+    $dir=Split-Path ([IO.Path]::GetFullPath($Path)) -Parent
+    while($dir -and $dir.StartsWith($boundary,[StringComparison]::OrdinalIgnoreCase)){
+        # Never remove the brain root or its first-level folders (01-projects, 02-areas, ...).
+        if((Split-Path $dir -Parent).TrimEnd('\','/') -ieq $root){break}
+        if(!(Test-Path -LiteralPath $dir -PathType Container)){$dir=Split-Path $dir -Parent;continue}
+        Assert-SBPlainPath $dir
+        if(@(Get-ChildItem -LiteralPath $dir -Force).Count){break}
+        Assert-SBWriteGuard;[IO.Directory]::Delete($dir);Wait-SBDirectoryGone $dir
+        $dir=Split-Path $dir -Parent
     }
 }
 
@@ -328,6 +358,7 @@ Export-ModuleMember -Function @(
     'Resolve-SBParaPath',
     'Get-SBParaEntities',
     'Get-SBParaIndex',
+    'Test-SBCustomerMatch',
     'Update-SBParaIndex',
     'Invoke-SBParaTransaction',
     'Restore-SBParaTransaction',

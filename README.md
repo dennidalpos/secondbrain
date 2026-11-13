@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 2.7.2](https://img.shields.io/badge/version-2.7.2-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.8.0](https://img.shields.io/badge/version-2.8.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -25,7 +25,9 @@ flowchart LR
 Two profiles are supported:
 
 - **Single user:** one person on one Windows workstation keeps decisions, tasks and notes for each project once, and every coding agent reads the same source.
+  Setup: `scripts/secondbrain.ps1 -Setup -SetupProfile Solo -Roots <folder> -Interactive` (no shared root, no ACLs).
 - **Design and development studio:** each client or internal project has its own dossier, kept apart from the client's repository. The shared-root mode for several people is documented but not yet qualified on a real network share or with distinct accounts; treat it as a trial.
+  Setup: `scripts/secondbrain.ps1 -Setup -SetupProfile Studio -TeamRoot <UNC> -Roots <folder> -Interactive` (local state in `SECONDBRAIN_STATE_ROOT`).
 
 Isolation is per repository: a dossier is read and written only for its own repository, and cross-project reads are refused unless the workstation configuration explicitly allows them. Dossiers are private local data and are never part of the public Git content.
 
@@ -91,7 +93,7 @@ Setup can select repositories and supported IDE integrations interactively. MCP 
 
 | Integration | What is implemented | What to verify separately |
 |---|---|---|
-| Repository instructions | Managed AGENTS.md blocks and CLAUDE.md/GEMINI.md pointers | Loading in a new agent session |
+| Repository instructions | By default nothing is written into a newly activated repository (instructions load from the user-scope IDE text and MCP; repositories bound before 2.8.0 keep their managed files); managed AGENTS.md blocks and CLAUDE.md/GEMINI.md pointers only after an explicit `-RepositoryFiles` choice, with a guided `-ResolveBlock` for hand-edited blocks | Loading in a new agent session |
 | MCP configuration | Client-specific preview and pairing | Actual tool exposure, profile and popup behavior |
 | MCP server | Twelve tools, including runner status and reviewed dossier-write preview and submission | Client consent and the local receipt for each write |
 | Memory collection | Guided envelopes, per-turn Permit CLI and a native bridge | Current implementation limits and live qualification |

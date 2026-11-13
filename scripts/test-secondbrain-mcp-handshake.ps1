@@ -21,6 +21,7 @@ $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Mcp.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpConfig.psm1') -Force
 if (!$BrainRoot) { $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 $BrainRoot = [IO.Path]::GetFullPath($BrainRoot)
 if (!$PublicationPath) { $PublicationPath = $BrainRoot }
@@ -49,7 +50,7 @@ Add-Request 'initialize' @{ protocolVersion = $ProtocolVersion; capabilities = @
 Add-Request 'tools/list' @{}
 $calls = [ordered]@{}
 if ($dossierRelative) { $calls['get_startup_context'] = @{ dossier = $dossierRelative; budget = 20000 } }
-$calls['get_ready_tasks'] = @{ all = $true }
+# Scoped to the repository of the server's working folder: all=true is a global read that project isolation (#475) refuses.
 # get_task: first task in the sample dossier's tracker; absent = tool recorded as skipped.
 if ($dossierRelative) {
     $sampleTracker = Read-SBJson (Join-Path $BrainRoot ($dossierRelative + '/tracker.json')) $null
@@ -120,8 +121,8 @@ foreach ($pairing in $pairings) {
     $list = $responses[2]
     $names = if ($list -and $list.ContainsKey('result')) { @($list.result.tools | ForEach-Object { $_.name } | Sort-Object) } else { @() }
     $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: esattamente i 12 strumenti attesi' $ide
-    # Recovery-enabled tools declare their write side effects; only the pure preview is read-only and the two write-plan tools are idempotent.
-    $expectedAnnotations = { param($name) if ($name -eq 'preview_dossier_write') { @($true,$false,$true) } elseif ($name -eq 'submit_dossier_write') { @($false,$true,$true) } else { @($false,$true,$false) } }
+    # Pure reads (#474): every tool is read-only and idempotent except submit_dossier_write, which applies one reviewed request.
+    $expectedAnnotations = { param($name) if ($name -eq 'submit_dossier_write') { @($false,$true,$true) } else { @($true,$false,$true) } }
     $checks += Assert-Handshake (@($list.result.tools | Where-Object { $e = & $expectedAnnotations $_.name; !$_.annotations.title -or $_.annotations.readOnlyHint -ne $e[0] -or $_.annotations.destructiveHint -ne $e[1] -or $_.annotations.idempotentHint -ne $e[2] -or $_.annotations.openWorldHint -ne $false }).Count -eq 0) 'tools/list: titoli e annotazioni coerenti con il recupero delle scritture' $ide
     foreach ($name in $calls.Keys) {
         $response = $responses[[int]$callIds[$name]]

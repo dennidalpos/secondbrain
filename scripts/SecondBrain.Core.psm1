@@ -9,6 +9,19 @@ try {
 } catch { Write-Verbose $_.Exception.Message }
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
 $script:SBWriteGuard = $null
+$script:SBClockSource = $null
+$script:SBIdSource = $null
+# Single source of time and identifiers (#498): production reads the system clock and GUIDs; tests inject fixed or stepping sources with Set-SBClockSource and Set-SBIdSource.
+function Set-SBClockSource([scriptblock]$Source) { $script:SBClockSource = $Source }
+function Set-SBIdSource([scriptblock]$Source) { $script:SBIdSource = $Source }
+function Get-SBNow([switch]$Local) {
+    $now = if ($script:SBClockSource) { [DateTimeOffset](& $script:SBClockSource) } else { [DateTimeOffset]::UtcNow }
+    if ($Local) { $now.ToLocalTime() } else { $now.ToUniversalTime() }
+}
+function New-SBId {
+    if ($script:SBIdSource) { return [string](& $script:SBIdSource) }
+    [guid]::NewGuid().ToString('N')
+}
 
 function Set-SBWriteGuard([scriptblock]$Guard) { $script:SBWriteGuard=$Guard }
 function Get-SBWriteGuard { $script:SBWriteGuard }
@@ -274,16 +287,16 @@ function Write-SBFile {
         (Test-SBGitRecovery $Path $git.commit $ExpectedHash))
     $script:SBWriteGeneration++
     $parent = Split-Path -Parent $Path
-    $temp = Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    $temp = Join-Path $parent ('.secondbrain-' + (New-SBId) + '.tmp')
     $completed=$false
-    $stageRecordPath=Join-Path $BackupRoot ([guid]::NewGuid().ToString('N')+'.stage')
+    $stageRecordPath=Join-Path $BackupRoot ((New-SBId)+'.stage')
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     try { $user=$identity.Name } finally { $identity.Dispose() }
     $stageRecord=@{
         schemaVersion=1;path=[IO.Path]::GetFullPath($Path);staging=$temp
         expectedHash=$ExpectedHash;deployedHash=$deployedHash;status='writing'
         user=$user
-        startedAt=[DateTimeOffset]::UtcNow.ToString('o')
+        startedAt=(Get-SBNow).ToString('o')
     }
     if ($gitOnly) {
         $stageRecord.gitCommit=$git.commit
@@ -291,7 +304,7 @@ function Write-SBFile {
     }
     if ($ExpectedHash -ne 'absent') {
         # Record the recovery path before replacing the destination, including for an interrupted process.
-        $stageRecord.recovery=Join-Path $parent ('.secondbrain-' + [guid]::NewGuid().ToString('N') + '.recovery')
+        $stageRecord.recovery=Join-Path $parent ('.secondbrain-' + (New-SBId) + '.recovery')
     }
     $failure=$null;$stageRegistered=$false
     try {
@@ -313,9 +326,9 @@ function Write-SBFile {
             if ($actual -ne $ExpectedHash) { throw (New-SBError 'core.race.kept' @($localBackup)) }
             if ($gitOnly) {
                 $record = @{ schemaVersion = 1; path = $Path; previousHash = $actual; deployedHash = $deployedHash; gitCommit = $git.commit; gitBlob = $git.blob }
-                [IO.File]::WriteAllText((Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.git.json')), (ConvertTo-SBJson $record), [Text.UTF8Encoding]::new($false))
+                [IO.File]::WriteAllText((Join-Path $BackupRoot ((New-SBId) + '.git.json')), (ConvertTo-SBJson $record), [Text.UTF8Encoding]::new($false))
             } elseif (!$Recoverable) {
-                $backup = Join-Path $BackupRoot ([guid]::NewGuid().ToString('N') + '.bin')
+                $backup = Join-Path $BackupRoot ((New-SBId) + '.bin')
                 [IO.File]::Copy($localBackup, $backup)
                 if ((Get-SBFileHash $backup) -ne $actual) { throw (New-SBError 'core.backup.unverified' @($localBackup)) }
                 $metadata = @{ path = $Path; previousHash = $actual; deployedHash = $deployedHash; backup = $backup }
@@ -350,7 +363,7 @@ function Write-SBFile {
 function Get-SBStageRetention([string[]]$BackupRoot,[int]$OlderThanDays=90) {
     # Read-only: list completed .stage records older than the threshold in one or more backupRoot locations, recursively. Never select .bin/.bin.json backups, interrupted stages or unreadable records.
     if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
-    $cutoff=[DateTimeOffset]::UtcNow.AddDays(-$OlderThanDays)
+    $cutoff=(Get-SBNow).AddDays(-$OlderThanDays)
     $candidates=@();$retained=@{recent=0;notCompleted=0;unreadable=0};$seenRecords=@{}
     foreach($root in @($BackupRoot|Where-Object {$_}|Sort-Object -Unique)){
         if(!(Test-Path -LiteralPath $root -PathType Container)){continue}
@@ -372,7 +385,7 @@ function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@()
     if($OlderThanDays -lt 1){throw (New-SBError 'core.olderthan.min')}
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     if(!(Test-Path -LiteralPath $runtime -PathType Container)){return @{olderThanDays=$OlderThanDays;entries=@();reviewable=@();totalBytes=0L;nested=@();legacy=@()}}
-    $cutoff=[DateTime]::UtcNow.AddDays(-$OlderThanDays)
+    $cutoff=(Get-SBNow).UtcDateTime.AddDays(-$OlderThanDays)
     $fixed=@{'access'='runtime-access';'hosts'='runtime-hosts';'cleanup'='runtime-cleanup';'state.json'='runtime-state';'para-transaction.json'='runtime-para-marker'}
     $byConfig=@{}
     foreach($path in @($ProtectedPaths|Where-Object {$_})){
@@ -395,7 +408,7 @@ function Get-SBRuntimeRetention([string]$BrainRoot,[string[]]$ProtectedPaths=@()
         elseif($byConfig.ContainsKey($item.Name.ToLowerInvariant())){$reasonCode='config-path'}
         if($reasonCode){$reason=Get-SBMessage ('core.runtime.reason.'+$reasonCode)}
         $classification=Get-SBRuntimeCategory $item.Name ([bool]$reason)
-        $entries+=@{name=$item.Name;kind=$kind;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(([DateTime]::UtcNow-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);protected=[bool]$reason;protectedReason=$reason;protectedReasonCode=$reasonCode;category=$classification.category;recovery=$classification.recovery;references=@{mentions=0;samples=@()}}
+        $entries+=@{name=$item.Name;kind=$kind;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(((Get-SBNow).UtcDateTime-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);protected=[bool]$reason;protectedReason=$reason;protectedReasonCode=$reasonCode;category=$classification.category;recovery=$classification.recovery;references=@{mentions=0;samples=@()}}
     }
     # Textual references to .runtime/<entry> in versioned surfaces and dossiers (text files up to 2 MB).
     $names=@($entries|ForEach-Object {[regex]::Escape($_.name)})
@@ -451,7 +464,7 @@ function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
     $hostsDir=Join-Path $runtime 'hosts'
     if(!(Test-Path -LiteralPath $hostsDir -PathType Container)){return @()}
-    $cutoff=[DateTime]::UtcNow.AddDays(-$OlderThanDays)
+    $cutoff=(Get-SBNow).UtcDateTime.AddDays(-$OlderThanDays)
     $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
     $dirs={param([string]$Path) if(Test-Path -LiteralPath $Path -PathType Container){@(Get-ChildItem -LiteralPath $Path -Directory -Force|Where-Object {!($_.Attributes -band [IO.FileAttributes]::ReparsePoint)}|Sort-Object Name)}else{@()}}
     $entries=@()
@@ -466,7 +479,7 @@ function Get-SBRuntimeNested([string]$BrainRoot,[int]$OlderThanDays=90) {
                     if($newest -eq [DateTime]::MinValue){$newest=$target.LastWriteTimeUtc}
                     $classification=if($areaIsCategory){Get-SBRuntimeCategory ($areaDir.Name+'-x') $false}elseif($areaDir.Name -eq 'temp'){@{category='working';recovery='area TEMP/TMP del repository: si ricrea a ogni esecuzione'}}else{Get-SBRuntimeCategory 'x' $false}
                     $relative=$target.FullName.Substring($runtime.Length+1).Replace('\','/')
-                    $entries+=@{path=$relative;host=$hostDir.Name;repo=$repoDir.Name;area=$areaDir.Name;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(([DateTime]::UtcNow-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);category=$classification.category;recovery=$classification.recovery;conventional=($areaIsCategory -and $target.Name -cmatch '^\d{8}-[a-z0-9][a-z0-9-]*$') -or $areaDir.Name -eq 'temp';manifest=[bool]($areaIsCategory -and (Test-Path -LiteralPath (Join-Path $target.FullName 'MANIFEST.json') -PathType Leaf))}
+                    $entries+=@{path=$relative;host=$hostDir.Name;repo=$repoDir.Name;area=$areaDir.Name;files=$count;bytes=$size;newestWriteUtc=$newest.ToString('o');ageDays=[int][Math]::Floor(((Get-SBNow).UtcDateTime-$newest).TotalDays);olderThanThreshold=($newest -lt $cutoff);category=$classification.category;recovery=$classification.recovery;conventional=($areaIsCategory -and $target.Name -cmatch '^\d{8}-[a-z0-9][a-z0-9-]*$') -or $areaDir.Name -eq 'temp';manifest=[bool]($areaIsCategory -and (Test-Path -LiteralPath (Join-Path $target.FullName 'MANIFEST.json') -PathType Leaf))}
                 }
             }
         }
@@ -586,7 +599,7 @@ function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[in
         ('Totale: '+(& $format $report.totalBytes)+' in '+@($report.entries).Count+' voci. Ordine: categoria (protected, evidence, backup, working, regenerable), poi dimensione. Soglia di età: '+$OlderThanDays+' giorni.'),'',
         '| Voce | Categoria | Dimensione | File | Ultima scrittura | Rif. | Chi la scrive | Recupero |','|---|---|---:|---:|---|---:|---|---|')
     $lines+=$rows
-    $lines+=@('','Per le nuove cartelle degli agenti usare `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work`, `evidence`, `fixture`, `tmp` o `report` (`work.ps1 -Category -Slug -Init`, che scrive `MANIFEST.json`); TEMP e TMP stanno in `hosts/<id>/repos/<repo>/temp`. Le cartelle piatte e non conformi si riordinano con `cleanup.ps1 -Migrate` (anteprima, poi `-Apply -Authorization`).')
+    $lines+=@('','Per le nuove cartelle degli agenti usare `hosts/<id>/repos/<repo>/<categoria>/<yyyyMMdd>-<slug>` con categoria `work`, `evidence`, `fixture`, `tmp` o `report` (`work.ps1 -Category -Slug -Init`, che scrive `MANIFEST.json` con scadenza, anche per `evidence` e `report`); TEMP, TMP e cache dei prodotti restano nelle cartelle native del sistema operativo. Le cartelle piatte e non conformi si riordinano con `cleanup.ps1 -Migrate` (anteprima, poi `-Apply -Authorization`).')
     if(@($report.nested).Count){
         $lines+=@('','## Livelli annidati (hosts/<id>/repos)','','| Cartella | Categoria | Dimensione | File | Ultima scrittura | Nome |','|---|---|---:|---:|---|---|')
         foreach($n in @($report.nested|Sort-Object path)){$lines+='| `'+$n.path+'/` | '+$n.category+' | '+(& $format $n.bytes)+' | '+$n.files+' | '+$n.newestWriteUtc.Substring(0,10)+' | '+$(if($n.conventional){'conforme'}else{'non conforme'})+$(if($n.manifest){' + manifest'}elseif($n.area -in @('work','evidence','report')){' (senza manifest)'})+' |'}
@@ -611,7 +624,7 @@ function Get-SBRuntimeIndex([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[in
 function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPaths=@(),[int]$OlderThanDays=90,[int]$KeepFixtures=5) {
     $report=Get-SBRuntimeRetention $BrainRoot $ProtectedPaths $OlderThanDays
     $runtime=[IO.Path]::GetFullPath((Join-Path $BrainRoot '.runtime')).TrimEnd('\','/')
-    $cutoff=[DateTime]::UtcNow.AddDays(-$OlderThanDays)
+    $cutoff=(Get-SBNow).UtcDateTime.AddDays(-$OlderThanDays)
     $options=[IO.EnumerationOptions]::new();$options.RecurseSubdirectories=$true;$options.IgnoreInaccessible=$true;$options.AttributesToSkip=[IO.FileAttributes]::ReparsePoint
     $measure={param([string]$Path) $n=0;$b=0L;$t=[DateTime]::MinValue;foreach($f in ([IO.DirectoryInfo]::new($Path)).EnumerateFiles('*',$options)){$n++;$b+=$f.Length;if($f.LastWriteTimeUtc -gt $t){$t=$f.LastWriteTimeUtc}};@{files=$n;bytes=$b;newest=$t}}
     $relative={param([string]$Path) $Path.Substring($runtime.Length+1).Replace('\','/')}
@@ -671,7 +684,7 @@ function Get-SBRuntimeCleanupProposal([string]$BrainRoot,[string[]]$ProtectedPat
         $candidates+=@{path=$n.path+'/';category='working';action='valutare la rimozione (lavoro temporaneo annidato oltre soglia)';folders=1;files=$n.files;bytes=$n.bytes;oldestUtc=$n.newestWriteUtc;recovery=$n.recovery;references=0}
     }
     $regenerable=0L;foreach($c in $candidates){if($c.category -eq 'regenerable'){$regenerable+=[long]$c.bytes}}
-    @{scope='runtime-cleanup-proposal';applied=$false;generatedAt=[DateTimeOffset]::UtcNow.ToString('o');olderThanDays=$OlderThanDays;keepFixtures=$KeepFixtures;totalBytes=$report.totalBytes;byCategory=$report.byCategory;regenerableCandidateBytes=$regenerable;candidates=$candidates;legacy=@($report.legacy);
+    @{scope='runtime-cleanup-proposal';applied=$false;generatedAt=(Get-SBNow).ToString('o');olderThanDays=$OlderThanDays;keepFixtures=$KeepFixtures;totalBytes=$report.totalBytes;byCategory=$report.byCategory;regenerableCandidateBytes=$regenerable;candidates=$candidates;legacy=@($report.legacy);
         note='Proposta di sola lettura, non un manifest eseguibile. Nessuna cartella è stata rimossa. L''applicazione richiede una richiesta esplicita e un perimetro concreto; i file con backup passano da cleanup.ps1 -ManifestPath.'}
 }
 # Only closed, expired, owned fixture/tmp folders qualify; legacy data is retained.
@@ -735,7 +748,7 @@ function Get-SBRegenerableFolderState {
                     if($item.LastWriteTimeUtc -gt $newest){$newest=$item.LastWriteTimeUtc}
                 }
             }
-            if(!$code -and $MinAgeMinutes -gt 0 -and $newest -gt [DateTime]::UtcNow.AddMinutes(-$MinAgeMinutes)){$code='recently-written'}
+            if(!$code -and $MinAgeMinutes -gt 0 -and $newest -gt (Get-SBNow).UtcDateTime.AddMinutes(-$MinAgeMinutes)){$code='recently-written'}
         }
     }catch{
         $code='inspection-failed'
@@ -844,7 +857,7 @@ function Get-SBRuntimeMigrationPlan([string]$BrainRoot,[string]$HostId,[string]$
         if($Item.Attributes -band [IO.FileAttributes]::ReparsePoint){$script:skippedLocal+=@{from=(& $rel $Item.FullName);reason='reparse-point'};return}
         $isDir=[bool]($Item.Attributes -band [IO.FileAttributes]::Directory)
         $newest=if($isDir){& $newestOf $Item.FullName}else{$Item.LastWriteTimeUtc}
-        if($MinAgeMinutes -gt 0 -and $newest -gt [DateTime]::UtcNow.AddMinutes(-$MinAgeMinutes)){$script:skippedLocal+=@{from=(& $rel $Item.FullName);reason='recently-written'};return}
+        if($MinAgeMinutes -gt 0 -and $newest -gt (Get-SBNow).UtcDateTime.AddMinutes(-$MinAgeMinutes)){$script:skippedLocal+=@{from=(& $rel $Item.FullName);reason='recently-written'};return}
         $target=$Destination;$i=1
         while($taken.ContainsKey($target.ToLowerInvariant()) -or (Test-Path -LiteralPath $target)){$i++;$target=$Destination+'-'+$i}
         if($target -ieq $Item.FullName){return}
@@ -901,7 +914,7 @@ function Invoke-SBRuntimeMigration([string]$BrainRoot,$Plan) {
                 if(!(Test-Path -LiteralPath $manifest)){
                     $leaf=Split-Path $move.to -Leaf
                     $created=if($leaf -match '^(\d{4})(\d{2})(\d{2})-'){"$($Matches[1])-$($Matches[2])-$($Matches[3])"}else{$null}
-                    $record=@{schemaVersion=1;category=$move.category;name=$leaf;created=$created;hostId=$Plan.hostId;repository=$Plan.segment;sessionId=$null;task=$null;status='migrated';expires=$null;migratedFrom=$move.fromRelative;migratedAt=[DateTimeOffset]::Now.ToString('o')}
+                    $record=@{schemaVersion=1;category=$move.category;name=$leaf;created=$created;hostId=$Plan.hostId;repository=$Plan.segment;sessionId=$null;task=$null;status='migrated';expires=$null;migratedFrom=$move.fromRelative;migratedAt=(Get-SBNow -Local).ToString('o')}
                     [IO.File]::WriteAllText($manifest,(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
                 }
             }
@@ -1186,7 +1199,7 @@ function Test-SBIDEObservation($Ide,[string]$ExpectedHash,$Observations,[string]
             if(!$Ide.ContainsKey('accountAlias') -or !$Ide.accountAlias -or !$observation.ContainsKey('accountAlias') -or $observation.accountAlias -cne $Ide.accountAlias -or !$observation.ContainsKey('accountVerified') -or !$observation.accountVerified){return $false}
         }
         $at=[DateTimeOffset]::MinValue
-        if(![DateTimeOffset]::TryParse($observation.observedAt,[ref]$at) -or $at -lt [DateTimeOffset]::UtcNow.AddMinutes(-15) -or $at -gt [DateTimeOffset]::UtcNow.AddMinutes(1)){return $false}
+        if(![DateTimeOffset]::TryParse($observation.observedAt,[ref]$at) -or $at -lt (Get-SBNow).AddMinutes(-15) -or $at -gt (Get-SBNow).AddMinutes(1)){return $false}
         $evidence=Assert-SBCentralDataPath $BrainRoot $observation.evidencePath
         return (Get-SBFileHash $evidence) -eq $observation.evidenceSha256
     }catch{return $false}
@@ -1325,7 +1338,7 @@ function Remove-SBFile([string]$Path, [string]$AllowedRoot, [string]$ExpectedHas
         try{$stream.CopyTo($copy);$bytes=$copy.ToArray()}finally{$copy.Dispose()}
         if((Get-SBHash $bytes) -ne $ExpectedHash){throw (New-SBError 'core.remove.concurrent')}
         [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
-        $backup=Join-Path $BackupRoot ([guid]::NewGuid().ToString('N')+'.bin')
+        $backup=Join-Path $BackupRoot ((New-SBId)+'.bin')
         [IO.File]::WriteAllBytes($backup,$bytes)
         if((Get-SBFileHash $backup) -ne $ExpectedHash){throw (New-SBError 'core.remove.backup')}
         $metadata=@{path=$full;previousHash=$ExpectedHash;deployedHash='absent';backup=$backup;reason='authorized-cleanup'}
@@ -1350,6 +1363,10 @@ function Test-SBApproval([string]$BrainRoot) {
     return $true
 }
 Export-ModuleMember -Function @(
+    'Set-SBClockSource',
+    'Set-SBIdSource',
+    'Get-SBNow',
+    'New-SBId',
     'Set-SBWriteGuard',
     'Get-SBWriteGuard',
     'Assert-SBWriteGuard',

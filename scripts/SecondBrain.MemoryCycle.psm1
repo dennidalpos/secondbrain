@@ -70,7 +70,7 @@ function Get-SBCycleAdapter([ValidateSet('claude-code','codex','antigravity','vs
         Assert-SBPlainPath $evidence
         $date=[DateTimeOffset]::MinValue
         if($observation.schemaVersion -ne 1 -or $observation.repository -cne $Repository -or $observation.client -cne $Client -or
-           !$observation.clientVersion -or ![DateTimeOffset]::TryParse([string]$observation.observedAt,[ref]$date) -or $date -gt [DateTimeOffset]::UtcNow -or
+           !$observation.clientVersion -or ![DateTimeOffset]::TryParse([string]$observation.observedAt,[ref]$date) -or $date -gt (Get-SBNow) -or
            $observation.coverage -cnotin @('partial','complete') -or $observation.moduleSha256 -cne $script:SBCycleModuleHash -or
            $script:SBCycleModuleHash -cne (Get-SBFileHash $script:SBCycleModulePath) -or
            $observation.evidenceSha256 -cne (Get-SBFileHash $evidence)){throw (New-SBError 'cycle.invalid' @('observation revision'))}
@@ -397,7 +397,7 @@ function Save-SBCycleTurn {
     }
     # Multiple events may refer to the same original; one operation per destination.
     $ops=@($ops|Group-Object path|ForEach-Object {$_.Group[0]})
-    $record=@{schemaVersion=1;sha256=$hash;capturedAt=[DateTimeOffset]::UtcNow.ToString('o');turn=$prepared.turn;assetLocations=$assetLocations}
+    $record=@{schemaVersion=1;sha256=$hash;capturedAt=(Get-SBNow).ToString('o');turn=$prepared.turn;assetLocations=$assetLocations}
     $ops+=@{path=$target;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $record))}
     $turnIndex=Join-Path $root 'turns-index.json';Assert-SBPlainPath $turnIndex
     $metadata=Read-SBJson $turnIndex @{schemaVersion=1;repository=$Envelope.repository;turns=@()}
@@ -580,7 +580,7 @@ function Invoke-SBCyclePromotion {
     if($planned.ContainsKey('memory.md')){
         $view=Join-Path $dir 'memory.agent.md';$ops+=@{path=$view;expected=(Get-SBFileHash $view);bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBAgentMemoryView $planned['memory.md']))}
     }
-    $ops+=@{path=$receipt;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson @{schemaVersion=1;repository=$Candidate.repository;candidateSha256=$key;captureSha256=$Candidate.captureSha256;candidate=$Candidate;appliedAt=[DateTimeOffset]::UtcNow.ToString('o')}))}
+    $ops+=@{path=$receipt;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson @{schemaVersion=1;repository=$Candidate.repository;candidateSha256=$key;captureSha256=$Candidate.captureSha256;candidate=$Candidate;appliedAt=(Get-SBNow).ToString('o')}))}
     if($taskChanges.Count){
         # Tracker validation, closure signal, terminal-task archiving and ledger records in the SAME transaction as memories (public Tracker API).
         $cycleClient=if($Candidate.Contains('client') -and $Candidate['client']){[string]$Candidate.client}else{'unknown'}

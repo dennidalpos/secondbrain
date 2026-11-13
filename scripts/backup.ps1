@@ -15,6 +15,9 @@ param(
     [string]$OutputPath,
     [Parameter(ParameterSetName='Backup')]
     [string]$SessionId,
+    # Only the dossiers (active and archived) whose repository.json "customer" matches; omits PARA.md, para-index.json and .runtime/hosts.
+    [Parameter(ParameterSetName='Backup')]
+    [string]$Customer,
     [Parameter(Mandatory,ParameterSetName='Verify')]
     [switch]$Verify,
     [Parameter(ParameterSetName='Verify')]
@@ -31,6 +34,7 @@ $OutputEncoding = [Text.UTF8Encoding]::new($false)
 
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Access.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Para.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'backup.config.unavailable' = @{ it = 'Configurazione di postazione non disponibile, backup in .runtime/backups: {0}'; en = 'Workstation configuration unavailable, backup in .runtime/backups: {0}' }
@@ -40,6 +44,7 @@ Add-SBMessages @{
     'backup.file.missing' = @{ it = 'File dichiarato nel manifest mancante nell''archivio: {0}; usare un altro backup'; en = 'File declared in the manifest is missing from the archive: {0}; use another backup' }
     'backup.integrity.hash' = @{ it = 'Integrità crittografica compromessa per ''{0}'': atteso {1}, calcolato {2}; non ripristinare, usare un altro backup'; en = 'Cryptographic integrity compromised for ''{0}'': expected {1}, computed {2}; do not restore, use another backup' }
     'backup.size.diverged' = @{ it = 'Dimensione divergente per ''{0}'': atteso {1}, trovato {2}; usare un altro backup'; en = 'Size diverges for ''{0}'': expected {1}, found {2}; use another backup' }
+    'backup.customer.none' = @{ it = 'Nessun dossier del cliente ''{0}'' da includere nel backup; verificare il campo customer in repository.json'; en = 'No dossier of customer ''{0}'' to include in the backup; check the customer field in repository.json' }
     'backup.files.none' = @{ it = 'Nessun file trovato da includere nel backup in {0}; verificare il percorso'; en = 'No file found to include in the backup in {0}; check the path' }
 }
 # Writer busy beyond the wait limit: exit 3 (the message identifies the owner).
@@ -136,8 +141,9 @@ $backupRoot = if ($config -and $config.backupRoot) { $config.backupRoot } else {
 
 $usedDefaultName = !$OutputPath
 if (!$OutputPath) {
-    $timestamp = [DateTimeOffset]::UtcNow.ToString('yyyyMMdd-HHmmss')
-    $OutputPath = Join-Path $backupRoot ("secondbrain-backup-$timestamp.zip")
+    $timestamp = (Get-SBNow).ToString('yyyyMMdd-HHmmss')
+    $customerSlug = if ($Customer) { $s = ([regex]::Replace($Customer.Trim().ToLowerInvariant(), '[^a-z0-9]+', '-')).Trim('-'); if ($s) { '-customer-' + $s } else { '-customer' } } else { '' }
+    $OutputPath = Join-Path $backupRoot ("secondbrain-backup$customerSlug-$timestamp.zip")
 }
 $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
 [System.IO.Directory]::CreateDirectory((Split-Path $resolvedOutput)) | Out-Null
@@ -162,6 +168,13 @@ $includeTargets = @(
     @{ type = 'file'; path = 'para-index.json' },
     @{ type = 'dir';  path = '.runtime/hosts' }
 )
+
+if ($Customer) {
+    # Customer backup: only the repository dossiers of that customer (PARA entities, active or archived); workstation data and global indexes are left out.
+    $customerEntities = @(Get-SBParaEntities $brain @() | Where-Object { (Test-SBRepoDossier $_) -and (Test-SBCustomerMatch $_.customer $Customer) })
+    if (!$customerEntities.Count) { throw (New-SBError 'backup.customer.none' @($Customer)) }
+    $includeTargets = @($customerEntities | ForEach-Object { @{ type = 'dir'; path = $_.path } })
+}
 
 $fileList = [System.Collections.Generic.List[PSCustomObject]]::new()
 $closedWork = @{}
@@ -242,11 +255,12 @@ try {
 
 $manifestObj = @{
     schemaVersion = 1
-    createdAt     = [DateTimeOffset]::UtcNow.ToString('o')
+    createdAt     = (Get-SBNow).ToString('o')
     generator     = 'scripts/backup.ps1'
     fileCount     = $fileList.Count
     files         = $manifestFiles
 }
+if ($Customer) { $manifestObj.customer = $Customer.Trim() }
 $manifestJson = ConvertTo-SBJson $manifestObj
 
 # Create the ZIP archive.

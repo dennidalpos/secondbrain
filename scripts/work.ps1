@@ -26,8 +26,9 @@ if($Init){
     [IO.Directory]::CreateDirectory($plan.root)|Out-Null
     $manifestPath=Join-Path $plan.root 'MANIFEST.json'
     if(!(Test-Path -LiteralPath $manifestPath)){
-        $today=Get-Date
-        $retention=@{work=30;fixture=7;tmp=7}
+        $today=(Get-SBNow).LocalDateTime
+        # Every category has an expiry (days from creation): evidence and reports are reviewed after 90 days, never removed automatically.
+        $retention=@{work=30;fixture=7;tmp=7;evidence=90;report=90}
         $expires=if($retention.ContainsKey($Category)){$today.AddDays($retention[$Category]).ToString('yyyy-MM-dd')}else{$null}
         $record=@{schemaVersion=1;category=$Category;name=(Split-Path $plan.root -Leaf);created=$today.ToString('yyyy-MM-dd');hostId=$config.workstationId;repository=(Get-SBRuntimeRepoSegment $Repository);owner=@{user=$env:USERNAME;computer=$env:COMPUTERNAME;client=$Client};sessionId=$SessionId;task=$Task;status='open';expires=$expires}
         [IO.File]::WriteAllText($manifestPath,(ConvertTo-SBJson $record),[Text.UTF8Encoding]::new($false))
@@ -36,13 +37,14 @@ if($Init){
     ConvertTo-SBJson $plan;exit 0
 }
 if($Close){
-    # Marks the folder as closed: the retention clock starts here (work 30 days; fixture and tmp keep their expiry).
+    # Marks the folder as closed: the retention clock starts here (work 30 days, evidence and report 90 days; fixture and tmp keep their expiry).
     if(!$Category -or !$Slug){throw (New-SBError 'work.init.categoryslug')}
     $manifestPath=Join-Path $plan.root 'MANIFEST.json'
     $record=Read-SBJson $manifestPath $null
     if($null -eq $record){throw (New-SBError 'work.close.manifest')}
-    $now=Get-Date;$record.status='closed';$record.closed=$now.ToString('yyyy-MM-dd')
+    $now=(Get-SBNow).LocalDateTime;$record.status='closed';$record.closed=$now.ToString('yyyy-MM-dd')
     if($Category -eq 'work'){$record.expires=$now.AddDays(30).ToString('yyyy-MM-dd')}
+    elseif($Category -in @('evidence','report')){$record.expires=$now.AddDays(90).ToString('yyyy-MM-dd')}
     Write-SBFile $manifestPath ([Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $record))) (Get-SBFileHash $manifestPath) (Join-Path $config.runtimeRoot 'backups')|Out-Null
     $plan.manifest=$manifestPath;$plan.closed=$true
     ConvertTo-SBJson $plan;exit 0
@@ -51,7 +53,8 @@ if(!$Run){ConvertTo-SBJson $plan;exit 0}
 if(!$FilePath -or !$WorkingDirectory){throw (New-SBError 'work.run.explicit')}
 $bindings=@($config.bindings|Where-Object {$_.identity -ceq $Repository -and [IO.Path]::GetFullPath($_.path) -eq [IO.Path]::GetFullPath($WorkingDirectory)})
 if($bindings.Count -ne 1){throw (New-SBError 'work.checkout.unmanaged')}
-foreach($path in @($plan.environment.Values)+@($plan.buildRoot)){[IO.Directory]::CreateDirectory($path)|Out-Null}
+# Only the work root is created and exported; TEMP/TMP, caches and build outputs of the product stay in the native OS and product folders.
+foreach($path in @($plan.environment.Values)){[IO.Directory]::CreateDirectory($path)|Out-Null}
 $start=[Diagnostics.ProcessStartInfo]::new($FilePath);$start.UseShellExecute=$false;$start.CreateNoWindow=$true;$start.WorkingDirectory=$WorkingDirectory
 foreach($argument in $Arguments){$start.ArgumentList.Add($argument)}
 foreach($key in $plan.environment.Keys){$start.Environment[$key]=$plan.environment[$key]}

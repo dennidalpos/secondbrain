@@ -415,7 +415,7 @@ function Invoke-SBHostDiscovery {
     }
     $extensions=@([IO.DriveInfo]::GetDrives()|Where-Object {$_.DriveType -in @('Network','Removable')}|ForEach-Object {@{kind=$_.DriveType.ToString();path=$_.Name;included=$false}})
     foreach($kind in @('WSL','VM','container')){$extensions+=@{kind=$kind;included=$false;status='requires-explicit-selection'}}
-    $report=@{schemaVersion=1;hostId=(Get-SBHostId);brainRoot=$brain;observedAt=[DateTimeOffset]::UtcNow.ToString('o');roots=$Roots;visited=@($visited.Keys|Sort-Object);pending=@($queue.ToArray());
+    $report=@{schemaVersion=1;hostId=(Get-SBHostId);brainRoot=$brain;observedAt=(Get-SBNow).ToString('o');roots=$Roots;visited=@($visited.Keys|Sort-Object);pending=@($queue.ToArray());
         complete=(!$paused -and !$issues.Count);paused=$paused;repositories=@($repositories|Sort-Object path -Unique);ides=@((Get-SBIDEAssets)+$portableIDEs);issues=$issues;warnings=$warnings;excluded=$excluded;extensions=$extensions}
     if($ReportPath){
         $output=Assert-SBSetupStatePath $brain $stateRoot $ReportPath @('discovery.json')
@@ -424,7 +424,7 @@ function Invoke-SBHostDiscovery {
     }
     $report
 }
-# Categories of the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>; the area hosts/<id>/repos/<repo>/temp holds TEMP/TMP.
+# Categories of the nested layout hosts/<id>/repos/<repo>/<category>/<yyyyMMdd>-<slug>; TEMP/TMP and tool caches stay in the native OS folders (nothing is redirected into .runtime).
 $script:SBRuntimeCategories = @('work','evidence','report','fixture','tmp')
 # Readable and stable repository segment: last path component of the identity plus 8 hex characters of its hash (no collisions between owners).
 function Get-SBRuntimeRepoSegment([string]$Repository) {
@@ -440,38 +440,37 @@ function Resolve-SBWorkRoot([string]$BrainRoot,[string]$HostId,[string]$Relative
     $location='brain-runtime';$advice=@()
     $override=$env:SECONDBRAIN_WORK_LOCAL_ROOT
     if($override){
-        # Brain on a share: host TEMP, caches and builds may live on a local drive (declared exception, not the default behavior).
+        # Brain on a share: work folders (evidence, reports, agent work) may live on a local drive (declared exception, not the default behavior).
         if(![IO.Path]::IsPathFullyQualified($override) -or $override.StartsWith('\\')){throw (New-SBError 'host.work.localroot')}
         $hostRoot=Join-Path ([IO.Path]::GetFullPath($override)) (Split-Path (Get-SBLocalRoot $BrainRoot $HostId) -Leaf)
         $root=[IO.Path]::GetFullPath((Join-Path $hostRoot $Relative));$location='local-override'
     }else{
         $root=Assert-SBCentralDataPath $BrainRoot (Join-Path (Get-SBLocalRoot $BrainRoot $HostId) $Relative)
-        if($BrainRoot.StartsWith('\\')){$advice+='Cervello su share: cache e build risiedono sulla rete. Impostare SECONDBRAIN_WORK_LOCAL_ROOT su un disco locale per prestazioni e per non mescolare TEMP tra host.'}
+        if($BrainRoot.StartsWith('\\')){$advice+='Cervello su share: le cartelle di lavoro (evidenze, rapporti, lavoro degli agenti) risiedono sulla rete. Impostare SECONDBRAIN_WORK_LOCAL_ROOT su un disco locale per prestazioni e per non mescolare i dati tra host.'}
     }
     @{root=$root;location=$location;advice=$advice}
 }
 function Get-SBRuntimeWorkPath {
-    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Category,[string]$Slug,[datetime]$Date=(Get-SBNow).LocalDateTime)
     if($Category -cnotin $script:SBRuntimeCategories){throw (New-SBError 'host.work.category' @(($script:SBRuntimeCategories -join ', ')))}
     if($Slug -cnotmatch '^[a-z0-9][a-z0-9-]{0,59}$'){throw (New-SBError 'host.work.slug')}
     (Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)).root
 }
 function Get-SBWorkEnvironment {
-    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$Category,[string]$Slug,[datetime]$Date=(Get-Date))
+    param([string]$BrainRoot,[string]$HostId,[string]$Repository,[string]$Project='root',[string]$Runtime='default',[string]$Category,[string]$Slug,[datetime]$Date=(Get-SBNow).LocalDateTime)
     $nested=[bool]($Category -or $Slug)
     if($nested){
         if(!$Category -or !$Slug){throw (New-SBError 'host.work.categoryslug')}
         $root=Get-SBRuntimeWorkPath $BrainRoot $HostId $Repository $Category $Slug $Date  # validates category and slug first
         $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/'+$Category+'/'+$Date.ToString('yyyyMMdd')+'-'+$Slug)
-        $temp=(Resolve-SBWorkRoot $BrainRoot $HostId ('repos/'+(Get-SBRuntimeRepoSegment $Repository)+'/temp')).root
     }else{
         foreach($segment in @($Project,$Runtime)){if($segment -notmatch '^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$'){throw (New-SBError 'host.work.segment')}}
         $resolved=Resolve-SBWorkRoot $BrainRoot $HostId ('repositories/'+(Get-SBTextHash $Repository).Substring(0,24).ToLowerInvariant()+'/'+$Project+'/'+$Runtime)
         $root=$resolved.root
-        $temp=Join-Path $root 'temp'
     }
-    $map=@{SECONDBRAIN_WORK_ROOT=$root;TEMP=$temp;TMP=$temp;TMPDIR=$temp;XDG_CACHE_HOME=(Join-Path $root 'cache');npm_config_cache=(Join-Path $root 'cache/npm');NUGET_PACKAGES=(Join-Path $root 'cache/nuget');DOTNET_CLI_HOME=(Join-Path $root 'cache/dotnet');GRADLE_USER_HOME=(Join-Path $root 'cache/gradle');CARGO_TARGET_DIR=(Join-Path $root 'build/cargo');PIP_CACHE_DIR=(Join-Path $root 'cache/pip');PYTHONPYCACHEPREFIX=(Join-Path $root 'cache/python')}
-    @{root=$root;location=$resolved.location;advice=$resolved.advice;environment=$map;buildRoot=(Join-Path $root 'build');layout=$(if($nested){'repos'}else{'repositories'});status='configuration-only';exceptions=@('Tool-specific intermediate/output configuration must be verified in the product repository; environment alone does not redirect every build output.')}
+    # Only the work root is exported: TEMP/TMP, tool caches and build outputs stay in the native OS and product folders and are never redirected into .runtime.
+    $map=@{SECONDBRAIN_WORK_ROOT=$root}
+    @{root=$root;location=$resolved.location;advice=$resolved.advice;environment=$map;layout=$(if($nested){'repos'}else{'repositories'});status='os-native-temp-cache';exceptions=@('TEMP, TMP, tool caches and build outputs use the OS and product defaults; only evidence, reports and agent work folders live under the work root.')}
 }
 Export-ModuleMember -Function @(
     'Get-SBHostId',

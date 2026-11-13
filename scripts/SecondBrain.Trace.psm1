@@ -38,9 +38,9 @@ function Add-SBTraceEvent([string]$BrainRoot,[string]$EventName='stop',[string]$
     $cwd=if($payload.ContainsKey('cwd')){[string]$payload.cwd}else{(Get-Location).Path}
     $session=if($payload.ContainsKey('session_id')){[string]$payload.session_id}else{''}
     if($session -notmatch '^[A-Za-z0-9_.-]{0,128}$'){$session=''}
-    $record=[ordered]@{schemaVersion=1;ts=[DateTimeOffset]::Now.ToString('o');ide=$Ide;sessionId=$session;event=$EventName;repository=(Resolve-SBTraceRepository $BrainRoot $cwd);cwdHash=(Get-SBTextHash $cwd.ToLowerInvariant()).Substring(0,16).ToLowerInvariant()}
+    $record=[ordered]@{schemaVersion=1;ts=(Get-SBNow -Local).ToString('o');ide=$Ide;sessionId=$session;event=$EventName;repository=(Resolve-SBTraceRepository $BrainRoot $cwd);cwdHash=(Get-SBTextHash $cwd.ToLowerInvariant()).Substring(0,16).ToLowerInvariant()}
     $directory=Join-Path (Get-SBTraceRoot $BrainRoot) (Get-SBHostId)
-    $target=Assert-SBCentralDataPath $BrainRoot (Join-Path $directory ([DateTime]::Now.ToString('yyyy-MM-dd')+'.jsonl'))
+    $target=Assert-SBCentralDataPath $BrainRoot (Join-Path $directory ((Get-SBNow).LocalDateTime.ToString('yyyy-MM-dd')+'.jsonl'))
     [IO.Directory]::CreateDirectory($directory)|Out-Null
     $bytes=[Text.UTF8Encoding]::new($false).GetBytes((($record|ConvertTo-Json -Compress -Depth 4)+"`n"))
     # .NET FileMode.Append writes at the offset read on open: simultaneous writers overwrite each other. A short <day>.jsonl.lock

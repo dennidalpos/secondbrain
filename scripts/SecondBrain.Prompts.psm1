@@ -110,7 +110,7 @@ function Resolve-SBWorkflowPrompt($Catalog, [string]$Key) {
 
 function New-SBWorkflowPromptId($Catalog) {
     $taken=@($Catalog.prompts|ForEach-Object id)
-    do{$id='pmt-'+(-join(1..8|ForEach-Object {'{0:x}' -f (Get-Random -Maximum 16)}))}while($id -in $taken)
+    do{$id='pmt-'+(New-SBId).Substring(0,8)}while($id -in $taken)
     $id
 }
 

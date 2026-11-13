@@ -11,6 +11,7 @@ Add-SBMessages @{
     'access.binding.invalid' = @{ it = 'Associazione repository non valida'; en = 'Invalid repository binding' }
     'access.shared.incomplete' = @{ it = 'config/shared.json assente o incompleto (allowedOwners e excludedDirectories richiesti): ripristinare la policy condivisa'; en = 'config/shared.json missing or incomplete (allowedOwners and excludedDirectories required): restore the shared policy' }
     'access.shared.owner' = @{ it = 'Owner GitHub non valido in config/shared.json'; en = 'Invalid GitHub owner in config/shared.json' }
+    'access.shared.sessiontimeout' = @{ it = 'sessionTimeoutSeconds in config/shared.json deve essere un intero tra 10 e 86400'; en = 'sessionTimeoutSeconds in config/shared.json must be an integer between 10 and 86400' }
     'access.shared.lockwait' = @{ it = 'lockWaitSeconds in config/shared.json deve essere un intero tra 0 e 600'; en = 'lockWaitSeconds in config/shared.json must be an integer between 0 and 600' }
     'access.config.required' = @{ it = 'Configurazione della postazione richiesta: attivare la postazione con secondbrain.ps1 -Setup (SYS03)'; en = 'Workstation configuration required: activate the workstation with secondbrain.ps1 -Setup (SYS03)' }
     'access.session.invalid' = @{ it = 'SessionId non valido: usa quello restituito da access.ps1 -Start'; en = 'Invalid SessionId: use the one returned by access.ps1 -Start' }
@@ -86,6 +87,12 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
         $local.coordinationRoot=Join-Path $brain '.runtime/access'
         # Writer wait: lockWaitSeconds in config/shared.json (0-600, default 60).
         $local.lockWaitMs=60000
+        # Session expiry without renewal: sessionTimeoutSeconds in config/shared.json (10-86400, default 1800 = 30 minutes).
+        if($shared.ContainsKey('sessionTimeoutSeconds')){
+            $timeout=$shared.sessionTimeoutSeconds
+            if(($timeout -isnot [int] -and $timeout -isnot [long]) -or $timeout -lt 10 -or $timeout -gt 86400){throw (New-SBError 'access.shared.sessiontimeout')}
+            $local.sessionTimeoutMinutes=[double]$timeout/60
+        }
         if($shared.ContainsKey('lockWaitSeconds')){
             $wait=$shared.lockWaitSeconds
             if(($wait -isnot [int] -and $wait -isnot [long]) -or $wait -lt 0 -or $wait -gt 600){throw (New-SBError 'access.shared.lockwait')}
@@ -104,7 +111,7 @@ function Read-SBConfiguration([string]$ConfigPath,[switch]$AllowPendingTransacti
 
 function Write-SBAccessMetadata([string]$Path, $Value) {
     Assert-SBPlainPath $Path
-    $temp = $Path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+    $temp = $Path+'.'+(New-SBId)+'.tmp'
     try {
         $bytes = [Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-SBJson $Value))
         $stream = [IO.FileStream]::new($temp,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
@@ -122,14 +129,14 @@ function Test-SBSessionId([string]$SessionId) {
 }
 
 function Open-SBLockFile([string]$Path, [IO.FileMode]$Mode, [IO.FileAccess]$Access, [IO.FileShare]$Share, [int]$WaitMs = 1000, [scriptblock]$OnWait) {
-    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
+    $deadline = (Get-SBNow).AddMilliseconds([Math]::Max(0, $WaitMs))
     $delay = 100; $notified = $false
     while ($true) {
         try {
             return [IO.File]::Open($Path, $Mode, $Access, $Share)
         } catch [IO.IOException] {
             $hr = $_.Exception.GetBaseException().HResult -band 0xffff
-            if ($hr -notin @(32, 33) -or [DateTimeOffset]::UtcNow -ge $deadline) { throw }
+            if ($hr -notin @(32, 33) -or (Get-SBNow) -ge $deadline) { throw }
             # Report the owner once, as soon as waiting begins.
             if ($OnWait -and !$notified) { $notified = $true; & $OnWait }
             Start-Sleep -Milliseconds $delay
@@ -168,13 +175,13 @@ function Enter-SBQueue($Config, [int]$WaitMs, [scriptblock]$OnWait) {
     $root = Join-Path $Config.coordinationRoot 'queue'
     Assert-SBPlainPath $root
     [IO.Directory]::CreateDirectory($root) | Out-Null
-    $name = [DateTimeOffset]::UtcNow.UtcTicks.ToString('D19') + '-' + [guid]::NewGuid().ToString('N')
+    $name = (Get-SBNow).UtcTicks.ToString('D19') + '-' + (New-SBId)
     $leasePath = Join-Path $root ($name+'.lease')
     Assert-SBPlainPath $leasePath
     $ticket = @{ name=$name; root=$root; lease=[IO.FileStream]::new($leasePath,[IO.FileMode]::CreateNew,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None) }
     try {
-        Write-SBAccessMetadata (Join-Path $root ($name+'.json')) @{ticket=$name;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';workstationId=$Config.workstationId;enqueuedAt=[DateTimeOffset]::UtcNow.ToString('o')}
-        $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
+        Write-SBAccessMetadata (Join-Path $root ($name+'.json')) @{ticket=$name;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';workstationId=$Config.workstationId;enqueuedAt=(Get-SBNow).ToString('o')}
+        $deadline = (Get-SBNow).AddMilliseconds([Math]::Max(0, $WaitMs))
         $delay = 100; $notified = $false
         while ($true) {
             $ahead = $null
@@ -184,7 +191,7 @@ function Enter-SBQueue($Config, [int]$WaitMs, [scriptblock]$OnWait) {
                 Remove-SBQueueTicketFiles $root $other
             }
             if (!$ahead) { return $ticket }
-            if ([DateTimeOffset]::UtcNow -ge $deadline) { throw (New-SBError 'access.queue.timeout' @() ([IO.IOException]) -2147024864) }
+            if ((Get-SBNow) -ge $deadline) { throw (New-SBError 'access.queue.timeout' @() ([IO.IOException]) -2147024864) }
             if ($OnWait -and !$notified) { $notified = $true; & $OnWait }
             Start-Sleep -Milliseconds $delay
             $delay = [Math]::Min(500, [int]($delay * 1.5))
@@ -198,12 +205,12 @@ function Exit-SBQueue($Ticket) {
 }
 function Open-SBWriterLock($Config, [string]$WriterPath, [int]$WaitMs, [scriptblock]$OnWait) {
     # Queue a ticket, then acquire writer.lock within the remaining wait; release the ticket as soon as the lock is acquired.
-    $deadline = [DateTimeOffset]::UtcNow.AddMilliseconds([Math]::Max(0, $WaitMs))
+    $deadline = (Get-SBNow).AddMilliseconds([Math]::Max(0, $WaitMs))
     $state = @{ notified=$false }
     $notify = { if (!$state.notified) { $state.notified = $true; if ($OnWait) { & $OnWait } } }.GetNewClosure()
     $ticket = Enter-SBQueue $Config $WaitMs $notify
     try {
-        $remaining = [int][Math]::Max(0, ($deadline - [DateTimeOffset]::UtcNow).TotalMilliseconds)
+        $remaining = [int][Math]::Max(0, ($deadline - (Get-SBNow)).TotalMilliseconds)
         Open-SBLockFile $WriterPath ([IO.FileMode]::OpenOrCreate) ([IO.FileAccess]::ReadWrite) ([IO.FileShare]::None) $remaining $notify
     } finally { Exit-SBQueue $ticket }
 }
@@ -248,7 +255,7 @@ function Get-SBAccessStatus($Config, [switch]$Repair) {
                 $entry.status = 'abandoned'
             } catch [IO.FileNotFoundException] { $entry.status = 'abandoned' }
             catch [IO.IOException] {
-                if (($_.Exception.GetBaseException().HResult -band 0xffff) -notin @(32,33) -or ([DateTimeOffset]::UtcNow - [DateTimeOffset]::Parse($entry.heartbeat)).TotalSeconds -gt 15) { $entry.status = 'unverified' }
+                if (($_.Exception.GetBaseException().HResult -band 0xffff) -notin @(32,33) -or ((Get-SBNow) - [DateTimeOffset]::Parse($entry.heartbeat)).TotalSeconds -gt 15) { $entry.status = 'unverified' }
             } finally { if ($lease) { $lease.Dispose() } }
             # Status is read-only: persisting abandonment requires -Repair (or Clear-SBStaleSessions).
             if ($Repair -and $entry.status -eq 'abandoned') {
@@ -271,7 +278,7 @@ function Clear-SBStaleSessions($Config, [int]$MaxAgeMinutes = 60) {
     $root = Join-Path $Config.coordinationRoot 'sessions'
     if (!(Test-Path -LiteralPath $root)) { return 0 }
     $removedCount = 0
-    $cutoff = [DateTimeOffset]::UtcNow.AddMinutes(-[Math]::Max(0, $MaxAgeMinutes))
+    $cutoff = (Get-SBNow).AddMinutes(-[Math]::Max(0, $MaxAgeMinutes))
     foreach ($file in @(Get-ChildItem -LiteralPath $root -Filter '*.json' -File -ErrorAction SilentlyContinue)) {
         $entry = Read-SBJson $file.FullName $null
         if (!$entry) { continue }
@@ -350,8 +357,8 @@ function Enter-SBOperation($Config, [string]$SessionId, [switch]$ReadOnly, [int]
                 $onWait = { [Console]::Error.WriteLine('SecondBrain: scrittura occupata, attesa fino a ' + [int]($waitTotal / 1000) + ' s. Titolare: ' + (Get-SBOperationOwnerText $Config)) }.GetNewClosure()
                 $result.writer = Open-SBWriterLock $Config $writerPath $waitTotal $onWait
                 $result.metadata = Join-Path $Config.coordinationRoot 'operation-owner.json'
-                $result.ownerSessionId = [guid]::NewGuid().ToString('N')
-                Write-SBAccessMetadata $result.metadata @{sessionId=$result.ownerSessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';repository=(Get-SBBrainIdentity $Config.brainRoot);workstationId=$Config.workstationId;path=$Config.brainRoot;mode='Write';heartbeat=[DateTimeOffset]::UtcNow.ToString('o')}
+                $result.ownerSessionId = (New-SBId)
+                Write-SBAccessMetadata $result.metadata @{sessionId=$result.ownerSessionId;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;computer=[Environment]::MachineName;processId=$PID;client='SecondBrain script';repository=(Get-SBBrainIdentity $Config.brainRoot);workstationId=$Config.workstationId;path=$Config.brainRoot;mode='Write';heartbeat=(Get-SBNow).ToString('o')}
             }
             $opPath = Join-Path $Config.coordinationRoot 'operation.lock'
             Assert-SBPlainPath $opPath

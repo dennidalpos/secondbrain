@@ -62,7 +62,7 @@ Il percorso del manifest riportato è già riscritto sull'alias del PC corrente.
 ## Prestazioni
 
 - Con il cervello su UNC la scansione dei dossier (`Get-SBParaEntities`) è memorizzata per 10 s e invalidata da ogni scrittura del processo; in locale è disattivata (`SECONDBRAIN_PARA_CACHE=1` la forza).
-- TEMP, cache e build dei prodotti stanno di norma sotto `.runtime/hosts/<id>/` e quindi sulla rete. Con `SECONDBRAIN_WORK_LOCAL_ROOT=<disco locale>` il piano di `work.ps1` li colloca in `<radice>/<id>/…` (eccezione dichiarata nel risultato: `location: local-override`). I percorsi di rete sono rifiutati.
+- TEMP, cache e build dei prodotti restano nelle cartelle native della postazione; sotto `.runtime/hosts/<id>/` (e quindi sulla rete) stanno solo evidenze, rapporti e lavoro degli agenti. Con `SECONDBRAIN_WORK_LOCAL_ROOT=<disco locale>` il piano di `work.ps1` colloca queste cartelle in `<radice>/<id>/…` (eccezione dichiarata nel risultato: `location: local-override`). I percorsi di rete sono rifiutati.
 
 ## Runbook
 
@@ -82,6 +82,12 @@ Il percorso del manifest riportato è già riscritto sull'alias del PC corrente.
 
 ### Secondo host simulato (non è una prova su un secondo PC)
 Sempre in `test-secondbrain-portable.ps1`: un clone del cervello in un percorso più profondo e con spazi, checkout con gli stessi remoti in una radice diversa e profilo utente deviato (`USERPROFILE`, `APPDATA`, `LOCALAPPDATA`). Il test verifica che `-Setup` sul secondo percorso crei binding propri con le stesse identità, riusi i dossier esistenti senza duplicarli, sia idempotente, non modifichi la configurazione del primo clone né `SECONDBRAIN_HOME`, e che `-Setup -Status` e `-Check` operino sulla sola configurazione locale. Resta non coperto, e quindi `SB-PORTABLE-SECONDHOST-20261029` non può dirsi chiuso: `MachineName` e SID reali di un altro PC (l'id di postazione deriva da entrambi), variabili utente persistenti, drive e permessi diversi, IDE e account realmente installati.
+
+### Due identità simulate sulla stessa radice (#487)
+
+`pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Only shared` (`scripts/test-secondbrain-shared.ps1`, 19 controlli, circa 40 s) crea un cervello sintetico con un solo dossier e due postazioni (`pc-a` e `pc-b`) con `workstationId`, radici di runtime e di backup, checkout e binding propri; i comandi reali (`knowledge.ps1`, `access.ps1`) girano in processi concorrenti. Verificato: lettura dello stesso dossier da entrambe le identità; 6 creazioni di task simultanee (3 per identità) tutte presenti dopo `-FlushPending`, senza numeri duplicati e con `lastSeq` coerente; due salvataggi dello stesso file con lo stesso hash di base: vince uno solo, l'altro resta come conflitto visibile (exit 5) e il contenuto non è mai misto; lettura da `pc-b` mentre `pc-a` ha una sessione di scrittura esclusiva (nessuna attesa, con avviso) e secondo scrittore esclusivo che scade con exit 3; registro delle postazioni con entrambe le identità e radici distinte; una terza identità che riusa le radici di `pc-a` è rifiutata. Il rapporto `report.json` resta nella fixture.
+
+Limiti dichiarati: le due identità condividono PC, utente, MachineName e SID (cambiano solo `workstationId`, stato locale, checkout e binding); radice locale, senza SMB, NAS o Samba; non provati orologi sfasati, latenza, lease e ACL tra PC. La qualifica su due PC reali resta in #348.
 
 ### Prova su SMB di loopback
 `scripts/test-secondbrain-smb.ps1` raggiunge la share amministrativa dell'unità del clone (`\\<alias>\D$`) con `localhost`, `127.0.0.1` e nome macchina (e FQDN se diverso dal nome): le richieste passano dallo stack SMB, ma client e server sono lo stesso PC. Non crea share né utenti; con `-ShareRoot` e `-ShareLocalPath` si indica una share creata a mano. Esito del 2026-11-02 (12 controlli vincolanti su 12, esito `partial`):

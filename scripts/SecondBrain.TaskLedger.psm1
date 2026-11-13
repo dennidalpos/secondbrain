@@ -59,8 +59,8 @@ function New-SBTaskRunRecord {
     if(!$Created -and $Before -and $Before.status -eq $after.status -and $Before.execution -eq $after.execution -and $Before.evidence -eq $after.evidence -and !$Outcome){return $null}
     $exec=Resolve-SBExecutor $Executor
     $record=[ordered]@{
-        schemaVersion=1;recordId=[guid]::NewGuid().ToString('N');taskId=[string]$Task['id'];seq=$(if($Task.Contains('seq')){$Task['seq']}else{$null})
-        at=$(if($At){$At}else{[DateTimeOffset]::UtcNow.ToString('o')})
+        schemaVersion=1;recordId=(New-SBId);taskId=[string]$Task['id'];seq=$(if($Task.Contains('seq')){$Task['seq']}else{$null})
+        at=$(if($At){$At}else{(Get-SBNow).ToString('o')})
         statusBefore=$(if($Before){$Before.status}else{$null});statusAfter=$after.status
         executionBefore=$(if($Before){$Before.execution}else{$null});executionAfter=$after.execution
         executor=$exec

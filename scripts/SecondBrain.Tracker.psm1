@@ -406,7 +406,7 @@ function ConvertTo-SBTracker {
         }
     }
     $extensions=@{}+$carried;$extensions.original=$originalData;$extensions.source=@{reference=$Reference;sha256=$hash}
-    $result=@{schemaVersion=1;repository=$Identity;updatedAt=[DateTimeOffset]::UtcNow.ToString('o');tasks=@($tasks);history=$history;extensions=$extensions}
+    $result=@{schemaVersion=1;repository=$Identity;updatedAt=(Get-SBNow).ToString('o');tasks=@($tasks);history=$history;extensions=$extensions}
     if($review){$result.extensions.review=@{sha256=Get-SBFileHash $ReviewPath;decisions=$review}}
     $result
 }
@@ -557,7 +557,7 @@ function Assert-SBTrackerWriteData([string]$BrainRoot,[string]$Identity,$Data,[s
     [void](Test-SBTrackerData $Data $Identity $managedIdentities $schemaPath $related $archives)
 }
 function Save-SBTrackerData($Target,$Data,[string]$BackupRoot,[switch]$WhatIf,[object[]]$ExtraOperations=@(),$Archive,$ArchiveForValidation,[object[]]$LedgerRecords=@()) {
-    $Data.updatedAt=[DateTimeOffset]::UtcNow.ToString('o')
+    $Data.updatedAt=(Get-SBNow).ToString('o')
     if($Archive){$ArchiveForValidation=$Archive.data}
     Assert-SBTrackerWriteData $Target.brainRoot $Target.identity $Data $Target.path $ArchiveForValidation
     # Ledger records of this change go into history/task-runs.jsonl in the same transaction as the tracker.
@@ -674,7 +674,7 @@ function Set-SBTrackerTaskStatus {
 function Set-SBTaskClosure($Tracker,[string]$TaskId) {
     # Keep the latest closure on the tracker so archiving tasks preserves the signal.
     if($null -eq $Tracker.extensions){$Tracker.extensions=@{}}
-    $Tracker.extensions.lastClosure=@{taskId=$TaskId;closedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    $Tracker.extensions.lastClosure=@{taskId=$TaskId;closedAt=(Get-SBNow).ToString('o')}
 }
 function Get-SBClosureAdvice([string]$Dossier) {
     $advice=@{code='tracker.closure.advice';message=(Get-SBMessage 'tracker.closure.advice');steps=@('memory','context','summary','sync','check');summaryOptions=@('memory','history','skip')}
@@ -687,14 +687,14 @@ function ConvertTo-SBTaskEvidence($Value) {
     $parts=([string]$Value) -split '\|',2
     $outcome=if($parts.Count -eq 2){$parts[1].Trim()}else{'unverified'}
     if(!$parts[0].Trim() -or $outcome -notin @('passed','failed','partial','unverified')){throw (New-SBError 'tracker.evidence.invalid')}
-    @{reference=$parts[0].Trim();outcome=$outcome;observedAt=[DateTimeOffset]::UtcNow.ToString('o')}
+    @{reference=$parts[0].Trim();outcome=$outcome;observedAt=(Get-SBNow).ToString('o')}
 }
 function ConvertTo-SBTaskDecisions($Value) {
     # Owner decisions recorded on a task (extensions.decisions): {questionId, question, answer, at, decidedBy}, from objects or a JSON text.
     $items=if($Value -is [string]){if($Value.Trim()){@($Value|ConvertFrom-Json -AsHashtable)}else{@()}}else{@($Value)}
     @($items|Where-Object {$_}|ForEach-Object {
         if($_ -isnot [Collections.IDictionary] -or [string]::IsNullOrWhiteSpace([string]$_['question']) -or [string]::IsNullOrWhiteSpace([string]$_['answer'])){throw (New-SBError 'tracker.decisions.invalid')}
-        [ordered]@{questionId=[string]$_['questionId'];question=([string]$_.question).Trim();answer=([string]$_.answer).Trim();at=$(if($_['at']){[string]$_.at}else{[DateTimeOffset]::UtcNow.ToString('o')});decidedBy=$(if($_['decidedBy']){[string]$_.decidedBy}else{'owner'})}
+        [ordered]@{questionId=[string]$_['questionId'];question=([string]$_.question).Trim();answer=([string]$_.answer).Trim();at=$(if($_['at']){[string]$_.at}else{(Get-SBNow).ToString('o')});decidedBy=$(if($_['decidedBy']){[string]$_.decidedBy}else{'owner'})}
     })
 }
 

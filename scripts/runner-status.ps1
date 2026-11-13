@@ -45,7 +45,7 @@ try{
         $folders=@(Get-SBRunnerStatusFiles $config.brainRoot $config.workstationId $Repository|ForEach-Object {Split-Path $_ -Parent})
         $target=if($RunFolder){[IO.Path]::GetFullPath($RunFolder).TrimEnd('\','/')}else{''}
         if(!$target -or !@($folders|Where-Object {[string]::Equals($_.TrimEnd('\','/'),$target,[StringComparison]::OrdinalIgnoreCase)}).Count){throw (New-SBError 'runnerstatus.folder' @($Repository,$RunFolder))}
-        $event=[ordered]@{event='ui';message=$Note;time=[DateTimeOffset]::UtcNow.ToString('o')}
+        $event=[ordered]@{event='ui';message=$Note;time=(Get-SBNow).ToString('o')}
         Add-SBRunnerEventLine (Join-Path $target 'events.jsonl') $event
         ConvertTo-SBJson ([ordered]@{repository=$Repository;folder=$target;event=$event})
         exit 0
@@ -53,7 +53,7 @@ try{
     $report=Get-SBRunnerStatus -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $Repository -Tail $Tail
     if($Stop){
         if(!$report.active -or !$report.status.stopFile){throw (New-SBError 'runnerstatus.nostop' @($Repository))}
-        [IO.File]::WriteAllText([string]$report.status.stopFile,[DateTimeOffset]::UtcNow.ToString('o'),[Text.UTF8Encoding]::new($false))
+        [IO.File]::WriteAllText([string]$report.status.stopFile,(Get-SBNow).ToString('o'),[Text.UTF8Encoding]::new($false))
         [Console]::Error.WriteLine((Get-SBMessage 'runnerstatus.stop' @($report.status.stopFile)))
         ConvertTo-SBJson ([ordered]@{repository=$Repository;stopRequested=$true;stopFile=$report.status.stopFile;verdict=$report.verdict})
         exit 0
