@@ -63,7 +63,12 @@ try {
             if($parallel){
                 # Portable's extended checks use an independent fixture. Run them
                 # alongside the remaining groups; Sequential keeps the original order.
-                $specs=@($extras|Where-Object {$_ -notin @('concurrency','shared')}|ForEach-Object {@{key=$_;file=(Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1'));arguments=@()}})
+                $specs=@($extras|Where-Object {$_ -notin @('concurrency','shared')}|ForEach-Object {
+                    $file=Join-Path $PSScriptRoot ('test-secondbrain-'+$_+'.ps1')
+                    # The runner suite was the critical path of -Full (#592): its two independent halves run as two jobs on their own fixtures.
+                    if($_ -eq 'runner'){foreach($part in @('core','tools')){@{key=('runner-'+$part);file=$file;arguments=@('-Part',$part)}}}
+                    else{@{key=$_;file=$file;arguments=@()}}
+                })
                 $specs+=@{key='essential-portable';file=(Join-Path $PSScriptRoot 'test-secondbrain-essential.ps1');arguments=@('-Groups','portable','-Extended')}
                 $groups=@($groups|Where-Object {$_ -ne 'portable'})
                 $jobs=@($specs|ForEach-Object {Start-SuiteJob $_})

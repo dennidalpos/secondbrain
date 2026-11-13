@@ -162,6 +162,25 @@ function Read-SBTrackerArchive([string]$TrackerPath,[string]$Identity) {
     @{path=$path;hash=(Get-SBHash $bytes);changed=$false;data=$data}
 }
 
+function ConvertTo-SBTrackerDependencies([string[]]$Values,$Data,$Archive) {
+    # #591: "#<seq>" names a task of the same tracker by number, active or archived; it is stored by ID.
+    # "repository#id" and bare IDs are kept as given and validated with the whole graph.
+    $tasks=@(@($Data.tasks)+@($Archive.tasks)|Where-Object {$_ -is [Collections.IDictionary]})
+    $result=@(@($Values)|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique|ForEach-Object {
+        $value=$_
+        if($value -match '^#(\d+)$'){
+            $seq=[int]$Matches[1]
+            $found=@($tasks|Where-Object {$_.ContainsKey('seq') -and [int]$_.seq -eq $seq})
+            if($found.Count -ne 1){throw (New-SBError 'tracker.dependency.missing' @($value+' (no task with this number in the tracker or its archive; use the task ID or an existing #seq)'))}
+            @{id=[string]$found[0].id}
+        }else{
+            $parts=$value -split '#',2
+            if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$value}}
+        }
+    })
+    ,$result
+}
+
 function Join-SBTrackerArchive($Data,$Archive) {
     $combined=@{}+$Data
     $combined.tasks=@($Data.tasks)+@($Archive.tasks)
@@ -742,10 +761,7 @@ function New-SBTrackerTaskEntry {
     $sourcePath=if([IO.Path]::IsPathFullyQualified($ProvenanceReference)){$ProvenanceReference}else{Join-Path $dossierDir (($ProvenanceReference -split '#',2)[0])}
     if(!(Test-Path -LiteralPath $sourcePath -PathType Leaf)){throw (New-SBError 'tracker.provenance.missing' @($ProvenanceReference))}
     Assert-SBPlainPath $sourcePath
-    $dependencies=@($DependsOn|Where-Object {$_}|ForEach-Object {
-        $parts=$_ -split '#',2
-        if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$_}}
-    })
+    $dependencies=ConvertTo-SBTrackerDependencies $DependsOn $next $archive.data
     $task=@{
         id=$Id;seq=$seq;title=(Format-SBTrackerSeqTitle $seq $Title);status='todo';execution=$Execution;priority=$Priority
         dependencies=$dependencies;acceptance=@($Acceptance);evidence=@()
@@ -976,10 +992,7 @@ function Update-SBTrackerTask {
         }else{[void]$task.extensions.Remove('decision')}
     }
     if($PSBoundParameters.ContainsKey('DependsOn')){
-        $task.dependencies=@($DependsOn|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique|ForEach-Object {
-            $parts=$_ -split '#',2
-            if($parts.Count -eq 2){@{repository=$parts[0];id=$parts[1]}}else{@{id=$_}}
-        })
+        $task.dependencies=ConvertTo-SBTrackerDependencies $DependsOn $next $archive.data
     }
     if($Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@(@($Evidence)|ForEach-Object {ConvertTo-SBTaskEvidence $_})}
     $closing=$PSBoundParameters.ContainsKey('Status') -and $Status -eq 'done'

@@ -1,6 +1,10 @@
 #requires -Version 7.5
 # Behavioral fixture for run-ready-tasks.ps1 -Run with a fake agent (never a real claude) and a synthetic tracker.
 # The fixture brain receives a copy of scripts/, so the runner resolves only the synthetic dossier; the real trackers are hashed before and after.
+# -Part splits the phases into two independent halves, each on its own fixture, so -Full can run them in parallel (#592):
+# core = selection, model choice, success, quota, failures, crash and timeout; tools = parking, read-scope guard, launcher installer,
+# launcher, orchestrator queue, live monitoring and sb runner. The default runs both in order on one fixture.
+param([ValidateSet('all','core','tools')][string]$Part='all')
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
@@ -207,6 +211,7 @@ switch($Mode){
     }
 
     Close-RunnerPhase 'setup'
+    if($Part -ne 'tools'){
     # Preview: selection by stream, execution, wait, priority and MaxTasks; nothing written.
     $hash=Get-SBFileHash $trackerPath
     $preview=Invoke-Runner @('-MaxTasks','10')
@@ -331,6 +336,14 @@ switch($Mode){
     Assert-Runner ((Get-SBFileHash $trackerPath) -ceq $hash) 'failed and timed-out runs leave the tracker unchanged'
 
     Close-RunnerPhase 'timeout'
+    }
+    if($Part -ne 'core'){
+    if($Part -eq 'tools'){
+        # On its own fixture the tools half starts where the core half leaves the queue: R-1 taken by the success run, R-2..R-5 todo.
+        $seeded=Read-SBJson $trackerPath $null
+        foreach($t in @($seeded.tasks)){if($t.id -ceq 'R-1'){$t.status='in_progress'}}
+        Put-Runner $trackerPath (ConvertTo-SBJson $seeded)
+    }
     # Parking (#380): a finished run that leaves the task todo turns it user_required; done or blocked tasks keep their execution mode.
     function Get-FixtureTask([string]$Id){
         $tr=Read-SBJson $trackerPath $null
@@ -627,6 +640,7 @@ $r|ConvertTo-Json -Compress
         Assert-Runner ($guiOnly.code -eq 2 -and $guiOnly.data.mode -eq 'gui' -and $guiOnly.data.fallbackReason -eq 'launch-failed' -and $null -eq $guiOnly.data.preview) ('runner.ps1 -Mode gui reports the failure without fallback: '+$guiOnly.text)
     }
     Close-RunnerPhase 'runner-gui'
+    }
     $realAfter=Get-RealTrackerHashes
     # The real trackers may legitimately change during this long run (parallel Full suites, a pending queue integrated by a read, the session
     # itself): a plain before/after hash comparison failed intermittently (#460). The guard checks the actual risk instead: every real tracker
@@ -636,7 +650,7 @@ $r|ConvertTo-Json -Compress
     Assert-Runner ($contaminated.Count -eq 0) ('real trackers free of runner fixture data ('+$realAfter.Count+' hashed, '+$changedReal.Count+' changed concurrently, 0 contaminated)')
     Close-RunnerPhase 'final'
     'PHASES RUNNER: '+(@($script:phases.Keys|ForEach-Object {$_+'='+$script:phases[$_]+'s'}) -join ', ')
-    'SUCCESS RUNNER: '+$script:runnerChecks+' checks; retained fixture '+$fixture
+    'SUCCESS RUNNER: '+$script:runnerChecks+' checks (part '+$Part+'); retained fixture '+$fixture
 } finally {
     foreach($name in $envNames){Remove-Item -LiteralPath ('Env:'+$name) -ErrorAction SilentlyContinue}
 }

@@ -2,7 +2,15 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.10.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.10.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.10.1] - 2026-11-13
+
+Tracker dependencies by task number on archived tasks, and a faster Full test profile.
+
+### Fixed
+- `-DependsOn '#<seq>'` in `knowledge.ps1 -NewTask`, `-UpdateTaskId` and queued `task.new`/`task.update` now resolves the task with that number in the tracker or its archive and stores it by ID; an unknown number is refused with `tracker.dependency.missing`, naming the ID form (#591).
+- `test-secondbrain.ps1 -Full` runs the runner suite as two parallel halves (`test-secondbrain-runner.ps1 -Part core|tools`, each on its own fixture) and finishes in about 550 s instead of 626 s, within its 600 s budget; `-Only runner` still runs the whole suite (#592).
 
 ## [2.10.0] - 2026-11-13
 

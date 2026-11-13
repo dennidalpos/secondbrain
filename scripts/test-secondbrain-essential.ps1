@@ -521,6 +521,18 @@ if('trackers' -in $Groups){
     [void](Update-SBTrackerTask @argsBase -TaskId T-2 -Status done)
     $meta=Update-SBTrackerTask @argsBase -TaskId T-2 -Priority P2
     Check (!$meta.ContainsKey('closureAdvice')) 'metadata update on done task does not produce closure advice'
+    # #591: a dependency written as #seq resolves to the archived task with that number and is stored by ID; the ID form keeps working.
+    [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn '#002')
+    $deps=@((Read-SBJson $trackerPath $null).tasks[0].dependencies)
+    Check ($deps.Count -eq 1 -and $deps[0].id -ceq 'T-2' -and !$deps[0].ContainsKey('repository')) '#591: #seq dependency on an archived task is stored by its ID'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn @('#2','T-2'))
+    $deps=@((Read-SBJson $trackerPath $null).tasks[0].dependencies)
+    Check ($deps.Count -eq 2 -and @($deps|Where-Object {$_.id -ceq 'T-2'}).Count -eq 2) '#591: unpadded #seq and the archived task ID both resolve'
+    [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn 'T-2')
+    $before=Get-SBFileHash $trackerPath
+    $refused=$null
+    try{Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn '#999'|Out-Null}catch{$refused=$_}
+    Check ((Test-SBError $refused 'tracker.dependency.missing') -and [string]$refused -match '#999' -and [string]$refused -match 'task ID' -and (Get-SBFileHash $trackerPath) -ceq $before) '#591: unknown #seq is refused naming the ID form, tracker bytes unchanged'
     [void](Update-SBTrackerTask @argsBase -TaskId T-1 -DependsOn ($identity+'#T-2;github.com/test/other#O-1'))
     Check ((Read-SBJson $trackerPath $null).tasks[0].dependencies.Count -eq 2) 'semicolon-separated qualified dependencies preserve managed repository identities'
     $archivePreview=Move-SBTerminalTrackerTasks -BrainRoot $brain -Identity 'github.com/test/other'
