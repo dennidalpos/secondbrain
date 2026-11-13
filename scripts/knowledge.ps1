@@ -28,6 +28,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='BackfillTaskRuns')][switch]$BackfillTaskRuns,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Stream,
     [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Awaiting,
+    [Parameter(ParameterSetName='TaskUpdate')][AllowEmptyString()][string]$Decision,
     [Parameter(ParameterSetName='TaskNew')][Parameter(ParameterSetName='TaskUpdate')][AllowEmptyCollection()][AllowEmptyString()][string[]]$Requires,
     [Parameter(Mandatory,ParameterSetName='TaskNew')][string]$Provenance,[Parameter(ParameterSetName='TaskNew')][string]$ProvenancePointer,
     [Parameter(Mandatory,ParameterSetName='Renumber')][switch]$RenumberTasks,
@@ -185,7 +186,7 @@ try{
         $repoId=if($Repository){$Repository}else{$working}
         if($repoId -cne $working){throw (New-SBError 'tracker.write.foreign' @($repoId,$working))}
         $arguments=@{TaskId=$UpdateTaskId}
-        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Description')){
+        foreach($field in @('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Decision','Requires','Description')){
             if($PSBoundParameters.ContainsKey($field)){$arguments[$field]=$PSBoundParameters[$field]}
         }
         # With pwsh -File, lists arrive as one string: ';' separates acceptance criteria; evidence is reference|outcome.

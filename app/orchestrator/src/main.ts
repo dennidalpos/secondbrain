@@ -614,6 +614,8 @@ function renderClock() {
   const end = s.finishedAt && !state.run.active ? Date.parse(s.finishedAt) : Date.now();
   $("run-elapsed").textContent = fmtDuration((end - Date.parse(s.startedAt)) / 1000);
   const w = state.run.active ? s.quotaWait : null;
+  // #564: while the run waits for the reset this row shows the resume time, under a label that names it.
+  $("run-last-label").textContent = w ? "Ripresa" : "Ultimo segnale dell'agente";
   if (w) {
     $("run-last").textContent = `Ripresa alle ${new Date(w.resumeAt).toLocaleString()} (tra ${fmtDuration(-since(w.resumeAt))}) · ${WAIT_SOURCE_LABEL[w.source] ?? w.source}` + (w.attempt > 1 ? ` · attesa n. ${w.attempt}` : "");
     return;
@@ -621,9 +623,15 @@ function renderClock() {
   const last = s.lastAgentEventAt ?? s.task?.startedAt ?? null;
   $("run-last").textContent = state.run.active && last ? `${fmtDuration(since(last))} fa` + (s.lastAgentEvent ? ` · ${s.lastAgentEvent.kind}: ${s.lastAgentEvent.summary}` : "") : s.lastAgentEvent ? `${s.lastAgentEvent.kind}: ${s.lastAgentEvent.summary}` : "—";
 }
+// One read at a time: two overlapping reads from the same offset (timer plus reattach) would show every event twice.
+let pullingEvents = false;
 async function pullEvents() {
-  if (!state.run.folder) return;
-  const r = await call<{ events: RunnerEvent[]; offset: number }>("read_run_events", { folder: state.run.folder, offset: state.run.offset });
+  if (!state.run.folder || pullingEvents) return;
+  pullingEvents = true;
+  let r: { events: RunnerEvent[]; offset: number } | null | undefined;
+  try {
+    r = await call<{ events: RunnerEvent[]; offset: number }>("read_run_events", { folder: state.run.folder, offset: state.run.offset });
+  } finally { pullingEvents = false; }
   if (!r) return;
   state.run.offset = r.offset;
   r.events.forEach(handleEvent);

@@ -131,6 +131,90 @@ try {
     Assert-Pending ($conflicted.state -eq 'conflict' -and !$conflicted.applied -and (Read-SBJson $trackerPath $null).tasks[0].status -eq 'blocked' -and (Test-Path -LiteralPath $conflict.path)) 'same-task conflict preserves the central value and request'
     $conflictReceipt=(Get-SBPendingWrites $brain|Where-Object id -eq $conflict.id).receipt
     Assert-Pending ($conflictReceipt.state -eq 'conflict' -and $conflictReceipt.error -eq 'pending.conflict' -and $conflictReceipt.result.Count -eq 0 -and $conflictReceipt.repository -eq $identity) '#466: conflict receipt carries pending.conflict and an empty result'
+    # #563: a task.new whose dependency can never resolve is terminal (invalid), not retried forever, and -DiscardPending retires it.
+    $orphanNew=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.new -Arguments @{Title='Orphan dependency';Id='';Description='';Priority='P3';Execution='autonomous';DependsOn=@('#9999');Acceptance=@('never applied');ProvenanceReference='context.md';ProvenancePointer='test'} -Config $cfg
+    $trackerBeforeOrphan=Get-SBFileHash $trackerPath
+    $orphanResult=Complete-SBPendingSubmission $orphanNew $cfg
+    $orphanEntry=@(Get-SBPendingWrites $brain|Where-Object id -eq $orphanNew.id)
+    Assert-Pending (!$orphanResult.applied -and $orphanResult.state -eq 'invalid' -and !@($orphanResult.pendingWrites.errors|Where-Object id -eq $orphanNew.id).Count -and (Get-SBFileHash $trackerPath) -eq $trackerBeforeOrphan) '#563: task.new with a missing dependency gets an invalid receipt without touching the tracker'
+    Assert-Pending ($orphanEntry.Count -eq 1 -and $orphanEntry[0].state -eq 'invalid' -and [string]$orphanEntry[0].receipt.error -and $orphanEntry[0].receipt.error -ne 'pending.conflict') '#563: the invalid receipt keeps the validation error'
+    $orphanBytes=Get-SBFileHash $orphanNew.path
+    $orphanDiscard=Invoke-PendingCli 'knowledge.ps1' @('-DiscardPending',$orphanNew.id)
+    Assert-Pending ($orphanDiscard.code -eq 0 -and $orphanDiscard.data.previousState -eq 'invalid' -and (Get-SBFileHash (Join-Path $orphanDiscard.data.archive ($orphanNew.id+'.json'))) -eq $orphanBytes -and !@(Get-SBPendingWrites $brain|Where-Object id -eq $orphanNew.id).Count -and (Test-Path -LiteralPath $conflict.path)) '#563: -DiscardPending retires the invalid task.new with its original bytes and leaves other entries in the queue'
+
+    # #588: user decision records (decisions.json) through decisions.ps1, the queue, the tracker link and MCP get_decisions.
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Decisions.psm1')
+    $decisionsPath=Join-Path $dossier 'decisions.json'
+    $decisionSchema=Read-SBText (Join-Path $PSScriptRoot '../config/decision.schema.json')
+    $emptyList=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout)
+    Assert-Pending ($emptyList.code -eq 0 -and $emptyList.data.hash -eq 'absent' -and @($emptyList.data.decisions).Count -eq 0 -and !(Test-Path -LiteralPath $decisionsPath)) '#588: listing without decisions.json is an empty read'
+    $optionsJson=ConvertTo-Json -Compress -Depth 4 -InputObject @(@{id='per-dossier';label='Per dossier';description='One lock per dossier';recommended=$true},@{id='global';label='Global';description='Keep the global lock'})
+    $openArgs=@('-CheckoutPath',$checkout,'-Open','-Kind','choice','-Question','Which lock key should the access layer use?','-OptionsJson',$optionsJson,'-Scope','task','-TaskId','T-2','-Through','structured-tool')
+    $preview=Invoke-PendingCli 'decisions.ps1' ($openArgs+@('-WhatIf'))
+    Assert-Pending ($preview.code -eq 0 -and $preview.data.preview -and $preview.data.expectedHash -eq 'absent' -and $preview.data.record.status -eq 'open' -and !(Test-Path -LiteralPath $decisionsPath)) '#588: -WhatIf shows the plan and its hashes without writing'
+    $opened=Invoke-PendingCli 'decisions.ps1' $openArgs
+    $decisionId=[string]$opened.data.decision.id
+    $stored=Read-SBJson $decisionsPath $null
+    $storedRecord=@($stored.decisions)[0]
+    Assert-Pending ($opened.code -eq 0 -and $opened.data.applied -and $decisionId -cmatch '^dec-[0-9a-f]{8}$' -and $storedRecord.status -eq 'open' -and !$storedRecord.Contains('answer') -and $storedRecord.options[0].recommended -and $storedRecord.asked.through -eq 'structured-tool') '#588: an opened decision is stored open; its recommended option is not an answer'
+    Assert-Pending ((Read-SBText $decisionsPath)|Test-Json -Schema $decisionSchema) '#588: decisions.json validates against config/decision.schema.json'
+    $badOrder=ConvertTo-Json -Compress -Depth 4 -InputObject @(@{id='a';label='A';description='first'},@{id='b';label='B';description='second';recommended=$true})
+    $refusedOrder=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Open','-Kind','choice','-Question','Order?','-OptionsJson',$badOrder,'-Scope','task','-Through','text-fallback')
+    Assert-Pending ($refusedOrder.code -eq 2 -and @((Read-SBJson $decisionsPath $null).decisions).Count -eq 1) '#588: a recommended option that is not listed first is refused'
+    $hashOpen=Get-SBFileHash $decisionsPath
+    $noChoice=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$decisionId)
+    Assert-Pending ($noChoice.code -eq 2 -and (Get-SBFileHash $decisionsPath) -eq $hashOpen) '#588: an answer without an explicit option or text is refused (no default, no recommendation taken)'
+    $aged=Read-SBJson $decisionsPath $null;@($aged.decisions)[0].asked.at=[DateTimeOffset]::UtcNow.AddYears(-2).ToString('o')
+    Put-Pending $decisionsPath (ConvertTo-SBJson $aged)
+    $agedList=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Status','open')
+    Assert-Pending ($agedList.code -eq 0 -and @($agedList.data.decisions).Count -eq 1 -and @($agedList.data.decisions)[0].status -eq 'open') '#588: a decision asked two years ago is still open (no expiry counts as an answer)'
+    foreach($fake in @('timeout','recommendation','agent')){
+        $forged=Read-SBJson $decisionsPath $null;$r=@($forged.decisions)[0];$r.status='answered';$r.answer=@{optionId='per-dossier';by=$fake;at=[DateTimeOffset]::UtcNow.ToString('o')}
+        $rejected=$false;try{Assert-SBDecisionData $forged $identity}catch{$rejected=(Test-SBError $_ 'decision.invalid')}
+        Assert-Pending $rejected ('#588: an answer by "'+$fake+'" is refused by the contract')
+    }
+    $forged=Read-SBJson $decisionsPath $null;$r=@($forged.decisions)[0];$r.status='answered';$r.answer=@{optionId='per-dossier';by='timeout';at=[DateTimeOffset]::UtcNow.ToString('o')}
+    $forgedWrite=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.save -Arguments @{relativePath='decisions.json';content=(ConvertTo-SBJson $forged)} -Expected @{hash=(Get-SBFileHash $decisionsPath)} -Config $cfg
+    $forgedResult=Complete-SBPendingSubmission $forgedWrite $cfg
+    Assert-Pending ($forgedResult.state -eq 'invalid' -and !$forgedResult.applied -and @((Read-SBJson $decisionsPath $null).decisions)[0].status -eq 'open') '#588: a queued decisions.json with a non-user answer gets an invalid receipt and is never applied'
+    [void](Move-SBPendingConflict $brain $forgedWrite.id)
+    $appendRefused=$false;try{[void](New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.append -Arguments @{relativePath='decisions.json';content='x'} -Config $cfg)}catch{$appendRefused=$true}
+    Assert-Pending $appendRefused '#588: decisions.json accepts only a whole file.save'
+    # Tracker link: awaiting=owner-consent plus extensions.decision, checked against decisions.json.
+    $linkNoAwait=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTaskId','T-2','-Decision',$decisionId)
+    $unlinked=@((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-2')[0]
+    Assert-Pending ($linkNoAwait.code -ne 0 -and !($unlinked.Contains('extensions') -and $unlinked.extensions -and $unlinked.extensions.Contains('decision'))) '#588: a decision link without awaiting=owner-consent is refused'
+    $linkMissing=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTaskId','T-2','-Awaiting','owner-consent','-Decision','dec-00000000')
+    Assert-Pending ($linkMissing.code -ne 0) '#588: a link to a decision that does not exist is refused'
+    $linked=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTaskId','T-2','-Awaiting','owner-consent','-Decision',$decisionId)
+    $linkedTask=@((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-2')[0]
+    Assert-Pending ($linked.code -eq 0 -and $linkedTask.extensions.decision -ceq $decisionId -and $linkedTask.extensions.awaiting -eq 'owner-consent') '#588: a waiting task links its open decision'
+    $wrongTask=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTaskId','T-1','-Awaiting','owner-consent','-Decision',$decisionId)
+    Assert-Pending ($wrongTask.code -ne 0) '#588: a decision tied to T-2 cannot be linked from another task'
+    $mcpOpen=(Invoke-SBMcpToolCall $brain 'get_decisions' @{repository=$identity;status='open'})|ConvertFrom-Json -AsHashtable
+    Assert-Pending (@($mcpOpen.decisions).Count -eq 1 -and @($mcpOpen.decisions)[0].id -ceq $decisionId -and $mcpOpen.hash -eq (Get-SBFileHash $decisionsPath)) '#588: MCP get_decisions reads the open decisions'
+    $answered=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$decisionId,'-Option','per-dossier')
+    $answeredRecord=@((Read-SBJson $decisionsPath $null).decisions)[0]
+    Assert-Pending ($answered.code -eq 0 -and $answeredRecord.status -eq 'answered' -and $answeredRecord.answer.optionId -eq 'per-dossier' -and $answeredRecord.answer.by -eq 'user') '#588: the user answer records the option and by=user'
+    $again=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$decisionId,'-Text','changed my mind')
+    Assert-Pending ($again.code -eq 2) '#588: an answered decision cannot be answered again'
+    $relink=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTaskId','T-2','-Decision',$decisionId)
+    Assert-Pending ($relink.code -ne 0) '#588: linking an answered decision is refused'
+    $mcpAnswered=(Invoke-SBMcpToolCall $brain 'get_decisions' @{repository=$identity;status='open'})|ConvertFrom-Json -AsHashtable
+    Assert-Pending (@($mcpAnswered.decisions).Count -eq 0) '#588: MCP status filter leaves out answered decisions'
+    # Durable decision: the answer needs a lesson, appended to memory.md with the ID.
+    $durable=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Open','-Kind','approval','-Question','Approve the shared lock policy?','-OptionsJson',(ConvertTo-Json -Compress -InputObject @(@{id='yes';label='Approve';description='Adopt it'},@{id='no';label='Reject';description='Keep the current one'})),'-Scope','durable','-Through','text-fallback')
+    $durableId=[string]$durable.data.decision.id
+    $noLesson=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$durableId,'-Option','yes')
+    Assert-Pending ($durable.code -eq 0 -and $noLesson.code -eq 2) '#588: a durable answer without a lesson is refused'
+    $lesson=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$durableId,'-Option','yes','-Lesson','Decision: one lock per dossier — Reason: dossiers do not share state')
+    Assert-Pending ($lesson.code -eq 0 -and $lesson.data.memory.applied -and (Read-SBText (Join-Path $dossier 'memory.md')).Contains('- Decision: one lock per dossier — Reason: dossiers do not share state ('+$durableId+')')) '#588: a durable answer appends one memory line citing the ID'
+    $withdrawable=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Open','-Kind','confirm','-Question','Run the migration now?','-OptionsJson',(ConvertTo-Json -Compress -InputObject @(@{id='go';label='Run';description='Run it'},@{id='wait';label='Wait';description='Later'})),'-Scope','task','-Through','structured-tool')
+    $withdrawId=[string]$withdrawable.data.decision.id
+    $withdrawn=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Withdraw',$withdrawId,'-Reason','migration no longer needed')
+    $lateAnswer=Invoke-PendingCli 'decisions.ps1' @('-CheckoutPath',$checkout,'-Answer',$withdrawId,'-Option','go')
+    Assert-Pending ($withdrawn.code -eq 0 -and @((Read-SBJson $decisionsPath $null).decisions|Where-Object id -eq $withdrawId)[0].status -eq 'withdrawn' -and $lateAnswer.code -eq 2) '#588: a withdrawn decision stays withdrawn and cannot be answered'
+    Assert-Pending ((Read-SBText $decisionsPath)|Test-Json -Schema $decisionSchema) '#588: the final decisions.json still validates against the schema'
 
     $saved=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation file.save -Arguments @{relativePath='context.md';content='Queued replacement'} -Expected @{hash=(Get-SBFileHash (Join-Path $dossier 'context.md'))} -Config $cfg
     Put-Pending (Join-Path $dossier 'context.md') 'Other agent context'
@@ -163,7 +247,7 @@ try {
         $server.StandardInput.WriteLine('{"jsonrpc":"2.0","id":3,"method":"tools/list","params":{}}');$server.StandardInput.Flush()
         $read=$server.StandardOutput.ReadLineAsync();if(!$read.Wait(60000)){throw 'MCP fixture definitions timeout'}
         $definitions=($read.Result|ConvertFrom-Json).result.tools
-        Assert-Pending ($definitions.Count -eq 12 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint})[0].name -eq 'submit_dossier_write') '#474: every MCP tool but submit_dossier_write declares readOnlyHint=true'
+        Assert-Pending ($definitions.Count -eq 13 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($definitions|Where-Object {!$_.annotations.readOnlyHint})[0].name -eq 'submit_dossier_write') '#474: every MCP tool but submit_dossier_write declares readOnlyHint=true'
     }finally{$server.StandardInput.Close();if(!$server.WaitForExit(5000)){$server.Kill();$server.WaitForExit()};$server.Dispose()}
 
     $txFirst=Join-Path $brain '.runtime/interruption-first.txt';$txSecond=Join-Path $brain '.runtime/interruption-second.txt'

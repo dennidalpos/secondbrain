@@ -14,6 +14,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Pending.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpWrites.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.RunnerStatus.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Decisions.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.PrivateAssets.psm1')
 Add-SBMessages @{
     'mcp.title.preview_dossier_write' = @{it='Anteprima scrittura dossier';en='Preview dossier write'}
     'mcp.title.submit_dossier_write' = @{it='Invia scrittura approvata';en='Submit approved write'}
@@ -39,6 +41,12 @@ Add-SBMessages @{
     'mcp.title.get_runner_status' = @{ it = 'Stato del runner'; en = 'Runner status' }
     'mcp.description.get_runner_status' = @{ it = 'Runner dei task del repository: in lavoro, possibile stallo, concluso o orfano, con gli ultimi eventi.'; en = 'Task runner of the repository: working, possibly stalled, finished or orphaned, with the latest events.' }
     'mcp.description.get_runner_status.tail' = @{ it = 'Eventi recenti (20)'; en = 'Recent events (20)' }
+    'mcp.description.list_prompts.repositoryPath' = @{ it = 'Checkout del repository: aggiunge le sue schede private'; en = 'Repository checkout: adds its private cards' }
+    'mcp.title.get_decisions' = @{ it = 'Decisioni della persona'; en = 'User decisions' }
+    'mcp.description.get_decisions' = @{ it = 'Decisioni della persona del repository (decisions.json): aperte, con risposta o ritirate. Risponde solo la persona.'; en = 'User decisions of the repository (decisions.json): open, answered or withdrawn. Only the user answers.' }
+    'mcp.description.get_decisions.status' = @{ it = 'Solo questo stato'; en = 'Only this status' }
+    'mcp.description.get_decisions.taskId' = @{ it = 'Solo le decisioni di questo task'; en = 'Only decisions of this task' }
+    'mcp.description.get_decisions.id' = @{ it = 'Una decisione (ID dec-)'; en = 'One decision (dec- ID)' }
     'mcp.pending.contract' = @{it='Sola lettura: non integra mai scritture accodate. Il recupero e solo esplicito (knowledge.ps1 -FlushPending, limitato al proprio dossier).';en='Read-only: never integrates queued writes. Recovery is explicit only (knowledge.ps1 -FlushPending, limited to the own dossier).'}
     'mcp.json.parse' = @{ it = 'Errore di parsing: {0}'; en = 'Parse error: {0}' }
     'mcp.json.request' = @{ it = 'Richiesta non valida: jsonrpc deve essere 2.0'; en = 'Invalid Request: jsonrpc must be 2.0' }
@@ -197,6 +205,7 @@ function Get-SBMcpToolDefinitions {
                     category = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.list_prompts.category') }
                     compact = @{ type = 'boolean'; description = (Get-SBMessage 'mcp.description.list_prompts.compact') }
                     language = @{ type = 'string'; enum = @('en', 'it'); description = (Get-SBMessage 'mcp.description.list_prompts.language') }
+                    repositoryPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.list_prompts.repositoryPath') }
                 }
             }
         },
@@ -258,6 +267,20 @@ function Get-SBMcpToolDefinitions {
                     tail = @{ type = 'integer'; description = (Get-SBMessage 'mcp.description.get_runner_status.tail') }
                 }
             }
+        },
+        @{
+            name = 'get_decisions'
+            description = (Get-SBMessage 'mcp.description.get_decisions')
+            inputSchema = @{
+                type = 'object'
+                properties = @{
+                    repository = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.repository') }
+                    checkoutPath = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_ready_tasks.checkoutPath') }
+                    status = @{ type = 'string'; enum = @('open', 'answered', 'withdrawn'); description = (Get-SBMessage 'mcp.description.get_decisions.status') }
+                    taskId = @{ type = 'string'; description = (Get-SBMessage 'mcp.description.get_decisions.taskId') }
+                    id = @{ type = 'string'; pattern = '^dec-[0-9a-f]{8}$'; description = (Get-SBMessage 'mcp.description.get_decisions.id') }
+                }
+            }
         }
     )
     $scopeProperties=@{repository=@{type='string';description=(Get-SBMessage 'mcp.description.get_task.repository')};checkoutPath=@{type='string';description=(Get-SBMessage 'mcp.description.get_startup_context.checkoutPath')};requestId=@{type='string';pattern='^[a-f0-9]{32}$';description=(Get-SBMessage 'mcp.write.param.requestId')}}
@@ -281,6 +304,18 @@ function Get-SBMcpToolDefinitions {
 }
 
 
+function Get-SBMcpPrivateAssets([string]$BrainRoot, $Arguments, $Catalog) {
+    # Private assets of the repository named by repositoryPath (#589); $null without repositoryPath or without a bound dossier.
+    if (!$Arguments.ContainsKey('repositoryPath') -or !$Arguments.repositoryPath) { return $null }
+    $bindings = @()
+    try { $bindings = @((Read-SBConfiguration -ReadOnly).bindings) } catch { Write-Verbose $_.Exception.Message }
+    $repo = Resolve-SBWorkingRepository ([string]$Arguments.repositoryPath) $bindings
+    if (!$repo) { return $null }
+    Assert-SBRunnerReadScope -Repository $repo
+    $dossier = $null
+    try { $dossier = Join-Path $BrainRoot (Resolve-SBWorkingDossier $BrainRoot $repo) } catch { return $null }
+    Read-SBPrivateAssets -Dossier $dossier -Repository $repo -PublicCatalog $Catalog
+}
 function Resolve-SBMcpRepository([string]$BrainRoot, $Arguments) {
     # Explicit repository, otherwise the working checkout's repository (checkoutPath argument or server current directory).
     if ($Arguments.ContainsKey('repository') -and $Arguments.repository) { Assert-SBRunnerReadScope -Repository ([string]$Arguments.repository); return [string]$Arguments.repository }
@@ -426,7 +461,11 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             $catalog = Read-SBWorkflowCatalog $BrainRoot
             $category = if ($Arguments.ContainsKey('category')) { [string]$Arguments.category } else { $null }
             $compact = $Arguments.ContainsKey('compact') -and [bool]$Arguments.compact
-            return Format-SBWorkflowList $catalog $category -Compact:$compact
+            $listing = Format-SBWorkflowList $catalog $category -Compact:$compact
+            # #589: private cards are listed only for their own repository (repositoryPath); none without it.
+            $private = Get-SBMcpPrivateAssets $BrainRoot $Arguments $catalog
+            if ($private) { $listing = $listing.TrimEnd() + "`n" + (Format-SBPrivatePromptList $private) }
+            return $listing
         }
         'get_prompt_home' {
             $homeState = if ($Arguments.ContainsKey('repositoryPath') -and $Arguments.repositoryPath) { Get-SBWorkflowState $BrainRoot ([string]$Arguments.repositoryPath) } else { $null }
@@ -437,8 +476,15 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
                 throw (New-SBError 'mcp.prompt.required')
             }
             $catalog = Read-SBWorkflowCatalog $BrainRoot
-            $resolution = Resolve-SBWorkflowPrompt $catalog ([string]$Arguments.prompt)
             $objective = if ($Arguments.ContainsKey('objective')) { [string]$Arguments.objective } else { '' }
+            # #589: a namespaced key (<repo-slug>/<name>) or a private pmt- ID resolves only in its own repository's dossier.
+            $requested = [string]$Arguments.prompt
+            if ($requested.Contains('/') -or ($requested -cmatch '^pmt-[0-9a-f]{8}$' -and !@($catalog.prompts | Where-Object { $_.id -ceq $requested }).Count)) {
+                $private = Get-SBMcpPrivateAssets $BrainRoot $Arguments $catalog
+                if (!$private) { throw (New-SBError 'private.notfound' @($requested)) }
+                return New-SBPrivatePromptComposition $private (Resolve-SBPrivatePrompt $private $requested) $objective
+            }
+            $resolution = Resolve-SBWorkflowPrompt $catalog $requested
             # With repositoryPath the composition carries that repository's context and ready tasks in next_steps; a checkout without
             # a dossier (or any context error) falls back to the standalone composition.
             $context = @{repositories=@();project=$null;sourceRegistry=$null}
@@ -489,6 +535,16 @@ function Invoke-SBMcpToolCall([string]$BrainRoot, [string]$ToolName, $Arguments)
             if ($tail -lt 0) { throw (New-SBError 'mcp.paging.invalid') }
             $config = Read-SBConfiguration -ReadOnly
             return ConvertTo-SBMcpJson (Get-SBRunnerStatus -BrainRoot $config.brainRoot -HostId $config.workstationId -Repository $repo -Tail $tail)
+        }
+        'get_decisions' {
+            # Read-only view of the repository's decisions.json (#588); a missing file is an empty list.
+            $repo = Resolve-SBMcpRepository $BrainRoot $Arguments
+            $status = if ($Arguments.ContainsKey('status') -and $Arguments.status) { [string]$Arguments.status } else { '' }
+            if ($status -and $status -cnotin @('open', 'answered', 'withdrawn')) { throw (New-SBError 'decision.invalid' @('status filter')) }
+            $decisionId = if ($Arguments.ContainsKey('id') -and $Arguments.id) { [string]$Arguments.id } else { '' }
+            $taskFilter = if ($Arguments.ContainsKey('taskId') -and $Arguments.taskId) { [string]$Arguments.taskId } else { '' }
+            $set = Read-SBDecisions (Join-Path $BrainRoot (Resolve-SBWorkingDossier $BrainRoot $repo)) $repo
+            return ConvertTo-SBMcpJson ([ordered]@{ repository = $repo; hash = $set.hash; decisions = @(Get-SBDecisionList $set.data -Status $status -TaskId $taskFilter -Id $decisionId) })
         }
         'list_ides' {
             $workspace = ''

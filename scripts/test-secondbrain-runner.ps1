@@ -318,13 +318,16 @@ switch($Mode){
     Assert-Folder @($empty.data.tasks)[0] 'empty'
 
     Close-RunnerPhase 'crash-empty'
-    # Timeout: the hung agent is killed after the minimum timeout (1 minute).
+    # Timeout: the hung agent is killed at the limit; the test-only override (#561) sets it to 5 s inside a test run
+    # while -TimeoutMinutes keeps its 1-minute minimum and stays the reported value.
+    $savedTestRoot=$env:SECONDBRAIN_TEST_ROOT
+    if(!$env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT=$fixture}
+    $env:SB_RUNNER_TEST_TIMEOUT_SECONDS='5'
     $watch=[Diagnostics.Stopwatch]::StartNew()
-    $hang=Invoke-Runner @('-Run','-MaxTasks','1','-TimeoutMinutes','1','-AgentArguments','hang')
-    $watch.Stop()
+    try{$hang=Invoke-Runner @('-Run','-MaxTasks','1','-TimeoutMinutes','1','-AgentArguments','hang')}
+    finally{$watch.Stop();Remove-Item Env:SB_RUNNER_TEST_TIMEOUT_SECONDS -ErrorAction SilentlyContinue;$env:SECONDBRAIN_TEST_ROOT=$savedTestRoot}
     Assert-Runner ($hang.code -eq 1 -and @($hang.data.tasks).Count -eq 1 -and @($hang.data.tasks)[0].state -eq 'timeout') ('hung agent ends in timeout: '+$hang.text)
-    Assert-Runner ($watch.Elapsed.TotalSeconds -lt 180) ('timeout kills the agent promptly: '+[math]::Round($watch.Elapsed.TotalSeconds,1)+' s')
-    Assert-Folder @($hang.data.tasks)[0] 'timeout'
+    Assert-Runner ($watch.Elapsed.TotalSeconds -lt 20) ('timeout phase stays under 20 s with the test-only override: '+[math]::Round($watch.Elapsed.TotalSeconds,1)+' s')    Assert-Folder @($hang.data.tasks)[0] 'timeout'
     Assert-Runner ((Get-SBFileHash $trackerPath) -ceq $hash) 'failed and timed-out runs leave the tracker unchanged'
 
     Close-RunnerPhase 'timeout'

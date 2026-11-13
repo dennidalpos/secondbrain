@@ -10,7 +10,7 @@ Il server MCP di SecondBrain usa JSON-RPC su stdio e negozia **2025-03-26**, man
 
 Una versione sconosciuta riceve `2025-03-26` come alternativa supportata; il client deve verificare di supportarla prima di proseguire. L'handshake attende la risposta a `initialize`, invia `notifications/initialized` e controlla che stdout contenga solo risposte JSON-RPC valide. Per provare un'altra versione usare `test-secondbrain-mcp-handshake.ps1 -ProtocolVersion <versione>`; il rapporto distingue versione richiesta e negoziata. Riferimento: [negoziazione MCP 2025-03-26](https://modelcontextprotocol.io/specification/2025-03-26/basic/lifecycle).
 
-I dodici strumenti espongono un titolo localizzato in `annotations.title`, secondo lo [schema MCP 2025-03-26](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.ts). Tutti gli strumenti tranne `submit_dossier_write` dichiarano `readOnlyHint=true`, `destructiveHint=false`, `idempotentHint=true` e `openWorldHint=false`: le letture non recuperano mai scritture pendenti (lo fa solo `knowledge.ps1 -FlushPending`). `submit_dossier_write` dichiara `readOnlyHint=false` e `destructiveHint=true`. Il client interpreta le annotazioni indipendentemente dalle regole di approvazione configurate dal setup. I titoli seguono la lingua della sessione server, come le descrizioni. La misura dei popup e dei consensi negli IDE reali resta distinta dalle prove stdio.
+I tredici strumenti espongono un titolo localizzato in `annotations.title`, secondo lo [schema MCP 2025-03-26](https://github.com/modelcontextprotocol/specification/blob/main/schema/2025-03-26/schema.ts). Tutti gli strumenti tranne `submit_dossier_write` dichiarano `readOnlyHint=true`, `destructiveHint=false`, `idempotentHint=true` e `openWorldHint=false`: le letture non recuperano mai scritture pendenti (lo fa solo `knowledge.ps1 -FlushPending`). `submit_dossier_write` dichiara `readOnlyHint=false` e `destructiveHint=true`. Il client interpreta le annotazioni indipendentemente dalle regole di approvazione configurate dal setup. I titoli seguono la lingua della sessione server, come le descrizioni. La misura dei popup e dei consensi negli IDE reali resta distinta dalle prove stdio.
 
 ### Garanzie di Isolamento e Sicurezza
 - **Nessuna porta di rete aperta**: la comunicazione avviene esclusivamente tramite flussi standard di input/output (**stdio**) via `pwsh` su processo locale.
@@ -259,7 +259,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | pwsh -NoProfile -File scripts/mcp-server.ps1
 ```
-*Esito atteso*: una risposta JSON valida contenente la lista dei 12 tool con schemi e proprietà.
+*Esito atteso*: una risposta JSON valida contenente la lista dei 13 tool con schemi e proprietà.
 
 ### Test 2: Ping rapido
 ```powershell
@@ -277,7 +277,7 @@ Puoi testare il server direttamente dal terminale PowerShell inviando messaggi J
 ```powershell
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1 [-Target codex,vscode|all] [-PublicationPath <repository Git>] [-ReportPath <file>]
 ```
-Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno dei 12 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 12 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
+Per ciascun IDE avvia come processo il comando che `-Pair` registra e invia `initialize`, `tools/list`, un `tools/call` per ognuno dei 13 strumenti, `prompts/list`, `resources/list` e `resources/read`. Verifica 13 strumenti esatti, risposte senza errore e uscita 0 alla chiusura di stdin; scrive un rapporto JSON in `.runtime/mcp-handshake/` (`guiVerified: false`). `get_startup_context` richiede un dossier con `context.md` e `check_publication` un checkout Git: se mancano, lo strumento è dichiarato in `skippedTools`. Il test non dimostra che l'IDE mostri gli strumenti nell'interfaccia: serve ancora il riavvio dell'IDE e il controllo visivo.
 
 ---
 

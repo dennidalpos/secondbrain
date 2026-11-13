@@ -341,6 +341,9 @@ test("busy buttons ignore a second click; a run stopped by a plan limit waits fo
   await expect(page.locator("#run-badge")).toHaveText("In attesa del ripristino");
   await expect(page.locator("#run-task")).toHaveText("In attesa del ripristino dei limiti, poi riprende da E2E-2");
   await expect(page.locator("#run-warning")).toBeVisible();
+  // #564: the interrupted attempt is not shown as a failed task, and the resume time sits under its own label.
+  await expect(page.locator("#run-counts")).toContainText("0 di 1 task (0 riusciti, 0 non riusciti)");
+  await expect(page.locator("#run-last-label")).toHaveText("Ripresa");
   const countdown = async () => {
     const m = /^Ripresa alle .+ \(tra (?:(\d+) min )?(\d+) s\)/.exec((await page.locator("#run-last").textContent()) ?? "");
     return m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : NaN;
@@ -353,6 +356,7 @@ test("busy buttons ignore a second click; a run stopped by a plan limit waits fo
   // After the reset the same task runs again and the run closes by itself.
   await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 240_000 });
   await expect(page.locator("#run-warning")).toBeHidden();
+  await expect(page.locator("#run-last-label")).toHaveText("Ultimo segnale dell'agente");
   await expect(page.locator("#run-results tr").filter({ hasText: "E2E-2" }).last()).toContainText("finished");
   expect(readTracker().tasks.find((t) => t.id === "E2E-2")?.status).toBe("in_progress");
   await closeApp(app);

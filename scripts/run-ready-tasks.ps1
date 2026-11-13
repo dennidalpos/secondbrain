@@ -56,6 +56,11 @@ if(!$AgentPath){$AgentPath=(Get-SBAgentProvider $Provider).command}
 $TaskIds=@($TaskIds|ForEach-Object {[string]$_ -split '[,;]'}|ForEach-Object {$_.Trim()}|Where-Object {$_})
 # Preflight from the IDE capability table: tasks that require computer use run only when this agent has a documented, present pre-approval.
 $allowComputerUse=Test-SBAgentUnattendedComputerUse $AgentPath
+# Test-only override (#561): inside a test run (SECONDBRAIN_TEST_ROOT set) SB_RUNNER_TEST_TIMEOUT_SECONDS (1-300) replaces the
+# per-task timeout in seconds; -TimeoutMinutes keeps its contract and is the value reported everywhere else.
+$timeoutSeconds=$TimeoutMinutes*60
+$testTimeout=0
+if($env:SECONDBRAIN_TEST_ROOT -and [int]::TryParse([string]$env:SB_RUNNER_TEST_TIMEOUT_SECONDS,[ref]$testTimeout) -and $testTimeout -ge 1 -and $testTimeout -le 300){$timeoutSeconds=$testTimeout}
 Add-SBMessages @{
     'runner.agent.missing' = @{it='Agente non trovato: {0}. Passa -AgentPath con un percorso valido o installa l agente';en='Agent not found: {0}. Pass -AgentPath with a valid path or install the agent'}
     'runner.none' = @{it='Nessun task eseguibile in autonomia';en='No task can run autonomously'}
@@ -424,7 +429,7 @@ foreach($plan in $plans){
         }
         # One process through the shared loop: every agent line is kept at once, summarized as a progress line and counted as activity.
         $agentRun=Invoke-SBAgentProcess -Executable $resolved -Arguments $AgentArguments -Prompt $prompt -WorkingDirectory $checkout -Environment $agentEnv `
-            -TimeoutSeconds ($TimeoutMinutes*60) -StallMinutes $StallMinutes -OutputLog (Join-Path $root 'agent-output.jsonl') `
+            -TimeoutSeconds $timeoutSeconds -StallMinutes $StallMinutes -OutputLog (Join-Path $root 'agent-output.jsonl') `
             -OnOutputLine {param($line)
                 $rateLimit=ConvertFrom-SBAgentRateLimitEvent $line
                 if($rateLimit){$script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state=$rateLimit.state;status=$rateLimit.status;kind=$rateLimit.kind;resetAt=$rateLimit.resetAt;observedAt=(Get-SBNow).ToString('o');source='agent'}}
@@ -484,20 +489,22 @@ foreach($plan in $plans){
         & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'work.ps1') -Repository $identity -Category report -Slug $slug -Close @configArgs|Out-Null
         $results+=$record
         $ok=($record.state -eq 'finished' -and $record.exitCode -eq 0)
-        $script:runStatus.counts.done++;if($ok){$script:runStatus.counts.succeeded++}else{$script:runStatus.counts.failed++}
+        # -WaitForReset (#564): an attempt interrupted by the plan limit is not counted while the run waits; it counts only if the run does not resume it.
+        $countLater=($stopReason -eq 'quota' -and $WaitForReset)
+        if(!$countLater){$script:runStatus.counts.done++;if($ok){$script:runStatus.counts.succeeded++}else{$script:runStatus.counts.failed++}}
         $script:runStatus.results=@($script:runStatus.results)+@([ordered]@{id=[string]$record.id;seq=$record.seq;state=$record.state;folder=$root})
         $script:runStatus.task=$null
         Show-RunnerLine 'runner.progress.done' @($position,$totalSelected,$task.seq,$record.state,$code,$record.statusBefore,$record.statusAfter,$record.seconds) @{record=$record}
-        if($stopReason -eq 'quota' -and $WaitForReset){
-            # -WaitForReset: wait for the reset, then run the same task again with the resume note; this attempt no longer counts.
+        if($countLater){
+            # Wait for the reset, then run the same task again with the resume note.
             $wait=Wait-RunnerQuotaReset $script:runStatus.quotaObserved $limit ([string]$task.id)
             if($wait -eq 'resume'){
                 $stopReason=$null;$record.retried=$true;$position--
-                $script:runStatus.counts.done--;$script:runStatus.counts.failed--
                 $script:interruptedHere=[ordered]@{id=[string]$task.id;seq=$task.seq;folder=$root}
                 Set-RunnerResumeConsumed (Join-Path $runFolder 'resume.json')
                 continue
             }
+            $script:runStatus.counts.done++;if($ok){$script:runStatus.counts.succeeded++}else{$script:runStatus.counts.failed++}
             if($wait -eq 'requested'){$stopReason='requested'}
         }
         if($stopReason){break}

@@ -58,7 +58,7 @@ try {
     foreach ($field in 'history','http','pagination','conversion','publication') {
         Assert-Tracker ($texts.it[$field] -cne $texts.en[$field]) ('localized text with stable identity: '+$field)
     }
-    Assert-Tracker (($texts.it.tools.name -join ',') -ceq ($texts.en.tools.name -join ',') -and $texts.en.tools.Count -eq 12) 'MCP localization preserves tool identities'
+    Assert-Tracker (($texts.it.tools.name -join ',') -ceq ($texts.en.tools.name -join ',') -and $texts.en.tools.Count -eq 13) 'MCP localization preserves tool identities'
     for($i=0;$i -lt $texts.it.tools.Count;$i++){
         $it=$texts.it.tools[$i];$en=$texts.en.tools[$i]
         Assert-Tracker ($it.description -cne $en.description) ('MCP tool description localized: '+$it.name)

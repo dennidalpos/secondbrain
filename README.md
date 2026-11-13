@@ -1,6 +1,6 @@
 # SecondBrain for Coding Agents
 
-![Version 2.9.0](https://img.shields.io/badge/version-2.9.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
+![Version 2.10.0](https://img.shields.io/badge/version-2.10.0-blue) ![Windows](https://img.shields.io/badge/Windows-0078D6) ![PowerShell 7.5+](https://img.shields.io/badge/PowerShell-7.5%2B-5391FE) [![CI](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/dennidalpos/secondbrain/actions/workflows/ci.yml)
 
 English · [Italiano](#italiano)
 
@@ -95,7 +95,7 @@ Setup can select repositories and supported IDE integrations interactively. MCP 
 |---|---|---|
 | Repository instructions | By default nothing is written into a newly activated repository (instructions load from the user-scope IDE text and MCP; repositories bound before 2.8.0 keep their managed files); managed AGENTS.md blocks and CLAUDE.md/GEMINI.md pointers only after an explicit `-RepositoryFiles` choice, with a guided `-ResolveBlock` for hand-edited blocks | Loading in a new agent session |
 | MCP configuration | Client-specific preview and pairing | Actual tool exposure, profile and popup behavior |
-| MCP server | Twelve tools, including runner status and reviewed dossier-write preview and submission | Client consent and the local receipt for each write |
+| MCP server | Thirteen tools, including runner status, user decisions and reviewed dossier-write preview and submission | Client consent and the local receipt for each write |
 | Memory collection | Guided envelopes, per-turn Permit CLI and a native bridge | Current implementation limits and live qualification |
 
 See [Agents and MCP](docs/ide-e-mcp.md) for client scopes. An updated file or a successful synthetic handshake does not prove that a client loaded the configuration.

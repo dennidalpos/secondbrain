@@ -2,7 +2,7 @@
 <#
 .SYNOPSIS
 Actual stdio handshake of the SecondBrain MCP server for the selected IDE configurations.
-For each IDE, starts the registered command (same command/args written by -Pair) and checks initialize, tools/list (12 tools),
+For each IDE, starts the registered command (same command/args written by -Pair) and checks initialize, tools/list (13 tools),
 tools/call for each tool, prompts/list, resources/list and resources/read. Does not cover visual verification in IDE GUIs.
 .EXAMPLE
 pwsh -NoProfile -File scripts/test-secondbrain-mcp-handshake.ps1
@@ -25,7 +25,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.McpConfig.psm1') -Force
 if (!$BrainRoot) { $BrainRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..')) }
 $BrainRoot = [IO.Path]::GetFullPath($BrainRoot)
 if (!$PublicationPath) { $PublicationPath = $BrainRoot }
-$expectedTools = @('check_publication','get_prompt','get_prompt_home','get_ready_tasks','get_runner_status','get_startup_context','get_task','list_ides','list_prompts','preview_dossier_write','search_knowledge','submit_dossier_write')
+$expectedTools = @('check_publication','get_decisions','get_prompt','get_prompt_home','get_ready_tasks','get_runner_status','get_startup_context','get_task','list_ides','list_prompts','preview_dossier_write','search_knowledge','submit_dossier_write')
 
 $failures = 0
 function Assert-Handshake([bool]$Condition, [string]$Name, [string]$Ide) {
@@ -120,7 +120,7 @@ foreach ($pairing in $pairings) {
     $checks += Assert-Handshake ($init.result.protocolVersion -ceq $expectedVersion) ("initialize: {0} negoziata come {1}" -f $ProtocolVersion,$expectedVersion) $ide
     $list = $responses[2]
     $names = if ($list -and $list.ContainsKey('result')) { @($list.result.tools | ForEach-Object { $_.name } | Sort-Object) } else { @() }
-    $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: esattamente i 12 strumenti attesi' $ide
+    $checks += Assert-Handshake (($names -join ',') -eq ($expectedTools -join ',')) 'tools/list: exactly the 13 expected tools' $ide
     # Pure reads (#474): every tool is read-only and idempotent except submit_dossier_write, which applies one reviewed request.
     $expectedAnnotations = { param($name) if ($name -eq 'submit_dossier_write') { @($false,$true,$true) } else { @($true,$false,$true) } }
     $checks += Assert-Handshake (@($list.result.tools | Where-Object { $e = & $expectedAnnotations $_.name; !$_.annotations.title -or $_.annotations.readOnlyHint -ne $e[0] -or $_.annotations.destructiveHint -ne $e[1] -or $_.annotations.idempotentHint -ne $e[2] -or $_.annotations.openWorldHint -ne $false }).Count -eq 0) 'tools/list: titoli e annotazioni coerenti con il recupero delle scritture' $ide

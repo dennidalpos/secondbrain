@@ -195,7 +195,7 @@ if('portable' -in $Groups){
     $wire=@('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}','{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}') -join "`n"
     $out=@($wire|& pwsh -NoProfile -File (Join-Path $brain 'scripts/mcp-server.ps1') -BrainRoot $brain -ConfigPath $configPath)
     $messages=@($out|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
-    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 12) 'real MCP stdio negotiates and exposes twelve tools'
+    Check ($LASTEXITCODE -eq 0 -and $messages[0].result.protocolVersion -eq '2025-03-26' -and $messages[1].result.tools.Count -eq 13) 'real MCP stdio negotiates and exposes thirteen tools'
     if($Extended){
         $candidate=Join-Path $runtime 'directive-proposal'
         Put (Join-Path $candidate 'README.md') '# Synthetic proposal'
@@ -315,7 +315,8 @@ if('portable' -in $Groups){
                     try{
                         $env:USERPROFILE=Join-Path $fixture 'team-profile'
                         [void][IO.Directory]::CreateDirectory($env:USERPROFILE)
-                        $teamOutput=(('APPLICA'|& pwsh -NoProfile -File $setupScript -Setup -Interactive -TeamRoot $loopback -Roots $teamRepo -Select $teamRepo -McpTargets cursor -NoRegisterEnvironment) -join "`n")
+                        # Answers: repository instruction files (AGENTS.md chosen explicitly; the default writes nothing, #484), then APPLICA.
+                        $teamOutput=((@('AGENTS.md','APPLICA')|& pwsh -NoProfile -File $setupScript -Setup -Interactive -TeamRoot $loopback -Roots $teamRepo -Select $teamRepo -McpTargets cursor -NoRegisterEnvironment) -join "`n")
                         $teamCode=$LASTEXITCODE
                         $team=$teamOutput.Substring($teamOutput.LastIndexOf("`n{`n")+1)|ConvertFrom-Json -AsHashtable
                         Check ($teamCode -eq 0 -and $team.applied -and $team.mode -eq 'team' -and $team.check.mode -eq 'sync' -and $team.check.filesAligned) ('one interactive command applies the team plan over loopback UNC: '+($team.check|ConvertTo-Json -Compress))
@@ -337,13 +338,15 @@ if('portable' -in $Groups){
             $preview=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $preview.mcp.preview -and $preview.mcp.targets[0].ConfigFile -eq $cursorConfig -and !(Test-Path -LiteralPath $cursorConfig)) 'setup previews the MCP destination without pairing'
             $beforeRefusal=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
-            $interactiveOutput=(('skip'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Interactive -Apply -NoRegisterEnvironment -Language en) -join "`n")
+            # Answers: repository instruction files (Enter keeps the zero-footprint default, #484), then a refusal.
+            $interactiveOutput=((@('','skip')|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Interactive -Apply -NoRegisterEnvironment -Language en) -join "`n")
             $afterRefusal=@($previewPaths|ForEach-Object {Get-SBFileHash $_})
             $activationAt=$interactiveOutput.IndexOf('Workstation activation preview')
             $previewAt=$interactiveOutput.IndexOf('User-level MCP pairing preview')
             $resultAt=$interactiveOutput.IndexOf('"stage": "preview"')
             Check ($LASTEXITCODE -eq 0 -and $activationAt -ge 0 -and $previewAt -gt $activationAt -and $resultAt -gt $previewAt -and ($beforeRefusal -join ',') -eq ($afterRefusal -join ',')) 'interactive setup previews activation and MCP and leaves files untouched on refusal'
-            $setupOutput=(('APPLICA'|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Interactive -NoRegisterEnvironment) -join "`n")
+            # Answers: repository instruction files (Enter keeps the default, #484), then APPLICA.
+            $setupOutput=((@('','APPLICA')|& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Interactive -NoRegisterEnvironment) -join "`n")
             $setup=$setupOutput.Substring($setupOutput.LastIndexOf("`n{`n")+1)|ConvertFrom-Json -AsHashtable
             Check ($LASTEXITCODE -eq 0 -and $setup.applied -and $setup.check.mode -eq 'sync' -and $setup.mcp.permissionConfigurationComplete -and [IO.File]::Exists($setup.setupReport)) 'setup applies sync, named approvals and a persistent report in an isolated profile'
             $repeat=(& pwsh -NoProfile -File $setupScript -Setup -Roots $repo -Select $repo -McpTargets cursor -Yes -Apply -NoRegisterEnvironment)|ConvertFrom-Json -AsHashtable
@@ -728,7 +731,7 @@ if('pending' -in $Groups){
     $pureTools=@(($pureMcpDefault|ConvertFrom-Json -AsHashtable).result.tools)
     Check ((Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint}).Count -eq 1 -and @($pureTools|Where-Object {!$_.annotations.readOnlyHint})[0].name -ceq 'submit_dossier_write') '#474: MCP lists tools without draining the queue; only submit_dossier_write is not read-only'
     $pureMcp=& $mcpModule {param($root) Invoke-SBMcpMessage $root @{jsonrpc='2.0';id=31;method='tools/list';params=@{_meta=@{noRecovery=$true}}}} $brain
-    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 12 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
+    Check (($pureMcp|ConvertFrom-Json -AsHashtable).result.tools.Count -eq 13 -and (Get-SBFileHash (Join-Path $dossier 'memory.md')) -ceq $memoryBefore) 'MCP request NoRecovery lists tools without draining the queue'
     [void](Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg)
     Reject {New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='T-1';DependsOn=@('T-1')} -Config $cfg} 'invalid dependency graph rejected before queuing'
     $target=Join-Path $brain 'untracked.txt';Put $target 'original';$hash=Get-SBFileHash $target

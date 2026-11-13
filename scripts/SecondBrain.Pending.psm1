@@ -8,6 +8,8 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Decisions.psm1')
+$script:SBPendingDecisionError=$null
 Add-SBMessages @{
     'pending.invalid' = @{it='Richiesta differita non valida: {0}';en='Invalid deferred request: {0}'}
     'pending.conflict' = @{it='La base della scrittura e cambiata: richiesta conservata senza sovrascrivere. Controllala con knowledge.ps1 -PendingWrites e, se superata, scartala con -DiscardPending';en='The write base changed: request preserved without overwriting. Check it with knowledge.ps1 -PendingWrites and, if outdated, discard it with -DiscardPending'}
@@ -36,7 +38,8 @@ function Resolve-SBPendingDossier([string]$BrainRoot,[string]$Repository) {
 }
 function Assert-SBPendingFile([string]$RelativePath) {
     # Generated views, arbitrary attachments, configuration and PARA metadata are excluded.
-    if($RelativePath -cnotmatch '^(?:context\.md|memory\.md|history/[a-zA-Z0-9][a-zA-Z0-9_-]*/report\.md)$'){
+    # decisions.json (#588) is written only as a whole file.save from decisions.ps1 and validated again when applied.
+    if($RelativePath -cnotmatch '^(?:context\.md|memory\.md|decisions\.json|history/[a-zA-Z0-9][a-zA-Z0-9_-]*/report\.md)$'){
         throw (New-SBError 'pending.invalid' @('relativePath'))
     }
 }
@@ -78,7 +81,7 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request.arguments -isnot [Collections.IDictionary] -or $Request.expected -isnot [Collections.IDictionary]){throw (New-SBError 'pending.invalid' @('arguments'))}
     $allowed=switch($Request.operation){
         'task.status' {@('TaskId','Status','StateReason','Evidence','Executor')}
-        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Executor')}
+        'task.update' {@('TaskId','Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Decision','Executor')}
         'task.new' {@('Title','Id','Description','Priority','Execution','DependsOn','Acceptance','ProvenanceReference','ProvenancePointer','Requires','Executor')}
         'file.save' {@('relativePath','content')}
         'file.append' {@('relativePath','content')}
@@ -88,6 +91,7 @@ function Assert-SBPendingRequest($Request,[string]$Id) {
     if($Request.operation -like 'file.*'){
         Assert-SBPendingFile $Request.arguments.relativePath
         if($Request.arguments.content -isnot [string]){throw (New-SBError 'pending.invalid' @('content'))}
+        if($Request.arguments.relativePath -ceq 'decisions.json' -and $Request.operation -ne 'file.save'){throw (New-SBError 'pending.invalid' @('decisions.json accepts only file.save'))}
         if($Request.operation -eq 'file.save' -and (!$Request.expected.ContainsKey('hash') -or $Request.expected.hash -notmatch '^(?:absent|[A-Fa-f0-9]{64})$')){throw (New-SBError 'pending.invalid' @('expected hash'))}
     }
     if($Request.operation -in @('task.status','task.update')){
@@ -309,7 +313,18 @@ function Get-SBPendingTaskPlan([string]$BrainRoot,$Request,[string]$Dossier) {
         $source=Resolve-SBParaPath $BrainRoot $Request.expected.provenancePath
         if(($Request.expected.ContainsKey('trackerHash') -and $before -ine $Request.expected.trackerHash) -or (Get-SBFileHash $source) -ine $Request.expected.provenanceHash -or
            ($Request.arguments.ContainsKey('Id') -and $Request.arguments.Id -and @($target.data.tasks|Where-Object id -eq $Request.arguments.Id).Count)){$state='conflict'}
-        else{$arguments=@{}+$Request.arguments;$candidate=New-SBTrackerTaskEntry -BrainRoot $BrainRoot -Identity $Request.repository -WorkingRepository $Request.repository @arguments -WhatIf}
+        else{
+            $arguments=@{}+$Request.arguments
+            try{$candidate=New-SBTrackerTaskEntry -BrainRoot $BrainRoot -Identity $Request.repository -WorkingRepository $Request.repository @arguments -WhatIf}
+            catch{
+                # Same rule as task.update (#563): a validation error that no retry can fix (missing dependency, schema) is terminal and
+                # becomes 'invalid', which -DiscardPending accepts; transient faults (I/O, lock, broken current graph) still rethrow.
+                $failure=$_
+                if(!(Test-SBPendingCandidateValidationError $failure)){throw}
+                Assert-SBTrackerWriteData $BrainRoot $Request.repository $target.data $target.path
+                $state='invalid';$errorCode=$failure.Exception.Message
+            }
+        }
     }
     if($state -eq 'applied'){
         $ops+=@{path=$target.path;expected=$before;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $candidate.data))}
@@ -319,12 +334,23 @@ function Get-SBPendingTaskPlan([string]$BrainRoot,$Request,[string]$Dossier) {
     @{state=$state;errorCode=$errorCode;result=$result;ops=$ops}
 }
 
+function Test-SBPendingDecisionContent($Request) {
+    # decisions.json must be file.save with valid content for the request's repository (#588); file.append is refused.
+    $script:SBPendingDecisionError=$null
+    if($Request.operation -ne 'file.save'){$script:SBPendingDecisionError='decisions.json accepts only file.save';return $false}
+    try{Assert-SBDecisionData ([string]$Request.arguments.content|ConvertFrom-Json -AsHashtable) $Request.repository;$true}
+    catch{$script:SBPendingDecisionError=$_.Exception.Message;$false}
+}
 function Get-SBPendingFilePlan($Request,[string]$Dossier) {
     # Plans a file.* request: state applied|conflict, operations (file, memory view, history index) and result keys.
     $state='applied';$result=@{};$ops=@()
     $path=Resolve-SBParaPath $Dossier $Request.arguments.relativePath
     $before=Get-SBFileHash $path
     if(($Request.operation -eq 'file.save' -or $Request.expected.ContainsKey('hash')) -and $before -ine $Request.expected.hash){$state='conflict'}
+    elseif($Request.arguments.relativePath -eq 'decisions.json' -and !(Test-SBPendingDecisionContent $Request)){
+        # A decision file that breaks the contract is terminal: never applied, discardable with -DiscardPending.
+        return @{state='invalid';errorCode=$script:SBPendingDecisionError;result=@{};ops=@()}
+    }
     else{
         $text=[string]$Request.arguments.content
         if($Request.operation -eq 'file.append' -and $before -ne 'absent'){$text=(Read-SBText $path)+$text}

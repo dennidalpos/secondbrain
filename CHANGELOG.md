@@ -2,8 +2,23 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.9.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.10.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [2.10.0] - 2026-11-13
+
+User decision records and private repository assets from the asset contracts, agent definition schema 2, and fixes to the write queue, the runner and the orchestrator.
+
+### Added
+- `scripts/decisions.ps1` (`-List`, `-Open`, `-Answer`, `-Withdraw`, `-WhatIf`) keeps the questions only the user can settle in the dossier's `decisions.json`, with the contract in `config/decision.schema.json`. Every write is one queued `file.save` with the expected hash, validated again when applied. Only the user answers: no default, no recommendation taken as an answer, no expiry. A durable answer appends one `Decision: … — Reason: …` line with its ID to `memory.md`. `knowledge.ps1 -UpdateTaskId <id> -Awaiting owner-consent -Decision dec-…` links a waiting task to its open decision (#588).
+- MCP tool `get_decisions` (read-only, 13 tools in all).
+- Private cards and workflows in a repository dossier (`prompts/catalog.json`, `prompts/<name>.md`, `workflows/<name>.json`) with `<repo-slug>/<name>` keys. `list_prompts` and `get_prompt` with `repositoryPath`, and `prompts.ps1 -List -RepositoryPath`, show them only for their repository. `build-prompts.ps1 -Check` refuses collisions with public or other-dossier assets, cross-dossier references, unsafe or too deep workflows and public files that cite a private asset; the publication scan reports `private-asset-reference`. Private workflows are validated, not run yet (#589).
+- Agent definition schema 2 in `subagents.ps1`: `agt-` ID, revision, status, cards checked against the effective mode, output contract and delegation bounds (depth 1, budget); schema 1 is still read (#587).
+
+### Fixed
+- A queued `task.new` whose dependency can never resolve now gets an `invalid` receipt that `knowledge.ps1 -DiscardPending` accepts, instead of failing at every flush (#563).
+- While the runner waits for a plan reset, the interrupted attempt is no longer counted as failed, and the orchestrator shows the resume time under its own label (#564).
+- The orchestrator no longer lists a run result twice after reattaching to a running queue.
+- The runner suite's timeout case uses a test-only override and takes about 16 s instead of 70 s (#561); interactive setup tests answer the repository-files prompt added in 2.8.0.
 ## [2.9.0] - 2026-11-13
 
 Il runner riprende da solo la coda quando i limiti del piano si ripristinano, per Claude Code, Codex e Gemini CLI; i pulsanti dell'orchestratore mostrano quando stanno lavorando.

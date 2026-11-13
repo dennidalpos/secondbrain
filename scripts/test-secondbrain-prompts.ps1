@@ -186,4 +186,79 @@ Assert-Prompts ((@(Get-SBWorkflowCommands|Where-Object command -eq 'sb stop')[0]
 foreach($word in $english){Assert-Prompts ($station.Contains($word)) "command '$word' described in the workstation text"}
 $referenced=@([regex]::Matches($global+$station+$repoBlock,'(?:COM|PRG|DEV|TST|SEC|AUD|INT|DAT|OPS|DOC|REP|GOV|MEM|SYS)\d{2}')|ForEach-Object {$_.Value}|Select-Object -Unique)
 Assert-Prompts (!(@($referenced|Where-Object {$_ -notin @($prompts.code)}).Count)) 'ogni codice prompt citato nelle direttive esiste nel catalogo'
+# #589: private repository cards and workflows in the dossier, namespaced keys, no shadowing, no public reference to them.
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.PrivateAssets.psm1') -Force
+$privateRoot=Join-Path (Get-SBTestRoot) ('private-assets-'+[guid]::NewGuid().ToString('N').Substring(0,12))
+function Write-PrivateFixture([string]$Relative,[string]$Text){$p=Join-Path $privateRoot $Relative;[IO.Directory]::CreateDirectory((Split-Path $p))|Out-Null;[IO.File]::WriteAllText($p,$Text,[Text.UTF8Encoding]::new($false))}
+function New-PrivateCardText([string]$Key,[string]$Summary){"# $Key — $($Summary.TrimEnd('.'))`n<role>`nRelease operator.`n</role>`n<context>`nSigning of this repository.`n</context>`n<inputs>`n- the package`n</inputs>`n<procedure>`n1. Build.`n2. Sign.`n</procedure>`n<constraints>`n- No publication.`n</constraints>`n<exit_criteria>`n- Signed package.`n</exit_criteria>`n<output_format>`nReport.`n</output_format>`n"}
+function New-PrivateDossier([string]$Name,[string]$Identity,$Cards,$Flows=@()){
+    foreach($sub in 'prompts','workflows'){$dir=Join-Path $privateRoot "01-projects/$Name/$sub";if(Test-Path -LiteralPath $dir){Remove-Item -LiteralPath $dir -Recurse -Force}}
+    Write-PrivateFixture "01-projects/$Name/repository.json" (ConvertTo-SBJson @{schemaVersion=1;identity=$Identity})
+    if($null -ne $Cards){
+        Write-PrivateFixture "01-projects/$Name/prompts/catalog.json" (ConvertTo-SBJson @{schemaVersion=1;repository=$Identity;prompts=@($Cards|ForEach-Object {$_.entry})})
+        foreach($card in @($Cards)){if($card.text){Write-PrivateFixture ("01-projects/$Name/prompts/"+$card.entry.file) $card.text}}
+    }
+    foreach($flow in @($Flows)){Write-PrivateFixture ("01-projects/$Name/workflows/"+(($flow.key -split '/',2)[1])+'.json') (ConvertTo-SBJson $flow)}
+}
+function New-PrivateCard([string]$Id,[string]$Key,[string]$Mode='write',[bool]$Destructive=$false,[string]$Status='active',$Related=@()){
+    $summary='Sign the release package of this repository.'
+    $entry=[ordered]@{id=$Id;key=$Key;summary=$summary;mode=$Mode;destructive=$Destructive;target='repository';revision=1;status=$Status;file=(($Key -split '/',2)[1]+'.md')}
+    if(@($Related).Count){$entry.related=@($Related)}
+    @{entry=$entry;text=(New-PrivateCardText $Key $summary)}
+}
+function Assert-PrivateRefused([scriptblock]$Action,[string]$Code,[string]$Message){$refused=$false;try{& $Action|Out-Null}catch{$refused=(Test-SBError $_ $Code)};Assert-Prompts $refused $Message}
+try{
+    $publicId=[string]$prompts[0].id
+    Write-PrivateFixture 'direttive/prompts/catalog.json' '{"schemaVersion":1}'
+    $sign=New-PrivateCard 'pmt-a0000001' 'acme-app/pkg-sign' 'write' $false 'active' @($publicId)
+    $draft=New-PrivateCard 'pmt-a0000002' 'acme-app/pkg-draft' 'read' $false 'draft'
+    $wipe=New-PrivateCard 'pmt-a0000003' 'acme-app/pkg-wipe' 'write' $true
+    $flow=[ordered]@{schemaVersion=1;id='wfl-a0000001';key='acme-app/release';title='Release';revision=1;status='active';steps=@(
+        [ordered]@{step='check';ref=$publicId;kind='required';gate='auto'},
+        [ordered]@{step='sign';ref='pmt-a0000001';kind='required';gate='confirm'},
+        [ordered]@{step='clean';ref='pmt-a0000003';kind='optional';gate='confirm'})}
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @($sign,$draft,$wipe) @($flow)
+    New-PrivateDossier 'beta' 'github.com/acme/Beta' @(New-PrivateCard 'pmt-b0000001' 'beta/notes' 'read')
+    $setA=Read-SBPrivateAssets -Dossier (Join-Path $privateRoot '01-projects/acme-app') -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog
+    Assert-Prompts (@($setA.prompts).Count -eq 3 -and @($setA.workflows).Count -eq 1 -and $setA.slug -eq 'acme-app') '#589: private cards and workflows load from the dossier with the repository slug'
+    Assert-Prompts ((Get-SBRepositorySlug 'github.com/acme/Beta') -eq 'beta') '#589: the slug is the lowercased last segment of the identity'
+    $listA=Format-SBPrivatePromptList $setA
+    Assert-Prompts ($listA.Contains('acme-app/pkg-sign') -and !$listA.Contains('acme-app/pkg-draft') -and !$listA.Contains('beta/notes') -and $listA.Contains('acme-app/release')) '#589: the listing shows only active private assets of its own repository'
+    $composed=New-SBPrivatePromptComposition $setA (Resolve-SBPrivatePrompt $setA 'acme-app/pkg-sign') 'sign 1.2'
+    Assert-Prompts ($composed.Contains('private="true"') -and $composed.Contains('Objective: sign 1.2') -and $composed.Contains('# acme-app/pkg-sign')) '#589: a private card composes by its namespaced key'
+    Assert-PrivateRefused {Resolve-SBPrivatePrompt $setA 'beta/notes'} 'private.notfound' '#589: another repository private key does not resolve here'
+    $summary=Test-SBPrivateAssets -BrainRoot $privateRoot -PublicCatalog $catalog
+    Assert-Prompts ($summary.dossiers -eq 2 -and $summary.prompts -eq 4 -and $summary.workflows -eq 1) '#589: the workstation check validates every dossier with private assets'
+    # Keys, collisions and references.
+    $bad=Join-Path $privateRoot '01-projects/acme-app'
+    $restore={New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @($sign,$draft,$wipe) @($flow)}
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @(New-PrivateCard 'pmt-a0000001' 'pkg-sign')
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.invalid' '#589: a key without the repository namespace is refused'
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @(New-PrivateCard 'pmt-a0000001' 'beta/pkg-sign')
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.invalid' '#589: a key in another repository namespace is refused'
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @(New-PrivateCard $publicId 'acme-app/pkg-sign')
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.collision' '#589: a private card reusing a public ID is a collision'
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @(New-PrivateCard 'pmt-b0000001' 'acme-app/pkg-sign')
+    Assert-PrivateRefused {Test-SBPrivateAssets -BrainRoot $privateRoot -PublicCatalog $catalog} 'private.collision' '#589: two dossiers sharing a private ID are a collision'
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @(New-PrivateCard 'pmt-a0000001' 'acme-app/pkg-sign' 'write' $false 'active' @('pmt-b0000001'))
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.reference' '#589: a private card citing another dossier private card is refused'
+    & $restore
+    $unsafe=[ordered]@{}+$flow;$unsafe.steps=@([ordered]@{step='clean';ref='pmt-a0000003';kind='required';gate='auto'})
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @($sign,$draft,$wipe) @($unsafe)
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.invalid' '#589: a destructive workflow step without a confirm gate is refused'
+    $deep1=[ordered]@{schemaVersion=1;id='wfl-a0000002';key='acme-app/outer';title='Outer';revision=1;status='active';steps=@([ordered]@{step='inner';ref='wfl-a0000003';kind='required';gate='auto'})}
+    $deep2=[ordered]@{schemaVersion=1;id='wfl-a0000003';key='acme-app/inner';title='Inner';revision=1;status='active';steps=@([ordered]@{step='deepest';ref='wfl-a0000001';kind='required';gate='auto'})}
+    New-PrivateDossier 'acme-app' 'github.com/acme/acme-app' @($sign,$draft,$wipe) @($flow,$deep1,$deep2)
+    Assert-PrivateRefused {Read-SBPrivateAssets -Dossier $bad -Repository 'github.com/acme/acme-app' -PublicCatalog $catalog} 'private.invalid' '#589: workflow nesting deeper than 2 is refused'
+    & $restore
+    # Public files never cite a private asset.
+    Write-PrivateFixture 'direttive/prompts/SYS99.md' 'See acme-app/pkg-sign for the signing steps.'
+    Assert-PrivateRefused {Test-SBPrivateAssets -BrainRoot $privateRoot -PublicCatalog $catalog} 'private.public.reference' '#589: a public card citing a private key is refused'
+    Assert-Prompts (@(Get-SBPrivateAssetTokens $privateRoot) -contains 'acme-app/pkg-sign' -and @(Find-SBPrivateReferences $privateRoot @('acme-app/pkg-sign')).Count -eq 1) '#589: the publication scan tokens include private keys and find the public reference'
+    Write-PrivateFixture 'direttive/proposals/old/proposal.md' 'Historical mention of pmt-a0000001.'
+    Remove-Item -LiteralPath (Join-Path $privateRoot 'direttive/prompts/SYS99.md') -Force
+    Assert-Prompts ((Test-SBPrivateAssets -BrainRoot $privateRoot -PublicCatalog $catalog).publicReferences -eq 0) '#589: historical proposals are excluded from the public reference rule'
+}finally{
+    if($env:SECONDBRAIN_TEST_KEEP -ne '1' -and (Test-Path -LiteralPath $privateRoot)){Remove-Item -LiteralPath $privateRoot -Recurse -Force}
+}
 'SUCCESS PROMPTS: '+$script:promptChecks+' verifiche'

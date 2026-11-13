@@ -26,7 +26,7 @@ param(
     [Parameter(ParameterSetName='List')][string]$Category,
     [Parameter(ParameterSetName='Compose')][string]$Objective,
     [Parameter(ParameterSetName='Compose')][string]$OutputPath,
-    [Parameter(ParameterSetName='Home')][Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
+    [Parameter(ParameterSetName='Home')][Parameter(ParameterSetName='List')][Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$RepositoryPath,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$Repository,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$ProjectId,
     [Parameter(ParameterSetName='Compose')][Parameter(ParameterSetName='Context')][string]$CheckoutPath,
@@ -66,7 +66,19 @@ try {
         $homeState=Get-SBWorkflowState $brain $(if($RepositoryPath){$RepositoryPath}else{(Get-Location).Path})
         Format-SBWorkflowHome $brain $catalog $homeState
     } elseif($PSCmdlet.ParameterSetName -eq 'List'){
-        Format-SBWorkflowList $catalog $Category -Compact:$Compact
+        $listing=Format-SBWorkflowList $catalog $Category -Compact:$Compact
+        # #589: with -RepositoryPath, the private cards of that repository's dossier follow the public list; never without it.
+        if($RepositoryPath){
+            Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Knowledge.psm1')
+            Import-Module (Join-Path $PSScriptRoot 'SecondBrain.PrivateAssets.psm1')
+            $listConfig=if($config){$config}else{try{Read-SBConfiguration -ReadOnly}catch{$null}}
+            $privateRepo=Resolve-SBWorkingRepository $RepositoryPath @($(if($listConfig){$listConfig.bindings}))
+            if($privateRepo){
+                $privateSet=Read-SBPrivateAssets -Dossier (Join-Path $brain (Resolve-SBWorkingDossier $brain $privateRepo)) -Repository $privateRepo -PublicCatalog $catalog
+                $listing=$listing.TrimEnd()+"`n"+(Format-SBPrivatePromptList $privateSet)
+            }
+        }
+        $listing
     } elseif($Show){
         $resolution=Resolve-SBWorkflowPrompt $catalog $Prompt
         if($resolution.warning){Write-Warning $resolution.warning}

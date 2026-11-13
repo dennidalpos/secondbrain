@@ -118,7 +118,7 @@ try {
     # Facts quoted in the public documents derive from the code (tool count, prompt count, anchors, versions).
     $toolCount=@(& (Get-Module SecondBrain.Mcp) { Get-SBMcpToolDefinitions }).Count
     $promptCount=@((ConvertFrom-Json (Read-SBText (Join-Path $productRoot 'direttive/prompts/catalog.json'))).prompts).Count
-    $numberWords=@{one=1;two=2;three=3;four=4;five=5;six=6;seven=7;eight=8;nine=9;ten=10;eleven=11;twelve=12;uno=1;due=2;tre=3;quattro=4;cinque=5;sei=6;sette=7;otto=8;nove=9;dieci=10;undici=11;dodici=12}
+    $numberWords=@{one=1;two=2;three=3;four=4;five=5;six=6;seven=7;eight=8;nine=9;ten=10;eleven=11;twelve=12;thirteen=13;uno=1;due=2;tre=3;quattro=4;cinque=5;sei=6;sette=7;otto=8;nove=9;dieci=10;undici=11;dodici=12;tredici=13}
     $docFiles=@(Get-Item -LiteralPath (Join-Path $productRoot 'README.md'))+@(Get-ChildItem -LiteralPath (Join-Path $productRoot 'docs') -Filter '*.md' -Recurse -File)
     $staleFacts=@();$brokenAnchors=@();$versionedHeadings=@()
     function Get-QuickSlugs([string]$Text){
@@ -138,7 +138,7 @@ try {
         foreach($line in $text -split "`r?`n"){
             # Counts of tools and prompts; lines about measured history, existing subsets or pre-authorizations are exempt.
             if($line -match '(?i)existing|esistenti|preautorizza|preauthoriz|measure|misurazion|erano|were '){continue}
-            foreach($m in [regex]::Matches($line,'(?i)\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|undici|dodici)(?:\s+(?:MCP|prompt))?\s+(tools?|strumenti|prompt|prompts|schede|cards)\b')){
+            foreach($m in [regex]::Matches($line,'(?i)\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|uno|due|tre|quattro|cinque|sei|sette|otto|nove|dieci|undici|dodici|tredici)(?:\s+(?:MCP|prompt))?\s+(tools?|strumenti|prompt|prompts|schede|cards)\b')){
                 $n=if($m.Groups[1].Value -match '^\d+$'){[int]$m.Groups[1].Value}else{$numberWords[$m.Groups[1].Value.ToLowerInvariant()]}
                 $kind=$m.Groups[2].Value.ToLowerInvariant()
                 if($kind -notin @('tool','tools','strumenti') -and $m.Groups[1].Value -notmatch '^\d+$'){continue}

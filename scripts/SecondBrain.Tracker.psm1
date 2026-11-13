@@ -6,6 +6,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.ComputerUse.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Decisions.psm1')
 Add-SBMessages @{
     'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions o -Evidence'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions or -Evidence' }
     'tracker.decisions.invalid' = @{ it = 'Decisioni non valide: ogni voce richiede question e answer (testo); correggere il file JSON delle decisioni'; en = 'Invalid decisions: every entry needs question and answer (text); fix the decisions JSON file' }
@@ -922,12 +923,13 @@ function Update-SBTrackerTask {
         [string]$Description,
         [string[]]$Acceptance,
         $Decisions,
+        [AllowEmptyString()][string]$Decision,
         [string]$BackupRoot,
         [switch]$WhatIf,
         [string]$WorkingRepository,
         $Executor
     )
-    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions')
+    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Decision')
     if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
     if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
     if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
@@ -963,6 +965,15 @@ function Update-SBTrackerTask {
     }
     if($PSBoundParameters.ContainsKey('Requires')){
         if($requiresList.Count){$task.extensions.requires=@($requiresList)}else{[void]$task.extensions.Remove('requires')}
+    }
+    if($PSBoundParameters.ContainsKey('Decision')){
+        # #588: a task waiting on the user points at an open decision of its own dossier (awaiting=owner-consent); empty clears the link.
+        $decisionId=$Decision.Trim()
+        if($decisionId){
+            $awaitingNow=if($task.extensions.Contains('awaiting')){[string]$task.extensions.awaiting}else{''}
+            Assert-SBDecisionLink (Split-Path $target.path) $target.identity $decisionId $TaskId $awaitingNow
+            $task.extensions.decision=$decisionId
+        }else{[void]$task.extensions.Remove('decision')}
     }
     if($PSBoundParameters.ContainsKey('DependsOn')){
         $task.dependencies=@($DependsOn|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_}|Select-Object -Unique|ForEach-Object {

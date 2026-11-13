@@ -69,7 +69,7 @@ New activity submissions are disabled unless the workstation configuration expli
 
 | Surface | Contract | Evidence |
 |---|---|---|
-| Local stdio | Twelve tools; preview, local receipt and submit | Synthetic handshake, CLI and operation fixtures |
+| Local stdio | Thirteen tools; preview, local receipt and submit | Synthetic handshake, CLI and operation fixtures |
 | Codex CLI / Claude Code | Tool discovery after restarting an owned session; local receipt required | Protocol contract only; live qualification deferred |
 | Cursor / VS Code / Windsurf / Antigravity / Claude Desktop | Same server contract where tools are exposed | Real UI, profile and approval behavior unverified |
 | Another workstation | Recovery of an authorized shared request; no reuse of another host's local receipt for a new submit | Physical multi-host/SMB qualification deferred |

@@ -2,6 +2,7 @@
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.PrivateAssets.psm1')
 Add-SBMessages @{
     'publication.reason.binary-review-required' = @{ it = 'Revisionare il contenuto binario'; en = 'Binary content review required' }
     'publication.reason.size-limit' = @{ it = 'Limite di dimensione raggiunto'; en = 'Size limit reached' }
@@ -156,6 +157,9 @@ function Test-SBPublication {
     $files=Invoke-SBGit $root @('ls-files','-z','--cached','--others','--exclude-standard') -PreserveOutput
     if($files.code -ne 0){throw (New-SBError 'publication.inventory')}
     $targetFiles = @($files.output -split "`0"|Where-Object {$_}|Sort-Object -CaseSensitive -Unique)
+    # #589: in the SecondBrain repository, public assets under direttive/ never cite a private dossier asset (ID or <repo-slug>/<key>).
+    $privateTokens=@()
+    if($BrainRoot -and (Test-SBSamePath $root $BrainRoot)){$privateTokens=@(Get-SBPrivateAssetTokens $BrainRoot)}
 
     # Index OIDs in one process, then batch type/size: no per-file rev-parse/cat-file -s.
     $indexMap=[hashtable]::new([StringComparer]::Ordinal)
@@ -188,7 +192,13 @@ function Test-SBPublication {
                 $file=Get-Item -LiteralPath $full
                 if($file.Length -le $MaxTextBytes){
                     $bytes=[IO.File]::ReadAllBytes($full)
-                    if($bytes -notcontains 0){$findings+=@(Test-SBPublicationText ([Text.Encoding]::UTF8.GetString($bytes)) $relative 'working' $allowances);$checked++}
+                    if($bytes -notcontains 0){
+                        $workingText=[Text.Encoding]::UTF8.GetString($bytes)
+                        $findings+=@(Test-SBPublicationText $workingText $relative 'working' $allowances);$checked++
+                        if($privateTokens.Count -and $relative -like 'direttive/*' -and $relative -notlike 'direttive/proposals/*'){
+                            foreach($token in $privateTokens){if($workingText.Contains($token)){$findings+=@{rule='private-asset-reference';severity='error';path=$relative;surface='working';reviewed=$false}}}
+                        }
+                    }
                     elseif(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.sha256 -eq (Get-SBHash $bytes) -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='working';reason='binary-review-required'}}
                 }
                 elseif(!@($binaryReviews|Where-Object {$_.path -ceq $relative -and $_.sha256 -eq (Get-SBFileHash $full) -and $_.reviewed -and $_.reason}).Count){$incomplete+=@{path=$relative;surface='working';reason='size-limit'}}
