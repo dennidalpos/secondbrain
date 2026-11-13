@@ -32,7 +32,7 @@ try {
     if(!(Test-Path -LiteralPath $globalPath)){'Istruzioni globali assenti: eseguire secondbrain.ps1 -Sync';exit 1}
     if(!(Test-Path -LiteralPath $mapPath)){'Mappa IDE assente: '+$mapPath+'; eseguire secondbrain.ps1 -Sync';exit 1}
     $expected=(Read-SBText $globalPath).Trim()
-    $expectedRevision=if($expected -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
+    $expectedRevision=if($expected -match 'Revisi(?:on|one) (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
     $wanted="<!-- secondbrain:global:begin -->`n"+$expected+"`n<!-- secondbrain:global:end -->"
     $map=Read-SBJson $mapPath $null
     if(!$map -or $map.schemaVersion -ne 1 -or $map.workstationId -ne $config.workstationId -or $map.ides -isnot [array]){throw (New-SBError 'idemap.map.invalid' @($mapPath))}
@@ -61,7 +61,7 @@ try {
         $text=(Read-SBText $ide.instructions) -replace "`r`n","`n"
         $block=Get-SBManagedContent $text 'global'
         $source=if($null -ne $block){$block}else{$text}
-        $found=if($source -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'assente'}
+        $found=if($source -match 'Revisi(?:on|one) (\d+(?:\.\d+)+)'){$Matches[1]}else{'assente'}
         if($null -ne $block -and $block -ceq $wanted){
             "$($ide.name): allineato (revisione $found); il file non certifica account o caricamento"
             if(!(Test-SBIDEObservation $ide (Get-SBTextHash $expected) $observations $config.brainRoot $config.workstationId)){$pending++}

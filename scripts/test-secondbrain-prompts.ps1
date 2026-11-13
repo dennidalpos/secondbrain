@@ -159,7 +159,7 @@ $repoBlock=Get-Content -Raw -Encoding utf8 (Join-Path $latest.FullName 'AGENTS.r
 Assert-Prompts ($global.Length -le 5500) ('testo comune entro 5.500 caratteri ('+$global.Length+')')
 Assert-Prompts ($station.Length -le 3200) ('testo di postazione entro 3.200 caratteri ('+$station.Length+')')
 Assert-Prompts ($repoBlock.Length -le 3200) ('blocco repository entro 3.200 caratteri ('+$repoBlock.Length+')')
-Assert-Prompts ($global -match '(?m)^Revisione \d+\.\d+ — \d{4}-\d{2}-\d{2}\.') 'riga di revisione leggibile dal registro'
+Assert-Prompts ($global -match '(?m)^Revisi(?:on|one) \d+\.\d+ — \d{4}-\d{2}-\d{2}\.') 'riga di revisione leggibile dal registro'
 $headings=[ordered]@{
     'Principi'='Principles'
     'Sicurezza e dati'='Security and data'
@@ -177,9 +177,13 @@ Assert-Prompts ($global -notmatch 'ask_question|Function Calling') 'nessun nome 
 foreach($text in $global,$station,$repoBlock){Assert-Prompts ($text -notmatch '(?<![A-Za-z0-9+.-])[A-Z]:[\/]|(?<![\w/])/(?:Users|home)/|\{\{') 'nessun percorso assoluto o segnaposto'}
 Assert-Prompts ($station.Contains('<!-- secondbrain:tracker-contract:1 -->')) 'contratto tracker presente nel testo di postazione'
 $registry=@(Get-SBWorkflowCommands|ForEach-Object {$_.command})
-foreach($command in 'sb attiva','sb controlla','sb allinea','sb compatta','sb stop','sb prompt list','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($command -in $registry) "comando '$command' nel registro"}
+$english='sb activate','sb check','sb sync','sb compact','sb stop','sb prompt list','sb prompt area AREA','sb prompt show KEY'
+foreach($command in $english){Assert-Prompts ($command -in $registry) "command '$command' in the registry"}
+# Italian verbs of revisions up to 1.2 stay resolvable as aliases for the whole major version.
+$aliases=@(Get-SBWorkflowCommands|ForEach-Object {@($_.aliases)})
+foreach($alias in 'sb attiva','sb controlla','sb allinea','sb compatta','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($alias -in $aliases -and $alias -notin $registry) "alias '$alias' kept and not primary"}
 Assert-Prompts ((@(Get-SBWorkflowCommands|Where-Object command -eq 'sb stop')[0].script) -match '-Prompt MEM09$') 'sb stop compone MEM09'
-foreach($word in 'sb attiva','sb controlla','sb allinea','sb compatta','sb stop','sb prompt list','sb prompt ambito AREA','sb prompt mostra CHIAVE'){Assert-Prompts ($station.Contains($word)) "comando '$word' descritto nel testo di postazione"}
+foreach($word in $english){Assert-Prompts ($station.Contains($word)) "command '$word' described in the workstation text"}
 $referenced=@([regex]::Matches($global+$station+$repoBlock,'(?:COM|PRG|DEV|TST|SEC|AUD|INT|DAT|OPS|DOC|REP|GOV|MEM|SYS)\d{2}')|ForEach-Object {$_.Value}|Select-Object -Unique)
 Assert-Prompts (!(@($referenced|Where-Object {$_ -notin @($prompts.code)}).Count)) 'ogni codice prompt citato nelle direttive esiste nel catalogo'
 'SUCCESS PROMPTS: '+$script:promptChecks+' verifiche'

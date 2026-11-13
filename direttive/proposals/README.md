@@ -19,5 +19,7 @@ Più proposte possono portare la stessa etichetta di revisione quando correggono
 | `2026-11-03-nonblocking-dossiers` | 1.2 o 1.3 proposta | non approvata; integra #245 con scritture differite e contratto MCP di #292 |
 | `2026-11-05-direttive-standard` | 1.0 (testo, nessun bump) | in attesa di approvazione; sezioni standard, testo ridotto, cartelle `.runtime` e sessioni |
 | `2026-11-12-contesto-snello` | 1.1 | in attesa di approvazione; direttive globali, di postazione e blocco repository ridotti, chiusura senza accumulo, tetto 25.000 |
+| `2026-11-12-sb-stop` | 1.2 | approved, active text (`sb stop` and MEM09) |
+| `2026-11-13-revision-1-3` | 1.3 | awaiting approval: English product content, prompt identity without codes, structured questions, conditional PDCA, bounded delegation, English `sb` verbs with Italian aliases |
 
 Nota su `approved.json`: il campo `authorization` riporta «dell utente» senza apostrofo. È la ricevuta dell'approvazione registrata e non si riscrive a mano (l'hash del README e la tracciabilità restano quelli approvati); viene sostituita dalla prossima approvazione con `approve-revision.ps1` (revisione 1.3, #255).

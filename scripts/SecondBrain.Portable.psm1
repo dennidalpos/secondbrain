@@ -694,7 +694,7 @@ function Get-SBIDEStaleObservation($Ide,[string]$GlobalText) {
     if(!$Ide.ContainsKey('observedHash') -or !$Ide.observedHash){return $null}
     $text=$GlobalText.Trim()
     if([string]$Ide.observedHash -ceq (Get-SBTextHash $text)){return $null}
-    $expected=if($text -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
+    $expected=if($text -match 'Revisi(?:on|one) (\d+(?:\.\d+)+)'){$Matches[1]}else{'sconosciuta'}
     $observed=if($Ide.ContainsKey('observedRevision') -and $Ide.observedRevision){[string]$Ide.observedRevision}else{'sconosciuta'}
     @{observedRevision=$observed;expectedRevision=$expected}
 }

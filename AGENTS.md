@@ -1,4 +1,4 @@
-# Istruzioni del repository: SecondBrain
+# Repository instructions: SecondBrain
 
 <!-- secondbrain:repository:begin -->
 Direttive comuni applicate: revisione **1.2** — 2026-11-12. <!-- secondbrain:source global=0552D722AEAED0A96BC7C968F6ECED2371EF292CAF1DE4734A728F13D32620B3 workstation=DBF47C4088B567FDBA1695B60D338A09D04A4106FAB5CF2B8B7BDCB775220923 -->
@@ -12,24 +12,25 @@ Repository knowledge lives in the SecondBrain dossier; code, guides, and publish
 <!-- secondbrain:repository:end -->
 
 ## Setup
-- PowerShell 7.5+ e Git su Windows; nessuna dipendenza da installare. Gli script sono in `scripts/`, i testi in `direttive/`, la documentazione in `docs/`.
-- Il clone è la radice SecondBrain: `.runtime/` (ignorata da Git) contiene configurazione, sessioni, fixture e backup della postazione.
+- PowerShell 7.5+ and Git on Windows; nothing to install. Scripts are in `scripts/`, directive and prompt texts in `direttive/`, documentation in `docs/`.
+- The clone is the SecondBrain root: `.runtime/` (Git-ignored) holds the workstation's configuration, sessions, fixtures and backups.
 
-## Verifiche
-- Rapida e pura: `pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick`; predefinita: senza opzioni; completa: `-Full`; un gruppo: `-Only quick|workflows|trackers|audit2|trace|concurrency|shared|pending|sources|external-audit|git-environment|runtime|prompts|tracker-audit|mcp-writes|runner|ide|agents|lint|cleanclone|orchestrator-e2e` (`-Full` esegue le suite extra, `tracker-audit` compreso, in parallelo come processi separati; `-Sequential` le esegue una alla volta).
-- App desktop `app/orchestrator` (Tauri 2): `npm ci` e `npm run build` (controllo TypeScript e build), `cargo test --manifest-path src-tauri/Cargo.toml`; guida in `docs/orchestratore.it.md`.
-- Prompt: `scripts/build-prompts.ps1` rigenera gli indici dal catalogo e dalle schede, `-Check` segnala lo scostamento. Non modificare a mano i `README*.md` di `direttive/prompts/`.
-- `scripts/secondbrain.ps1 -Check` e `scripts/ide-map.ps1 -Verify` verificano direttive, IDE e dossier.
-- Le fixture dei test vanno in `.runtime/hosts/<host>/repos/tests-<hash>/fixture/`; i fallimenti dell’ACL in `concurrency` dipendono dall’ambiente e non da questo repository.
+## Checks
+- Quick and pure: `pwsh -NoProfile -File scripts/test-secondbrain.ps1 -Quick`; default: no options; full: `-Full`; one group: `-Only quick|workflows|trackers|audit2|trace|concurrency|shared|pending|sources|external-audit|git-environment|runtime|prompts|tracker-audit|mcp-writes|runner|ide|agents|lint|cleanclone|orchestrator-e2e` (`-Full` runs the extra suites, `tracker-audit` included, in parallel as separate processes; `-Sequential` runs them one at a time).
+- Desktop app `app/orchestrator` (Tauri 2): `npm ci` and `npm run build` (TypeScript check and build), `cargo test --manifest-path src-tauri/Cargo.toml`; guide in `docs/orchestratore.md`.
+- Prompts: `scripts/build-prompts.ps1` regenerates the indexes from the catalog and the cards; `-Check` reports drift. Never edit the `README*.md` files in `direttive/prompts/` by hand.
+- `scripts/secondbrain.ps1 -Check` and `scripts/ide-map.ps1 -Verify` check directives, IDEs and dossiers.
+- Test fixtures go in `.runtime/hosts/<host>/repos/tests-<hash>/fixture/`; ACL failures in `concurrency` depend on the environment, not on this repository.
 
-## Stile del codice
-- PowerShell con `Set-StrictMode`, messaggi solo tramite chiavi `it`/`en` in `Add-SBMessages` (nessun `throw` o `Write-Host` con testo letterale), scritture solo con `Write-SBFile` e backup verificati.
-- Prompt in inglese (`direttive/prompts/<CODICE>.md`) con controparte italiana (`it/`); i codici sono stabili e non si riutilizzano. Aggiungi o modifica prompt con SYS11.
-- Le direttive comuni cambiano solo tramite proposta in `direttive/proposals/`, `scripts/approve-revision.ps1 -Preview` e approvazione esplicita; `VERSION` e `CHANGELOG.md` seguono la regola di versione.
+## Code style
+- PowerShell with `Set-StrictMode`; messages only through keys in `Add-SBMessages` (no `throw` or `Write-Host` with literal text); writes only with `Write-SBFile` and verified backups.
+- New product text is English: messages, help, UI, docs, prompts and diagnostics. Existing `it` message entries, Italian cards and `*.it.md` pages are removed only through the English-only tasks (#580–#586) and the reviewed removal manifest; do not add new Italian text unless a check still requires it.
+- Prompt assets follow `docs/riferimento/asset-contracts.md`: cards, workflows, agent definitions and user decisions keep immutable IDs; codes and keys are display names, renamed only with a catalog version and an alias and never reused. Scripts, the app, config and directives refer to cards by ID or role, never by code. Add or change cards with the catalog's card procedure (`sb prompt`).
+- Common directives change only through a proposal in `direttive/proposals/`, `scripts/approve-revision.ps1 -Preview` and explicit approval; managed blocks change only through their generators. `VERSION` and `CHANGELOG.md` follow the version rule.
 
-## Sicurezza
-- Nessun segreto, percorso personale o dato di account nel repository; le scansioni di pubblicazione (`scripts/publication.ps1` o MCP `check_publication`) precedono ogni push.
-- Pulizie e migrazioni di `.runtime` (`scripts/cleanup.ps1 -Migrate`, `-Regenerable`) sono in anteprima per impostazione predefinita e richiedono `-Apply` con `-Authorization` esplicita.
+## Security
+- No secrets, personal paths or account data in the repository; publication scans (`scripts/publication.ps1` or MCP `check_publication`) come before every push.
+- `.runtime` cleanups and migrations (`scripts/cleanup.ps1 -Migrate`, `-Regenerable`) preview by default and need `-Apply` with an explicit `-Authorization`.
 
-## Pull request
-- Una modifica per scopo, test pertinenti eseguiti e riportati, documentazione aggiornata; nessun commit o push senza richiesta specifica.
+## Pull requests
+- One change per purpose, relevant tests run and reported, documentation updated; no commit or push without a specific request.

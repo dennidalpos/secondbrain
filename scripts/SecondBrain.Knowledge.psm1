@@ -195,9 +195,9 @@ function Remove-SBPrivateText([string]$Text) {
 }
 # Agent view of memory.md (memory.agent.md): derived file, never edited manually. One entry per line, `- [T#id] date · scope · text`,
 # where T = D decision, G gotcha, A architecture, C constraint. Includes essential parts only; free-form historical entries are classified
-# by section title or prefix (Decisione:/Gotcha:) with date `s.d.`. The header carries the source hash: -Check verifies alignment.
+# by section title or prefix (Decision:/Decisione:/Gotcha:) with date `s.d.`. The header carries the source hash: -Check verifies alignment.
 function Get-SBAgentViewType([string]$Heading,[string]$Text) {
-    if($Text -match '^(?i)decisione\s*:'){return 'D'}
+    if($Text -match '^(?i)decisione?\s*:'){return 'D'}
     if($Text -match '^(?i)gotcha\s*:'){return 'G'}
     if($Heading -match '(?i)decision'){return 'D'}
     if($Heading -match '(?i)lesson|gotcha'){return 'G'}
@@ -210,7 +210,7 @@ function Get-SBAgentViewType([string]$Heading,[string]$Text) {
 function Get-SBMemoryViewBudget { 5000 }
 $script:SBMemoryEntryCap = 220
 function Compress-SBAgentMemoryEntry([string]$Text) {
-    $short=([regex]::Replace($Text,'\s*—\s*Motivo:[^.;]*[.;]?','')).Trim()
+    $short=([regex]::Replace($Text,'\s*—\s*(?:Motivo|Reason):[^.;]*[.;]?','')).Trim()
     if($short.Length -le $script:SBMemoryEntryCap){return $short}
     $cut=$short.Substring(0,$script:SBMemoryEntryCap)
     $space=$cut.LastIndexOf(' ')

@@ -1267,7 +1267,7 @@ function Set-SBManagedContent {
 function Get-SBApprovedDirectiveRevision([string]$BrainRoot) {
     if (!(Test-SBApproval $BrainRoot)) { return $null }
     $text = Read-SBText (Join-Path $BrainRoot 'direttive/AGENTS.global_ide.md')
-    $revision = [regex]::Match($text, '(?m)^Revisione (?<version>\d+(?:\.\d+)+) — (?<date>\d{4}-\d{2}-\d{2})\.')
+    $revision = [regex]::Match($text, '(?m)^Revisi(?:on|one) (?<version>\d+(?:\.\d+)+) — (?<date>\d{4}-\d{2}-\d{2})\.')
     if (!$revision.Success) { return $null }
     $approval = Read-SBJson (Join-Path $BrainRoot 'direttive/approved.json') @{}
     @{version=$revision.Groups['version'].Value; date=$revision.Groups['date'].Value;

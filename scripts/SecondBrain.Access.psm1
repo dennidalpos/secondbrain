@@ -4,7 +4,7 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Add-SBMessages @{
     'access.station.inactive' = @{ it = 'Postazione non attivata: eseguire la procedura di attivazione (SYS03, scripts/secondbrain.ps1 -Setup)'; en = 'Workstation not activated: run the activation procedure (SYS03, scripts/secondbrain.ps1 -Setup)' }
-    'access.config.missing' = @{ it = 'Configurazione non trovata: {0}. Esegui il Setup (sb attiva)'; en = 'Configuration not found: {0}. Run Setup (sb attiva)' }
+    'access.config.missing' = @{ it = 'Configurazione non trovata: {0}. Esegui il Setup (sb attiva)'; en = 'Configuration not found: {0}. Run Setup (sb activate)' }
     'access.brain.unreachable' = @{ it = 'Radice SecondBrain irraggiungibile: {0}. Controlla SECONDBRAIN_HOME e che la cartella esista'; en = 'SecondBrain root is unreachable: {0}. Check SECONDBRAIN_HOME and that the folder exists' }
     'access.config.chain' = @{ it = 'Catena di configurazioni migrate non valida'; en = 'Invalid chain of migrated configurations' }
     'access.config.incomplete' = @{ it = 'Configurazione portabile incompleta: {0}'; en = 'Incomplete portable configuration: {0}' }

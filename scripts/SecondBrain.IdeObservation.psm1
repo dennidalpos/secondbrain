@@ -25,7 +25,7 @@ function Find-SBIdeEntry($Map,[string]$IdeId) {
 # Package for an installed agent: what to verify in a new session and the exact receipt to produce.
 function Get-SBIdeObservationPackage($Ide,[string]$GlobalText,[string]$BrainRoot,[string]$WorkstationId) {
     $hash=Get-SBTextHash $GlobalText.Trim()
-    $revision=if($GlobalText -match 'Revisione (\d+(?:\.\d+)+)'){$Matches[1]}else{'unknown'}
+    $revision=if($GlobalText -match 'Revisi(?:on|one) (\d+(?:\.\d+)+)'){$Matches[1]}else{'unknown'}
     $evidenceDir=Join-Path ([IO.Path]::GetFullPath($BrainRoot)) ('.runtime/hosts/'+$WorkstationId+'/ide-evidence')
     $template=[ordered]@{ideId=$Ide.id;workstationId=$WorkstationId;profile=$(if($Ide.ContainsKey('profile')){$Ide.profile}else{'default'});observedAt='<ISO 8601 UTC, at most 15 minutes old>';
         observedHash=$hash;loadingVerified=$true;sessionId='<id of the NEW session>';evidencePath=(Join-Path $evidenceDir ($Ide.id+'.txt'));evidenceSha256='<sha256 of the evidence file>'}
