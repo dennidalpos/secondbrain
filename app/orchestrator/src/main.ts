@@ -4,7 +4,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
-import { $, call, el, fmtDuration, input, option, select, setError, since, baseName, type AgentCaps, type AgentStatus, type LightChoice, type Source } from "./common";
+import { $, busy, call, el, fmtDuration, onBusyClick, input, option, select, setError, since, baseName, type AgentCaps, type AgentStatus, type LightChoice, type Source } from "./common";
 import { initRegistry, showRegistry } from "./registry";
 import { analyzeMany, analyzeTask, initAnalysis, openAnalysis, storedAnalysis, verdictOf, VERDICT_LABEL } from "./analysis";
 
@@ -28,8 +28,9 @@ interface RunStatusFile {
   lastAgentEventAt: string | null; lastAgentEvent: { kind: string; summary: string; time: string } | null;
   task: { id: string; seq: number; title: string; position: number; total: number; startedAt: string; folder: string } | null;
   counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string; quota?: { state: string; source: string; resetAt?: string | null } | null;
+  quotaWait?: { resumeAt: string; source: string; since: string; attempt: number; deadline: string; taskId: string } | null;
 }
-interface RunReport { active: boolean; verdict: "working" | "stalled" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null }
+interface RunReport { active: boolean; verdict: "working" | "stalled" | "waiting" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null }
 interface EventJson { event?: string; message?: string; time?: string; record?: RunRecord; kind?: string; summary?: string; minutes?: number }
 interface RunnerEvent { line: string; json: EventJson | null }
 
@@ -53,8 +54,9 @@ const state = {
   timers: { events: 0, status: 0, clock: 0, find: 0 },
 };
 
+const WAIT_SOURCE_LABEL: Record<string, string> = { "runner-observation": "segnalato dall'agente", "codex-session": "dalle sessioni di Codex", message: "dal messaggio di limite", recheck: "orario non noto: nuovo controllo" };
 const RUN_VERDICT_LABEL: Record<string, string> = {
-  idle: "Inattivo", starting: "Avvio…", working: "In lavoro", stalled: "Possibile stallo", finished: "Concluso", orphaned: "Interrotto", none: "Inattivo",
+  idle: "Inattivo", starting: "Avvio…", working: "In lavoro", stalled: "Possibile stallo", waiting: "In attesa del ripristino", finished: "Concluso", orphaned: "Interrotto", none: "Inattivo",
 };
 const STATUS_LABEL: Record<AgentStatus, string> = { ready: "pronto", "not-found": "non installato", "not-responding": "non risponde" };
 const ORIGIN_LABEL: Record<string, string> = { path: "", search: "trovato fuori dal PATH", package: "dal pacchetto Store" };
@@ -159,12 +161,12 @@ function renderLightModelOptions() {
   }
 }
 select("s-light-provider").addEventListener("change", renderLightModelOptions);
-$("s-light-save").addEventListener("click", async () => {
+onBusyClick($("s-light-save"), async () => {
   const provider = select("s-light-provider").value;
   const s = await call<Settings>("save_light_model", { provider, model: provider ? select("s-light-model").value : "", effort: provider ? select("s-light-effort").value : "" }, "s-error");
   if (s) { state.settings = s; $("s-light-info").textContent = "Modello leggero salvato."; renderLightLabels(); }
 });
-$("s-save").addEventListener("click", async () => {
+onBusyClick($("s-save"), async () => {
   const ok = await call<Settings>("save_settings", { secondbrainHome: input("s-home").value, pwshPath: input("s-pwsh").value }, "s-error");
   if (ok) { $("s-info").textContent = "Impostazioni salvate."; state.launch = await call<Launch>("get_launch_context"); probeAgents(); }
 });
@@ -175,13 +177,13 @@ async function renderRecent() {
   $("recent-empty").hidden = list.length > 0;
   $("recent").replaceChildren(...list.map((r) => {
     const openBtn = el("button", { textContent: "Apri", disabled: !r.exists, title: r.path });
-    openBtn.addEventListener("click", () => { input("repo-path").value = r.path; loadRepository(); });
+    onBusyClick(openBtn, () => { input("repo-path").value = r.path; return loadRepository(); });
     const removeBtn = el("button", { textContent: "Rimuovi", className: "ghost", title: "Togli dall'elenco (il checkout non viene toccato)" });
     removeBtn.dataset.remove = r.path;
-    removeBtn.addEventListener("click", async () => {
+    onBusyClick(removeBtn, async () => {
       if (!confirm(`Togliere dall'elenco ${r.path}?\nIl checkout e il suo dossier non vengono toccati.`)) return;
       await call("remove_recent_repo", { path: r.path }, "repo-error");
-      renderRecent();
+      await renderRecent();
     });
     const current = r.path === state.repo;
     return el("li", { className: current ? "current" : "" },
@@ -191,7 +193,7 @@ async function renderRecent() {
       openBtn, removeBtn);
   }));
 }
-$("repo-browse").addEventListener("click", async () => {
+onBusyClick($("repo-browse"), async () => {
   const dir = await open({ directory: true, multiple: false, title: "Checkout del repository" });
   if (typeof dir === "string") input("repo-path").value = dir;
 });
@@ -201,11 +203,13 @@ input("repo-path").addEventListener("keydown", (e) => { if (e.key === "Enter") l
 async function loadRepository(): Promise<boolean> {
   const path = input("repo-path").value.trim();
   if (!path) return false;
+  // Spinner on «Carica» whoever starts the load (button, Enter, recent list, startup); a second load while one runs is ignored.
+  return (await busy($<HTMLButtonElement>("repo-load"), () => doLoadRepository(path), "Caricamento…")) ?? false;
+}
+async function doLoadRepository(path: string): Promise<boolean> {
   setError("repo-error", null);
   $("repo-info").hidden = true;
-  $<HTMLButtonElement>("repo-load").disabled = true;
-  $("repo-load").textContent = "Caricamento…";
-  try {
+  {
     const info = await call<{ repositories: { identity: string; dossier: string; tracker: string; agents: string }[] }>("resolve_repository", { path }, "repo-error");
     const repo = info?.repositories?.[0];
     if (!repo) {
@@ -229,9 +233,6 @@ async function loadRepository(): Promise<boolean> {
     updateSteps();
     await Promise.all([readDirectives(), refreshTasks(), checkExistingRun()]);
     return true;
-  } finally {
-    $<HTMLButtonElement>("repo-load").disabled = false;
-    $("repo-load").textContent = "Carica";
   }
 }
 
@@ -241,7 +242,7 @@ function setProposal(p: { proposalPath: string; proposalHash: string } | null, n
   $<HTMLButtonElement>("dir-apply").disabled = !p;
   $("dir-state").textContent = note;
 }
-$("dir-import").addEventListener("click", async () => {
+onBusyClick($("dir-import"), async () => {
   const file = await open({ multiple: false, title: "Testo delle direttive da importare", filters: [{ name: "Markdown", extensions: ["md"] }] });
   if (typeof file !== "string") return;
   const text = await call<string>("read_text_file", { path: file }, "dir-error");
@@ -253,16 +254,13 @@ $("dir-import").addEventListener("click", async () => {
 });
 // Proposal of the light model (agents.ps1 -Analyze -Kind directives, DOC06): it surveys the checkout read-only and proposes only what the
 // global block, the common block and AGENTS.md do not already say. The text reaches the editor only when the person chooses so.
-$("dir-propose").addEventListener("click", async () => {
+onBusyClick($("dir-propose"), async () => {
   const l = currentLight();
   if (!state.repo || !l) return;
-  const button = $<HTMLButtonElement>("dir-propose");
-  button.disabled = true;
   setError("dir-error", null);
   $("dir-state").textContent = `Ricognizione del repository con ${l.label}: può richiedere qualche minuto…`;
   const started = Date.now();
   const r = await call<DirectivesProposal>("analyze_directives", { repo: state.repo, provider: l.provider, model: l.model || null, effort: l.effort || null }, "dir-error");
-  button.disabled = false;
   if (!r) { $("dir-state").textContent = ""; return; }
   state.directiveProposal = r;
   $("dir-state").textContent = `Proposta pronta in ${fmtDuration((Date.now() - started) / 1000)}: rileggila e scegli se usarla.`;
@@ -294,7 +292,7 @@ function useDirectiveProposal(append: boolean) {
 $("dir-use").addEventListener("click", () => useDirectiveProposal(false));
 $("dir-append").addEventListener("click", () => useDirectiveProposal(true));
 $("dir-discard").addEventListener("click", () => { state.directiveProposal = null; $("dir-analysis").hidden = true; $("dir-state").textContent = "Proposta scartata."; });
-$("dir-reload").addEventListener("click", () => readDirectives());
+onBusyClick($("dir-reload"), () => readDirectives());
 $<HTMLTextAreaElement>("dir-text").addEventListener("input", () => { updateComposed(); if (state.proposal) setProposal(null, "Testo modificato: l'anteprima precedente non vale più."); });
 /** Repository block composed with the editor text and the characters every session loads (global + AGENTS.md outside + repository block). */
 function updateComposed() {
@@ -332,7 +330,7 @@ async function readDirectives() {
   renderLightLabels();
   setProposal(null, d.dossierDirectives ? "Testo attuale del dossier." : "Nessuna direttiva specifica nel dossier: fai proporre la struttura al modello leggero o importa un file.");
 }
-$("dir-preview").addEventListener("click", async () => {
+onBusyClick($("dir-preview"), async () => {
   if (!state.repo) return;
   setError("dir-error", null);
   $("dir-state").textContent = "Preparazione della proposta…";
@@ -345,7 +343,7 @@ $("dir-preview").addEventListener("click", async () => {
   if (r.proposal.proposalHash) setProposal({ proposalPath: r.proposal.proposalPath, proposalHash: r.proposal.proposalHash }, "Anteprima pronta: rileggila, poi approva e applica.");
   else setProposal(null, "L'anteprima non ha prodotto un hash di proposta: nessuna modifica da approvare (testo uguale all'attuale o proposta non valida, vedi l'anteprima).");
 });
-$("dir-apply").addEventListener("click", async () => {
+onBusyClick($("dir-apply"), async () => {
   if (!state.proposal) return;
   if (!confirm("Approvi la proposta esaminata e allinei il blocco gestito del repository?")) return;
   const authorization = "Approvazione nell'orchestratore desktop " + new Date().toISOString();
@@ -421,8 +419,8 @@ function renderEffortOptions() {
 select("q-model").addEventListener("change", renderEffortOptions);
 input("q-custom-on").addEventListener("change", () => { input("q-custom").hidden = !input("q-custom-on").checked; renderEffortOptions(); });
 input("q-custom").addEventListener("input", renderEffortOptions);
-$("q-reprobe").addEventListener("click", () => probeAgents());
-$("q-refresh").addEventListener("click", () => refreshTasks());
+onBusyClick($("q-reprobe"), () => probeAgents());
+onBusyClick($("q-refresh"), () => refreshTasks());
 $("q-all").addEventListener("click", () => { state.tasks.forEach((t) => state.selected.add(t.id)); renderTasks(); });
 $("q-none").addEventListener("click", () => { state.selected.clear(); renderTasks(); });
 
@@ -454,15 +452,13 @@ function renderSkipped() {
     const has = Boolean(storedAnalysis(id));
     const badge = verdict ? el("span", { className: "tag verdict-" + verdict }, VERDICT_LABEL[verdict] ?? verdict) : has ? el("span", { className: "tag" }, "analisi salvata") : "—";
     const action = el("button", { textContent: has ? "Apri" : "Analizza", disabled: (!can && !has) || state.analyzing, className: has ? "" : "accent" });
-    action.addEventListener("click", async () => {
-      action.disabled = true;
+    onBusyClick(action, async () => {
       $("q-analysis-state").textContent = has ? "" : `Analisi di ${id} con ${currentLight()?.label ?? "—"}…`;
       if (has) await openAnalysis(id); else await analyzeTask(id);
       $("q-analysis-state").textContent = "";
-      action.disabled = false;
     });
     const again = has ? el("button", { textContent: "Rifai", className: "ghost", title: "Nuova analisi da zero", disabled: !can || state.analyzing }) : "";
-    if (again) again.addEventListener("click", async () => { again.disabled = true; $("q-analysis-state").textContent = `Nuova analisi di ${id}…`; await analyzeTask(id); $("q-analysis-state").textContent = ""; });
+    if (again) onBusyClick(again, async () => { $("q-analysis-state").textContent = `Nuova analisi di ${id}…`; await analyzeTask(id); $("q-analysis-state").textContent = ""; });
     const reason = el("span", { title: s.reason }, reasonText(s.reason), s.stateReason ? el("div", { className: "muted small clamp", title: s.stateReason }, s.stateReason) : "");
     const tr = el("tr");
     [cb, s.seq != null ? String(s.seq) : "—", id, s.title ?? "", reason, badge, el("span", { className: "row-actions" }, action, again)].forEach((c) => tr.append(el("td", {}, c)));
@@ -477,7 +473,7 @@ function updateAnalyzeButton() {
   b.textContent = n ? `Analizza selezionati (${n})` : "Analizza selezionati";
 }
 input("q-show-streams").addEventListener("change", renderSkipped);
-$("q-analyze-selected").addEventListener("click", async () => {
+onBusyClick($("q-analyze-selected"), async () => {
   const ids = state.skipped.filter((s) => state.skippedSelected.has(s.id!)).map((s) => s.id!);
   if (!ids.length) return;
   state.analyzing = true;
@@ -502,7 +498,7 @@ function renderTasks() {
     return tr;
   }));
 }
-$("q-start").addEventListener("click", async () => {
+onBusyClick($("q-start"), async () => {
   if (state.run.active || state.run.starting) return selectTab("run");
   // Model, effort and defaults are read again now: the probe at window start can be stale (CLI updated or reconfigured since).
   const chosen = { model: select("q-model").value, effort: select("q-effort").value, provider: state.provider };
@@ -522,10 +518,11 @@ $("q-start").addEventListener("click", async () => {
     effort: select("q-effort").value || null,
     allowCustomModel: Boolean(custom),
     taskIds, timeoutMinutes: Number(input("q-timeout").value) || 30, stallMinutes: Number(input("q-stall").value) || 5,
+    waitForReset: input("q-wait").checked, maxWaitHours: Number(input("q-wait-hours").value) || 24,
   };
   const shownModel = request.model ?? (a.configured.model ? `predefinito della CLI (${a.configured.model})` : "predefinito della CLI");
   const shownEffort = !a.supports.effort ? "impegno non regolabile" : request.effort ?? (a.configured.effort ? `impegno predefinito (${a.configured.effort})` : "impegno predefinito");
-  if (!confirm(`Avviare ${taskIds.length} task con ${a.name} · ${shownModel} · ${shownEffort}?\nModello e impegno letti ora dalla CLI installata.\nGli agenti modificano file nel checkout; commit, push e cancellazioni sono vietati.`)) return;
+  if (!confirm(`Avviare ${taskIds.length} task con ${a.name} · ${shownModel} · ${shownEffort}?\nModello e impegno letti ora dalla CLI installata.\n${request.waitForReset ? `Al limite del piano la coda attende il ripristino (al massimo ${request.maxWaitHours} h) e riprende da sola.` : "Al limite del piano la coda si ferma (riprendibile con -Resume latest)."}\nGli agenti modificano file nel checkout; commit, push e cancellazioni sono vietati.`)) return;
   resetRunView();
   const r = await call<{ pid: number; log: string }>("start_queue", { request }, "q-error");
   if (!r) return;
@@ -596,6 +593,8 @@ function handleEvent(e: RunnerEvent) {
     case "start": $("run-warning").hidden = true; break;
     case "done": if (ev.record) addResult(ev.record); break;
     case "stalled": $("run-warning").textContent = ev.message ?? "Possibile stallo dell'agente."; $("run-warning").hidden = false; break;
+    case "quotawait": $("run-warning").textContent = ev.message ?? "Limite del piano raggiunto: attesa del ripristino."; $("run-warning").hidden = false; break;
+    case "quotaresumed": $("run-warning").hidden = true; break;
   }
 }
 function renderStatus(rep: RunReport) {
@@ -606,7 +605,7 @@ function renderStatus(rep: RunReport) {
   state.run.startedAt = s.startedAt;
   $("run-folder").textContent = rep.folder ?? s.folder ?? "—";
   $("run-counts").textContent = `${s.counts.done} di ${s.counts.total} task (${s.counts.succeeded} riusciti, ${s.counts.failed} non riusciti)` + (s.stopReason ? ` · arresto: ${s.stopReason}${!rep.active && s.finishedAt ? " (run chiuso il " + new Date(s.finishedAt).toLocaleString() + ")" : ""}` : "") + (s.quota ? ` · quota letta: ${s.quota.state}${s.quota.resetAt ? " fino a " + new Date(s.quota.resetAt).toLocaleString() : ""}` : "");
-  $("run-task").textContent = s.task ? `[${s.task.position}/${s.task.total}] #${s.task.seq} ${s.task.id} — ${s.task.title}` : rep.active ? `Fase: ${s.phase}` : "Nessun task in corso";
+  $("run-task").textContent = s.task ? `[${s.task.position}/${s.task.total}] #${s.task.seq} ${s.task.id} — ${s.task.title}` : s.quotaWait && rep.active ? `In attesa del ripristino dei limiti, poi riprende da ${s.quotaWait.taskId}` : rep.active ? `Fase: ${s.phase}` : "Nessun task in corso";
   renderClock();
 }
 function renderClock() {
@@ -614,6 +613,11 @@ function renderClock() {
   if (!s) return;
   const end = s.finishedAt && !state.run.active ? Date.parse(s.finishedAt) : Date.now();
   $("run-elapsed").textContent = fmtDuration((end - Date.parse(s.startedAt)) / 1000);
+  const w = state.run.active ? s.quotaWait : null;
+  if (w) {
+    $("run-last").textContent = `Ripresa alle ${new Date(w.resumeAt).toLocaleString()} (tra ${fmtDuration(-since(w.resumeAt))}) · ${WAIT_SOURCE_LABEL[w.source] ?? w.source}` + (w.attempt > 1 ? ` · attesa n. ${w.attempt}` : "");
+    return;
+  }
   const last = s.lastAgentEventAt ?? s.task?.startedAt ?? null;
   $("run-last").textContent = state.run.active && last ? `${fmtDuration(since(last))} fa` + (s.lastAgentEvent ? ` · ${s.lastAgentEvent.kind}: ${s.lastAgentEvent.summary}` : "") : s.lastAgentEvent ? `${s.lastAgentEvent.kind}: ${s.lastAgentEvent.summary}` : "—";
 }
@@ -671,13 +675,13 @@ async function checkExistingRun() {
   if (rep.active && rep.folder) { attachRun(rep); note("Run in corso ritrovato e riagganciato dalla finestra."); selectTab("run"); }
   else if (rep.status) renderStatus(rep);
 }
-$("run-refresh").addEventListener("click", () => pullStatus());
-$("run-stop").addEventListener("click", async () => {
+onBusyClick($("run-refresh"), () => pullStatus());
+onBusyClick($("run-stop"), async () => {
   if (!state.run.active && !state.run.starting) return setError("run-error", "Nessuna coda in esecuzione.");
   const ok = await call<boolean>("stop_queue", { repo: state.repo, force: false }, "run-error");
   if (ok) note("Arresto richiesto dalla finestra: la coda si ferma dopo il task corrente.");
 });
-$("run-abort").addEventListener("click", async () => {
+onBusyClick($("run-abort"), async () => {
   if (!state.run.active && !state.run.starting) return setError("run-error", "Nessuna coda in esecuzione.");
   if (!confirm("Interrompere subito l'agente in corso? Il task resta nello stato lasciato dall'agente.")) return;
   const ok = await call<boolean>("stop_queue", { repo: state.repo, force: true }, "run-error");
@@ -701,7 +705,7 @@ listen<{ code: number | null; pid: number; log: string; stdout: string }>("runne
 // Closing with a run in progress asks what to do; the runner itself is detached and survives the window.
 const dialog = $<HTMLDialogElement>("close-dialog");
 async function closeWindow() { await getCurrentWindow().destroy(); }
-dialog.querySelectorAll<HTMLButtonElement>("button[data-close]").forEach((b) => b.addEventListener("click", async () => {
+dialog.querySelectorAll<HTMLButtonElement>("button[data-close]").forEach((b) => onBusyClick(b, async () => {
   const action = b.dataset.close;
   if (action === "cancel") return dialog.close();
   if (action === "abort" && !confirm("Interrompere subito l'agente in corso?")) return;

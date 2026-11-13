@@ -2,7 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.8.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.9.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.9.0] - 2026-11-13
+
+Il runner riprende da solo la coda quando i limiti del piano si ripristinano, per Claude Code, Codex e Gemini CLI; i pulsanti dell'orchestratore mostrano quando stanno lavorando.
+
+### Aggiunto
+- `run-ready-tasks.ps1 -WaitForReset [-MaxWaitHours 24] [-RecheckMinutes 30] [-ResetMarginSeconds 60]`: a un arresto per quota il run resta attivo nella fase `waiting-quota`, attende il ripristino e prosegue, prima il task interrotto con la nota di ripresa. Il tentativo interrotto resta nei risultati con `retried: true` e non conta come fallimento; `resume.json` si scrive comunque e si segna come usato quando il run riprende da solo. Un ripristino oltre l'attesa massima ferma il run come prima; il file di arresto chiude subito l'attesa.
+- Orario di ripristino (`Get-SBAgentLimitReset`, `Get-SBRunnerResumeTime` in `SecondBrain.AgentAdapters.psm1`): dalla lettura della quota (`rate_limit_event` di Claude Code, file di sessione di Codex), altrimenti dal testo del limite (Claude `resets 3pm (zona)` e `…|<epoch>`, Codex `try again in …`/`at …`, quota giornaliera di Gemini a mezzanotte, ora del Pacifico), altrimenti un nuovo controllo dopo `-RecheckMinutes`. Un ripristino già passato all'inizio dell'attesa fa ripartire subito. Il limite riconosciuto riporta `resetAt`, che entra anche in `quotaObserved`.
+- Verdetto `waiting` in `runner-status.ps1` e nello strumento MCP `get_runner_status`, con `status.quotaWait` (orario di ripresa, fonte, tentativo, scadenza).
+- Orchestratore: casella «Riprendi automaticamente al ripristino dei limiti» (attiva per impostazione predefinita) con l'attesa massima in ore; la scheda Esecuzione mostra «In attesa del ripristino» con orario di ripresa e conto alla rovescia.
+- Orchestratore: ogni pulsante che avvia un lavoro mostra una rotella e ignora altri clic finché il lavoro non finisce (`busy`/`onBusyClick` in `common.ts`); lo stato attivo o disattivato resta quello deciso dalle viste.
 
 ## [2.8.0] - 2026-11-13
 

@@ -99,6 +99,10 @@
           <label>Avviso di stallo dopo (min) <input id="q-stall" type="number" min="1" max="240" value="5" /></label>
         </div>
         <div class="row">
+          <label class="inline" title="Al limite del piano il runner resta attivo, attende il ripristino e riprende dal task interrotto"><input id="q-wait" type="checkbox" checked /> Riprendi automaticamente al ripristino dei limiti</label>
+          <label class="inline">attesa massima (ore) <input id="q-wait-hours" type="number" min="1" max="168" value="24" /></label>
+        </div>
+        <div class="row">
           <label class="inline"><input id="q-custom-on" type="checkbox" /> Modello non in elenco</label>
           <input id="q-custom" type="text" placeholder="ID del modello" aria-label="Modello personalizzato" hidden />
           <span class="spacer"></span>

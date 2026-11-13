@@ -41,6 +41,26 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<
   node.append(...children);
   return node;
 }
+/** Runs fn with the button marked busy (spinner, aria-busy) until fn ends; a click while it is busy is ignored. The button's own
+ *  disabled state is left to the views, so their render functions stay the only source of it. Returns undefined when ignored. */
+export async function busy<T>(button: HTMLButtonElement, fn: () => Promise<T> | T, label?: string): Promise<T | undefined> {
+  if (button.getAttribute("aria-busy") === "true") return undefined;
+  const text = button.textContent;
+  button.setAttribute("aria-busy", "true");
+  button.classList.add("busy");
+  if (label) button.textContent = label;
+  try {
+    return await fn();
+  } finally {
+    button.removeAttribute("aria-busy");
+    button.classList.remove("busy");
+    if (label) button.textContent = text;
+  }
+}
+/** Click handler that runs through busy(): spinner on the clicked button and no second start while the first is running. */
+export function onBusyClick(button: HTMLElement, fn: () => Promise<unknown> | unknown, label?: string) {
+  button.addEventListener("click", () => { void busy(button as HTMLButtonElement, fn, label); });
+}
 export function option(value: string, label: string) { return el("option", { value, textContent: label }); }
 export function fmtDuration(seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) return "—";

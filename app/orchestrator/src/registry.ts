@@ -1,6 +1,6 @@
 // Registro: every task of the repository (active and archived) with a badge per tool that worked on it (knowledge.ps1 -Registry:
 // dossier ledger plus the runner reports of this workstation), and the history of the runner's runs (runner-status.ps1 -List).
-import { $, call, el, fmtDate, fmtDuration, input, MODE_LABEL, option, select, toolBadge, TOOL_LABEL } from "./common";
+import { $, call, el, onBusyClick, fmtDate, fmtDuration, input, MODE_LABEL, option, select, toolBadge, TOOL_LABEL } from "./common";
 
 interface RunEntry {
   recordId: string; at: string; event: string; statusBefore: string | null; statusAfter: string | null; reason?: string; source?: string;
@@ -35,7 +35,7 @@ export function initRegistry(repo: () => string) {
   input("reg-search").addEventListener("input", () => { window.clearTimeout(timer); timer = window.setTimeout(() => { page = 0; refreshRegistry(); }, 350); });
   $("reg-prev").addEventListener("click", () => { if (page > 0) { page--; refreshRegistry(); } });
   $("reg-next").addEventListener("click", () => { page++; refreshRegistry(); });
-  $("reg-refresh").addEventListener("click", () => (view === "tasks" ? refreshRegistry() : refreshRuns()));
+  onBusyClick($("reg-refresh"), () => (view === "tasks" ? refreshRegistry() : refreshRuns()));
   document.querySelectorAll<HTMLButtonElement>("[data-reg-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.regView as "tasks" | "runs")));
 }
 

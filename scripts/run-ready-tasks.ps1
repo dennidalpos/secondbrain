@@ -16,6 +16,11 @@ Codex session files, else the last observation of this workstation): exhausted w
 until the agent reports the limit. The limit is recognized only in the agent's final error envelope with per-provider texts; a transient
 rate limit is "throttled" and does not stop the run. A quota stop writes resume.json in the run folder (interrupted task, remaining queue),
 puts the interrupted task back to todo when the agent left it in_progress, and -Resume <run folder name|latest> continues from there.
+-WaitForReset keeps the run alive instead: it waits for the limit to reset (phase waiting-quota, verdict waiting) and goes on, the
+interrupted task first. The reset comes from the quota read (Claude Code rate_limit_event, Codex session files), else from the limit
+text (Get-SBAgentLimitReset: Claude "resets 3pm (zone)", Codex "try again in/at", Gemini daily quota at midnight Pacific time), else a
+recheck after -RecheckMinutes (default 30); known resets get -ResetMarginSeconds (default 60). A reset beyond -MaxWaitHours (default 24,
+counted from the first wait) stops the run as without the switch; the stop file ends the wait at once.
 -Run needs an explicit choice read from the probe at that moment: -Model and -Effort (when the CLI accepts them), or -UseCliDefault.
 Progress lines (selection, start and end of every task, the agent's steps, a heartbeat each minute, summary) go to standard error; standard output carries only the final JSON, so redirecting it to a file keeps the console readable.
 Live monitoring: with -Run the agent output is read line by line while it works (stream-json for Claude Code and Gemini CLI when the
@@ -34,7 +39,8 @@ object per line on standard error (for the desktop orchestrator). -StopFile <pat
 param([string]$CheckoutPath='.',[int]$MaxTasks=3,[ValidateRange(1,240)][int]$TimeoutMinutes=30,
     [ValidateSet('claude','codex','gemini')][string]$Provider='claude',[string]$Model,[string]$Effort,[switch]$AllowCustomModel,
     [string]$AgentPath,[string[]]$AgentArguments,[string[]]$TaskIds,[switch]$Events,[string]$StopFile,
-    [ValidateRange(0.05,240)][double]$StallMinutes=5,[string]$ConfigPath,[switch]$UseCliDefault,[string]$Resume,[switch]$Run)
+    [ValidateRange(0.05,240)][double]$StallMinutes=5,[string]$ConfigPath,[switch]$UseCliDefault,[string]$Resume,
+    [switch]$WaitForReset,[ValidateRange(1,168)][int]$MaxWaitHours=24,[ValidateRange(0.05,1440)][double]$RecheckMinutes=30,[ValidateRange(0,3600)][int]$ResetMarginSeconds=60,[switch]$Run)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
@@ -73,6 +79,9 @@ Add-SBMessages @{
     'runner.progress.limit' = @{it='  #{0}: limite rilevato ({1}): {2}';en='  #{0}: limit detected ({1}): {2}'}
     'runner.progress.resume' = @{it='Ripresa del run {0}: {1} task in coda, interrotto {2}';en='Resuming run {0}: {1} queued tasks, interrupted {2}'}
     'runner.progress.resumefile' = @{it='Punto di ripresa: {0} (riprendi con -Resume {1})';en='Resume point: {0} (resume with -Resume {1})'}
+    'runner.progress.quotawait' = @{it='Quota {0} esaurita: attesa del ripristino fino a {1} (fonte {2}), poi il run riprende';en='Quota {0} exhausted: waiting for the reset until {1} (source {2}), then the run goes on'}
+    'runner.progress.quotaresumed' = @{it='Quota {0} ripristinata ({1}): il run riprende';en='Quota {0} reset ({1}): the run goes on'}
+    'runner.progress.quotawaitlimit' = @{it='Ripristino della quota {0} previsto per {1}, oltre l attesa massima di {2} h: il run si ferma';en='Quota {0} reset expected at {1}, beyond the maximum wait of {2} h: the run stops'}
     'runner.progress.omitted' = @{it='  Opzioni non disponibili nella CLI installata e omesse: {0}';en='  Options missing from the installed CLI and left out: {0}'}
 }
 $utf8=[Text.UTF8Encoding]::new($false)
@@ -301,6 +310,7 @@ $script:runStatus=[ordered]@{
     timeoutMinutes=$TimeoutMinutes;stallMinutes=$StallMinutes;stopFile=$StopFile;folder=$runFolder
     task=$null;counts=[ordered]@{total=$totalSelected;done=0;succeeded=0;failed=0};stopReason=$null;results=@()
     resolvedModel=$null;resolvedEffort=$null;quota=$null;quotaObserved=$null;resumedFrom=$(if($script:resumeFrom){$script:resumeFrom.path}else{$null})
+    waitForReset=[bool]$WaitForReset;maxWaitHours=$(if($WaitForReset){$MaxWaitHours}else{$null});quotaWait=$null
 }
 function Read-RunnerQuota{
     # Quota read now (never reused from an earlier read): Codex session files, else the newest observation an agent reported on this workstation.
@@ -326,6 +336,37 @@ function Save-RunnerResumePoint($Interrupted,[string]$Reason,$Limit){
     [IO.File]::WriteAllText($path,(ConvertTo-SBJson $point),$utf8)
     Show-RunnerLine 'runner.progress.resumefile' @($path,$script:runStatus.runId) @{resume=$path;remaining=$remaining}
 }
+$script:waitDeadline=$null;$script:quotaWaits=0
+function Wait-RunnerQuotaReset($Quota,$Limit,[string]$TaskId){
+    # -WaitForReset: waits in this process until the plan limit resets, then reads the quota again (still exhausted: waits again).
+    # resume: go on; stop: the reset is beyond -MaxWaitHours (or the switch is off); requested: the stop file appeared during the wait.
+    if(!$WaitForReset){return 'stop'}
+    $now=Get-SBNow
+    if(!$script:waitDeadline){$script:waitDeadline=$now.AddHours($MaxWaitHours)}
+    while($true){
+        $target=Get-SBRunnerResumeTime -Quota $Quota -Limit $Limit -Now $now -RecheckMinutes $RecheckMinutes -MarginSeconds $ResetMarginSeconds
+        $resumeAt=ConvertTo-SBQuotaTime $target.resumeAt
+        if($resumeAt -gt $script:waitDeadline){Show-RunnerLine 'runner.progress.quotawaitlimit' @($Provider,$resumeAt.ToLocalTime().ToString('yyyy-MM-dd HH:mm'),$MaxWaitHours) @{resumeAt=$target.resumeAt;source=$target.source};return 'stop'}
+        $script:quotaWaits++
+        $script:runStatus.quotaWait=[ordered]@{resumeAt=$target.resumeAt;source=$target.source;since=$now.ToString('o');attempt=$script:quotaWaits;deadline=$script:waitDeadline.ToString('o');taskId=$TaskId}
+        $script:runStatus.phase='waiting-quota'
+        Show-RunnerLine 'runner.progress.quotawait' @($Provider,$resumeAt.ToLocalTime().ToString('yyyy-MM-dd HH:mm:ss'),$target.source) @{quotaWait=$script:runStatus.quotaWait}
+        while((Get-SBNow) -lt $resumeAt){
+            if($StopFile -and (Test-Path -LiteralPath $StopFile)){$script:runStatus.quotaWait=$null;Set-RunnerPhase 'init';return 'requested'}
+            Save-RunnerState
+            Start-Sleep -Milliseconds 500
+        }
+        $script:runStatus.quotaWait=$null;Set-RunnerPhase 'init'
+        $q=Read-RunnerQuota
+        if($q.state -ne 'exhausted'){Show-RunnerLine 'runner.progress.quotaresumed' @($Provider,$q.state) @{quota=$q};return 'resume'}
+        $Quota=$q;$Limit=$null;$now=Get-SBNow
+    }
+}
+function Set-RunnerResumeConsumed([string]$Path){
+    # The run resumed by itself: its own resume point is marked used, so -Resume latest does not pick it again.
+    if(!(Test-Path -LiteralPath $Path)){return}
+    try{$used=Read-SBText $Path|ConvertFrom-Json -AsHashtable -Depth 32 -DateKind String;$used.resumedBy=$script:runStatus.runId;[IO.File]::WriteAllText($Path,(ConvertTo-SBJson $used),$utf8)}catch{[void]$_}
+}
 Show-RunnerLine 'runner.progress.status' @($script:runStatusPath) @{status=$script:runStatusPath;folder=$runFolder;stopFile=$StopFile}
 $runState='failed'
 try{
@@ -338,13 +379,22 @@ if($script:resumeFrom){
     # The resume point is consumed by this run: mark it so 'latest' does not pick it again.
     try{$used=Read-SBText $script:resumeFrom.path|ConvertFrom-Json -AsHashtable -Depth 32 -DateKind String;$used.resumedBy=$script:runStatus.runId;[IO.File]::WriteAllText($script:resumeFrom.path,(ConvertTo-SBJson $used),$utf8)}catch{[void]$_}
 }
+$script:interruptedHere=$null
 foreach($plan in $plans){
     $checkout=$plan.target.path
-    foreach($task in $plan.tasks){
+    $queue=@($plan.tasks);$taskIndex=0
+    while($taskIndex -lt $queue.Count){
+        $task=$queue[$taskIndex]
         if($StopFile -and (Test-Path -LiteralPath $StopFile)){$stopReason='requested';break}
-        # Quota read before every task: exhausted with a future reset stops here (nothing started); unknown and available proceed.
+        # Quota read before every task: exhausted with a future reset stops here (nothing started), or waits for the reset with
+        # -WaitForReset; unknown and available proceed.
         $quotaNow=Read-RunnerQuota
         if($quotaNow.state -eq 'exhausted'){
+            if($WaitForReset){
+                $wait=Wait-RunnerQuotaReset $quotaNow $null ([string]$task.id)
+                if($wait -eq 'resume'){continue}
+                if($wait -eq 'requested'){$stopReason='requested';break}
+            }
             Show-RunnerLine 'runner.progress.quotaexhausted' @($Provider,$quotaNow.resetAt) @{quota=$quotaNow}
             $stopReason='quota';Save-RunnerResumePoint $null 'quota-before-start' $null;break
         }
@@ -367,8 +417,10 @@ foreach($plan in $plans){
         # The executor of this session (tool, mode, model, effort, run): the agent's tracker writes record it in the dossier ledger.
         $agentEnv['SECONDBRAIN_EXECUTOR']=(ConvertTo-Json ([ordered]@{tool=$Provider;mode='runner';model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId}) -Compress)
         $prompt=if($external){New-SBTaskRunPrompt $task $PSScriptRoot $checkout}else{New-SBTaskRunPrompt $task}
-        if($script:resumeFrom -and $script:resumeFrom.interrupted -is [hashtable] -and [string]$script:resumeFrom.interrupted.id -eq [string]$task.id){
-            $prompt+="`nRipresa: una sessione precedente su questo task si e fermata per limite di quota. Prima di tutto leggi $($script:resumeFrom.interrupted.folder) (agent-output.jsonl, report.json) e lo stato Git del checkout, conserva il lavoro gia fatto e prosegui dal punto interrotto senza ripeterlo."
+        # Resume note: the interrupted task of a -Resume, or the one this run stopped on before waiting for the reset.
+        $interrupted=if($script:interruptedHere -and [string]$script:interruptedHere.id -eq [string]$task.id){$script:interruptedHere}elseif($script:resumeFrom -and $script:resumeFrom.interrupted -is [hashtable] -and [string]$script:resumeFrom.interrupted.id -eq [string]$task.id){$script:resumeFrom.interrupted}else{$null}
+        if($interrupted){
+            $prompt+="`nRipresa: una sessione precedente su questo task si e fermata per limite di quota. Prima di tutto leggi $($interrupted.folder) (agent-output.jsonl, report.json) e lo stato Git del checkout, conserva il lavoro gia fatto e prosegui dal punto interrotto senza ripeterlo."
         }
         # One process through the shared loop: every agent line is kept at once, summarized as a progress line and counted as activity.
         $agentRun=Invoke-SBAgentProcess -Executable $resolved -Arguments $AgentArguments -Prompt $prompt -WorkingDirectory $checkout -Environment $agentEnv `
@@ -415,7 +467,8 @@ foreach($plan in $plans){
         if($limit -and $limit.state -eq 'quota'){
             $record.state='quota';$stopReason='quota'
             $prior=$script:runStatus.quotaObserved
-            $script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state='exhausted';status='limit';kind=$(if($prior){$prior.kind}else{$null});resetAt=$(if($prior -and $prior.resetAt){$prior.resetAt}else{$null});observedAt=(Get-SBNow).ToString('o');source='agent';message=$limit.message}
+            # Reset from the rate_limit_event of this session, else the time written in the limit text (Get-SBAgentLimitReset).
+            $script:runStatus.quotaObserved=[ordered]@{provider=$Provider;state='exhausted';status='limit';kind=$(if($prior){$prior.kind}else{$null});resetAt=$(if($prior -and $prior.resetAt){$prior.resetAt}elseif($limit.resetAt){$limit.resetAt}else{$null});observedAt=(Get-SBNow).ToString('o');source='agent';message=$limit.message}
             # The interrupted task goes back to todo when the agent left it in progress, so -Resume selects it again.
             if($statusAfter -eq 'in_progress'){
                 $record.requeued=Invoke-RunnerTaskUpdate @('-UpdateTaskId',[string]$task.id,'-Status','todo','-StateReason','Interrotto dal limite di quota del runner: riprendere con run-ready-tasks.ps1 -Resume latest','-CheckoutPath',$checkout)
@@ -435,11 +488,24 @@ foreach($plan in $plans){
         $script:runStatus.results=@($script:runStatus.results)+@([ordered]@{id=[string]$record.id;seq=$record.seq;state=$record.state;folder=$root})
         $script:runStatus.task=$null
         Show-RunnerLine 'runner.progress.done' @($position,$totalSelected,$task.seq,$record.state,$code,$record.statusBefore,$record.statusAfter,$record.seconds) @{record=$record}
+        if($stopReason -eq 'quota' -and $WaitForReset){
+            # -WaitForReset: wait for the reset, then run the same task again with the resume note; this attempt no longer counts.
+            $wait=Wait-RunnerQuotaReset $script:runStatus.quotaObserved $limit ([string]$task.id)
+            if($wait -eq 'resume'){
+                $stopReason=$null;$record.retried=$true;$position--
+                $script:runStatus.counts.done--;$script:runStatus.counts.failed--
+                $script:interruptedHere=[ordered]@{id=[string]$task.id;seq=$task.seq;folder=$root}
+                Set-RunnerResumeConsumed (Join-Path $runFolder 'resume.json')
+                continue
+            }
+            if($wait -eq 'requested'){$stopReason='requested'}
+        }
         if($stopReason){break}
+        $taskIndex++
     }
     if($stopReason){break}
 }
-$failed=@($results|Where-Object {$_.state -ne 'finished' -or $_.exitCode -ne 0}).Count
+$failed=@($results|Where-Object {!($_.Contains('retried') -and $_.retried) -and ($_.state -ne 'finished' -or $_.exitCode -ne 0)}).Count
 $script:runStatus.stopReason=$stopReason
 if($stopReason){Show-RunnerLine 'runner.progress.stop' @($stopReason) @{reason=$stopReason}}
 Show-RunnerLine 'runner.progress.summary' @($results.Count,($results.Count-$failed),$failed,@($skipped|Where-Object {!$_.Contains('id')}).Count)

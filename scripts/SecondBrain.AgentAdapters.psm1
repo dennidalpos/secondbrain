@@ -471,10 +471,83 @@ function Get-SBAgentLimitState {
         $m=[regex]::Match($text,$p[$kind],[Text.RegularExpressions.RegexOptions]::IgnoreCase)
         if($m.Success){
             $line=@($text -split "`r?`n"|Where-Object {$_ -match [regex]::Escape($m.Value)}|Select-Object -First 1)[0]
-            return [ordered]@{state=$(if($kind -eq 'quota'){'quota'}else{'throttled'});match=$m.Value;message=([string]$line).Trim()}
+            $reset=if($kind -eq 'quota'){Get-SBAgentLimitReset -Provider $Provider -Message $text}else{$null}
+            return [ordered]@{state=$(if($kind -eq 'quota'){'quota'}else{'throttled'});match=$m.Value;message=([string]$line).Trim();resetAt=$reset}
         }
     }
     $null
+}
+function Get-SBLimitZone([string]$Name) {
+    # IANA or Windows time zone named in a limit text; the local zone when the name is missing or unknown.
+    if($Name){try{return [TimeZoneInfo]::FindSystemTimeZoneById($Name.Trim())}catch{[void]$_}}
+    [TimeZoneInfo]::Local
+}
+function ConvertTo-SBLimitMoment([TimeZoneInfo]$Zone,[datetime]$Wall) {
+    # A wall-clock time in the given zone as an absolute moment.
+    $w=[datetime]::SpecifyKind($Wall,[DateTimeKind]::Unspecified)
+    [DateTimeOffset]::new($w,$Zone.GetUtcOffset($w))
+}
+function Get-SBAgentLimitReset {
+    # Reset time written by the agent in its limit text, as an ISO string; $null when the text does not say.
+    # Claude Code: "…limit reached|<epoch>" and "resets 3pm (Europe/Rome)" / "resets Nov 15, 3:30pm" (named zone, else local; a time
+    # already past means the next day). Codex: "try again in 2 hours 13 minutes" and "try again at 3:15 PM" (local).
+    # Gemini daily quota: the next midnight Pacific time, when Google resets daily quotas.
+    param([Parameter(Mandatory)][string]$Provider,[string]$Message,[DateTimeOffset]$Now=(Get-SBNow))
+    $text=[string]$Message
+    $ic=[Text.RegularExpressions.RegexOptions]::IgnoreCase
+    $m=[regex]::Match($text,'limit reached\|(\d{9,11})\b',$ic)
+    if($m.Success){try{$t=[DateTimeOffset]::FromUnixTimeSeconds([long]$m.Groups[1].Value);if($t -gt $Now){return $t.ToString('o')}}catch{[void]$_}}
+    $m=[regex]::Match($text,'(?:try again|retry|resets?) in\s+((?:\d+(?:\.\d+)?\s*(?:days?|d|hours?|hrs?|h|minutes?|mins?|m|seconds?|secs?|s)\b[\s,and]*)+)',$ic)
+    if($m.Success){
+        $span=[TimeSpan]::Zero
+        foreach($p in [regex]::Matches($m.Groups[1].Value,'(\d+(?:\.\d+)?)\s*([a-z]+)',$ic)){
+            $n=[double]::Parse($p.Groups[1].Value,[Globalization.CultureInfo]::InvariantCulture)
+            $span+=switch -Regex ($p.Groups[2].Value.ToLowerInvariant()){'^d'{[TimeSpan]::FromDays($n)}'^h'{[TimeSpan]::FromHours($n)}'^m'{[TimeSpan]::FromMinutes($n)}default{[TimeSpan]::FromSeconds($n)}}
+        }
+        if($span -gt [TimeSpan]::Zero){return $Now.Add($span).ToString('o')}
+    }
+    $m=[regex]::Match($text,'(?:resets?|try again at|reset at)\s+(?:(?<mon>[A-Z][a-z]{2})[a-z]*\.?\s+(?<day>\d{1,2})(?:st|nd|rd|th)?,?\s+(?:at\s+)?)?(?<h>\d{1,2})(?::(?<mi>\d{2}))?\s*(?<ap>[ap]\.?m\.?)(?:\s*\((?<tz>[^)]+)\))?',$ic)
+    if($m.Success){
+        $zone=Get-SBLimitZone $m.Groups['tz'].Value
+        $h=[int]$m.Groups['h'].Value % 12;if($m.Groups['ap'].Value -match '^p'){$h+=12}
+        $mi=if($m.Groups['mi'].Success){[int]$m.Groups['mi'].Value}else{0}
+        $localNow=[TimeZoneInfo]::ConvertTime($Now,$zone)
+        if($m.Groups['mon'].Success){
+            try{
+                $month=[datetime]::ParseExact($m.Groups['mon'].Value.Substring(0,3),'MMM',[Globalization.CultureInfo]::InvariantCulture).Month
+                $t=ConvertTo-SBLimitMoment $zone ([datetime]::new($localNow.Year,$month,[int]$m.Groups['day'].Value,$h,$mi,0))
+                if($t -lt $Now.AddDays(-1)){$t=ConvertTo-SBLimitMoment $zone ([datetime]::new($localNow.Year+1,$month,[int]$m.Groups['day'].Value,$h,$mi,0))}
+                if($t -gt $Now){return $t.ToString('o')}
+            }catch{[void]$_}
+        }else{
+            $t=ConvertTo-SBLimitMoment $zone ($localNow.Date.AddHours($h).AddMinutes($mi))
+            if($t -le $Now){$t=ConvertTo-SBLimitMoment $zone ($localNow.Date.AddDays(1).AddHours($h).AddMinutes($mi))}
+            return $t.ToString('o')
+        }
+    }
+    if($Provider -eq 'gemini'){
+        $zone=Get-SBLimitZone 'America/Los_Angeles'
+        return (ConvertTo-SBLimitMoment $zone ([TimeZoneInfo]::ConvertTime($Now,$zone).Date.AddDays(1))).ToString('o')
+    }
+    $null
+}
+function Get-SBRunnerResumeTime {
+    # When a runner waiting on a plan limit tries again: the reset read from the quota (rate_limit_event, Codex session files), else the
+    # reset written in the limit text, else a recheck after -RecheckMinutes. Known resets get -MarginSeconds on top; a known reset already
+    # reached (the agent kept working after its rate_limit_event) means trying again once the margin from that reset has passed.
+    param($Quota,$Limit,[DateTimeOffset]$Now=(Get-SBNow),[double]$RecheckMinutes=30,[int]$MarginSeconds=60)
+    $reached=$null
+    foreach($c in @(@{value=$(if($Quota){$Quota['resetAt']});source=$(if($Quota -and $Quota['source']){[string]$Quota['source']}else{'quota'})},@{value=$(if($Limit){$Limit['resetAt']});source='message'})){
+        if(!$c.value){continue}
+        try{$t=ConvertTo-SBQuotaTime $c.value}catch{continue}
+        if($t -gt $Now){return [ordered]@{resumeAt=$t.AddSeconds($MarginSeconds).ToString('o');source=$c.source}}
+        if(!$reached){$reached=@{at=$t;source=$c.source}}
+    }
+    if($reached){
+        $at=$reached.at.AddSeconds($MarginSeconds);if($at -lt $Now){$at=$Now}
+        return [ordered]@{resumeAt=$at.ToString('o');source=$reached.source}
+    }
+    [ordered]@{resumeAt=$Now.AddMinutes($RecheckMinutes).ToString('o');source='recheck'}
 }
 function Read-SBCodexRateLimits {
     # The last rate_limits record Codex wrote in its session files (CODEX_HOME/sessions/yyyy/MM/dd/rollout-*.jsonl, newest first):
@@ -633,4 +706,4 @@ function Test-SBAgentStructuredOutput([string]$Json,[string]$SchemaText) {
     $ok=Test-Json -Json $Json -Schema $SchemaText -ErrorAction SilentlyContinue -ErrorVariable errs
     @{valid=[bool]$ok;errors=@(@($errs)|ForEach-Object {[string]$_.Exception.Message}|Where-Object {$_}|Select-Object -First 8)}
 }
-Export-ModuleMember -Function @('Invoke-SBAgentProcess','ConvertFrom-SBAgentStructuredOutput','Test-SBAgentStructuredOutput','Get-SBJsonObjectText','Test-SBAgentFlagAvailable','Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentLimitPatterns','ConvertFrom-SBAgentRateLimitEvent','Get-SBAgentErrorText','Get-SBAgentLimitState','Read-SBCodexRateLimits','Get-SBAgentQuota')
+Export-ModuleMember -Function @('Invoke-SBAgentProcess','Get-SBAgentLimitReset','Get-SBRunnerResumeTime','ConvertTo-SBQuotaTime','ConvertFrom-SBAgentStructuredOutput','Test-SBAgentStructuredOutput','Get-SBJsonObjectText','Test-SBAgentFlagAvailable','Get-SBAgentProviderIds','Get-SBAgentProvider','Get-SBAgentProviderForPath','Get-SBAgentSearchDirectories','Find-SBAgentInDirectories','Get-SBAgentPackageExecutable','Get-SBAgentProcessPath','Resolve-SBAgentExecutable','Invoke-SBAgentProbeCommand','Get-SBAgentVersion','Get-SBAgentHelpFlags','ConvertFrom-SBAgentHelp','Read-SBCodexModelsCache','Read-SBAgentConfigured','Get-SBAgentConfigPaths','Read-SBAgentModelTable','Get-SBAgentCapabilities','Get-SBAgentCapabilitiesAll','Test-SBAgentSelection','New-SBAgentInvocation','Get-SBAgentLimitPatterns','ConvertFrom-SBAgentRateLimitEvent','Get-SBAgentErrorText','Get-SBAgentLimitState','Read-SBCodexRateLimits','Get-SBAgentQuota')

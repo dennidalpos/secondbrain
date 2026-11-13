@@ -7,7 +7,7 @@ Reads status.json and events.jsonl of the active run (or of the newest run) in t
 workstation; it never touches the tracker or the agent. The repository is the checkout given with -CheckoutPath (default: the current
 directory) or -Repository <identity>.
 Verdict: working (alive, recent heartbeat and agent output), stalled (alive but silent past -StallMinutes of the run, or the heartbeat
-stopped), finished (the run closed itself), orphaned (marked running but its process is gone: interrupted or killed), none (no run).
+stopped), waiting (alive and waiting for a plan limit to reset, status.quotaWait.resumeAt), finished (the run closed itself), orphaned (marked running but its process is gone: interrupted or killed), none (no run).
 Default output is JSON with the status, the ages in seconds and the last -Tail events. -Follow prints each new event as it arrives
 (JSON lines with -Json) until the run ends. -Stop creates the run's stop file: the runner ends after the current task.
 -List prints the runs of the repository on this workstation, newest first (provider, model, effort, counts, stop reason, results,

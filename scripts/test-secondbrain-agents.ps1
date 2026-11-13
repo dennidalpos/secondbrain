@@ -167,6 +167,21 @@ Assert-Agent ((Get-SBAgentLimitState -Provider codex -Output '{"type":"error","m
 Assert-Agent ($null -eq (Get-SBAgentLimitState -Provider codex -Output '{"type":"item.completed","item":{"type":"agent_message","text":"usage_limit_reached"}}' -ExitCode 1)) 'a Codex agent message is not a limit'
 Assert-Agent ((Get-SBAgentLimitState -Provider gemini -Output '{"error":{"code":429,"message":"Quota exceeded for quota metric requests per day","status":"RESOURCE_EXHAUSTED"}}' -ExitCode 1).state -ceq 'quota') 'Gemini daily quota is quota'
 Assert-Agent ((Get-SBAgentLimitState -Provider gemini -Output '{"error":{"code":429,"message":"Quota exceeded for quota metric requests per minute","status":"RESOURCE_EXHAUSTED"}}' -ExitCode 1).state -ceq 'throttled') 'Gemini per-minute quota is throttled'
+# Reset times written in the limit texts (Get-SBAgentLimitReset) and the moment a waiting runner tries again (Get-SBRunnerResumeTime).
+$at=[DateTimeOffset]::new(2026,11,13,10,30,0,[TimeSpan]::Zero)
+Assert-Agent ((Get-SBAgentLimitReset claude ('You'+$apos+'ve hit your limit · resets 3pm (Europe/Rome)') -Now $at) -ceq '2026-11-13T15:00:00.0000000+01:00') 'Claude "resets 3pm (zone)" is read in that zone'
+Assert-Agent ((Get-SBAgentLimitReset claude 'resets 9am (Europe/Rome)' -Now $at) -ceq '2026-11-14T09:00:00.0000000+01:00') 'a Claude reset hour already past is the next day'
+Assert-Agent ((Get-SBAgentLimitReset claude 'weekly limit reached · resets Nov 15, 3:30pm (Europe/Rome)' -Now $at) -ceq '2026-11-15T15:30:00.0000000+01:00') 'a Claude reset with a date keeps the date'
+Assert-Agent ((Get-SBAgentLimitReset claude 'Claude AI usage limit reached|1900000000' -Now $at) -ceq [DateTimeOffset]::FromUnixTimeSeconds(1900000000).ToString('o')) 'the Claude epoch format is read'
+Assert-Agent ((Get-SBAgentLimitReset codex 'Try again in 2 hours 13 minutes.' -Now $at) -ceq $at.AddMinutes(133).ToString('o')) 'Codex "try again in" is relative to now'
+Assert-Agent ((Get-SBAgentLimitReset gemini 'Quota exceeded for quota metric requests per day' -Now $at) -ceq '2026-11-14T00:00:00.0000000-08:00') 'the Gemini daily quota resets at midnight Pacific time'
+Assert-Agent ($null -eq (Get-SBAgentLimitReset claude 'usage limit reached' -Now $at)) 'a limit text without a time gives no reset'
+Assert-Agent ((Get-SBAgentLimitState -Provider codex -Output '{"type":"error","message":"You''ve hit your usage limit. Try again in 45 minutes."}' -ExitCode 1).resetAt) 'the limit state carries the reset read from the text'
+Assert-Agent ((Get-SBRunnerResumeTime -Quota @{resetAt=$at.AddHours(1).ToString('o');source='codex-session'} -Limit @{resetAt=$at.AddHours(3).ToString('o')} -Now $at).source -ceq 'codex-session') 'the quota reset comes before the text'
+Assert-Agent ((Get-SBRunnerResumeTime -Limit @{resetAt=$at.AddHours(3).ToString('o')} -Now $at -MarginSeconds 0).resumeAt -ceq $at.AddHours(3).ToString('o')) 'the text reset is used when the quota has none'
+Assert-Agent ((Get-SBRunnerResumeTime -Quota @{resetAt=$at.AddSeconds(-5).ToString('o')} -Now $at -MarginSeconds 0).resumeAt -ceq $at.ToString('o')) 'a known reset already reached resumes at once, without the recheck'
+$recheck=Get-SBRunnerResumeTime -Quota @{resetAt=$null} -Limit @{resetAt=$null} -Now $at -RecheckMinutes 30
+Assert-Agent ($recheck.source -ceq 'recheck' -and $recheck.resumeAt -ceq $at.AddMinutes(30).ToString('o')) 'without any known reset the runner rechecks after -RecheckMinutes'
 # Quota read: Codex session files (rate_limits windows), else the runner observation; unknown when nothing is known.
 $codexHome=Join-Path $fixture 'codex-home'
 $now=[DateTimeOffset]::UtcNow

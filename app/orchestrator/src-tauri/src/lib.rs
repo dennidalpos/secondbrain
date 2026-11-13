@@ -28,6 +28,11 @@ pub struct QueueRequest {
     pub timeout_minutes: u32,
     #[serde(default)]
     pub stall_minutes: Option<u32>,
+    /// Wait for the plan limit to reset and go on (-WaitForReset), for at most this many hours (-MaxWaitHours).
+    #[serde(default)]
+    pub wait_for_reset: bool,
+    #[serde(default)]
+    pub max_wait_hours: Option<u32>,
 }
 
 /// The runner started by this window (while it lives): its process and its stop file.
@@ -467,6 +472,11 @@ fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest
     if let Some(s) = request.stall_minutes {
         args.push("-StallMinutes".into());
         args.push(s.clamp(1, 240).to_string());
+    }
+    if request.wait_for_reset {
+        args.push("-WaitForReset".into());
+        args.push("-MaxWaitHours".into());
+        args.push(request.max_wait_hours.unwrap_or(24).clamp(1, 168).to_string());
     }
     if let Some(m) = request.model.as_deref().filter(|m| !m.is_empty()) {
         if !valid_token(m) {

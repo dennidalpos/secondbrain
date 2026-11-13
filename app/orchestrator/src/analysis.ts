@@ -82,7 +82,10 @@ function show(view: AnalysisView) {
 function setBusy(on: boolean, text = "") {
   busy = on;
   $("an-state").textContent = text;
-  $<HTMLButtonElement>("an-primary").disabled = on;
+  const primary = $<HTMLButtonElement>("an-primary");
+  primary.disabled = on;
+  primary.classList.toggle("busy", on);
+  if (on) primary.setAttribute("aria-busy", "true"); else primary.removeAttribute("aria-busy");
 }
 
 function render() {

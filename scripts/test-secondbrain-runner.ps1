@@ -168,6 +168,17 @@ switch($Mode){
         Set-FakeInProgress 'Fake agent quota'
         [Console]::Out.Write((@{type='result';is_error=$true;result=('You'+[char]0x2019+'ve hit your limit · resets 5pm')}|ConvertTo-Json -Compress));exit 1
     }
+    # -WaitForReset: the first call hits a limit that resets in 15 seconds (marker file; the agent itself takes about 5), the next one echoes the prompt and fails like echofail.
+    'quotawait' {
+        if(!(Test-Path -LiteralPath $env:SB_RUNNER_FAKE_MARK)){
+            [IO.File]::WriteAllText($env:SB_RUNNER_FAKE_MARK,'1')
+            $reset=[DateTimeOffset]::UtcNow.AddSeconds(15).ToUnixTimeSeconds()
+            [Console]::Out.WriteLine((@{type='rate_limit_event';rate_limit_info=@{status='rejected';resetsAt=$reset;rateLimitType='five_hour'}}|ConvertTo-Json -Compress -Depth 4));[Console]::Out.Flush()
+            Set-FakeInProgress 'Fake agent quota wait'
+            [Console]::Out.Write((@{type='result';is_error=$true;result='You have hit your limit'}|ConvertTo-Json -Compress));exit 1
+        }
+        [Console]::Out.Write((@{type='result';is_error=$false;result=$prompt}|ConvertTo-Json -Compress));exit 2
+    }
     # Echoes the prompt and fails: the task stays todo and the prompt can be checked.
     'echofail' {[Console]::Out.Write((@{type='result';is_error=$false;result=$prompt}|ConvertTo-Json -Compress));exit 2}
     'fail' {[Console]::Error.WriteLine('synthetic failure');exit 2}
@@ -176,7 +187,7 @@ switch($Mode){
     'empty' {exit 0}
 }
 '@
-    $env:SB_RUNNER_FAKE_BRAIN=$brain;$env:SB_RUNNER_FAKE_CONFIG=$configPath;$env:SB_RUNNER_FAKE_CHECKOUT2=$checkout2
+    $env:SB_RUNNER_FAKE_BRAIN=$brain;$env:SB_RUNNER_FAKE_CONFIG=$configPath;$env:SB_RUNNER_FAKE_CHECKOUT2=$checkout2;$env:SB_RUNNER_FAKE_MARK=(Join-Path $fixture 'quotawait.mark')
     $runner=Join-Path $brain 'scripts/run-ready-tasks.ps1'
     function Invoke-Runner([string[]]$RunnerArguments){
         $lines=@(& pwsh -NoProfile -File $runner -CheckoutPath $checkout -ConfigPath $configPath -AgentPath $fake @RunnerArguments 2>&1|ForEach-Object {[string]$_})
@@ -263,6 +274,30 @@ switch($Mode){
     $resumedPrompt=(Read-SBJson (Join-Path $resumedRecord.folder 'agent-output.json') $null).result
     Assert-Runner ($resumedRecord.id -eq $limitedRecord.id -and $resumedPrompt -match 'Ripresa:' -and $resumedPrompt -match [regex]::Escape($limitedRecord.folder)) ('-Resume runs the interrupted task first with the resume note: '+$resumed.text)
     Assert-Runner ((Read-SBJson (Join-Path $limitedFolder 'resume.json') $null).resumedBy) 'the resume point is marked as used'
+    # -WaitForReset: the limit resets in seconds, the run waits (waiting-quota), then runs the same task again with the resume note and goes on.
+    function Clear-QuotaObservations{foreach($s in @(Get-ChildItem -LiteralPath $runtime -Recurse -Filter 'status.json' -File)){$j=Read-SBText $s.FullName|ConvertFrom-Json -AsHashtable;if($j.ContainsKey('quotaObserved') -and $j.quotaObserved){$j.quotaObserved=$null;Put-Runner $s.FullName (ConvertTo-SBJson $j)}}}
+    Remove-Item -LiteralPath $env:SB_RUNNER_FAKE_MARK -Force -ErrorAction SilentlyContinue
+    $waitWatch=[Diagnostics.Stopwatch]::StartNew()
+    $waited=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','quotawait','-WaitForReset','-ResetMarginSeconds','0')
+    $waitWatch.Stop()
+    Assert-Runner ($waitWatch.Elapsed.TotalSeconds -lt 180) ('the wait ends at the observed reset, not at the 30-minute recheck: '+[math]::Round($waitWatch.Elapsed.TotalSeconds,1)+' s')
+    $waitedTasks=@($waited.data.tasks)
+    Assert-Runner ($null -eq $waited.data.stopReason -and $waitedTasks.Count -eq 2 -and $waitedTasks[0].state -eq 'quota' -and $waitedTasks[0].retried -and $waitedTasks[1].id -eq $waitedTasks[0].id -and $waitedTasks[1].exitCode -eq 2) ('-WaitForReset waits for the reset and runs the interrupted task again: '+$waited.text)
+    $waitedPrompt=(Read-SBJson (Join-Path $waitedTasks[1].folder 'agent-output.json') $null).result
+    Assert-Runner ($waitedPrompt -match 'Ripresa:' -and $waitedPrompt -match [regex]::Escape($waitedTasks[0].folder)) 'the task run after the wait carries the resume note'
+    $waitedFolder=Split-Path $waited.data.status -Parent
+    $waitedEvents=Read-SBText (Join-Path $waitedFolder 'events.jsonl')
+    Assert-Runner ($waitedEvents -match '"event":"quotawait"' -and $waitedEvents -match '"event":"quotaresumed"' -and $waitedEvents -match '"source":"agent"' -and $waitedEvents -notmatch '"source":"recheck"') ('the wait and the resume are events of the run: '+$waited.text)
+    Assert-Runner ((Read-SBJson (Join-Path $waitedFolder 'resume.json') $null).resumedBy) 'a run that resumed by itself marks its own resume point as used'
+    $waitedStatus=Read-SBJson $waited.data.status $null
+    Assert-Runner ($waitedStatus.counts.done -eq 1 -and $null -eq $waitedStatus.quotaWait) ('the retried attempt does not count and no wait is left in the status: '+($waitedStatus.counts|ConvertTo-Json -Compress))
+    Import-Module (Join-Path $PSScriptRoot 'SecondBrain.RunnerStatus.psm1')
+    Assert-Runner ((Get-SBRunnerVerdict @{state='running';phase='waiting-quota';pid=$PID;processStartTicks=(Get-SBProcessStartTicks $PID);updatedAt=(Get-SBNow).ToString('o')}) -ceq 'waiting') 'a live run waiting for the reset has the waiting verdict'
+    # A reset beyond -MaxWaitHours stops the run as without the switch.
+    Clear-QuotaObservations
+    $tooLong=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','quotarl','-WaitForReset','-MaxWaitHours','1','-ResetMarginSeconds','0')
+    Assert-Runner ($tooLong.data.stopReason -eq 'quota' -and @($tooLong.data.tasks).Count -eq 1 -and $tooLong.text -match 'maximum wait|attesa massima') ('a reset beyond the maximum wait stops the run: '+$tooLong.text)
+    Clear-QuotaObservations
     # The limit case wrote the tracker through the agent and the requeue: the following checks start from this state.
     $hash=Get-SBFileHash $trackerPath
 

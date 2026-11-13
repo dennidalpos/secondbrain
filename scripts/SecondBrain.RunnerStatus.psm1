@@ -52,13 +52,15 @@ function Get-SBRunnerAge($Value,[DateTimeOffset]$Now) {
 }
 function Get-SBRunnerVerdict($Status,[DateTimeOffset]$Now=(Get-SBNow),[Nullable[bool]]$Alive=$null) {
     # finished: the run closed itself. orphaned: marked running but its process is gone. stalled: alive but silent past the stall
-    # threshold (agent phase) or past three heartbeats (runner phases). working: everything else.
+    # threshold (agent phase) or past three heartbeats (runner phases). waiting: alive and waiting for a plan limit to reset
+    # (phase waiting-quota, heartbeat still beating). working: everything else.
     if(!$Status){return 'none'}
     if([string]$Status.state -ne 'running'){return 'finished'}
     $isAlive=if($null -ne $Alive){[bool]$Alive}else{Test-SBRunnerProcessAlive $Status}
     if(!$isAlive){return 'orphaned'}
     $beat=Get-SBRunnerAge $Status.updatedAt $Now
     if($null -ne $beat -and $beat -gt 3*(Get-SBRunnerHeartbeatSeconds)){return 'stalled'}
+    if([string]$Status.phase -eq 'waiting-quota'){return 'waiting'}
     if([string]$Status.phase -eq 'agent'){
         $stall=if($Status.ContainsKey('stallMinutes') -and $Status.stallMinutes){[double]$Status.stallMinutes}else{5}
         $last=if($Status.ContainsKey('lastAgentEventAt') -and $Status.lastAgentEventAt){$Status.lastAgentEventAt}elseif($Status.task -is [hashtable]){$Status.task.startedAt}else{$null}
@@ -88,7 +90,7 @@ function Get-SBRunnerStatus {
     $verdict=Get-SBRunnerVerdict $chosen $now
     $folder=Split-Path $chosenPath -Parent
     [ordered]@{
-        repository=$Repository;active=($verdict -in @('working','stalled'));verdict=$verdict;runs=$files.Count;folder=$folder
+        repository=$Repository;active=($verdict -in @('working','stalled','waiting'));verdict=$verdict;runs=$files.Count;folder=$folder
         ages=[ordered]@{status=(Get-SBRunnerAge $chosen.updatedAt $now);runnerEvent=(Get-SBRunnerAge $(if($chosen.ContainsKey('lastRunnerEventAt')){$chosen.lastRunnerEventAt}) $now);agentEvent=(Get-SBRunnerAge $(if($chosen.ContainsKey('lastAgentEventAt')){$chosen.lastAgentEventAt}) $now)}
         status=$chosen
         events=@(Get-SBRunnerTail (Join-Path $folder 'events.jsonl') $Tail)
