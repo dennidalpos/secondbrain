@@ -1,9 +1,10 @@
 // End-to-end scenarios on the real orchestrator binary (Windows, WebView2) with a synthetic SecondBrain:
 // preload from --repo, removal of recent repositories across restarts, the directives proposed by the light model and every Directives
 // button with its persistence after a restart, agents and models limited to the installed CLIs, a queue run followed live, closed while
-// running and found again after reopening, the registry with tool badges and archived tasks, and the analysis that makes a task autonomous.
+// running and found again after reopening, the registry with tool badges and archived tasks, the analysis that makes a task autonomous,
+// and the busy buttons (spinner, second click ignored) with a run that waits for a plan limit to reset and resumes by itself.
 // The fixture comes from scripts/test-orchestrator-fixture.ps1 through SB_E2E_FIXTURE; real user settings are never touched.
-import { test, expect, chromium, type Browser, type Page } from "@playwright/test";
+import { test, expect, chromium, type Browser, type Locator, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -30,7 +31,7 @@ function isolatedPath(): string {
   return [fixture.bin, ...dirs].join(path.delimiter);
 }
 
-async function launch(opts: { repo?: string; agentSeconds?: number } = {}): Promise<App> {
+async function launch(opts: { repo?: string; agentSeconds?: number; limitSeconds?: number } = {}): Promise<App> {
   const port = await freePort();
   const args = opts.repo ? ["--repo", opts.repo] : [];
   const proc = spawn(fixture.binary, args, {
@@ -44,6 +45,7 @@ async function launch(opts: { repo?: string; agentSeconds?: number } = {}): Prom
       SECONDBRAIN_AGENT_SEARCH_PATH: fixture.bin,
       SB_E2E_BRAIN: fixture.brain,
       SB_E2E_AGENT_SECONDS: String(opts.agentSeconds ?? 3),
+      ...(opts.limitSeconds ? { SB_E2E_AGENT_LIMIT_SECONDS: String(opts.limitSeconds) } : {}),
       WEBVIEW2_USER_DATA_FOLDER: fixture.webviewData,
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
     },
@@ -77,6 +79,30 @@ async function closeApp(app: App) {
 
 function readTracker(): { tasks: { id: string; status: string; execution: string; acceptance?: string[]; extensions?: Record<string, unknown> }[] } {
   return JSON.parse(fs.readFileSync(fixture.tracker, "utf8"));
+}
+
+// Counts the Tauri commands the page sends from now on, read from the IPC requests of the WebView (http://ipc.localhost/<command>);
+// the page itself is left untouched.
+function watchCalls(page: Page): (cmd: string) => number {
+  const seen: Record<string, number> = {};
+  page.on("request", (r) => {
+    const m = /^(?:https?:\/\/ipc\.localhost|ipc:\/\/localhost)\/([A-Za-z0-9_]+)/.exec(r.url());
+    if (m) seen[m[1]] = (seen[m[1]] ?? 0) + 1;
+  });
+  return (cmd) => seen[cmd] ?? 0;
+}
+// The button just clicked shows the spinner and takes no pointer; a second click sent straight to its handler must start nothing.
+// One read in the page, so the state cannot change between the checks.
+async function expectBusyAndClickAgain(button: Locator) {
+  const seen = await button.evaluate((b) => {
+    const state = { busy: b.getAttribute("aria-busy"), marked: b.classList.contains("busy"), pointer: getComputedStyle(b).pointerEvents, spinner: getComputedStyle(b, "::before").animationName };
+    (b as HTMLButtonElement).click();
+    return state;
+  });
+  expect(seen.busy).toBe("true");
+  expect(seen.marked).toBe(true);
+  expect(seen.pointer).toBe("none");
+  expect(seen.spinner).toMatch(/^sb-(spin|pulse)$/);
 }
 
 test.describe.configure({ mode: "serial" });
@@ -241,9 +267,13 @@ test("queue: a task that cannot run alone is analyzed, the owner answers and the
   const { page } = app;
   const row = page.locator("#q-skipped tr").filter({ hasText: "E2E-4" });
   await expect(row).toContainText("Serve una scelta della persona", { timeout: 60_000 });
-  await row.locator("button", { hasText: "Analizza" }).click();
+  const calls = watchCalls(page);
+  const analyze = row.locator("button", { hasText: "Analizza" });
+  await analyze.click();
+  await expectBusyAndClickAgain(analyze);
   const dialog = page.locator("#an-dialog");
   await expect(dialog).toBeVisible({ timeout: 120_000 });
+  expect(calls("analyze_task")).toBe(1);
   await expect(dialog.locator("legend")).toContainText("Quale sezione aggiungere al README?");
   await expect(dialog.locator("label.choice").first()).toContainText("Installazione (consigliata)");
   await expect(page.locator("#an-primary")).toBeDisabled();
@@ -263,5 +293,67 @@ test("queue: a task that cannot run alone is analyzed, the owner answers and the
   await page.locator("#q-refresh").click();
   await expect(page.locator("#q-tasks tr").filter({ hasText: "E2E-4" })).toHaveCount(1, { timeout: 60_000 });
   await expect(page.locator("#q-skipped tr").filter({ hasText: "E2E-4" })).toHaveCount(0);
+  await closeApp(app);
+});
+
+test("busy buttons ignore a second click; a run stopped by a plan limit waits for the reset and resumes by itself", async () => {
+  test.setTimeout(420_000);
+  const app = await launch({ repo: fixture.checkout, limitSeconds: 8 });
+  const { page } = app;
+  await expect(page.locator("#repo-label")).toHaveText(fixture.identity);
+  await expect(page.locator("#q-tasks tr")).toHaveCount(3, { timeout: 60_000 });
+  const calls = watchCalls(page);
+
+  // «Carica»: spinner with its own label while the repository is resolved, one resolution only.
+  await page.locator('.steps button[data-tab="repo"]').click();
+  const load = page.locator("#repo-load");
+  await load.click();
+  await expect(load).toHaveText("Caricamento…");
+  await expectBusyAndClickAgain(load);
+  await expect(load).not.toHaveAttribute("aria-busy", "true", { timeout: 60_000 });
+  await expect(load).toHaveText("Carica");
+  expect(calls("resolve_repository")).toBe(1);
+
+  // «Rileva di nuovo»: one probe of the agents.
+  await page.locator('.steps button[data-tab="queue"]').click();
+  await expect(page.locator("#q-tasks tr")).toHaveCount(3, { timeout: 60_000 });
+  const reprobe = page.locator("#q-reprobe");
+  await expect(reprobe).not.toHaveAttribute("aria-busy", "true", { timeout: 60_000 });
+  const probesBefore = calls("probe_agents");
+  await reprobe.click();
+  await expectBusyAndClickAgain(reprobe);
+  await expect(reprobe).not.toHaveAttribute("aria-busy", "true", { timeout: 60_000 });
+  expect(calls("probe_agents")).toBe(probesBefore + 1);
+
+  // «Avvia la coda»: one runner, even with a second click while the first is starting.
+  await expect(page.locator("#q-agents label.agent").filter({ hasText: "Claude Code" }).locator("input")).toBeChecked();
+  await expect(page.locator("#q-wait")).toBeChecked();
+  await page.locator("#q-tasks tr").filter({ hasText: "E2E-2" }).locator('input[type="checkbox"]').check();
+  const start = page.locator("#q-start");
+  await start.click();
+  await expectBusyAndClickAgain(start);
+  await expect(page.locator('.steps button[data-tab="run"]')).toHaveAttribute("aria-selected", "true", { timeout: 60_000 });
+  await expect(start).not.toHaveAttribute("aria-busy", "true", { timeout: 60_000 });
+  expect(calls("start_queue")).toBe(1);
+
+  // The fake agent hits a limit that resets in seconds: the run stays alive and the card says when it resumes, counting down.
+  await expect(page.locator("#run-verdict")).toHaveText("In attesa del ripristino", { timeout: 120_000 });
+  await expect(page.locator("#run-badge")).toHaveText("In attesa del ripristino");
+  await expect(page.locator("#run-task")).toHaveText("In attesa del ripristino dei limiti, poi riprende da E2E-2");
+  await expect(page.locator("#run-warning")).toBeVisible();
+  const countdown = async () => {
+    const m = /^Ripresa alle .+ \(tra (?:(\d+) min )?(\d+) s\)/.exec((await page.locator("#run-last").textContent()) ?? "");
+    return m ? Number(m[1] ?? 0) * 60 + Number(m[2]) : NaN;
+  };
+  await expect.poll(countdown, { timeout: 30_000 }).toBeGreaterThan(0);
+  const first = await countdown();
+  if (process.env.SB_E2E_SCREENSHOTS) await page.screenshot({ path: path.join(process.env.SB_E2E_SCREENSHOTS, "run-waiting-for-reset.png") });
+  await expect.poll(countdown, { timeout: 30_000 }).toBeLessThan(first);
+
+  // After the reset the same task runs again and the run closes by itself.
+  await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 240_000 });
+  await expect(page.locator("#run-warning")).toBeHidden();
+  await expect(page.locator("#run-results tr").filter({ hasText: "E2E-2" }).last()).toContainText("finished");
+  expect(readTracker().tasks.find((t) => t.id === "E2E-2")?.status).toBe("in_progress");
   await closeApp(app);
 });

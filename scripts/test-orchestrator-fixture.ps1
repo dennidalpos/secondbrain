@@ -95,6 +95,15 @@ if($prompt -match '# Output'){
 $id=if($prompt -match 'SOLO il task (\S+)'){$Matches[1]}else{''}
 $pause=if($env:SB_E2E_AGENT_SECONDS){[int]$env:SB_E2E_AGENT_SECONDS}else{3}
 function Emit($o){[Console]::Out.WriteLine(($o|ConvertTo-Json -Compress -Depth 8));[Console]::Out.Flush()}
+# SB_E2E_AGENT_LIMIT_SECONDS: the first run hits a plan limit that resets after that many seconds (marker file beside the brain),
+# in the shape of a real Claude Code limit (rejected rate_limit_event, then an error result); the next runs work.
+$limitMark=Join-Path (Split-Path $env:SB_E2E_BRAIN) 'agent-limit.mark'
+if($env:SB_E2E_AGENT_LIMIT_SECONDS -and !(Test-Path -LiteralPath $limitMark)){
+    [IO.File]::WriteAllText($limitMark,'1')
+    Emit @{type='system';subtype='init';model='fake-opus'}
+    Emit @{type='rate_limit_event';rate_limit_info=@{status='rejected';resetsAt=[DateTimeOffset]::UtcNow.AddSeconds([int]$env:SB_E2E_AGENT_LIMIT_SECONDS).ToUnixTimeSeconds();rateLimitType='five_hour'}}
+    [Console]::Out.Write((@{type='result';is_error=$true;result='You have hit your limit'}|ConvertTo-Json -Compress));exit 1
+}
 Emit @{type='system';subtype='init';model='fake-opus'}
 Emit @{type='assistant';message=@{content=@(@{type='tool_use';name='Read';input=@{file_path='README.md'}})}}
 Start-Sleep -Seconds $pause
