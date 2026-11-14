@@ -2,7 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.12.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.13.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.13.0] - 2026-11-14
+
+A root launcher for the desktop app, a power request that keeps the computer awake during a run, and end-to-end coverage of interrupted run labels.
+
+### Added
+- `start.ps1` in the repository root opens the desktop app without an IDE through `scripts/runner-gui.ps1`, keeps its exit code and JSON, and after a failure prints the next step: install Node.js and Rust (exit 2), fix the build (3), use a graphical session (4) or install the WebView2 runtime (5). Opening the app never starts a task (#629).
+- Runner: on Windows `run-ready-tasks.ps1 -Run` holds a system-required power request (`PowerSetRequest`) from before the first task until the run closes (end, stop, quota stop, failure); the display and the power plan are untouched. `status.json` (`powerRequest`) and the `power`, `powerfailed` or `powerunsupported` event report the result and the limits (explicit sleep, lid, battery, policies); other platforms report it as unsupported and the run goes on (#603).
+
+### Changed
+- Orchestrator end-to-end registry scenario: a run recorded as running without a live process is labelled "interrupted · finish time unknown" (verdict `orphaned`) and a finished run shows its end time (#600).
 
 ## [2.12.0] - 2026-11-14
 

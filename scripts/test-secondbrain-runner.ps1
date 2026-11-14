@@ -267,6 +267,7 @@ switch($Mode){
     $limitedRecord=@($limited.data.tasks)[0]
     Assert-Runner ($limited.data.stopReason -eq 'quota' -and $limitedRecord.state -eq 'quota' -and $limitedRecord.statusAfter -eq 'todo' -and $limitedRecord.requeued) ('a limit stops the run and puts the task back to todo: '+$limited.text)
     $limitedFolder=Split-Path $limited.data.status -Parent
+    if($IsWindows){$lp=(Read-SBJson ([string]$limited.data.status) $null).powerRequest;Assert-Runner ($lp.acquired -and $lp.released) ('a run stopped by a limit releases its power request: '+($lp|ConvertTo-Json -Compress))}
     $point=Read-SBJson (Join-Path $limitedFolder 'resume.json') $null
     Assert-Runner ($point -and $point.reason -eq 'quota' -and $point.interrupted.id -eq $limitedRecord.id -and (@($point.remaining) -join ',') -ceq 'R-2,R-3,R-4' -and $point.quota.state -eq 'exhausted' -and $point.quota.resetAt) ('resume.json names the interrupted task, the remaining queue and the reset: '+($point|ConvertTo-Json -Compress -Depth 5))
     # The next run reads the observed exhaustion (reset in the future) and does not start any agent.
@@ -524,6 +525,7 @@ $r|ConvertTo-Json -Compress
     $stopFile=Join-Path $fixture 'stop.flag';Put-Runner $stopFile 'stop'
     $stopped=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','ok','-MaxTasks','2','-StopFile',$stopFile,'-Events')
     Assert-Runner ($stopped.code -eq 0 -and $stopped.data.stopReason -eq 'requested' -and @($stopped.data.tasks).Count -eq 0) ('an existing stop file ends the run before the next task: '+$stopped.text)
+    if($IsWindows){$sp=(Read-SBJson ([string]$stopped.data.status) $null).powerRequest;Assert-Runner ($sp.acquired -and $sp.released) ('a stopped run releases its power request: '+($sp|ConvertTo-Json -Compress))}
     $events=@($stopped.err -split "`r?`n"|Where-Object {$_.Trim()}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
     Assert-Runner (@($events|Where-Object {$_.event -eq 'repo'}).Count -eq 1 -and @($events|Where-Object {$_.event -eq 'stop' -and $_.reason -eq 'requested'}).Count -eq 1 -and @($events|Where-Object {!$_.message}).Count -eq 0) ('-Events writes one JSON object per progress line: '+$stopped.err)
     Assert-Runner ((Get-SBFileHash $trackerPath2) -ceq $hash2) 'queue previews and a stopped run leave the tracker unchanged'
@@ -561,10 +563,16 @@ $r|ConvertTo-Json -Compress
     $statusScript=Join-Path $brain 'scripts/runner-status.ps1'
     $streamOut=Join-Path $fixture 'stream.out';$streamErr=Join-Path $fixture 'stream.err'
     $streamProcess=Start-Process -FilePath (Get-Process -Id $PID).Path -ArgumentList @('-NoProfile','-File',$runner,'-CheckoutPath',$checkout2,'-ConfigPath',$configPath,'-AgentPath',$fake,'-AgentArguments','stream','-TaskIds','S-1','-Run','-Events') -RedirectStandardOutput $streamOut -RedirectStandardError $streamErr -PassThru -NoNewWindow
+    $canPowercfg=$IsWindows -and ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    $powerDuring=$null
     $live=$null;$deadline=(Get-Date).AddSeconds(90)
     while(!$streamProcess.HasExited -and (Get-Date) -lt $deadline){
         $probeLive=(& pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath -Tail 50 2>$null|Out-String)
-        if($probeLive.Contains('{')){$candidate=$probeLive.Substring($probeLive.IndexOf('{'))|ConvertFrom-Json -AsHashtable;if($candidate.verdict -eq 'working' -and $candidate.status.lastAgentEvent -and $candidate.status.lastAgentEvent.kind -in @('tool','text')){$live=$candidate;break}}
+        if($probeLive.Contains('{')){$candidate=$probeLive.Substring($probeLive.IndexOf('{'))|ConvertFrom-Json -AsHashtable;if($candidate.verdict -eq 'working' -and $candidate.status.lastAgentEvent -and $candidate.status.lastAgentEvent.kind -in @('tool','text')){
+            $live=$candidate
+            # powercfg /requests needs an elevated session: read during the run only when it is available.
+            $powerDuring=if($canPowercfg){(& powercfg /requests 2>&1|Out-String)}else{$null}
+            break}}
         Start-Sleep -Milliseconds 500
     }
     $streamProcess.WaitForExit();$streamCode=$streamProcess.ExitCode
@@ -579,6 +587,23 @@ $r|ConvertTo-Json -Compress
     Assert-Runner (@(Get-Content -LiteralPath (Join-Path $streamFolder 'agent-output.jsonl')|Where-Object {$_}).Count -eq 4 -and (Read-SBJson (Join-Path $streamFolder 'agent-output.json') $null).result -ceq 'streamed è ok') 'agent-output.jsonl keeps the stream, agent-output.json the UTF-8 result line'
     $finalStatus=Read-SBJson ([string]$streamData.status) $null
     Assert-Runner ($finalStatus.state -eq 'finished' -and $finalStatus.phase -eq 'closed' -and $finalStatus.counts.succeeded -eq 1 -and (Read-SBJson (Join-Path (Split-Path ([string]$streamData.status)) 'MANIFEST.json') $null).status -eq 'closed') ('status.json ends finished and the run folder is closed: '+($finalStatus|ConvertTo-Json -Compress -Depth 4))
+    # #603: power request for the run only, reported before the first task, released at closure; unsupported elsewhere without failing.
+    $runId=[string]$finalStatus.runId
+    $powerEvent=@($streamEvents|Where-Object {$_.event -in @('power','powerfailed','powerunsupported')})
+    $firstAgent=[array]::IndexOf(@($streamEvents|ForEach-Object event),'start')
+    Assert-Runner ($powerEvent.Count -eq 1 -and [array]::IndexOf(@($streamEvents|ForEach-Object event),$powerEvent[0].event) -lt $firstAgent -and $powerEvent[0].powerRequest.limits -match 'lid') ('the power request result and its limits are reported before the first task: '+($powerEvent|ConvertTo-Json -Compress -Depth 4))
+    if($IsWindows){
+        Assert-Runner ($live.status.powerRequest.acquired -and $live.status.powerRequest.kind -eq 'system-required' -and !$live.status.powerRequest.released) ('status.json shows the power request held while the agent works: '+($live.status.powerRequest|ConvertTo-Json -Compress))
+        Assert-Runner ($finalStatus.powerRequest.acquired -and $finalStatus.powerRequest.released -and $finalStatus.powerRequest.releasedAt) ('the power request is released when the run ends: '+($finalStatus.powerRequest|ConvertTo-Json -Compress))
+        if($canPowercfg){
+            Assert-Runner ($powerDuring -match [regex]::Escape('SecondBrain runner '+$runId)) ('powercfg /requests lists the runner during the run: '+$powerDuring)
+            Assert-Runner ((& powercfg /requests 2>&1|Out-String) -notmatch [regex]::Escape('SecondBrain runner '+$runId)) 'powercfg /requests no longer lists the runner after the run'
+        }
+        $p=Enter-SBRunnerPowerRequest 'SecondBrain test request'
+        Assert-Runner ($p.supported -and $p.acquired -and (Exit-SBRunnerPowerRequest) -and !(Exit-SBRunnerPowerRequest)) 'Enter/Exit-SBRunnerPowerRequest acquire once and release once'
+    }else{
+        Assert-Runner (!$finalStatus.powerRequest.supported -and !$finalStatus.powerRequest.acquired -and $finalStatus.powerRequest.error -eq 'unsupported-platform' -and $finalStatus.state -eq 'finished') 'non-Windows platforms report the power request as unsupported without failing'
+    }
     Assert-Runner ((Read-SBJson (Join-Path $ghost 'status.json') $null).state -eq 'orphaned') 'the dead runner status is marked orphaned'
     Assert-Runner ((Get-SBRunnerVerdict @{state='orphaned'} $nowUtc $false) -eq 'orphaned') 'verdict: a record closed as orphaned stays orphaned, not finished (#600)'
     $reused=@{state='running';phase='agent';pid=$PID;processStartTicks=((Get-SBProcessStartTicks $PID)-[TimeSpan]::TicksPerHour);updatedAt=(Get-SBNow).ToString('o')}
@@ -618,6 +643,16 @@ $r|ConvertTo-Json -Compress
     Assert-Runner ($gcode -eq 2 -and $g -match 'orchestratore') ('runner-gui without npm/cargo stops with exit 2 and the guide: '+$g)
     $g=Invoke-Gui @('-WhatIf','-RepositoryPath',$checkout2)
     Assert-Runner ($g.code -eq 0 -and $g.data.repository -eq [IO.Path]::GetFullPath($checkout2)) ('runner-gui records the repository passed to the app: '+$g.text)
+    # start.ps1 (root launcher, #629): the same decision through runner-gui.ps1, never a task run, and a next step for each failure.
+    $startScript=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../start.ps1'))
+    function Invoke-Start([string[]]$StartArguments){$t=(& pwsh -NoProfile -File $startScript -AppPath $guiApp @StartArguments 2>&1|Out-String);$i=$t.IndexOf('{');@{code=$LASTEXITCODE;text=$t;data=$(if($i -ge 0){$t.Substring($i)|ConvertFrom-Json -AsHashtable}else{$null})}}
+    $s=Invoke-Start @('-WhatIf','-RepositoryPath',$checkout2)
+    Assert-Runner ($s.code -eq 0 -and $s.data.reason -eq 'stale' -and !$s.data.built -and !$s.data.launched -and $s.data.whatIf -and $s.data.repository -eq [IO.Path]::GetFullPath($checkout2) -and $s.text -notmatch 'Next step') ('start.ps1 -WhatIf reports the runner-gui decision without a next step: '+$s.text)
+    Assert-Runner (@(Select-String -LiteralPath $startScript -Pattern 'run-ready-tasks|runner\.ps1''|-Run\b').Count -eq 0) 'start.ps1 never calls the task runner'
+    try{$env:PATH='';$s=(& (Get-Process -Id $PID).Path -NoProfile -File $startScript -AppPath $guiApp -NoLaunch 2>&1|Out-String);$scode=$LASTEXITCODE}finally{$env:PATH=$savedPath}
+    Assert-Runner ($scode -eq 2 -and $s -match 'npm' -and $s -match 'cargo' -and $s -match 'Next step: install Node\.js' -and $s -match 'rustup\.rs' -and $s -match 'runner\.ps1 -Mode cli') ('start.ps1 without npm/cargo exits 2 with the install steps: '+$s)
+    $s=(& pwsh -NoProfile -File $startScript -AppPath (Join-Path $fixture 'no-such-app') -WhatIf 2>&1|Out-String);$scode=$LASTEXITCODE
+    Assert-Runner ($scode -eq 2 -and $s -match 'no-such-app' -and $s -match 'Next step: install|did not open \(exit 2\)') ('start.ps1 reports a missing app folder with a next step: '+$s)
     if($IsWindows){
         # Outside the caller's package and job (WMI): a file that is not a program is refused by Win32_Process.Create; a real program
         # (whoami.exe standing in for the app, which exits 0 at once without arguments) starts with its own PID and is reported as
@@ -625,6 +660,8 @@ $r|ConvertTo-Json -Compress
         (Get-Item -LiteralPath $guiBin).LastWriteTimeUtc=[DateTime]::UtcNow.AddHours(2)
         $g=Invoke-Gui @('-LaunchMethod','wmi','-RepositoryPath',$checkout2)
         Assert-Runner ($g.code -eq 5 -and $g.text -match 'Win32_Process\.Create') ('runner-gui -LaunchMethod wmi reports a binary that cannot start: '+$g.text)
+        $s=Invoke-Start @()
+        Assert-Runner ($s.code -eq 5 -and $s.text -match 'Next step: on Windows install the Microsoft Edge WebView2 runtime') ('start.ps1 explains an app that does not start (exit 5): '+$s.text)
         $savedBin=[IO.File]::ReadAllBytes($guiBin)
         try{
             Copy-Item -LiteralPath (Join-Path ([Environment]::SystemDirectory) 'whoami.exe') -Destination $guiBin -Force

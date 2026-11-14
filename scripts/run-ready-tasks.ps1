@@ -87,6 +87,9 @@ Add-SBMessages @{
     'runner.progress.quotawait' = @{it='Quota {0} esaurita: attesa del ripristino fino a {1} (fonte {2}), poi il run riprende';en='Quota {0} exhausted: waiting for the reset until {1} (source {2}), then the run goes on'}
     'runner.progress.quotaresumed' = @{it='Quota {0} ripristinata ({1}): il run riprende';en='Quota {0} reset ({1}): the run goes on'}
     'runner.progress.quotawaitlimit' = @{it='Ripristino della quota {0} previsto per {1}, oltre l attesa massima di {2} h: il run si ferma';en='Quota {0} reset expected at {1}, beyond the maximum wait of {2} h: the run stops'}
+    'runner.progress.power' = @{en='Power request held for this run: the computer does not go to sleep while it is idle ({0})'}
+    'runner.progress.powerfailed' = @{en='Power request not acquired ({0}): the computer may go to sleep during the run'}
+    'runner.progress.powerunsupported' = @{en='Power request not supported on this platform: the run goes on without it'}
     'runner.progress.omitted' = @{it='  Opzioni non disponibili nella CLI installata e omesse: {0}';en='  Options missing from the installed CLI and left out: {0}'}
 }
 $utf8=[Text.UTF8Encoding]::new($false)
@@ -144,6 +147,9 @@ function Initialize-RunnerInvocation{
 function Close-RunnerState([string]$State){
     # Final status of the run and closure of its work folder (the retention clock starts).
     if(!$script:runStatus){return}
+    # The power request ends with the run (normal end, stop, failure); a killed runner loses it with its process.
+    $power=$script:runStatus.powerRequest
+    if($power -and $power.acquired -and !$power.released){$power.released=(Exit-SBRunnerPowerRequest);$power.releasedAt=(Get-SBNow).ToString('o')}
     $script:runStatus.state=$State;$script:runStatus.phase='closed';$script:runStatus.finishedAt=(Get-SBNow).ToString('o')
     Save-RunnerState -Force
     try{& pwsh -NoProfile -File (Join-Path $PSScriptRoot 'work.ps1') -Repository $script:runStatus.repository -Category report -Slug $script:runSlug -Close @configArgs|Out-Null}catch{[void]$_}
@@ -315,7 +321,7 @@ $script:runStatus=[ordered]@{
     timeoutMinutes=$TimeoutMinutes;stallMinutes=$StallMinutes;stopFile=$StopFile;folder=$runFolder
     task=$null;counts=[ordered]@{total=$totalSelected;done=0;succeeded=0;failed=0};stopReason=$null;results=@()
     resolvedModel=$null;resolvedEffort=$null;quota=$null;quotaObserved=$null;resumedFrom=$(if($script:resumeFrom){$script:resumeFrom.path}else{$null})
-    waitForReset=[bool]$WaitForReset;maxWaitHours=$(if($WaitForReset){$MaxWaitHours}else{$null});quotaWait=$null
+    powerRequest=$null;waitForReset=[bool]$WaitForReset;maxWaitHours=$(if($WaitForReset){$MaxWaitHours}else{$null});quotaWait=$null
 }
 function Read-RunnerQuota{
     # Quota read now (never reused from an earlier read): Codex session files, else the newest observation an agent reported on this workstation.
@@ -378,6 +384,11 @@ try{
 Initialize-RunnerInvocation
 $resolved=Resolve-SBAgentExecutable $AgentPath
 if(!$resolved){[Console]::Error.WriteLine((New-SBError 'runner.agent.missing' $AgentPath).Message);exit 2}
+# Power request for the run only (#603), reported before the first task: system-required; display and power plan untouched.
+$script:runStatus.powerRequest=Enter-SBRunnerPowerRequest ('SecondBrain runner '+$script:runStatus.runId)
+$power=$script:runStatus.powerRequest
+$powerKey=if($power.acquired){'runner.progress.power'}elseif(!$power.supported){'runner.progress.powerunsupported'}else{'runner.progress.powerfailed'}
+Show-RunnerLine $powerKey @($(if($power.acquired){$power.limits}else{$power.error})) @{powerRequest=$power}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
 $results=@();$consecutiveFailures=0;$stopReason=$null;$position=0
 if($script:resumeFrom){

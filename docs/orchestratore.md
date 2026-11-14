@@ -27,6 +27,12 @@ flowchart LR
 
 ## Quick start
 
+Without an IDE, from the SecondBrain clone root, `start.ps1` opens the app (`-RepositoryPath <checkout>` preloads a repository; `-Rebuild`, `-NoLaunch` and `-WhatIf` as below). It runs `runner-gui.ps1`, keeps its exit code and JSON, and after a failure prints the next step: install Node.js and Rust (exit 2), fix the build (3), use a graphical session (4) or install the WebView2 runtime (5). Opening the app never starts a task; the queue runs only when started from the window.
+
+```bash
+pwsh -NoProfile -File start.ps1
+```
+
 In the chat, `sb runner` asks one multiple-choice question, desktop app (recommended) or command line, and passes the current checkout. From a script, from the SecondBrain clone root:
 
 ```bash
@@ -80,5 +86,6 @@ The ledger records who changed a task. Every change of status, execution or evid
 
 - The agents edit files in the checkout. Commit, push, tags, resets and deletion are denied for Claude Code. Codex runs in `workspace-write` and Gemini in `auto_edit`. Check `git status` and the report folders after each run. The analyses run with the ReadOnly profile: Claude Code in `plan` mode with Read, Grep and Glob only, Codex in the `read-only` sandbox, Gemini with `--approval-mode plan`.
 - Verified on Windows: the PowerShell suites (`runner`, `agents`, `trackers`), `cargo test`, the TypeScript build, the release build and the six end-to-end scenarios above with a fake agent; the live probe on this workstation finds Claude Code on the `PATH` and Codex only as a Microsoft Store package. Not verified here: a live analysis with a real light model, real Codex or Gemini sessions, the installer bundles, and macOS or Linux windows (agent search paths and the host ID are covered by simulations and unit tests only). The native folder and file pickers (**Browse**, **Import text from file**) cannot be driven through DevTools; the end-to-end test checks the command behind the import instead.
+- Power: on Windows a `-Run` holds a system-required power request (`PowerSetRequest`) from before the first task until the run closes (normal end, stop or failure; a killed runner loses it with its process). `powercfg /requests` (elevated) lists it as `SecondBrain runner <run id>`. It only prevents idle sleep: the display may still turn off, the power plan is unchanged, and an explicit sleep or shutdown, closing the lid, a critical battery or a policy can still suspend the computer. `status.json` and the `power`/`powerfailed`/`powerunsupported` event report the result; on macOS and Linux it is reported as unsupported and the run goes on.
 - Gemini shows its steps live only when its `--help` offers `stream-json`; otherwise the steps appear when the task ends.
 - Tasks that need computer use are not selected unless the runner preflight allows them (see [operations](riferimento/operations.md)).

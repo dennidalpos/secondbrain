@@ -1,7 +1,7 @@
 // End-to-end scenarios on the real orchestrator binary (Windows, WebView2) with a synthetic SecondBrain:
 // preload from --repo, removal of recent repositories across restarts, the directives proposed by the light model and every Directives
 // button with its persistence after a restart, agents and models limited to the installed CLIs, a queue run followed live, closed while
-// running and found again after reopening, the registry with tool badges and archived tasks, the analysis that makes a task autonomous,
+// running and found again after reopening, the registry with tool badges, archived tasks and run labels from the lifecycle verdict (orphaned, finished), the analysis that makes a task autonomous,
 // the busy buttons (spinner, second click ignored) with a run that waits for a plan limit to reset and resumes by itself, and a run
 // stopped by a plan limit whose resume point the window shows and continues with -Resume.
 // The fixture comes from scripts/test-orchestrator-fixture.ps1 through SB_E2E_FIXTURE; real user settings are never touched.
@@ -260,6 +260,26 @@ test("registry: every task with its tool badge, archived tasks and the runner hi
   await expect(page.locator("#reg-rows tr.reg-row")).toHaveCount(1, { timeout: 30_000 });
   await page.locator('[data-reg-view="runs"]').click();
   await expect(page.locator("#reg-run-rows tr").first()).toContainText("Claude", { timeout: 30_000 });
+  // #600: a run recorded as running whose process is gone (no pid) is labelled interrupted, never running; a finished run shows its end.
+  const finished = page.locator("#reg-run-rows tr").first();
+  const folder = ((await finished.locator("td .mono").textContent()) ?? "").trim();
+  expect(folder).toMatch(/runner-run-/);
+  await expect(finished.locator("td").nth(1)).not.toContainText(/running|interrupted|unknown/);
+  const orphanId = "29991231-235959-runner-run-e2eorphan";
+  const orphanFolder = path.join(path.dirname(folder), orphanId);
+  fs.mkdirSync(orphanFolder, { recursive: true });
+  fs.writeFileSync(path.join(orphanFolder, "status.json"), JSON.stringify({ schemaVersion: 1, runId: orphanId, state: "running", phase: "agent", provider: "claude",
+    repository: fixture.identity, startedAt: "2026-01-15T10:00:00Z", updatedAt: "2026-01-15T10:05:00Z", results: [] }));
+  try {
+    await page.locator("#reg-refresh").click();
+    const orphan = page.locator("#reg-run-rows tr").filter({ hasText: orphanId });
+    await expect(orphan).toHaveCount(1, { timeout: 30_000 });
+    await expect(orphan.locator("td").nth(1)).toHaveText("interrupted · finish time unknown");
+    await expect(orphan.locator("td").nth(1).locator("span")).toHaveAttribute("title", "verdict: orphaned");
+    await expect(page.locator("#reg-run-rows tr").filter({ hasText: path.basename(folder) }).locator("td").nth(1)).not.toContainText(/running|interrupted/);
+  } finally {
+    fs.rmSync(orphanFolder, { recursive: true, force: true });
+  }
   await closeApp(app);
 });
 

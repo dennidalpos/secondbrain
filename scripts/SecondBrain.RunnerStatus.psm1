@@ -259,4 +259,48 @@ function Get-SBAgentFinalOutput([string]$Text) {
     }
     $Text
 }
-Export-ModuleMember -Function @('Get-SBRunnerRunList','Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Get-SBRunnerResumeSummary','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')
+# Windows power request for the run only (#603): PowerCreateRequest + PowerSetRequest(PowerRequestSystemRequired) keeps the system
+# from idle sleep while the runner process holds it; the display and the power plan are left alone. Windows drops the request when the
+# handle is closed or the process ends. It does not stop an explicit sleep (Start menu, power button), closing the lid or a battery policy.
+$script:SBRunnerPowerLimits='Prevents idle sleep only while the runner runs; the display may still turn off and the power plan is unchanged. An explicit sleep or shutdown, closing the lid, a critical battery or a policy can still suspend the computer.'
+$script:SBRunnerPowerHandle=[IntPtr]::Zero
+function Enter-SBRunnerPowerRequest([Parameter(Mandatory)][string]$Reason) {
+    # Result: supported, acquired, kind, reason, error (Win32 code or message), limits, acquiredAt. Never throws.
+    $result=[ordered]@{supported=$false;acquired=$false;released=$false;kind='system-required';reason=$Reason;error=$null;limits=$script:SBRunnerPowerLimits;acquiredAt=$null;releasedAt=$null}
+    if(!$IsWindows){$result.error='unsupported-platform';return $result}
+    $result.supported=$true
+    try{
+        if(!('SecondBrain.RunnerPower' -as [type])){
+            Add-Type -Namespace SecondBrain -Name RunnerPower -MemberDefinition @'
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)] public struct REASON_CONTEXT { public uint Version; public uint Flags; public string SimpleReasonString; }
+[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern IntPtr PowerCreateRequest(ref REASON_CONTEXT context);
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool PowerSetRequest(IntPtr request, int type);
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool PowerClearRequest(IntPtr request, int type);
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool CloseHandle(IntPtr handle);
+'@
+        }
+        if($script:SBRunnerPowerHandle -ne [IntPtr]::Zero){[void](Exit-SBRunnerPowerRequest)}
+        # POWER_REQUEST_CONTEXT_VERSION 0, POWER_REQUEST_CONTEXT_SIMPLE_STRING 1; PowerRequestSystemRequired 1.
+        $context=New-Object SecondBrain.RunnerPower+REASON_CONTEXT
+        $context.Version=0;$context.Flags=1;$context.SimpleReasonString=$Reason
+        $handle=[SecondBrain.RunnerPower]::PowerCreateRequest([ref]$context)
+        if($handle -eq [IntPtr]::Zero -or $handle -eq [IntPtr]::new(-1)){$result.error='PowerCreateRequest '+[Runtime.InteropServices.Marshal]::GetLastWin32Error();return $result}
+        if(![SecondBrain.RunnerPower]::PowerSetRequest($handle,1)){
+            $result.error='PowerSetRequest '+[Runtime.InteropServices.Marshal]::GetLastWin32Error()
+            [void][SecondBrain.RunnerPower]::CloseHandle($handle);return $result
+        }
+        $script:SBRunnerPowerHandle=$handle
+        $result.acquired=$true;$result.acquiredAt=(Get-SBNow).ToString('o')
+    }catch{$result.error=$_.Exception.Message}
+    $result
+}
+function Exit-SBRunnerPowerRequest {
+    # Clears and closes the request held by this process; $true when one was released, $false when there was none. Never throws.
+    $handle=$script:SBRunnerPowerHandle
+    if($handle -eq [IntPtr]::Zero){return $false}
+    $script:SBRunnerPowerHandle=[IntPtr]::Zero
+    try{[void][SecondBrain.RunnerPower]::PowerClearRequest($handle,1)}catch{[void]$_}
+    try{[void][SecondBrain.RunnerPower]::CloseHandle($handle)}catch{[void]$_}
+    $true
+}
+Export-ModuleMember -Function @('Enter-SBRunnerPowerRequest','Exit-SBRunnerPowerRequest','Get-SBRunnerRunList','Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Get-SBRunnerResumeSummary','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')

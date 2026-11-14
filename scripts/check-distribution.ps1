@@ -6,7 +6,7 @@ Checks that the SecondBrain Git index contains only public files permitted for d
 Ensures that no local file (01-projects/, 02-areas/, 03-resources/, 04-archives/, .runtime/,
 PARA.md, para-index.json) is in the Git index or ready to push.
 Checks that every tracked file belongs to the permitted public folders/files:
-scripts/, config/, direttive/, docs/, app/, .github/, README.md, AGENTS.md, CLAUDE.md, GEMINI.md, LICENSE, VERSION, CHANGELOG.md, CREDITS.md, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, .gitattributes, .gitignore.
+scripts/, config/, direttive/, docs/, app/, .github/, README.md, AGENTS.md, CLAUDE.md, GEMINI.md, LICENSE, VERSION, CHANGELOG.md, CREDITS.md, SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, start.ps1, .gitattributes, .gitignore.
 Returns exit code 0 for a compliant working tree, 1 for violations.
 #>
 [CmdletBinding()]
@@ -48,6 +48,7 @@ $allowedRootFiles = @(
     'SECURITY.md',
     'CONTRIBUTING.md',
     'CODE_OF_CONDUCT.md',
+    'start.ps1',
     '.gitattributes',
     '.gitignore'
 )
