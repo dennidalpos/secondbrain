@@ -138,6 +138,13 @@ switch($Mode){
     }
     # Parking modes: exit 0 with an answer; 'noop' leaves the task todo, 'done' and 'blocked' set a terminal or waiting status through the agent session.
     'noop' {[Console]::Out.Write((@{type='result';is_error=$false;result='no progress'}|ConvertTo-Json -Compress));exit 0}
+    # #612: the agent records a ready, autonomous, top-priority follow-up through its own session, then marks its task in progress.
+    'followup' {
+        & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -NewTask ('Follow-up of '+$id) -Acceptance 'Follow-up acceptance' -Provenance 'history/seed/report.md' -ProvenancePointer '#seed' -Execution autonomous -Priority P0 2>&1|Out-Null
+        if($LASTEXITCODE){[Console]::Error.WriteLine('new task failed');exit 5}
+        Set-FakeInProgress 'Fake agent followup'
+        [Console]::Out.Write((@{type='result';is_error=$false;result='follow-up recorded'}|ConvertTo-Json -Compress));exit 0
+    }
     {$_ -in @('done','blocked')} {
         & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -UpdateTaskId $id -Status $Mode -StateReason ('Fake agent '+$Mode)|Out-Null
         if($LASTEXITCODE){[Console]::Error.WriteLine('update failed');exit 5}
@@ -617,6 +624,41 @@ $r|ConvertTo-Json -Compress
     $quiet=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','quiet','-TaskIds','S-2','-StallMinutes','0.1','-Events')
     $quietEvents=@($quiet.err -split "`r?`n"|Where-Object {$_.Trim().StartsWith('{')}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
     Assert-Runner ($quiet.code -eq 0 -and @($quietEvents|Where-Object {$_.event -eq 'stalled'}).Count -eq 1 -and @($quiet.data.tasks)[0].state -eq 'finished') ('a silent agent raises one stall notice and is not killed: '+$quiet.err)
+    # #612: the queue is fixed when the run starts; a follow-up an agent creates mid-run (ready, autonomous, P0) waits for a later run.
+    $t2=Read-SBJson $trackerPath2 $null
+    foreach($fid in @('F-1','F-2','P-1')){
+        $seqF=[int]$t2.extensions.lastSeq+1
+        $newTask=New-SBTrackerTask @{id=$fid;title=('Task '+$fid);status='todo'} $identity2 'fixture' 'history/seed/report.md' (Get-SBTextHash 'Synthetic provenance') 'fixture'
+        $newTask.seq=$seqF;$newTask.title='#'+$seqF.ToString('000')+' — Task '+$fid;$newTask.priority='P2';$newTask.execution='autonomous';$newTask.extensions=@{stream='evoluzione-team'}
+        $t2.tasks=@($t2.tasks)+@($newTask);$t2.extensions.lastSeq=$seqF
+    }
+    Put-Runner $trackerPath2 (ConvertTo-SBJson $t2)
+    # #604: a refused power request stops a headless run before any task unless -AllowNoPowerRequest is given (simulated refusal).
+    $savedPowerRoot=$env:SECONDBRAIN_TEST_ROOT
+    try{
+        if(!$env:SECONDBRAIN_TEST_ROOT){$env:SECONDBRAIN_TEST_ROOT=$fixture}
+        $env:SB_RUNNER_TEST_POWER_FAIL='1'
+        $hashPower=Get-SBFileHash $trackerPath2
+        $refusedPower=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','ok','-TaskIds','P-1','-Events')
+        $refusedEvents=@($refusedPower.err -split "`r?`n"|Where-Object {$_.Trim().StartsWith('{')}|ForEach-Object {$_|ConvertFrom-Json -AsHashtable})
+        $refusedStatusPath=[string](@($refusedEvents|Where-Object {$_.event -eq 'status'})[0].status)
+        $refusedStatus=Read-SBJson $refusedStatusPath $null
+        Assert-Runner ($refusedPower.code -eq 2 -and @($refusedEvents|Where-Object {$_.event -eq 'powerrefused'}).Count -eq 1 -and @($refusedEvents|Where-Object {$_.event -eq 'start'}).Count -eq 0 -and $refusedPower.err -match 'AllowNoPowerRequest') ('a refused power request stops the headless run with the option to continue: '+$refusedPower.err)
+        Assert-Runner ($refusedStatus.state -eq 'failed' -and $refusedStatus.stopReason -eq 'power' -and !$refusedStatus.powerRequest.acquired -and (Get-SBFileHash $trackerPath2) -ceq $hashPower) ('the refused run records stopReason power and leaves the tracker unchanged: '+($refusedStatus|ConvertTo-Json -Compress -Depth 3))
+        $anyway=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','ok','-TaskIds','P-1','-AllowNoPowerRequest','-Events')
+        Assert-Runner ($anyway.code -eq 0 -and (@($anyway.data.tasks|ForEach-Object id) -join ',') -ceq 'P-1' -and $anyway.err -match '"event":"powerfailed"') ('-AllowNoPowerRequest runs without the request and says so: '+$anyway.text)
+        $anywayStatus=Read-SBJson ([string]$anyway.data.status) $null
+        Assert-Runner ($anywayStatus.allowNoPowerRequest -and !$anywayStatus.powerRequest.acquired -and $null -eq $anywayStatus.stopReason) 'the run without protection records the explicit choice'
+    }finally{Remove-Item Env:SB_RUNNER_TEST_POWER_FAIL -ErrorAction SilentlyContinue;$env:SECONDBRAIN_TEST_ROOT=$savedPowerRoot}
+    $follow=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','followup','-MaxTasks','0','-TaskIds','F-1,F-2')
+    $followTasks=@((Read-SBJson $trackerPath2 $null).tasks|Where-Object {[string]$_.title -match 'Follow-up of F-'})
+    Assert-Runner ($follow.code -eq 0 -and (@($follow.data.tasks|ForEach-Object id) -join ',') -ceq 'F-1,F-2' -and $followTasks.Count -eq 2) ('the run executes only the queue chosen at start while its agents create follow-ups: '+$follow.text)
+    Assert-Runner (@($followTasks|Where-Object {$_.status -eq 'todo' -and $_.execution -eq 'autonomous'}).Count -eq 2) 'the follow-ups stay todo for a later selection'
+    $followAll=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','followup','-MaxTasks','1')
+    $followIds=@($followTasks|ForEach-Object {[string]$_.id})
+    Assert-Runner ($followAll.code -eq 0 -and @($followAll.data.tasks).Count -eq 1 -and [string]@($followAll.data.tasks)[0].id -in $followIds) ('a later run selects a follow-up: '+$followAll.text)
+    $followTasks2=@((Read-SBJson $trackerPath2 $null).tasks|Where-Object {[string]$_.title -match 'Follow-up of '})
+    Assert-Runner ($followTasks2.Count -eq 3 -and @($followTasks2|Where-Object {$_.status -eq 'todo'}).Count -eq 2) 'the follow-up of a follow-up is again left for a later run'
     Close-RunnerPhase 'monitor'
     # runner-gui.ps1 (sb runner): binary path and rebuild decision on a fake app with a fake binary; -WhatIf/-NoLaunch, never a real build.
     $guiApp=Join-Path $fixture 'gui-app'

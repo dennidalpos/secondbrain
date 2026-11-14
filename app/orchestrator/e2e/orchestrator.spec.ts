@@ -3,15 +3,15 @@
 // button with its persistence after a restart, agents and models limited to the installed CLIs, a queue run followed live, closed while
 // running and found again after reopening, the registry with tool badges, archived tasks and run labels from the lifecycle verdict (orphaned, finished), the analysis that makes a task autonomous,
 // the busy buttons (spinner, second click ignored) with a run that waits for a plan limit to reset and resumes by itself, and a run
-// stopped by a plan limit whose resume point the window shows and continues with -Resume.
+// stopped by a plan limit whose resume point the window shows and continues with -Resume, and a refused power request that asks Run anyway or Cancel.
 // The fixture comes from scripts/test-orchestrator-fixture.ps1 through SB_E2E_FIXTURE; real user settings are never touched.
 import { test, expect, chromium, type Browser, type Locator, type Page } from "@playwright/test";
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as net from "node:net";
 
-interface Fixture { brain: string; checkout: string; identity: string; tracker: string; dossier: string; bin: string; configDir: string; binary: string; webviewData: string }
+interface Fixture { brain: string; checkout: string; identity: string; tracker: string; dossier: string; config: string; bin: string; configDir: string; binary: string; webviewData: string }
 const fixture: Fixture = JSON.parse(fs.readFileSync(process.env.SB_E2E_FIXTURE ?? "", "utf8"));
 const settingsFile = path.join(fixture.configDir, "settings.json");
 
@@ -32,7 +32,7 @@ function isolatedPath(): string {
   return [fixture.bin, ...dirs].join(path.delimiter);
 }
 
-async function launch(opts: { repo?: string; agentSeconds?: number; limitSeconds?: number } = {}): Promise<App> {
+async function launch(opts: { repo?: string; agentSeconds?: number; limitSeconds?: number; powerFail?: boolean } = {}): Promise<App> {
   const port = await freePort();
   const args = opts.repo ? ["--repo", opts.repo] : [];
   const proc = spawn(fixture.binary, args, {
@@ -47,6 +47,8 @@ async function launch(opts: { repo?: string; agentSeconds?: number; limitSeconds
       SB_E2E_BRAIN: fixture.brain,
       SB_E2E_AGENT_SECONDS: String(opts.agentSeconds ?? 3),
       ...(opts.limitSeconds ? { SB_E2E_AGENT_LIMIT_SECONDS: String(opts.limitSeconds) } : {}),
+      // Test-only refusal of the Windows power request (run-ready-tasks.ps1 honours it inside a test run only).
+      ...(opts.powerFail ? { SB_RUNNER_TEST_POWER_FAIL: "1", SECONDBRAIN_TEST_ROOT: process.env.SECONDBRAIN_TEST_ROOT || path.dirname(fixture.brain) } : {}),
       WEBVIEW2_USER_DATA_FOLDER: fixture.webviewData,
       WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${port}`,
     },
@@ -425,5 +427,50 @@ test("a run stopped by a plan limit shows its resume point, and the window resum
   const point = JSON.parse(fs.readFileSync(path.join(path.dirname(newFolder), runId, "resume.json"), "utf8"));
   expect(point.resumedBy).toBe(path.basename(newFolder));
   await expect(resume).toBeHidden();
+  await closeApp(app);
+});
+
+test("a refused power request asks Run anyway or Cancel: Cancel starts nothing, Run anyway runs the queue without the request", async () => {
+  test.setTimeout(300_000);
+  // E2E-3 is ready again for this scenario (the previous one left it in progress).
+  const reset = spawnSync("pwsh", ["-NoProfile", "-File", path.join(fixture.brain, "scripts", "knowledge.ps1"), "-ConfigPath", fixture.config, "-CheckoutPath", fixture.checkout,
+    "-UpdateTaskId", "E2E-3", "-Status", "todo", "-StateReason", "Ready again for the power scenario"], { encoding: "utf8", env: { ...process.env, SECONDBRAIN_HOME: fixture.brain } });
+  expect(reset.status, reset.stderr).toBe(0);
+  const app = await launch({ repo: fixture.checkout, powerFail: true });
+  const { page } = app;
+  await expect(page.locator("#q-tasks tr").filter({ hasText: "E2E-3" })).toHaveCount(1, { timeout: 60_000 });
+  await page.locator("#q-wait").uncheck();
+  await page.locator("#q-tasks tr").filter({ hasText: "E2E-3" }).locator('input[type="checkbox"]').check();
+  const calls = watchCalls(page);
+  const dialog = page.locator("#power-dialog");
+  await page.locator("#q-start").click();
+  await expect(dialog).toBeVisible({ timeout: 120_000 });
+  await expect(dialog.locator("button")).toHaveText(["Run anyway", "Cancel"]);
+  await expect(page.locator("#power-reason")).toContainText("simulated failure");
+  expect(readTracker().tasks.find((t) => t.id === "E2E-3")?.status).toBe("todo");
+  await dialog.locator('button[data-power="cancel"]').click();
+  await expect(dialog).toBeHidden();
+  await page.waitForTimeout(2_000);
+  expect(calls("start_queue")).toBe(1);
+  expect(readTracker().tasks.find((t) => t.id === "E2E-3")?.status).toBe("todo");
+
+  await page.locator('.steps button[data-tab="queue"]').click();
+  // The queue reloads after a run ends; select again on the refreshed list.
+  await page.locator("#q-refresh").click();
+  await expect(page.locator("#q-tasks tr").filter({ hasText: "E2E-3" })).toHaveCount(1, { timeout: 60_000 });
+  await expect(page.locator("#q-count")).toContainText("0 selezionati", { timeout: 30_000 });
+  await page.locator("#q-tasks tr").filter({ hasText: "E2E-3" }).locator('input[type="checkbox"]').check();
+  await expect(page.locator("#q-count")).toContainText("1 selezionati");
+  await page.locator("#q-start").click();
+  await expect(dialog).toBeVisible({ timeout: 120_000 });
+  await dialog.locator('button[data-power="run"]').click();
+  await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 180_000 });
+  expect(calls("start_queue")).toBe(3);
+  await expect(page.locator("#run-results tr").filter({ hasText: "E2E-3" }).last()).toContainText("finished");
+  expect(readTracker().tasks.find((t) => t.id === "E2E-3")?.status).toBe("in_progress");
+  const folder = ((await page.locator("#run-folder").textContent()) ?? "").trim();
+  const status = JSON.parse(fs.readFileSync(path.join(folder, "status.json"), "utf8"));
+  expect(status.allowNoPowerRequest).toBe(true);
+  expect(status.powerRequest.acquired).toBe(false);
   await closeApp(app);
 });

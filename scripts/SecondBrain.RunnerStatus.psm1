@@ -264,9 +264,11 @@ function Get-SBAgentFinalOutput([string]$Text) {
 # handle is closed or the process ends. It does not stop an explicit sleep (Start menu, power button), closing the lid or a battery policy.
 $script:SBRunnerPowerLimits='Prevents idle sleep only while the runner runs; the display may still turn off and the power plan is unchanged. An explicit sleep or shutdown, closing the lid, a critical battery or a policy can still suspend the computer.'
 $script:SBRunnerPowerHandle=[IntPtr]::Zero
-function Enter-SBRunnerPowerRequest([Parameter(Mandatory)][string]$Reason) {
+function Enter-SBRunnerPowerRequest([Parameter(Mandatory)][string]$Reason,[switch]$SimulateFailure) {
     # Result: supported, acquired, kind, reason, error (Win32 code or message), limits, acquiredAt. Never throws.
+    # -SimulateFailure (tests only) reports a supported request that was refused, without calling Windows.
     $result=[ordered]@{supported=$false;acquired=$false;released=$false;kind='system-required';reason=$Reason;error=$null;limits=$script:SBRunnerPowerLimits;acquiredAt=$null;releasedAt=$null}
+    if($SimulateFailure){$result.supported=$true;$result.error='simulated failure (test)';return $result}
     if(!$IsWindows){$result.error='unsupported-platform';return $result}
     $result.supported=$true
     try{

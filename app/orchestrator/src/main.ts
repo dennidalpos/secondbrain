@@ -38,7 +38,7 @@ interface ResumePoint {
 interface RunReport { active: boolean; verdict: "working" | "stalled" | "waiting" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null; resume?: ResumePoint | null }
 interface QueueRequest {
   repo: string; provider: string; model: string | null; effort: string | null; allowCustomModel: boolean; taskIds: string[];
-  timeoutMinutes: number; stallMinutes: number; waitForReset: boolean; maxWaitHours: number; resume?: string;
+  timeoutMinutes: number; stallMinutes: number; waitForReset: boolean; maxWaitHours: number; resume?: string; allowNoPowerRequest?: boolean;
 }
 interface EventJson { event?: string; message?: string; time?: string; record?: RunRecord; kind?: string; summary?: string; minutes?: number }
 interface RunnerEvent { line: string; json: EventJson | null }
@@ -433,10 +433,14 @@ onBusyClick($("q-refresh"), () => refreshTasks());
 $("q-all").addEventListener("click", () => { state.tasks.forEach((t) => state.selected.add(t.id)); renderTasks(); });
 $("q-none").addEventListener("click", () => { state.selected.clear(); renderTasks(); });
 
+// Only the newest read applies: an older one (e.g. the reload when a run ends) answering late would replace the list and clear the selection.
+let tasksRequest = 0;
 async function refreshTasks() {
   if (!state.repo) return;
+  const request = ++tasksRequest;
   $("q-count").textContent = "Lettura del tracker…";
   const r = await call<{ tasks: PreviewTask[]; skipped: Skipped[] }>("list_tasks", { repo: state.repo, provider: state.provider || null }, "q-error");
+  if (request !== tasksRequest) return;
   if (!r) { $("q-count").textContent = ""; return; }
   state.tasks = r.tasks ?? [];
   // Nothing is preselected (#517): the person opts in task by task, or with "Seleziona tutti".
@@ -535,8 +539,10 @@ onBusyClick($("q-start"), async () => {
   await launchQueue(request, "q-error");
 });
 /** Starts the runner for a confirmed request (new queue or resume) and follows it in the Run tab. */
+let lastRequest: QueueRequest | null = null;
 async function launchQueue(request: QueueRequest, errorBox: string) {
   resetRunView();
+  lastRequest = request;
   const r = await call<{ pid: number; log: string }>("start_queue", { request }, errorBox);
   if (!r) return;
   state.run.starting = true; state.run.pid = r.pid;
@@ -745,18 +751,38 @@ onBusyClick($("run-abort"), async () => {
   if (ok) { note("Interruzione immediata richiesta dalla finestra."); window.setTimeout(pullStatus, 1500); }
 });
 
+// #604: the runner refused to start without its power request (event powerrefused, exit 2): the owner chooses Run anyway or Cancel.
+const powerDialog = $<HTMLDialogElement>("power-dialog");
+let powerRetry: QueueRequest | null = null;
+function askPowerChoice(log: string) {
+  if (!lastRequest || lastRequest.allowNoPowerRequest) return false;
+  powerRetry = { ...lastRequest, allowNoPowerRequest: true };
+  const reason = /"event":"powerrefused".*?"error":"([^"]*)"/.exec(log)?.[1];
+  $("power-reason").textContent = reason ? `Reason: ${reason}.` : "";
+  if (!powerDialog.open) powerDialog.showModal();
+  return true;
+}
+powerDialog.querySelectorAll<HTMLButtonElement>("button[data-power]").forEach((b) => onBusyClick(b, async () => {
+  const retry = powerRetry;
+  powerRetry = null;
+  powerDialog.close();
+  if (b.dataset.power === "run" && retry) await launchQueue(retry, "run-error");
+}));
 listen<{ code: number | null; pid: number; log: string; stdout: string }>("runner-finished", async (e) => {
   if (e.payload.pid !== state.run.pid) return;
   window.clearInterval(state.timers.find);
+  const powerRefused = e.payload.code === 2 && e.payload.log.includes('"event":"powerrefused"');
   if (!state.run.folder) {
     // Ended before writing its status (busy repository, invalid model, missing agent): show why.
     state.run.starting = false;
     setVerdict("idle");
     setError("run-error", `Il runner è terminato (uscita ${e.payload.code}) prima di avviare il run.\n${e.payload.log}`);
     updateSteps();
+    if (powerRefused) askPowerChoice(e.payload.log);
     return;
   }
   await pullStatus();
+  if (powerRefused) askPowerChoice(e.payload.log);
 });
 
 // Closing with a run in progress asks what to do; the runner itself is detached and survives the window.

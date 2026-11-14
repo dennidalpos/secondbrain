@@ -242,6 +242,15 @@
         <button data-close="cancel">Annulla</button>
       </div>
     </dialog>
+    <dialog id="power-dialog" aria-labelledby="power-title">
+      <h2 id="power-title">Sleep protection not available</h2>
+      <p>The runner could not ask Windows to keep the computer awake, so the computer could go to sleep during the run and stop it. No task has started.</p>
+      <p id="power-reason" class="muted small"></p>
+      <div class="dialog-actions">
+        <button data-power="run" class="primary">Run anyway</button>
+        <button data-power="cancel">Cancel</button>
+      </div>
+    </dialog>
     <dialog id="an-dialog" class="wide" aria-labelledby="an-title">
       <h2 id="an-title"></h2>
       <p id="an-meta" class="muted small"></p>

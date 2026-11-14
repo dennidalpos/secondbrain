@@ -16,6 +16,9 @@ Codex session files, else the last observation of this workstation): exhausted w
 until the agent reports the limit. The limit is recognized only in the agent's final error envelope with per-provider texts; a transient
 rate limit is "throttled" and does not stop the run. A quota stop writes resume.json in the run folder (interrupted task, remaining queue),
 puts the interrupted task back to todo when the agent left it in_progress, and -Resume <run folder name|latest> continues from there.
+On Windows -Run holds a system-required power request for the run only (#603). When it cannot be acquired the run does not start
+(event powerrefused, stopReason power, exit 2) unless -AllowNoPowerRequest says to run without protection from sleep (#604); the desktop
+app asks Run anyway or Cancel. Platforms without power requests report unsupported and run.
 -WaitForReset keeps the run alive instead: it waits for the limit to reset (phase waiting-quota, verdict waiting) and goes on, the
 interrupted task first. The reset comes from the quota read (Claude Code rate_limit_event, Codex session files), else from the limit
 text (Get-SBAgentLimitReset: Claude "resets 3pm (zone)", Codex "try again in/at", Gemini daily quota at midnight Pacific time), else a
@@ -40,7 +43,7 @@ param([string]$CheckoutPath='.',[int]$MaxTasks=3,[ValidateRange(1,240)][int]$Tim
     [ValidateSet('claude','codex','gemini')][string]$Provider='claude',[string]$Model,[string]$Effort,[switch]$AllowCustomModel,
     [string]$AgentPath,[string[]]$AgentArguments,[string[]]$TaskIds,[switch]$Events,[string]$StopFile,
     [ValidateRange(0.05,240)][double]$StallMinutes=5,[string]$ConfigPath,[switch]$UseCliDefault,[string]$Resume,
-    [switch]$WaitForReset,[ValidateRange(1,168)][int]$MaxWaitHours=24,[ValidateRange(0.05,1440)][double]$RecheckMinutes=30,[ValidateRange(0,3600)][int]$ResetMarginSeconds=60,[switch]$Run)
+    [switch]$WaitForReset,[ValidateRange(1,168)][int]$MaxWaitHours=24,[ValidateRange(0.05,1440)][double]$RecheckMinutes=30,[ValidateRange(0,3600)][int]$ResetMarginSeconds=60,[switch]$AllowNoPowerRequest,[switch]$Run)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
@@ -89,6 +92,7 @@ Add-SBMessages @{
     'runner.progress.quotawaitlimit' = @{it='Ripristino della quota {0} previsto per {1}, oltre l attesa massima di {2} h: il run si ferma';en='Quota {0} reset expected at {1}, beyond the maximum wait of {2} h: the run stops'}
     'runner.progress.power' = @{en='Power request held for this run: the computer does not go to sleep while it is idle ({0})'}
     'runner.progress.powerfailed' = @{en='Power request not acquired ({0}): the computer may go to sleep during the run'}
+    'runner.progress.powerrefused' = @{en='The run does not start: the power request was not acquired ({0}) and the computer could go to sleep during the run. Run again with -AllowNoPowerRequest to run without this protection'}
     'runner.progress.powerunsupported' = @{en='Power request not supported on this platform: the run goes on without it'}
     'runner.progress.omitted' = @{it='  Opzioni non disponibili nella CLI installata e omesse: {0}';en='  Options missing from the installed CLI and left out: {0}'}
 }
@@ -385,10 +389,19 @@ Initialize-RunnerInvocation
 $resolved=Resolve-SBAgentExecutable $AgentPath
 if(!$resolved){[Console]::Error.WriteLine((New-SBError 'runner.agent.missing' $AgentPath).Message);exit 2}
 # Power request for the run only (#603), reported before the first task: system-required; display and power plan untouched.
-$script:runStatus.powerRequest=Enter-SBRunnerPowerRequest ('SecondBrain runner '+$script:runStatus.runId)
+# Test-only: SB_RUNNER_TEST_POWER_FAIL inside a test run (SECONDBRAIN_TEST_ROOT) simulates a refused request.
+$simulatePowerFailure=[bool]($env:SECONDBRAIN_TEST_ROOT -and $env:SB_RUNNER_TEST_POWER_FAIL)
+$script:runStatus.powerRequest=Enter-SBRunnerPowerRequest ('SecondBrain runner '+$script:runStatus.runId) -SimulateFailure:$simulatePowerFailure
+$script:runStatus.allowNoPowerRequest=[bool]$AllowNoPowerRequest
 $power=$script:runStatus.powerRequest
 $powerKey=if($power.acquired){'runner.progress.power'}elseif(!$power.supported){'runner.progress.powerunsupported'}else{'runner.progress.powerfailed'}
 Show-RunnerLine $powerKey @($(if($power.acquired){$power.limits}else{$power.error})) @{powerRequest=$power}
+# #604: without the request the run starts only on an explicit choice (-AllowNoPowerRequest, or Run anyway in the desktop app).
+if($power.supported -and !$power.acquired -and !$AllowNoPowerRequest){
+    $script:runStatus.stopReason='power'
+    Show-RunnerLine 'runner.progress.powerrefused' @($power.error) @{powerRequest=$power;reason='power'}
+    exit 2
+}
 # Prefer a real executable or .cmd shim; a .ps1 shim (npm) cannot be started directly, so it is wrapped in pwsh -File.
 $results=@();$consecutiveFailures=0;$stopReason=$null;$position=0
 if($script:resumeFrom){

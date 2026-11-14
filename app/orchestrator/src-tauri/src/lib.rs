@@ -36,6 +36,9 @@ pub struct QueueRequest {
     /// Continue the run a quota stop left (run-ready-tasks.ps1 -Resume <runId>): the queue comes from its resume.json, not from task_ids.
     #[serde(default)]
     pub resume: Option<String>,
+    /// Run without the Windows power request after the owner chose Run anyway (-AllowNoPowerRequest, #604).
+    #[serde(default)]
+    pub allow_no_power_request: bool,
 }
 
 /// The runner started by this window (while it lives): its process and its stop file.
@@ -479,6 +482,9 @@ fn queue_args(request: &QueueRequest, checkout_path: String, stop_file: &str) ->
         args.push("-StallMinutes".into());
         args.push(s.clamp(1, 240).to_string());
     }
+    if request.allow_no_power_request {
+        args.push("-AllowNoPowerRequest".into());
+    }
     if request.wait_for_reset {
         args.push("-WaitForReset".into());
         args.push("-MaxWaitHours".into());
@@ -677,6 +683,7 @@ mod tests {
             wait_for_reset: false,
             max_wait_hours: None,
             resume: resume.map(Into::into),
+            allow_no_power_request: false,
         }
     }
 
@@ -688,6 +695,11 @@ mod tests {
         assert!(!fresh.iter().any(|a| a == "-Resume"));
         assert!(fresh.windows(2).any(|w| w == ["-StopFile", "stop.flag"]));
         assert!(fresh.iter().any(|a| a == "-UseCliDefault"));
+        // #604: -AllowNoPowerRequest only after the owner chose Run anyway.
+        assert!(!fresh.iter().any(|a| a == "-AllowNoPowerRequest"));
+        let mut anyway = queue(&["T-1"], None);
+        anyway.allow_no_power_request = true;
+        assert!(queue_args(&anyway, "C".into(), "s").unwrap().iter().any(|a| a == "-AllowNoPowerRequest"));
         let resumed = queue_args(&queue(&[], Some(" 2026-11-13-runner-run-101500-42 ")), "C".into(), "stop.flag").unwrap();
         assert!(resumed.windows(2).any(|w| w == ["-Resume", "2026-11-13-runner-run-101500-42"]));
         assert!(!resumed.iter().any(|a| a == "-TaskIds"));

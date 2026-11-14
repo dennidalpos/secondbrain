@@ -2,7 +2,20 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.13.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.14.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.14.0] - 2026-11-14
+
+A run without sleep protection starts only on an explicit choice, and follow-ups created during a run wait for a later one.
+
+### Added
+- `run-ready-tasks.ps1 -AllowNoPowerRequest`: when Windows refuses the power request the run no longer starts by default (event `powerrefused`, `stopReason` `power`, exit 2, no task run); the option runs without the protection. The orchestrator asks **Run anyway** or **Cancel**, and Run anyway restarts the same queue with the option (#604).
+
+### Changed
+- Runner suite: a follow-up an agent creates during a run, even ready and of higher priority, is not executed in that run and is selected by a later one; documented in docs/orchestratore.md (#612).
+
+### Fixed
+- Orchestrator queue: only the newest tracker read applies, so a late reload (such as the one after a run ends) no longer clears a selection made meanwhile.
 
 ## [2.13.0] - 2026-11-14
 
