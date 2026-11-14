@@ -96,7 +96,7 @@ function Get-AgentsDirectiveBlocks($Repo){
 function Get-AgentsComposedBlock([string]$Common,[string]$Specific){
     # The repository block as secondbrain.ps1 -Sync would write it for the given specific text (approval aside): stamp, common body, specific text.
     $revision=Get-SBApprovedDirectiveRevision $brain
-    $stamp=if($revision){'Direttive comuni applicate: revisione **'+$revision.version+'** — '+$revision.date+'.'}else{''}
+    $stamp=if($revision){'Common directives applied: revision **'+$revision.version+'** — '+$revision.date+'.'}else{''}
     (@($stamp,$Common.Trim(),$Specific.Trim())|Where-Object {$_}) -join "`n`n"
 }
 function Get-AgentsCounts($Blocks,[string]$Specific){

@@ -159,7 +159,7 @@ $script:SBWorkflowText=@{
         perimeter='Work only on the repository named in this prompt: read and change only its own dossier, tracker and tasks. Never take, update or act on tasks of other repositories, and do not use global views (-All, -AllDossiers, all=true) or another repository identity unless the user names it in this request.'
         closingRead='Closing: deliver the report in output_format. Change nothing and update no tracker or notes unless asked.'
         closingWrite='Closing: record outcome and evidence where the project tracks its work, and note lasting decisions in its documentation, if it keeps them. Do not commit or push unless authorized.'
-        closingBrain='Closing: update the dossier tracker with outcome and evidence; record lasting decisions in memory.md as one line "Decisione: … — Motivo: …"; update the state in context.md; run secondbrain.ps1 -Sync and -Check if directives or dossiers changed. Do not commit or push unless authorized.'
+        closingBrain='Closing: update the dossier tracker with outcome and evidence; record lasting decisions in memory.md as one line "Decision: … — Reason: …"; update the state in context.md; run secondbrain.ps1 -Sync and -Check if directives or dossiers changed. Do not commit or push unless authorized.'
         nextIntro='When the task is done, do not start other prompts or tasks on your own initiative: offer 2 to 4 next steps as multiple choice and wait for the choice.'
         nextPrompts='Candidate prompts:';nextTasks='Ready tasks of the repository:'
         nextNone='No candidate available: ask which prompt to use or conclude.'

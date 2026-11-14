@@ -1,15 +1,15 @@
 {
-  "approvedAt": "2026-11-12T23:26:18.3990558+01:00",
-  "authorization": "Richiesta della persona titolare 2026-11-12: approvata la revisione 1.2 (sb stop e MEM09 nelle direttive di postazione e nel testo comune)",
+  "approvedAt": "2026-11-14T10:43:08.5440508+01:00",
+  "authorization": "Owner in chat, 2026-11-14: \"Approve revision 1.3\"",
   "files": {
-    "direttive/AGENTS.global_ide.md": "0552D722AEAED0A96BC7C968F6ECED2371EF292CAF1DE4734A728F13D32620B3",
+    "direttive/AGENTS.global_ide.md": "6B4E10F48D98505DB4ABF6C08AD8BB01229A0D33FF844A2C91781D63F291B480",
     "direttive/AGENTS.repo.managed.md": "B77983688C1B03B8DD4A10DB38F12293AD87BCB999A39EAAFD574166C3C68AEA",
-    "direttive/workstation.template.md": "DBF47C4088B567FDBA1695B60D338A09D04A4106FAB5CF2B8B7BDCB775220923"
+    "direttive/workstation.template.md": "BD2E210B49B3B77000F570E6F6191DC694798722B50900E6C3864E3DBDD78FF7"
   },
   "proposal": {
-    "path": "direttive/proposals/2026-11-12-sb-stop",
-    "readmeHash": "FCB90C9E409FE9FCDB10348A93371691435F0567F4A39ADCA755289BE635E0D2",
-    "sha256": "A5FEA772ACFB4F9CFF20008E0AF70BBD0690E36D1B87C7FF57060B543AFFADAA"
+    "path": "direttive/proposals/2026-11-13-revision-1-3",
+    "readmeHash": "8106072DFC1C52FB901F2654A7657353831509BCA1A388B5888230551C38DB9C",
+    "sha256": "65BC740696D2273EB417165EEA245B2189FBDBEAEE56B12C014585F426840082"
   },
   "schemaVersion": 1
 }

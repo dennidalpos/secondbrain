@@ -112,7 +112,7 @@ function Get-SBPortableGlobal([string]$BrainRoot) {
     $text
 }
 function New-SBPortableRepositoryBody($Revision,[string]$BrainRoot,[string]$Dossier='') {
-    $stamp=if($Revision){@('Direttive comuni applicate: revisione **'+$Revision.version+'** — '+$Revision.date+'.','<!-- secondbrain:source global='+$Revision.globalHash+' workstation='+$Revision.workstationHash+' -->')}else{@()}
+    $stamp=if($Revision){@('Common directives applied: revision **'+$Revision.version+'** — '+$Revision.date+'.','<!-- secondbrain:source global='+$Revision.globalHash+' workstation='+$Revision.workstationHash+' -->')}else{@()}
     $fallback=@('SecondBrain: integrazione opzionale della conoscenza e delle direttive comuni.',
       'Risolvi SECONDBRAIN_HOME dallʼambiente utente della postazione; nessun percorso personale è conservato in questo repository.',
       'Se il clone privato non è disponibile, prosegui con le istruzioni tecniche locali e segnala lʼintegrazione non configurata; non creare memorie o stub sostitutivi.',
