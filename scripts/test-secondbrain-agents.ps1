@@ -194,6 +194,23 @@ Assert-Agent ((Get-SBAgentQuota -Provider claude).state -ceq 'unknown') 'Claude 
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(1).ToString('o');observedAt=$now.ToString('o')}).state -ceq 'exhausted') 'an observed exhaustion with a future reset is exhausted'
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(-1).ToString('o');observedAt=$now.AddHours(-3).ToString('o')}).state -ceq 'unknown') 'an exhaustion past its reset is unknown'
 Assert-Agent ((Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$null;observedAt=$now.ToString('o')}).state -ceq 'unknown') 'an exhaustion without a reset time does not block'
+# #602: provider, state, source, observedAt and reason on every reading; unknown always says why and is never available.
+function Test-QuotaReading($Q,[string]$State,[string]$Source,$Reason,[string]$Label){
+    $fields=@('provider','state','source','observedAt','reason')|Where-Object {!$Q.Contains($_)}
+    Assert-Agent (!@($fields).Count -and $Q.state -ceq $State -and $Q.source -ceq $Source -and $Q.reason -ceq $Reason -and ($Q.state -ne 'unknown' -or $Q.reason)) ($Label+': '+($Q|ConvertTo-Json -Compress -Depth 4))
+}
+Test-QuotaReading $cq 'exhausted' 'codex-session' $null 'exhausted Codex reading'
+Test-QuotaReading (Get-SBAgentQuota -Provider claude -Observation @{state='available';observedAt=$now.AddMinutes(-5).ToString('o')} -Now $now) 'available' 'runner-observation' $null 'fresh observation'
+Test-QuotaReading (Get-SBAgentQuota -Provider claude -Observation @{state='available';observedAt=$now.AddHours(-2).ToString('o')} -Now $now) 'unknown' 'runner-observation' 'stale' 'stale observation'
+Test-QuotaReading (Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt=$now.AddHours(-1).ToString('o');observedAt=$now.AddHours(-3).ToString('o')} -Now $now) 'unknown' 'runner-observation' 'stale' 'exhaustion past its reset'
+Test-QuotaReading (Get-SBAgentQuota -Provider codex -CodexHome (Join-Path $fixture 'no-codex')) 'unknown' 'none' 'missing' 'missing Codex session'
+Test-QuotaReading (Get-SBAgentQuota -Provider claude -Observation @{state='exhausted';resetAt='not a time';observedAt=$now.ToString('o')} -Now $now) 'unknown' 'runner-observation' 'malformed' 'malformed reset time'
+Test-QuotaReading (Get-SBAgentQuota -Provider claude -Observation @{state='half';observedAt=$now.ToString('o')} -Now $now) 'unknown' 'runner-observation' 'malformed' 'malformed state'
+Test-QuotaReading (Get-SBAgentQuota -Provider gemini) 'unknown' 'none' 'unsupported' 'no usage read and nothing observed'
+$staleHome=Join-Path $fixture 'codex-stale'
+$staleLine=@{timestamp=$now.AddDays(-3).ToString('o');type='event_msg';payload=@{type='token_count';rate_limits=@{primary=@{used_percent=100.0;window_minutes=300;resets_at=$now.AddDays(-3).AddHours(1).ToUnixTimeSeconds()}}}}|ConvertTo-Json -Compress -Depth 6
+Write-AgentFixture (Join-Path $staleHome ('sessions/'+$now.ToString('yyyy/MM/dd')+'/rollout-stale.jsonl')) ("{`"type`":`"session_meta`"}`n"+$staleLine+"`n")
+Test-QuotaReading (Get-SBAgentQuota -Provider codex -CodexHome $staleHome -Now $now) 'unknown' 'codex-session' 'stale' 'Codex windows all past their reset'
 # ReadOnly profile of the one-shot analyses: plan/read-only modes, no edit tools, the schema native only when the installed help offers it.
 $schemaFile=Join-Path $fixture 'schema/ok.schema.json'
 Write-AgentFixture $schemaFile '{"type":"object","required":["ok"],"properties":{"ok":{"type":"boolean"},"note":{"type":["string","null"]}},"additionalProperties":false}'

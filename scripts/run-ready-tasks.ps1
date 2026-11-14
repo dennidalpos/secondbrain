@@ -35,6 +35,9 @@ is refused while the first is alive. The stop file (default stop.flag in the run
 -Provider claude|codex|gemini picks the agent CLI (default claude) and builds its headless arguments with the fixed permission profile
 (file edits in the checkout, no git history changes, no deletion); -Model and -Effort are validated against scripts/agents.ps1 -Probe
 (-AllowCustomModel accepts a model the probe does not list). -AgentPath and -AgentArguments stay as an advanced override.
+Each task record keeps the process outcome (process: succeeded or failed) apart from the task acceptance (acceptance: verified when the
+agent closed the task as done with passed evidence recorded during the attempt, unverified when it closed it without, open otherwise);
+an unverified closure is reopened as in_progress with the reason (event reopened, #613).
 -TaskIds runs only the named ready tasks, in the given order, after the same selection rules. -Events writes progress as one JSON
 object per line on standard error (for the desktop orchestrator). -StopFile <path> ends the run before the next task when the file exists.
 #>
@@ -92,6 +95,7 @@ Add-SBMessages @{
     'runner.progress.quotawaitlimit' = @{it='Ripristino della quota {0} previsto per {1}, oltre l attesa massima di {2} h: il run si ferma';en='Quota {0} reset expected at {1}, beyond the maximum wait of {2} h: the run stops'}
     'runner.progress.power' = @{en='Power request held for this run: the computer does not go to sleep while it is idle ({0})'}
     'runner.progress.powerfailed' = @{en='Power request not acquired ({0}): the computer may go to sleep during the run'}
+    'runner.progress.reopened' = @{en='  #{0}: closed as done without passed evidence from this attempt; reopened as in progress (a successful exit is not completion)'}
     'runner.progress.powerrefused' = @{en='The run does not start: the power request was not acquired ({0}) and the computer could go to sleep during the run. Run again with -AllowNoPowerRequest to run without this protection'}
     'runner.progress.powerunsupported' = @{en='Power request not supported on this platform: the run goes on without it'}
     'runner.progress.omitted' = @{it='  Opzioni non disponibili nella CLI installata e omesse: {0}';en='  Options missing from the installed CLI and left out: {0}'}
@@ -434,7 +438,7 @@ foreach($plan in $plans){
         $slug="runner-$($task.seq)-"+(Get-SBNow).LocalDateTime.ToString('HHmmss')
         $folder=Invoke-Json (@((Join-Path $PSScriptRoot 'work.ps1'),'-Repository',$identity,'-Category','report','-Slug',$slug,'-Init','-Task',"Run autonomo $($task.id)",'-Client',$Provider)+$configArgs)
         $root=$folder.root
-        $began=(Get-SBNow).LocalDateTime
+        $began=(Get-SBNow).LocalDateTime;$attemptStartedAt=Get-SBNow
         $script:runStatus.task=[ordered]@{id=[string]$task.id;seq=$task.seq;title=[string]$task.title;position=$position;total=$totalSelected;startedAt=(Get-SBNow).ToString('o');folder=$root}
         $script:runStatus.lastAgentEventAt=$null;$script:runStatus.lastAgentEvent=$null;$script:runStatus.phase='agent'
         Show-RunnerLine 'runner.progress.start' @($position,$totalSelected,$task.seq,$(if($plan.target.identity){$plan.target.identity}else{[string]$task.id})) @{position=$position;total=$totalSelected;id=[string]$task.id;seq=$task.seq;title=[string]$task.title;folder=$root}
@@ -475,13 +479,24 @@ foreach($plan in $plans){
         # Concurrent runners on other repositories can leave this task's dossier writes deferred: apply them now, waiting for the writer lock, so the status read below is current.
         Set-RunnerPhase 'flush'
         try{[void](Invoke-RunnerChild (@($knowledge,'-FlushPending','-CheckoutPath',$checkout)+$configArgs))}catch{[void]$_}
-        $statusAfter=$null
-        if($plan.source){$tr=Read-SBJson $plan.source $null;if($tr){$hit=@($tr.tasks|Where-Object {[string]$_.id -eq [string]$task.id});if($hit.Count -eq 1){$statusAfter=$hit[0].status}}}
+        $statusAfter=$null;$taskAfter=$null
+        if($plan.source){$tr=Read-SBJson $plan.source $null;if($tr){$hit=@($tr.tasks|Where-Object {[string]$_.id -eq [string]$task.id});if($hit.Count -eq 1){$taskAfter=$hit[0];$statusAfter=$hit[0].status}}}
         if(!$statusAfter){
             # An archived task is gone from the active tracker; the CLI still resolves it.
-            $statusAfter=(Invoke-Json (@($knowledge,'-Task',[string]$task.seq,'-CheckoutPath',$checkout)+$configArgs)).task.status
+            $taskAfter=(Invoke-Json (@($knowledge,'-Task',[string]$task.seq,'-CheckoutPath',$checkout)+$configArgs)).task
+            $statusAfter=$taskAfter.status
         }
         $record=[ordered]@{repository=$identity;id=$task.id;seq=$task.seq;state=$state;exitCode=$code;statusBefore=$task.status;statusAfter=$statusAfter;seconds=[int]((Get-SBNow).LocalDateTime-$began).TotalSeconds;folder=$root;provider=$Provider;model=$script:runStatus.resolvedModel;effort=$script:runStatus.resolvedEffort;runId=$script:runStatus.runId;finishedAt=(Get-SBNow).ToString('o')}
+        # #613: the process outcome and the task acceptance are separate. A task closed as done without passed evidence recorded in this
+        # attempt is reopened (in_progress, with the reason): a successful exit is not a completion.
+        $record.process=if($state -eq 'finished' -and $code -eq 0){'succeeded'}else{'failed'}
+        $record.acceptance=Get-SBRunnerAcceptance $taskAfter $attemptStartedAt
+        $record.reopened=$false
+        if($record.acceptance -eq 'unverified'){
+            $record.reopened=Invoke-RunnerTaskUpdate @('-UpdateTaskId',[string]$task.id,'-Status','in_progress','-StateReason','Reopened by the runner: closed as done without passed evidence recorded in this attempt; verify the acceptance criteria and record the evidence before closing (#613)','-CheckoutPath',$checkout)
+            if($record.reopened -ne $false){$record.statusAfter='in_progress';$statusAfter='in_progress'}
+            Show-RunnerLine 'runner.progress.reopened' @($task.seq) @{id=[string]$task.id;seq=$task.seq;reopened=$record.reopened}
+        }
         # Limits only from the agent's final error envelope with the provider's own texts (a timed-out agent keeps its timeout state).
         # quota stops the run and leaves a resume point; throttled (transient rate limit) waits briefly and the run goes on.
         $limit=if($state -ne 'timeout'){Get-SBAgentLimitState -Provider $Provider -Output $outText -ErrorOutput $errText -ExitCode $code}else{$null}
@@ -516,7 +531,7 @@ foreach($plan in $plans){
         # -WaitForReset (#564): an attempt interrupted by the plan limit is not counted while the run waits; it counts only if the run does not resume it.
         $countLater=($stopReason -eq 'quota' -and $WaitForReset)
         if(!$countLater){$script:runStatus.counts.done++;if($ok){$script:runStatus.counts.succeeded++}else{$script:runStatus.counts.failed++}}
-        $script:runStatus.results=@($script:runStatus.results)+@([ordered]@{id=[string]$record.id;seq=$record.seq;state=$record.state;folder=$root})
+        $script:runStatus.results=@($script:runStatus.results)+@([ordered]@{id=[string]$record.id;seq=$record.seq;state=$record.state;process=$record.process;statusAfter=$record.statusAfter;acceptance=$record.acceptance;folder=$root})
         $script:runStatus.task=$null
         Show-RunnerLine 'runner.progress.done' @($position,$totalSelected,$task.seq,$record.state,$code,$record.statusBefore,$record.statusAfter,$record.seconds) @{record=$record}
         if($countLater){

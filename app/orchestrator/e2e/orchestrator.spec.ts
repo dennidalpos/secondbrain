@@ -239,6 +239,8 @@ test("a queue run is followed live, survives closing the window and is found aga
   await expect(page.locator("#run-steps")).toContainText("Read: README.md");
   await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 120_000 });
   await expect(page.locator("#run-results tr").filter({ hasText: "E2E-1" })).toContainText("finished");
+  // #613: the process finished, but the task is only in progress: its acceptance is shown as open, apart from the process outcome.
+  await expect(page.locator("#run-results tr").filter({ hasText: "E2E-1" }).locator("td").nth(4)).toHaveText("open");
   await expect(page.locator("#run-steps")).toContainText("npm test");
   expect(readTracker().tasks.find((t) => t.id === "E2E-1")?.status).toBe("in_progress");
   await page.locator('.steps button[data-tab="queue"]').click();
@@ -402,6 +404,8 @@ test("a run stopped by a plan limit shows its resume point, and the window resum
   // Without -WaitForReset the run stops at the limit and the card shows the resume point runner-status reports.
   await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 180_000 });
   await expect(page.locator("#run-counts")).toContainText("arresto: quota");
+  // #602: the quota reading shows provider, state (unknown with its reason), source and observation time.
+  await expect(page.locator("#run-counts")).toContainText(/quota claude: (unknown \((missing|stale|malformed|unsupported)\)|exhausted|available), source [a-z-]+/);
   const resume = page.locator("#run-resume");
   await expect(resume).toBeVisible({ timeout: 30_000 });
   const text = page.locator("#run-resume-text");

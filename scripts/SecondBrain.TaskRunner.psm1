@@ -104,7 +104,23 @@ function New-SBTaskRunPrompt($Task,[string]$ScriptsRoot,[string]$CheckoutPath){
         'Procedura: leggi AGENTS.md, carica il contesto con scripts/knowledge.ps1 -Startup, leggi il task con scripts/knowledge.ps1 -Task, esegui il lavoro, verifica ogni criterio di accettazione con strumenti disponibili e funzionanti, poi aggiorna lo stato con scripts/knowledge.ps1 -UpdateTaskId.',
         'Perimetro: lavora solo sul repository di questo checkout e sul suo tracker; non leggere, prendere o aggiornare task di altri repository e non usare -All, -AllDossiers, all=true e non indicare -Repository di un altro repository.',
         'Divieti: nessun commit, push, pubblicazione o cancellazione; nessuna applicazione di SYS05 o di pulizie; nessun altro task. Se serve una conferma o una prova live, fermati e riporta il limite nello stato del task senza chiuderlo.',
+        'Closing as done needs evidence: pass -Evidence "<check>|passed" for each verified criterion in the same update; a task closed as done without passed evidence from this session is reopened by the runner.',
         'Chiudi con un riepilogo breve: esito per criterio, verifiche eseguite, limiti.'
     ).Where({$_}) -join "`n"
 }
-Export-ModuleMember -Function @('Get-SBRunnerValue','Test-SBProjectIsolation','Assert-SBProjectIsolation','Get-SBRunnerExcludedStreams','Test-SBRunnableTask','Get-SBRunnerExclusionReason','Get-SBRunnerExclusions','Select-SBRunnableTasks','New-SBTaskRunPrompt','Get-SBRunnerScopeVariables','Get-SBRunnerReadScope','Assert-SBRunnerReadScope')
+function Get-SBRunnerAcceptance($Task,[DateTimeOffset]$AttemptStartedAt) {
+    # #613: a successful agent exit is not task completion. verified = done with passed evidence recorded during this attempt (a few
+    # seconds of clock slack); unverified = done without it; open = any other status (the task is still open, whatever the process did).
+    # Tracker reads give hashtables (Read-SBJson) or objects (CLI JSON): read a field from either.
+    $field={param($o,[string]$n) if($o -is [Collections.IDictionary]){$o[$n]}else{Get-SBRunnerValue $o $n}}
+    $status=[string](& $field $Task 'status')
+    if($status -ne 'done'){return 'open'}
+    $since=$AttemptStartedAt.AddSeconds(-5)
+    foreach($e in @(& $field $Task 'evidence')){
+        if(!$e){continue}
+        $outcome=[string](& $field $e 'outcome');$at=[DateTimeOffset]::MinValue
+        if($outcome -eq 'passed' -and [DateTimeOffset]::TryParse([string](& $field $e 'observedAt'),[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::None,[ref]$at) -and $at -ge $since){return 'verified'}
+    }
+    'unverified'
+}
+Export-ModuleMember -Function @('Get-SBRunnerAcceptance','Get-SBRunnerValue','Test-SBProjectIsolation','Assert-SBProjectIsolation','Get-SBRunnerExcludedStreams','Test-SBRunnableTask','Get-SBRunnerExclusionReason','Get-SBRunnerExclusions','Select-SBRunnableTasks','New-SBTaskRunPrompt','Get-SBRunnerScopeVariables','Get-SBRunnerReadScope','Assert-SBRunnerReadScope')

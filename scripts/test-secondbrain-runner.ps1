@@ -9,6 +9,7 @@ $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Core.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Host.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Tracker.psm1')
+Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskRunner.psm1')
 . (Join-Path $PSScriptRoot 'test-helpers.ps1')
 $script:runnerChecks=0
 # Per-phase timing (seconds), printed with the summary so slow phases show up in the Full report.
@@ -145,8 +146,11 @@ switch($Mode){
         Set-FakeInProgress 'Fake agent followup'
         [Console]::Out.Write((@{type='result';is_error=$false;result='follow-up recorded'}|ConvertTo-Json -Compress));exit 0
     }
-    {$_ -in @('done','blocked')} {
-        & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -UpdateTaskId $id -Status $Mode -StateReason ('Fake agent '+$Mode)|Out-Null
+    # 'done' closes with passed evidence (verified acceptance); 'doneunverified' closes without evidence and is reopened by the runner (#613).
+    {$_ -in @('done','blocked','doneunverified')} {
+        $status=if($Mode -eq 'blocked'){'blocked'}else{'done'}
+        $proof=if($Mode -eq 'done'){@('-Evidence','fake acceptance check|passed')}else{@()}
+        & pwsh -NoProfile -File (Join-Path $env:SB_RUNNER_FAKE_BRAIN 'scripts/knowledge.ps1') -ConfigPath $env:SB_RUNNER_FAKE_CONFIG -CheckoutPath (Get-Location).Path -UpdateTaskId $id -Status $status -StateReason ('Fake agent '+$Mode) @proof|Out-Null
         if($LASTEXITCODE){[Console]::Error.WriteLine('update failed');exit 5}
         [Console]::Out.Write((@{type='result';is_error=$false;result=$Mode}|ConvertTo-Json -Compress));exit 0
     }
@@ -375,6 +379,7 @@ switch($Mode){
     $done=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','done')
     $doneRecord=@($done.data.tasks)[0]
     Assert-Runner ($done.code -eq 0 -and $doneRecord.id -eq 'R-3' -and $doneRecord.statusAfter -eq 'done' -and !$doneRecord.parked) ('a done task is not parked: '+$done.text)
+    Assert-Runner ($doneRecord.process -eq 'succeeded' -and $doneRecord.acceptance -eq 'verified' -and !$doneRecord.reopened) ('a task closed with passed evidence from the attempt has verified acceptance (#613): '+($doneRecord|ConvertTo-Json -Compress))
     $doneTask=Get-FixtureTask 'R-3'
     Assert-Runner ($null -eq $doneTask -or $doneTask.execution -eq 'autonomous') 'a done task keeps execution autonomous'
     $blocked=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','blocked')
@@ -626,13 +631,29 @@ $r|ConvertTo-Json -Compress
     Assert-Runner ($quiet.code -eq 0 -and @($quietEvents|Where-Object {$_.event -eq 'stalled'}).Count -eq 1 -and @($quiet.data.tasks)[0].state -eq 'finished') ('a silent agent raises one stall notice and is not killed: '+$quiet.err)
     # #612: the queue is fixed when the run starts; a follow-up an agent creates mid-run (ready, autonomous, P0) waits for a later run.
     $t2=Read-SBJson $trackerPath2 $null
-    foreach($fid in @('F-1','F-2','P-1')){
+    foreach($fid in @('F-1','F-2','P-1','A-1','A-2')){
         $seqF=[int]$t2.extensions.lastSeq+1
         $newTask=New-SBTrackerTask @{id=$fid;title=('Task '+$fid);status='todo'} $identity2 'fixture' 'history/seed/report.md' (Get-SBTextHash 'Synthetic provenance') 'fixture'
         $newTask.seq=$seqF;$newTask.title='#'+$seqF.ToString('000')+' — Task '+$fid;$newTask.priority='P2';$newTask.execution='autonomous';$newTask.extensions=@{stream='evoluzione-team'}
         $t2.tasks=@($t2.tasks)+@($newTask);$t2.extensions.lastSeq=$seqF
     }
     Put-Runner $trackerPath2 (ConvertTo-SBJson $t2)
+    # #613: process outcome and acceptance are separate fields; exit 0 with a done task but no evidence from the attempt reopens it.
+    $unverified=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','doneunverified','-TaskIds','A-1','-Events')
+    $uRecord=@($unverified.data.tasks)[0]
+    $uTask=@((Read-SBJson $trackerPath2 $null).tasks|Where-Object {$_.id -eq 'A-1'})[0]
+    Assert-Runner ($unverified.code -eq 0 -and $uRecord.state -eq 'finished' -and $uRecord.process -eq 'succeeded' -and $uRecord.acceptance -eq 'unverified' -and $uRecord.reopened -eq $true -and $uRecord.statusAfter -eq 'in_progress') ('exit 0 with unverified acceptance leaves the task open: '+$unverified.text)
+    Assert-Runner ($uTask.status -eq 'in_progress' -and [string]$uTask.extensions.stateReason -match '#613' -and $unverified.err -match '"event":"reopened"') ('the reopened task carries the reason: '+($uTask|ConvertTo-Json -Compress -Depth 3))
+    $uStatus=Read-SBJson ([string]$unverified.data.status) $null
+    # #602: the quota read before each task carries provider, state, source, observedAt and reason; unknown always says why.
+    $qs=$uStatus.quota
+    Assert-Runner ($qs -and @(@('provider','state','source','observedAt','reason')|Where-Object {!$qs.Contains($_)}).Count -eq 0 -and ($qs.state -ne 'unknown' -or $qs.reason)) ('status.json quota carries the five fields: '+($qs|ConvertTo-Json -Compress -Depth 4))
+    Assert-Runner (@($uStatus.results)[0].process -eq 'succeeded' -and @($uStatus.results)[0].acceptance -eq 'unverified' -and @($uStatus.results)[0].statusAfter -eq 'in_progress') 'status.json results carry process, task status and acceptance separately'
+    $failedAttempt=Invoke-Runner2 @('-Run','-AgentPath',$fake,'-AgentArguments','fail','-TaskIds','A-2')
+    $fRecord=@($failedAttempt.data.tasks)[0]
+    Assert-Runner ($fRecord.process -eq 'failed' -and $fRecord.acceptance -eq 'open' -and !$fRecord.reopened) ('a failed process leaves the acceptance open: '+($fRecord|ConvertTo-Json -Compress))
+    $fakeStart=[DateTimeOffset]::UtcNow
+    Assert-Runner ((Get-SBRunnerAcceptance @{status='done';evidence=@(@{outcome='passed';observedAt=$fakeStart.AddMinutes(-10).ToString('o')})} $fakeStart) -eq 'unverified' -and (Get-SBRunnerAcceptance ([pscustomobject]@{status='done';evidence=@([pscustomobject]@{outcome='failed';observedAt=$fakeStart.ToString('o')})}) $fakeStart) -eq 'unverified' -and (Get-SBRunnerAcceptance @{status='blocked'} $fakeStart) -eq 'open') 'older or failed evidence does not verify acceptance'
     # #604: a refused power request stops a headless run before any task unless -AllowNoPowerRequest is given (simulated refusal).
     $savedPowerRoot=$env:SECONDBRAIN_TEST_ROOT
     try{

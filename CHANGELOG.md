@@ -2,7 +2,18 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.14.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.15.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+
+## [2.15.0] - 2026-11-14
+
+A successful agent exit no longer counts as a completed task, and every quota reading says where it comes from and why it is unknown.
+
+### Added
+- Runner: each task record and `status.json` result keeps `process` (succeeded or failed) apart from the task status and `acceptance` (`verified` when the agent closed the task as done with passed evidence recorded during the attempt, `unverified` without it, `open` otherwise). An unverified closure is reopened as in progress with the reason (event `reopened`); the agent prompt asks for `-Evidence` when closing, and the Run view shows an Acceptance column (#613).
+- Quota readings carry `provider`, `state`, `source`, `observedAt` and `reason` (`missing`, `stale`, `malformed`, `unsupported`); unknown is never shown as available, and the Run card shows the five fields (#602).
+
+### Fixed
+- A runner quota observation without `resetAt` no longer fails under StrictMode; it is read as a normal observation.
 
 ## [2.14.0] - 2026-11-14
 

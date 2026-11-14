@@ -11,7 +11,16 @@ import { analyzeMany, analyzeTask, initAnalysis, openAnalysis, storedAnalysis, v
 interface ClientInfo { name: string; confidence: string; provider: string | null; runnable: boolean; reason: string | null }
 interface PreviewTask { id: string; seq: number; priority: string | null; title: string }
 interface Skipped { id?: string; seq?: number | null; reason: string; repository?: string; title?: string; status?: string; execution?: string; stateReason?: string; awaiting?: string }
-interface RunRecord { id: string; seq: number; state: string; exitCode: number | null; statusBefore: string; statusAfter: string; seconds: number; folder: string; parked: boolean | string }
+/** #602: a quota reading as runner-status reports it; unknown always carries a reason and is never shown as available. */
+interface QuotaReading { provider?: string; state: string; source: string; observedAt?: string | null; reason?: string | null; resetAt?: string | null }
+export function quotaLabel(q: QuotaReading): string {
+  const state = q.state === "available" || q.state === "exhausted" ? q.state : `unknown (${q.reason || "no reading"})`;
+  const parts = [`quota ${q.provider ?? ""}`.trim() + `: ${state}`, `source ${q.source || "none"}`];
+  if (q.observedAt) parts.push(`observed ${new Date(q.observedAt).toLocaleString()}`);
+  if (q.state === "exhausted" && q.resetAt) parts.push(`until ${new Date(q.resetAt).toLocaleString()}`);
+  return parts.join(", ");
+}
+interface RunRecord { id: string; seq: number; state: string; exitCode: number | null; statusBefore: string; statusAfter: string; seconds: number; folder: string; parked: boolean | string; process?: string; acceptance?: string; reopened?: boolean | string }
 interface Settings { secondbrainHome: string; pwshPath: string; recentRepos: string[]; lightProvider?: string; lightModel?: string; lightEffort?: string }
 interface DirectiveCounts { global: number; common: number; dossier: number; agentsOutside: number; composed: number; loaded: number; budget: number; percent: number }
 interface DirectivesRead {
@@ -27,7 +36,7 @@ interface RunStatusFile {
   state: string; phase: string; pid: number; startedAt: string; updatedAt: string; finishedAt: string | null;
   lastAgentEventAt: string | null; lastAgentEvent: { kind: string; summary: string; time: string } | null;
   task: { id: string; seq: number; title: string; position: number; total: number; startedAt: string; folder: string } | null;
-  counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string; quota?: { state: string; source: string; resetAt?: string | null } | null;
+  counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string; quota?: QuotaReading | null;
   quotaWait?: { resumeAt: string; source: string; since: string; attempt: number; deadline: string; taskId: string } | null;
 }
 /** The newest resume point a quota stop left and no run used yet (runner-status.ps1, #554): run-ready-tasks.ps1 -Resume <runId> continues it. */
@@ -594,7 +603,10 @@ function appendLog(line: string) {
 function addResult(r: RunRecord) {
   const badge = el("span", { className: "state-" + r.state }, r.state + (r.parked === true ? " (parcheggiato)" : r.parked === "deferred" ? " (parcheggio in coda di scrittura)" : ""));
   const tr = el("tr");
-  [String(r.seq), r.id, badge, `${r.statusBefore} → ${r.statusAfter}`, String(r.seconds), el("span", { className: "mono small" }, r.folder)].forEach((c) => tr.append(el("td", {}, c)));
+  // #613: the process outcome (badge) and the task acceptance are separate; done without evidence from the attempt is reopened.
+  const acceptance = el("span", { className: "acceptance-" + (r.acceptance ?? "unknown") },
+    r.acceptance === "verified" ? "verified" : r.acceptance === "unverified" ? (r.reopened === true ? "unverified · reopened" : r.reopened === "deferred" ? "unverified · reopen queued" : "unverified") : r.acceptance === "open" ? "open" : "—");
+  [String(r.seq), r.id, badge, `${r.statusBefore} → ${r.statusAfter}`, acceptance, String(r.seconds), el("span", { className: "mono small" }, r.folder)].forEach((c) => tr.append(el("td", {}, c)));
   $("run-results").append(tr);
 }
 function addStep(ev: EventJson) {
@@ -659,7 +671,7 @@ function renderStatus(rep: RunReport) {
   if (!s) return;
   state.run.startedAt = s.startedAt;
   $("run-folder").textContent = rep.folder ?? s.folder ?? "—";
-  $("run-counts").textContent = `${s.counts.done} di ${s.counts.total} task (${s.counts.succeeded} riusciti, ${s.counts.failed} non riusciti)` + (s.stopReason ? ` · arresto: ${s.stopReason}${!rep.active && s.finishedAt ? " (run chiuso il " + new Date(s.finishedAt).toLocaleString() + ")" : ""}` : "") + (s.quota ? ` · quota letta: ${s.quota.state}${s.quota.resetAt ? " fino a " + new Date(s.quota.resetAt).toLocaleString() : ""}` : "");
+  $("run-counts").textContent = `${s.counts.done} di ${s.counts.total} task (${s.counts.succeeded} riusciti, ${s.counts.failed} non riusciti)` + (s.stopReason ? ` · arresto: ${s.stopReason}${!rep.active && s.finishedAt ? " (run chiuso il " + new Date(s.finishedAt).toLocaleString() + ")" : ""}` : "") + (s.quota ? ` · ${quotaLabel(s.quota)}` : "");
   $("run-task").textContent = s.task ? `[${s.task.position}/${s.task.total}] #${s.task.seq} ${s.task.id} — ${s.task.title}` : s.quotaWait && rep.active ? `In attesa del ripristino dei limiti, poi riprende da ${s.quotaWait.taskId}` : rep.active ? `Fase: ${s.phase}` : "Nessun task in corso";
   renderClock();
 }

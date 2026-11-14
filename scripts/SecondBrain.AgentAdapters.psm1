@@ -585,26 +585,38 @@ function Get-SBAgentQuota {
     # Quota read at the moment of use (never cached): available, exhausted (with resetAt) or unknown. Unknown never stops a run:
     # the runner proceeds until the agent itself reports the limit. Sources: Codex session files; for Claude Code and Gemini CLI,
     # which offer no headless usage read, the last observation the runner recorded (-Observation: rate_limit_event or a quota stop).
+    # #602: every reading carries provider, state, source, observedAt and reason. reason is null for a fresh available or exhausted reading
+    # and says why the state is unknown otherwise: missing (no Codex session file), stale (the reading is too old or its reset has passed),
+    # malformed (an observation without a valid time or state), unsupported (no usage read for this provider and nothing observed yet).
     param([Parameter(Mandatory)][string]$Provider,[string]$CodexHome,$Observation,[DateTimeOffset]$Now=(Get-SBNow))
-    $result=[ordered]@{provider=$Provider;state='unknown';resetAt=$null;source='none';observedAt=$null;windows=@()}
+    $result=[ordered]@{provider=$Provider;state='unknown';resetAt=$null;source='none';observedAt=$null;reason=$null;windows=@()}
     if($Provider -eq 'codex'){
         $r=Read-SBCodexRateLimits -CodexHome $CodexHome
-        if($r){
-            $result.source='codex-session';$result.observedAt=$r.observedAt;$result.windows=@($r.windows)
-            $current=@($r.windows|Where-Object {$_.resetAt -and (ConvertTo-SBQuotaTime $_.resetAt) -gt $Now})
-            $full=@($current|Where-Object {$_.usedPercent -ge 100})
-            if($full.Count){$result.state='exhausted';$result.resetAt=@($full|Sort-Object {(ConvertTo-SBQuotaTime $_.resetAt)} -Descending)[0].resetAt}
-            elseif($current.Count){$result.state='available'}
-        }
+        if(!$r){$result.reason='missing';return $result}
+        $result.source='codex-session';$result.observedAt=$r.observedAt;$result.windows=@($r.windows)
+        $current=@($r.windows|Where-Object {$_.resetAt -and (ConvertTo-SBQuotaTime $_.resetAt) -gt $Now})
+        $full=@($current|Where-Object {$_.usedPercent -ge 100})
+        if($full.Count){$result.state='exhausted';$result.resetAt=@($full|Sort-Object {(ConvertTo-SBQuotaTime $_.resetAt)} -Descending)[0].resetAt}
+        elseif($current.Count){$result.state='available'}
+        else{$result.reason='stale'}
         return $result
     }
-    if($Observation -and $Observation.observedAt){
-        $result.source='runner-observation';$result.observedAt=[string]$Observation.observedAt
-        $age=($Now-(ConvertTo-SBQuotaTime $Observation.observedAt)).TotalMinutes
-        $reset=if($Observation.resetAt){(ConvertTo-SBQuotaTime $Observation.resetAt)}else{$null}
-        if($Observation.state -eq 'exhausted' -and $reset -and $reset -gt $Now){$result.state='exhausted';$result.resetAt=$reset.ToString('o')}
-        elseif($Observation.state -eq 'available' -and $age -le 60){$result.state='available';$result.resetAt=$(if($reset){$reset.ToString('o')})}
-    }
+    # Fields read without failing on a missing key (StrictMode), from a hashtable or an object.
+    $get={param([string]$n) if($null -eq $Observation){$null}elseif($Observation -is [Collections.IDictionary]){$Observation[$n]}elseif($Observation.PSObject.Properties[$n]){$Observation.$n}else{$null}}
+    $observedText=& $get 'observedAt';$state=[string](& $get 'state');$resetText=& $get 'resetAt'
+    if(!$observedText){$result.reason='unsupported';return $result}
+    $result.source='runner-observation';$result.observedAt=[string]$observedText
+    $observed=$null;$reset=$null
+    try{
+        $observed=ConvertTo-SBQuotaTime $observedText
+        if($resetText){$reset=ConvertTo-SBQuotaTime $resetText}
+    }catch{$result.reason='malformed';return $result}
+    if($state -notin @('exhausted','available')){$result.reason='malformed';return $result}
+    $age=($Now-$observed).TotalMinutes
+    if($state -eq 'exhausted' -and $reset -and $reset -gt $Now){$result.state='exhausted';$result.resetAt=$reset.ToString('o')}
+    elseif($state -eq 'available' -and $age -le 60){$result.state='available';$result.resetAt=$(if($reset){$reset.ToString('o')})}
+    elseif($state -eq 'exhausted' -and !$reset){$result.reason='malformed'}
+    else{$result.reason='stale'}
     $result
 }
 function Invoke-SBAgentProcess {
