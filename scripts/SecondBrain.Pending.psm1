@@ -15,6 +15,10 @@ Add-SBMessages @{
     'pending.conflict' = @{it='La base della scrittura e cambiata: richiesta conservata senza sovrascrivere. Controllala con knowledge.ps1 -PendingWrites e, se superata, scartala con -DiscardPending';en='The write base changed: request preserved without overwriting. Check it with knowledge.ps1 -PendingWrites and, if outdated, discard it with -DiscardPending'}
     'pending.discard.notfound' = @{it='Nessuna richiesta differita con questo ID: elenca le richieste con knowledge.ps1 -PendingWrites';en='No deferred request with this ID: list requests with knowledge.ps1 -PendingWrites'}
     'pending.discard.state' = @{it='Solo le richieste in conflitto o non valide si possono scartare (stato: {0})';en='Only conflicting or invalid requests can be discarded (state: {0})'}
+    'pending.batch.format' = @{it='File del lotto non valido: atteso un array JSON di aggiornamenti oppure un oggetto {"updates": [...]}';en='Invalid batch file: expected a JSON array of updates or an object {"updates": [...]}'}
+    'pending.batch.field' = @{it='Campo sconosciuto "{0}": campi ammessi {1}';en='Unknown field "{0}": allowed fields are {1}'}
+    'pending.batch.size' = @{it='Il lotto supera {0} aggiornamenti: dividerlo in altri file';en='The batch exceeds {0} updates: split it into several files'}
+    'pending.batch.recovery' = @{it='Una transazione incompleta attende il ripristino: nessun aggiornamento del lotto applicato';en='An incomplete transaction awaits recovery: no update of the batch was applied'}
     'pending.notice' = @{it='Scritture differite: {0} integrate, {1} conflitti, {2} pendenti; stato {3}.';en='Deferred writes: {0} applied, {1} conflicts, {2} pending; state {3}.'}
 }
 
@@ -127,7 +131,7 @@ function Read-SBPendingIdempotent([string]$Path,[string]$Repository,[string]$Req
 }
 function New-SBPendingWrite {
     [CmdletBinding()]
-    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId,[hashtable]$Diagnostics,[switch]$PrepareOnly,[switch]$StrictPreconditions,[string]$RequestId,[string]$PreparedHash)
+    param([string]$BrainRoot,[string]$Repository,[string]$Operation,[hashtable]$Arguments,[hashtable]$Expected=@{},$Config,[string]$SessionId,[hashtable]$Diagnostics,[switch]$PrepareOnly,[switch]$StrictPreconditions,[string]$RequestId,[string]$PreparedHash,[switch]$NoCandidateCheck)
     $clock=if($null -ne $Diagnostics){[Diagnostics.Stopwatch]::StartNew()}else{$null}
     try {
     if(!$Config -or !(Test-SBSamePath $Config.brainRoot $BrainRoot)){throw (New-SBError 'pending.invalid' @('configuration root'))}
@@ -179,7 +183,8 @@ function New-SBPendingWrite {
     $request=@{schemaVersion=1;id=$RequestId;repository=$Repository;operation=$Operation;arguments=$Arguments;expected=$Expected;createdAt=(Get-SBNow).ToString('o');origin=@{computer=[Environment]::MachineName;user=[Security.Principal.WindowsIdentity]::GetCurrent().Name;workstationId=$Config.workstationId;sessionId=$SessionId;client=$(if($session){$session.client}else{'knowledge CLI/API'})}}
     $request.sha256=Get-SBPendingHash $request
     Assert-SBPendingRequest $request $request.id
-    if($Operation -eq 'task.update'){
+    # A batch (#595) validates every candidate together under the lock, once, instead of once per item here.
+    if($Operation -eq 'task.update' -and !$NoCandidateCheck){
         try {
             [void](Update-SBTrackerTask -BrainRoot $BrainRoot -Identity $Repository -WorkingRepository $Repository @Arguments -WhatIf)
         } catch {
@@ -475,6 +480,116 @@ function Complete-SBPendingSubmission($Submission,$Config,[string]$SessionId,[ha
     } finally {if($clock){$Diagnostics.responseMs=$clock.Elapsed.TotalMilliseconds}}
 }
 
+$script:SBTaskBatchFields=[ordered]@{taskId='TaskId';status='Status';stateReason='StateReason';priority='Priority';execution='Execution';dependsOn='DependsOn';stream='Stream';awaiting='Awaiting';decision='Decision';requires='Requires';description='Description';acceptance='Acceptance';evidence='Evidence';decisions='Decisions'}
+$script:SBTaskBatchLimit=200
+function Read-SBTaskBatchFile([string]$Path) {
+    # #595: a JSON array of updates, or {"updates":[...]}; each item names taskId (ID or #seq) and the -UpdateTaskId fields in camelCase.
+    # Evidence entries are "reference|outcome" strings or {reference,outcome} objects; decisions are {question,answer} objects.
+    Assert-SBPlainPath $Path
+    if((Get-Item -LiteralPath $Path).Length -gt 2MB){throw (New-SBError 'pending.invalid' @('size > 2 MiB'))}
+    try{$data=ConvertFrom-Json -InputObject (Read-SBText $Path) -AsHashtable -DateKind String -NoEnumerate}catch{throw (New-SBError 'pending.batch.format')}
+    if($data -is [Collections.IDictionary]){
+        if($data.Count -ne 1 -or !$data.Contains('updates')){throw (New-SBError 'pending.batch.format')}
+        $data=$data.updates
+    }
+    $list=@($data)
+    if($null -eq $data -or !$list.Count){throw (New-SBError 'tracker.batch.empty')}
+    if($list.Count -gt $script:SBTaskBatchLimit){throw (New-SBError 'pending.batch.size' @($script:SBTaskBatchLimit))}
+    $items=@()
+    for($i=0;$i -lt $list.Count;$i++){
+        $entry=$list[$i]
+        $label=if($entry -is [Collections.IDictionary] -and $entry.Contains('taskId')){[string]$entry.taskId}else{'?'}
+        try{
+            if($entry -isnot [Collections.IDictionary] -or !$entry.Contains('taskId') -or !$label){throw (New-SBError 'tracker.batch.shape')}
+            $item=@{}
+            foreach($key in $entry.Keys){
+                $name=@($script:SBTaskBatchFields.Keys|Where-Object {$_ -ceq $key})
+                if(!$name.Count){throw (New-SBError 'pending.batch.field' @($key,(@($script:SBTaskBatchFields.Keys) -join ', ')))}
+                $item[$script:SBTaskBatchFields[$key]]=$entry[$key]
+            }
+            foreach($field in @('DependsOn','Requires','Acceptance')){if($item.ContainsKey($field)){$item[$field]=[string[]]@(@($item[$field])|ForEach-Object {[string]$_})}}
+            if($item.ContainsKey('Evidence')){$item.Evidence=@(@($item.Evidence)|Where-Object {$_}|ForEach-Object {ConvertTo-SBTaskEvidence $_})}
+            if($item.ContainsKey('Decisions')){$item.Decisions=@(ConvertTo-SBTaskDecisions @($item.Decisions))}
+            if($item.Count -lt 2){throw (New-SBError 'tracker.update.empty')}
+        }catch{throw (New-SBError 'tracker.batch.item' @(($i+1),$label,$_.Exception.Message))}
+        $items+=,$item
+    }
+    ,$items
+}
+function New-SBPendingTaskBatch {
+    # Prepares each batch item as a task.update request (resolved task ID, task hash, executor) without writing anything.
+    [CmdletBinding()]
+    param([string]$BrainRoot,[string]$Repository,[object[]]$Items=@(),$Config,[string]$SessionId)
+    if(!$Items.Count){throw (New-SBError 'tracker.batch.empty')}
+    if($Items.Count -gt $script:SBTaskBatchLimit){throw (New-SBError 'pending.batch.size' @($script:SBTaskBatchLimit))}
+    $prepared=@()
+    for($i=0;$i -lt $Items.Count;$i++){
+        $item=$Items[$i]
+        $label=if($item -is [Collections.IDictionary] -and $item.Contains('TaskId')){[string]$item.TaskId}else{'?'}
+        try{
+            if($item -isnot [Collections.IDictionary] -or !$label){throw (New-SBError 'tracker.batch.shape')}
+            $arguments=@{};foreach($key in $item.Keys){if($key -cne 'Executor'){$arguments[$key]=$item[$key]}}
+            if(@($arguments.Keys|Where-Object {$_ -ne 'TaskId'}).Count -lt 1){throw (New-SBError 'tracker.update.empty')}
+            $prepared+=,(New-SBPendingWrite -BrainRoot $BrainRoot -Repository $Repository -Operation task.update -Arguments $arguments -Config $Config -SessionId $SessionId -PrepareOnly -NoCandidateCheck)
+        }catch{throw (New-SBError 'tracker.batch.item' @(($i+1),$label,$_.Exception.Message))}
+    }
+    ,$prepared
+}
+function Invoke-SBPendingTaskBatch {
+    # #595: N task updates from one process. Each item is prepared like -UpdateTaskId (request with task hash and executor), then all of them
+    # are applied under one writer lock in one transaction: tracker, archive, ledger, the N request files and their N receipts.
+    # Any refused item (validation, task hash conflict, duplicate) throws tracker.batch.item naming it, and nothing is written.
+    # -Prepared takes the output of New-SBPendingTaskBatch (prepared earlier, without lock); otherwise -Items are prepared here.
+    [CmdletBinding()]
+    param([string]$BrainRoot,[string]$Repository,[object[]]$Items,[object[]]$Prepared,$Config,[string]$SessionId,[ValidateRange(0,600000)][int]$WaitMs=0)
+    $prepared=if($PSBoundParameters.ContainsKey('Prepared')){@($Prepared)}else{@(New-SBPendingTaskBatch -BrainRoot $BrainRoot -Repository $Repository -Items @($Items) -Config $Config -SessionId $SessionId)}
+    if(!$prepared.Count){throw (New-SBError 'tracker.batch.empty')}
+    $scope=Enter-SBOperation $Config -SessionId $SessionId -WaitMs $WaitMs
+    try{
+        if(Get-SBPendingTransaction $BrainRoot){throw (New-SBError 'pending.batch.recovery')}
+        $dossier=Resolve-SBPendingDossier $BrainRoot $Repository
+        $tracker=Read-SBPendingTracker $BrainRoot $Repository $dossier
+        $archiveTasks=@((Read-SBTrackerArchive $tracker.path $Repository).data.tasks)
+        $paths=Get-SBPendingPaths $BrainRoot
+        $requestOps=@();$entries=@()
+        for($i=0;$i -lt $prepared.Count;$i++){
+            $request=$prepared[$i].request
+            $taskId=[string]$request.arguments.TaskId
+            # Same check as a deferred update: the task must still be what it was when the request was prepared.
+            $task=@($tracker.data.tasks|Where-Object id -eq $taskId)
+            if(!$task.Count){$task=@($archiveTasks|Where-Object id -eq $taskId)}
+            if($task.Count -ne 1 -or (Get-SBTextHash (ConvertTo-SBJson $task[0])) -ine $request.expected.taskHash){
+                throw (New-SBError 'tracker.batch.item' @(($i+1),$taskId,(Get-SBMessage 'pending.conflict')))
+            }
+            $bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $request))
+            $queue=if($request.operation -eq 'task.update'){$paths.taskUpdates}else{$paths.queue}
+            Assert-SBPlainPath $queue
+            $path=Join-Path $queue ($request.id+'.json')
+            $requestOps+=@{path=$path;expected='absent';bytes=$bytes}
+            $entries+=,@{id=$request.id;path=$path;receiptPath=(Join-Path $paths.receipts ($request.id+'.json'));request=$request;sourceHash=(Get-SBHash $bytes)}
+        }
+        Assert-SBPlainPath $paths.receipts
+        $batchItems=@($prepared|ForEach-Object {@{}+$_.request.arguments})
+        $plan=Invoke-SBTrackerTaskBatch -BrainRoot $BrainRoot -Identity $Repository -WorkingRepository $Repository -Items $batchItems -ExpectedHash $tracker.hash -BackupRoot $Config.backupRoot -WhatIf
+        $receiptOps=@();$items=@();$observedAt=(Get-SBNow).ToString('o')
+        for($i=0;$i -lt $entries.Count;$i++){
+            $entry=$entries[$i];$planned=$plan.items[$i]
+            $result=@{};foreach($key in @('taskId','status','closureAdvice')){if($planned.ContainsKey($key)){$result[$key]=$planned[$key]}}
+            $receipt=@{schemaVersion=1;id=$entry.id;repository=$Repository;state='applied';requestHash=$entry.request.sha256;sourceHash=$entry.sourceHash;observedAt=$observedAt;result=$result;error=$null;appliedBy=@{workstationId=$Config.workstationId;computer=[Environment]::MachineName};batch=@{index=($i+1);size=$entries.Count}}
+            $receiptOps+=@{path=$entry.receiptPath;expected='absent';bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $receipt))}
+            $view=@{index=($i+1);requestId=$entry.id;requestPath=$entry.path;operation=$entry.request.operation}+$result
+            $items+=,$view
+        }
+        $ops=@($plan.operations)+$requestOps+$receiptOps
+        foreach($op in $ops){[IO.Directory]::CreateDirectory((Split-Path $op.path))|Out-Null}
+        # Tracker, archive, ledger, requests and receipts share one recovery journal: a replay cannot apply part of the batch.
+        [void](Invoke-SBParaTransaction -Operations $ops -BackupRoot $Config.backupRoot -BrainRoot $BrainRoot)
+        $summary=@{repository=$Repository;state='applied';applied=$true;count=$items.Count;trackerHashBefore=$tracker.hash;trackerHash=(Get-SBFileHash $tracker.path);items=$items}
+        if(@($items|Where-Object {$_.ContainsKey('closureAdvice')}).Count){$summary.closureAdvice=Get-SBClosureAdvice $dossier}
+        $summary
+    }finally{Exit-SBOperation $scope}
+}
+
 function Move-SBPendingConflict {
     # Retires a conflicting or invalid request: request and receipt move to access/pending-discarded/<id>/ with a note;
     # evidence is preserved, never deleted, and deferred or applied requests are refused.
@@ -500,4 +615,4 @@ function Move-SBPendingConflict {
 function Format-SBPendingNotice($Summary) {
     Get-SBMessage 'pending.notice' @($Summary.applied.Count,$Summary.conflicts.Count,$Summary.pending,$Summary.state)
 }
-Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice','Get-SBPendingContentHash','Move-SBPendingConflict')
+Export-ModuleMember -Function @('New-SBPendingWrite','Get-SBPendingWrites','Invoke-SBPendingWrites','Complete-SBPendingSubmission','Format-SBPendingNotice','Get-SBPendingContentHash','Move-SBPendingConflict','Read-SBTaskBatchFile','New-SBPendingTaskBatch','Invoke-SBPendingTaskBatch')

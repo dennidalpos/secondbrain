@@ -33,6 +33,9 @@ pub struct QueueRequest {
     pub wait_for_reset: bool,
     #[serde(default)]
     pub max_wait_hours: Option<u32>,
+    /// Continue the run a quota stop left (run-ready-tasks.ps1 -Resume <runId>): the queue comes from its resume.json, not from task_ids.
+    #[serde(default)]
+    pub resume: Option<String>,
 }
 
 /// The runner started by this window (while it lives): its process and its stop file.
@@ -435,27 +438,22 @@ async fn add_run_note(app: AppHandle, repo: String, folder: String, note: String
 }
 
 
-#[tauri::command]
-fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest) -> Result<Value, String> {
-    let mut guard = state.run.lock().map_err(|e| e.to_string())?;
-    if guard.is_some() {
-        return Err("Una coda avviata da questa finestra è già in esecuzione.".into());
-    }
+/// Arguments of run-ready-tasks.ps1 for a queue started by the window: the chosen tasks, or the resume point of a run stopped by a plan limit.
+fn queue_args(request: &QueueRequest, checkout_path: String, stop_file: &str) -> Result<Vec<String>, String> {
     if !valid_provider(&request.provider) {
         return Err(format!("Provider non supportato: {}", request.provider));
     }
-    if request.task_ids.is_empty() || !request.task_ids.iter().all(|t| valid_token(t)) {
+    let resume = request.resume.as_deref().map(str::trim).filter(|r| !r.is_empty());
+    if let Some(r) = resume {
+        if !valid_token(r) || r.contains('/') {
+            return Err(format!("Invalid resume point: {r}"));
+        }
+    } else if request.task_ids.is_empty() || !request.task_ids.iter().all(|t| valid_token(t)) {
         return Err("Elenco dei task vuoto o non valido.".into());
     }
-    let (pwsh_path, root) = context(&app)?;
-    let cache = app.path().app_cache_dir().map_err(|e| e.to_string())?;
-    std::fs::create_dir_all(&cache).map_err(|e| e.to_string())?;
-    let id = stamp();
-    let stop_file = cache.join(format!("stop-{id}.flag"));
-    let log_file = cache.join(format!("runner-{id}.log"));
     let mut args: Vec<String> = vec![
         "-CheckoutPath".into(),
-        checkout(&request.repo)?,
+        checkout_path,
         "-Run".into(),
         "-Events".into(),
         "-MaxTasks".into(),
@@ -464,11 +462,19 @@ fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest
         request.timeout_minutes.clamp(1, 240).to_string(),
         "-Provider".into(),
         request.provider.clone(),
-        "-TaskIds".into(),
-        request.task_ids.join(","),
         "-StopFile".into(),
-        stop_file.to_string_lossy().into_owned(),
+        stop_file.into(),
     ];
+    match resume {
+        Some(r) => {
+            args.push("-Resume".into());
+            args.push(r.into());
+        }
+        None => {
+            args.push("-TaskIds".into());
+            args.push(request.task_ids.join(","));
+        }
+    }
     if let Some(s) = request.stall_minutes {
         args.push("-StallMinutes".into());
         args.push(s.clamp(1, 240).to_string());
@@ -502,6 +508,22 @@ fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest
     if !has_model || !has_effort {
         args.push("-UseCliDefault".into());
     }
+    Ok(args)
+}
+
+#[tauri::command]
+fn start_queue(app: AppHandle, state: State<'_, AppState>, request: QueueRequest) -> Result<Value, String> {
+    let mut guard = state.run.lock().map_err(|e| e.to_string())?;
+    if guard.is_some() {
+        return Err("Una coda avviata da questa finestra è già in esecuzione.".into());
+    }
+    let (pwsh_path, root) = context(&app)?;
+    let cache = app.path().app_cache_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&cache).map_err(|e| e.to_string())?;
+    let id = stamp();
+    let stop_file = cache.join(format!("stop-{id}.flag"));
+    let log_file = cache.join(format!("runner-{id}.log"));
+    let args = queue_args(&request, checkout(&request.repo)?, &stop_file.to_string_lossy())?;
     // Output to files, not pipes: the runner must outlive the window (a closed pipe would break its progress writes).
     let err = std::fs::File::create(&log_file).map_err(|e| e.to_string())?;
     let out = std::fs::File::create(log_file.with_extension("out")).map_err(|e| e.to_string())?;
@@ -640,7 +662,42 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::{analysis_args, browser_args, registry_args, repo_argument, valid_token, RegistryQuery};
+    use super::{analysis_args, browser_args, queue_args, registry_args, repo_argument, valid_token, QueueRequest, RegistryQuery};
+
+    fn queue(task_ids: &[&str], resume: Option<&str>) -> QueueRequest {
+        QueueRequest {
+            repo: ".".into(),
+            provider: "claude".into(),
+            model: Some("opus".into()),
+            effort: None,
+            allow_custom_model: false,
+            task_ids: task_ids.iter().map(|t| t.to_string()).collect(),
+            timeout_minutes: 60,
+            stall_minutes: None,
+            wait_for_reset: false,
+            max_wait_hours: None,
+            resume: resume.map(Into::into),
+        }
+    }
+
+    #[test]
+    fn queue_and_resume_arguments() {
+        // A new queue names its tasks; a resume (#554) passes -Resume with the stopped run and no task list: the queue is in resume.json.
+        let fresh = queue_args(&queue(&["T-1", "T-2"], None), "C".into(), "stop.flag").unwrap();
+        assert!(fresh.windows(2).any(|w| w == ["-TaskIds", "T-1,T-2"]));
+        assert!(!fresh.iter().any(|a| a == "-Resume"));
+        assert!(fresh.windows(2).any(|w| w == ["-StopFile", "stop.flag"]));
+        assert!(fresh.iter().any(|a| a == "-UseCliDefault"));
+        let resumed = queue_args(&queue(&[], Some(" 2026-11-13-runner-run-101500-42 ")), "C".into(), "stop.flag").unwrap();
+        assert!(resumed.windows(2).any(|w| w == ["-Resume", "2026-11-13-runner-run-101500-42"]));
+        assert!(!resumed.iter().any(|a| a == "-TaskIds"));
+        assert!(resumed.windows(2).any(|w| w == ["-Model", "opus"]));
+        assert!(queue_args(&queue(&[], Some("latest")), "C".into(), "s").is_ok());
+        assert!(queue_args(&queue(&[], None), "C".into(), "s").is_err());
+        assert!(queue_args(&queue(&[], Some("  ")), "C".into(), "s").is_err());
+        assert!(queue_args(&queue(&[], Some("../x")), "C".into(), "s").is_err());
+        assert!(queue_args(&queue(&[], Some("a b")), "C".into(), "s").is_err());
+    }
 
     #[test]
     fn webview_arguments() {

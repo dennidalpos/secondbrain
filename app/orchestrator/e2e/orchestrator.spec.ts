@@ -2,7 +2,8 @@
 // preload from --repo, removal of recent repositories across restarts, the directives proposed by the light model and every Directives
 // button with its persistence after a restart, agents and models limited to the installed CLIs, a queue run followed live, closed while
 // running and found again after reopening, the registry with tool badges and archived tasks, the analysis that makes a task autonomous,
-// and the busy buttons (spinner, second click ignored) with a run that waits for a plan limit to reset and resumes by itself.
+// the busy buttons (spinner, second click ignored) with a run that waits for a plan limit to reset and resumes by itself, and a run
+// stopped by a plan limit whose resume point the window shows and continues with -Resume.
 // The fixture comes from scripts/test-orchestrator-fixture.ps1 through SB_E2E_FIXTURE; real user settings are never touched.
 import { test, expect, chromium, type Browser, type Locator, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
@@ -359,5 +360,50 @@ test("busy buttons ignore a second click; a run stopped by a plan limit waits fo
   await expect(page.locator("#run-last-label")).toHaveText("Ultimo segnale dell'agente");
   await expect(page.locator("#run-results tr").filter({ hasText: "E2E-2" }).last()).toContainText("finished");
   expect(readTracker().tasks.find((t) => t.id === "E2E-2")?.status).toBe("in_progress");
+  await closeApp(app);
+});
+
+test("a run stopped by a plan limit shows its resume point, and the window resumes it with -Resume", async () => {
+  test.setTimeout(420_000);
+  // A fresh limit for this scenario: the fake agent hits it once more (the marker of the previous scenario is its own fixture state).
+  fs.rmSync(path.join(path.dirname(fixture.brain), "agent-limit.mark"), { force: true });
+  const app = await launch({ repo: fixture.checkout, limitSeconds: 5 });
+  const { page } = app;
+  await expect(page.locator("#q-tasks tr").filter({ hasText: "E2E-3" })).toHaveCount(1, { timeout: 60_000 });
+  await expect(page.locator("#q-agents label.agent").filter({ hasText: "Claude Code" }).locator("input")).toBeChecked();
+  await page.locator("#q-wait").uncheck();
+  await page.locator("#q-tasks tr").filter({ hasText: "E2E-3" }).locator('input[type="checkbox"]').check();
+  const calls = watchCalls(page);
+  await page.locator("#q-start").click();
+  await expect(page.locator('.steps button[data-tab="run"]')).toHaveAttribute("aria-selected", "true", { timeout: 60_000 });
+
+  // Without -WaitForReset the run stops at the limit and the card shows the resume point runner-status reports.
+  await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 180_000 });
+  await expect(page.locator("#run-counts")).toContainText("arresto: quota");
+  const resume = page.locator("#run-resume");
+  await expect(resume).toBeVisible({ timeout: 30_000 });
+  const text = page.locator("#run-resume-text");
+  await expect(text).toContainText("interrupted task E2E-3");
+  await expect(text).toContainText("1 task to run (E2E-3)");
+  await expect(text).toContainText("Claude Code");
+  const runId = /Run (\S+) stopped/.exec((await text.textContent()) ?? "")?.[1] ?? "";
+  expect(runId).toMatch(/runner-run-/);
+  expect(readTracker().tasks.find((t) => t.id === "E2E-3")?.status).toBe("todo");
+  if (process.env.SB_E2E_SCREENSHOTS) await page.screenshot({ path: path.join(process.env.SB_E2E_SCREENSHOTS, "run-resume-point.png") });
+
+  // After the reset the button starts run-ready-tasks.ps1 -Resume <run>: the interrupted task runs again and the point is used.
+  await expect.poll(async () => { await page.locator("#run-refresh").click(); return (await text.textContent()) ?? ""; }, { timeout: 60_000, intervals: [2_000] }).toContain("plan reset reached");
+  await page.locator("#run-resume-start").click();
+  await expect(resume).toBeHidden({ timeout: 60_000 });
+  expect(calls("start_queue")).toBe(2);
+  await expect(page.locator("#run-verdict")).toHaveText("Concluso", { timeout: 240_000 });
+  await expect(page.locator("#run-results tr").filter({ hasText: "E2E-3" }).last()).toContainText("finished");
+  expect(readTracker().tasks.find((t) => t.id === "E2E-3")?.status).toBe("in_progress");
+  // The new run consumed the resume point of the stopped one: its resume.json names the run shown in the card.
+  const newFolder = ((await page.locator("#run-folder").textContent()) ?? "").trim();
+  expect(path.basename(newFolder)).not.toBe(runId);
+  const point = JSON.parse(fs.readFileSync(path.join(path.dirname(newFolder), runId, "resume.json"), "utf8"));
+  expect(point.resumedBy).toBe(path.basename(newFolder));
+  await expect(resume).toBeHidden();
   await closeApp(app);
 });

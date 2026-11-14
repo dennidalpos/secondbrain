@@ -10,6 +10,8 @@ Verdict: working (alive, recent heartbeat and agent output), stalled (alive but 
 stopped), waiting (alive and waiting for a plan limit to reset, status.quotaWait.resumeAt), finished (the run closed itself), orphaned (marked running but its process is gone: interrupted or killed), none (no run).
 Default output is JSON with the status, the ages in seconds and the last -Tail events. -Follow prints each new event as it arrives
 (JSON lines with -Json) until the run ends. -Stop creates the run's stop file: the runner ends after the current task.
+The report also carries resume: the newest resume point a quota stop left and no run used yet (runId for run-ready-tasks.ps1 -Resume,
+interrupted task, remaining queue, provider, model, effort, reset), or null.
 -List prints the runs of the repository on this workstation, newest first (provider, model, effort, counts, stop reason, results,
 folder; -Limit, default 50, 0 = all). -Note <text> appends a "ui" event to the events.jsonl of the given -RunFolder (a runner run folder
 of this repository), so the notes of the desktop orchestrator survive a reattach.

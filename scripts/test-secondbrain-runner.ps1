@@ -270,6 +270,10 @@ switch($Mode){
     $point=Read-SBJson (Join-Path $limitedFolder 'resume.json') $null
     Assert-Runner ($point -and $point.reason -eq 'quota' -and $point.interrupted.id -eq $limitedRecord.id -and (@($point.remaining) -join ',') -ceq 'R-2,R-3,R-4' -and $point.quota.state -eq 'exhausted' -and $point.quota.resetAt) ('resume.json names the interrupted task, the remaining queue and the reset: '+($point|ConvertTo-Json -Compress -Depth 5))
     # The next run reads the observed exhaustion (reset in the future) and does not start any agent.
+    # runner-status shows the resume point (#554): the run to pass to -Resume, the interrupted task and the queue left.
+    $statusOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/runner-status.ps1') -CheckoutPath $checkout -ConfigPath $configPath -Tail 0 2>$null|Out-String)
+    $shown=if($statusOut.Contains('{')){$statusOut.Substring($statusOut.IndexOf('{'))|ConvertFrom-Json -AsHashtable}else{$null}
+    Assert-Runner ($shown -and $shown.resume -and $shown.resume.runId -ceq (Split-Path $limitedFolder -Leaf) -and $shown.resume.interrupted.id -eq $limitedRecord.id -and (@($shown.resume.remaining) -join ',') -ceq 'R-2,R-3,R-4' -and $shown.resume.resetAt -and $shown.resume.provider -eq 'claude') ('runner-status reports the resume point of the stopped run: '+$statusOut)
     $refused=Invoke-Runner @('-Run','-MaxTasks','1','-AgentArguments','ok')
     Assert-Runner ($refused.data.stopReason -eq 'quota' -and @($refused.data.tasks).Count -eq 0 -and $refused.text -match 'Quota claude: exhausted') ('an exhausted quota with a future reset stops before starting: '+$refused.text)
     # Reset reached: drop the observations, then resume the stopped run by name; the interrupted task runs first with the resume note.
@@ -279,6 +283,9 @@ switch($Mode){
     $resumedPrompt=(Read-SBJson (Join-Path $resumedRecord.folder 'agent-output.json') $null).result
     Assert-Runner ($resumedRecord.id -eq $limitedRecord.id -and $resumedPrompt -match 'Ripresa:' -and $resumedPrompt -match [regex]::Escape($limitedRecord.folder)) ('-Resume runs the interrupted task first with the resume note: '+$resumed.text)
     Assert-Runner ((Read-SBJson (Join-Path $limitedFolder 'resume.json') $null).resumedBy) 'the resume point is marked as used'
+    $statusOut=(& pwsh -NoProfile -File (Join-Path $brain 'scripts/runner-status.ps1') -CheckoutPath $checkout -ConfigPath $configPath -Tail 0 2>$null|Out-String)
+    $shown=if($statusOut.Contains('{')){$statusOut.Substring($statusOut.IndexOf('{'))|ConvertFrom-Json -AsHashtable}else{$null}
+    Assert-Runner ($shown -and !($shown.resume -and $shown.resume.runId -ceq (Split-Path $limitedFolder -Leaf))) ('a used resume point is no longer offered: '+$statusOut)
     # -WaitForReset: the limit resets in seconds, the run waits (waiting-quota), then runs the same task again with the resume note and goes on.
     function Clear-QuotaObservations{foreach($s in @(Get-ChildItem -LiteralPath $runtime -Recurse -Filter 'status.json' -File)){$j=Read-SBText $s.FullName|ConvertFrom-Json -AsHashtable;if($j.ContainsKey('quotaObserved') -and $j.quotaObserved){$j.quotaObserved=$null;Put-Runner $s.FullName (ConvertTo-SBJson $j)}}}
     Remove-Item -LiteralPath $env:SB_RUNNER_FAKE_MARK -Force -ErrorAction SilentlyContinue
@@ -573,6 +580,11 @@ $r|ConvertTo-Json -Compress
     $finalStatus=Read-SBJson ([string]$streamData.status) $null
     Assert-Runner ($finalStatus.state -eq 'finished' -and $finalStatus.phase -eq 'closed' -and $finalStatus.counts.succeeded -eq 1 -and (Read-SBJson (Join-Path (Split-Path ([string]$streamData.status)) 'MANIFEST.json') $null).status -eq 'closed') ('status.json ends finished and the run folder is closed: '+($finalStatus|ConvertTo-Json -Compress -Depth 4))
     Assert-Runner ((Read-SBJson (Join-Path $ghost 'status.json') $null).state -eq 'orphaned') 'the dead runner status is marked orphaned'
+    Assert-Runner ((Get-SBRunnerVerdict @{state='orphaned'} $nowUtc $false) -eq 'orphaned') 'verdict: a record closed as orphaned stays orphaned, not finished (#600)'
+    $reused=@{state='running';phase='agent';pid=$PID;processStartTicks=((Get-SBProcessStartTicks $PID)-[TimeSpan]::TicksPerHour);updatedAt=(Get-SBNow).ToString('o')}
+    Assert-Runner (!(Test-SBRunnerProcessAlive $reused) -and (Get-SBRunnerVerdict $reused) -eq 'orphaned') 'a reused PID with another start time is not the runner: the run is orphaned (#601)'
+    $ghostEntry=@((Get-SBRunnerRunList -BrainRoot $brain -HostId $hostId -Repository $identity2 -Limit 0).runs|Where-Object {$_.folder -eq $ghost})
+    Assert-Runner ($ghostEntry.Count -eq 1 -and $ghostEntry[0].verdict -eq 'orphaned' -and $null -eq $ghostEntry[0].finishedAt) ('runner-status -List shows the orphaned run as orphaned with no invented finish time (#600, #601): '+($ghostEntry|ConvertTo-Json -Compress -Depth 3))
     $after=(& pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath 2>$null|Out-String);$after=$after.Substring($after.IndexOf('{'))|ConvertFrom-Json -AsHashtable
     Assert-Runner ($after.verdict -eq 'finished' -and !$after.active) ('runner-status reports the finished run: '+$after.verdict)
     & pwsh -NoProfile -File $statusScript -CheckoutPath $checkout2 -ConfigPath $configPath -Stop *>$null

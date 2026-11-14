@@ -30,7 +30,16 @@ interface RunStatusFile {
   counts: { total: number; done: number; succeeded: number; failed: number }; stopReason: string | null; stallMinutes: number; folder: string; quota?: { state: string; source: string; resetAt?: string | null } | null;
   quotaWait?: { resumeAt: string; source: string; since: string; attempt: number; deadline: string; taskId: string } | null;
 }
-interface RunReport { active: boolean; verdict: "working" | "stalled" | "waiting" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null }
+/** The newest resume point a quota stop left and no run used yet (runner-status.ps1, #554): run-ready-tasks.ps1 -Resume <runId> continues it. */
+interface ResumePoint {
+  runId: string; path: string; reason: string; stoppedAt: string | null; provider: string; model: string | null; effort: string | null;
+  interrupted: { id: string; seq: number | null } | null; remaining: string[]; resetAt: string | null;
+}
+interface RunReport { active: boolean; verdict: "working" | "stalled" | "waiting" | "finished" | "orphaned" | "none"; folder?: string; status: RunStatusFile | null; resume?: ResumePoint | null }
+interface QueueRequest {
+  repo: string; provider: string; model: string | null; effort: string | null; allowCustomModel: boolean; taskIds: string[];
+  timeoutMinutes: number; stallMinutes: number; waitForReset: boolean; maxWaitHours: number; resume?: string;
+}
 interface EventJson { event?: string; message?: string; time?: string; record?: RunRecord; kind?: string; summary?: string; minutes?: number }
 interface RunnerEvent { line: string; json: EventJson | null }
 
@@ -512,7 +521,7 @@ onBusyClick($("q-start"), async () => {
   const taskIds = state.tasks.filter((t) => state.selected.has(t.id)).map((t) => t.id);
   if (!state.repo || !a || !taskIds.length) return setError("q-error", "Scegli un agente pronto e almeno un task.");
   const custom = input("q-custom-on").checked ? input("q-custom").value.trim() : "";
-  const request = {
+  const request: QueueRequest = {
     repo: state.repo, provider: a.provider,
     model: custom || select("q-model").value || null,
     effort: select("q-effort").value || null,
@@ -523,8 +532,12 @@ onBusyClick($("q-start"), async () => {
   const shownModel = request.model ?? (a.configured.model ? `predefinito della CLI (${a.configured.model})` : "predefinito della CLI");
   const shownEffort = !a.supports.effort ? "impegno non regolabile" : request.effort ?? (a.configured.effort ? `impegno predefinito (${a.configured.effort})` : "impegno predefinito");
   if (!confirm(`Avviare ${taskIds.length} task con ${a.name} · ${shownModel} · ${shownEffort}?\nModello e impegno letti ora dalla CLI installata.\n${request.waitForReset ? `Al limite del piano la coda attende il ripristino (al massimo ${request.maxWaitHours} h) e riprende da sola.` : "Al limite del piano la coda si ferma (riprendibile con -Resume latest)."}\nGli agenti modificano file nel checkout; commit, push e cancellazioni sono vietati.`)) return;
+  await launchQueue(request, "q-error");
+});
+/** Starts the runner for a confirmed request (new queue or resume) and follows it in the Run tab. */
+async function launchQueue(request: QueueRequest, errorBox: string) {
   resetRunView();
-  const r = await call<{ pid: number; log: string }>("start_queue", { request }, "q-error");
+  const r = await call<{ pid: number; log: string }>("start_queue", { request }, errorBox);
   if (!r) return;
   state.run.starting = true; state.run.pid = r.pid;
   setVerdict("starting");
@@ -537,7 +550,7 @@ onBusyClick($("q-start"), async () => {
     const rep = await call<RunReport>("get_run_status", { repo: state.repo, tail: 0 });
     if (rep?.status && rep.status.pid === state.run.pid && rep.folder) { window.clearInterval(state.timers.find); attachRun(rep); }
   }, 1500);
-});
+}
 
 // 4. Run: status card from status.json, steps and results from events.jsonl.
 function setVerdict(v: string) {
@@ -552,6 +565,7 @@ function resetRunView() {
   for (const id of ["run-elapsed", "run-last", "run-counts", "run-folder"]) $(id).textContent = "—";
   $("run-steps").replaceChildren(); $("run-results").replaceChildren(); $("run-log").textContent = "";
   $("run-warning").hidden = true; setError("run-error", null);
+  $("run-resume").hidden = true; resumePoint = null;
 }
 function stopPolling() {
   window.clearInterval(state.timers.events); window.clearInterval(state.timers.status); window.clearInterval(state.timers.clock); window.clearInterval(state.timers.find);
@@ -597,10 +611,45 @@ function handleEvent(e: RunnerEvent) {
     case "quotaresumed": $("run-warning").hidden = true; break;
   }
 }
+// #554: a run stopped by a plan limit leaves a resume point; while no run is active the card offers to continue it with -Resume.
+let resumePoint: ResumePoint | null = null;
+const agentName = (provider: string) => state.agents.find((a) => a.provider === provider)?.name ?? provider;
+function renderResume(rep: RunReport) {
+  resumePoint = !rep.active && !state.run.active && !state.run.starting ? rep.resume ?? null : null;
+  const box = $("run-resume");
+  box.hidden = !resumePoint;
+  if (!resumePoint) return;
+  const p = resumePoint;
+  const choice = [agentName(p.provider), p.model ?? "CLI default model", p.effort ?? "CLI default effort"].join(" · ");
+  $("run-resume-text").textContent =
+    `Run ${p.runId} stopped${p.stoppedAt ? " on " + new Date(p.stoppedAt).toLocaleString() : ""} by a plan limit` +
+    (p.interrupted?.id ? ` · interrupted task ${p.interrupted.id}` : "") +
+    ` · ${p.remaining.length} task${p.remaining.length === 1 ? "" : "s"} to run (${p.remaining.join(", ") || "none"})` +
+    ` · ${choice}` +
+    (p.resetAt ? ` · plan reset ${Date.parse(p.resetAt) > Date.now() ? "expected" : "reached"} at ${new Date(p.resetAt).toLocaleString()}` : "");
+}
+onBusyClick($("run-resume-start"), async () => {
+  const p = resumePoint;
+  if (!p || !state.repo) return;
+  if (state.run.active || state.run.starting) return setError("run-error", "A queue is already running.");
+  const resetAhead = p.resetAt && Date.parse(p.resetAt) > Date.now();
+  if (!confirm(`Resume run ${p.runId} with ${agentName(p.provider)}?\n${p.interrupted?.id ? `The interrupted task ${p.interrupted.id} runs first; ` : ""}${p.remaining.length} task(s) in all, with the model and effort of the stopped run.` +
+    (resetAhead ? `\nThe plan limit resets at ${new Date(p.resetAt!).toLocaleString()}: before then the runner does not start the agent.` : "") +
+    `\nAgents change files in the checkout; commits, pushes and deletions are forbidden.`)) return;
+  const request: QueueRequest = {
+    repo: state.repo, provider: p.provider, model: p.model, effort: p.effort,
+    // The model the stopped run resolved (possibly the CLI's configured name) is accepted as it is.
+    allowCustomModel: Boolean(p.model),
+    taskIds: [], timeoutMinutes: Number(input("q-timeout").value) || 30, stallMinutes: Number(input("q-stall").value) || 5,
+    waitForReset: input("q-wait").checked, maxWaitHours: Number(input("q-wait-hours").value) || 24, resume: p.runId,
+  };
+  await launchQueue(request, "run-error");
+});
 function renderStatus(rep: RunReport) {
   const s = rep.status;
   state.run.status = s;
   setVerdict(rep.verdict);
+  renderResume(rep);
   if (!s) return;
   state.run.startedAt = s.startedAt;
   $("run-folder").textContent = rep.folder ?? s.folder ?? "—";

@@ -1,6 +1,6 @@
 # Directive revision 1.3: English product, prompt identity, structured questions, conditional PDCA, bounded delegation
 
-Origin: owner request of 2026-11-13 to define asset contracts from the accepted prompt library audit and prepare the common-directive proposal. Owner choices made in that session through structured questions: English `sb` verbs with Italian aliases; directives cite commands and roles, never card codes; delegation only on request, one level deep; PDCA for non-trivial changes. The asset contracts are in `docs/riferimento/asset-contracts.md`. Tracker: #572 (directive revision), #580 (English-only policy).
+Origin: owner request of 2026-11-13 to define asset contracts from the accepted prompt library audit and prepare the common-directive proposal. Owner choices made in that session through structured questions: English `sb` verbs (Italian aliases removed in 3.0.0, owner decision of 2026-11-14 recorded in #580); directives cite commands and roles, never card codes; delegation only on request, one level deep; PDCA for non-trivial changes. The asset contracts are in `docs/riferimento/asset-contracts.md`. Tracker: #572 (directive revision), #580 (English-only policy).
 
 ## Problem
 
@@ -20,9 +20,9 @@ Origin: owner request of 2026-11-13 to define asset contracts from the accepted 
 - SecondBrain: `MEM05` → "scripts/para.ps1 and its `sb prompt` procedure"; the procedures line lists `sb activate`, `sb check`, `sb compact`, `sb stop` instead of card codes; new prompt identity rule (immutable `pmt-` ID, codes renamed only with catalog version and alias, never reused, never stored).
 - Closing work: `"Decisione: … — Motivo: …"` → `"Decision: … — Reason: …"`; `use SYS05` → `use sb compact`.
 
-`workstation.template.md` (1,029 → 1,038 bytes; limit 3,200):
+`workstation.template.md` (1,029 → 983 bytes; limit 3,200):
 
-- The command list is in English (`sb prompt area AREA`, `sb prompt show KEY`, `sb activate`, `sb check`, `sb sync`, `sb compact`). It states that the Italian verbs remain aliases. The `MEM09`/`MEM07`/`SYS01` mentions are replaced by plain descriptions.
+- The command list is in English (`sb prompt area AREA`, `sb prompt show KEY`, `sb activate`, `sb check`, `sb sync`, `sb compact`). The Italian verbs are not mentioned: their aliases are removed in 3.0.0 (#582). The `MEM09`/`MEM07`/`SYS01` mentions are replaced by plain descriptions.
 
 `AGENTS.repo.managed.md`: unchanged (identical copy of revision 1.2, hash `B7798368…6AEA`).
 
@@ -50,7 +50,7 @@ The startup context grows by 1,285 characters (global plus workstation), well in
 1. `scripts/approve-revision.ps1 -ProposalPath direttive/proposals/2026-11-13-revision-1-3 -ExpectedProposalHash <preview hash> -Authorization "<owner text>"`.
 2. Managed-block generators: the stamp `Direttive comuni applicate: revisione **x** — date.` becomes `Common directives applied: revision **x** — date.` (`Portable.psm1` `New-SBPortableRepositoryBody`, `agents.ps1` `Get-AgentsComposedBlock`). The closing text in `SecondBrain.Prompts.psm1` uses `Decision: … — Reason: …`. These are deferred so that `-Check` stays aligned on 1.2 until approval.
 3. `secondbrain.ps1 -Sync`, then `-Check` and `ide-map.ps1 -Verify`.
-4. The memory-cycle writer (`MemoryCycle.psm1`) emitting `Decisione` stays in #582. Cards that still mention Italian verbs (SYS03, SYS04, SYS05) are rewritten in #569/#583. Both resolve through the aliases meanwhile.
-5. Version: decided separately (the audit proposes 3.0.0 with the catalog migration). Revision 1.3 alone changes no CLI contract.
+4. The memory-cycle writer (`MemoryCycle.psm1`) emitting `Decisione` stays in #582. Cards that still mention Italian verbs (SYS03, SYS04, SYS05) are rewritten in #569/#583. Until #582 removes the Italian aliases they keep resolving; the directives no longer name them.
+5. Version: 3.0.0 (owner decision of 2026-11-14), released with the catalog migration and the English-only product (#579). Revision 1.3 alone changes no CLI contract.
 
 Preview: `scripts/approve-revision.ps1 -Preview -ProposalPath direttive/proposals/2026-11-13-revision-1-3`.

@@ -130,10 +130,24 @@ export async function refreshRuns() {
     const tr = el("tr");
     const counts = x.counts ? `${x.counts.done}/${x.counts.total} (${x.counts.succeeded} ok, ${x.counts.failed} ko)` : "—";
     const tasks = x.results.map((t) => `#${t.seq} ${t.state}`).join(", ") || "—";
-    [fmtDate(x.startedAt), x.finishedAt ? fmtDate(x.finishedAt) : "in corso", toolBadge(x.provider || "unknown"), [x.model, x.effort].filter(Boolean).join(" · ") || "predefiniti della CLI",
+    [fmtDate(x.startedAt), finishCell(x), toolBadge(x.provider || "unknown"), [x.model, x.effort].filter(Boolean).join(" · ") || "predefiniti della CLI",
       counts, x.stopReason ?? "—", tasks, el("span", { className: "mono small" }, x.folder)].forEach((c) => tr.append(el("td", {}, c)));
     return tr;
   }));
+}
+
+// #600/#601: the end column follows the run's lifecycle verdict (runner-status.ps1 -List), never the mere absence of finishedAt.
+// An orphaned run (marked running, process gone) is interrupted, not running; a missing finish time is shown as unknown, never invented.
+const OPEN_RUN_LABEL: Record<string, string> = {
+  working: "running", waiting: "waiting for the plan reset", stalled: "possibly stalled",
+  orphaned: "interrupted · finish time unknown", finished: "finish time unknown", none: "finish time unknown",
+};
+export function finishLabel(x: Pick<RunSummary, "verdict" | "finishedAt">): string {
+  if (x.finishedAt) return fmtDate(x.finishedAt);
+  return OPEN_RUN_LABEL[x.verdict] ?? "finish time unknown";
+}
+function finishCell(x: RunSummary): HTMLElement {
+  return el("span", { className: x.finishedAt ? "" : "muted", title: x.finishedAt ? "" : `verdict: ${x.verdict}` }, finishLabel(x));
 }
 
 export function showRegistry() { if (view === "tasks") refreshRegistry(); else refreshRuns(); }

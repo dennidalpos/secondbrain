@@ -55,6 +55,8 @@ function Get-SBRunnerVerdict($Status,[DateTimeOffset]$Now=(Get-SBNow),[Nullable[
     # threshold (agent phase) or past three heartbeats (runner phases). waiting: alive and waiting for a plan limit to reset
     # (phase waiting-quota, heartbeat still beating). working: everything else.
     if(!$Status){return 'none'}
+    # A record closed as orphaned (dead runner found by the next run) stays interrupted: it is not a finished run (#600).
+    if([string]$Status.state -eq 'orphaned'){return 'orphaned'}
     if([string]$Status.state -ne 'running'){return 'finished'}
     $isAlive=if($null -ne $Alive){[bool]$Alive}else{Test-SBRunnerProcessAlive $Status}
     if(!$isAlive){return 'orphaned'}
@@ -78,6 +80,24 @@ function Get-SBRunnerTail([string]$Path,[int]$Count) {
     try{$lines=@([IO.File]::ReadAllLines($Path,[Text.UTF8Encoding]::new($false))|Where-Object {$_}|Select-Object -Last $Count)}catch{$lines=@()}
     $lines|ForEach-Object {try{$_|ConvertFrom-Json -AsHashtable}catch{@{message=$_}}}
 }
+function Get-SBRunnerResumeSummary([string[]]$StatusFiles) {
+    # The newest resume point not used yet among the given runs (status.json paths, newest first): what run-ready-tasks.ps1 -Resume
+    # <runId> continues. $null when there is none. Only the fields the orchestrator shows; the file keeps the rest.
+    foreach($f in @($StatusFiles)){
+        $path=Join-Path (Split-Path $f -Parent) 'resume.json'
+        if(!(Test-Path -LiteralPath $path -PathType Leaf)){continue}
+        try{$r=Read-SBText $path|ConvertFrom-Json -AsHashtable -Depth 32 -DateKind String}catch{continue}
+        if($r -isnot [hashtable] -or ($r.ContainsKey('resumedBy') -and $r.resumedBy)){continue}
+        $interrupted=if($r.ContainsKey('interrupted') -and $r.interrupted -is [hashtable]){[ordered]@{id=[string]$r.interrupted.id;seq=$r.interrupted.seq}}else{$null}
+        $resetAt=if($r.ContainsKey('quota') -and $r.quota -is [hashtable] -and $r.quota.ContainsKey('resetAt')){$r.quota.resetAt}elseif($r.ContainsKey('limit') -and $r.limit -is [hashtable] -and $r.limit.ContainsKey('resetAt')){$r.limit.resetAt}else{$null}
+        $runId=if($r.ContainsKey('runId') -and $r.runId){[string]$r.runId}else{Split-Path (Split-Path $f -Parent) -Leaf}
+        return [ordered]@{
+            runId=$runId;path=$path;reason=[string]$r['reason'];stoppedAt=$r['stoppedAt'];provider=[string]$r['provider'];model=$r['model'];effort=$r['effort']
+            interrupted=$interrupted;remaining=@($r['remaining']|ForEach-Object {[string]$_}|Where-Object {$_});resetAt=$resetAt
+        }
+    }
+    $null
+}
 function Get-SBRunnerStatus {
     # The active run of the repository (newest status marked running), else the newest run; with ages, verdict and the event tail.
     param([Parameter(Mandatory)][string]$BrainRoot,[Parameter(Mandatory)][string]$HostId,[Parameter(Mandatory)][string]$Repository,[int]$Tail=20)
@@ -86,11 +106,12 @@ function Get-SBRunnerStatus {
     $chosen=$null;$chosenPath=$null
     foreach($f in $files){$s=Read-SBRunnerStatusFile $f;if($s -and [string]$s.state -eq 'running'){$chosen=$s;$chosenPath=$f;break}}
     if(!$chosen){foreach($f in $files){$s=Read-SBRunnerStatusFile $f;if($s){$chosen=$s;$chosenPath=$f;break}}}
-    if(!$chosen){return [ordered]@{repository=$Repository;active=$false;verdict='none';status=$null;runs=$files.Count}}
+    if(!$chosen){return [ordered]@{repository=$Repository;active=$false;verdict='none';status=$null;runs=$files.Count;resume=$null}}
     $verdict=Get-SBRunnerVerdict $chosen $now
     $folder=Split-Path $chosenPath -Parent
     [ordered]@{
         repository=$Repository;active=($verdict -in @('working','stalled','waiting'));verdict=$verdict;runs=$files.Count;folder=$folder
+        resume=(Get-SBRunnerResumeSummary $files)
         ages=[ordered]@{status=(Get-SBRunnerAge $chosen.updatedAt $now);runnerEvent=(Get-SBRunnerAge $(if($chosen.ContainsKey('lastRunnerEventAt')){$chosen.lastRunnerEventAt}) $now);agentEvent=(Get-SBRunnerAge $(if($chosen.ContainsKey('lastAgentEventAt')){$chosen.lastAgentEventAt}) $now)}
         status=$chosen
         events=@(Get-SBRunnerTail (Join-Path $folder 'events.jsonl') $Tail)
@@ -238,4 +259,4 @@ function Get-SBAgentFinalOutput([string]$Text) {
     }
     $Text
 }
-Export-ModuleMember -Function @('Get-SBRunnerRunList','Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')
+Export-ModuleMember -Function @('Get-SBRunnerRunList','Get-SBRunnerHeartbeatSeconds','Get-SBRunnerRunSlug','Get-SBRunnerReportRoot','Get-SBRunnerStatusFiles','Save-SBRunnerStatus','Add-SBRunnerEventLine','Get-SBProcessStartTicks','Test-SBRunnerProcessAlive','Get-SBRunnerVerdict','Read-SBRunnerStatusFile','Get-SBRunnerStatus','Find-SBActiveRunner','Get-SBRunnerQuotaObservation','Get-SBRunnerResumePoint','Get-SBRunnerResumeSummary','Limit-SBRunnerText','ConvertTo-SBAgentEvent','Get-SBAgentFinalOutput')

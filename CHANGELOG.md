@@ -2,8 +2,22 @@
 
 Formato [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/). La numerazione segue il file `VERSION`. Questo registro cambia solo quando accetti un cambio di versione: vedi [Cambiare versione](docs/uso-quotidiano.md).
 
-> Versione corrente: **2.11.1**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
+> Versione corrente: **2.12.0**, numerazione reimpostata il 2026-11-04 con le funzionalità attuali conservate. Le sezioni seguenti mantengono la cronologia dei rilasci precedenti.
 
+## [2.12.0] - 2026-11-14
+
+Tracker updates in one batch, resuming a quota-stopped run from the orchestrator, and truthful labels for interrupted runs.
+
+### Added
+- `knowledge.ps1 -UpdateTasksFile <json>` applies up to 200 task updates in one process, one writer lock and one transaction (tracker, archive, ledger, one request and receipt per update); a refused item names `Update <n> (<task>)` and leaves tracker and queue unchanged; a busy writer exits 3 without queuing (#595).
+- Orchestrator: the Run card shows the newest unused resume point of a run stopped by a plan limit (`runner-status.ps1` now reports `resume`) and "Resume the stopped run" starts `run-ready-tasks.ps1 -Resume <run>` (#554).
+
+### Changed
+- REP16 step 6 and REP17 step 5 cite `scripts/runner.ps1 -Mode cli`; REP17 step 1 names `knowledge.ps1 -ArchiveTasks` (preview) and `-Apply` (#596).
+- Directive revision 1.3 proposal (awaiting approval, #572): the Italian `sb` verbs are no longer named; their aliases are removed in 3.0.0 (#619).
+
+### Fixed
+- A runner record closed as `orphaned` (dead runner found by the next run) now has the `orphaned` verdict instead of `finished`, and the Registry run list labels an open run by its verdict (running, waiting, possibly stalled, interrupted) and shows an unknown finish time instead of "in corso" (#600, #601).
 ## [2.11.1] - 2026-11-13
 
 Tracker updates by task number.

@@ -19,11 +19,11 @@ Use to tidy the tracker of one repository: archive the completed tasks, order th
 </decisions>
 
 <procedure>
-1. Read the tracker projection and the preview of archiving; done tasks with proved criteria are archived automatically at the first tracker write, so archive by hand only what the preview still lists.
+1. Read the tracker projection and the preview of archiving (`scripts/knowledge.ps1 -ArchiveTasks`: lists the done and cancelled tasks still in the active tracker, changes nothing); done tasks with proved criteria are archived automatically at the first tracker write, so archive by hand only what the preview still lists, with `scripts/knowledge.ps1 -ArchiveTasks -Apply`, then repeat the preview: it must list nothing.
 2. Split the open tasks into development (structure and evolution) and final qualification (qualifications, verifications, tests).
 3. Ask the user, with the structured multiple-choice tool when the session offers one (otherwise keep the current scheme and report the open choice), for the scheme; apply it with the coordinated tracker writer, one task at a time, passing only the fields to change.
 4. Rewrite stale state reasons (those citing closed tasks) so that they say the qualification follows development and blocks none.
-5. Check the result: counts by status and priority, ready tasks and the runner preview; trace residuals without duplicates.
+5. Check the result: counts by status and priority, ready tasks and the runner preview (`scripts/runner.ps1 -Mode cli`, as in REP15 step 2); trace residuals without duplicates.
 </procedure>
 
 <constraints>

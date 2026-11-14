@@ -118,6 +118,44 @@ try {
     $seqRefused=$null
     try{[void](New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.update -Arguments @{TaskId='#99';Priority='P3'} -Config $cfg)}catch{$seqRefused=$_}
     Assert-Pending ((Test-SBError $seqRefused 'tracker.task.notfound') -and [string]$seqRefused -match 'task ID') '#593: unknown #seq is refused at submission naming the ID form'
+
+    # #595: a batch of task updates in one process, one writer lock and one transaction, each with its task hash, receipt and executor.
+    $batchFile=Join-Path $fixture 'batch.json'
+    $queueBefore=@(Get-SBPendingWrites $brain).Count
+    Put-Pending $batchFile (ConvertTo-Json -Depth 6 -InputObject @(@{taskId='T-1';status='in_progress';stateReason='batch reason'},@{taskId='#002';priority='P2';stream='batch-stream';evidence=@('history/seed/report.md|passed')}))
+    $batchOk=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTasksFile',$batchFile)
+    $afterBatch=Read-SBJson $trackerPath $null
+    $batchT1=@($afterBatch.tasks|Where-Object id -eq 'T-1')[0];$batchT2=@($afterBatch.tasks|Where-Object id -eq 'T-2')[0]
+    Assert-Pending ($batchOk.code -eq 0 -and $batchOk.data.applied -and $batchOk.data.count -eq 2 -and $batchT1.extensions.stateReason -ceq 'batch reason' -and $batchT2.priority -ceq 'P2' -and $batchT2.extensions.stream -ceq 'batch-stream' -and @($batchT2.evidence|Where-Object outcome -eq 'passed').Count -eq 1) '#595: one -UpdateTasksFile call applies every update of the batch'
+    $batchEntries=@(Get-SBPendingWrites $brain|Where-Object {$_.id -in @($batchOk.data.items|ForEach-Object requestId)})
+    $batchRequests=@($batchEntries|ForEach-Object {Read-SBJson $_.path $null})
+    Assert-Pending ($batchEntries.Count -eq 2 -and !@($batchEntries|Where-Object state -ne 'applied').Count -and !@($batchEntries|Where-Object {$_.receipt.batch.size -ne 2}).Count -and @($batchEntries|ForEach-Object {$_.receipt.observedAt}|Select-Object -Unique).Count -eq 1 -and @(Get-SBPendingWrites $brain).Count -eq $queueBefore+2) '#595: each update keeps its own request and applied receipt, written in the same transaction'
+    Assert-Pending (!@($batchRequests|Where-Object {$_.expected.taskHash -notmatch '^[A-Fa-f0-9]{64}$' -or !$_.arguments.Executor}).Count -and @($batchRequests|Where-Object {$_.arguments.TaskId -ceq 'T-2'}).Count -eq 1 -and $batchOk.data.items[1].taskId -ceq 'T-2') '#595: each request keeps its task hash and executor; #seq is stored as the task ID'
+    $again2=Invoke-SBPendingWrites -BrainRoot $brain -Config $cfg -Repository $identity
+    Assert-Pending (!@($again2.applied|Where-Object {$_.id -in @($batchOk.data.items|ForEach-Object requestId)}).Count -and (Get-SBFileHash $trackerPath) -eq $batchOk.data.trackerHash) '#595: a later drain never applies batch requests a second time'
+    $bytesBefore=Get-SBFileHash $trackerPath;$queueBefore=@(Get-SBPendingWrites $brain).Count
+    foreach($case in @(
+        @{name='an invalid value';items=@(@{taskId='T-1';priority='P1'},@{taskId='T-2';priority='P9'});needle='Update 2 (T-2)'},
+        @{name='an unknown field';items=@(@{taskId='T-1';priority='P1'},@{taskId='T-2';colour='red'});needle='Update 2 (T-2)'},
+        @{name='a duplicate task';items=@(@{taskId='T-1';priority='P1'},@{taskId='#001';priority='P3'});needle='Update 2 (T-1)'},
+        @{name='an unknown task';items=@(@{taskId='T-404';priority='P1'});needle='Update 1 (T-404)'})){
+        Put-Pending $batchFile (ConvertTo-Json -Depth 6 -InputObject @($case.items))
+        $refused=Invoke-PendingCli 'knowledge.ps1' @('-CheckoutPath',$checkout,'-UpdateTasksFile',$batchFile,'-Language','en')
+        $stderrText=Read-SBText $refused.stderr
+        Assert-Pending ($refused.code -eq 2 -and (Get-SBFileHash $trackerPath) -eq $bytesBefore -and @(Get-SBPendingWrites $brain).Count -eq $queueBefore -and $stderrText.Contains($case.needle)) ('#595: '+$case.name+' leaves tracker bytes and queue unchanged and names the item'+$(if($refused.code -ne 2 -or !$stderrText.Contains($case.needle)){' [code '+$refused.code+': '+$stderrText+$refused.text+']'}))
+    }
+    $preparedBatch=New-SBPendingTaskBatch -BrainRoot $brain -Repository $identity -Items @(@{TaskId='T-1';Priority='P1'},@{TaskId='T-2';Priority='P4'}) -Config $cfg
+    [void](Update-SBTrackerTask -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Stream 'concurrent' -BackupRoot $cfg.backupRoot)
+    $conflictBytes=Get-SBFileHash $trackerPath;$queueBefore=@(Get-SBPendingWrites $brain).Count
+    $batchConflict=$null
+    try{[void](Invoke-SBPendingTaskBatch -BrainRoot $brain -Repository $identity -Prepared $preparedBatch -Config $cfg)}catch{$batchConflict=$_}
+    Assert-Pending ((Test-SBError $batchConflict 'tracker.batch.item') -and [string]$batchConflict -match '2 \(T-2\)' -and (Get-SBFileHash $trackerPath) -eq $conflictBytes -and @(Get-SBPendingWrites $brain).Count -eq $queueBefore -and @((Read-SBJson $trackerPath $null).tasks|Where-Object id -eq 'T-1')[0].priority -cne 'P1') '#595: a task changed after preparation is a conflict naming the item; nothing of the batch is written'
+    $holderBatch=Enter-SBOperation $cfg -WaitMs 0
+    try{
+        $busy=$null
+        try{[void](Invoke-SBPendingTaskBatch -BrainRoot $brain -Repository $identity -Items @(@{TaskId='T-1';Priority='P1'}) -Config $cfg -WaitMs 0)}catch{$busy=$_}
+        Assert-Pending ((Test-SBBusyError $busy) -and (Get-SBFileHash $trackerPath) -eq $conflictBytes -and @(Get-SBPendingWrites $brain).Count -eq $queueBefore) '#595: a busy writer refuses the batch without queuing part of it'
+    }finally{Exit-SBOperation $holderBatch}
     $independent=New-SBPendingWrite -BrainRoot $brain -Repository $identity -Operation task.status -Arguments @{TaskId='T-1';Status='done'} -Config $cfg
     [void](Set-SBTrackerTaskStatus -BrainRoot $brain -Identity $identity -WorkingRepository $identity -TaskId T-2 -Status in_progress -BackupRoot $cfg.backupRoot)
     $done=Complete-SBPendingSubmission $independent $cfg

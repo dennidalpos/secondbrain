@@ -19,11 +19,11 @@ Da usare per riordinare il tracker di un repository: archivia i task completati,
 </decisions>
 
 <procedure>
-1. Leggi la proiezione del tracker e l'anteprima dell'archiviazione; i task conclusi con criteri dimostrati sono archiviati in automatico alla prima scrittura del tracker: archivia a mano solo ciò che l'anteprima elenca ancora.
+1. Leggi la proiezione del tracker e l'anteprima dell'archiviazione (`scripts/knowledge.ps1 -ArchiveTasks`: elenca i task done e cancelled ancora nel tracker attivo, senza modifiche); i task conclusi con criteri dimostrati sono archiviati in automatico alla prima scrittura del tracker: archivia a mano solo ciò che l'anteprima elenca ancora, con `scripts/knowledge.ps1 -ArchiveTasks -Apply`, poi ripeti l'anteprima: non deve elencare nulla.
 2. Dividi i task aperti in sviluppo (struttura ed evoluzione) e qualifica finale (qualifiche, verifiche, test).
 3. Chiedi all'utente lo schema con lo strumento a scelta multipla se la sessione lo offre (altrimenti mantieni lo schema attuale e riporta la scelta aperta); applicalo con lo scrittore coordinato del tracker, un task alla volta, passando solo i campi da cambiare.
 4. Riscrivi i motivi di stato obsoleti (quelli che citano task chiusi) in modo che dicano che la qualifica segue lo sviluppo e non ne blocca alcuno.
-5. Controlla il risultato: conteggi per stato e priorità, task pronti e anteprima del runner; traccia i residui senza duplicati.
+5. Controlla il risultato: conteggi per stato e priorità, task pronti e anteprima del runner (`scripts/runner.ps1 -Mode cli`, come al passo 2 di REP15); traccia i residui senza duplicati.
 </procedure>
 
 <constraints>

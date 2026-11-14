@@ -6,7 +6,7 @@ Supported changes are saved as requests before integration. A central transactio
 
 ## Submit and inspect
 
-Task operations use NewTask and UpdateTaskId. Results include requestId and requestPath; a new task receives its sequence only when integrated.
+Task operations use NewTask and UpdateTaskId. Results include requestId and requestPath; a new task receives its sequence only when integrated. UpdateTasksFile applies several task updates at once: one request and one receipt per update, all written with the tracker in one transaction under one writer lock, and nothing queued when the batch is refused or the writer stays busy ([trackers](trackers.md#changes-and-history)).
 
 File requests accept memory.md, context.md and history/<slug>/report.md in the active identity-resolved dossier:
 

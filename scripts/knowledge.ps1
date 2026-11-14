@@ -9,6 +9,7 @@ param([Parameter(ParameterSetName='Tasks')][switch]$Tasks,[Parameter(ParameterSe
     [Parameter(Mandatory,ParameterSetName='ArchiveTasks')][switch]$ArchiveTasks,
     [Parameter(Mandatory,ParameterSetName='Search')][string]$Search,[Parameter(ParameterSetName='Search')][Parameter(ParameterSetName='Startup')][Parameter(ParameterSetName='Compact')][int]$Budget=25000,
     [Parameter(Mandatory,ParameterSetName='TaskUpdate')][string]$UpdateTaskId,[Parameter(ParameterSetName='TaskUpdate')][string]$Status,[Parameter(ParameterSetName='TaskUpdate')][string]$StateReason,
+    [Parameter(Mandatory,ParameterSetName='TaskBatch')][string]$UpdateTasksFile,
     [Parameter(Mandatory,ParameterSetName='FileSave')][string]$SaveFile,
     [Parameter(Mandatory,ParameterSetName='FileAppend')][string]$AppendFile,
     [Parameter(Mandatory,ParameterSetName='FileSave')][Parameter(Mandatory,ParameterSetName='FileAppend')][string]$ContentPath,
@@ -72,11 +73,11 @@ Add-SBMessages @{
 $brain=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'));$lock=$null
 try{
     $bufferedWrite=($UpdateTaskId -or $NewTask -or $SaveFile -or $AppendFile)
-    $readOnly=($bufferedWrite -or (!$Apply -and !$SetLifecycle -and !$DiscardPending))
+    $readOnly=($bufferedWrite -or $UpdateTasksFile -or (!$Apply -and !$SetLifecycle -and !$DiscardPending))
     $config=Read-SBConfiguration $ConfigPath -ReadOnly:$readOnly;$lock=Enter-SBOperation $config $SessionId -ReadOnly:$readOnly
     if($readOnly){Write-SBReadWarnings $lock $config}
     $pendingResult=$null
-    if($NoRecovery -and ($bufferedWrite -or $Apply -or $SetLifecycle -or $FlushPending -or $DiscardPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
+    if($NoRecovery -and ($bufferedWrite -or $UpdateTasksFile -or $Apply -or $SetLifecycle -or $FlushPending -or $DiscardPending)){throw (New-SBError 'knowledgecli.params.incompatible')}
     # #474: reads (-Startup, -Search, -Task, -Section, -Tasks, -Roadmap, -PendingWrites) never write. Only an explicit -FlushPending integrates queued requests, and only those of the dossier in work (-Repository or the checkout's).
     if($FlushPending){
         $flushRepository=if($Repository){$Repository}else{Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)}
@@ -196,6 +197,15 @@ try{
         if($arguments.Count -eq 1){throw (New-SBError 'tracker.update.empty')}
         $submission=New-SBPendingWrite -BrainRoot $brain -Repository $working -Operation task.update -Arguments $arguments -Config $config -SessionId $SessionId
         $result=Complete-SBPendingSubmission $submission $config $SessionId
+    }
+    elseif($UpdateTasksFile){
+        # #595: several updates of the working repository's tracker in one process, one writer lock and one transaction; all or nothing.
+        $working=Resolve-SBWorkingRepository $CheckoutPath @($config.bindings)
+        if(!$working){throw (New-SBError 'knowledgecli.repository.checkout')}
+        & $writeScope $working
+        if($Repository -and $Repository -cne $working){throw (New-SBError 'tracker.write.foreign' @($Repository,$working))}
+        $items=Read-SBTaskBatchFile $UpdateTasksFile
+        $result=Invoke-SBPendingTaskBatch -BrainRoot $brain -Repository $working -Items $items -Config $config -SessionId $SessionId -WaitMs (Get-SBLockWaitMs $config)
     }
     elseif($Registry -or $BackfillTaskRuns){
         # Registry: every task of the working repository (active and archived) with the executors from the dossier ledger and the runner

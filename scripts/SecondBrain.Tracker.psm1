@@ -8,6 +8,11 @@ Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Messages.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.TaskLedger.psm1')
 Import-Module (Join-Path $PSScriptRoot 'SecondBrain.Decisions.psm1')
 Add-SBMessages @{
+    'tracker.batch.empty' = @{ it = 'Lotto di aggiornamenti vuoto: il file deve elencare almeno un aggiornamento'; en = 'Empty update batch: the file must list at least one update' }
+    'tracker.batch.item' = @{ it = 'Aggiornamento {0} ({1}) rifiutato, tracker invariato: {2}'; en = 'Update {0} ({1}) refused, tracker unchanged: {2}' }
+    'tracker.batch.shape' = @{ it = 'Ogni aggiornamento è un oggetto con taskId e almeno un campo'; en = 'Each update is an object with taskId and at least one field' }
+    'tracker.batch.duplicate' = @{ it = 'Il task compare già in un aggiornamento precedente del lotto: unire i campi in una sola voce'; en = 'The task already appears in an earlier update of the batch: merge the fields into one entry' }
+    'tracker.batch.changed' = @{ it = 'Il tracker è cambiato dopo la preparazione del lotto: rieseguire il comando'; en = 'The tracker changed after the batch was prepared: run the command again' }
     'tracker.update.empty' = @{ it = 'Specificare almeno un campo da aggiornare: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions o -Evidence'; en = 'Specify at least one field to update: -Status, -Priority, -Execution, -DependsOn, -Stream, -Awaiting, -Requires, -StateReason, -Description, -Acceptance, -Decisions or -Evidence' }
     'tracker.decisions.invalid' = @{ it = 'Decisioni non valide: ogni voce richiede question e answer (testo); correggere il file JSON delle decisioni'; en = 'Invalid decisions: every entry needs question and answer (text); fix the decisions JSON file' }
     'tracker.evidence.invalid' = @{ it = 'Evidenza non valida: usare riferimento|esito con esito passed, failed, partial o unverified'; en = 'Invalid evidence: use reference|outcome with outcome passed, failed, partial or unverified' }
@@ -955,64 +960,129 @@ function Update-SBTrackerTask {
         [string]$WorkingRepository,
         $Executor
     )
-    $fields=@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Decision')
-    if(!@($fields|Where-Object {$PSBoundParameters.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
-    if($PSBoundParameters.ContainsKey('Status') -and $Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Status))}
-    if($PSBoundParameters.ContainsKey('Priority') -and $Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
-    if($PSBoundParameters.ContainsKey('Execution') -and $Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
-    $requiresList=$null
-    if($PSBoundParameters.ContainsKey('Requires')){$requiresList=ConvertTo-SBTaskRequires $Requires}
+    $fields=@{}
+    foreach($field in (Get-SBTrackerUpdateFields)){if($PSBoundParameters.ContainsKey($field)){$fields[$field]=$PSBoundParameters[$field]}}
+    Assert-SBTrackerUpdateFields $fields
     $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity $Path $WorkingRepository
-    $next=$target.data
     $archive=Read-SBTrackerArchive $target.path $target.identity
-    $task=Get-SBTrackerTaskForUpdate $target $archive $TaskId
+    $edit=Edit-SBTrackerTaskFields $target $archive $TaskId $fields $Executor
+    $saved=Save-SBTrackerData $target $target.data $BackupRoot -WhatIf:$WhatIf -Archive $archive -LedgerRecords @($edit.record)
+    $result=$saved+@{taskId=$edit.taskId;status=$edit.status}
+    if($edit.closing){$result.closureAdvice=Get-SBClosureAdvice (Split-Path $target.path)}
+    $result
+}
+function Get-SBTrackerUpdateFields {@('Status','StateReason','Priority','Execution','DependsOn','Stream','Awaiting','Requires','Evidence','Description','Acceptance','Decisions','Decision')}
+function Assert-SBTrackerUpdateFields([hashtable]$Fields) {
+    # Field checks shared by the single update and the batch (#595), before any tracker is read.
+    if(!@((Get-SBTrackerUpdateFields)|Where-Object {$Fields.ContainsKey($_)}).Count){throw (New-SBError 'tracker.update.empty')}
+    if($Fields.ContainsKey('Status') -and $Fields.Status -notin @('todo','in_progress','blocked','done','cancelled','unknown')){throw (New-SBError 'tracker.status.invalid' @($Fields.Status))}
+    if($Fields.ContainsKey('Priority') -and $Fields.Priority -cnotin @('P0','P1','P2','P3','P4')){throw (New-SBError 'tracker.priority.invalid')}
+    if($Fields.ContainsKey('Execution') -and $Fields.Execution -cnotin @('autonomous','user_required','unspecified')){throw (New-SBError 'tracker.execution.invalid')}
+    if($Fields.ContainsKey('Requires')){[void](ConvertTo-SBTaskRequires $Fields.Requires)}
+}
+function Edit-SBTrackerTaskFields($Target,$Archive,[string]$TaskId,[hashtable]$Fields,$Executor) {
+    # Applies one update to the in-memory tracker and archive; the caller saves (one task: Update-SBTrackerTask; several: Invoke-SBTrackerTaskBatch).
+    Assert-SBTrackerUpdateFields $Fields
+    $next=$Target.data
+    $task=Get-SBTrackerTaskForUpdate $Target $Archive $TaskId
+    $TaskId=[string]$task.id
     $before=Get-SBTaskLedgerSnapshot $task
     $wasDone=$task.status -eq 'done'
     if(!$task.ContainsKey('extensions') -or $null -eq $task.extensions){$task.extensions=@{}}
-    if($PSBoundParameters.ContainsKey('Description')){if($Description.Trim()){$task.description=$Description.Trim()}else{[void]$task.Remove('description')}}
-    if($PSBoundParameters.ContainsKey('Acceptance')){
-        $criteria=@($Acceptance|ForEach-Object {$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})
+    if($Fields.ContainsKey('Description')){$text=[string]$Fields.Description;if($text.Trim()){$task.description=$text.Trim()}else{[void]$task.Remove('description')}}
+    if($Fields.ContainsKey('Acceptance')){
+        $criteria=@(@($Fields.Acceptance)|ForEach-Object {[string]$_ -split ';'}|ForEach-Object {$_.Trim()}|Where-Object {$_})
         if(!$criteria.Count){throw (New-SBError 'tracker.acceptance.required')}
         $task.acceptance=$criteria
     }
-    if($PSBoundParameters.ContainsKey('Decisions')){
-        $added=@(ConvertTo-SBTaskDecisions $Decisions)
+    if($Fields.ContainsKey('Decisions')){
+        $added=@(ConvertTo-SBTaskDecisions $Fields.Decisions)
         if($added.Count){$task.extensions.decisions=@(@($task.extensions['decisions']|Where-Object {$_})+$added)}
     }
     foreach($field in @('Status','Priority','Execution')){
-        if($PSBoundParameters.ContainsKey($field)){$task[$field.ToLowerInvariant()]=$PSBoundParameters[$field]}
+        if($Fields.ContainsKey($field)){$task[$field.ToLowerInvariant()]=[string]$Fields[$field]}
     }
     foreach($field in @('StateReason','Stream','Awaiting')){
-        if($PSBoundParameters.ContainsKey($field)){
+        if($Fields.ContainsKey($field)){
             $key=switch($field){'StateReason'{'stateReason'}'Stream'{'stream'}default{'awaiting'}}
-            $value=$PSBoundParameters[$field].Trim()
+            $value=([string]$Fields[$field]).Trim()
             if($value){$task.extensions[$key]=$value}else{[void]$task.extensions.Remove($key)}
         }
     }
-    if($PSBoundParameters.ContainsKey('Requires')){
+    if($Fields.ContainsKey('Requires')){
+        $requiresList=ConvertTo-SBTaskRequires @($Fields.Requires)
         if($requiresList.Count){$task.extensions.requires=@($requiresList)}else{[void]$task.extensions.Remove('requires')}
     }
-    if($PSBoundParameters.ContainsKey('Decision')){
+    if($Fields.ContainsKey('Decision')){
         # #588: a task waiting on the user points at an open decision of its own dossier (awaiting=owner-consent); empty clears the link.
-        $decisionId=$Decision.Trim()
+        $decisionId=([string]$Fields.Decision).Trim()
         if($decisionId){
             $awaitingNow=if($task.extensions.Contains('awaiting')){[string]$task.extensions.awaiting}else{''}
-            Assert-SBDecisionLink (Split-Path $target.path) $target.identity $decisionId $TaskId $awaitingNow
+            Assert-SBDecisionLink (Split-Path $Target.path) $Target.identity $decisionId $TaskId $awaitingNow
             $task.extensions.decision=$decisionId
         }else{[void]$task.extensions.Remove('decision')}
     }
-    if($PSBoundParameters.ContainsKey('DependsOn')){
-        $task.dependencies=ConvertTo-SBTrackerDependencies $DependsOn $next $archive.data
+    if($Fields.ContainsKey('DependsOn')){
+        $task.dependencies=ConvertTo-SBTrackerDependencies @($Fields.DependsOn) $next $Archive.data
     }
-    if($Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@(@($Evidence)|ForEach-Object {ConvertTo-SBTaskEvidence $_})}
-    $closing=$PSBoundParameters.ContainsKey('Status') -and $Status -eq 'done'
+    if($Fields.ContainsKey('Evidence') -and $Fields.Evidence){if(!$task.ContainsKey('evidence')){$task.evidence=@()};$task.evidence+=@(@($Fields.Evidence)|ForEach-Object {ConvertTo-SBTaskEvidence $_})}
+    $closing=$Fields.ContainsKey('Status') -and $Fields.Status -eq 'done'
     if($closing -and !$wasDone){Set-SBTaskClosure $next $TaskId}
     $record=New-SBTaskRunRecord -Task $task -Before $before -Executor $Executor
     # A reviewed analysis that rewrites the task records itself even when status and execution stay the same.
-    if(!$record -and ($PSBoundParameters.ContainsKey('Decisions') -or $PSBoundParameters.ContainsKey('Acceptance'))){$record=New-SBTaskRunRecord -Task $task -Executor $Executor -Created;$record.event='analysis'}
-    $saved=Save-SBTrackerData $target $next $BackupRoot -WhatIf:$WhatIf -Archive $archive -LedgerRecords @($record)
-    $result=$saved+@{taskId=$TaskId;status=$task.status}
-    if($closing){$result.closureAdvice=Get-SBClosureAdvice (Split-Path $target.path)}
+    if(!$record -and ($Fields.ContainsKey('Decisions') -or $Fields.ContainsKey('Acceptance'))){$record=New-SBTaskRunRecord -Task $task -Executor $Executor -Created;$record.event='analysis'}
+    @{taskId=$TaskId;status=$task.status;closing=$closing;record=$record}
+}
+function Invoke-SBTrackerTaskBatch {
+    # #595: several task updates on one tracker read, one graph validation and one transaction (tracker, archive, ledger and -ExtraOperations).
+    # Items: @{TaskId=...; <update fields>; Executor=...}. A failing item throws tracker.batch.item naming its position and task; nothing is written.
+    [CmdletBinding()]
+    param([string]$BrainRoot,[string]$Identity,[string]$WorkingRepository,[Parameter(Mandatory)][object[]]$Items,[object[]]$ExtraOperations=@(),[string]$BackupRoot,[switch]$WhatIf,[string]$ExpectedHash)
+    if(!$Items.Count){throw (New-SBError 'tracker.batch.empty')}
+    $apply={
+        param([int]$Count)
+        $target=Resolve-SBTrackerWriteTarget $BrainRoot $Identity '' $WorkingRepository
+        if($ExpectedHash -and $target.hash -cne $ExpectedHash){throw (New-SBError 'tracker.batch.changed')}
+        $archive=Read-SBTrackerArchive $target.path $target.identity
+        $records=@();$results=@();$seen=@{}
+        for($i=0;$i -lt $Count;$i++){
+            $item=$Items[$i]
+            $label=if($item -is [Collections.IDictionary] -and $item.Contains('TaskId')){[string]$item.TaskId}else{'?'}
+            try{
+                if($item -isnot [Collections.IDictionary] -or !$label){throw (New-SBError 'tracker.batch.shape')}
+                $fields=@{};foreach($key in $item.Keys){if($key -notin @('TaskId','Executor')){$fields[$key]=$item[$key]}}
+                $executor=if($item.Contains('Executor')){$item.Executor}else{$null}
+                $edit=Edit-SBTrackerTaskFields $target $archive $label $fields $executor
+                if($seen.ContainsKey($edit.taskId)){throw (New-SBError 'tracker.batch.duplicate')}
+                $seen[$edit.taskId]=$true
+            }catch{throw (New-SBError 'tracker.batch.item' @(($i+1),$label,$_.Exception.Message))}
+            if($edit.record){$records+=,$edit.record}
+            $entry=@{index=($i+1);taskId=$edit.taskId;status=$edit.status}
+            if($edit.closing){$entry.closureAdvice=Get-SBClosureAdvice (Split-Path $target.path)}
+            $results+=,$entry
+        }
+        @{target=$target;archive=$archive;records=$records;results=$results}
+    }
+    $state=& $apply $Items.Count
+    try{$saved=Save-SBTrackerData $state.target $state.target.data $BackupRoot -WhatIf -Archive $state.archive -LedgerRecords $state.records -ExtraOperations $ExtraOperations}
+    catch{
+        # The whole-graph check failed: replay the prefixes to name the first item that breaks it.
+        $failure=$_
+        for($k=1;$k -le $Items.Count;$k++){
+            $prefix=& $apply $k
+            try{[void](Save-SBTrackerData $prefix.target $prefix.target.data $BackupRoot -WhatIf -Archive $prefix.archive -LedgerRecords $prefix.records)}
+            catch{throw (New-SBError 'tracker.batch.item' @($k,[string]$Items[$k-1].TaskId,$_.Exception.Message))}
+        }
+        throw $failure
+    }
+    $ops=@(@{path=$state.target.path;expected=$state.target.hash;bytes=[Text.Encoding]::UTF8.GetBytes((ConvertTo-SBJson $saved.data))})+@($saved.extraOperations)
+    $result=@{applied=$false;path=$state.target.path;data=$saved.data;operations=$ops;items=$state.results;trackerHash=$state.target.hash}
+    if($WhatIf){return $result}
+    if(!$BackupRoot){$BackupRoot=Resolve-SBTrackerBackupRoot $state.target.brainRoot}
+    [IO.Directory]::CreateDirectory($BackupRoot)|Out-Null
+    foreach($op in @($ops)){[IO.Directory]::CreateDirectory((Split-Path $op.path))|Out-Null}
+    $result.manifest=Invoke-SBParaTransaction -Operations $ops -BackupRoot $BackupRoot -BrainRoot $state.target.brainRoot
+    $result.applied=$true
     $result
 }
 function Invoke-SBTaskRunBackfill {
@@ -1082,6 +1152,7 @@ Export-ModuleMember -Function @(
     'Get-SBTrackerHistoryMessages',
     'Invoke-SBTrackerHistoryMigration',
     'Update-SBTrackerTask',
+    'Invoke-SBTrackerTaskBatch',
     'Invoke-SBTrackerTaskChanges',
     'Invoke-SBTaskRunBackfill',
     'Set-SBTaskClosure',

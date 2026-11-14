@@ -23,6 +23,20 @@ ReadyOnly resolves dependencies in active and historical trackers. Only complete
 
 UpdateTaskId takes a task ID or `#<seq>` (padded or not) for a task of the same tracker by number, active or archived, like `-Task`; an unknown number is refused naming the ID form. It accepts Status, StateReason, Priority, Execution, DependsOn, Stream, Awaiting, Requires, Description, Acceptance (`;`-separated), Evidence (`reference|outcome`, outcome passed, failed, partial or unverified; appended) and DecisionsFile (a JSON file of owner decisions `{question, answer}` stored in `extensions.decisions[]`). Omitted fields stay unchanged; at least one supplied field is required. DependsOn takes task IDs, `<repository>#<id>` for another managed repository, or `#<seq>` for a task of the same tracker by number, active or archived; `#<seq>` is stored as that task's ID and an unknown number is refused. Empty DependsOn clears dependencies and empty Stream removes it. Unknown tasks/repositories, invalid references, cycles and writes to another working repository are refused.
 
+UpdateTasksFile (#595) applies several updates of the working repository's tracker from one JSON file, in one process, one writer lock and one transaction. The file is an array of updates, or `{"updates": [...]}`, at most 200. Each item names `taskId` (ID or `#<seq>`) and at least one of `status`, `stateReason`, `priority`, `execution`, `dependsOn` (array), `stream`, `awaiting`, `decision`, `requires` (array), `description`, `acceptance` (array), `evidence` (array of `reference|outcome` strings or `{reference, outcome}` objects) and `decisions` (array of `{question, answer}`), with the same rules as UpdateTaskId:
+
+~~~powershell
+@'
+[
+  {"taskId": "#595", "status": "done", "stateReason": "Batch form shipped", "evidence": ["scripts/test-secondbrain-pending.ps1|passed"]},
+  {"taskId": "TASK-596", "priority": "P2", "stream": "prompts"}
+]
+'@ | Set-Content -LiteralPath $batchPath -Encoding utf8
+pwsh -NoProfile -File scripts/knowledge.ps1 -UpdateTasksFile $batchPath -CheckoutPath $checkout
+~~~
+
+Each item still becomes its own request with the task hash and executor, and gets its own receipt (`batch.index` and `batch.size`); tracker, archive, ledger, requests and receipts are written by the same transaction. Applying the batch is all or nothing: an unknown field or task, an invalid value, the same task twice, or a task changed after the batch was prepared is refused as `Update <n> (<task>) refused, tracker unchanged: <reason>` (exit 2), and neither the tracker nor the queue changes. Unlike UpdateTaskId, a busy writer is not deferred: after the configured lock wait the command exits 3 without queuing anything, so run it again.
+
 NewTask requires acceptance/provenance and a numbered tracker. Sequence is lastSeq+1; IDs/numbers are not reused. RenumberTasks previews the migration and preserves original records by hash. With pwsh File, list arguments use semicolon separation as documented by the CLI.
 
 Every change of status, execution or evidence also appends a record to the dossier ledger `history/task-runs.jsonl` in the same transaction, with the executor. `knowledge.ps1 -Registry` lists every task of the working repository, archived ones included, with the ledger and this workstation's runner reports (filters `-Tool`, `-TaskStatus`, `-Archived include|exclude|only`, `-Filter`; pages `-Page`/`-PageSize`, default 50). `-BackfillTaskRuns` copies older runner reports into the ledger, preview unless `-Apply`.
